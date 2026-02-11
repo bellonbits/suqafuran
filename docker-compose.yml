@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: suqafuran_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123456789}
+      POSTGRES_DB: ${POSTGRES_DB:-suqafuran_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+
+  redis:
+    image: redis:7-alpine
+    container_name: suqafuran_redis
+    restart: always
+    ports:
+      - "6390:6379"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      network: host
+    container_name: suqafuran_backend
+    restart: always
+    environment:
+      - POSTGRES_SERVER=db
+      - REDIS_HOST=redis
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-123456789}@db:5432/${POSTGRES_DB:-suqafuran_db}
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - db
+      - redis
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    ports:
+      - "8888:8000"
+    command: >
+      sh -c "sleep 5 && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    volumes:
+      - ./backend:/app
+      - backend_uploads:/app/uploads
+
+volumes:
+  postgres_data:
+  backend_uploads:
