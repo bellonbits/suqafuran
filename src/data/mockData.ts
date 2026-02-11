@@ -38,6 +38,8 @@ export const MOCK_LISTINGS: Partial<Listing>[] = [
             full_name: 'Somali Auto Spares',
             email: 'sales@somaliauto.so',
             is_verified: true,
+            is_active: true,
+            is_admin: false,
             response_time: 'Typically responds in 1 hour',
             phone: '+252 61 555 1234'
         }
@@ -64,6 +66,8 @@ export const MOCK_LISTINGS: Partial<Listing>[] = [
             full_name: 'Hargeisa Tech Hub',
             email: 'info@hargeisatech.so',
             is_verified: true,
+            is_active: true,
+            is_admin: false,
             response_time: 'Responds instantly',
             phone: '+252 63 444 5678'
         }
@@ -90,6 +94,8 @@ export const MOCK_LISTINGS: Partial<Listing>[] = [
             full_name: 'Puntland Properties',
             email: 'contact@puntlandprop.so',
             is_verified: true,
+            is_active: true,
+            is_admin: false,
             response_time: 'Responds within a day',
             phone: '+252 66 777 8888'
         }
@@ -116,6 +122,8 @@ export const MOCK_LISTINGS: Partial<Listing>[] = [
             full_name: 'Mogadishu Tech Hub',
             email: 'sales@mogadishutech.so',
             is_verified: true,
+            is_active: true,
+            is_admin: false,
             response_time: 'Typically responds in 3 hours',
             phone: '+252 61 999 0000'
         }

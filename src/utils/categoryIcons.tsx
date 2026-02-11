@@ -5,7 +5,6 @@ import {
     Gamepad, ShoppingBag, Utensils, Zap, Wrench,
     Sprout, Baby, Hammer, Armchair, HelpCircle
 } from 'lucide-react';
-import React from 'react';
 
 export const iconMap: Record<string, any> = {
     'car': Car,

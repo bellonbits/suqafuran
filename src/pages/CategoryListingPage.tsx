@@ -117,7 +117,7 @@ const CategoryListingPage: React.FC = () => {
                             </div>
 
                             {/* Dynamic Category Filters */}
-                            {category && getAttributesForCategory(category.id).map(attr => (
+                            {category && getAttributesForCategory(Number(category.id)).map(attr => (
                                 <div key={attr.name}>
                                     <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
                                         <ChevronDown className="h-4 w-4 text-primary-600" />

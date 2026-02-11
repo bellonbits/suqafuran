@@ -45,7 +45,7 @@ export const authService = {
         return response.data;
     },
 
-    async update(data: any): Promise<User> {
+    async updateUser(data: any): Promise<User> {
         const response = await api.patch('/users/me', data);
         return response.data;
     },
