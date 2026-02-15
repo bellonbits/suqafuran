@@ -22,7 +22,7 @@ const OverviewDashboard: React.FC = () => {
     });
 
     const stats = [
-        { label: 'My Listings', value: realStats?.listings.toString() || '0', icon: ShoppingBag, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { label: 'My Listings', value: realStats?.listings.toString() || '0', icon: ShoppingBag, color: 'text-primary-600', bg: 'bg-primary-50' },
         { label: 'Active Messages', value: realStats?.messages.toString() || '0', icon: MessageCircle, color: 'text-green-600', bg: 'bg-green-50' },
         { label: 'Saved Ads', value: realStats?.favorites.toString() || '0', icon: Heart, color: 'text-red-600', bg: 'bg-red-50' },
         { label: 'Profile Views', value: realStats?.views || '0', icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-50' },

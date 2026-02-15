@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, MapPin, Tag, Search, ListFilter } from 'lucide-react';
 import { Logo } from './Logo';
 
 interface AuthLayoutProps {
@@ -16,32 +16,38 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
     imageCaption = "Connecting Africa, One Listing at a Time."
 }) => {
     return (
-        <div className="fixed inset-0 w-full h-full flex bg-[#13111a] text-gray-200 overflow-hidden">
+        <div className="fixed inset-0 w-full h-full flex bg-gray-50 text-gray-900 overflow-hidden">
             {/* Left Side - Image/Visuals (Hidden on mobile) */}
-            <div className="hidden lg:flex lg:w-1/2 relative p-8">
-                <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl border border-white/5">
-                    <img
-                        src="/hero3.jpg"
-                        alt="Auth Background"
-                        className="absolute inset-0 w-full h-full object-cover"
-                    />
-                    {/* Overlay Gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#1a1625]/80 via-transparent to-[#1a1625]/20" />
+            <div className="hidden lg:flex lg:w-1/2 relative p-4">
+                <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl bg-primary-500">
+                    {/* Background Pattern with Icons */}
+                    <div className="absolute inset-0 opacity-10">
+                        <div className="grid grid-cols-6 gap-8 p-8 transform -rotate-12 scale-110">
+                            {[...Array(24)].map((_, i) => (
+                                <div key={i} className="flex justify-center items-center">
+                                    {i % 4 === 0 && <MapPin className="w-12 h-12 text-white" />}
+                                    {i % 4 === 1 && <Tag className="w-12 h-12 text-white" />}
+                                    {i % 4 === 2 && <Search className="w-12 h-12 text-white" />}
+                                    {i % 4 === 3 && <ListFilter className="w-12 h-12 text-white" />}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
 
                     {/* Brand Content */}
                     <div className="absolute inset-0 p-12 flex flex-col justify-between pointer-events-none">
                         <div className="flex items-center justify-between pointer-events-auto">
-                            <Logo size="lg" className="brightness-200 grayscale contrast-200" />
+                            <Logo size="lg" className="brightness-0 invert" />
                             <Link
                                 to="/"
-                                className="flex items-center text-sm font-medium text-white/80 hover:text-white transition-colors bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/10"
+                                className="flex items-center text-sm font-medium text-white hover:text-white/80 transition-colors bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20"
                             >
                                 Back to website <ArrowLeft className="ml-2 w-4 h-4 rotate-180" />
                             </Link>
                         </div>
 
-                        <div className="max-w-md">
-                            <h2 className="text-4xl font-bold text-white tracking-tight leading-tight">
+                        <div className="max-w-md relative z-10">
+                            <h2 className="text-4xl font-bold text-white tracking-tight leading-tight drop-shadow-sm">
                                 {imageCaption}
                             </h2>
                             <div className="mt-6 flex gap-2">
@@ -54,21 +60,19 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
                 </div>
             </div>
 
-            {/* Right Side - Form Container */}
-            <div className="flex-1 flex flex-col justify-center items-center px-6 lg:px-20 py-12 relative overflow-y-auto">
-                {/* Mobile Logo */}
-                <div className="lg:hidden absolute top-8 left-8">
-                    <Logo size="md" />
-                </div>
-
-                <div className="w-full max-w-[440px] space-y-8">
-                    <div className="space-y-2">
-                        <h1 className="text-4xl font-bold tracking-tight text-white">
+            <div className="flex-1 flex flex-col justify-center items-center px-6 lg:px-20 py-6 relative overflow-y-auto bg-white">
+                <div className="w-full max-w-[440px] space-y-6 pb-6">
+                    {/* Mobile Logo */}
+                    <div className="lg:hidden mb-6 flex justify-center">
+                        <Logo size="md" />
+                    </div>
+                    <div className="space-y-3 text-center lg:text-left">
+                        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
                             {title}
                         </h1>
-                        <p className="text-gray-400 font-medium">
+                        <div className="text-gray-500 font-medium">
                             {subtitle}
-                        </p>
+                        </div>
                     </div>
 
                     <div className="mt-8">
@@ -76,10 +80,6 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
                     </div>
                 </div>
             </div>
-
-            {/* Decorative Orbs */}
-            <div className="absolute -top-[10%] -right-[5%] w-[40%] h-[40%] bg-primary-600/10 rounded-full blur-[120px] pointer-events-none" />
-            <div className="absolute -bottom-[10%] -left-[5%] w-[40%] h-[40%] bg-secondary-600/5 rounded-full blur-[120px] pointer-events-none" />
         </div>
     );
 };

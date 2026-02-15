@@ -1,73 +1,71 @@
 import React, { useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { DashboardLayout } from '../layouts/DashboardLayout';
-import api, { API_BASE_URL } from '../services/api';
-import {
-    ShieldCheck, Upload, FileText, CheckCircle,
-    AlertCircle, Loader2, ChevronRight, Info, TrendingUp
-} from 'lucide-react';
+import Webcam from 'react-webcam';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { Camera, Upload, CheckCircle, XCircle, Shield, Loader2 } from 'lucide-react';
+import api from '../services/api';
 import { Button } from '../components/Button';
+import { DashboardLayout } from '../layouts/DashboardLayout';
 import { cn } from '../utils/cn';
 
 const VerificationPage: React.FC = () => {
-    const API_HOST = API_BASE_URL.replace('/api/v1', '');
-    const [step, setStep] = useState(1);
-    const [docType, setDocType] = useState('');
-    const [files, setFiles] = useState<string[]>([]);
-    const [isUploading, setIsUploading] = useState(false);
+    const [selfieCapture, setSelfieCapture] = useState<string | null>(null);
+    const [documentFiles, setDocumentFiles] = useState<File[]>([]);
+    const webcamRef = React.useRef<Webcam>(null);
 
-    const { data: status } = useQuery({
+    const { data: status, isLoading } = useQuery({
         queryKey: ['verification-status'],
         queryFn: () => api.get('/verifications/me').then((res: any) => res.data),
     });
 
     const submitMutation = useMutation({
-        mutationFn: (data: any) => api.post('/verifications/apply', data),
-        onSuccess: () => setStep(3),
-    });
+        mutationFn: async () => {
+            const formData = new FormData();
+            formData.append('document_type', 'id');
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files?.length) return;
-        setIsUploading(true);
+            documentFiles.forEach((file) => {
+                formData.append('document_files', file);
+            });
 
-        // Mocking upload for now - in real app, call listingService.uploadImage
-        const formData = new FormData();
-        formData.append('file', e.target.files[0]);
+            if (selfieCapture) {
+                const base64Response = await fetch(selfieCapture);
+                const blob = await base64Response.blob();
+                formData.append('selfie_file', blob, 'selfie.jpg');
+            }
 
-        try {
-            const res = await api.post('/listings/upload', formData, {
+            return api.post('/verifications/apply', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            setFiles([...files, res.data.url]);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setIsUploading(false);
+        },
+        onSuccess: () => {
+            setSelfieCapture(null);
+            setDocumentFiles([]);
+        },
+    });
+
+    const captureSelfie = React.useCallback(() => {
+        if (webcamRef.current) {
+            const imageSrc = webcamRef.current.getScreenshot();
+            setSelfieCapture(imageSrc);
+        }
+    }, [webcamRef]);
+
+    const handleDocumentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            setDocumentFiles(Array.from(e.target.files));
         }
     };
 
     const handleSubmit = () => {
-        submitMutation.mutate({
-            document_type: docType,
-            document_urls: files,
-        });
+        if (selfieCapture && documentFiles.length > 0) {
+            submitMutation.mutate();
+        }
     };
 
-    if (status?.status === 'pending') {
+    if (isLoading) {
         return (
             <DashboardLayout>
-                <div className="max-w-2xl mx-auto text-center py-20">
-                    <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse">
-                        <Loader2 className="h-10 w-10 animate-spin" />
-                    </div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-4">Verification Under Review</h1>
-                    <p className="text-gray-500 text-lg leading-relaxed">
-                        Our moderation team is currently reviewing your documents.
-                        This usually takes **24-48 hours**. We'll notify you as soon as your status changes.
-                    </p>
-                    <Button variant="outline" className="mt-10 rounded-xl" onClick={() => window.history.back()}>
-                        Go Back
-                    </Button>
+                <div className="flex items-center justify-center h-96">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
                 </div>
             </DashboardLayout>
         );
@@ -75,166 +73,214 @@ const VerificationPage: React.FC = () => {
 
     return (
         <DashboardLayout>
-            <div className="mb-10">
-                <h1 className="text-2xl font-bold text-gray-900">Get Verified</h1>
-                <p className="text-sm text-gray-500 mt-1">Build trust and boost your sales by becoming a verified seller.</p>
-            </div>
-
-            <div className="grid lg:grid-cols-3 gap-10">
-                <div className="lg:col-span-2">
-                    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                        {/* Progress Bar */}
-                        <div className="flex border-b border-gray-50">
-                            {[1, 2, 3].map((s) => (
-                                <div
-                                    key={s}
-                                    className={cn(
-                                        "flex-1 h-2 transition-colors",
-                                        step >= s ? "bg-primary-600" : "bg-gray-100"
-                                    )}
-                                />
-                            ))}
-                        </div>
-
-                        <div className="p-8 md:p-12">
-                            {step === 1 && (
-                                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    <div>
-                                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 1: Choose Document Type</h2>
-                                        <p className="text-gray-500">Please select the type of identification you wish to provide.</p>
-                                    </div>
-
-                                    <div className="grid gap-4">
-                                        {[
-                                            { id: 'id', label: 'National ID Card', desc: 'Front and back side' },
-                                            { id: 'passport', label: 'Passport', desc: 'Main bio page' },
-                                            { id: 'business', label: 'Business Registration', desc: 'Certificate of incorporation' }
-                                        ].map((opt) => (
-                                            <button
-                                                key={opt.id}
-                                                onClick={() => setDocType(opt.id)}
-                                                className={cn(
-                                                    "flex items-center justify-between p-6 rounded-2xl border-2 transition-all text-left group",
-                                                    docType === opt.id
-                                                        ? "border-primary-600 bg-primary-50/30 shadow-md"
-                                                        : "border-gray-100 hover:border-primary-200"
-                                                )}
-                                            >
-                                                <div className="flex items-center gap-4">
-                                                    <div className={cn(
-                                                        "w-12 h-12 rounded-xl flex items-center justify-center transition-colors",
-                                                        docType === opt.id ? "bg-primary-600 text-white" : "bg-gray-50 text-gray-400 group-hover:bg-primary-100 group-hover:text-primary-600"
-                                                    )}>
-                                                        <FileText className="h-6 w-6" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-bold text-gray-900">{opt.label}</p>
-                                                        <p className="text-xs text-gray-500">{opt.desc}</p>
-                                                    </div>
-                                                </div>
-                                                <div className={cn(
-                                                    "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
-                                                    docType === opt.id ? "border-primary-600 bg-primary-600" : "border-gray-200"
-                                                )}>
-                                                    {docType === opt.id && <CheckCircle className="h-4 w-4 text-white" />}
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    <div className="pt-6 border-t border-gray-50">
-                                        <Button
-                                            className="w-full h-14 rounded-2xl text-lg font-bold gap-2"
-                                            disabled={!docType}
-                                            onClick={() => setStep(2)}
-                                        >
-                                            Next Step
-                                            <ChevronRight className="h-5 w-5" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {step === 2 && (
-                                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                                    <div>
-                                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Step 2: Upload Documents</h2>
-                                        <p className="text-gray-500">Upload clear photos of your {docType.toUpperCase()}. Max 5MB per file.</p>
-                                    </div>
-
-                                    <div className="grid md:grid-cols-2 gap-4">
-                                        {files.map((url, i) => (
-                                            <div key={i} className="aspect-video relative rounded-2xl overflow-hidden border border-gray-100 group">
-                                                <img src={`${API_HOST}${url}`} alt="Upload" className="w-full h-full object-cover" />
-                                                <button
-                                                    onClick={() => setFiles(files.filter((_, idx) => idx !== i))}
-                                                    className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                                                >
-                                                    <AlertCircle className="h-4 w-4" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                        {files.length < 2 && (
-                                            <label className="aspect-video rounded-2xl border-2 border-dashed border-gray-200 hover:border-primary-400 hover:bg-primary-50/20 cursor-pointer flex flex-col items-center justify-center transition-all group">
-                                                <input type="file" className="hidden" onChange={handleFileUpload} accept="image/*" />
-                                                <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3 group-hover:bg-primary-100 group-hover:text-primary-600 transition-colors">
-                                                    {isUploading ? <Loader2 className="h-6 w-6 animate-spin" /> : <Upload className="h-6 w-6" />}
-                                                </div>
-                                                <p className="text-sm font-bold text-gray-900">Click to Upload</p>
-                                                <p className="text-xs text-gray-500 mt-1 whitespace-nowrap">JPEG, PNG or PDF</p>
-                                            </label>
-                                        )}
-                                    </div>
-
-                                    <div className="flex gap-4 pt-6 border-t border-gray-50">
-                                        <Button variant="ghost" className="flex-1 h-14 rounded-2xl font-bold" onClick={() => setStep(1)}>Back</Button>
-                                        <Button
-                                            className="flex-[2] h-14 rounded-2xl text-lg font-bold"
-                                            disabled={files.length === 0 || isUploading || submitMutation.isPending}
-                                            onClick={handleSubmit}
-                                        >
-                                            {submitMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : 'Submit for Review'}
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {step === 3 && (
-                                <div className="text-center py-12 animate-in zoom-in-95 duration-500">
-                                    <div className="w-20 h-20 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-                                        <CheckCircle className="h-10 w-10" />
-                                    </div>
-                                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Application Submitted!</h2>
-                                    <p className="text-gray-500 text-lg leading-relaxed max-w-md mx-auto">
-                                        Thank you for submitting your documents. We've received your request and will review it shortly.
-                                    </p>
-                                    <Button className="mt-10 rounded-xl px-12 h-12" onClick={() => window.history.back()}>
-                                        Return to Dashboard
-                                    </Button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+            <div className="max-w-6xl mx-auto">
+                {/* Header */}
+                <div className="mb-8">
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Seller Verification</h1>
+                    <p className="text-gray-600">Complete your verification to build trust with buyers</p>
                 </div>
 
-                {/* Sidebar Info */}
-                <div className="space-y-6">
-                    <div className="bg-primary-600 rounded-3xl p-8 text-white relative overflow-hidden shadow-xl">
-                        <ShieldCheck className="h-24 w-24 absolute -bottom-4 -right-4 opacity-10" />
-                        <h4 className="text-xl font-bold mb-4">Why get verified?</h4>
-                        <ul className="space-y-4">
-                            {[
-                                { icon: ShieldCheck, text: 'Verification Badge on profile' },
-                                { icon: TrendingUp, text: 'Higher ranking in search' },
-                                { icon: Info, text: 'Increase buyer confidence' }
-                            ].map((item, i) => (
-                                <li key={i} className="flex items-center gap-3 text-sm text-primary-50">
-                                    <item.icon className="h-5 w-5 text-secondary-400" />
-                                    {item.text}
-                                </li>
-                            ))}
-                        </ul>
+                {/* Verification Status Card */}
+                {status && (
+                    <div className={cn(
+                        "mb-8 p-6 rounded-2xl border-2 flex items-center gap-4",
+                        status.status === 'approved' ? "bg-green-50 border-green-200" :
+                            status.status === 'pending' ? "bg-blue-50 border-blue-200" :
+                                "bg-red-50 border-red-200"
+                    )}>
+                        {status.status === 'approved' ? (
+                            <>
+                                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                                    <CheckCircle className="w-6 h-6 text-green-600" />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-bold text-green-900">Verified Seller</h3>
+                                    <p className="text-sm text-green-700">Your account has been successfully verified</p>
+                                </div>
+                                <Shield className="w-8 h-8 text-green-600" />
+                            </>
+                        ) : status.status === 'pending' ? (
+                            <>
+                                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                    <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-bold text-blue-900">Verification Pending</h3>
+                                    <p className="text-sm text-blue-700">Your documents are under review (24-48 hours)</p>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                                    <XCircle className="w-6 h-6 text-red-600" />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-bold text-red-900">Verification Rejected</h3>
+                                    <p className="text-sm text-red-700">Please submit new documents</p>
+                                </div>
+                            </>
+                        )}
                     </div>
+                )}
+
+                {/* Main Verification Grid */}
+                {(!status || status.status === 'rejected') && (
+                    <div className="grid md:grid-cols-2 gap-6">
+                        {/* Selfie Capture Card */}
+                        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
+                                    <Camera className="w-5 h-5 text-primary-600" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-gray-900">Take a Selfie</h3>
+                                    <p className="text-sm text-gray-500">Capture a clear photo of your face</p>
+                                </div>
+                            </div>
+
+                            <div className="aspect-[3/4] rounded-xl overflow-hidden bg-gray-900 mb-4 relative">
+                                {selfieCapture ? (
+                                    <img src={selfieCapture} alt="Selfie" className="w-full h-full object-cover" />
+                                ) : (
+                                    <Webcam
+                                        audio={false}
+                                        ref={webcamRef}
+                                        screenshotFormat="image/jpeg"
+                                        className="w-full h-full object-cover"
+                                        videoConstraints={{ facingMode: "user", aspectRatio: 0.75 }}
+                                    />
+                                )}
+                                {selfieCapture && (
+                                    <div className="absolute top-3 right-3">
+                                        <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                                            <CheckCircle className="w-5 h-5 text-white" />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {selfieCapture ? (
+                                <Button
+                                    variant="outline"
+                                    className="w-full rounded-xl"
+                                    onClick={() => setSelfieCapture(null)}
+                                >
+                                    Retake Photo
+                                </Button>
+                            ) : (
+                                <Button
+                                    className="w-full rounded-xl bg-primary-600 hover:bg-primary-700"
+                                    onClick={captureSelfie}
+                                >
+                                    <Camera className="w-4 h-4 mr-2" />
+                                    Capture Photo
+                                </Button>
+                            )}
+                        </div>
+
+                        {/* Document Upload Card */}
+                        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
+                                    <Upload className="w-5 h-5 text-primary-600" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-gray-900">Upload ID Document</h3>
+                                    <p className="text-sm text-gray-500">National ID, Passport, or Driver's License</p>
+                                </div>
+                            </div>
+
+                            <label className="block">
+                                <input
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    onChange={handleDocumentUpload}
+                                    className="hidden"
+                                />
+                                <div className={cn(
+                                    "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all",
+                                    documentFiles.length > 0
+                                        ? "border-green-300 bg-green-50"
+                                        : "border-gray-200 hover:border-primary-300 hover:bg-primary-50/30"
+                                )}>
+                                    {documentFiles.length > 0 ? (
+                                        <>
+                                            <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-3" />
+                                            <p className="font-semibold text-green-900 mb-1">
+                                                {documentFiles.length} {documentFiles.length === 1 ? 'file' : 'files'} selected
+                                            </p>
+                                            <p className="text-sm text-green-700">
+                                                {documentFiles.map(f => f.name).join(', ')}
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                                            <p className="font-semibold text-gray-900 mb-1">Click to upload</p>
+                                            <p className="text-sm text-gray-500">PNG, JPG up to 5MB</p>
+                                        </>
+                                    )}
+                                </div>
+                            </label>
+
+                            {documentFiles.length > 0 && (
+                                <div className="mt-4 grid grid-cols-2 gap-2">
+                                    {documentFiles.map((file, idx) => (
+                                        <div key={idx} className="aspect-video rounded-lg overflow-hidden border border-gray-200">
+                                            <img
+                                                src={URL.createObjectURL(file)}
+                                                alt={`Document ${idx + 1}`}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Submit Button */}
+                {(!status || status.status === 'rejected') && (
+                    <div className="mt-8 flex justify-center">
+                        <Button
+                            className="px-12 h-14 rounded-xl text-lg font-bold bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-500/20 disabled:opacity-50"
+                            disabled={!selfieCapture || documentFiles.length === 0 || submitMutation.isPending}
+                            onClick={handleSubmit}
+                        >
+                            {submitMutation.isPending ? (
+                                <>
+                                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                    Submitting...
+                                </>
+                            ) : (
+                                <>
+                                    <Shield className="w-5 h-5 mr-2" />
+                                    Submit for Verification
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                )}
+
+                {/* Info Section */}
+                <div className="mt-8 bg-blue-50 rounded-2xl p-6 border border-blue-100">
+                    <h4 className="font-bold text-blue-900 mb-3">Why verify your account?</h4>
+                    <ul className="space-y-2 text-sm text-blue-800">
+                        <li className="flex items-start gap-2">
+                            <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <span>Build trust with buyers and increase sales</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <span>Get a verified badge on your profile</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <span>Rank higher in search results</span>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </DashboardLayout>

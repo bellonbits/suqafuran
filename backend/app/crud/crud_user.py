@@ -10,13 +10,18 @@ def get_user_by_email(db: Session, email: str) -> Optional[User]:
     return db.exec(statement).first()
 
 
-def create_user(db: Session, user_in: UserCreate) -> User:
+def get_user_by_phone(db: Session, phone: str) -> Optional[User]:
+    statement = select(User).where(User.phone == phone)
+    return db.exec(statement).first()
+
+
+def create_user(db: Session, phone: str, password: str, full_name: Optional[str] = None, email: Optional[str] = None) -> User:
     db_obj = User(
-        full_name=user_in.full_name,
-        email=user_in.email,
-        phone=user_in.phone,
-        hashed_password=get_password_hash(user_in.password),
-        is_admin=False,
+        phone=phone,
+        full_name=full_name,
+        email=email,
+        hashed_password=get_password_hash(password),
+        is_active=True,
     )
     db.add(db_obj)
     db.commit()
@@ -27,8 +32,15 @@ def create_user(db: Session, user_in: UserCreate) -> User:
 def authenticate(
     db: Session, email: str, password: str
 ) -> Optional[User]:
+    # Try by email first
     user = get_user_by_email(db, email=email)
+    # If not found, try by phone (treating email param as username/phone)
     if not user:
+        user = get_user_by_phone(db, phone=email)
+    
+    if not user:
+        return None
+    if not user.hashed_password:
         return None
     if not verify_password(password, user.hashed_password):
         return None

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft, Send, CheckCircle } from 'lucide-react';
 import { Button } from '../components/Button';
-import { Input } from '../components/Input';
+import { AuthInput } from '../components/AuthInput';
+import { AuthLayout } from '../components/AuthLayout';
 import { authService } from '../services/authService';
 
 const ForgotPasswordPage: React.FC = () => {
@@ -19,7 +20,13 @@ const ForgotPasswordPage: React.FC = () => {
             await authService.forgotPassword(email);
             setSuccess(true);
         } catch (err: any) {
-            setError(err.response?.data?.detail || 'Failed to send reset link');
+            const detail = err.response?.data?.detail;
+            const message = typeof detail === 'string'
+                ? detail
+                : Array.isArray(detail)
+                    ? detail[0]?.msg || 'Validation error'
+                    : 'Failed to send reset link';
+            setError(message);
         } finally {
             setLoading(false);
         }
@@ -47,49 +54,44 @@ const ForgotPasswordPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
-            <div className="max-w-md w-full space-y-8 bg-white p-8 md:p-10 rounded-2xl shadow-xl border border-gray-100">
+        <AuthLayout
+            title="Forgot Password?"
+            subtitle="Enter your email and we'll send you a code to reset your password."
+            imageCaption="Recover access to your marketplace."
+        >
+            <form className="space-y-6" onSubmit={handleSubmit}>
+                <AuthInput
+                    label="Email Address"
+                    id="email"
+                    type="email"
+                    required
+                    placeholder="name@example.com"
+                    icon={<Mail className="h-4 w-4" />}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    error={error || undefined}
+                />
+
+                <Button
+                    type="submit"
+                    className="w-full h-12 text-lg rounded-xl font-semibold bg-primary-600 hover:bg-primary-500 text-white shadow-lg shadow-primary-500/20"
+                    isLoading={loading}
+                >
+                    <Send className="mr-2 w-5 h-5" />
+                    Send Reset Code
+                </Button>
+
                 <div className="text-center">
-                    <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-                        Forgot Password?
-                    </h2>
-                    <p className="mt-4 text-gray-600">
-                        Enter your email and we'll send you a code to reset your password.
-                    </p>
-                </div>
-
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-                    <Input
-                        label="Email Address"
-                        id="email"
-                        type="email"
-                        required
-                        placeholder="name@example.com"
-                        icon={<Mail className="h-4 w-4" />}
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        error={error || undefined}
-                    />
-
-                    <Button
-                        type="submit"
-                        className="w-full h-12 text-lg rounded-xl"
-                        isLoading={loading}
-                    >
-                        <Send className="mr-2 w-5 h-5" />
-                        Send Reset Code
-                    </Button>
-
                     <Link
                         to="/login"
-                        className="flex items-center justify-center text-sm font-medium text-gray-500 hover:text-gray-700"
+                        className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
                     >
                         <ArrowLeft className="mr-2 w-4 h-4" />
                         Back to login
                     </Link>
-                </form>
-            </div>
-        </div>
+                </div>
+            </form>
+        </AuthLayout>
     );
 };
 

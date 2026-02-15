@@ -5,6 +5,7 @@ import { ProductDetailPage } from '../pages/ProductDetailPage';
 import { SearchResultsPage } from '../pages/SearchResultsPage';
 import { LoginPage } from '../pages/LoginPage';
 import { SignupPage } from '../pages/SignupPage';
+import { PhoneVerificationPage } from '../pages/PhoneVerificationPage';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { OverviewDashboard } from '../pages/OverviewDashboard';
 import { MyAdsPage } from '../pages/MyAdsPage';
@@ -24,6 +25,8 @@ import { VerificationPage } from '../pages/VerificationPage';
 import { HelpCenterPage } from '../pages/HelpCenterPage';
 import { SocialAuthCallback } from '../pages/SocialAuthCallback';
 import { WalletPage } from '../pages/WalletPage';
+import { PromotionPage } from '../pages/PromotionPage';
+import AdminPromotionsPage from '../pages/admin/AdminPromotionsPage';
 
 const AppRoutes = () => {
     return (
@@ -36,6 +39,7 @@ const AppRoutes = () => {
             {/* Auth Routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route path="/phone-verification" element={<PhoneVerificationPage />} />
             <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -60,9 +64,11 @@ const AppRoutes = () => {
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/verification" element={<VerificationPage />} />
                 <Route path="/wallet" element={<WalletPage />} />
+                <Route path="/promote/:adId" element={<PromotionPage />} />
 
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/promotions" element={<AdminPromotionsPage />} />
             </Route>
         </Routes>
     );

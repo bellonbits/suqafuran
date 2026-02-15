@@ -68,7 +68,7 @@ const AdminDashboard: React.FC = () => {
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                         <div className="flex justify-between items-start mb-4">
-                            <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+                            <div className="w-10 h-10 bg-primary-50 text-primary-600 rounded-lg flex items-center justify-center">
                                 <Users className="h-5 w-5" />
                             </div>
                         </div>

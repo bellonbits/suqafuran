@@ -1,0 +1,14 @@
+Found 2 duplicate/null phone groups.
+Group: None, Count: 3
+  Keeping ID: 2
+  Reassigning dependencies for ID: 3 to ID: 2
+  Deleting ID: 3
+  Reassigning dependencies for ID: 4 to ID: 2
+  Deleting ID: 4
+Group: 0793046776, Count: 3
+  Keeping ID: 5
+  Reassigning dependencies for ID: 6 to ID: 5
+  Deleting ID: 6
+  Reassigning dependencies for ID: 7 to ID: 5
+  Deleting ID: 7
+Cleanup complete.

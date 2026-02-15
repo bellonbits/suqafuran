@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 
 export const CATEGORIES = [
-    { id: '1', label: 'Vehicles', icon: Car, color: 'bg-blue-50 text-blue-600' },
+    { id: '1', label: 'Vehicles', icon: Car, color: 'bg-primary-50 text-primary-500' },
     { id: '2', label: 'Property', icon: Home, color: 'bg-green-50 text-green-600' },
     { id: '3', label: 'Electronics', icon: Smartphone, color: 'bg-purple-50 text-purple-600' },
     { id: '4', label: 'Jobs', icon: Briefcase, color: 'bg-orange-50 text-orange-600' },

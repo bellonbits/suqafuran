@@ -17,6 +17,9 @@ class VerificationRequestBase(SQLModel):
     status: VerificationStatus = Field(default=VerificationStatus.PENDING)
     notes: Optional[str] = None
     document_urls: List[str] = Field(default=[], sa_column=Column(JSON))
+    selfie_url: Optional[str] = None
+    facial_match_score: Optional[float] = None
+    auto_verification_status: Optional[str] = None  # passed, failed, manual_review
 
 class VerificationRequest(VerificationRequestBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

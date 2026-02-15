@@ -3,7 +3,8 @@ import {
     Dumbbell, Heart, Watch, Menu, Tag, Laptop,
     Shirt, Bike, Camera, Music, Book,
     Gamepad, ShoppingBag, Utensils, Zap, Wrench,
-    Sprout, Baby, Hammer, Armchair, HelpCircle
+    Sprout, Baby, Hammer, Armchair, HelpCircle,
+    PawPrint, Tractor, HardHat, Footprints
 } from 'lucide-react';
 
 export const iconMap: Record<string, any> = {
@@ -30,16 +31,19 @@ export const iconMap: Record<string, any> = {
     'utensils': Utensils,
     'zap': Zap,
     'sprout': Sprout,
-    'agriculture': Sprout,
+    'agriculture': Tractor,
     'fashion': Shirt,
     'health-beauty': Heart,
     'sports': Bike,
     'babies-kids': Baby,
     'baby': Baby,
     'hammer': Hammer,
-    'construction': Hammer,
+    'construction': HardHat,
     'armchair': Armchair,
-    'home-living': Armchair
+    'home-living': Armchair,
+    'animals': PawPrint,
+    'shoes': Footprints,
+    'commercial': Briefcase
 };
 
 export const getCategoryIcon = (iconName: string) => {
