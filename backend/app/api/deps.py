@@ -67,3 +67,7 @@ def get_current_active_superuser(
             status_code=400, detail="The user doesn't have enough privileges"
         )
     return current_user
+
+
+# Alias for admin endpoints
+get_current_admin_user = get_current_active_superuser

@@ -64,9 +64,9 @@ const SearchResultsPage: React.FC = () => {
                 )}
 
                 {/* Pro tip */}
-                <div className="mt-12 p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3">
-                    <Info className="h-5 w-5 text-blue-600 shrink-0" />
-                    <p className="text-xs text-blue-800 leading-normal">
+                <div className="mt-12 p-4 bg-primary-50 rounded-xl border border-primary-100 flex gap-3">
+                    <Info className="h-5 w-5 text-primary-600 shrink-0" />
+                    <p className="text-xs text-primary-800 leading-normal">
                         <strong>Tip:</strong> Be specific. Instead of "car", try "Toyota Corolla 2015" for better results.
                     </p>
                 </div>

@@ -9,7 +9,7 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { cn } from '../utils/cn';
 import { getAttributesForCategory } from '../utils/categoryAttributes';
-import { MOCK_CATEGORIES } from '../data/mockData';
+import { JIJI_CATEGORIES } from '../utils/jijiCategories';
 
 const CategoryListingPage: React.FC = () => {
     const { categoryId } = useParams<{ categoryId: string }>();
@@ -22,7 +22,7 @@ const CategoryListingPage: React.FC = () => {
         queryFn: listingService.getCategories,
     });
 
-    const displayCategories = (categories && categories.length > 0) ? categories : MOCK_CATEGORIES;
+    const displayCategories = categories || [];
     const category = displayCategories.find(c => String(c.id) === String(categoryId));
 
     const [location, setLocation] = useState('');
@@ -101,49 +101,94 @@ const CategoryListingPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div>
-                                <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                    <SlidersHorizontal className="h-4 w-4 text-primary-600" />
-                                    Condition
-                                </h3>
-                                <div className="space-y-2">
-                                    {['New', 'Used', 'Refurbished'].map(cond => (
-                                        <label key={cond} className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer hover:text-primary-600">
-                                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500" />
-                                            {cond}
-                                        </label>
-                                    ))}
+                            {/* Conditional Filters */}
+                            {['electronics', 'phones', 'cars', 'fashion', 'kids-toys', 'commercial', 'repair-construction'].includes(categoryId || '') && (
+                                <div>
+                                    <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                        <SlidersHorizontal className="h-4 w-4 text-primary-600" />
+                                        Condition
+                                    </h3>
+                                    <div className="space-y-2">
+                                        {['New', 'Used', 'Refurbished'].map(cond => (
+                                            <label key={cond} className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer hover:text-primary-600">
+                                                <input
+                                                    type="checkbox"
+                                                    className="rounded text-primary-600 focus:ring-primary-500"
+                                                    checked={attributeFilters['condition'] === cond}
+                                                    onChange={(e) => setAttributeFilters(prev => {
+                                                        const newFilters = { ...prev };
+                                                        if (e.target.checked) {
+                                                            newFilters['condition'] = cond;
+                                                        } else {
+                                                            delete newFilters['condition'];
+                                                        }
+                                                        return newFilters;
+                                                    })}
+                                                />
+                                                {cond}
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             {/* Dynamic Category Filters */}
-                            {category && getAttributesForCategory(Number(category.id)).map(attr => (
-                                <div key={attr.name}>
-                                    <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                        <ChevronDown className="h-4 w-4 text-primary-600" />
-                                        {attr.label}
-                                    </h3>
-                                    {attr.type === 'select' ? (
-                                        <select
-                                            className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:ring-1 focus:ring-primary-600"
-                                            value={attributeFilters[attr.name] || ''}
-                                            onChange={(e) => setAttributeFilters(prev => ({ ...prev, [attr.name]: e.target.value || undefined }))}
-                                        >
-                                            <option value="">All {attr.label}s</option>
-                                            {attr.options?.map(opt => (
-                                                <option key={opt} value={opt}>{opt}</option>
-                                            ))}
-                                        </select>
-                                    ) : (
-                                        <Input
-                                            placeholder={`e.g. ${attr.placeholder || ''}`}
-                                            className="rounded-lg h-9"
-                                            value={attributeFilters[attr.name] || ''}
-                                            onChange={(e) => setAttributeFilters(prev => ({ ...prev, [attr.name]: e.target.value || undefined }))}
-                                        />
-                                    )}
-                                </div>
-                            ))}
+                            {(() => {
+                                // Try to find in JIJI_CATEGORIES first for subcategories
+                                const jijiCategory = JIJI_CATEGORIES.find(c => c.id === categoryId);
+
+                                return (
+                                    <>
+                                        {jijiCategory && jijiCategory.subcategories.length > 0 && (
+                                            <div>
+                                                <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                                    <ListFilter className="h-4 w-4 text-primary-600" />
+                                                    Subcategory
+                                                </h3>
+                                                <select
+                                                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:ring-1 focus:ring-primary-600"
+                                                    value={attributeFilters['subcategory'] || ''}
+                                                    onChange={(e) => setAttributeFilters(prev => ({ ...prev, 'subcategory': e.target.value || undefined }))}
+                                                >
+                                                    <option value="">All {jijiCategory.label}</option>
+                                                    {jijiCategory.subcategories.map(sub => (
+                                                        <option key={sub.name} value={sub.name}>{sub.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        )}
+
+                                        {/* Backend Attributes */}
+                                        {category && getAttributesForCategory(Number(category.id)).map(attr => (
+                                            <div key={attr.name}>
+                                                <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                                    <ChevronDown className="h-4 w-4 text-primary-600" />
+                                                    {attr.label}
+                                                </h3>
+                                                {attr.type === 'select' ? (
+                                                    <select
+                                                        className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:ring-1 focus:ring-primary-600"
+                                                        value={attributeFilters[attr.name] || ''}
+                                                        onChange={(e) => setAttributeFilters(prev => ({ ...prev, [attr.name]: e.target.value || undefined }))}
+                                                    >
+                                                        <option value="">All {attr.label}s</option>
+                                                        {attr.options?.map(opt => (
+                                                            <option key={opt} value={opt}>{opt}</option>
+                                                        ))}
+                                                    </select>
+                                                ) : (
+                                                    <Input
+                                                        placeholder={`e.g. ${attr.placeholder || ''}`}
+                                                        className="rounded-lg h-9"
+                                                        value={attributeFilters[attr.name] || ''}
+                                                        onChange={(e) => setAttributeFilters(prev => ({ ...prev, [attr.name]: e.target.value || undefined }))}
+                                                    />
+                                                )}
+                                            </div>
+                                        ))}
+                                    </>
+                                );
+                            })()}
 
                             <Button
                                 className="w-full rounded-lg h-10"

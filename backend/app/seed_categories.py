@@ -1,6 +1,6 @@
 from sqlmodel import Session, select
 from app.db.session import engine
-from app.models.listing import Category
+from app.models import Category
 
 def seed_categories():
     categories = [

@@ -113,13 +113,14 @@ def read_listings(
     db: Session = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
-    category_id: Optional[int] = None,
+    category_id: Optional[str] = None,
     q: Optional[str] = None,
     location: Optional[str] = None,
     attrs: Optional[str] = None,
 ) -> Any:
     """
     Retrieve listings.
+    category_id can be either a numeric ID or a category slug (e.g., 'animals')
     """
     attributes = None
     if attrs:
@@ -129,8 +130,20 @@ def read_listings(
         except:
             pass
 
+    # Resolve category_id if it's a slug
+    resolved_category_id = None
+    if category_id:
+        # Try to parse as int first
+        try:
+            resolved_category_id = int(category_id)
+        except ValueError:
+            # It's a slug, look up the category
+            category = crud_listing.get_category_by_slug(db, slug=category_id)
+            if category:
+                resolved_category_id = category.id
+
     listings = crud_listing.get_listings(
-        db, skip=skip, limit=limit, category_id=category_id, search=q, location=location, attributes=attributes
+        db, skip=skip, limit=limit, category_id=resolved_category_id, search=q, location=location, attributes=attributes
     )
     return listings
 

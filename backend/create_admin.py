@@ -1,50 +1,72 @@
 import sys
 import os
 
-# Add the current directory to sys.path to allow imports from app
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+# Add the backend directory to sys.path to ensure imports work
+sys.path.append(os.path.join(os.getcwd(), "backend"))
 
-from app.db.session import Session, engine
-from app.models.user import User
-from app.models.listing import Listing, Category
-from app.models.verification import VerificationRequest
-from app.models.message import Message
-from app.models.favorite import Favorite
-from app.models.notification import Notification
+from sqlmodel import Session, select
+from app.db.session import engine
+from app.models.user import User, UserVerifiedLevel
 from app.core.security import get_password_hash
-from sqlmodel import select
 
 def create_admin():
+    phone_input = "+254 706 070 747"
+    # Normalize phone: remove spaces
+    phone = phone_input.replace(" ", "")
+    
+    print(f"Checking for user with phone: {phone}")
+    
     with Session(engine) as session:
-        # Check if admin already exists
-        email = "admin@suqafuran.com"
-        statement = select(User).where(User.email == email)
-        existing_admin = session.exec(statement).first()
+        user = session.exec(select(User).where(User.phone == phone)).first()
         
-        if existing_admin:
-            print(f"Admin user with email {email} already exists!")
-            # Optionally update to make sure it's an admin
-            existing_admin.is_admin = True
-            existing_admin.is_active = True
-            existing_admin.is_verified = True
-            session.add(existing_admin)
+        if user:
+            print(f"User found: {user.full_name} (ID: {user.id})")
+            changes_made = False
+            
+            if not user.is_admin:
+                print("Promoting to Admin...")
+                user.is_admin = True
+                changes_made = True
+            
+            if not user.is_verified:
+                 print("Marking as Verified...")
+                 user.is_verified = True
+                 changes_made = True
+            
+            if user.verified_level != UserVerifiedLevel.trusted.value:
+                print("Upgrading verification level to Trusted...")
+                user.verified_level = UserVerifiedLevel.trusted.value
+                changes_made = True
+                
+            if changes_made:
+                session.add(user)
+                session.commit()
+                session.refresh(user)
+                print("User updated successfully.")
+            else:
+                print("User is already an Admin and fully verified.")
+        else:
+            print("User not found. Creating new Admin user...")
+            password = "AdminPassword@123"
+            user = User(
+                phone=phone,
+                full_name="Super Admin",
+                hashed_password=get_password_hash(password),
+                is_active=True,
+                is_verified=True,
+                is_admin=True,
+                verified_level=UserVerifiedLevel.trusted.value
+            )
+            session.add(user)
             session.commit()
-            print("Verified existing account has admin privileges.")
-            return
-
-        admin_user = User(
-            full_name="System Admin",
-            email=email,
-            hashed_password=get_password_hash("admin123456"),
-            is_active=True,
-            is_verified=True,
-            is_admin=True
-        )
-        session.add(admin_user)
-        session.commit()
-        print("Admin user created successfully!")
-        print(f"Email: {email}")
-        print("Password: admin123456")
+            session.refresh(user)
+            print(f"Admin user created successfully.")
+            print(f"Phone: {phone}")
+            print(f"Password: {password}")
 
 if __name__ == "__main__":
-    create_admin()
+    try:
+        create_admin()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()

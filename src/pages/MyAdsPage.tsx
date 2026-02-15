@@ -174,7 +174,7 @@ const MyAdsPage: React.FC = () => {
                                 <div className="space-y-4 flex flex-col">
                                     <div className="h-10 w-2 bg-primary-500 rounded-full"></div>
                                     <div className="h-16 w-2 bg-secondary-500 rounded-full"></div>
-                                    <div className="h-8 w-2 bg-blue-500 rounded-full"></div>
+                                    <div className="h-8 w-2 bg-primary-500 rounded-full"></div>
                                     <div className="h-12 w-2 bg-white/20 rounded-full"></div>
                                 </div>
                                 <div className="text-right">
@@ -214,7 +214,7 @@ const MyAdsPage: React.FC = () => {
                                     <div className="flex items-center gap-4">
                                         <div className={cn(
                                             "w-10 h-10 rounded-xl flex items-center justify-center font-bold",
-                                            info.name === 'Diamond' ? "bg-blue-600 text-white" :
+                                            info.name === 'Diamond' ? "bg-primary-600 text-white" :
                                                 info.name === 'VIP' ? "bg-primary-600 text-white" : "bg-gray-100 text-gray-600"
                                         )}>
                                             {info.name[0]}

@@ -1,11 +1,11 @@
 import secrets
 import string
 from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException, Body, BackgroundTasks
 from sqlmodel import Session
 from app.api import deps
 from app.crud import crud_user
-from app.models.user import UserCreate, User, UserUpdate
+from app.models.user import UserCreate, User, UserUpdate, PasswordChange
 from app.utils.email import send_verification_email
 from app.utils.redis import set_verification_code, get_verification_code, delete_verification_code
 
@@ -20,7 +20,8 @@ def generate_verification_code(length: int = 6) -> str:
 def create_user_signup(
     *,
     db: Session = Depends(deps.get_db),
-    user_in: UserCreate
+    user_in: UserCreate,
+    background_tasks: BackgroundTasks
 ) -> Any:
     """
     Create new user without the need to be logged in.
@@ -36,7 +37,7 @@ def create_user_signup(
     # Generate and send verification code
     code = generate_verification_code()
     set_verification_code(user.email, code)
-    send_verification_email(user.email, code)
+    background_tasks.add_task(send_verification_email, user.email, code)
     
     return user
 
@@ -80,6 +81,61 @@ def update_user_me(
     return user
 
 
+from fastapi import UploadFile, File
+import shutil
+import os
+from app.core.config import settings
+
+@router.post("/me/avatar", response_model=User)
+def upload_avatar(
+    *,
+    db: Session = Depends(deps.get_db),
+    file: UploadFile = File(...),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Upload user avatar.
+    """
+    # Create avatar directory if it doesn't exist
+    avatar_dir = os.path.join(settings.UPLOAD_DIR, "avatars")
+    os.makedirs(avatar_dir, exist_ok=True)
+    
+    # Save file
+    file_extension = os.path.splitext(file.filename)[1]
+    file_name = f"avatar_{current_user.id}{file_extension}"
+    file_path = os.path.join(avatar_dir, file_name)
+    
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    # Update user avatar_url
+    # Static files are served from /api/v1/listings/images -> UPLOAD_DIR
+    avatar_url = f"/api/v1/listings/images/avatars/{file_name}"
+    current_user.avatar_url = avatar_url
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+    
+    return current_user
+
+
+@router.post("/me/change-password")
+def change_password(
+    *,
+    db: Session = Depends(deps.get_db),
+    password_in: PasswordChange,
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Change own password.
+    """
+    if not crud_user.authenticate(db, email=current_user.email, password=password_in.current_password):
+        raise HTTPException(status_code=400, detail="Incorrect current password")
+    
+    crud_user.update_user(db, db_obj=current_user, user_in=UserUpdate(password=password_in.new_password))
+    return {"message": "Password changed successfully"}
+
+
 @router.post("/verify-email")
 def verify_email(
     *,
@@ -109,6 +165,7 @@ def resend_verification(
     *,
     db: Session = Depends(deps.get_db),
     email: str = Body(..., embed=True),
+    background_tasks: BackgroundTasks
 ) -> Any:
     """
     Resend verification code.
@@ -122,7 +179,7 @@ def resend_verification(
     
     code = generate_verification_code()
     set_verification_code(email, code)
-    send_verification_email(email, code)
+    background_tasks.add_task(send_verification_email, email, code)
     
     return {"message": "Verification code resent"}
 
@@ -132,6 +189,7 @@ def forgot_password(
     *,
     db: Session = Depends(deps.get_db),
     email: str = Body(..., embed=True),
+    background_tasks: BackgroundTasks
 ) -> Any:
     """
     Send password reset code.
@@ -146,7 +204,7 @@ def forgot_password(
     from app.utils.email import send_reset_password_email
     
     set_reset_token(email, code)
-    send_reset_password_email(email, code)
+    background_tasks.add_task(send_reset_password_email, email, code)
     
     return {"message": "Password reset code sent"}
 

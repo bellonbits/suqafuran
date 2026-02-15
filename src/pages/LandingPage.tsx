@@ -5,10 +5,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { ProductCard } from '../components/ProductCard';
 import { listingService } from '../services/listingService';
-import { Search, MapPin, TrendingUp, ShieldCheck, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, MapPin, TrendingUp, ShieldCheck, Loader2, ChevronLeft, ChevronRight, Tag, ListFilter } from 'lucide-react';
 import { Button } from '../components/Button';
+import { TrustPrompts } from '../components/TrustPrompts';
 import { getCategoryIcon } from '../utils/categoryIcons';
-import { MOCK_CATEGORIES, MOCK_LISTINGS } from '../data/mockData';
+import { SOMALI_REGIONS } from '../utils/somaliRegions';
+import { JIJI_CATEGORIES } from '../utils/jijiCategories';
 
 const HERO_SLIDES = [
     {
@@ -31,6 +33,9 @@ const HERO_SLIDES = [
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const [currentSlide, setCurrentSlide] = useState(0);
+    const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+    const [isLocationOpen, setLocationOpen] = useState(false);
+    const [selectedLocation, setSelectedLocation] = useState("");
 
     const { data: categories } = useQuery({
         queryKey: ['categories'],
@@ -42,8 +47,8 @@ const LandingPage: React.FC = () => {
         queryFn: () => listingService.getListings({ limit: 12 }),
     });
 
-    const displayCategories = (categories && categories.length > 0) ? categories : MOCK_CATEGORIES;
-    const displayAds = (featuredAds && featuredAds.length > 0) ? featuredAds : MOCK_LISTINGS;
+    const displayCategories = categories || [];
+    const displayAds = featuredAds || [];
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -57,46 +62,27 @@ const LandingPage: React.FC = () => {
 
     return (
         <PublicLayout>
-            {/* Hero Section */}
-            <section className="relative bg-primary-600 text-white overflow-hidden min-h-[600px] lg:h-[calc(100vh-64px)]">
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={currentSlide}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 1 }}
-                        className="absolute inset-0"
-                    >
-                        {HERO_SLIDES[currentSlide].image ? (
-                            <div
-                                className="absolute inset-0 bg-cover bg-center transition-transform duration-[10000ms] scale-110"
-                                style={{ backgroundImage: `url('${HERO_SLIDES[currentSlide].image}')` }}
-                            />
-                        ) : (
-                            <div className="absolute inset-0 bg-gradient-to-br from-primary-400 to-primary-600" />
-                        )}
-                        {/* Removed dark overlays for pure light blue look */}
-                    </motion.div>
-                </AnimatePresence>
+            {/* Hero Section - Reduced to half screen height */}
+            <section className="relative bg-primary-500 text-white min-h-[300px] lg:h-[40vh] z-30 overflow-hidden">
+                {/* Background Pattern with Icons */}
+                <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute inset-0 opacity-10">
+                        {/* decorative icons staggered */}
+                        <div className="grid grid-cols-6 gap-8 p-8 transform -rotate-12 scale-110">
+                            {[...Array(24)].map((_, i) => (
+                                <div key={i} className="flex justify-center items-center">
+                                    {i % 4 === 0 && <MapPin className="w-12 h-12 text-white" />}
+                                    {i % 4 === 1 && <Tag className="w-12 h-12 text-white" />}
+                                    {i % 4 === 2 && <Search className="w-12 h-12 text-white" />}
+                                    {i % 4 === 3 && <ListFilter className="w-12 h-12 text-white" />}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
 
                 <div className="container mx-auto px-4 h-full relative z-10 flex flex-col justify-center text-center">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={currentSlide}
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            exit={{ y: -20, opacity: 0 }}
-                            transition={{ duration: 0.5 }}
-                        >
-                            <h1 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight drop-shadow-lg">
-                                {HERO_SLIDES[currentSlide].title}
-                            </h1>
-                            <p className="text-lg md:text-xl text-white mb-10 max-w-2xl mx-auto drop-shadow-md">
-                                {HERO_SLIDES[currentSlide].subtitle}
-                            </p>
-                        </motion.div>
-                    </AnimatePresence>
+                    {/* Text removed for cleaner Jiji-style look */}
 
                     <div className="max-w-3xl mx-auto w-full flex flex-col md:flex-row gap-3 p-2 bg-white/20 backdrop-blur-xl rounded-2xl md:rounded-full shadow-2xl border border-white/20">
                         <div className="flex-1 relative">
@@ -107,13 +93,61 @@ const LandingPage: React.FC = () => {
                             />
                             <Search className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
                         </div>
-                        <div className="w-full md:w-60 relative">
-                            <input
-                                type="text"
-                                placeholder="All Locations"
-                                className="w-full h-12 pl-12 pr-4 rounded-full bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-secondary-500"
-                            />
-                            <MapPin className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
+                        <div className="relative">
+                            <button
+                                onClick={() => setLocationOpen(!isLocationOpen)}
+                                className="w-full h-12 pl-12 pr-4 rounded-full bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-secondary-500 text-left flex items-center justify-between"
+                            >
+                                <span className="truncate">{selectedLocation || "All Somalia"}</span>
+                                <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${isLocationOpen ? 'rotate-90' : 'rotate-0'}`} />
+                            </button>
+                            <MapPin className="absolute left-4 top-3.5 h-5 w-5 text-gray-400 pointer-events-none" />
+
+                            {/* Jiji-style Location Picker Card */}
+                            <AnimatePresence>
+                                {isLocationOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        className="absolute top-full left-0 mt-2 w-full md:w-[400px] bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50 max-h-[400px] overflow-y-auto custom-scrollbar"
+                                    >
+                                        <div className="p-2 sticky top-0 bg-white border-b border-gray-50 z-10">
+                                            <input
+                                                type="text"
+                                                placeholder="Search city or region..."
+                                                className="w-full p-2 bg-gray-50 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-secondary-500"
+                                                autoFocus
+                                            />
+                                        </div>
+                                        <div className="p-2">
+                                            <button
+                                                onClick={() => { setSelectedLocation(""); setLocationOpen(false); }}
+                                                className="w-full text-left p-2 hover:bg-primary-50 text-primary-600 font-semibold rounded-lg text-sm"
+                                            >
+                                                All Somalia
+                                            </button>
+                                            {SOMALI_REGIONS.map((region) => (
+                                                <div key={region.name} className="mt-2">
+                                                    <div className="px-2 py-1 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                                        {region.name}
+                                                    </div>
+                                                    {region.cities.map((city) => (
+                                                        <button
+                                                            key={city}
+                                                            onClick={() => { setSelectedLocation(city); setLocationOpen(false); }}
+                                                            className="w-full text-left p-2 hover:bg-gray-50 text-gray-700 text-sm rounded-lg flex items-center justify-between group"
+                                                        >
+                                                            <span>{city}</span>
+                                                            {selectedLocation === city && <div className="w-2 h-2 rounded-full bg-secondary-500" />}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                         <Button variant="secondary" size="lg" className="rounded-full shadow-lg h-12">
                             Search Now
@@ -128,13 +162,13 @@ const LandingPage: React.FC = () => {
                         <button className="underline hover:text-white transition-colors">Electronics</button>
                     </div>
 
-                    {/* Pagination Dots */}
-                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+                    {/* Pagination Dots - Moved to relative to avoid overlap */}
+                    <div className="mt-8 flex justify-center gap-2">
                         {HERO_SLIDES.map((_, idx) => (
                             <button
                                 key={idx}
                                 onClick={() => setCurrentSlide(idx)}
-                                className={`w-2.5 h-2.5 rounded-full transition-all ${currentSlide === idx ? 'bg-white w-8' : 'bg-white/40 hover:bg-white/60'
+                                className={`w-2 h-2 rounded-full transition-all ${currentSlide === idx ? 'bg-white w-6' : 'bg-white/40 hover:bg-white/60'
                                     }`}
                             />
                         ))}
@@ -160,39 +194,111 @@ const LandingPage: React.FC = () => {
             <section className="py-8 bg-[#f4f7f6]">
                 <div className="container mx-auto px-4">
                     <div className="flex flex-col lg:flex-row gap-6">
-                        {/* Sidebar Categories (As seen in Jiji Reference) */}
-                        <aside className="hidden lg:block w-72 shrink-0">
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden sticky top-4">
-                                <div className="p-4 border-b border-gray-50 bg-gray-50/50">
-                                    <h3 className="font-bold text-gray-900 flex items-center gap-2 text-sm uppercase tracking-wider">
-                                        <div className="w-1 h-4 bg-primary-600 rounded-full" />
+                        {/* Sidebar Categories (Jiji Style) */}
+                        <aside className="hidden lg:block w-72 shrink-0 relative z-20">
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible sticky top-4">
+                                <div className="p-4 border-b border-primary-500 bg-primary-500">
+                                    <h3 className="font-bold text-white flex items-center gap-2 text-sm uppercase tracking-wider">
+                                        <div className="w-1 h-4 bg-white rounded-full" />
                                         Categories
                                     </h3>
                                 </div>
-                                <div className="divide-y divide-gray-50 max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar">
-                                    {displayCategories?.map((cat) => (
-                                        <button
+                                <div className="divide-y divide-gray-50 max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar relative">
+                                    {JIJI_CATEGORIES.map((cat) => (
+                                        <div
                                             key={cat.id}
-                                            onClick={() => navigate(`/category/${cat.id}`)}
-                                            className="w-full flex items-center justify-between p-3.5 hover:bg-primary-50 transition-colors group text-left"
+                                            onMouseEnter={() => setHoveredCategory(cat.id)}
+                                            className="group"
                                         >
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500 group-hover:bg-primary-600 group-hover:text-white transition-all">
-                                                    {(() => {
-                                                        const Icon = getCategoryIcon(cat.icon_name);
-                                                        return <Icon size={18} />;
-                                                    })()}
+                                            <button
+                                                onClick={() => navigate(`/category/${cat.id}`)}
+                                                className={`w-full flex items-center justify-between p-3.5 transition-colors text-left ${hoveredCategory === cat.id ? 'bg-primary-50 text-primary-900' : 'hover:bg-gray-50'}`}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${hoveredCategory === cat.id ? 'bg-primary-500 text-white' : 'bg-gray-50 text-gray-500 group-hover:bg-primary-100 group-hover:text-primary-600'}`}>
+                                                        {(() => {
+                                                            const Icon = getCategoryIcon(cat.icon);
+                                                            return <Icon size={18} />;
+                                                        })()}
+                                                    </div>
+                                                    <div>
+                                                        <p className={`text-sm font-semibold ${hoveredCategory === cat.id ? 'text-primary-900' : 'text-gray-700'}`}>{cat.label}</p>
+                                                        {/* <p className="text-[10px] text-gray-400">{cat.count.toLocaleString()} ads</p> */}
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-sm font-semibold text-gray-700 group-hover:text-primary-700">{cat.name}</p>
-                                                    <p className="text-[10px] text-gray-400 group-hover:text-primary-400">Thousands of ads</p>
-                                                </div>
-                                            </div>
-                                            <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-primary-400 transition-all" />
-                                        </button>
+                                                <ChevronRight className={`w-4 h-4 transition-all ${hoveredCategory === cat.id ? 'text-primary-500' : 'text-gray-300'}`} />
+                                            </button>
+                                        </div>
                                     ))}
                                 </div>
+
+                                {/* Mega Menu Overlay */}
+                                <AnimatePresence>
+                                    {hoveredCategory && (
+                                        <motion.div
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: -10 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="absolute left-[calc(100%+0.5rem)] top-0 w-[500px] min-h-[400px] bg-white rounded-xl shadow-2xl border border-gray-100 p-6 z-50"
+                                            onMouseEnter={() => setHoveredCategory(hoveredCategory)}
+                                            onMouseLeave={() => setHoveredCategory(null)}
+                                        >
+                                            {(() => {
+                                                const activeCat = JIJI_CATEGORIES.find(c => c.id === hoveredCategory);
+                                                if (!activeCat) return null;
+
+                                                return (
+                                                    <div className="h-full flex flex-col">
+                                                        <div className="flex items-center gap-4 mb-6 pb-4 border-b border-gray-100">
+                                                            <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center text-primary-600">
+                                                                {(() => {
+                                                                    const Icon = getCategoryIcon(activeCat.icon);
+                                                                    return <Icon size={28} />;
+                                                                })()}
+                                                            </div>
+                                                            <div>
+                                                                <h2 className="text-2xl font-bold text-gray-900">{activeCat.label}</h2>
+                                                                {/* <p className="text-secondary-600 font-medium">{activeCat.count.toLocaleString()} ads available</p> */}
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="grid grid-cols-2 gap-y-2 gap-x-8 content-start flex-1">
+                                                            {activeCat.subcategories.map((sub, idx) => (
+                                                                <a
+                                                                    key={idx}
+                                                                    href="#"
+                                                                    className="flex items-center justify-between py-2 group hover:bg-gray-50 px-2 rounded-lg transition-colors"
+                                                                >
+                                                                    <span className="text-gray-600 group-hover:text-primary-600 font-medium">{sub.name}</span>
+                                                                    {/* <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
+                                                                        {sub.count.toLocaleString()} ads
+                                                                    </span> */}
+                                                                </a>
+                                                            ))}
+                                                        </div>
+
+                                                        <div className="mt-auto pt-6 border-t border-gray-100">
+                                                            <a href="#" className="flex items-center gap-2 text-primary-600 font-semibold hover:underline">
+                                                                View all in {activeCat.label}
+                                                                <ChevronRight size={16} />
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })()}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
+
+                            {/* Hover trap to prevent menu from closing when moving cursor from sidebar to menu */}
+                            {hoveredCategory && (
+                                <div
+                                    className="absolute inset-y-0 -right-4 w-4 bg-transparent z-40"
+                                    onMouseEnter={() => { }}
+                                />
+                            )}
                         </aside>
 
                         {/* Main Feed Area */}
@@ -202,10 +308,10 @@ const LandingPage: React.FC = () => {
                                 <div className="bg-white p-4 rounded-2xl shadow-sm border-2 border-primary-100 hover:border-primary-300 transition-all cursor-pointer group flex items-center gap-4">
                                     <div className="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center relative overflow-hidden shrink-0">
                                         <div className="absolute inset-0 opacity-10 bg-primary-600 animate-pulse" />
-                                        <ShieldCheck className="w-8 h-8 text-primary-600 z-10" />
+                                        <ShieldCheck className="w-8 h-8 text-primary-500 z-10" />
                                     </div>
                                     <div className="flex-1">
-                                        <h4 className="font-bold text-gray-900 group-hover:text-primary-700 transition-colors">Apply for Job</h4>
+                                        <h4 className="font-bold text-gray-900 group-hover:text-primary-500 transition-colors">Apply for Job</h4>
                                         <p className="text-xs text-gray-500">Find your dream career today</p>
                                     </div>
                                     <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-primary-600 group-hover:translate-x-1 transition-all" />
@@ -226,15 +332,16 @@ const LandingPage: React.FC = () => {
                                 <div className="bg-white p-4 rounded-2xl shadow-sm border-2 border-primary-100 hover:border-primary-300 transition-all cursor-pointer group flex items-center gap-4">
                                     <div className="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center relative overflow-hidden shrink-0">
                                         <div className="absolute inset-0 opacity-10 bg-primary-600 animate-pulse" />
-                                        <Search className="w-8 h-8 text-primary-600 z-10" />
+                                        <Search className="w-8 h-8 text-primary-500 z-10" />
                                     </div>
                                     <div className="flex-1">
                                         <h4 className="font-bold text-gray-900 group-hover:text-primary-700 transition-colors">How to Buy</h4>
                                         <p className="text-xs text-gray-500">Shop securely with Escrow</p>
                                     </div>
-                                    <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-primary-600 group-hover:translate-x-1 transition-all" />
                                 </div>
                             </div>
+
+                            <TrustPrompts />
 
                             {/* Trending Grid */}
                             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">

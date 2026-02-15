@@ -11,8 +11,8 @@ const SafetyTipsPage: React.FC = () => {
             title: 'Meet in Public',
             desc: 'Always meet the seller or buyer in a well-lit, busy public place like a mall or police station.',
             icon: MapPin,
-            color: 'text-blue-600',
-            bg: 'bg-blue-50'
+            color: 'text-primary-600',
+            bg: 'bg-primary-50'
         },
         {
             title: 'Inspect the Item',

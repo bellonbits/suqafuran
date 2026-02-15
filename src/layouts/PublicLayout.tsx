@@ -18,7 +18,7 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
             {/* Navbar */}
             <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
                 <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
-                    <Link to="/" className="shrink-0">
+                    <Link to="/" className="shrink-0 flex items-center">
                         <Logo size="md" />
                     </Link>
 
@@ -26,41 +26,41 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                         <input
                             type="text"
                             placeholder="Search for anything..."
-                            className="w-full h-10 pl-10 pr-4 rounded-full border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-sans"
+                            className="w-full h-10 pl-10 pr-4 rounded-full border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-sans"
                         />
                         <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                     </div>
 
                     <nav className="flex items-center gap-2 md:gap-4 shrink-0">
-                        <Button variant="ghost" size="icon" className="md:hidden">
+                        <Button variant="ghost" size="icon" className="md:hidden text-gray-600">
                             <Search className="h-5 w-5" />
                         </Button>
 
                         {!isAuthenticated ? (
                             <Link to="/login" className="hidden sm:block">
-                                <Button variant="ghost" size="sm">Sign In</Button>
+                                <Button variant="ghost" size="sm" className="text-gray-700 hover:bg-gray-50 font-semibold">Sign In</Button>
                             </Link>
                         ) : (
                             <Link to="/dashboard" className="hidden sm:flex items-center gap-2 group">
                                 <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 font-bold border border-primary-100 group-hover:bg-primary-100 transition-colors">
                                     {user?.full_name?.[0] || 'U'}
                                 </div>
-                                <span className="text-sm font-medium text-gray-700 group-hover:text-primary-600 transition-colors">My Account</span>
+                                <span className="text-sm font-semibold text-gray-700 group-hover:text-primary-600 transition-colors">My Account</span>
                             </Link>
                         )}
 
-                        <Link to="/messages" className="text-gray-600 hover:text-primary-600 transition-colors p-2 text-primary-600">
+                        <Link to="/messages" className="text-gray-600 hover:text-primary-600 transition-colors p-2">
                             <MessageCircle className="h-6 w-6" />
                         </Link>
                         <Link to="/favorites" className="text-gray-600 hover:text-primary-600 transition-colors p-2">
                             <Heart className="h-6 w-6" />
                         </Link>
                         <Link to="/post-ad">
-                            <Button className="hidden sm:flex gap-2 rounded-full">
+                            <Button variant="secondary" className="hidden sm:flex gap-2 rounded-full shadow-md">
                                 <PlusCircle className="h-5 w-5" />
                                 <span>Sell Now</span>
                             </Button>
-                            <Button size="icon" className="sm:hidden rounded-full font-bold text-lg">
+                            <Button variant="secondary" size="icon" className="sm:hidden rounded-full font-bold text-lg shadow-md">
                                 +
                             </Button>
                         </Link>

@@ -32,7 +32,13 @@ const ResetPasswordPage: React.FC = () => {
             setSuccess(true);
             setTimeout(() => navigate('/login'), 2000);
         } catch (err: any) {
-            setError(err.response?.data?.detail || 'Failed to reset password');
+            const detail = err.response?.data?.detail;
+            const message = typeof detail === 'string'
+                ? detail
+                : Array.isArray(detail)
+                    ? detail[0]?.msg || 'Validation error'
+                    : 'Failed to reset password';
+            setError(message);
         } finally {
             setLoading(false);
         }

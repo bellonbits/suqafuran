@@ -1,5 +1,5 @@
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException, Body, File, UploadFile, Form
 from sqlmodel import Session, select
 from app.api import deps
 from app.models.user import User
@@ -13,16 +13,20 @@ from app.models.verification import (
 router = APIRouter()
 
 @router.post("/apply", response_model=VerificationRequest)
-def apply_for_verification(
+async def apply_for_verification(
     *,
     db: Session = Depends(deps.get_db),
-    verification_in: VerificationRequestBase,
+    # verification_in: VerificationRequestBase, # Cannot use Pydantic model with Form/File mix easily in FastAPI
+    document_type: str = Form(...),
+    notes: Optional[str] = Form(None),
+    document_files: List[UploadFile] = File(...),
+    selfie_file: UploadFile = File(...),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
-    Submit a verification request.
+    Submit a verification request with ID documents and a selfie.
     """
-    # Check if a pending request already exists
+    # 1. Check pending request
     existing = db.exec(
         select(VerificationRequest)
         .where(VerificationRequest.user_id == current_user.id)
@@ -32,9 +36,67 @@ def apply_for_verification(
     if existing:
         raise HTTPException(status_code=400, detail="A verification request is already pending")
     
-    db_obj = VerificationRequest.model_validate(
-        verification_in, update={"user_id": current_user.id}
+    # 2. Upload Document Files
+    import shutil
+    import os
+    from app.core.config import settings
+    import uuid
+    from app.utils.verification import verify_faces
+
+    document_urls = []
+    # Ensure upload dir exists
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+
+    for file in document_files:
+        extension = file.filename.split(".")[-1].lower()
+        if extension not in settings.ALLOWED_EXTENSIONS:
+            continue
+        
+        filename = f"{uuid.uuid4()}.{extension}"
+        file_path = os.path.join(settings.UPLOAD_DIR, filename)
+        
+        with open(file_path, "wb") as f:
+            shutil.copyfileobj(file.file, f)
+        
+        document_urls.append(f"/api/v1/listings/images/{filename}")
+
+    if not document_urls:
+         raise HTTPException(status_code=400, detail="No valid document files uploaded")
+
+    # 3. Upload Selfie
+    selfie_filename = f"selfie_{uuid.uuid4()}.jpg"
+    selfie_path = os.path.join(settings.UPLOAD_DIR, selfie_filename)
+    
+    with open(selfie_path, "wb") as f:
+        shutil.copyfileobj(selfie_file.file, f)
+    
+    selfie_url = f"/api/v1/listings/images/{selfie_filename}"
+
+    # 4. Perform Facial Recognition (Compare Selfie vs First Document)
+    first_doc_path = os.path.join(settings.UPLOAD_DIR, document_urls[0].split("/")[-1])
+    
+    match_result = {"success": False, "match_score": 0.0}
+    try:
+        from app.utils.verification import verify_faces_from_disk
+        match_result = verify_faces_from_disk(first_doc_path, selfie_path)
+    except ImportError:
+         pass 
+    except Exception as e:
+         print(f"Facial verification error: {e}")
+
+    
+    # 5. Create Database Object
+    db_obj = VerificationRequest(
+        user_id=current_user.id,
+        document_type=document_type,
+        notes=notes,
+        status=VerificationStatus.PENDING,
+        document_urls=document_urls,
+        selfie_url=selfie_url,
+        facial_match_score=match_result.get("match_score", 0.0),
+        auto_verification_status="passed" if match_result.get("is_match") else "failed"
     )
+    
     db.add(db_obj)
     db.commit()
     db.refresh(db_obj)
