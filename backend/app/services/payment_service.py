@@ -10,12 +10,24 @@ class PaymentService:
         """
         Attempt to match an incoming mobile money transaction to a pending promotion order.
         Matching Criteria:
+        0. Priority: Lipana Transaction ID (exact match)
         1. Status is WAITING_FOR_PAYMENT
         2. Amount matches exactly
-        3. Created within the last 30 minutes (or specified window)
+        3. Created within the last 60 minutes
         4. Phone number matches (fuzzy match on last 9 digits)
         """
         
+        # 0. Priority Match: Try matching by Lipana Transaction ID first (most accurate)
+        if transaction.reference:
+            statement = select(Promotion).where(
+                Promotion.status == PromotionStatus.WAITING_FOR_PAYMENT,
+                Promotion.lipana_tx_id == transaction.reference
+            )
+            matched_order = db.exec(statement).first()
+            if matched_order:
+                self._activate_promotion(db, matched_order, transaction)
+                return matched_order
+
         # 1. Clean the transaction phone (take last 9 digits)
         # e.g. 252615555555 -> 615555555
         trans_phone_clean = transaction.phone[-9:] if len(transaction.phone) >= 9 else transaction.phone

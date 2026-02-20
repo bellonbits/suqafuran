@@ -187,24 +187,34 @@ def check_promotion_payment(
     # Time window: last 60 minutes
     time_window = datetime.utcnow() - timedelta(minutes=60)
     
-    # Search for matching mobile transaction
-    # We strip any non-digit chars from phone for matching
-    clean_phone = "".join(filter(str.isdigit, promo.payment_phone))
-    
-    statement = select(MobileTransaction).where(
-        MobileTransaction.amount == promo.amount,
-        MobileTransaction.is_linked == False,
-        MobileTransaction.timestamp >= time_window
-    )
-    transactions = db.exec(statement).all()
-    
-    # Filter by phone (inexact match for regional formats)
+    # Priority 1: Search by exact Lipana Transaction ID if we have it
     match = None
-    for tx in transactions:
-        tx_clean_phone = "".join(filter(str.isdigit, tx.phone))
-        if clean_phone in tx_clean_phone or tx_clean_phone in clean_phone:
-            match = tx
-            break
+    if promo.lipana_tx_id:
+        statement = select(MobileTransaction).where(
+            MobileTransaction.reference == promo.lipana_tx_id,
+            MobileTransaction.is_linked == False
+        )
+        match = db.exec(statement).first()
+    
+    # Priority 2: Fuzzy search (Phone + Amount)
+    if not match:
+        # Search for matching mobile transaction
+        # We strip any non-digit chars from phone for matching
+        clean_phone = "".join(filter(str.isdigit, promo.payment_phone))
+        
+        statement = select(MobileTransaction).where(
+            MobileTransaction.amount == promo.amount,
+            MobileTransaction.is_linked == False,
+            MobileTransaction.timestamp >= time_window
+        )
+        transactions = db.exec(statement).all()
+        
+        # Filter by phone (inexact match for regional formats)
+        for tx in transactions:
+            tx_clean_phone = "".join(filter(str.isdigit, tx.phone))
+            if clean_phone in tx_clean_phone or tx_clean_phone in clean_phone:
+                match = tx
+                break
             
     if not match:
         return {"status": promo.status, "message": "No matching payment detected yet. Please ensure you have paid."}
