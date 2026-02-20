@@ -8,7 +8,7 @@ from alembic import op
 import sqlalchemy as sa
 
 revision = 'prod_indexes_001'
-down_revision = None  # set to your latest revision id
+down_revision = '3b4c5d6e7f8a'
 branch_labels = None
 depends_on = None
 
