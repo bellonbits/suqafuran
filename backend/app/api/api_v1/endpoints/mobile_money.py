@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Any, Optional
-from fastapi import APIRouter, Depends, Body, HTTPException
+from fastapi import APIRouter, Depends, Body, HTTPException, Request
 from sqlmodel import Session
 from pydantic import BaseModel
 from app.api import deps
@@ -57,6 +57,79 @@ def receive_payment_webhook(
         "processed": True,
         "matched": bool(matched_order),
         "order_id": matched_order.id if matched_order else None
+    }
+
+@router.post("/lipana/webhook")
+async def receive_lipana_webhook(
+    request: Request,
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Secure webhook for Lipana M-Pesa.
+    Verifies X-Lipana-Signature and processes successful transactions.
+    """
+    from app.services.lipana import verify_webhook_signature
+    
+    # 1. Get raw body and signature
+    raw_body = await request.body()
+    signature = request.headers.get("X-Lipana-Signature") or ""
+    
+    # 2. Verify Signature
+    if not verify_webhook_signature(raw_body, signature):
+        raise HTTPException(status_code=401, detail="Invalid signature")
+
+    # 3. Parse Payload
+    import json
+    try:
+        payload = json.loads(raw_body)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON")
+
+    # 4. Check Status
+    status = payload.get("status")
+    if status != "Success":
+        return {"status": "ignored", "reason": f"Status is {status}"}
+
+    # 5. Extract Data
+    data = payload.get("data", {})
+    tx_id = payload.get("transactionId") or data.get("transactionId")
+    phone = data.get("phone") or data.get("phoneNumber")
+    amount = data.get("amount")
+    reference = data.get("reference") or tx_id
+
+    if not all([tx_id, phone, amount]):
+        return {"status": "error", "message": "Missing required fields"}
+
+    # 6. Idempotency Guard (Redis)
+    if cache.is_duplicate("lipana_webhook", tx_id, ttl=86400):
+        return {"status": "ignored", "detail": "Already processed"}
+
+    # 7. DB Guard (Duplicate check)
+    existing = db.query(MobileTransaction).filter(
+        MobileTransaction.reference == tx_id
+    ).first()
+    if existing:
+        return {"status": "ignored", "detail": "Transaction already recorded"}
+
+    # 8. Create internal transaction record
+    transaction = MobileTransaction(
+        phone=str(phone),
+        amount=float(amount),
+        currency="KES", # Lipana is always KES
+        reference=tx_id,
+        timestamp=datetime.utcnow(),
+    )
+    db.add(transaction)
+    db.commit()
+    db.refresh(transaction)
+
+    # 9. Trigger auto-matching
+    matched_order = payment_service.match_transaction(db, transaction)
+
+    return {
+        "status": "success",
+        "tx_id": tx_id,
+        "matched": bool(matched_order)
     }
 
 @router.post("/simulate")
