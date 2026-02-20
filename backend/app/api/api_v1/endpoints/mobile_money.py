@@ -108,8 +108,8 @@ async def receive_lipana_webhook(
     if not all([tx_id, phone, amount]):
         # Fallback check for alternate/old formats if necessary
         data = payload.get("data", {})
-        tx_id = tx_id or payload.get("transactionId") or data.get("transactionId")
-        phone = phone or data.get("phone") or data.get("phoneNumber")
+        tx_id = tx_id or data.get("transaction_id") or data.get("transactionId")
+        phone = phone or data.get("phone") or data.get("phoneNumber") or data.get("recipientPhone")
         amount = amount or data.get("amount")
         reference = reference or data.get("reference") or tx_id
 
@@ -142,9 +142,20 @@ async def receive_lipana_webhook(
     # 9. Trigger auto-matching
     logging.warning(f"!!! WEBHOOK MATCHING: Looking for Promo with lipana_tx_id={tx_id} or matching Phone={phone}, Amount={amount} or Reference={reference}")
     
+    # Priority 0: Direct match by Lipana Transaction ID (from initiation response)
+    matched_order = db.exec(
+        select(Promotion).where(
+            Promotion.lipana_tx_id == tx_id,
+            Promotion.status == PromotionStatus.WAITING_FOR_PAYMENT
+        )
+    ).first()
+    
+    if matched_order:
+        logging.warning(f"!!! WEBHOOK: Found direct match by lipana_tx_id={tx_id}")
+        payment_service._activate_promotion(db, matched_order, transaction)
+
     # Priority 1: Direct match by "Promo X" reference
-    matched_order = None
-    if reference and str(reference).startswith("Promo "):
+    if not matched_order and reference and str(reference).startswith("Promo "):
         try:
             promo_id_str = str(reference).replace("Promo ", "").strip()
             promo_id = int(promo_id_str)
