@@ -10,6 +10,7 @@ from app.models.mobile_money import MobileTransaction
 from app.models.audit import AuditLog
 from app.utils.code_generator import generate_promotion_code, generate_voucher_code
 from app.services import lipana as lipana_service
+from app.core.config import settings
 from pydantic import BaseModel
 import logging
 import sys
@@ -72,27 +73,38 @@ def create_promotion_request(
     listing_title = listing.title if listing else "Ad Boost"
     
     try:
+        # Convert USD to KES for Lipana
+        amount_kes = round(plan.price_usd * settings.KES_CONVERSION_RATE)
+        logging.warning(f"!!! INITIATING STK PUSH: Phone={payload.payment_phone}, USD={plan.price_usd}, KES={amount_kes}")
+        
         result = lipana_service.initiate_stk_push(
             phone=payload.payment_phone,
-            amount=plan.price_usd,
+            amount=amount_kes,
             reference=f"Promo {promo.id}",
             description=f"Boost: {listing_title}"
         )
-        print(f"LIPANA STK PUSH RESPONSE: {json.dumps(result, indent=2)}", file=sys.stderr, flush=True)
+        logging.warning(f"!!! LIPANA STK PUSH RESPONSE: {json.dumps(result, indent=1)}")
+        
         data = result.get("data", result)
         lipana_tx_id = data.get("transactionId") or data.get("transaction_id")
+        
         if lipana_tx_id:
             promo.lipana_tx_id = lipana_tx_id
             db.add(promo)
             db.commit()
             db.refresh(promo)
-            print(f"PROMO #{promo.id} SAVED lipana_tx_id={lipana_tx_id}", file=sys.stderr, flush=True)
+            logging.warning(f"!!! PROMO #{promo.id} SAVED lipana_tx_id={lipana_tx_id}")
         else:
-            print(f"PROMO #{promo.id} ERROR: No transactionId found in Lipana response", file=sys.stderr, flush=True)
-        logger.info(f"Lipana STK push fired for promo {promo.id}: {lipana_tx_id}")
+            logging.warning(f"!!! PROMO #{promo.id} ERROR: No transactionId found in Lipana response")
+            # For now, let's Raise so the user knows it failed
+            raise HTTPException(status_code=400, detail=f"Lipana Error: No transaction ID returned. {result}")
+            
+    except HTTPException:
+        raise
     except Exception as exc:
-        # Don't block the user — log and continue; they can pay via fallback
-        logger.warning(f"Lipana STK push failed for promo {promo.id}: {exc}")
+        logging.warning(f"!!! Lipana STK push failed for promo {promo.id}: {exc}")
+        # Throw the error back to the frontend so they see what happened
+        raise HTTPException(status_code=400, detail=f"Failed to trigger M-Pesa prompt: {str(exc)}")
 
     return promo
 

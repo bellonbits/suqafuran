@@ -35,7 +35,7 @@ def initiate_stk_push(phone: str, amount: float, reference: str = "Promotion", d
         "description": description,
     }
     import sys
-    print(f"DEBUG: Lipana Payload: {payload}", file=sys.stderr)
+    import logging
     response = httpx.post(
         f"{LIPANA_BASE_URL}/transactions/push-stk",
         json=payload,
@@ -43,8 +43,9 @@ def initiate_stk_push(phone: str, amount: float, reference: str = "Promotion", d
         timeout=30,
     )
     if response.status_code != 200:
-        import sys
-        print(f"DEBUG: Lipana Error {response.status_code}: {response.text}", file=sys.stderr)
+        logging.warning(f"!!! LIPANA API ERROR {response.status_code}: {response.text}")
+    else:
+        logging.warning(f"!!! LIPANA API SUCCESS: {response.status_code}")
     response.raise_for_status()
     return response.json()
 
