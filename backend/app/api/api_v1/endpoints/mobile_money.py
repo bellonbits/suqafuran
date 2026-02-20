@@ -85,20 +85,27 @@ async def receive_lipana_webhook(
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid JSON")
 
-    # 4. Check Status
-    status = payload.get("status")
-    if status != "Success":
-        return {"status": "ignored", "reason": f"Status is {status}"}
+    # 4. Check Event Type
+    event = payload.get("event")
+    if event != "transaction.success":
+        return {"status": "ignored", "reason": f"Event is {event}"}
 
-    # 5. Extract Data
-    data = payload.get("data", {})
-    tx_id = payload.get("transactionId") or data.get("transactionId")
-    phone = data.get("phone") or data.get("phoneNumber")
-    amount = data.get("amount")
-    reference = data.get("reference") or tx_id
+    # 5. Extract Data (Official spec uses flat JSON with underscores)
+    tx_id = payload.get("transaction_id")
+    phone = payload.get("phone")
+    amount = payload.get("amount")
+    reference = payload.get("reference")
 
     if not all([tx_id, phone, amount]):
-        return {"status": "error", "message": "Missing required fields"}
+        # Fallback check for alternate/old formats if necessary
+        data = payload.get("data", {})
+        tx_id = tx_id or payload.get("transactionId") or data.get("transactionId")
+        phone = phone or data.get("phone") or data.get("phoneNumber")
+        amount = amount or data.get("amount")
+        reference = reference or data.get("reference") or tx_id
+
+    if not all([tx_id, phone, amount]):
+        return {"status": "error", "message": "Missing required fields (transaction_id, phone, amount)"}
 
     # 6. Idempotency Guard (Redis)
     if cache.is_duplicate("lipana_webhook", tx_id, ttl=86400):
@@ -115,7 +122,7 @@ async def receive_lipana_webhook(
     transaction = MobileTransaction(
         phone=str(phone),
         amount=float(amount),
-        currency="KES", # Lipana is always KES
+        currency="KES", # Lipana KES
         reference=tx_id,
         timestamp=datetime.utcnow(),
     )
@@ -128,7 +135,7 @@ async def receive_lipana_webhook(
 
     return {
         "status": "success",
-        "tx_id": tx_id,
+        "transaction_id": tx_id,
         "matched": bool(matched_order)
     }
 
