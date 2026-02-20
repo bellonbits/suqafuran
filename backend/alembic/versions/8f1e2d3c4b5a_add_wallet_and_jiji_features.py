@@ -29,6 +29,7 @@ def upgrade() -> None:
     op.add_column('listing', sa.Column('boost_level', sa.Integer(), nullable=True))
     op.add_column('listing', sa.Column('boost_expires_at', sa.DateTime(), nullable=True))
     op.add_column('listing', sa.Column('attributes', sa.JSON(), nullable=True))
+    op.add_column('listing', sa.Column('currency', sa.String(), nullable=True, server_default='USD'))
     
     # 4. Create Wallet
     op.create_table('wallet',
@@ -63,6 +64,7 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_transaction_reference'), table_name='transaction')
     op.drop_table('transaction')
     op.drop_table('wallet')
+    op.drop_column('listing', 'currency')
     op.drop_column('listing', 'attributes')
     op.drop_column('listing', 'boost_expires_at')
     op.drop_column('listing', 'boost_level')
