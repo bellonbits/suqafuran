@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     # LIPANA M-PESA
     LIPANA_SECRET_KEY: str = ""
     LIPANA_WEBHOOK_SECRET: str = ""
-    KES_CONVERSION_RATE: float = 135.0  # 1 USD = 135 KES
+    KES_CONVERSION_RATE: float = 1.0  # Treating DB prices as native KES
     
     # ENVIRONMENT
     ENVIRONMENT: str = "development"  # development, staging, production

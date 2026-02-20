@@ -50,7 +50,7 @@ export const BoostPricingGrid: React.FC<BoostPricingGridProps> = ({
 
                         <div className="mb-8">
                             <div className="flex items-baseline gap-1">
-                                <span className="text-4xl font-black text-gray-900">KSh {Math.round(plan.price_usd * 135)}</span>
+                                <span className="text-4xl font-black text-gray-900">KSh {plan.price_usd}</span>
                                 <span className="text-gray-400 font-bold text-sm tracking-tight">/ {plan.duration_days} days</span>
                             </div>
                         </div>
