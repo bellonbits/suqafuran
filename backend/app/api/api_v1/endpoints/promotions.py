@@ -173,6 +173,55 @@ async def lipana_webhook(
     return {"received": True, "action": "activated", "promo_id": promo.id}
 
 
+@router.get("/{promo_id}/diag")
+def debug_payment_matching(
+    promo_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user = Depends(deps.get_current_user)
+) -> Any:
+    """Diagnostic endpoint to see why a payment isn't matching."""
+    promo = db.get(Promotion, promo_id)
+    if not promo:
+        return {"error": "Promotion not found"}
+    
+    # Check ownership or admin
+    if not current_user.is_superuser:
+        listing = db.get(Listing, promo.listing_id)
+        if listing and listing.owner_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Not enough permissions")
+        
+    # Check all transactions for this phone or amount
+    clean_phone = "".join(filter(str.isdigit, promo.payment_phone)) if promo.payment_phone else ""
+    
+    statement = select(MobileTransaction).where(
+        (MobileTransaction.amount == promo.amount) | 
+        (MobileTransaction.phone.contains(clean_phone if clean_phone else "NONE"))
+    ).order_by(MobileTransaction.timestamp.desc())
+    
+    transactions = db.exec(statement).all()
+    
+    return {
+        "promotion": {
+            "id": promo.id,
+            "status": promo.status,
+            "amount": promo.amount,
+            "payment_phone": promo.payment_phone,
+            "lipana_tx_id": promo.lipana_tx_id,
+            "created_at": promo.created_at
+        },
+        "matching_candidate_transactions": [
+            {
+                "id": t.id,
+                "phone": t.phone,
+                "amount": t.amount,
+                "reference": t.reference,
+                "is_linked": t.is_linked,
+                "linked_promotion_id": t.linked_promotion_id,
+                "timestamp": t.timestamp
+            } for t in transactions
+        ]
+    }
+
 @router.post("/{promo_id}/check-payment")
 def check_promotion_payment(
     promo_id: int,
@@ -187,32 +236,32 @@ def check_promotion_payment(
     if not promo:
         raise HTTPException(status_code=404, detail="Promotion request not found")
     
-    print(f"POLLING: Checking Promo #{promo.id}, Status={promo.status}, Phone={promo.payment_phone}, Amount={promo.amount}, LipanaID={promo.lipana_tx_id}", file=sys.stderr, flush=True)
+    logging.warning(f"!!! POLLING: Checking Promo #{promo.id}, Status={promo.status}, Phone={promo.payment_phone}, Amount={promo.amount}, LipanaID={promo.lipana_tx_id}")
 
     if promo.status in (PromotionStatus.APPROVED, PromotionStatus.PAID, "approved", "paid", "APPROVED", "PAID"):
-        print(f"POLLING: Promo #{promo.id} is ALREADY ACTIVE. Status={promo.status}", file=sys.stderr, flush=True)
+        logging.warning(f"!!! POLLING: Promo #{promo.id} is ALREADY ACTIVE. Status={promo.status}")
         return {"status": "APPROVED", "message": "Promotion already paid/active"}
 
-    # Time window: last 60 minutes
-    time_window = datetime.utcnow() - timedelta(minutes=60)
+    # Time window: last 120 minutes (be generous for debugging)
+    time_window = datetime.utcnow() - timedelta(minutes=120)
     
     # Priority 1: Search by exact Lipana Transaction ID if we have it
     match = None
     if promo.lipana_tx_id:
-        logger.info(f"CHECK_PAYMENT: Searching for exact match for Lipana ID: {promo.lipana_tx_id}")
+        logging.warning(f"!!! POLLING: Searching for exact match for Lipana ID: {promo.lipana_tx_id}")
         statement = select(MobileTransaction).where(
             MobileTransaction.reference == promo.lipana_tx_id,
             MobileTransaction.is_linked == False
         )
         match = db.exec(statement).first()
         if match:
-             logger.info(f"CHECK_PAYMENT: Found EXACT match by Lipana ID: {promo.lipana_tx_id}")
+             logging.warning(f"!!! POLLING: Found EXACT match by Lipana ID: {promo.lipana_tx_id}")
     
     # Priority 2: Fuzzy search (Phone + Amount)
     if not match:
         # Search for matching mobile transaction
         # We strip any non-digit chars from phone for matching
-        clean_phone = "".join(filter(str.isdigit, promo.payment_phone))
+        clean_phone = "".join(filter(str.isdigit, promo.payment_phone)) if promo.payment_phone else ""
         
         statement = select(MobileTransaction).where(
             MobileTransaction.amount == promo.amount,
@@ -220,23 +269,23 @@ def check_promotion_payment(
             MobileTransaction.timestamp >= time_window
         )
         transactions = db.exec(statement).all()
-        logger.info(f"CHECK_PAYMENT: Found {len(transactions)} candidate transactions for amount {promo.amount}")
+        logging.warning(f"!!! POLLING: Found {len(transactions)} candidate transactions for amount {promo.amount}")
         
         # Filter by phone (inexact match for regional formats)
         for tx in transactions:
             tx_clean_phone = "".join(filter(str.isdigit, tx.phone))
-            logger.info(f"CHECK_PAYMENT: Comparing {clean_phone} with {tx_clean_phone}")
-            if clean_phone in tx_clean_phone or tx_clean_phone in clean_phone:
+            logging.warning(f"!!! POLLING: Comparing {clean_phone} with {tx_clean_phone}")
+            if clean_phone and (clean_phone in tx_clean_phone or tx_clean_phone in clean_phone):
                 match = tx
-                logger.info(f"CHECK_PAYMENT: Found FUZZY match by phone: {tx.phone}")
+                logging.warning(f"!!! POLLING: Found FUZZY match by phone: {tx.phone}")
                 break
             
     if not match:
-        print(f"POLLING: No match found for Promo #{promo.id}", file=sys.stderr, flush=True)
+        logging.warning(f"!!! POLLING: No match found for Promo #{promo.id}")
         return {"status": promo.status, "message": "No matching payment detected yet. Please ensure you have paid."}
 
     # Match found! Link and activate
-    print(f"POLLING SUCCESS: Match found! Activating Promo #{promo.id} via match {match.reference}", file=sys.stderr, flush=True)
+    logging.warning(f"!!! POLLING SUCCESS: Match found! Activating Promo #{promo.id} via match {match.reference}")
     match.is_linked = True
     match.linked_promotion_id = promo.id
     db.add(match)
