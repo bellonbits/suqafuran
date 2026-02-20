@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Zap, Phone, Copy, Info } from 'lucide-react';
+import { Check, Zap } from 'lucide-react';
 import { Button } from './Button';
 import type { PromotionPlan } from '../services/promotionService';
 
@@ -14,17 +14,8 @@ export const BoostPricingGrid: React.FC<BoostPricingGridProps> = ({
     plans,
     onSelect,
     selectedPlanId,
-    showInstructions = true
 }) => {
-    const paymentNumber = "+252612958679";
 
-    const copyToClipboard = (text: string) => {
-        navigator.clipboard.writeText(text);
-        // Simple feedback could be added here if needed
-    };
-
-    const selectedPlan = plans.find(p => p.id === selectedPlanId);
-    const displayAmount = selectedPlan ? selectedPlan.price_usd : "Amount";
 
     return (
         <div className="space-y-10">

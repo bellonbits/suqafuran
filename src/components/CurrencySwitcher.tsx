@@ -2,7 +2,7 @@ import React from 'react';
 import { useCurrencyStore } from '../store/useCurrencyStore';
 import type { Currency } from '../store/useCurrencyStore';
 import { cn } from '../utils/cn';
-import { Coins } from 'lucide-react';
+
 
 const CurrencySwitcher: React.FC = () => {
     const { currency, setCurrency } = useCurrencyStore();

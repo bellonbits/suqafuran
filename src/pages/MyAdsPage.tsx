@@ -12,14 +12,13 @@ import { cn } from '../utils/cn';
 import { getImageUrl } from '../utils/imageUtils';
 import type { Listing } from '../types/listing';
 
-import { walletService } from '../services/walletService';
+
 
 const MyAdsPage: React.FC = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [deletingId, setDeletingId] = React.useState<number | null>(null);
-    const [boostingListing, setBoostingListing] = React.useState<Listing | null>(null);
-    const [selectedBoost, setSelectedBoost] = React.useState<number | null>(null);
+
 
     const { data: myAds, isLoading } = useQuery<Listing[]>({
         queryKey: ['my-listings'],
@@ -34,10 +33,7 @@ const MyAdsPage: React.FC = () => {
         },
     });
 
-    const { data: boostPrices } = useQuery({
-        queryKey: ['boost-prices'],
-        queryFn: walletService.getBoostPrices,
-    });
+
 
     return (
         <div className="space-y-4">

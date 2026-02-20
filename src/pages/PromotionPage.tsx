@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { listingService } from '../services/listingService';
 import { Button } from '../components/Button';
-import { Check, CreditCard, ShieldCheck, Timer, Zap, Loader2, Phone, Copy, Smartphone } from 'lucide-react';
+import { Check, Loader2, Phone, Smartphone } from 'lucide-react';
 import { BoostPricingGrid } from '../components/BoostPricingGrid';
 
 const PromotionPage: React.FC = () => {
@@ -50,7 +50,7 @@ const PromotionPage: React.FC = () => {
 
     // Polling Logic
     useEffect(() => {
-        let interval: NodeJS.Timeout;
+        let interval: any;
         if (step === 'payment' && activeOrderId) {
             interval = setInterval(async () => {
                 try {

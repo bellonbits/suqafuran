@@ -1,11 +1,9 @@
-```typescript
 import React, { useState } from 'react';
 import Webcam from 'react-webcam';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Camera, Upload, CheckCircle, XCircle, Shield, Loader2 } from 'lucide-react';
 import api from '../services/api';
 import { Button } from '../components/Button';
-
 import { cn } from '../utils/cn';
 
 const VerificationPage: React.FC = () => {
@@ -196,44 +194,89 @@ const VerificationPage: React.FC = () => {
                                 onChange={handleDocumentUpload}
                                 className="hidden"
                             />
-                    disabled={!selfieCapture || documentFiles.length === 0 || submitMutation.isPending}
-                    onClick={handleSubmit}
-                >
-                    {submitMutation.isPending ? (
-                        <>
-                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                            Submitting...
-                        </>
-                    ) : (
-                        <>
-                            <Shield className="w-5 h-5 mr-2" />
-                            Submit for Verification
-                        </>
-                    )}
-                </Button>
-            </div>
-        )}
+                            <div className={cn(
+                                "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors",
+                                documentFiles.length > 0
+                                    ? "border-green-300 bg-green-50"
+                                    : "border-gray-200 hover:border-primary-300 hover:bg-primary-50/30"
+                            )}>
+                                {documentFiles.length > 0 ? (
+                                    <div className="space-y-2">
+                                        <CheckCircle className="w-10 h-10 text-green-500 mx-auto" />
+                                        <p className="font-semibold text-green-800">
+                                            {documentFiles.length} file{documentFiles.length > 1 ? 's' : ''} selected
+                                        </p>
+                                        <ul className="text-xs text-green-700 space-y-1">
+                                            {documentFiles.map((f, i) => (
+                                                <li key={i}>{f.name}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <Upload className="w-10 h-10 text-gray-400 mx-auto" />
+                                        <p className="font-semibold text-gray-600">Click to upload</p>
+                                        <p className="text-xs text-gray-400">PNG, JPG up to 10MB</p>
+                                    </div>
+                                )}
+                            </div>
+                        </label>
 
-        {/* Info Section */}
-        <div className="mt-8 bg-blue-50 rounded-2xl p-6 border border-blue-100">
-            <h4 className="font-bold text-blue-900 mb-3">Why verify your account?</h4>
-            <ul className="space-y-2 text-sm text-blue-800">
-                <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    <span>Build trust with buyers and increase sales</span>
-                </li>
-                <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    <span>Get a verified badge on your profile</span>
-                </li>
-                <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    <span>Rank higher in search results</span>
-                </li>
-            </ul>
+                        {documentFiles.length > 0 && (
+                            <button
+                                className="mt-2 text-xs text-gray-400 hover:text-red-500 transition-colors"
+                                onClick={() => setDocumentFiles([])}
+                            >
+                                Clear files
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Submit Button */}
+            {(!status || status.status === 'rejected') && (
+                <div className="mt-6">
+                    <Button
+                        className="w-full rounded-xl bg-primary-600 hover:bg-primary-700 py-3 text-base"
+                        disabled={!selfieCapture || documentFiles.length === 0 || submitMutation.isPending}
+                        onClick={handleSubmit}
+                    >
+                        {submitMutation.isPending ? (
+                            <>
+                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                Submitting...
+                            </>
+                        ) : (
+                            <>
+                                <Shield className="w-5 h-5 mr-2" />
+                                Submit for Verification
+                            </>
+                        )}
+                    </Button>
+                </div>
+            )}
+
+            {/* Info Section */}
+            <div className="mt-8 bg-blue-50 rounded-2xl p-6 border border-blue-100">
+                <h4 className="font-bold text-blue-900 mb-3">Why verify your account?</h4>
+                <ul className="space-y-2 text-sm text-blue-800">
+                    <li className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                        <span>Build trust with buyers and increase sales</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                        <span>Get a verified badge on your profile</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                        <span>Rank higher in search results</span>
+                    </li>
+                </ul>
+            </div>
         </div>
-    </div>
-);
+    );
 };
 
 export { VerificationPage };
