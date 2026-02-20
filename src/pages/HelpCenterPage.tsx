@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import {
     HelpCircle, MessageCircle, Shield,
     Search, ChevronDown, ChevronUp,
-    ShoppingBag, User, ShieldCheck, CreditCard,
+    ShoppingBag, User, ShieldCheck,
     ExternalLink
 } from 'lucide-react';
 import { Button } from '../components/Button';
-import { useNavigate } from 'react-router-dom';
 import { cn } from '../utils/cn';
 
 interface FAQ {
@@ -63,7 +62,6 @@ const faqs: FAQ[] = [
 ];
 
 const HelpCenterPage: React.FC = () => {
-    const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategory, setActiveCategory] = useState('all');
     const [expandedFaq, setExpandedFaq] = useState<number | null>(null);

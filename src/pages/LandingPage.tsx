@@ -1,37 +1,20 @@
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { ProductCard } from '../components/ProductCard';
 import { listingService } from '../services/listingService';
-import { Search, MapPin, TrendingUp, ShieldCheck, Loader2, ChevronLeft, ChevronRight, Tag, ListFilter, ShoppingBag, XCircle, CheckCircle2 } from 'lucide-react';
+import { Search, MapPin, TrendingUp, ShieldCheck, Loader2, ChevronRight, ShoppingBag, XCircle, CheckCircle2 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { SOMALI_REGIONS } from '../utils/somaliRegions';
 import { JIJI_CATEGORIES } from '../utils/jijiCategories';
 
-const HERO_SLIDES = [
-    {
-        image: '/hero1.jpg',
-        title: <>The Safest Way to Buy and Sell <br className="hidden md:block" /> Almost Anything in Somalia</>,
-        subtitle: 'Join thousands of traders buying and selling vehicles, electronics, property, and more every day.'
-    },
-    {
-        image: '/hero2.jpg',
-        title: <>Find Your Dream Property <br className="hidden md:block" /> in Mogadishu & Beyond</>,
-        subtitle: 'From luxury villas to affordable apartments, explore the best real estate deals in Somalia.'
-    },
-    {
-        image: '/hero3.jpg',
-        title: <>Upgrade Your Tech with <br className="hidden md:block" /> Trusted Local Sellers</>,
-        subtitle: 'Get the latest iPhones, laptops, and solar kits at unbeatable prices from verified merchants.'
-    }
-];
+
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
-    const [currentSlide, setCurrentSlide] = useState(0);
     const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
     const [isLocationOpen, setLocationOpen] = useState(false);
     const [selectedLocation, setSelectedLocation] = useState("");
@@ -49,15 +32,9 @@ const LandingPage: React.FC = () => {
     const displayCategories = categories || [];
     const displayAds = featuredAds || [];
 
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
-        }, 60000); // 1 minute
-        return () => clearInterval(timer);
-    }, []);
 
-    const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
-    const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
+
+
 
     return (
         <PublicLayout>
@@ -374,6 +351,7 @@ const LandingPage: React.FC = () => {
                                                 id={String(ad.id)}
                                                 title={ad.title || ''}
                                                 price={ad.price || 0}
+                                                currency={ad.currency || 'USD'}
                                                 location={ad.location || ''}
                                                 imageUrl={ad.images?.[0] || ''}
                                                 isVerified={ad.owner?.is_verified}

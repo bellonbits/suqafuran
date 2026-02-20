@@ -4,13 +4,10 @@ import { useEffect, useState } from 'react';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { ProductCard } from '../components/ProductCard';
 import { listingService } from '../services/listingService';
-import { Filter, ChevronDown, ListFilter, MapPin, Tag, SlidersHorizontal, Loader2, ShieldCheck } from 'lucide-react';
+import { Filter, ChevronDown, ListFilter, Loader2, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/Button';
-import { Input } from '../components/Input';
 import { cn } from '../utils/cn';
-import { getAttributesForCategory } from '../utils/categoryAttributes';
-import { JIJI_CATEGORIES } from '../utils/jijiCategories';
 import { FilterSidebar } from '../components/FilterSidebar';
 
 const CategoryListingPage: React.FC = () => {

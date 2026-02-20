@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from app.api import deps
 from app.models.mobile_money import MobileTransaction
 from app.services.payment_service import payment_service
+from app.services.cache_service import cache
 
 router = APIRouter()
 
@@ -22,14 +23,21 @@ def receive_payment_webhook(
     db: Session = Depends(deps.get_db),
 ) -> Any:
     """
-    Receive payment notification from Mobile Money Provider (Simulated Webhook).
+    Receive payment notification from Mobile Money Provider.
+    Idempotent: duplicate references within 24h are silently ignored.
     """
-    # 1. Check if transaction already exists
-    existing = db.query(MobileTransaction).filter(MobileTransaction.reference == payload.reference).first()
+    # 1. Idempotency check — Redis-level guard (fast path)
+    if cache.is_duplicate("mobile_webhook", payload.reference, ttl=86400):
+        return {"status": "ignored", "detail": "Already processed"}
+
+    # 2. DB-level guard — unique index on reference handles provider retries
+    existing = db.query(MobileTransaction).filter(
+        MobileTransaction.reference == payload.reference
+    ).first()
     if existing:
         return {"status": "ignored", "detail": "Transaction already processed"}
 
-    # 2. Create Transaction Record
+    # 3. Create Transaction Record
     transaction = MobileTransaction(
         phone=payload.phone,
         amount=payload.amount,
@@ -41,7 +49,7 @@ def receive_payment_webhook(
     db.commit()
     db.refresh(transaction)
 
-    # 3. Attempt to Match
+    # 4. Attempt to Match
     matched_order = payment_service.match_transaction(db, transaction)
 
     return {

@@ -99,7 +99,9 @@ async def lipana_webhook(
     request: Request,
     db: Session = Depends(deps.get_db),
 ) -> Any:
-    """Receive Lipana payment.success events and auto-activate the promotion."""
+    """Receive Lipana payment.success events and auto-activate the promotion. Idempotent."""
+    from app.services.cache_service import cache
+
     raw_body = await request.body()
 
     # Verify signature if webhook secret is configured
@@ -127,6 +129,12 @@ async def lipana_webhook(
     if not lipana_tx_id:
         return {"received": True, "action": "no_txn_id"}
 
+    # ── Idempotency guard ──────────────────────────────────────────────────
+    # Redis fast-path: if this tx was already processed in the last 24h, skip
+    if cache.is_duplicate("lipana_webhook", lipana_tx_id, ttl=86400):
+        logger.info(f"Lipana webhook duplicate ignored: {lipana_tx_id}")
+        return {"received": True, "action": "duplicate_ignored"}
+
     # Find the promotion that matches this Lipana transaction
     promo = db.exec(
         select(Promotion).where(Promotion.lipana_tx_id == lipana_tx_id)
@@ -143,7 +151,6 @@ async def lipana_webhook(
     activate_promotion(db, promo, matched_transaction_ref=lipana_tx_id)
 
     # Audit log
-    # Use a system user id (promo.listing_id owner) or fallback to 0
     listing = db.get(Listing, promo.listing_id)
     actor_id = listing.owner_id if listing else 0
     log = AuditLog(

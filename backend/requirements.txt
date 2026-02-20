@@ -1,24 +1,48 @@
-fastapi
+# Core
+fastapi>=0.111
 uvicorn[standard]
-pydantic[email]
-pydantic-settings
-sqlalchemy
+gunicorn
+
+# Database
 sqlmodel
+sqlalchemy>=2.0
 alembic
 psycopg2-binary
+
+# Auth
 python-jose[cryptography]
 passlib[bcrypt]
-fastapi-mail
-python-multipart
-python-dotenv
-emails
-jinja2
 bcrypt==4.0.1
+
+# Background jobs
+celery[redis]
 redis
+
+# Rate limiting
 slowapi
-async-timeout
-authlib
+
+# HTTP client
 httpx
-itsdangerous
-cffi
+
+# Services
 africastalking
+authlib
+itsdangerous
+
+# Config
+pydantic[email]
+pydantic-settings
+python-dotenv
+python-multipart
+
+# Observability
+structlog
+sentry-sdk[fastapi]
+
+# Email
+fastapi-mail
+jinja2
+
+# Misc
+async-timeout
+cffi

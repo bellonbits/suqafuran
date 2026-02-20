@@ -14,7 +14,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import { CurrencySwitcher } from '../components/CurrencySwitcher';
 
 interface DashboardLayoutProps {
-    children: React.ReactNode;
+    children?: React.ReactNode;
 }
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {

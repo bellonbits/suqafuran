@@ -8,7 +8,7 @@ import type { AuditLogEntry } from '../../services/auditService';
 import { Button } from '../../components/Button';
 import { cn } from '../../utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
-import { formatDistanceToNow, format } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import {
     ArrowLeft, Check, X, Copy, Clock, DollarSign,
     TrendingUp, ShieldCheck, Zap, Activity,

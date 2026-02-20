@@ -41,5 +41,6 @@ export interface Category {
     name: string;
     slug: string;
     icon_name: string;
+    icon?: string;
     attributes_schema?: any;
 }

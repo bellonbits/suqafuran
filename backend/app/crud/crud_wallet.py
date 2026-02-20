@@ -1,7 +1,9 @@
 from typing import List, Optional
 from sqlmodel import Session, select
+from sqlalchemy import select as sa_select
 from app.models.wallet import Wallet, Transaction, Voucher
 from datetime import datetime
+from fastapi import HTTPException
 import uuid
 
 def get_wallet_by_user_id(db: Session, user_id: int) -> Optional[Wallet]:
@@ -37,13 +39,29 @@ def deposit_funds(db: Session, wallet: Wallet, amount: float, description: str =
     db.refresh(wallet)
     return wallet
 
+def get_wallet_locked(db: Session, user_id: int) -> Optional[Wallet]:
+    """
+    SELECT FOR UPDATE — locks the wallet row for the duration of the transaction.
+    Prevents race conditions when two requests attempt concurrent deductions.
+    Must be used inside a transaction.
+    """
+    result = db.exec(
+        select(Wallet).where(Wallet.user_id == user_id).with_for_update()
+    )
+    return result.first()
+
+
 def deduct_funds(db: Session, wallet: Wallet, amount: float, description: str, type: str = "payment") -> Optional[Wallet]:
+    """
+    Deduct funds with row-level locking.
+    Call get_wallet_locked() first to obtain a locked wallet instance.
+    """
     if wallet.balance < amount:
         return None
-    
+
     wallet.balance -= amount
     wallet.updated_at = datetime.utcnow()
-    
+
     transaction = Transaction(
         wallet_id=wallet.id,
         amount=-amount,
@@ -51,7 +69,7 @@ def deduct_funds(db: Session, wallet: Wallet, amount: float, description: str, t
         description=description,
         reference=str(uuid.uuid4())
     )
-    
+
     db.add(wallet)
     db.add(transaction)
     db.commit()
@@ -69,17 +87,28 @@ def get_all_vouchers(db: Session) -> List[Voucher]:
     return db.exec(select(Voucher).order_by(Voucher.created_at.desc())).all()
 
 def redeem_voucher(db: Session, voucher: Voucher, user_id: int) -> Wallet:
-    wallet = get_wallet_by_user_id(db, user_id=user_id)
+    """
+    Redeem a voucher with SELECT FOR UPDATE to prevent double-redemption.
+    """
+    # Lock wallet row
+    wallet = get_wallet_locked(db, user_id=user_id)
     if not wallet:
         wallet = create_wallet(db, user_id=user_id)
-    
-    # Update voucher status
+        # Re-fetch locked now that it exists
+        wallet = get_wallet_locked(db, user_id=user_id)
+
+    # Re-check voucher inside the lock to guard against concurrent redemption
+    db.refresh(voucher)
+    if voucher.is_redeemed:
+        raise HTTPException(status_code=400, detail="Code already redeemed")
+
+    # Mark as redeemed
     voucher.is_redeemed = True
     voucher.redeemed_by_id = user_id
     voucher.redeemed_at = datetime.utcnow()
     db.add(voucher)
-    
-    # Deposit funds
+
+    # Credit the wallet
     return deposit_funds(db, wallet=wallet, amount=voucher.amount, description=f"Voucher Recharge: {voucher.code}")
 
 def get_total_spent(db: Session, wallet_id: int) -> float:

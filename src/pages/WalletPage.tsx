@@ -8,7 +8,7 @@ import {
     Clock,
     CheckCircle2,
     XCircle,
-    TrendingUp,
+
     ShieldCheck
 } from 'lucide-react';
 import { walletService } from '../services/walletService';
@@ -33,10 +33,7 @@ export const WalletPage: React.FC = () => {
         queryFn: () => walletService.getBalance()
     });
 
-    const { data: boostPrices } = useQuery({
-        queryKey: ['boost-prices'],
-        queryFn: walletService.getBoostPrices,
-    });
+
 
     const { data: plans } = useQuery({
         queryKey: ['promotion-plans'],
