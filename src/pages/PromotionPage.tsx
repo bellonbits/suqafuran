@@ -166,7 +166,7 @@ const PromotionPage: React.FC = () => {
                         <div className="text-center">
                             <p className="text-gray-400 text-xs uppercase tracking-widest font-bold mb-1">Amount to Pay</p>
                             <h3 className="text-4xl font-black text-gray-900">
-                                KES {selectedPlan?.price_usd}
+                                KES {Math.round((selectedPlan?.price_usd || 0) * 135)}
                             </h3>
                         </div>
 
