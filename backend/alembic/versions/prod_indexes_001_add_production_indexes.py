@@ -60,13 +60,6 @@ def upgrade():
     op.create_index("ix_promotion_lipana_tx_id","promotion", ["lipana_tx_id"])
 
     # ── Mobile transactions ─────────────────────────────────────────────────
-    # Unique index on reference — enforces idempotency at DB level too
-    op.create_index(
-        "ix_mobiletransaction_reference",
-        "mobiletransaction",
-        ["reference"],
-        unique=True,
-    )
     op.create_index("ix_mobiletransaction_is_linked", "mobiletransaction", ["is_linked"])
 
     # ── Favorites + Notifications ───────────────────────────────────────────
