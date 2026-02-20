@@ -74,7 +74,7 @@ const ForgotPasswordPage: React.FC = () => {
 
                 <Button
                     type="submit"
-                    className="w-full h-12 text-lg rounded-xl font-semibold bg-primary-600 hover:bg-primary-500 text-white shadow-lg shadow-primary-500/20"
+                    className="w-full h-12 text-lg rounded-xl font-semibold bg-blue-300 hover:bg-blue-400 text-white shadow-lg shadow-blue-300/30"
                     isLoading={loading}
                 >
                     <Send className="mr-2 w-5 h-5" />

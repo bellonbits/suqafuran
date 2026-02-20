@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { PublicLayout } from '../layouts/PublicLayout';
 import {
     HelpCircle, MessageCircle, Shield,
-    ArrowLeft, Search, ChevronDown, ChevronUp,
+    Search, ChevronDown, ChevronUp,
     ShoppingBag, User, ShieldCheck, CreditCard,
     ExternalLink
 } from 'lucide-react';
@@ -85,53 +84,65 @@ const HelpCenterPage: React.FC = () => {
     });
 
     return (
-        <PublicLayout>
-            {/* Hero Section */}
-            <div className="bg-gradient-to-b from-primary-600 to-primary-700 text-white overflow-hidden relative">
-                <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl -ml-48 -mt-48"></div>
-                    <div className="absolute bottom-0 right-0 w-96 h-96 bg-secondary-400 rounded-full blur-3xl -mr-48 -mb-48"></div>
-                </div>
-
-                <div className="container mx-auto px-4 py-16 md:py-24 relative z-10 text-center">
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="inline-flex items-center gap-2 text-primary-100 hover:text-white mb-8 transition-colors text-sm font-medium"
-                    >
-                        <ArrowLeft className="h-4 w-4" />
-                        Back to Previous Page
-                    </button>
-                    <h1 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight">Help Center</h1>
-                    <p className="text-xl text-primary-100 max-w-2xl mx-auto mb-10 leading-relaxed">
+        <div className="space-y-6">
+            {/* Header Section */}
+            <div className="bg-primary-600 rounded-3xl p-8 text-white relative overflow-hidden shadow-lg">
+                <div className="relative z-10">
+                    <h1 className="text-3xl font-bold mb-4">How can we help you?</h1>
+                    <p className="text-primary-100 mb-8 max-w-2xl">
                         Find answers to common questions about buying, selling, and staying safe on Suqafuran.
                     </p>
 
-                    <div className="max-w-2xl mx-auto relative group">
-                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-6 w-6 text-primary-300 group-focus-within:text-primary-600 transition-colors" />
+                    <div className="relative max-w-xl group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-primary-600 transition-colors" />
                         <input
                             type="text"
                             placeholder="Search for help (e.g. 'how to sell', 'verification'...)"
-                            className="w-full h-16 pl-14 pr-6 rounded-2xl border-none bg-white/10 backdrop-blur-md text-white placeholder:text-primary-200 focus:bg-white focus:text-gray-900 focus:ring-4 focus:ring-primary-400/20 transition-all outline-none text-lg shadow-xl"
+                            className="w-full h-12 pl-12 pr-4 rounded-xl border-none bg-white text-gray-900 placeholder:text-gray-400 focus:ring-4 focus:ring-primary-500/30 transition-all outline-none shadow-sm"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
                 </div>
+                {/* Decorative Elements */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-2xl -ml-12 -mb-12 pointer-events-none"></div>
             </div>
 
-            {/* Category Navigation */}
-            <div className="bg-white border-b border-gray-100 sticky top-16 z-30 shadow-sm">
-                <div className="container mx-auto px-4">
-                    <div className="flex items-center gap-2 overflow-x-auto py-4 no-scrollbar">
+            {/* Content Grid */}
+            <div className="grid lg:grid-cols-4 gap-8">
+                {/* Sidebar Navigation - Visible on Desktop */}
+                <div className="hidden lg:block space-y-2">
+                    <h3 className="font-bold text-gray-900 px-4 mb-2">Categories</h3>
+                    {categories.map((cat) => (
+                        <button
+                            key={cat.id}
+                            onClick={() => setActiveCategory(cat.id)}
+                            className={cn(
+                                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left",
+                                activeCategory === cat.id
+                                    ? "bg-white text-primary-600 shadow-sm border border-gray-100"
+                                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                            )}
+                        >
+                            <cat.icon className={cn("h-5 w-5", activeCategory === cat.id ? "text-primary-600" : "text-gray-400")} />
+                            {cat.label}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Mobile Navigation - Scrollable */}
+                <div className="lg:hidden col-span-full overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+                    <div className="flex gap-2">
                         {categories.map((cat) => (
                             <button
                                 key={cat.id}
                                 onClick={() => setActiveCategory(cat.id)}
                                 className={cn(
-                                    "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all",
+                                    "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all border",
                                     activeCategory === cat.id
-                                        ? "bg-primary-600 text-white shadow-md shadow-primary-200"
-                                        : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                                        ? "bg-primary-600 text-white border-primary-600"
+                                        : "bg-white text-gray-600 border-gray-200"
                                 )}
                             >
                                 <cat.icon className="h-4 w-4" />
@@ -140,124 +151,97 @@ const HelpCenterPage: React.FC = () => {
                         ))}
                     </div>
                 </div>
-            </div>
 
-            {/* FAQ Section */}
-            <div className="container mx-auto px-4 py-16">
-                <div className="max-w-3xl mx-auto">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
-                        <MessageCircle className="h-6 w-6 text-primary-600" />
-                        {activeCategory === 'all' ? 'Frequently Asked Questions' : `${categories.find(c => c.id === activeCategory)?.label} Questions`}
-                    </h2>
+                {/* Main FAQ Content */}
+                <div className="lg:col-span-3 space-y-6">
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                        <div className="p-6 border-b border-gray-50">
+                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                <MessageCircle className="h-5 w-5 text-primary-600" />
+                                {activeCategory === 'all' ? 'Frequently Asked Questions' : `${categories.find(c => c.id === activeCategory)?.label}`}
+                            </h2>
+                        </div>
 
-                    {filteredFaqs.length > 0 ? (
-                        <div className="space-y-4">
-                            {filteredFaqs.map((faq, index) => (
-                                <div
-                                    key={index}
-                                    className={cn(
-                                        "bg-white rounded-2xl border transition-all overflow-hidden",
-                                        expandedFaq === index
-                                            ? "border-primary-200 shadow-lg shadow-primary-50"
-                                            : "border-gray-100 hover:border-primary-100 hover:shadow-sm"
-                                    )}
-                                >
-                                    <button
-                                        onClick={() => setExpandedFaq(expandedFaq === index ? null : index)}
-                                        className="w-full px-6 py-5 flex items-center justify-between text-left group"
-                                    >
-                                        <span className={cn(
-                                            "font-bold transition-colors",
-                                            expandedFaq === index ? "text-primary-600" : "text-gray-900 group-hover:text-primary-600"
-                                        )}>
-                                            {faq.question}
-                                        </span>
-                                        {expandedFaq === index ? (
-                                            <ChevronUp className="h-5 w-5 text-primary-600 shrink-0" />
-                                        ) : (
-                                            <ChevronDown className="h-5 w-5 text-gray-400 shrink-0 group-hover:text-primary-600" />
+                        <div className="divide-y divide-gray-50">
+                            {filteredFaqs.length > 0 ? (
+                                filteredFaqs.map((faq, index) => (
+                                    <div key={index} className="group transition-colors hover:bg-gray-50/50">
+                                        <button
+                                            onClick={() => setExpandedFaq(expandedFaq === index ? null : index)}
+                                            className="w-full px-6 py-5 flex items-center justify-between text-left"
+                                        >
+                                            <span className={cn(
+                                                "font-medium transition-colors",
+                                                expandedFaq === index ? "text-primary-700" : "text-gray-900"
+                                            )}>
+                                                {faq.question}
+                                            </span>
+                                            {expandedFaq === index ? (
+                                                <ChevronUp className="h-5 w-5 text-primary-600 shrink-0" />
+                                            ) : (
+                                                <ChevronDown className="h-5 w-5 text-gray-400 shrink-0 group-hover:text-primary-600 transition-colors" />
+                                            )}
+                                        </button>
+                                        {expandedFaq === index && (
+                                            <div className="px-6 pb-6 text-gray-600 leading-relaxed text-sm animate-in fade-in slide-in-from-top-1 duration-200">
+                                                <p>{faq.answer}</p>
+                                                <div className="mt-4 flex items-center gap-4">
+                                                    <button className="text-xs font-bold text-primary-600 flex items-center gap-1 hover:underline">
+                                                        Was this helpful? <span className="text-gray-400 font-normal ml-2 hover:text-green-600 cursor-pointer">Yes</span> <span className="text-gray-400 font-normal hover:text-red-500 cursor-pointer">No</span>
+                                                    </button>
+                                                </div>
+                                            </div>
                                         )}
-                                    </button>
-                                    {expandedFaq === index && (
-                                        <div className="px-6 pb-6 text-gray-600 leading-relaxed text-sm animate-in fade-in slide-in-from-top-2 duration-200">
-                                            <div className="pt-2 border-t border-gray-50 mt-2">
-                                                {faq.answer}
-                                            </div>
-                                            <div className="mt-4 flex items-center gap-4">
-                                                <button className="text-xs font-bold text-primary-600 flex items-center gap-1 hover:underline">
-                                                    Was this helpful? <span className="text-gray-400 font-normal ml-2 hover:text-green-600">Yes</span> <span className="text-gray-400 font-normal hover:text-red-500">No</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="p-12 text-center">
+                                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+                                        <Search className="h-8 w-8" />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-gray-900 mb-1">No results found</h3>
+                                    <p className="text-gray-500 text-sm">We couldn't find any help articles matching "{searchQuery}"</p>
+                                    <Button
+                                        variant="ghost"
+                                        className="mt-4 font-bold text-primary-600"
+                                        onClick={() => setSearchQuery('')}
+                                    >
+                                        Clear search
+                                    </Button>
                                 </div>
-                            ))}
+                            )}
                         </div>
-                    ) : (
-                        <div className="text-center py-20 bg-gray-50 rounded-[32px] border-2 border-dashed border-gray-200">
-                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
-                                <Search className="h-8 w-8" />
+                    </div>
+
+                    {/* Support Cards */}
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-4">
+                            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 shrink-0">
+                                <MessageCircle className="h-6 w-6" />
                             </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">No results found</h3>
-                            <p className="text-gray-500">We couldn't find any help articles matching "{searchQuery}"</p>
-                            <Button
-                                variant="ghost"
-                                className="mt-4 font-bold text-primary-600"
-                                onClick={() => setSearchQuery('')}
-                            >
-                                Clear search and see all topics
-                            </Button>
+                            <div>
+                                <h3 className="font-bold text-gray-900 mb-1">Live Chat</h3>
+                                <p className="text-sm text-gray-500 mb-3">Available 8 AM - 8 PM</p>
+                                <button className="text-sm font-bold text-blue-600 hover:text-blue-700 hover:underline">Start Chat</button>
+                            </div>
                         </div>
-                    )}
-                </div>
 
-                {/* Safety Banner */}
-                <div className="max-w-4xl mx-auto mt-20 mb-10">
-                    <div className="bg-orange-50 rounded-[32px] p-8 md:p-12 border border-orange-100 flex flex-col md:flex-row items-center gap-8 group">
-                        <div className="w-20 h-20 bg-orange-100 rounded-3xl flex items-center justify-center text-orange-600 shrink-0 group-hover:scale-110 transition-transform">
-                            <Shield className="h-10 w-10" />
+                        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-4">
+                            <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-600 shrink-0">
+                                <Shield className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-gray-900 mb-1">Safety Tips</h3>
+                                <p className="text-sm text-gray-500 mb-3">Learn to trade safely</p>
+                                <button className="text-sm font-bold text-green-600 hover:text-green-700 hover:underline flex items-center gap-1">
+                                    Read Guide <ExternalLink className="h-3 w-3" />
+                                </button>
+                            </div>
                         </div>
-                        <div className="flex-1 text-center md:text-left">
-                            <h3 className="text-2xl font-bold text-gray-900 mb-2">Trade safely on Suqafuran</h3>
-                            <p className="text-gray-600 mb-4">Read our comprehensive safety guide to learn how to identify scams and protect yourself while buying and selling.</p>
-                            <Button className="bg-orange-600 hover:bg-orange-700 text-white border-none rounded-full px-8 gap-2 group-hover:gap-3 transition-all">
-                                View Safety Tips
-                                <ExternalLink className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Technical Support Section */}
-                <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                    <div className="bg-gray-900 text-white rounded-[40px] p-10 relative overflow-hidden group">
-                        <div className="relative z-10">
-                            <h3 className="text-2xl font-bold mb-4">Live Chat Support</h3>
-                            <p className="text-gray-400 mb-8 leading-relaxed">
-                                Need technical help? Our support team is available from 8 AM to 8 PM to assist you with any platform issues.
-                            </p>
-                            <Button className="bg-white text-gray-900 hover:bg-gray-100 rounded-full px-8 h-12 font-extrabold w-full sm:w-auto">
-                                Start Live Chat
-                            </Button>
-                        </div>
-                        <MessageCircle className="absolute -bottom-10 -right-10 h-64 w-64 text-white/5 group-hover:text-white/10 transition-colors" />
-                    </div>
-
-                    <div className="bg-primary-50 rounded-[40px] p-10 border border-primary-100 relative overflow-hidden group">
-                        <div className="relative z-10">
-                            <h3 className="text-2xl font-bold text-gray-900 mb-4">Contact via Email</h3>
-                            <p className="text-gray-600 mb-8 leading-relaxed">
-                                For inquiries about accounts, payments, or reporting suspicious activity, send us an email anytime.
-                            </p>
-                            <Button className="bg-primary-600 text-white border-none rounded-full px-8 h-12 font-bold w-full sm:w-auto" onClick={() => window.location.href = 'mailto:support@suqafuran.com'}>
-                                support@suqafuran.com
-                            </Button>
-                        </div>
-                        <CreditCard className="absolute -bottom-10 -right-10 h-64 w-64 text-primary-600/5 group-hover:text-primary-600/10 transition-colors" />
                     </div>
                 </div>
             </div>
-        </PublicLayout>
+        </div>
     );
 };
 

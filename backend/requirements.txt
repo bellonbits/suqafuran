@@ -21,3 +21,4 @@ authlib
 httpx
 itsdangerous
 cffi
+africastalking

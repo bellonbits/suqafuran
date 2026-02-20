@@ -4,6 +4,7 @@ from app.api import deps
 from app.models.listing import Listing
 from app.models.message import Message
 from app.models.favorite import Favorite
+from app.models.wallet import Wallet
 
 router = APIRouter()
 
@@ -26,6 +27,10 @@ def get_user_stats(
     # Count favorites
     favorites_count = db.exec(select(func.count()).select_from(Favorite).where(Favorite.user_id == current_user.id)).one()
     
+    # Get wallet balance
+    wallet = db.exec(select(Wallet).where(Wallet.user_id == current_user.id)).first()
+    balance = wallet.balance if wallet else 0.0
+    
     # Mock profile views for now as we don't have a views tracker yet
     profile_views = "1.2k"
     
@@ -33,5 +38,6 @@ def get_user_stats(
         "listings": listings_count,
         "messages": messages_count,
         "favorites": favorites_count,
-        "views": profile_views
+        "views": profile_views,
+        "balance": balance
     }

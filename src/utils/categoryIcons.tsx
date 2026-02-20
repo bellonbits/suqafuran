@@ -4,7 +4,7 @@ import {
     Shirt, Bike, Camera, Music, Book,
     Gamepad, ShoppingBag, Utensils, Zap, Wrench,
     Sprout, Baby, Hammer, Armchair, HelpCircle,
-    PawPrint, Tractor, HardHat, Footprints
+    PawPrint, Tractor, HardHat, Footprints, TreePine
 } from 'lucide-react';
 
 export const iconMap: Record<string, any> = {
@@ -42,10 +42,15 @@ export const iconMap: Record<string, any> = {
     'armchair': Armchair,
     'home-living': Armchair,
     'animals': PawPrint,
+    'paw-print': PawPrint,
+    'livestock': PawPrint,
+    'tree-pine': TreePine,
+    'land-farms': TreePine,
     'shoes': Footprints,
     'commercial': Briefcase
 };
 
-export const getCategoryIcon = (iconName: string) => {
+export const getCategoryIcon = (iconName?: string) => {
+    if (!iconName) return HelpCircle;
     return iconMap[iconName.toLowerCase()] || HelpCircle;
 };

@@ -78,7 +78,14 @@ export const authService = {
         return response.data;
     },
 
-    async getUserPublicInfo(userId: number): Promise<{ full_name: string; id: number; is_verified: boolean }> {
+    async getUserPublicInfo(userId: number): Promise<{
+        full_name: string;
+        id: number;
+        is_verified: boolean;
+        avatar_url?: string;
+        phone?: string;
+        response_time?: string;
+    }> {
         const response = await api.get(`/users/public/${userId}`);
         return response.data;
     }

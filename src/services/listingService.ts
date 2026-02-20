@@ -45,5 +45,33 @@ export const listingService = {
             },
         });
         return response.data;
+    },
+
+    async getTrendingListings(): Promise<Listing[]> {
+        // For now, fetch recent listings. In real backend, this would be /listings/trending
+        const response = await api.get('/listings/', { params: { sort: 'trending', limit: 6 } });
+        return response.data;
+    },
+
+    // Promotion Methods
+    async getPromotionPlans() {
+        const response = await api.get('/promotions/plans');
+        return response.data;
+    },
+
+    async createPromotionOrder(data: { listing_id: number; plan_id: number; payment_phone: string }) {
+        const response = await api.post('/promotions/', data);
+        return response.data;
+    },
+
+    async checkPromotionStatus(promoId: number) {
+        // This endpoint checks if payment is detected
+        const response = await api.post(`/promotions/${promoId}/check-payment`);
+        return response.data;
+    },
+
+    async simulatePayment(data: { phone: string; amount: number; reference?: string }) {
+        const response = await api.post('/mobile-money/simulate', data);
+        return response.data;
     }
 };

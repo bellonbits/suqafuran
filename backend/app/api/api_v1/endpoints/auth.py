@@ -1,13 +1,14 @@
 from datetime import datetime, timedelta
 from typing import Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from sqlmodel import Session, select
 from app.api import deps
 from app.core import security
 from app.core.config import settings
 from app.crud import crud_user
-from app.models.otp import OTP
 from app.models.user import User, UserVerifiedLevel
+from app.models.audit import AuditLog
+from app.services.africastalking_service import africastalking_service
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -39,30 +40,30 @@ class AuthOut(BaseModel):
     user: Any
 
 @router.post("/request-otp", response_model=RequestOtpOut)
+@deps.limiter.limit("5/minute")
 def request_otp(
+    request: Request,
     payload: RequestOtpIn,
     db: Session = Depends(deps.get_db)
 ) -> Any:
-    # 1. Generate OTP
-    code = OTP.generate_code()
-    expires_at = datetime.utcnow() + timedelta(minutes=5)
-    
-    # 2. Save OTP
-    otp_obj = OTP(phone=payload.phone, code=code, expires_at=expires_at)
-    db.add(otp_obj)
-    db.commit()
-    
-    # 3. Simulate SMS sending
-    print(f"SMS sent to {payload.phone}: Code is {code}")
+    # Use Africa's Talking
+    success = africastalking_service.send_verification_code(payload.phone)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to send verification code. Please try again later."
+        )
     
     return {"success": True, "cooldown_seconds": 60}
 
 @router.post("/signup", response_model=RequestOtpOut)
+@deps.limiter.limit("3/minute")
 def signup(
+    request: Request,
     payload: SignupIn,
     db: Session = Depends(deps.get_db)
 ) -> Any:
-    # 1. Check if user exists
+    # 1. Check if user already exists
     user = crud_user.get_user_by_phone(db, phone=payload.phone)
     if user:
         raise HTTPException(
@@ -77,24 +78,31 @@ def signup(
                 detail="The user with this email already exists in the system.",
             )
 
-    # 2. Create User
-    user = crud_user.create_user(
-        db, 
-        phone=payload.phone, 
-        password=payload.password, 
-        full_name=payload.full_name,
-        email=payload.email
-    )
+    # 2. Store signup data in Redis (NOT in database yet)
+    signup_data = {
+        "full_name": payload.full_name,
+        "phone": payload.phone,
+        "password": payload.password,
+        "email": payload.email
+    }
+    stored = africastalking_service.store_pending_signup(payload.phone, signup_data)
+    if not stored:
+        print(f"[Signup] FAILED to store pending signup for {payload.phone}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to store signup data. Please try again."
+        )
 
-    # 3. Generate & Send OTP
-    code = OTP.generate_code()
-    expires_at = datetime.utcnow() + timedelta(minutes=5)
-    
-    otp_obj = OTP(phone=payload.phone, code=code, expires_at=expires_at)
-    db.add(otp_obj)
-    db.commit()
-    
-    print(f"SMS sent to {payload.phone}: Code is {code}")
+    print(f"[Signup] Stored pending data for {payload.phone}. Proceeding to OTP...")
+
+    # 3. Send OTP
+    success = africastalking_service.send_verification_code(payload.phone)
+    if not success:
+        africastalking_service.delete_pending_signup(payload.phone)
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to send verification code. Please try again."
+        )
     
     return {"success": True, "cooldown_seconds": 60}
 
@@ -104,42 +112,75 @@ def verify_otp(
     payload: VerifyOtpIn,
     db: Session = Depends(deps.get_db)
 ) -> Any:
-    # 1. Find valid OTP
-    statement = select(OTP).where(
-        OTP.phone == payload.phone,
-        OTP.code == payload.otp,
-        OTP.is_used == False,
-        OTP.expires_at > datetime.utcnow()
-    )
-    otp_obj = db.exec(statement).first()
+    # 1. Check code with Africa's Talking
+    is_valid = africastalking_service.check_verification_code(payload.phone, payload.otp)
     
-    if not otp_obj:
+    if not is_valid:
         raise HTTPException(status_code=400, detail="Invalid or expired OTP")
     
-    # 2. Mark OTP as used
-    otp_obj.is_used = True
-    db.add(otp_obj)
-    
-    # 3. Get or create user (Handle verification)
+    # 2. Check if this is a new signup or existing user login
     user = crud_user.get_user_by_phone(db, phone=payload.phone)
-    if not user:
-        # Fallback for old flow or implicit signup (maybe disallowed now?)
-        # For now, let's allow it but we need a password... 
-        # Actually, if we want strict password flow, we should fail here?
-        # User requested: "place details in sign in page then verify... then login using verified mobile and password"
-        # Since we can't create a password here, we must assume user exists from signup.
-        # But for backward compatibility with existing tasks/tests, maybe we generate a random one or error.
-        # Let's Error to enforce the new flow.
-        raise HTTPException(status_code=400, detail="User not found. Please sign up first.")
     
-    if not user.is_verified:
+    if not user:
+        # This is a new signup - retrieve pending signup data
+        signup_data = africastalking_service.get_pending_signup(payload.phone)
+        
+        if not signup_data:
+            raise HTTPException(
+                status_code=400, 
+                detail="Signup session expired. Please sign up again."
+            )
+        
+        # Create user with verified status
+        print(f"[Verify] Creating NEW USER in DB for {payload.phone}")
+        user = crud_user.create_user(
+            db,
+            phone=signup_data["phone"],
+            password=signup_data["password"],
+            full_name=signup_data["full_name"],
+            email=signup_data.get("email")
+        )
+        
+        # Mark as verified immediately
+        user.phone_verified = True
         user.is_verified = True
         user.verified_level = UserVerifiedLevel.phone
         db.add(user)
+        # Audit log for signup
+        signup_log = AuditLog(
+            user_id=user.id,
+            action="USER_SIGNUP",
+            resource_type="user",
+            resource_id=user.id,
+            details=f"New user registered: {user.full_name} ({user.phone})"
+        )
+        db.add(signup_log)
+        db.commit()
+        db.refresh(user)
+        print(f"[Verify] Successfully created user {user.id}")
+        
+        # Clean up pending signup data
+        africastalking_service.delete_pending_signup(payload.phone)
+    else:
+        print(f"[Verify] Existing user {user.id} logged in via OTP")
+        # Existing user - just mark as verified
+        user.phone_verified = True
+        user.is_verified = True
+        user.verified_level = UserVerifiedLevel.phone
+        db.add(user)
+        # Audit log for login
+        login_log = AuditLog(
+            user_id=user.id,
+            action="USER_LOGIN",
+            resource_type="user",
+            resource_id=user.id,
+            details=f"User {user.full_name} logged in via OTP ({user.phone})"
+        )
+        db.add(login_log)
         db.commit()
         db.refresh(user)
     
-    # 4. Generate token
+    # 3. Generate token
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(
         user.id, expires_delta=access_token_expires

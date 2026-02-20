@@ -22,12 +22,14 @@ class UserBase(SQLModel):
     phone: str = Field(unique=True, index=True)
     is_active: bool = True
     is_verified: bool = False
+    phone_verified: bool = Field(default=False)
     is_admin: bool = False
     verified_level: UserVerifiedLevel = Field(default=UserVerifiedLevel.guest)
     avatar_url: Optional[str] = None
     response_time: Optional[str] = "Typically responds in a few hours"
     email_notifications: bool = True
     sms_notifications: bool = False
+    is_agent: bool = Field(default=False)
 
 
 class User(UserBase, table=True):

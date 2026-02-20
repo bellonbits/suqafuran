@@ -64,7 +64,14 @@ def read_user_public(
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return {"full_name": user.full_name, "id": user.id, "is_verified": user.is_verified}
+    return {
+        "full_name": user.full_name, 
+        "id": user.id, 
+        "is_verified": user.is_verified,
+        "avatar_url": user.avatar_url,
+        "phone": user.phone, # Adding phone for the profile call button
+        "response_time": user.response_time
+    }
 
 
 @router.patch("/me", response_model=User)

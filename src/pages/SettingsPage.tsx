@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { DashboardLayout } from '../layouts/DashboardLayout';
+
 import { authService } from '../services/authService';
 import { useAuthStore } from '../store/useAuthStore';
 import {
@@ -11,6 +11,7 @@ import {
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { cn } from '../utils/cn';
+import { getAvatarUrl } from '../utils/imageUtils';
 
 const SettingsPage: React.FC = () => {
     const { user, setUser } = useAuthStore();
@@ -118,19 +119,10 @@ const SettingsPage: React.FC = () => {
         });
     };
 
-    const getAvatarUrl = (url?: string | null) => {
-        if (!url) return null;
-        if (url.startsWith('http')) return url;
-        const cleanUrl = url.startsWith('/') ? url : `/${url}`;
-        return `http://localhost:8888${cleanUrl}`;
-    };
 
     return (
-        <DashboardLayout>
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">Account Settings</h1>
-                <p className="text-sm text-gray-500 mt-1">Manage your profile, security and preferences.</p>
-            </div>
+        <>
+            {/* Header removed as it duplicates DashboardLayout header */}
 
             <div className="grid lg:grid-cols-3 gap-8">
                 {/* Profile Section */}
@@ -358,7 +350,7 @@ const SettingsPage: React.FC = () => {
                     </div>
                 </div>
             )}
-        </DashboardLayout>
+        </>
     );
 };
 

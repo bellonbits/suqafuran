@@ -11,7 +11,9 @@ export interface PromotionPlan {
 export interface Promotion {
     id: number;
     listing_id: number;
+    listing_title?: string;
     plan_id: number;
+    plan_name?: string;
     status: 'pending' | 'submitted' | 'approved' | 'rejected' | 'expired';
     payment_proof?: string;
     admin_notes?: string;
@@ -29,11 +31,17 @@ export const promotionService = {
         return response.data;
     },
 
-    createPromotion: async (listingId: number, planId: number): Promise<Promotion> => {
+    createPromotion: async (listingId: number, planId: number, paymentPhone: string): Promise<Promotion> => {
         const response = await api.post('/promotions/', {
             listing_id: listingId,
             plan_id: planId,
+            payment_phone: paymentPhone,
         });
+        return response.data;
+    },
+
+    checkPayment: async (promotionId: number): Promise<{ status: string; message: string; expires_at?: string }> => {
+        const response = await api.post(`/promotions/${promotionId}/check-payment`);
         return response.data;
     },
 
@@ -75,7 +83,50 @@ export const promotionService = {
             plan_id: planId,
         });
         return response.data;
-    }
+    },
+
+    generateCode: async (amount: number = 0): Promise<{ code: string; id: number; amount: number }> => {
+        const response = await api.post('/promotions/codes/generate', { amount });
+        return response.data;
+    },
+
+    applyCode: async (payload: { code: string; listing_id: number; plan_id: number }): Promise<{ success: boolean; message: string }> => {
+        const response = await api.post('/promotions/codes/apply', payload);
+        return response.data;
+    },
+
+    // Agent Portal Methods
+    getPaymentQueue: async (): Promise<any[]> => {
+        const response = await api.get('/promotions/agent/payment-queue');
+        return response.data;
+    },
+
+    getPendingOrders: async (): Promise<any[]> => {
+        const response = await api.get('/promotions/agent/pending-orders');
+        return response.data;
+    },
+
+    matchPayment: async (promotionId: number, transactionId: number): Promise<{ success: boolean; message: string }> => {
+        const response = await api.post(`/promotions/${promotionId}/match`, {
+            transaction_id: transactionId,
+        });
+        return response.data;
+    },
+
+    agentActivate: async (promotionId: number): Promise<{ success: boolean; message: string }> => {
+        const response = await api.post(`/promotions/${promotionId}/activate`);
+        return response.data;
+    },
+
+    getAgentHistory: async (): Promise<any[]> => {
+        const response = await api.get('/promotions/agent/history');
+        return response.data;
+    },
+
+    rejectTransaction: async (transactionId: number): Promise<{ success: boolean; message: string }> => {
+        const response = await api.post(`/promotions/agent/transactions/${transactionId}/reject`);
+        return response.data;
+    },
 };
 
 export default promotionService;

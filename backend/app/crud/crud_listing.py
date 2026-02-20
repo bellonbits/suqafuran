@@ -40,9 +40,9 @@ def get_listings(
     
     if attributes:
         for key, value in attributes.items():
-            # Simple JSON contains check for exact match
-            # For more complex stuff (e.g. ranges), would need specific logic
-            statement = statement.where(func.json_extract(Listing.attributes, f"$.{key}") == value)
+            # Use PostgreSQL-specific function to extract JSON value as text
+            # This avoids operator errors and ensures correct comparison
+            statement = statement.where(func.json_extract_path_text(Listing.attributes, key) == str(value))
     
     return db.exec(statement).all()
 
@@ -84,3 +84,17 @@ def get_categories(db: Session) -> List[Category]:
 
 def get_category_by_slug(db: Session, slug: str) -> Optional[Category]:
     return db.exec(select(Category).where(Category.slug == slug)).first()
+
+
+def create_category(db: Session, *, category_in: Category) -> Category:
+    db.add(category_in)
+    db.commit()
+    db.refresh(category_in)
+    return category_in
+
+
+def remove_category(db: Session, *, id: int) -> Category:
+    obj = db.get(Category, id)
+    db.delete(obj)
+    db.commit()
+    return obj

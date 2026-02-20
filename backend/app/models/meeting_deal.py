@@ -2,6 +2,7 @@ import enum
 from datetime import datetime
 from typing import Optional
 from sqlmodel import Field, SQLModel
+from sqlalchemy import Column, String
 
 class MeetingResponse(str, enum.Enum):
     YES = "yes"
@@ -13,8 +14,8 @@ class Meeting(SQLModel, table=True):
     listing_id: int = Field(foreign_key="listing.id")
     buyer_id: int = Field(foreign_key="user.id")
     seller_id: int = Field(foreign_key="user.id")
-    buyer_response: Optional[MeetingResponse] = None
-    seller_response: Optional[MeetingResponse] = None
+    buyer_response: Optional[str] = Field(default=None, sa_column=Column(String))
+    seller_response: Optional[str] = Field(default=None, sa_column=Column(String))
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -28,5 +29,5 @@ class Deal(SQLModel, table=True):
     listing_id: int = Field(foreign_key="listing.id")
     buyer_id: int = Field(foreign_key="user.id")
     seller_id: int = Field(foreign_key="user.id")
-    outcome: DealOutcome
+    outcome: str = Field(sa_column=Column(String))
     created_at: datetime = Field(default_factory=datetime.utcnow)

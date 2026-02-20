@@ -6,3 +6,12 @@ export const getImageUrl = (path: string | undefined): string => {
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
     return `${backendUrl}${normalizedPath}`;
 };
+
+export const getAvatarUrl = (path: string | undefined | null): string | null => {
+    if (!path) return null;
+    if (path.startsWith('http') || path.startsWith('data:')) return path;
+
+    const backendUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1').replace('/api/v1', '').replace(/\/$/, '');
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    return `${backendUrl}${normalizedPath}`;
+};

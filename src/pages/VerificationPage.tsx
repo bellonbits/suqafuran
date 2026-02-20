@@ -1,10 +1,11 @@
+```typescript
 import React, { useState } from 'react';
 import Webcam from 'react-webcam';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Camera, Upload, CheckCircle, XCircle, Shield, Loader2 } from 'lucide-react';
 import api from '../services/api';
 import { Button } from '../components/Button';
-import { DashboardLayout } from '../layouts/DashboardLayout';
+
 import { cn } from '../utils/cn';
 
 const VerificationPage: React.FC = () => {
@@ -63,228 +64,176 @@ const VerificationPage: React.FC = () => {
 
     if (isLoading) {
         return (
-            <DashboardLayout>
-                <div className="flex items-center justify-center h-96">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-                </div>
-            </DashboardLayout>
+            <div className="flex items-center justify-center h-96">
+                <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+            </div>
         );
     }
 
     return (
-        <DashboardLayout>
-            <div className="max-w-6xl mx-auto">
-                {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Seller Verification</h1>
-                    <p className="text-gray-600">Complete your verification to build trust with buyers</p>
-                </div>
+        <div className="max-w-6xl mx-auto">
+            {/* Header */}
+            <div className="mb-8">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">Seller Verification</h1>
+                <p className="text-gray-600">Complete your verification to build trust with buyers</p>
+            </div>
 
-                {/* Verification Status Card */}
-                {status && (
-                    <div className={cn(
-                        "mb-8 p-6 rounded-2xl border-2 flex items-center gap-4",
-                        status.status === 'approved' ? "bg-green-50 border-green-200" :
-                            status.status === 'pending' ? "bg-blue-50 border-blue-200" :
-                                "bg-red-50 border-red-200"
-                    )}>
-                        {status.status === 'approved' ? (
-                            <>
-                                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                                    <CheckCircle className="w-6 h-6 text-green-600" />
+            {/* Verification Status Card */}
+            {status && (
+                <div className={cn(
+                    "mb-8 p-6 rounded-2xl border-2 flex items-center gap-4",
+                    status.status === 'approved' ? "bg-green-50 border-green-200" :
+                        status.status === 'pending' ? "bg-blue-50 border-blue-200" :
+                            "bg-red-50 border-red-200"
+                )}>
+                    {status.status === 'approved' ? (
+                        <>
+                            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                                <CheckCircle className="w-6 h-6 text-green-600" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="font-bold text-green-900">Verified Seller</h3>
+                                <p className="text-sm text-green-700">Your account has been successfully verified</p>
+                            </div>
+                            <Shield className="w-8 h-8 text-green-600" />
+                        </>
+                    ) : status.status === 'pending' ? (
+                        <>
+                            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="font-bold text-blue-900">Verification Pending</h3>
+                                <p className="text-sm text-blue-700">Your documents are under review (24-48 hours)</p>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                                <XCircle className="w-6 h-6 text-red-600" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="font-bold text-red-900">Verification Rejected</h3>
+                                <p className="text-sm text-red-700">Please submit new documents</p>
+                            </div>
+                        </>
+                    )}
+                </div>
+            )}
+
+            {/* Main Verification Grid */}
+            {(!status || status.status === 'rejected') && (
+                <div className="grid md:grid-cols-2 gap-6">
+                    {/* Selfie Capture Card */}
+                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
+                                <Camera className="w-5 h-5 text-primary-600" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-gray-900">Take a Selfie</h3>
+                                <p className="text-sm text-gray-500">Capture a clear photo of your face</p>
+                            </div>
+                        </div>
+
+                        <div className="aspect-[3/4] rounded-xl overflow-hidden bg-gray-900 mb-4 relative">
+                            {selfieCapture ? (
+                                <img src={selfieCapture} alt="Selfie" className="w-full h-full object-cover" />
+                            ) : (
+                                <Webcam
+                                    audio={false}
+                                    ref={webcamRef}
+                                    screenshotFormat="image/jpeg"
+                                    className="w-full h-full object-cover"
+                                    videoConstraints={{ facingMode: "user", aspectRatio: 0.75 }}
+                                />
+                            )}
+                            {selfieCapture && (
+                                <div className="absolute top-3 right-3">
+                                    <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                                        <CheckCircle className="w-5 h-5 text-white" />
+                                    </div>
                                 </div>
-                                <div className="flex-1">
-                                    <h3 className="font-bold text-green-900">Verified Seller</h3>
-                                    <p className="text-sm text-green-700">Your account has been successfully verified</p>
-                                </div>
-                                <Shield className="w-8 h-8 text-green-600" />
-                            </>
-                        ) : status.status === 'pending' ? (
-                            <>
-                                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                                    <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="font-bold text-blue-900">Verification Pending</h3>
-                                    <p className="text-sm text-blue-700">Your documents are under review (24-48 hours)</p>
-                                </div>
-                            </>
+                            )}
+                        </div>
+
+                        {selfieCapture ? (
+                            <Button
+                                variant="outline"
+                                className="w-full rounded-xl"
+                                onClick={() => setSelfieCapture(null)}
+                            >
+                                Retake Photo
+                            </Button>
                         ) : (
-                            <>
-                                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                                    <XCircle className="w-6 h-6 text-red-600" />
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="font-bold text-red-900">Verification Rejected</h3>
-                                    <p className="text-sm text-red-700">Please submit new documents</p>
-                                </div>
-                            </>
+                            <Button
+                                className="w-full rounded-xl bg-primary-600 hover:bg-primary-700"
+                                onClick={captureSelfie}
+                            >
+                                <Camera className="w-4 h-4 mr-2" />
+                                Capture Photo
+                            </Button>
                         )}
                     </div>
-                )}
 
-                {/* Main Verification Grid */}
-                {(!status || status.status === 'rejected') && (
-                    <div className="grid md:grid-cols-2 gap-6">
-                        {/* Selfie Capture Card */}
-                        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
-                                    <Camera className="w-5 h-5 text-primary-600" />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-gray-900">Take a Selfie</h3>
-                                    <p className="text-sm text-gray-500">Capture a clear photo of your face</p>
-                                </div>
+                    {/* Document Upload Card */}
+                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
+                                <Upload className="w-5 h-5 text-primary-600" />
                             </div>
-
-                            <div className="aspect-[3/4] rounded-xl overflow-hidden bg-gray-900 mb-4 relative">
-                                {selfieCapture ? (
-                                    <img src={selfieCapture} alt="Selfie" className="w-full h-full object-cover" />
-                                ) : (
-                                    <Webcam
-                                        audio={false}
-                                        ref={webcamRef}
-                                        screenshotFormat="image/jpeg"
-                                        className="w-full h-full object-cover"
-                                        videoConstraints={{ facingMode: "user", aspectRatio: 0.75 }}
-                                    />
-                                )}
-                                {selfieCapture && (
-                                    <div className="absolute top-3 right-3">
-                                        <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
-                                            <CheckCircle className="w-5 h-5 text-white" />
-                                        </div>
-                                    </div>
-                                )}
+                            <div>
+                                <h3 className="font-bold text-gray-900">Upload ID Document</h3>
+                                <p className="text-sm text-gray-500">National ID, Passport, or Driver's License</p>
                             </div>
-
-                            {selfieCapture ? (
-                                <Button
-                                    variant="outline"
-                                    className="w-full rounded-xl"
-                                    onClick={() => setSelfieCapture(null)}
-                                >
-                                    Retake Photo
-                                </Button>
-                            ) : (
-                                <Button
-                                    className="w-full rounded-xl bg-primary-600 hover:bg-primary-700"
-                                    onClick={captureSelfie}
-                                >
-                                    <Camera className="w-4 h-4 mr-2" />
-                                    Capture Photo
-                                </Button>
-                            )}
                         </div>
 
-                        {/* Document Upload Card */}
-                        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
-                                    <Upload className="w-5 h-5 text-primary-600" />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-gray-900">Upload ID Document</h3>
-                                    <p className="text-sm text-gray-500">National ID, Passport, or Driver's License</p>
-                                </div>
-                            </div>
-
-                            <label className="block">
-                                <input
-                                    type="file"
-                                    multiple
-                                    accept="image/*"
-                                    onChange={handleDocumentUpload}
-                                    className="hidden"
-                                />
-                                <div className={cn(
-                                    "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all",
-                                    documentFiles.length > 0
-                                        ? "border-green-300 bg-green-50"
-                                        : "border-gray-200 hover:border-primary-300 hover:bg-primary-50/30"
-                                )}>
-                                    {documentFiles.length > 0 ? (
-                                        <>
-                                            <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-3" />
-                                            <p className="font-semibold text-green-900 mb-1">
-                                                {documentFiles.length} {documentFiles.length === 1 ? 'file' : 'files'} selected
-                                            </p>
-                                            <p className="text-sm text-green-700">
-                                                {documentFiles.map(f => f.name).join(', ')}
-                                            </p>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                                            <p className="font-semibold text-gray-900 mb-1">Click to upload</p>
-                                            <p className="text-sm text-gray-500">PNG, JPG up to 5MB</p>
-                                        </>
-                                    )}
-                                </div>
-                            </label>
-
-                            {documentFiles.length > 0 && (
-                                <div className="mt-4 grid grid-cols-2 gap-2">
-                                    {documentFiles.map((file, idx) => (
-                                        <div key={idx} className="aspect-video rounded-lg overflow-hidden border border-gray-200">
-                                            <img
-                                                src={URL.createObjectURL(file)}
-                                                alt={`Document ${idx + 1}`}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* Submit Button */}
-                {(!status || status.status === 'rejected') && (
-                    <div className="mt-8 flex justify-center">
-                        <Button
-                            className="px-12 h-14 rounded-xl text-lg font-bold bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-500/20 disabled:opacity-50"
-                            disabled={!selfieCapture || documentFiles.length === 0 || submitMutation.isPending}
-                            onClick={handleSubmit}
-                        >
-                            {submitMutation.isPending ? (
-                                <>
-                                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                    Submitting...
-                                </>
-                            ) : (
-                                <>
-                                    <Shield className="w-5 h-5 mr-2" />
-                                    Submit for Verification
-                                </>
-                            )}
-                        </Button>
-                    </div>
-                )}
-
-                {/* Info Section */}
-                <div className="mt-8 bg-blue-50 rounded-2xl p-6 border border-blue-100">
-                    <h4 className="font-bold text-blue-900 mb-3">Why verify your account?</h4>
-                    <ul className="space-y-2 text-sm text-blue-800">
-                        <li className="flex items-start gap-2">
-                            <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                            <span>Build trust with buyers and increase sales</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                            <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                            <span>Get a verified badge on your profile</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                            <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                            <span>Rank higher in search results</span>
-                        </li>
-                    </ul>
-                </div>
+                        <label className="block">
+                            <input
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={handleDocumentUpload}
+                                className="hidden"
+                            />
+                    disabled={!selfieCapture || documentFiles.length === 0 || submitMutation.isPending}
+                    onClick={handleSubmit}
+                >
+                    {submitMutation.isPending ? (
+                        <>
+                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                            Submitting...
+                        </>
+                    ) : (
+                        <>
+                            <Shield className="w-5 h-5 mr-2" />
+                            Submit for Verification
+                        </>
+                    )}
+                </Button>
             </div>
-        </DashboardLayout>
-    );
+        )}
+
+        {/* Info Section */}
+        <div className="mt-8 bg-blue-50 rounded-2xl p-6 border border-blue-100">
+            <h4 className="font-bold text-blue-900 mb-3">Why verify your account?</h4>
+            <ul className="space-y-2 text-sm text-blue-800">
+                <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <span>Build trust with buyers and increase sales</span>
+                </li>
+                <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <span>Get a verified badge on your profile</span>
+                </li>
+                <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <span>Rank higher in search results</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+);
 };
 
 export { VerificationPage };

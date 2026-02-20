@@ -1,9 +1,9 @@
 from datetime import datetime
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session
+from sqlmodel import Session, select
 from app.api import deps
-from app.models.meeting_deal import Deal, DealOutcome
+from app.models.meeting_deal import Deal, DealOutcome, Meeting
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -39,10 +39,10 @@ def respond_deal(
             listing_id=meeting.listing_id,
             buyer_id=meeting.buyer_id,
             seller_id=meeting.seller_id,
-            outcome=payload.outcome
+            outcome=payload.outcome.value
         )
     else:
-        deal.outcome = payload.outcome
+        deal.outcome = payload.outcome.value
         
     db.add(deal)
     db.commit()

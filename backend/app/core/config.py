@@ -18,6 +18,18 @@ class Settings(BaseSettings):
     GITHUB_CLIENT_ID: Optional[str] = None
     GITHUB_CLIENT_SECRET: Optional[str] = None
     
+    # AFRICA'S TALKING
+    AFRICASTALKING_USERNAME: str = "sandbox"
+    AFRICASTALKING_API_KEY: str = ""
+    AFRICASTALKING_SENDER_ID: str = "SUQAFURAN"  # Your approved sender ID
+
+    # LIPANA M-PESA
+    LIPANA_SECRET_KEY: str = ""
+    LIPANA_WEBHOOK_SECRET: str = ""
+    
+    # ENVIRONMENT
+    ENVIRONMENT: str = "development"  # development, staging, production
+    
     # DATABASE
     POSTGRES_SERVER: str
     POSTGRES_USER: str

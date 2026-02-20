@@ -7,6 +7,7 @@ export interface AdminStats {
     total_listings: number;
     active_listings: number;
     pending_listings: number;
+    pending_promotions: number;
 }
 
 export const adminService = {
@@ -40,5 +41,14 @@ export const adminService = {
     async moderateVerification(id: number, status: string) {
         const response = await api.patch(`/verifications/${id}`, { status });
         return response.data;
+    },
+
+    async createCategory(data: { name: string; slug: string; icon_name: string }): Promise<any> {
+        const response = await api.post('/listings/categories', data);
+        return response.data;
+    },
+
+    async deleteCategory(id: number): Promise<void> {
+        await api.delete(`/listings/categories/${id}`);
     }
 };

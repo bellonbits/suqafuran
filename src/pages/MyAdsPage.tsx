@@ -2,7 +2,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { DashboardLayout } from '../layouts/DashboardLayout';
 import { listingService } from '../services/listingService';
 import {
     ShoppingBag, Eye, Edit2,
@@ -35,23 +34,13 @@ const MyAdsPage: React.FC = () => {
         },
     });
 
-    const boostMutation = useMutation({
-        mutationFn: ({ id, level }: { id: number, level: number }) => walletService.applyBoost(id, level),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['my-listings'] });
-            queryClient.invalidateQueries({ queryKey: ['wallet-balance'] });
-            setBoostingListing(null);
-            setSelectedBoost(null);
-        },
-    });
-
     const { data: boostPrices } = useQuery({
         queryKey: ['boost-prices'],
         queryFn: walletService.getBoostPrices,
     });
 
     return (
-        <DashboardLayout>
+        <div className="space-y-4">
             {/* Delete Confirmation Modal */}
             {deletingId && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -112,7 +101,7 @@ const MyAdsPage: React.FC = () => {
                                     <span className="text-xs text-gray-400">• Posted recently</span>
                                 </div>
                                 <h3 className="font-bold text-gray-900 truncate mb-1">{ad.title}</h3>
-                                <p className="text-primary-600 font-bold mb-2">KES {ad.price.toLocaleString()}</p>
+                                <p className="text-primary-600 font-bold mb-2">{ad.currency} {ad.price.toLocaleString()}</p>
 
                                 <div className="flex items-center gap-6 text-xs text-gray-400">
                                     <div className="flex items-center gap-1">
@@ -130,7 +119,7 @@ const MyAdsPage: React.FC = () => {
                                 <Button
                                     size="sm"
                                     className="flex-1 md:w-32 rounded-lg gap-2"
-                                    onClick={() => setBoostingListing(ad)}
+                                    onClick={() => navigate(`/promote/${ad.id}`)}
                                 >
                                     <TrendingUp className="h-4 w-4" />
                                     {ad.boost_level && ad.boost_level > 0 ? 'Upgrade' : 'Boost Ad'}
@@ -172,9 +161,9 @@ const MyAdsPage: React.FC = () => {
                         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10 w-full max-w-xs">
                             <div className="flex justify-between items-end mb-6">
                                 <div className="space-y-4 flex flex-col">
-                                    <div className="h-10 w-2 bg-primary-500 rounded-full"></div>
+                                    <div className="h-10 w-2 bg-blue-300 rounded-full"></div>
                                     <div className="h-16 w-2 bg-secondary-500 rounded-full"></div>
-                                    <div className="h-8 w-2 bg-primary-500 rounded-full"></div>
+                                    <div className="h-8 w-2 bg-blue-300 rounded-full"></div>
                                     <div className="h-12 w-2 bg-white/20 rounded-full"></div>
                                 </div>
                                 <div className="text-right">
@@ -187,66 +176,7 @@ const MyAdsPage: React.FC = () => {
                     </div>
                 </div>
             </div>
-            {/* Boost Selection Modal */}
-            {boostingListing && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl animate-in fade-in zoom-in duration-200">
-                        <div className="flex justify-between items-center mb-6">
-                            <div>
-                                <h3 className="text-xl font-bold">Boost Performance</h3>
-                                <p className="text-sm text-gray-500">Choose a package for "{boostingListing.title}"</p>
-                            </div>
-                            <Button variant="ghost" size="sm" onClick={() => setBoostingListing(null)} className="rounded-full h-10 w-10 p-0 text-gray-400">×</Button>
-                        </div>
-
-                        <div className="space-y-3 mb-8">
-                            {boostPrices && Object.entries(boostPrices).map(([level, info]: [string, any]) => (
-                                <button
-                                    key={level}
-                                    onClick={() => setSelectedBoost(parseInt(level))}
-                                    className={cn(
-                                        "w-full p-4 rounded-2xl border-2 transition-all flex items-center justify-between text-left group",
-                                        selectedBoost === parseInt(level)
-                                            ? "border-primary-600 bg-primary-50/50"
-                                            : "border-gray-100 hover:border-primary-200 hover:bg-gray-50"
-                                    )}
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className={cn(
-                                            "w-10 h-10 rounded-xl flex items-center justify-center font-bold",
-                                            info.name === 'Diamond' ? "bg-primary-600 text-white" :
-                                                info.name === 'VIP' ? "bg-primary-600 text-white" : "bg-gray-100 text-gray-600"
-                                        )}>
-                                            {info.name[0]}
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-gray-900">{info.name} Plan</p>
-                                            <p className="text-xs text-gray-500 line-clamp-1">{info.days} Days placement priority</p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="font-bold text-primary-600">KSh {info.price.toLocaleString()}</p>
-                                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">One-time payment</p>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-
-                        <div className="flex gap-4">
-                            <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setBoostingListing(null)}>Cancel</Button>
-                            <Button
-                                className="flex-1 rounded-xl shadow-lg shadow-primary-200"
-                                disabled={!selectedBoost}
-                                isLoading={boostMutation.isPending}
-                                onClick={() => selectedBoost && boostMutation.mutate({ id: boostingListing.id, level: selectedBoost })}
-                            >
-                                Confirm & Pay
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </DashboardLayout>
+        </div>
     );
 };
 

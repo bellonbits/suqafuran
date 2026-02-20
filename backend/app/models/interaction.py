@@ -2,14 +2,15 @@ import enum
 from datetime import datetime
 from typing import Optional
 from sqlmodel import Field, SQLModel
+from sqlalchemy import Column, String
 
 class InteractionType(str, enum.Enum):
-    CALL = "call"
-    WHATSAPP = "whatsapp"
+    call = "call"
+    whatsapp = "whatsapp"
 
 class Interaction(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     listing_id: int = Field(foreign_key="listing.id")
     buyer_id: int = Field(foreign_key="user.id")
-    type: InteractionType
+    type: str = Field(sa_column=Column(String)) # Force plain string to bypass Enum name issues
     created_at: datetime = Field(default_factory=datetime.utcnow)

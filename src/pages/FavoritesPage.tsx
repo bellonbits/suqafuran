@@ -1,13 +1,14 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { DashboardLayout } from '../layouts/DashboardLayout';
+
 import { favoriteService } from '../services/favoriteService';
 import {
     Heart, MapPin,
     Trash2, Loader2, ArrowRight
 } from 'lucide-react';
 import { Button } from '../components/Button';
+import { getImageUrl } from '../utils/imageUtils';
 import type { Listing } from '../types/listing';
 
 const FavoritesPage: React.FC = () => {
@@ -25,7 +26,7 @@ const FavoritesPage: React.FC = () => {
     });
 
     return (
-        <DashboardLayout>
+        <div className="max-w-6xl mx-auto">
             <div className="mb-8">
                 <h1 className="text-2xl font-bold text-gray-900">Saved Ads</h1>
                 <p className="text-sm text-gray-500 mt-1">Keep track of the items you're interested in.</p>
@@ -51,7 +52,7 @@ const FavoritesPage: React.FC = () => {
                             <div key={ad.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden group hover:shadow-xl hover:border-primary-100 transition-all duration-300">
                                 <div className="relative aspect-video overflow-hidden">
                                     <img
-                                        src={ad.images?.[0] || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=300'}
+                                        src={getImageUrl(ad.images?.[0])}
                                         alt={ad.title}
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                     />
@@ -76,7 +77,7 @@ const FavoritesPage: React.FC = () => {
                                     <p className="text-lg font-black text-primary-600 mb-4">KES {ad.price.toLocaleString()}</p>
 
                                     <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
-                                        <Link to={`/ad/${ad.id}`}>
+                                        <Link to={`/listing/${ad.id}`}>
                                             <Button variant="ghost" size="sm" className="rounded-lg gap-2 text-primary-600 hover:bg-primary-50">
                                                 View Details
                                                 <ArrowRight className="h-4 w-4" />
@@ -89,7 +90,7 @@ const FavoritesPage: React.FC = () => {
                     </div>
                 )}
             </div>
-        </DashboardLayout>
+        </div>
     );
 };
 

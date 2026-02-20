@@ -4,6 +4,7 @@ from sqlmodel import Session, select, func
 from app.api import deps
 from app.models.listing import Listing, Category, ListingRead
 from app.models.user import User
+from app.models.promotion import Promotion, PromotionStatus
 
 router = APIRouter()
 
@@ -20,12 +21,14 @@ def read_admin_stats(
     total_listings = db.exec(select(func.count(Listing.id))).one()
     active_listings = db.exec(select(func.count(Listing.id)).where(Listing.status == "active")).one()
     pending_listings = db.exec(select(func.count(Listing.id)).where(Listing.status == "pending")).one()
+    pending_promotions = db.exec(select(func.count(Promotion.id)).where(Promotion.status == PromotionStatus.SUBMITTED)).one()
     
     return {
         "total_users": total_users,
         "total_listings": total_listings,
         "active_listings": active_listings,
         "pending_listings": pending_listings,
+        "pending_promotions": pending_promotions,
     }
 
 
