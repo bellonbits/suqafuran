@@ -41,7 +41,7 @@ async def apply_for_verification(
     import os
     from app.core.config import settings
     import uuid
-    from app.utils.verification import verify_faces
+
 
     document_urls = []
     # Ensure upload dir exists
@@ -72,18 +72,9 @@ async def apply_for_verification(
     
     selfie_url = f"/api/v1/listings/images/{selfie_filename}"
 
-    # 4. Perform Facial Recognition (Compare Selfie vs First Document)
-    first_doc_path = os.path.join(settings.UPLOAD_DIR, document_urls[0].split("/")[-1])
-    
-    match_result = {"success": False, "match_score": 0.0}
-    try:
-        from app.utils.verification import verify_faces_from_disk
-        match_result = verify_faces_from_disk(first_doc_path, selfie_path)
-    except ImportError:
-         pass 
-    except Exception as e:
-         print(f"Facial verification error: {e}")
-
+    # 4. Perform Facial Recognition (Compare Selfie vs First Document) - REMOVED due to build complexity
+    # Automatic facial recognition has been disabled to speed up deployment.
+    # Requests will now be reviewed manually by administrators.
     
     # 5. Create Database Object
     db_obj = VerificationRequest(
@@ -93,8 +84,8 @@ async def apply_for_verification(
         status=VerificationStatus.PENDING,
         document_urls=document_urls,
         selfie_url=selfie_url,
-        facial_match_score=match_result.get("match_score", 0.0),
-        auto_verification_status="passed" if match_result.get("is_match") else "failed"
+        facial_match_score=0.0,
+        auto_verification_status="manual_review"
     )
     
     db.add(db_obj)
