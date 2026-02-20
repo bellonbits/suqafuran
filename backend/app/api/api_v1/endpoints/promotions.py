@@ -12,6 +12,8 @@ from app.utils.code_generator import generate_promotion_code, generate_voucher_c
 from app.services import lipana as lipana_service
 from pydantic import BaseModel
 import logging
+import sys
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +78,7 @@ def create_promotion_request(
             reference=f"Promo {promo.id}",
             description=f"Boost: {listing_title}"
         )
+        print(f"LIPANA STK PUSH RESPONSE: {json.dumps(result, indent=2)}", file=sys.stderr, flush=True)
         data = result.get("data", result)
         lipana_tx_id = data.get("transactionId") or data.get("transaction_id")
         if lipana_tx_id:
@@ -83,6 +86,9 @@ def create_promotion_request(
             db.add(promo)
             db.commit()
             db.refresh(promo)
+            print(f"PROMO #{promo.id} SAVED lipana_tx_id={lipana_tx_id}", file=sys.stderr, flush=True)
+        else:
+            print(f"PROMO #{promo.id} ERROR: No transactionId found in Lipana response", file=sys.stderr, flush=True)
         logger.info(f"Lipana STK push fired for promo {promo.id}: {lipana_tx_id}")
     except Exception as exc:
         # Don't block the user — log and continue; they can pay via fallback
@@ -181,8 +187,11 @@ def check_promotion_payment(
     if not promo:
         raise HTTPException(status_code=404, detail="Promotion request not found")
     
-    if promo.status == PromotionStatus.APPROVED or promo.status == PromotionStatus.PAID:
-        return {"status": promo.status, "message": "Promotion already paid/active"}
+    print(f"POLLING: Checking Promo #{promo.id}, Status={promo.status}, Phone={promo.payment_phone}, Amount={promo.amount}, LipanaID={promo.lipana_tx_id}", file=sys.stderr, flush=True)
+
+    if promo.status in (PromotionStatus.APPROVED, PromotionStatus.PAID, "approved", "paid", "APPROVED", "PAID"):
+        print(f"POLLING: Promo #{promo.id} is ALREADY ACTIVE. Status={promo.status}", file=sys.stderr, flush=True)
+        return {"status": "APPROVED", "message": "Promotion already paid/active"}
 
     # Time window: last 60 minutes
     time_window = datetime.utcnow() - timedelta(minutes=60)
@@ -190,11 +199,14 @@ def check_promotion_payment(
     # Priority 1: Search by exact Lipana Transaction ID if we have it
     match = None
     if promo.lipana_tx_id:
+        logger.info(f"CHECK_PAYMENT: Searching for exact match for Lipana ID: {promo.lipana_tx_id}")
         statement = select(MobileTransaction).where(
             MobileTransaction.reference == promo.lipana_tx_id,
             MobileTransaction.is_linked == False
         )
         match = db.exec(statement).first()
+        if match:
+             logger.info(f"CHECK_PAYMENT: Found EXACT match by Lipana ID: {promo.lipana_tx_id}")
     
     # Priority 2: Fuzzy search (Phone + Amount)
     if not match:
@@ -208,18 +220,23 @@ def check_promotion_payment(
             MobileTransaction.timestamp >= time_window
         )
         transactions = db.exec(statement).all()
+        logger.info(f"CHECK_PAYMENT: Found {len(transactions)} candidate transactions for amount {promo.amount}")
         
         # Filter by phone (inexact match for regional formats)
         for tx in transactions:
             tx_clean_phone = "".join(filter(str.isdigit, tx.phone))
+            logger.info(f"CHECK_PAYMENT: Comparing {clean_phone} with {tx_clean_phone}")
             if clean_phone in tx_clean_phone or tx_clean_phone in clean_phone:
                 match = tx
+                logger.info(f"CHECK_PAYMENT: Found FUZZY match by phone: {tx.phone}")
                 break
             
     if not match:
+        print(f"POLLING: No match found for Promo #{promo.id}", file=sys.stderr, flush=True)
         return {"status": promo.status, "message": "No matching payment detected yet. Please ensure you have paid."}
 
     # Match found! Link and activate
+    print(f"POLLING SUCCESS: Match found! Activating Promo #{promo.id} via match {match.reference}", file=sys.stderr, flush=True)
     match.is_linked = True
     match.linked_promotion_id = promo.id
     db.add(match)
