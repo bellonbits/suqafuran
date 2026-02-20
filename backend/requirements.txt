@@ -40,7 +40,7 @@ structlog
 sentry-sdk[fastapi]
 
 # Email
-fastapi-mail
+emails==0.6
 jinja2
 
 # Misc
