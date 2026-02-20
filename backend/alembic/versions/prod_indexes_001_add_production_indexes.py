@@ -15,18 +15,19 @@ depends_on = None
 
 def upgrade():
     # ── Listings (most queried table) ──────────────────────────────────────
-    op.create_index("ix_listing_category_id",     "listing", ["category_id"])
-    op.create_index("ix_listing_status",           "listing", ["status"])
-    op.create_index("ix_listing_owner_id",         "listing", ["owner_id"])
-    op.create_index("ix_listing_boost_level",      "listing", ["boost_level"])
-    op.create_index("ix_listing_created_at",       "listing", ["created_at"])
-    op.create_index("ix_listing_boost_expires_at", "listing", ["boost_expires_at"])
+    op.create_index("ix_listing_category_id",     "listing", ["category_id"], if_not_exists=True)
+    op.create_index("ix_listing_status",           "listing", ["status"], if_not_exists=True)
+    op.create_index("ix_listing_owner_id",         "listing", ["owner_id"], if_not_exists=True)
+    op.create_index("ix_listing_boost_level",      "listing", ["boost_level"], if_not_exists=True)
+    op.create_index("ix_listing_created_at",       "listing", ["created_at"], if_not_exists=True)
+    op.create_index("ix_listing_boost_expires_at", "listing", ["boost_expires_at"], if_not_exists=True)
 
     # Composite index — the homepage feed query pattern
     op.create_index(
         "ix_listing_feed",
         "listing",
         ["status", "boost_level", "created_at"],
+        if_not_exists=True
     )
 
     # Full-text search (PostgreSQL only)
@@ -54,25 +55,34 @@ def upgrade():
     )
 
     # ── Promotions ──────────────────────────────────────────────────────────
-    op.add_column("promotion", sa.Column("lipana_tx_id", sa.String(), nullable=True))
-    op.create_index("ix_promotion_status",      "promotion", ["status"])
-    op.create_index("ix_promotion_listing_id",  "promotion", ["listing_id"])
-    op.create_index("ix_promotion_lipana_tx_id","promotion", ["lipana_tx_id"])
+    op.execute("""
+        DO $$ BEGIN
+            IF NOT EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name='promotion' AND column_name='lipana_tx_id'
+            ) THEN
+                ALTER TABLE promotion ADD COLUMN lipana_tx_id VARCHAR;
+            END IF;
+        END $$;
+    """)
+    op.create_index("ix_promotion_status",      "promotion", ["status"], if_not_exists=True)
+    op.create_index("ix_promotion_listing_id",  "promotion", ["listing_id"], if_not_exists=True)
+    op.create_index("ix_promotion_lipana_tx_id","promotion", ["lipana_tx_id"], if_not_exists=True)
 
     # ── Mobile transactions ─────────────────────────────────────────────────
-    op.create_index("ix_mobiletransaction_is_linked", "mobiletransaction", ["is_linked"])
+    op.create_index("ix_mobiletransaction_is_linked", "mobiletransaction", ["is_linked"], if_not_exists=True)
 
     # ── Favorites + Notifications ───────────────────────────────────────────
-    op.create_index("ix_favorite_user_id",      "favorite",     ["user_id"])
-    op.create_index("ix_notification_user_read","notification",  ["user_id", "is_read"])
+    op.create_index("ix_favorite_user_id",      "favorite",     ["user_id"], if_not_exists=True)
+    op.create_index("ix_notification_user_read","notification",  ["user_id", "is_read"], if_not_exists=True)
 
     # ── Wallet ──────────────────────────────────────────────────────────────
-    op.create_index("ix_wallet_user_id",        "wallet",       ["user_id"])
-    op.create_index("ix_transaction_wallet_id", "transaction",  ["wallet_id"])
+    op.create_index("ix_wallet_user_id",        "wallet",       ["user_id"], if_not_exists=True)
+    op.create_index("ix_transaction_wallet_id", "transaction",  ["wallet_id"], if_not_exists=True)
 
     # ── Audit log ───────────────────────────────────────────────────────────
-    op.create_index("ix_auditlog_user_id",      "auditlog",     ["user_id"])
-    op.create_index("ix_auditlog_timestamp",    "auditlog",     ["timestamp"])
+    op.create_index("ix_auditlog_user_id",      "auditlog",     ["user_id"], if_not_exists=True)
+    op.create_index("ix_auditlog_timestamp",    "auditlog",     ["timestamp"], if_not_exists=True)
 
 
 def downgrade():
