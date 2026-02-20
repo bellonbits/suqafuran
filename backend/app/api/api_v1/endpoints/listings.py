@@ -5,6 +5,7 @@ from app.api import deps
 from app.crud import crud_listing
 from app.models.listing import Listing, ListingBase, ListingRead
 from app.models.user import User
+from app.models.audit import AuditLog
 from app.core.config import settings
 import uuid
 import os
@@ -80,6 +81,43 @@ def read_categories(
     return crud_listing.get_categories(db)
 
 
+@router.post("/categories", response_model=Any)
+def create_category(
+    *,
+    db: Session = Depends(deps.get_db),
+    category_in: dict,
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Create a new category (Admin only).
+    """
+    from app.models.listing import Category
+    # Check if slug exists
+    if crud_listing.get_category_by_slug(db, category_in["slug"]):
+        raise HTTPException(status_code=400, detail="Category slug already exists")
+    
+    cat = Category(
+        name=category_in["name"],
+        slug=category_in["slug"],
+        icon_name=category_in["icon_name"],
+        attributes_schema=category_in.get("attributes_schema", {})
+    )
+    return crud_listing.create_category(db, category_in=cat)
+
+
+@router.delete("/categories/{id}", response_model=Any)
+def delete_category(
+    *,
+    db: Session = Depends(deps.get_db),
+    id: int,
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Delete a category (Admin only).
+    """
+    return crud_listing.remove_category(db, id=id)
+
+
 @router.get("/categories/{slug}/attributes", response_model=dict)
 def read_category_attributes(
     *,
@@ -114,6 +152,7 @@ def read_listings(
     skip: int = 0,
     limit: int = 100,
     category_id: Optional[str] = None,
+    owner_id: Optional[int] = None,
     q: Optional[str] = None,
     location: Optional[str] = None,
     attrs: Optional[str] = None,
@@ -143,7 +182,7 @@ def read_listings(
                 resolved_category_id = category.id
 
     listings = crud_listing.get_listings(
-        db, skip=skip, limit=limit, category_id=resolved_category_id, search=q, location=location, attributes=attributes
+        db, skip=skip, limit=limit, category_id=resolved_category_id, search=q, location=location, attributes=attributes, owner_id=owner_id
     )
     return listings
 
@@ -161,6 +200,15 @@ def create_listing(
     listing = crud_listing.create_listing(
         db=db, listing_in=listing_in, owner_id=current_user.id
     )
+    log = AuditLog(
+        user_id=current_user.id,
+        action="CREATE_LISTING",
+        resource_type="listing",
+        resource_id=listing.id,
+        details=f"User created listing '{listing.title}' in category {listing.category_id}"
+    )
+    db.add(log)
+    db.commit()
     return listing
 
 

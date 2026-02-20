@@ -5,26 +5,25 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { ProductCard } from '../components/ProductCard';
 import { listingService } from '../services/listingService';
-import { Search, MapPin, TrendingUp, ShieldCheck, Loader2, ChevronLeft, ChevronRight, Tag, ListFilter } from 'lucide-react';
+import { Search, MapPin, TrendingUp, ShieldCheck, Loader2, ChevronLeft, ChevronRight, Tag, ListFilter, ShoppingBag, XCircle, CheckCircle2 } from 'lucide-react';
 import { Button } from '../components/Button';
-import { TrustPrompts } from '../components/TrustPrompts';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { SOMALI_REGIONS } from '../utils/somaliRegions';
 import { JIJI_CATEGORIES } from '../utils/jijiCategories';
 
 const HERO_SLIDES = [
     {
-        image: '',
+        image: '/hero1.jpg',
         title: <>The Safest Way to Buy and Sell <br className="hidden md:block" /> Almost Anything in Somalia</>,
         subtitle: 'Join thousands of traders buying and selling vehicles, electronics, property, and more every day.'
     },
     {
-        image: '',
+        image: '/hero2.jpg',
         title: <>Find Your Dream Property <br className="hidden md:block" /> in Mogadishu & Beyond</>,
         subtitle: 'From luxury villas to affordable apartments, explore the best real estate deals in Somalia.'
     },
     {
-        image: '',
+        image: '/hero3.jpg',
         title: <>Upgrade Your Tech with <br className="hidden md:block" /> Trusted Local Sellers</>,
         subtitle: 'Get the latest iPhones, laptops, and solar kits at unbeatable prices from verified merchants.'
     }
@@ -62,132 +61,118 @@ const LandingPage: React.FC = () => {
 
     return (
         <PublicLayout>
-            {/* Hero Section - Reduced to half screen height */}
-            <section className="relative bg-primary-500 text-white min-h-[300px] lg:h-[40vh] z-30 overflow-hidden">
-                {/* Background Pattern with Icons */}
-                <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute inset-0 opacity-10">
-                        {/* decorative icons staggered */}
-                        <div className="grid grid-cols-6 gap-8 p-8 transform -rotate-12 scale-110">
-                            {[...Array(24)].map((_, i) => (
-                                <div key={i} className="flex justify-center items-center">
-                                    {i % 4 === 0 && <MapPin className="w-12 h-12 text-white" />}
-                                    {i % 4 === 1 && <Tag className="w-12 h-12 text-white" />}
-                                    {i % 4 === 2 && <Search className="w-12 h-12 text-white" />}
-                                    {i % 4 === 3 && <ListFilter className="w-12 h-12 text-white" />}
-                                </div>
-                            ))}
+            {/* Hero Section - Jiji Style with Bright Blue 300 */}
+            <section className="relative bg-primary-300 pt-12 pb-20 z-30 overflow-hidden">
+                <div className="container mx-auto px-4 h-full relative z-10 flex flex-col items-center">
+                    <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-8 tracking-tight drop-shadow-sm">
+                        What are you looking for?
+                    </h1>
+
+                    <div className="max-w-4xl w-full flex flex-col md:flex-row shadow-2xl rounded-xl md:rounded-lg overflow-hidden border border-white/10">
+                        {/* Location Picker Trigger */}
+                        <div className="relative bg-white md:w-1/3 md:border-r border-gray-100">
+                            <button
+                                onClick={() => setLocationOpen(true)}
+                                className="w-full h-14 pl-4 pr-10 text-gray-700 focus:outline-none text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+                            >
+                                <span className="truncate font-medium">{selectedLocation || "All Somalia"}</span>
+                                <MapPin className="ml-2 w-4 h-4 text-primary-500" />
+                            </button>
                         </div>
-                    </div>
-                </div>
 
-                <div className="container mx-auto px-4 h-full relative z-10 flex flex-col justify-center text-center">
-                    {/* Text removed for cleaner Jiji-style look */}
-
-                    <div className="max-w-3xl mx-auto w-full flex flex-col md:flex-row gap-3 p-2 bg-white/20 backdrop-blur-xl rounded-2xl md:rounded-full shadow-2xl border border-white/20">
-                        <div className="flex-1 relative">
+                        {/* Search Input Area */}
+                        <div className="flex-1 relative bg-white">
                             <input
                                 type="text"
-                                placeholder="What are you looking for?"
-                                className="w-full h-12 pl-12 pr-4 rounded-full bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-secondary-500"
+                                placeholder="I am looking for..."
+                                className="w-full h-14 pl-4 pr-14 text-gray-900 focus:outline-none placeholder:text-gray-400 font-medium"
                             />
-                            <Search className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
+                            <div className="absolute right-0 top-0 h-14 w-14 flex items-center justify-center text-gray-400">
+                                <Search className="h-6 w-6" />
+                            </div>
                         </div>
-                        <div className="relative">
-                            <button
-                                onClick={() => setLocationOpen(!isLocationOpen)}
-                                className="w-full h-12 pl-12 pr-4 rounded-full bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-secondary-500 text-left flex items-center justify-between"
-                            >
-                                <span className="truncate">{selectedLocation || "All Somalia"}</span>
-                                <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${isLocationOpen ? 'rotate-90' : 'rotate-0'}`} />
-                            </button>
-                            <MapPin className="absolute left-4 top-3.5 h-5 w-5 text-gray-400 pointer-events-none" />
+                    </div>
 
-                            {/* Jiji-style Location Picker Card */}
-                            <AnimatePresence>
-                                {isLocationOpen && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 10 }}
-                                        className="absolute top-full left-0 mt-2 w-full md:w-[400px] bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50 max-h-[400px] overflow-y-auto custom-scrollbar"
-                                    >
-                                        <div className="p-2 sticky top-0 bg-white border-b border-gray-50 z-10">
+                    {/* Updated Pop-up Modal Location Picker */}
+                    <AnimatePresence>
+                        {isLocationOpen && (
+                            <>
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    onClick={() => setLocationOpen(false)}
+                                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
+                                />
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[101] overflow-hidden max-h-[80vh] flex flex-col"
+                                >
+                                    <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+                                        <h2 className="text-xl font-bold text-gray-900">Choose Region</h2>
+                                        <button
+                                            onClick={() => setLocationOpen(false)}
+                                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                        >
+                                            <XCircle className="w-6 h-6 text-gray-400" />
+                                        </button>
+                                    </div>
+
+                                    <div className="p-4 bg-gray-50 border-b border-gray-100">
+                                        <div className="relative">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                             <input
                                                 type="text"
                                                 placeholder="Search city or region..."
-                                                className="w-full p-2 bg-gray-50 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-secondary-500"
+                                                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                                 autoFocus
                                             />
                                         </div>
-                                        <div className="p-2">
-                                            <button
-                                                onClick={() => { setSelectedLocation(""); setLocationOpen(false); }}
-                                                className="w-full text-left p-2 hover:bg-primary-50 text-primary-600 font-semibold rounded-lg text-sm"
-                                            >
-                                                All Somalia
-                                            </button>
-                                            {SOMALI_REGIONS.map((region) => (
-                                                <div key={region.name} className="mt-2">
-                                                    <div className="px-2 py-1 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                                        {region.name}
-                                                    </div>
+                                    </div>
+
+                                    <div className="overflow-y-auto custom-scrollbar flex-1 p-6">
+                                        <button
+                                            onClick={() => { setSelectedLocation(""); setLocationOpen(false); }}
+                                            className={`w-full text-left p-4 rounded-2xl transition-all mb-4 flex items-center justify-between ${!selectedLocation ? 'bg-primary-50 border-2 border-primary-500 text-primary-700 font-bold' : 'hover:bg-gray-50 border-2 border-transparent text-gray-600'}`}
+                                        >
+                                            <span>All Somalia</span>
+                                            {!selectedLocation && <CheckCircle2 className="w-5 h-5 text-primary-600" />}
+                                        </button>
+
+                                        {SOMALI_REGIONS.map((region) => (
+                                            <div key={region.name} className="mb-8 last:mb-0">
+                                                <div className="px-2 mb-3 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                                                    {region.name}
+                                                </div>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                     {region.cities.map((city) => (
                                                         <button
                                                             key={city}
                                                             onClick={() => { setSelectedLocation(city); setLocationOpen(false); }}
-                                                            className="w-full text-left p-2 hover:bg-gray-50 text-gray-700 text-sm rounded-lg flex items-center justify-between group"
+                                                            className={`text-left p-3 rounded-xl border transition-all flex items-center justify-between group ${selectedLocation === city ? 'bg-primary-50 border-primary-200 text-primary-700 font-bold' : 'bg-white border-gray-100 hover:border-primary-100 hover:bg-primary-50/30 text-gray-600'}`}
                                                         >
-                                                            <span>{city}</span>
-                                                            {selectedLocation === city && <div className="w-2 h-2 rounded-full bg-secondary-500" />}
+                                                            <span className="text-sm">{city}</span>
+                                                            {selectedLocation === city && <CheckCircle2 className="w-4 h-4 text-primary-500" />}
                                                         </button>
                                                     ))}
                                                 </div>
-                                            ))}
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
-                        <Button variant="secondary" size="lg" className="rounded-full shadow-lg h-12">
-                            Search Now
-                        </Button>
-                    </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            </>
+                        )}
+                    </AnimatePresence>
 
-                    <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-primary-50">
-                        <span>Popular:</span>
-                        <button className="underline hover:text-white transition-colors">Toyota Corolla</button>
-                        <button className="underline hover:text-white transition-colors">Samsung S24</button>
-                        <button className="underline hover:text-white transition-colors">Apartments</button>
-                        <button className="underline hover:text-white transition-colors">Electronics</button>
-                    </div>
-
-                    {/* Pagination Dots - Moved to relative to avoid overlap */}
-                    <div className="mt-8 flex justify-center gap-2">
-                        {HERO_SLIDES.map((_, idx) => (
-                            <button
-                                key={idx}
-                                onClick={() => setCurrentSlide(idx)}
-                                className={`w-2 h-2 rounded-full transition-all ${currentSlide === idx ? 'bg-white w-6' : 'bg-white/40 hover:bg-white/60'
-                                    }`}
-                            />
-                        ))}
+                    <div className="mt-8 flex flex-wrap justify-center gap-6 text-[11px] font-bold text-white/90 uppercase tracking-widest">
+                        <span className="opacity-60">Popular:</span>
+                        <button className="hover:text-white transition-colors border-b border-transparent hover:border-white pb-0.5">Toyota Corolla</button>
+                        <button className="hover:text-white transition-colors border-b border-transparent hover:border-white pb-0.5">Samsung S24</button>
+                        <button className="hover:text-white transition-colors border-b border-transparent hover:border-white pb-0.5">Apartments</button>
                     </div>
                 </div>
-
-                {/* Arrow Controls */}
-                <button
-                    onClick={prevSlide}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/10 hover:bg-black/20 text-white backdrop-blur-sm transition-all hidden md:block"
-                >
-                    <ChevronLeft className="w-6 h-6" />
-                </button>
-                <button
-                    onClick={nextSlide}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/10 hover:bg-black/20 text-white backdrop-blur-sm transition-all hidden md:block"
-                >
-                    <ChevronRight className="w-6 h-6" />
-                </button>
             </section>
 
             {/* Categories & Main Grid Section */}
@@ -240,7 +225,7 @@ const LandingPage: React.FC = () => {
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0, x: -10 }}
                                             transition={{ duration: 0.2 }}
-                                            className="absolute left-[calc(100%+0.5rem)] top-0 w-[500px] min-h-[400px] bg-white rounded-xl shadow-2xl border border-gray-100 p-6 z-50"
+                                            className="absolute left-[calc(100%+0.5rem)] top-0 w-[750px] min-h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 flex"
                                             onMouseEnter={() => setHoveredCategory(hoveredCategory)}
                                             onMouseLeave={() => setHoveredCategory(null)}
                                         >
@@ -249,42 +234,77 @@ const LandingPage: React.FC = () => {
                                                 if (!activeCat) return null;
 
                                                 return (
-                                                    <div className="h-full flex flex-col">
-                                                        <div className="flex items-center gap-4 mb-6 pb-4 border-b border-gray-100">
-                                                            <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center text-primary-600">
-                                                                {(() => {
-                                                                    const Icon = getCategoryIcon(activeCat.icon);
-                                                                    return <Icon size={28} />;
-                                                                })()}
+                                                    <>
+                                                        {/* Left side: Subcategories */}
+                                                        <div className="flex-1 p-8 flex flex-col">
+                                                            <div className="flex items-center gap-4 mb-8 pb-4 border-b border-gray-100">
+                                                                <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center text-primary-600 shadow-inner">
+                                                                    {(() => {
+                                                                        const Icon = getCategoryIcon(activeCat.icon);
+                                                                        return <Icon size={32} />;
+                                                                    })()}
+                                                                </div>
+                                                                <div>
+                                                                    <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{activeCat.label}</h2>
+                                                                    <p className="text-sm text-primary-600 font-medium tracking-wide flex items-center gap-1.5 mt-0.5">
+                                                                        Browse Best Deals
+                                                                        <ChevronRight size={14} />
+                                                                    </p>
+                                                                </div>
                                                             </div>
-                                                            <div>
-                                                                <h2 className="text-2xl font-bold text-gray-900">{activeCat.label}</h2>
-                                                                {/* <p className="text-secondary-600 font-medium">{activeCat.count.toLocaleString()} ads available</p> */}
-                                                            </div>
-                                                        </div>
 
-                                                        <div className="grid grid-cols-2 gap-y-2 gap-x-8 content-start flex-1">
-                                                            {activeCat.subcategories.map((sub, idx) => (
-                                                                <a
-                                                                    key={idx}
-                                                                    href="#"
-                                                                    className="flex items-center justify-between py-2 group hover:bg-gray-50 px-2 rounded-lg transition-colors"
+                                                            <div className="grid grid-cols-2 gap-y-4 gap-x-6 content-start flex-1 overflow-y-auto custom-scrollbar pr-2">
+                                                                {activeCat.subcategories.map((sub, idx) => (
+                                                                    <button
+                                                                        key={idx}
+                                                                        onClick={() => {
+                                                                            navigate(`/category/${activeCat.id}?subcategory=${sub.name}`);
+                                                                            setHoveredCategory(null);
+                                                                        }}
+                                                                        className="flex items-center gap-3 p-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50/50 transition-all text-left group"
+                                                                    >
+                                                                        <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 shadow-sm transition-transform group-hover:scale-105">
+                                                                            <img
+                                                                                src={sub.image || activeCat.image}
+                                                                                alt={sub.name}
+                                                                                className="w-full h-full object-cover"
+                                                                            />
+                                                                        </div>
+                                                                        <span className="text-sm font-semibold text-gray-700 group-hover:text-primary-700 line-clamp-2 leading-tight">
+                                                                            {sub.name.replace(/^\d+\s/, '')}
+                                                                        </span>
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+
+                                                            <div className="mt-8 pt-6 border-t border-gray-100">
+                                                                <button
+                                                                    onClick={() => {
+                                                                        navigate(`/category/${activeCat.id}`);
+                                                                        setHoveredCategory(null);
+                                                                    }}
+                                                                    className="flex items-center gap-2 text-primary-600 font-bold hover:gap-3 transition-all"
                                                                 >
-                                                                    <span className="text-gray-600 group-hover:text-primary-600 font-medium">{sub.name}</span>
-                                                                    {/* <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
-                                                                        {sub.count.toLocaleString()} ads
-                                                                    </span> */}
-                                                                </a>
-                                                            ))}
+                                                                    View all in {activeCat.label.split(' (')[0]}
+                                                                    <ChevronRight size={18} />
+                                                                </button>
+                                                            </div>
                                                         </div>
 
-                                                        <div className="mt-auto pt-6 border-t border-gray-100">
-                                                            <a href="#" className="flex items-center gap-2 text-primary-600 font-semibold hover:underline">
-                                                                View all in {activeCat.label}
-                                                                <ChevronRight size={16} />
-                                                            </a>
+                                                        {/* Right side: Featured Category Image */}
+                                                        <div className="w-64 bg-gray-50 relative overflow-hidden group/featured">
+                                                            <img
+                                                                src={activeCat.image}
+                                                                alt={activeCat.label}
+                                                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover/featured:scale-110"
+                                                            />
+                                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                                                            <div className="absolute bottom-0 left-0 p-6 text-white">
+                                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-1.5 opacity-80">Featured</p>
+                                                                <h4 className="text-lg font-bold leading-tight">{activeCat.label.split(' (')[0]}</h4>
+                                                            </div>
                                                         </div>
-                                                    </div>
+                                                    </>
                                                 );
                                             })()}
                                         </motion.div>
@@ -303,45 +323,34 @@ const LandingPage: React.FC = () => {
 
                         {/* Main Feed Area */}
                         <div className="flex-1 space-y-6">
-                            {/* Showcase Info Cards (As seen in Jiji Reference) */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="bg-white p-4 rounded-2xl shadow-sm border-2 border-primary-100 hover:border-primary-300 transition-all cursor-pointer group flex items-center gap-4">
-                                    <div className="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center relative overflow-hidden shrink-0">
-                                        <div className="absolute inset-0 opacity-10 bg-primary-600 animate-pulse" />
-                                        <ShieldCheck className="w-8 h-8 text-primary-500 z-10" />
+                            {/* Showcase Info Cards (As seen in Jiji Screenshot) */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div
+                                    onClick={() => navigate('/post-ad')}
+                                    className="bg-[#ebf9eb] border border-[#d3f0d3] p-4 rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer group flex items-center justify-between min-h-[100px]"
+                                >
+                                    <div className="flex flex-col">
+                                        <h4 className="font-bold text-[#2d3a2d] text-lg">I want to sell</h4>
+                                        <p className="text-sm text-[#5a705a]">Post an ad for free now</p>
                                     </div>
-                                    <div className="flex-1">
-                                        <h4 className="font-bold text-gray-900 group-hover:text-primary-500 transition-colors">Apply for Job</h4>
-                                        <p className="text-xs text-gray-500">Find your dream career today</p>
+                                    <div className="w-14 h-14 bg-white rounded-xl shadow-sm flex items-center justify-center">
+                                        <ShoppingBag className="w-8 h-8 text-[#28a745]" />
                                     </div>
-                                    <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-primary-600 group-hover:translate-x-1 transition-all" />
                                 </div>
 
-                                <div className="bg-white p-4 rounded-2xl shadow-sm border-2 border-secondary-100 hover:border-secondary-300 transition-all cursor-pointer group flex items-center gap-4">
-                                    <div className="w-16 h-16 bg-secondary-50 rounded-2xl flex items-center justify-center relative overflow-hidden shrink-0">
-                                        <div className="absolute inset-0 opacity-10 bg-secondary-600 animate-pulse" />
-                                        <TrendingUp className="w-8 h-8 text-secondary-600 z-10" />
+                                <div
+                                    className="bg-[#f0f0ff] border border-[#e0e0ff] p-4 rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer group flex items-center justify-between min-h-[100px]"
+                                >
+                                    <div className="flex flex-col">
+                                        <h4 className="font-bold text-[#2e2e4e] text-lg">How to buy</h4>
+                                        <p className="text-sm text-[#62628e]">Safety tips and guidelines</p>
                                     </div>
-                                    <div className="flex-1">
-                                        <h4 className="font-bold text-gray-900 group-hover:text-secondary-700 transition-colors">How to Sell</h4>
-                                        <p className="text-xs text-gray-500">Get guidelines for safe selling</p>
-                                    </div>
-                                    <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-secondary-600 group-hover:translate-x-1 transition-all" />
-                                </div>
-
-                                <div className="bg-white p-4 rounded-2xl shadow-sm border-2 border-primary-100 hover:border-primary-300 transition-all cursor-pointer group flex items-center gap-4">
-                                    <div className="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center relative overflow-hidden shrink-0">
-                                        <div className="absolute inset-0 opacity-10 bg-primary-600 animate-pulse" />
-                                        <Search className="w-8 h-8 text-primary-500 z-10" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="font-bold text-gray-900 group-hover:text-primary-700 transition-colors">How to Buy</h4>
-                                        <p className="text-xs text-gray-500">Shop securely with Escrow</p>
+                                    <div className="w-14 h-14 bg-white rounded-xl shadow-sm flex items-center justify-center">
+                                        <ShieldCheck className="w-8 h-8 text-[#5151d5]" />
                                     </div>
                                 </div>
                             </div>
 
-                            <TrustPrompts />
 
                             {/* Trending Grid */}
                             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -390,12 +399,12 @@ const LandingPage: React.FC = () => {
                         {displayCategories?.map((cat) => (
                             <button
                                 key={cat.id}
-                                onClick={() => navigate(`/category/${cat.id}`)}
+                                onClick={() => navigate(`/category/${cat.slug || cat.id}`)}
                                 className="flex flex-col items-center gap-2 min-w-[80px] group"
                             >
                                 <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-500 group-active:bg-primary-600 group-active:text-white transition-all">
                                     {(() => {
-                                        const Icon = getCategoryIcon(cat.icon_name);
+                                        const Icon = getCategoryIcon(cat.icon_name || cat.slug);
                                         return <Icon size={24} />;
                                     })()}
                                 </div>
@@ -423,7 +432,7 @@ const LandingPage: React.FC = () => {
                     </div>
                 </div>
             </section>
-        </PublicLayout>
+        </PublicLayout >
     );
 };
 

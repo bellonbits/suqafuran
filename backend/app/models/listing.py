@@ -20,6 +20,7 @@ class ListingBase(SQLModel):
     status: str = Field(default="pending")  # pending, active, closed, reported
     boost_level: int = Field(default=0)  # 0: none, 1: basic, 2: vip, 3: diamond
     boost_expires_at: Optional[datetime] = None
+    currency: str = Field(default="USD")
     images: List[str] = Field(default=[], sa_column=Column(JSON))
     attributes: dict = Field(default={}, sa_column=Column(JSON))
 

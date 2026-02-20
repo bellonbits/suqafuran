@@ -1,18 +1,26 @@
 from datetime import datetime, timedelta
-from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Any, List, Optional
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session, select
 from app.api import deps
-from app.models.promotion import Promotion, PromotionPlan, PromotionStatus
+from app.models.promotion import Promotion, PromotionPlan, PromotionStatus, PromotionCode, PromotionCodeStatus
 from app.models.listing import Listing
-from app.utils.code_generator import generate_promotion_code
+from app.models.wallet import Voucher
+from app.models.mobile_money import MobileTransaction
+from app.models.audit import AuditLog
+from app.utils.code_generator import generate_promotion_code, generate_voucher_code
+from app.services import lipana as lipana_service
 from pydantic import BaseModel
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 class PromotionCreateIn(BaseModel):
     listing_id: int
     plan_id: int
+    payment_phone: str # The phone number the user will pay from
 
 class PromotionSubmitIn(BaseModel):
     payment_proof: str # Transaction ID or reference
@@ -22,6 +30,14 @@ class PromotionApproveIn(BaseModel):
 
 class PromotionRejectIn(BaseModel):
     reason: str
+
+class PromotionCodeApplyIn(BaseModel):
+    code: str
+    listing_id: int
+    plan_id: int
+
+class VoucherGenerateIn(BaseModel):
+    amount: float = 0.0
 
 @router.get("/plans", response_model=List[PromotionPlan])
 def get_plans(db: Session = Depends(deps.get_db)) -> Any:
@@ -33,15 +49,392 @@ def create_promotion_request(
     db: Session = Depends(deps.get_db),
     current_user = Depends(deps.get_current_user)
 ) -> Any:
+    # Get plan details for the amount
+    plan = db.get(PromotionPlan, payload.plan_id)
+    if not plan:
+        raise HTTPException(status_code=404, detail="Promotion plan not found")
+
     promo = Promotion(
         listing_id=payload.listing_id,
         plan_id=payload.plan_id,
-        status=PromotionStatus.PENDING
+        status=PromotionStatus.WAITING_FOR_PAYMENT,
+        payment_phone=payload.payment_phone,
+        amount=plan.price_usd
     )
     db.add(promo)
     db.commit()
     db.refresh(promo)
+
+    # 🔥 Fire Lipana STK push immediately
+    listing = db.get(Listing, payload.listing_id)
+    listing_title = listing.title if listing else "Ad Boost"
+    
+    try:
+        result = lipana_service.initiate_stk_push(
+            phone=payload.payment_phone,
+            amount=plan.price_usd,
+            reference=f"Promo {promo.id}",
+            description=f"Boost: {listing_title}"
+        )
+        data = result.get("data", result)
+        lipana_tx_id = data.get("transactionId") or data.get("transaction_id")
+        if lipana_tx_id:
+            promo.lipana_tx_id = lipana_tx_id
+            db.add(promo)
+            db.commit()
+            db.refresh(promo)
+        logger.info(f"Lipana STK push fired for promo {promo.id}: {lipana_tx_id}")
+    except Exception as exc:
+        # Don't block the user — log and continue; they can pay via fallback
+        logger.warning(f"Lipana STK push failed for promo {promo.id}: {exc}")
+
     return promo
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PUBLIC WEBHOOK — called by Lipana when payment succeeds
+# ─────────────────────────────────────────────────────────────────────────────
+@router.post("/webhook", include_in_schema=False)
+async def lipana_webhook(
+    request: Request,
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """Receive Lipana payment.success events and auto-activate the promotion."""
+    raw_body = await request.body()
+
+    # Verify signature if webhook secret is configured
+    signature = request.headers.get("X-Lipana-Signature", "")
+    if signature and not lipana_service.verify_webhook_signature(raw_body, signature):
+        raise HTTPException(status_code=401, detail="Invalid webhook signature")
+
+    import json
+    try:
+        payload = json.loads(raw_body)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON")
+
+    event = payload.get("event")
+    data = payload.get("data", {})
+
+    if event not in ("payment.success", "transaction.success"):
+        return {"received": True, "action": "ignored"}
+
+    lipana_tx_id = (
+        data.get("transactionId")
+        or data.get("transaction_id")
+        or data.get("checkoutRequestID")
+    )
+    if not lipana_tx_id:
+        return {"received": True, "action": "no_txn_id"}
+
+    # Find the promotion that matches this Lipana transaction
+    promo = db.exec(
+        select(Promotion).where(Promotion.lipana_tx_id == lipana_tx_id)
+    ).first()
+
+    if not promo:
+        logger.warning(f"Lipana webhook: no promotion found for tx {lipana_tx_id}")
+        return {"received": True, "action": "promo_not_found"}
+
+    if promo.status in (PromotionStatus.PAID, PromotionStatus.APPROVED):
+        return {"received": True, "action": "already_active"}
+
+    # Auto-activate the promotion
+    activate_promotion(db, promo, matched_transaction_ref=lipana_tx_id)
+
+    # Audit log
+    # Use a system user id (promo.listing_id owner) or fallback to 0
+    listing = db.get(Listing, promo.listing_id)
+    actor_id = listing.owner_id if listing else 0
+    log = AuditLog(
+        user_id=actor_id,
+        action="LIPANA_PAYMENT",
+        resource_type="promotion",
+        resource_id=promo.id,
+        details=f"Lipana payment confirmed for promo #{promo.id} (tx: {lipana_tx_id}). Promotion auto-activated."
+    )
+    db.add(log)
+    db.commit()
+
+    logger.info(f"Promotion #{promo.id} auto-activated via Lipana webhook (tx: {lipana_tx_id})")
+    return {"received": True, "action": "activated", "promo_id": promo.id}
+
+
+@router.post("/{promo_id}/check-payment")
+def check_promotion_payment(
+    promo_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user = Depends(deps.get_current_user)
+) -> Any:
+    """
+    Automatically detect mobile money payment for a promotion request.
+    Matches by: Phone Number, Amount, and Time (within last 30 mins).
+    """
+    promo = db.get(Promotion, promo_id)
+    if not promo:
+        raise HTTPException(status_code=404, detail="Promotion request not found")
+    
+    if promo.status == PromotionStatus.APPROVED or promo.status == PromotionStatus.PAID:
+        return {"status": promo.status, "message": "Promotion already paid/active"}
+
+    # Time window: last 60 minutes
+    time_window = datetime.utcnow() - timedelta(minutes=60)
+    
+    # Search for matching mobile transaction
+    # We strip any non-digit chars from phone for matching
+    clean_phone = "".join(filter(str.isdigit, promo.payment_phone))
+    
+    statement = select(MobileTransaction).where(
+        MobileTransaction.amount == promo.amount,
+        MobileTransaction.is_linked == False,
+        MobileTransaction.timestamp >= time_window
+    )
+    transactions = db.exec(statement).all()
+    
+    # Filter by phone (inexact match for regional formats)
+    match = None
+    for tx in transactions:
+        tx_clean_phone = "".join(filter(str.isdigit, tx.phone))
+        if clean_phone in tx_clean_phone or tx_clean_phone in clean_phone:
+            match = tx
+            break
+            
+    if not match:
+        return {"status": promo.status, "message": "No matching payment detected yet. Please ensure you have paid."}
+
+    # Match found! Link and activate
+    match.is_linked = True
+    match.linked_promotion_id = promo.id
+    db.add(match)
+    
+    activate_promotion(db, promo, matched_transaction_ref=match.reference)
+    
+    return {
+        "status": "APPROVED",
+        "message": "Payment detected! Promotion is now active.",
+        "expires_at": promo.expires_at
+    }
+
+class PromotionRead(Promotion):
+    listing_title: Optional[str] = None
+    plan_name: Optional[str] = None
+
+# ===== AGENT PORTAL ENDPOINTS =====
+
+@router.get("/agent/payment-queue", response_model=List[MobileTransaction])
+def get_payment_queue(
+    db: Session = Depends(deps.get_db),
+    current_user = Depends(deps.get_current_agent_user)
+) -> Any:
+    """Agent-only: View unmatched and non-rejected mobile transactions"""
+    return db.exec(
+        select(MobileTransaction)
+        .where(MobileTransaction.is_linked == False)
+        .where(MobileTransaction.is_rejected == False)
+        .order_by(MobileTransaction.timestamp.desc())
+    ).all()
+
+@router.post("/agent/transactions/{tx_id}/reject")
+def reject_transaction(
+    tx_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user = Depends(deps.get_current_agent_user)
+) -> Any:
+    """Agent-only: Mark a mobile transaction as rejected/ignored"""
+    tx = db.get(MobileTransaction, tx_id)
+    if not tx:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    tx.is_rejected = True
+    db.add(tx)
+    
+    # Audit Log
+    log = AuditLog(
+        user_id=current_user.id,
+        action="REJECT_TRANSACTION",
+        resource_type="mobile_transaction",
+        resource_id=tx.id,
+        details=f"Agent rejected transaction {tx.reference} ({tx.amount} {tx.currency})"
+    )
+    db.add(log)
+    db.commit()
+    
+    return {"success": True, "message": "Transaction rejected."}
+
+@router.get("/agent/pending-orders", response_model=List[PromotionRead])
+def get_pending_orders(
+    db: Session = Depends(deps.get_db),
+    current_user = Depends(deps.get_current_agent_user)
+) -> Any:
+    """Agent-only: View orders waiting for payment or pending matching"""
+    statement = (
+        select(Promotion, Listing.title.label("listing_title"), PromotionPlan.name.label("plan_name"))
+        .join(Listing, Promotion.listing_id == Listing.id)
+        .join(PromotionPlan, Promotion.plan_id == PromotionPlan.id)
+        .where(Promotion.status.in_([PromotionStatus.WAITING_FOR_PAYMENT, PromotionStatus.PENDING]))
+    )
+    results = db.exec(statement).all()
+    
+    promotions = []
+    for promo, listing_title, plan_name in results:
+        p_dict = promo.model_dump()
+        p_dict["listing_title"] = listing_title
+        p_dict["plan_name"] = plan_name
+        promotions.append(PromotionRead(**p_dict))
+    return promotions
+
+@router.get("/agent/history", response_model=List[PromotionRead])
+def get_agent_history(
+    db: Session = Depends(deps.get_db),
+    current_user = Depends(deps.get_current_agent_user),
+    limit: int = 50
+) -> Any:
+    """Agent-only: View recently activated promotions"""
+    statement = (
+        select(Promotion, Listing.title.label("listing_title"), PromotionPlan.name.label("plan_name"))
+        .join(Listing, Promotion.listing_id == Listing.id)
+        .join(PromotionPlan, Promotion.plan_id == PromotionPlan.id)
+        .where(Promotion.status.in_([PromotionStatus.PAID, PromotionStatus.APPROVED]))
+        .order_by(Promotion.updated_at.desc())
+        .limit(limit)
+    )
+    results = db.exec(statement).all()
+    
+    promotions = []
+    for promo, listing_title, plan_name in results:
+        p_dict = promo.model_dump()
+        p_dict["listing_title"] = listing_title
+        p_dict["plan_name"] = plan_name
+        promotions.append(PromotionRead(**p_dict))
+    return promotions
+
+class MatchPaymentIn(BaseModel):
+    transaction_id: int
+
+@router.post("/{promo_id}/match")
+def match_payment_to_order(
+    promo_id: int,
+    payload: MatchPaymentIn,
+    db: Session = Depends(deps.get_db),
+    current_user = Depends(deps.get_current_agent_user)
+) -> Any:
+    """Agent-only: Manually match a mobile transaction to a promotion order"""
+    promo = db.get(Promotion, promo_id)
+    tx = db.get(MobileTransaction, payload.transaction_id)
+    
+    if not promo or not tx:
+        raise HTTPException(status_code=404, detail="Order or Transaction not found")
+        
+    if tx.is_linked:
+        raise HTTPException(status_code=400, detail="Payment already matched to another order")
+        
+    # Match the payment
+    tx.is_linked = True
+    tx.linked_promotion_id = promo.id
+    promo.status = PromotionStatus.PENDING
+    promo.payment_proof = tx.reference
+    promo.updated_at = datetime.utcnow()
+    
+    # Audit Log
+    log = AuditLog(
+        user_id=current_user.id,
+        action="MATCH_PAYMENT",
+        resource_type="promotion",
+        resource_id=promo.id,
+        details=f"Matched transaction {tx.reference} ({tx.amount}) to order {promo.id}"
+    )
+    db.add(log)
+    db.add(tx)
+    db.add(promo)
+    db.commit()
+    
+    return {"success": True, "message": "Payment matched! Order is now PENDING activation."}
+
+@router.post("/{promo_id}/activate")
+def agent_activate_promotion(
+    promo_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user = Depends(deps.get_current_agent_user)
+) -> Any:
+    """Agent-only: Finalize activation for a PENDING order"""
+    promo = db.get(Promotion, promo_id)
+    if not promo or promo.status != PromotionStatus.PENDING:
+        raise HTTPException(status_code=400, detail="Order is not in PENDING state")
+        
+    activate_promotion(db, promo, matched_transaction_ref=promo.payment_proof)
+    promo.status = PromotionStatus.PAID
+    
+    # Audit Log
+    log = AuditLog(
+        user_id=current_user.id,
+        action="ACTIVATE_PROMOTION",
+        resource_type="promotion",
+        resource_id=promo.id,
+        details="Promotion activated by agent."
+    )
+    db.add(log)
+    db.commit()
+    
+    return {"success": True, "message": "Promotion activated successfully!"}
+
+def activate_promotion(db: Session, promo: Promotion, matched_transaction_ref: str = None):
+    """Refactored logic to activate a promotion (bump listing + set expiry)"""
+    plan = db.get(PromotionPlan, promo.plan_id)
+    if not plan:
+        return
+        
+    # Generate unique promotion code (legacy requirement)
+    code = generate_promotion_code(db)
+    
+    # Update promotion
+    promo.promotion_code = code
+    promo.status = PromotionStatus.APPROVED
+    promo.approved_at = datetime.utcnow()
+    promo.expires_at = datetime.utcnow() + timedelta(days=plan.duration_days)
+    promo.payment_proof = matched_transaction_ref or "AUTOMATIC"
+    promo.updated_at = datetime.utcnow()
+    
+    # Update listing boost level
+    listing = db.get(Listing, promo.listing_id)
+    if listing:
+        boost_mapping = {
+            "Standard": 1,
+            "Premium": 2,
+            "Diamond": 3
+        }
+        listing.boost_level = boost_mapping.get(plan.name, 1)
+        listing.boost_expires_at = promo.expires_at
+        db.add(listing)
+    
+    db.add(promo)
+    db.commit()
+    db.refresh(promo)
+
+class PaymentSimulateIn(BaseModel):
+    phone: str
+    amount: float
+    reference: Optional[str] = None
+
+@router.post("/simulate-payment")
+def simulate_mobile_payment(
+    payload: PaymentSimulateIn,
+    db: Session = Depends(deps.get_db),
+    current_user = Depends(deps.get_current_admin_user)
+) -> Any:
+    """
+    Admin-only: Simulate an incoming mobile money payment.
+    Creates a record in MobileTransaction table.
+    """
+    tx = MobileTransaction(
+        phone=payload.phone,
+        amount=payload.amount,
+        reference=payload.reference or f"SIM-{datetime.utcnow().strftime('%Y%H%M%S%f')}",
+        timestamp=datetime.utcnow()
+    )
+    db.add(tx)
+    db.commit()
+    db.refresh(tx)
+    return {"success": True, "transaction": tx}
 
 @router.post("/{promo_id}/submit")
 def submit_payment_proof(
@@ -64,18 +457,32 @@ def submit_payment_proof(
     db.commit()
     return {"success": True}
 
+
 # ===== ADMIN-ONLY ENDPOINTS =====
 
-@router.get("/pending", response_model=List[Promotion])
+@router.get("/pending", response_model=List[PromotionRead])
 def get_pending_promotions(
     db: Session = Depends(deps.get_db),
     current_user = Depends(deps.get_current_admin_user)
 ) -> Any:
     """Admin-only: Get all pending/submitted promotions awaiting approval"""
-    statement = select(Promotion).where(
-        Promotion.status.in_([PromotionStatus.PENDING, PromotionStatus.SUBMITTED])
+    statement = (
+        select(Promotion, Listing.title.label("listing_title"), PromotionPlan.name.label("plan_name"))
+        .join(Listing, Promotion.listing_id == Listing.id)
+        .join(PromotionPlan, Promotion.plan_id == PromotionPlan.id)
+        .where(Promotion.status.in_([PromotionStatus.PENDING, PromotionStatus.SUBMITTED]))
     )
-    return db.exec(statement).all()
+    results = db.exec(statement).all()
+    
+    # Map raw rows to PromotionRead objects
+    promotions = []
+    for promo, listing_title, plan_name in results:
+        p_dict = promo.model_dump()
+        p_dict["listing_title"] = listing_title
+        p_dict["plan_name"] = plan_name
+        promotions.append(PromotionRead(**p_dict))
+        
+    return promotions
 
 @router.post("/{promo_id}/approve")
 def approve_promotion(
@@ -225,4 +632,122 @@ def direct_promote(
         "listing_title": listing.title,
         "status": "APPROVED",
         "message": f"Direct promotion active for {listing.title}! Code: {code}"
+    }
+
+@router.post("/codes/generate", response_model=dict)
+def generate_code(
+    payload: Optional[VoucherGenerateIn] = None,
+    db: Session = Depends(deps.get_db),
+    current_user = Depends(deps.get_current_admin_user)
+) -> Any:
+    """Admin-only: Generate a new unique voucher code for wallet recharge."""
+    code = generate_voucher_code()
+    amount = payload.amount if payload else 0.0
+    
+    # We create a Voucher in the wallet system
+    db_voucher = Voucher(
+        code=code,
+        amount=amount,
+        is_redeemed=False
+    )
+    db.add(db_voucher)
+    db.commit()
+    db.refresh(db_voucher)
+    
+    return {"code": code, "id": db_voucher.id, "amount": amount}
+
+@router.post("/codes/apply", response_model=dict)
+def apply_promo_code(
+    payload: PromotionCodeApplyIn,
+    db: Session = Depends(deps.get_db),
+    current_user = Depends(deps.get_current_admin_user)
+) -> Any:
+    """Admin-only: Apply a generated code to a listing and plan."""
+    print(f"DEBUG: Applying code {payload.code} to listing {payload.listing_id} with plan {payload.plan_id}")
+    # 1. Verify code exists and is valid (Check PromotionCode first, then Voucher)
+    # Normalize input (Handle XXXX-XXXX and other formats)
+    code_norm = payload.code.strip().upper().replace(" ", "")
+    if "-" in code_norm:
+        code_norm = code_norm.replace("-", "")
+    
+    # Try PromotionCode table (likely original format)
+    # But try normalized first just in case
+    statement = select(PromotionCode).where(
+        PromotionCode.code == code_norm,
+        PromotionCode.status == PromotionCodeStatus.GENERATED
+    )
+    db_code = db.exec(statement).first()
+    
+    # Also check explicitly for dash format if it's 8 chars
+    if not db_code and len(code_norm) == 8:
+        code_dashed = f"{code_norm[:4]}-{code_norm[4:]}"
+        statement = select(Voucher).where(
+            Voucher.code == code_dashed,
+            Voucher.is_redeemed == False
+        )
+        db_voucher = db.exec(statement).first()
+    elif not db_code:
+        # Try direct match for non-standard lengths (like old format)
+        statement = select(Voucher).where(
+            Voucher.code == code_norm,
+            Voucher.is_redeemed == False
+        )
+        db_voucher = db.exec(statement).first()
+    else:
+        db_voucher = None
+
+    if not db_code and not db_voucher:
+        raise HTTPException(status_code=400, detail="Invalid or already used code")
+
+    # 2. Verify listing and plan
+    listing = db.get(Listing, payload.listing_id)
+    if not listing:
+        raise HTTPException(status_code=404, detail=f"Listing ID {payload.listing_id} not found")
+        
+    plan = db.get(PromotionPlan, payload.plan_id)
+    if not plan:
+        raise HTTPException(status_code=404, detail=f"Promotion plan ID {payload.plan_id} not found")
+
+    # 3. Mark code as applied/redeemed
+    if db_code:
+        db_code.status = PromotionCodeStatus.APPLIED
+        db_code.listing_id = payload.listing_id
+        db_code.plan_id = payload.plan_id
+        db_code.used_at = datetime.utcnow()
+        db.add(db_code)
+    else:
+        db_voucher.is_redeemed = True
+        db_voucher.redeemed_at = datetime.utcnow()
+        db_voucher.redeemed_by_id = current_user.id # Admin is applying it
+        db.add(db_voucher)
+
+    # 4. Update Listing
+    boost_mapping = {
+        "Standard": 1,
+        "Premium": 2,
+        "Diamond": 3
+    }
+    expires_at = datetime.utcnow() + timedelta(days=plan.duration_days)
+    listing.boost_level = boost_mapping.get(plan.name, 1)
+    listing.boost_expires_at = expires_at
+    db.add(listing)
+
+    # 5. Create a record in Promotion table for history
+    promo = Promotion(
+        listing_id=payload.listing_id,
+        plan_id=payload.plan_id,
+        status=PromotionStatus.APPROVED,
+        promotion_code=payload.code,
+        approved_by=current_user.id,
+        approved_at=datetime.utcnow(),
+        expires_at=expires_at,
+        admin_notes="Applied via manual code entry."
+    )
+    db.add(promo)
+    
+    db.commit()
+    
+    return {
+        "success": True,
+        "message": f"Promotion applied! {listing.title} is now promoted until {expires_at.date()}"
     }

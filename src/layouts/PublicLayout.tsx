@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, PlusCircle, MessageCircle, Heart, Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
+import { Search, PlusCircle, Heart, Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Logo } from '../components/Logo';
+import { getAvatarUrl } from '../utils/imageUtils';
 
 import { useAuthStore } from '../store/useAuthStore';
+import { CurrencySwitcher } from '../components/CurrencySwitcher';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -32,6 +34,9 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                     </div>
 
                     <nav className="flex items-center gap-2 md:gap-4 shrink-0">
+                        <div className="hidden lg:block mr-2">
+                            <CurrencySwitcher />
+                        </div>
                         <Button variant="ghost" size="icon" className="md:hidden text-gray-600">
                             <Search className="h-5 w-5" />
                         </Button>
@@ -42,16 +47,21 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                             </Link>
                         ) : (
                             <Link to="/dashboard" className="hidden sm:flex items-center gap-2 group">
-                                <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 font-bold border border-primary-100 group-hover:bg-primary-100 transition-colors">
-                                    {user?.full_name?.[0] || 'U'}
+                                <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 font-bold border border-primary-100 group-hover:bg-primary-100 transition-colors overflow-hidden">
+                                    {getAvatarUrl(user?.avatar_url) ? (
+                                        <img
+                                            src={getAvatarUrl(user?.avatar_url)!}
+                                            alt={user?.full_name || 'User'}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        user?.full_name?.[0] || 'U'
+                                    )}
                                 </div>
                                 <span className="text-sm font-semibold text-gray-700 group-hover:text-primary-600 transition-colors">My Account</span>
                             </Link>
                         )}
 
-                        <Link to="/messages" className="text-gray-600 hover:text-primary-600 transition-colors p-2">
-                            <MessageCircle className="h-6 w-6" />
-                        </Link>
                         <Link to="/favorites" className="text-gray-600 hover:text-primary-600 transition-colors p-2">
                             <Heart className="h-6 w-6" />
                         </Link>

@@ -27,9 +27,9 @@ def respond_meeting(
         meeting = db.get(Meeting, interaction_id)
         if meeting:
             if current_user.id == meeting.buyer_id:
-                meeting.buyer_response = payload.response
+                meeting.buyer_response = payload.response.value
             elif current_user.id == meeting.seller_id:
-                meeting.seller_response = payload.response
+                meeting.seller_response = payload.response.value
             else:
                 raise HTTPException(status_code=403, detail="Not authorized")
             meeting.updated_at = datetime.utcnow()
@@ -61,10 +61,11 @@ def respond_meeting(
         )
     
     # Assign response based on role
+    response_val = payload.response.value if hasattr(payload.response, 'value') else payload.response
     if current_user.id == meeting.buyer_id:
-        meeting.buyer_response = payload.response
+        meeting.buyer_response = response_val
     elif current_user.id == meeting.seller_id:
-        meeting.seller_response = payload.response
+        meeting.seller_response = response_val
     else:
         raise HTTPException(status_code=403, detail="Not authorized to respond to this meeting")
 

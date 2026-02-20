@@ -84,7 +84,7 @@ const LoginPage: React.FC = () => {
                     <div className="flex justify-end">
                         <Link
                             to="/forgot-password"
-                            className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
+                            className="text-sm font-medium text-blue-400 hover:text-blue-500 hover:underline"
                         >
                             Forgot Password?
                         </Link>
@@ -93,7 +93,7 @@ const LoginPage: React.FC = () => {
 
                 <Button
                     type="submit"
-                    className="w-full h-12 text-sm font-semibold rounded-xl bg-primary-600 hover:bg-primary-500 border-none shadow-lg shadow-primary-500/20 text-white"
+                    className="w-full h-12 text-sm font-semibold rounded-xl bg-blue-300 hover:bg-blue-400 border-none shadow-lg shadow-blue-300/30 text-white"
                     disabled={isLoading}
                 >
                     {isLoading ? (
@@ -112,7 +112,7 @@ const LoginPage: React.FC = () => {
                         <button
                             type="button"
                             onClick={() => navigate('/signup')}
-                            className="font-bold text-primary-600 hover:text-primary-700 hover:underline"
+                            className="font-bold text-blue-400 hover:text-blue-500 hover:underline"
                         >
                             Create Account
                         </button>

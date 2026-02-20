@@ -5,6 +5,7 @@ export interface DashboardStats {
     messages: number;
     favorites: number;
     views: string;
+    balance: number;
 }
 
 export const dashboardService = {

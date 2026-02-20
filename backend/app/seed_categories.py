@@ -4,16 +4,13 @@ from app.models import Category
 
 def seed_categories():
     categories = [
-        {"name": "Vehicles", "slug": "vehicles", "icon_name": "car"},
-        {"name": "Property", "slug": "property", "icon_name": "home"},
-        {"name": "Electronics", "slug": "electronics", "icon_name": "smartphone"},
-        {"name": "Jobs", "slug": "jobs", "icon_name": "briefcase"},
-        {"name": "Home & Furniture", "slug": "home-furniture", "icon_name": "sofa"},
-        {"name": "Sports", "slug": "sports", "icon_name": "dumbbell"},
-        {"name": "Health & Beauty", "slug": "health-beauty", "icon_name": "heart"},
-        {"name": "Fashion", "slug": "fashion", "icon_name": "watch"},
-        {"name": "Services", "slug": "services", "icon_name": "tool"},
-        {"name": "Others", "slug": "others", "icon_name": "tag"},
+        {"name": "Raashinka & Cuntada (Food & Groceries)", "slug": "food-groceries", "icon_name": "utensils"},
+        {"name": "Dharka & Kabaha (Clothing & Shoes)", "slug": "clothing-shoes", "icon_name": "fashion"},
+        {"name": "Alaabta Guriga (Household Items)", "slug": "household-items", "icon_name": "home-living"},
+        {"name": "Korontada & Elektaroonigga (Electronics)", "slug": "electronics", "icon_name": "laptop"},
+        {"name": "Gaadiidka (Vehicles)", "slug": "vehicles", "icon_name": "car"},
+        {"name": "Xoolaha Nool (Livestock)", "slug": "livestock", "icon_name": "animals"},
+        {"name": "Dhul & Beeraha (Land & Farms)", "slug": "land-farms", "icon_name": "agriculture"},
     ]
     
     with Session(engine) as session:
@@ -24,8 +21,13 @@ def seed_categories():
             if not existing_cat:
                 cat = Category(**cat_data)
                 session.add(cat)
+            else:
+                # Update name if changed
+                existing_cat.name = cat_data["name"]
+                existing_cat.icon_name = cat_data["icon_name"]
+                session.add(existing_cat)
         session.commit()
-    print("Categories seeded successfully!")
+    print("Categories synced successfully!")
 
 if __name__ == "__main__":
     seed_categories()

@@ -6,6 +6,7 @@ export interface User {
     is_active: boolean;
     is_verified: boolean;
     is_admin: boolean;
+    is_agent: boolean;
     verified_level: 'guest' | 'phone' | 'id' | 'trusted';
     avatar_url?: string | null;
     response_time?: string;

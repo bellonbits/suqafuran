@@ -5,6 +5,7 @@ export interface Listing {
     title: string;
     description: string;
     price: number;
+    currency: string;
     location: string;
     condition: string;
     category_id: number;
@@ -26,6 +27,7 @@ export interface ListingCreate {
     title: string;
     description: string;
     price: number;
+    currency: string;
     location: string;
     condition: string;
     category_id: number;
@@ -39,4 +41,5 @@ export interface Category {
     name: string;
     slug: string;
     icon_name: string;
+    attributes_schema?: any;
 }

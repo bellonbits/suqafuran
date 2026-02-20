@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { DashboardLayout } from '../layouts/DashboardLayout';
+
 import { notificationService } from '../services/notificationService';
 import type { Notification } from '../services/notificationService';
 import {
@@ -35,7 +35,7 @@ const NotificationsPage: React.FC = () => {
     };
 
     return (
-        <DashboardLayout>
+        <div className="max-w-4xl mx-auto">
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
@@ -98,13 +98,13 @@ const NotificationsPage: React.FC = () => {
                             </div>
 
                             {!notif.is_read && (
-                                <div className="w-2 h-2 bg-primary-500 rounded-full mt-2 shrink-0"></div>
+                                <div className="w-2 h-2 bg-blue-300 rounded-full mt-2 shrink-0"></div>
                             )}
                         </div>
                     ))
                 )}
             </div>
-        </DashboardLayout>
+        </div>
     );
 };
 

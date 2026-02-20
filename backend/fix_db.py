@@ -1,23 +1,29 @@
 import sys
 import os
+import psycopg2
 
-# Add the current directory to sys.path to ensure imports work
-sys.path.append(os.getcwd())
+# Try to get backend folder in path
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(current)
 
-from sqlmodel import SQLModel, create_engine
 from app.core.config import settings
-from app.models.message import Message
-# Import other models to ensure they are registered if needed, but Message is the target.
 
-def fix_db():
-    # Attempt to use DATABASE_URL, fallback to constructing it if needed or check env
-    db_url = str(settings.DATABASE_URL)
-    print(f"Connecting to DB: {db_url}")
-    engine = create_engine(db_url)
-    
-    print("Creating tables if they don't exist...")
-    SQLModel.metadata.create_all(engine)
-    print("Done.")
+def main():
+    print(f"Connecting to DB...")
+    try:
+        url = str(settings.DATABASE_URL)
+        conn = psycopg2.connect(url)
+        cursor = conn.cursor()
+        print("Executing ALTER TABLE...")
+        cursor.execute("ALTER TABLE mobiletransaction ADD COLUMN IF NOT EXISTS currency VARCHAR DEFAULT 'USD'")
+        conn.commit()
+        print("Success! Added 'currency' column.")
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        if 'conn' in locals() and conn:
+            conn.close()
 
 if __name__ == "__main__":
-    fix_db()
+    main()

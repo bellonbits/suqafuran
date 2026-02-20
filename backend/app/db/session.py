@@ -1,7 +1,11 @@
 from sqlmodel import create_engine, Session, SQLModel
 from app.core.config import settings
 
-engine = create_engine(settings.DATABASE_URL)
+engine = create_engine(
+    settings.DATABASE_URL,
+    pool_pre_ping=True,
+    pool_recycle=300,
+)
 
 
 def init_db():

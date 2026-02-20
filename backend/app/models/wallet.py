@@ -10,7 +10,7 @@ class Wallet(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id", unique=True)
     balance: float = Field(default=0.0)
-    currency: str = Field(default="KSh")
+    currency: str = Field(default="USD")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -28,3 +28,12 @@ class Transaction(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     wallet: Optional[Wallet] = Relationship(back_populates="transactions")
+
+class Voucher(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    code: str = Field(unique=True, index=True)
+    amount: float
+    is_redeemed: bool = Field(default=False)
+    redeemed_by_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    redeemed_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)

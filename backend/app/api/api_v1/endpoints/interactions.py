@@ -21,7 +21,7 @@ def create_interaction(
     db_obj = Interaction(
         listing_id=payload.listing_id,
         buyer_id=current_user.id,
-        type=payload.type
+        type=str(payload.type.value).lower()
     )
     db.add(db_obj)
     db.commit()

@@ -122,7 +122,7 @@ const SignupPage: React.FC = () => {
 
                 <Button
                     type="submit"
-                    className="w-full h-12 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold transition-all shadow-lg shadow-primary-500/20 mt-6"
+                    className="w-full h-12 rounded-xl bg-blue-300 hover:bg-blue-400 text-white font-bold transition-all shadow-lg shadow-blue-300/30 mt-6"
                     disabled={isLoading}
                 >
                     {isLoading ? (
@@ -141,7 +141,7 @@ const SignupPage: React.FC = () => {
                         <button
                             type="button"
                             onClick={() => navigate('/login')}
-                            className="font-bold text-primary-600 hover:text-primary-700 hover:underline"
+                            className="font-bold text-blue-400 hover:text-blue-500 hover:underline"
                         >
                             Log in
                         </button>

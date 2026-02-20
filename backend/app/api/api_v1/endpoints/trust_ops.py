@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Any, Optional, List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
+from sqlalchemy import text
 from app.api import deps
 from app.models.trust import Rating, Report
 from app.models.meeting_deal import Meeting, Deal
@@ -21,13 +22,21 @@ def get_pending_trust_actions(
     current_user = Depends(deps.get_current_user)
 ) -> Any:
     # 1. Fetch Interactions that might lead to a meeting
-    # For MVP, we'll look at interactions involving the current user in the last 7 days
+    # Only look at interactions from the last 3 days, and at least 4 hours old
+    from datetime import timedelta
+    now = datetime.utcnow()
+    three_days_ago = now - timedelta(days=3)
+    four_hours_ago = now - timedelta(hours=4)
+
     interactions = db.exec(
         select(Interaction, Listing)
         .join(Listing, Interaction.listing_id == Listing.id)
         .where(
-            (Interaction.buyer_id == current_user.id) | (Listing.owner_id == current_user.id)
+            (Interaction.buyer_id == current_user.id) | (Listing.owner_id == current_user.id),
+            Interaction.created_at >= three_days_ago,
+            Interaction.created_at <= four_hours_ago
         )
+        .order_by(Interaction.created_at.desc())
     ).all()
 
     pending_meetings = []
@@ -54,33 +63,38 @@ def get_pending_trust_actions(
         is_pending = False
         if not meeting:
             is_pending = True
-            meeting_id = interaction.id # Virtual ID based on interaction for tracking
-            # We'll prefix with "virtual_" to distinguish or just use interaction.id
-            # Frontend trustService expects a number, so we'll use interaction.id
+            meeting_id = interaction.id # Virtual ID
         else:
             meeting_id = meeting.id
+            # Strict check: only pending if response is None or empty string
             if current_user.id == buyer_id and not meeting.buyer_response:
                 is_pending = True
             elif current_user.id == seller_id and not meeting.seller_response:
                 is_pending = True
 
         if is_pending:
+            from app.models.user import User
+            other_user_id = seller_id if current_user.id == buyer_id else buyer_id
+            other_user = db.get(User, other_user_id)
+            role = "seller" if current_user.id == seller_id else "buyer"
+            
             pending_meetings.append({
-                "id": meeting_id, # This ID is used for respondToMeeting
+                "id": meeting_id,
                 "listing_id": listing.id,
                 "listing_title": listing.title,
-                "other_user_id": seller_id if current_user.id == buyer_id else buyer_id,
+                "other_user_id": other_user_id,
+                "other_user_name": other_user.full_name if other_user else "User",
+                "role": role,
                 "type": "meeting"
             })
 
     # 2. Fetch Deals where meeting was confirmed YES but no Deal record exists
-    from app.models.meeting_deal import MeetingResponse
     meetings_confirmed = db.exec(
         select(Meeting, Listing)
         .join(Listing, Meeting.listing_id == Listing.id)
         .where(
-            Meeting.buyer_response == "yes",
-            Meeting.seller_response == "yes",
+            Meeting.buyer_response == 'yes',
+            Meeting.seller_response == 'yes',
             (Meeting.buyer_id == current_user.id) | (Meeting.seller_id == current_user.id)
         )
     ).all()
@@ -97,10 +111,17 @@ def get_pending_trust_actions(
         ).first()
 
         if not deal:
+            from app.models.user import User
+            other_user_id = meeting.seller_id if current_user.id == meeting.buyer_id else meeting.buyer_id
+            other_user = db.get(User, other_user_id)
+            role = "seller" if current_user.id == meeting.seller_id else "buyer"
+            
             pending_deals.append({
-                "id": meeting.id, # Use Meeting ID for deal response prompt
+                "id": meeting.id,
                 "listing_id": listing.id,
                 "listing_title": listing.title,
+                "other_user_name": other_user.full_name if other_user else "User",
+                "role": role,
                 "type": "deal"
             })
 

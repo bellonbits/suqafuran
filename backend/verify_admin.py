@@ -8,6 +8,7 @@ sys.path.append(os.getcwd())
 from app.core.config import settings
 
 def verify_admin():
+    print("Starting verification...")
     try:
         db_url = str(settings.DATABASE_URL)
         engine = create_engine(db_url)

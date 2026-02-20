@@ -19,7 +19,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
         <div className="fixed inset-0 w-full h-full flex bg-gray-50 text-gray-900 overflow-hidden">
             {/* Left Side - Image/Visuals (Hidden on mobile) */}
             <div className="hidden lg:flex lg:w-1/2 relative p-4">
-                <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl bg-primary-500">
+                <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl bg-blue-300">
                     {/* Background Pattern with Icons */}
                     <div className="absolute inset-0 opacity-10">
                         <div className="grid grid-cols-6 gap-8 p-8 transform -rotate-12 scale-110">

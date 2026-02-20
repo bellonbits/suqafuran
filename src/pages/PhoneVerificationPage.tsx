@@ -28,9 +28,7 @@ const PhoneVerificationPage: React.FC = () => {
 
         try {
             await authService.verifyOTP(phone, otp);
-            // After verification, we could auto-login or redirect to login.
-            // User requested: "then login using their verified mobile and password"
-            // So we redirect to Login page.
+            // After verification, we redirect to Login page.
             navigate('/login');
         } catch (err: any) {
             const detail = err.response?.data?.detail;
