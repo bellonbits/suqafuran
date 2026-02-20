@@ -82,15 +82,15 @@ async def receive_lipana_webhook(
     
     # 2. Verify Signature
     if not verify_webhook_signature(raw_body, signature):
-        print(f"WEBHOOK ERROR: Invalid signature. Header: {signature}", file=sys.stderr, flush=True)
+        logging.warning(f"!!! WEBHOOK ERROR: Invalid signature. Header: {signature}")
         raise HTTPException(status_code=401, detail="Invalid signature")
 
     # 3. Parse Payload
     try:
         payload = json.loads(raw_body)
-        print(f"WEBHOOK RECEIVED: {json.dumps(payload, indent=2)}", file=sys.stderr, flush=True)
+        logging.warning(f"!!! WEBHOOK RECEIVED: {json.dumps(payload, indent=1)}")
     except Exception as e:
-        print(f"WEBHOOK ERROR: JSON parse failed: {e}. Body: {raw_body}", file=sys.stderr, flush=True)
+        logging.warning(f"!!! WEBHOOK ERROR: JSON parse failed: {e}. Body: {raw_body}")
         raise HTTPException(status_code=400, detail="Invalid JSON")
 
     # 4. Check Event Type
@@ -140,7 +140,7 @@ async def receive_lipana_webhook(
     db.refresh(transaction)
 
     # 9. Trigger auto-matching
-    print(f"WEBHOOK MATCHING: Looking for Promo with lipana_tx_id={tx_id} or matching Phone={phone}, Amount={amount} or Reference={reference}", file=sys.stderr, flush=True)
+    logging.warning(f"!!! WEBHOOK MATCHING: Looking for Promo with lipana_tx_id={tx_id} or matching Phone={phone}, Amount={amount} or Reference={reference}")
     
     # Priority 1: Direct match by "Promo X" reference
     matched_order = None
@@ -148,21 +148,21 @@ async def receive_lipana_webhook(
         try:
             promo_id_str = str(reference).replace("Promo ", "").strip()
             promo_id = int(promo_id_str)
-            print(f"WEBHOOK: Parsed Promo ID {promo_id} from reference {reference}", file=sys.stderr, flush=True)
+            logging.warning(f"!!! WEBHOOK: Parsed Promo ID {promo_id} from reference {reference}")
             promo = db.get(Promotion, promo_id)
             if promo and promo.status == PromotionStatus.WAITING_FOR_PAYMENT:
-                print(f"WEBHOOK: Direct match found for Promo #{promo_id}", file=sys.stderr, flush=True)
+                logging.warning(f"!!! WEBHOOK: Direct match found for Promo #{promo_id}")
                 matched_order = promo
                 # Use PaymentService to activate (handles listing boost etc)
                 payment_service._activate_promotion(db, promo, transaction)
         except Exception as e:
-            print(f"WEBHOOK ERROR: Reference matching failed for {reference}: {e}", file=sys.stderr, flush=True)
+            logging.warning(f"!!! WEBHOOK ERROR: Reference matching failed for {reference}: {e}")
 
     # Priority 2: Fallback to existing PaymentService logic (hex ID / Phone / Amount)
     if not matched_order:
         matched_order = payment_service.match_transaction(db, transaction)
     
-    print(f"WEBHOOK RESULT: {'SUCCESS - Matched Promo #' + str(matched_order.id) if matched_order else 'FAILED - No Match found'}", file=sys.stderr, flush=True)
+    logging.warning(f"!!! WEBHOOK RESULT: {'SUCCESS - Matched Promo #' + str(matched_order.id) if matched_order else 'FAILED - No Match found'}")
 
     return {
         "status": "success",
