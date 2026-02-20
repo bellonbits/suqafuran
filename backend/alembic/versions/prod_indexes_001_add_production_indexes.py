@@ -54,6 +54,7 @@ def upgrade():
     )
 
     # ── Promotions ──────────────────────────────────────────────────────────
+    op.add_column("promotion", sa.Column("lipana_tx_id", sa.String(), nullable=True))
     op.create_index("ix_promotion_status",      "promotion", ["status"])
     op.create_index("ix_promotion_listing_id",  "promotion", ["listing_id"])
     op.create_index("ix_promotion_lipana_tx_id","promotion", ["lipana_tx_id"])
@@ -78,7 +79,7 @@ def upgrade():
 
     # ── Audit log ───────────────────────────────────────────────────────────
     op.create_index("ix_auditlog_user_id",      "auditlog",     ["user_id"])
-    op.create_index("ix_auditlog_created_at",   "auditlog",     ["created_at"])
+    op.create_index("ix_auditlog_timestamp",    "auditlog",     ["timestamp"])
 
 
 def downgrade():
@@ -101,4 +102,5 @@ def downgrade():
     op.drop_index("ix_wallet_user_id",          "wallet")
     op.drop_index("ix_transaction_wallet_id",   "transaction")
     op.drop_index("ix_auditlog_user_id",        "auditlog")
-    op.drop_index("ix_auditlog_created_at",     "auditlog")
+    op.drop_index("ix_auditlog_timestamp",      "auditlog")
+    op.drop_column("promotion", "lipana_tx_id")
