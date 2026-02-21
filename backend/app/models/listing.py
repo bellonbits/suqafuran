@@ -23,6 +23,8 @@ class ListingBase(SQLModel):
     currency: str = Field(default="USD")
     images: List[str] = Field(default=[], sa_column=Column(JSON))
     attributes: dict = Field(default={}, sa_column=Column(JSON))
+    views: int = Field(default=0)
+    leads: int = Field(default=0)
 
 
 class Listing(ListingBase, table=True):

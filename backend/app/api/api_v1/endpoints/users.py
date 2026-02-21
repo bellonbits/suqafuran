@@ -74,6 +74,24 @@ def read_user_public(
     }
 
 
+@router.post("/public/{user_id}/view")
+def track_user_view(
+    *,
+    db: Session = Depends(deps.get_db),
+    user_id: int,
+) -> Any:
+    """
+    Increment profile views for a user.
+    """
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.profile_views += 1
+    db.add(user)
+    db.commit()
+    return {"message": "View tracked"}
+
+
 @router.patch("/me", response_model=User)
 def update_user_me(
     *,

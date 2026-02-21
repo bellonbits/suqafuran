@@ -12,6 +12,7 @@ export interface User {
     response_time?: string;
     email_notifications: boolean;
     sms_notifications: boolean;
+    profile_views?: number;
 }
 
 export interface LoginCredentials {

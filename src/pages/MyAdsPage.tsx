@@ -11,6 +11,7 @@ import { Button } from '../components/Button';
 import { cn } from '../utils/cn';
 import { getImageUrl } from '../utils/imageUtils';
 import type { Listing } from '../types/listing';
+import { dashboardService } from '../services/dashboardService';
 
 
 
@@ -25,10 +26,16 @@ const MyAdsPage: React.FC = () => {
         queryFn: listingService.getMyListings,
     });
 
+    const { data: realStats } = useQuery({
+        queryKey: ['dashboard-stats'],
+        queryFn: dashboardService.getStats,
+    });
+
     const deleteMutation = useMutation({
         mutationFn: (id: number) => listingService.deleteListing(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['my-listings'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
             setDeletingId(null);
         },
     });
@@ -102,11 +109,11 @@ const MyAdsPage: React.FC = () => {
                                 <div className="flex items-center gap-6 text-xs text-gray-400">
                                     <div className="flex items-center gap-1">
                                         <Eye className="h-3.5 w-3.5" />
-                                        <span>342 Views</span>
+                                        <span>{ad.views || 0} Views</span>
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <TrendingUp className="h-3.5 w-3.5" />
-                                        <span>24 Leads</span>
+                                        <span>{ad.leads || 0} Leads</span>
                                     </div>
                                 </div>
                             </div>
@@ -164,7 +171,7 @@ const MyAdsPage: React.FC = () => {
                                 </div>
                                 <div className="text-right">
                                     <p className="text-xs text-gray-400">Total Views</p>
-                                    <p className="text-3xl font-bold text-white">4.2k</p>
+                                    <p className="text-3xl font-bold text-white">{realStats?.views || '0'}</p>
                                     <p className="text-[10px] text-green-400 mt-1 uppercase font-bold">+12% this week</p>
                                 </div>
                             </div>

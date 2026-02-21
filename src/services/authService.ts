@@ -88,5 +88,9 @@ export const authService = {
     }> {
         const response = await api.get(`/users/public/${userId}`);
         return response.data;
+    },
+
+    async trackProfileView(userId: number): Promise<void> {
+        await api.post(`/users/public/${userId}/view`);
     }
 };

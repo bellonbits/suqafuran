@@ -30,6 +30,7 @@ class UserBase(SQLModel):
     email_notifications: bool = True
     sms_notifications: bool = False
     is_agent: bool = Field(default=False)
+    profile_views: int = Field(default=0)
 
 
 class User(UserBase, table=True):
