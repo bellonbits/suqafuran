@@ -15,6 +15,8 @@ import { cn } from '../utils/cn';
 import { getImageUrl } from '../utils/imageUtils';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { JIJI_CATEGORIES } from '../utils/jijiCategories';
+import { LocationPickerModal } from '../components/LocationPickerModal';
+import { MapPin } from 'lucide-react';
 
 const steps = ['Basic Info', 'Category & Details', 'Pricing', 'Photos'];
 
@@ -23,6 +25,7 @@ const EditAdPage: React.FC = () => {
     const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(0);
     const [submitted, setSubmitted] = useState(false);
+    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
     const { data: listing, isLoading: loadingListing } = useQuery({
         queryKey: ['listing', id],
@@ -168,14 +171,34 @@ const EditAdPage: React.FC = () => {
                                         onChange={(e) => setFieldValue('title', e.target.value)}
                                         error={touched.title ? errors.title : undefined}
                                     />
-                                    <Input
-                                        label="Location"
-                                        name="location"
-                                        placeholder="e.g. Westlands, Nairobi"
-                                        value={values.location}
-                                        onChange={(e) => setFieldValue('location', e.target.value)}
-                                        error={touched.location ? errors.location : undefined}
-                                    />
+                                    <div className="relative group">
+                                        <label className="text-sm font-medium text-gray-700 mb-2 block">Location</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsLocationModalOpen(true)}
+                                            className={cn(
+                                                "w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all text-left",
+                                                touched.location && errors.location ? "border-red-500 bg-red-50" : "border-gray-300 bg-white hover:border-primary-500"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <MapPin className={cn("h-5 w-5", values.location ? "text-primary-600" : "text-gray-400")} />
+                                                <span className={cn("text-sm", !values.location && "text-gray-400")}>
+                                                    {values.location || "Select location (State > Region > Town)"}
+                                                </span>
+                                            </div>
+                                            <ChevronRight className="h-4 w-4 text-gray-400" />
+                                        </button>
+                                        {touched.location && errors.location && (
+                                            <p className="text-xs text-red-500 mt-1 font-medium">{errors.location}</p>
+                                        )}
+                                        <LocationPickerModal
+                                            isOpen={isLocationModalOpen}
+                                            onClose={() => setIsLocationModalOpen(false)}
+                                            onSelect={(loc) => setFieldValue('location', loc)}
+                                            title="Update Listing Location"
+                                        />
+                                    </div>
                                 </div>
                             )}
 
