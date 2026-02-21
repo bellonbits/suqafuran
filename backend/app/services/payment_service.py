@@ -103,4 +103,20 @@ class PaymentService:
         db.refresh(order)
         print(f"PAYMENT MATCHED: Order {order.id} linked to Trans {transaction.reference}")
 
+        # 4. Create Notification
+        try:
+            from app.crud.crud_notification import crud_notification
+            crud_notification.create(
+                db,
+                obj_in={
+                    "type": "ad_approved",
+                    "data": {
+                        "message": f"Your promotion (Order #{order.id}) was successfully activated! Your ad is now boosted."
+                    }
+                },
+                user_id=order.owner_id
+            )
+        except Exception as e:
+            print(f"Failed to create notification for Order {order.id}: {e}")
+
 payment_service = PaymentService()
