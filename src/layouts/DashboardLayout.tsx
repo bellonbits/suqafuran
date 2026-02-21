@@ -1,5 +1,7 @@
 import React from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { notificationService } from '../services/notificationService';
 import {
     LayoutDashboard, ShoppingBag,
     Heart, Settings, LogOut,
@@ -22,7 +24,17 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const { user, logout } = useAuthStore();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
+    const { data: notifications } = useQuery({
+        queryKey: ['notifications'],
+        queryFn: notificationService.getMyNotifications,
+        enabled: !!user,
+        refetchInterval: 30000,
+    });
+
+    const unreadCount = notifications?.filter(n => !n.is_read)?.length || 0;
+
     // Close mobile menu when route changes
+
     React.useEffect(() => {
         setIsMobileMenuOpen(false);
     }, [location.pathname]);
@@ -182,10 +194,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
                     <div className="flex items-center gap-4 ml-auto">
                         <CurrencySwitcher />
-                        <button className="p-2 text-gray-400 hover:text-primary-600 relative">
+                        <Link to="/notifications" className="p-2 text-gray-400 hover:text-primary-600 relative">
                             <Bell className="h-6 w-6" />
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-                        </button>
+                            {unreadCount > 0 && (
+                                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                            )}
+                        </Link>
                         <Link to="/settings" className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
                             {getAvatarUrl(user?.avatar_url) ? (
                                 <img
