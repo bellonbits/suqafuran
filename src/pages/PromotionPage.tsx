@@ -185,7 +185,7 @@ const PromotionPage: React.FC = () => {
             ) : step === 'payment' ? (
                 <div className="max-w-md mx-auto bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
                     {/* Header */}
-                    <div className="bg-gradient-to-br from-green-600 to-green-500 p-8 text-white text-center relative overflow-hidden">
+                    <div className="bg-gradient-to-br from-primary-600 to-primary-500 p-8 text-white text-center relative overflow-hidden">
                         <div className="absolute inset-0 opacity-10">
                             <div className="w-64 h-64 bg-white rounded-full absolute -top-16 -right-16" />
                         </div>
@@ -197,7 +197,7 @@ const PromotionPage: React.FC = () => {
                             <Smartphone className="w-8 h-8 text-white" />
                         </motion.div>
                         <h2 className="text-2xl font-bold mb-1 relative z-10">Check your phone 📱</h2>
-                        <p className="text-green-100 text-sm relative z-10">
+                        <p className="text-primary-100 text-sm relative z-10">
                             An M-Pesa prompt has been sent to
                         </p>
                         <p className="text-white font-bold text-lg relative z-10">{paymentPhone}</p>
@@ -213,15 +213,15 @@ const PromotionPage: React.FC = () => {
                         </div>
 
                         {/* Steps */}
-                        <div className="bg-green-50 rounded-2xl p-5 border border-green-100 space-y-3">
-                            <p className="text-xs font-bold text-green-700 uppercase tracking-widest mb-2">How to complete payment</p>
+                        <div className="bg-primary-50 rounded-2xl p-5 border border-primary-100 space-y-3">
+                            <p className="text-xs font-bold text-primary-700 uppercase tracking-widest mb-2">How to complete payment</p>
                             {[
                                 'A payment prompt appeared on your phone',
                                 'Enter your M-Pesa PIN to confirm',
                                 'This screen updates automatically 🎉'
                             ].map((step, i) => (
                                 <div key={i} className="flex items-start gap-3">
-                                    <div className="w-5 h-5 rounded-full bg-green-500 text-white text-xs flex items-center justify-center shrink-0 font-bold mt-0.5">
+                                    <div className="w-5 h-5 rounded-full bg-primary-500 text-white text-xs flex items-center justify-center shrink-0 font-bold mt-0.5">
                                         {i + 1}
                                     </div>
                                     <p className="text-sm text-gray-700 font-medium">{step}</p>
@@ -230,7 +230,7 @@ const PromotionPage: React.FC = () => {
                         </div>
 
                         {/* Polling indicator */}
-                        <div className="flex items-center justify-center gap-3 p-4 bg-blue-50 rounded-xl text-blue-700 text-xs border border-blue-100">
+                        <div className="flex items-center justify-center gap-3 p-4 bg-primary-50 rounded-xl text-primary-700 text-xs border border-primary-100">
                             <Loader2 className="w-4 h-4 animate-spin shrink-0" />
                             <p>Waiting for your payment confirmation…</p>
                         </div>
