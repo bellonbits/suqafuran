@@ -5,13 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { ProductCard } from '../components/ProductCard';
 import { listingService } from '../services/listingService';
-import { Search, MapPin, TrendingUp, ShieldCheck, Loader2, ChevronRight, ShoppingBag, XCircle, CheckCircle2 } from 'lucide-react';
+import { Search, MapPin, TrendingUp, ShieldCheck, Loader2, ChevronRight, ShoppingBag } from 'lucide-react';
 import { Button } from '../components/Button';
 import { getCategoryIcon } from '../utils/categoryIcons';
-import { SOMALI_REGIONS } from '../utils/somaliRegions';
+import { LocationPickerModal } from '../components/LocationPickerModal';
 import { JIJI_CATEGORIES } from '../utils/jijiCategories';
-
-
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
@@ -31,10 +29,6 @@ const LandingPage: React.FC = () => {
 
     const displayCategories = categories || [];
     const displayAds = featuredAds || [];
-
-
-
-
 
     return (
         <PublicLayout>
@@ -70,78 +64,14 @@ const LandingPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Updated Pop-up Modal Location Picker */}
-                    <AnimatePresence>
-                        {isLocationOpen && (
-                            <>
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    onClick={() => setLocationOpen(false)}
-                                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
-                                />
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                                    className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[101] overflow-hidden max-h-[80vh] flex flex-col"
-                                >
-                                    <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-                                        <h2 className="text-xl font-bold text-gray-900">Choose Region</h2>
-                                        <button
-                                            onClick={() => setLocationOpen(false)}
-                                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                                        >
-                                            <XCircle className="w-6 h-6 text-gray-400" />
-                                        </button>
-                                    </div>
-
-                                    <div className="p-4 bg-gray-50 border-b border-gray-100">
-                                        <div className="relative">
-                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                            <input
-                                                type="text"
-                                                placeholder="Search city or region..."
-                                                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                                autoFocus
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="overflow-y-auto custom-scrollbar flex-1 p-6">
-                                        <button
-                                            onClick={() => { setSelectedLocation(""); setLocationOpen(false); }}
-                                            className={`w-full text-left p-4 rounded-2xl transition-all mb-4 flex items-center justify-between ${!selectedLocation ? 'bg-primary-50 border-2 border-primary-500 text-primary-700 font-bold' : 'hover:bg-gray-50 border-2 border-transparent text-gray-600'}`}
-                                        >
-                                            <span>All Somalia</span>
-                                            {!selectedLocation && <CheckCircle2 className="w-5 h-5 text-primary-600" />}
-                                        </button>
-
-                                        {SOMALI_REGIONS.map((region) => (
-                                            <div key={region.name} className="mb-8 last:mb-0">
-                                                <div className="px-2 mb-3 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                                                    {region.name}
-                                                </div>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                    {region.cities.map((city) => (
-                                                        <button
-                                                            key={city}
-                                                            onClick={() => { setSelectedLocation(city); setLocationOpen(false); }}
-                                                            className={`text-left p-3 rounded-xl border transition-all flex items-center justify-between group ${selectedLocation === city ? 'bg-primary-50 border-primary-200 text-primary-700 font-bold' : 'bg-white border-gray-100 hover:border-primary-100 hover:bg-primary-50/30 text-gray-600'}`}
-                                                        >
-                                                            <span className="text-sm">{city}</span>
-                                                            {selectedLocation === city && <CheckCircle2 className="w-4 h-4 text-primary-500" />}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </motion.div>
-                            </>
-                        )}
-                    </AnimatePresence>
+                    {/* Hierarchical Location Picker Modal */}
+                    <LocationPickerModal
+                        isOpen={isLocationOpen}
+                        onClose={() => setLocationOpen(false)}
+                        onSelect={(location) => {
+                            setSelectedLocation(location === "All Somalia" ? "" : location.split(',')[0]);
+                        }}
+                    />
 
                     <div className="mt-8 flex flex-wrap justify-center gap-6 text-[11px] font-bold text-white/90 uppercase tracking-widest">
                         <span className="opacity-60">Popular:</span>
