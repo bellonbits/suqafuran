@@ -11,6 +11,7 @@ const PromotionPage: React.FC = () => {
     const { adId } = useParams<{ adId: string }>();
     const navigate = useNavigate();
     const [selectedPlan, setSelectedPlan] = useState<any>(null);
+    const [paymentRegion, setPaymentRegion] = useState<'kenya' | 'somalia'>('kenya');
     const [paymentPhone, setPaymentPhone] = useState('');
     const [step, setStep] = useState<'plan' | 'payment' | 'success'>('plan');
     const [error, setError] = useState<string | null>(null);
@@ -111,34 +112,75 @@ const PromotionPage: React.FC = () => {
                             animate={{ opacity: 1, y: 0 }}
                             className="max-w-md mx-auto p-6 bg-white rounded-3xl shadow-lg border border-primary-100"
                         >
-                            <h3 className="text-lg font-bold text-gray-900 mb-4">Payment Phone Number</h3>
-                            <div className="space-y-4">
-                                <div className="relative">
-                                    <Phone className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
-                                    <input
-                                        type="tel"
-                                        placeholder="e.g. 07xxxxxxxx"
-                                        className="w-full h-12 pl-12 pr-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 outline-none transition-all font-medium"
-                                        value={paymentPhone}
-                                        onChange={(e) => setPaymentPhone(e.target.value)}
-                                    />
-                                </div>
-                                <p className="text-xs text-gray-400">
-                                    Enter the number you will pay from. Our system automatically detects the payment.
-                                </p>
+                            <h3 className="text-lg font-bold text-gray-900 mb-4">Payment Details</h3>
 
-                                <Button
-                                    className="w-full h-12 rounded-xl bg-primary-600 font-bold shadow-primary-500/30 shadow-lg hover:shadow-xl transition-all"
-                                    onClick={handleConfirmPlan}
-                                    disabled={!paymentPhone || createOrderMutation.isPending}
-                                    isLoading={createOrderMutation.isPending}
-                                >
-                                    Proceed to Automated Payment
-                                </Button>
+                            <div className="mb-6">
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Select Region</label>
+                                <div className="flex bg-gray-100 p-1 rounded-xl">
+                                    <button
+                                        onClick={() => setPaymentRegion('kenya')}
+                                        className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${paymentRegion === 'kenya' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                    >
+                                        Kenya (M-Pesa)
+                                    </button>
+                                    <button
+                                        onClick={() => setPaymentRegion('somalia')}
+                                        className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${paymentRegion === 'somalia' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                    >
+                                        Somalia
+                                    </button>
+                                </div>
                             </div>
-                            {error && <p className="mt-4 text-sm text-red-500 text-center bg-red-50 p-2 rounded-lg">{error}</p>}
-                        </motion.div>
-                    )}
+
+                            {paymentRegion === 'kenya' ? (
+                                <div className="space-y-4">
+                                    <label className="block text-sm font-bold text-gray-700">M-Pesa Phone Number</label>
+                                    <div className="relative">
+                                        <Phone className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
+                                        <input
+                                            type="tel"
+                                            placeholder="e.g. 07xxxxxxxx"
+                                            className="w-full h-12 pl-12 pr-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 outline-none transition-all font-medium"
+                                            value={paymentPhone}
+                                            onChange={(e) => setPaymentPhone(e.target.value)}
+                                        />
+                                    </div>
+                                    <p className="text-xs text-gray-400">
+                                        Enter the number you will pay from. Our system automatically detects the payment via STK Push.
+                                    </p>
+
+                                    <Button
+                                        className="w-full h-12 rounded-xl bg-primary-600 font-bold shadow-primary-500/30 shadow-lg hover:shadow-xl transition-all"
+                                        onClick={handleConfirmPlan}
+                                        disabled={!paymentPhone || createOrderMutation.isPending}
+                                        isLoading={createOrderMutation.isPending}
+                                    >
+                                        Proceed to Automated Payment
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="bg-primary-50 border border-primary-100 rounded-2xl p-6 text-center shadow-inner">
+                                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                                        <Phone className="w-8 h-8 text-primary-500" />
+                                    </div>
+                                    <h4 className="font-bold text-primary-900 text-lg mb-2">Manual Payment Required</h4>
+                                    <p className="text-sm text-primary-700 mb-6 font-medium">
+                                        To promote your ad in Somalia, please call and send your payment to the number below:
+                                    </p>
+                                    <div className="bg-white py-4 px-6 rounded-2xl border-2 border-primary-200 shadow-sm inline-block">
+                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Call & Pay</p>
+                                        <p className="font-mono text-2xl font-black text-primary-600 tracking-wider">
+                                            +252 612958679
+                                        </p>
+                                    </div>
+                                    <p className="text-xs text-primary-600/80 mt-6 font-bold uppercase tracking-wider">
+                                        Your ad will be manually verified <br /> Make sure to mention Ad #{adId}
+                                    </p>
+                                </div>
+                            )}
+
+                            {error && paymentRegion === 'kenya' && <p className="mt-4 text-sm text-red-500 text-center bg-red-50 p-2 rounded-lg font-medium">{error}</p>}
+                        </motion.div>)}
                 </div>
             ) : step === 'payment' ? (
                 <div className="max-w-md mx-auto bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
