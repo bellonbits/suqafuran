@@ -21,6 +21,8 @@ export interface Listing {
         is_verified?: boolean;
     };
     attributes?: Record<string, any>;
+    views?: number;
+    leads?: number;
 }
 
 export interface ListingCreate {

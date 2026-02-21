@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { PublicLayout } from '../layouts/PublicLayout';
@@ -27,6 +27,14 @@ const SellerProfilePage: React.FC = () => {
         queryFn: () => listingService.getListings({ owner_id: Number(sellerId) }),
         enabled: !!sellerId,
     });
+
+    useEffect(() => {
+        if (sellerId) {
+            authService.trackProfileView(Number(sellerId)).catch(err => {
+                console.error('Failed to track profile view', err);
+            });
+        }
+    }, [sellerId]);
 
     if (isSellerLoading || isListingsLoading) {
         return (

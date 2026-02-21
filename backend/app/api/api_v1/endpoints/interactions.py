@@ -24,6 +24,14 @@ def create_interaction(
         type=str(payload.type.value).lower()
     )
     db.add(db_obj)
+    
+    # Increment leads on the listing
+    from app.models.listing import Listing
+    listing = db.get(Listing, payload.listing_id)
+    if listing:
+        listing.leads += 1
+        db.add(listing)
+        
     db.commit()
     db.refresh(db_obj)
     return db_obj

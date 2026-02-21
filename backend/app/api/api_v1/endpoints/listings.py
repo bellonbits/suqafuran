@@ -224,6 +224,13 @@ def read_listing(
     listing = crud_listing.get_listing(db=db, id=id)
     if not listing:
         raise HTTPException(status_code=404, detail="Listing not found")
+    
+    # Increment views
+    listing.views += 1
+    db.add(listing)
+    db.commit()
+    db.refresh(listing)
+    
     return listing
 
 

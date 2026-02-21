@@ -31,13 +31,14 @@ def get_user_stats(
     wallet = db.exec(select(Wallet).where(Wallet.user_id == current_user.id)).first()
     balance = wallet.balance if wallet else 0.0
     
-    # Mock profile views for now as we don't have a views tracker yet
-    profile_views = "1.2k"
+    # Get real views (listing views sum + profile views)
+    listing_views = db.exec(select(func.sum(Listing.views)).where(Listing.owner_id == current_user.id)).one() or 0
+    total_views = listing_views + current_user.profile_views
     
     return {
         "listings": listings_count,
         "messages": messages_count,
         "favorites": favorites_count,
-        "views": profile_views,
+        "views": f"{total_views:,}", # Format with commas
         "balance": balance
     }
