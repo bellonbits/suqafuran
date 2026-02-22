@@ -335,7 +335,7 @@ const PostAdPage: React.FC = () => {
                                                                     required={attr.required}
                                                                 >
                                                                     <option value="">Select {attr.label}</option>
-                                                                    {attr.options?.map(opt => (
+                                                                    {attr.options?.map((opt: string) => (
                                                                         <option key={opt} value={opt}>{opt}</option>
                                                                     ))}
                                                                 </select>

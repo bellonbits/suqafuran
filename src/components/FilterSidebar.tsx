@@ -3,8 +3,8 @@ import { MapPin, Tag, SlidersHorizontal, ListFilter, ChevronDown, ShieldCheck } 
 import { Input } from './Input';
 import { Button } from './Button';
 import { cn } from '../utils/cn';
-import { getAttributesForCategory } from '../utils/categoryAttributes';
-import { JIJI_CATEGORIES } from '../utils/jijiCategories';
+import { useQuery } from '@tanstack/react-query';
+import { listingService } from '../services/listingService';
 
 interface FilterSidebarProps {
     showFilters: boolean;
@@ -46,12 +46,12 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         });
     };
 
-    // Find category details if categoryId is present
-    const category = categoryId ? {
-        slug: categoryId,
-        id: categoryId,
-        name: JIJI_CATEGORIES.find(c => c.id === categoryId)?.label || categoryId
-    } : undefined;
+    const { data: categories } = useQuery({
+        queryKey: ['categories'],
+        queryFn: listingService.getCategories,
+    });
+
+    const category = categories?.find(c => String(c.id) === String(categoryId) || c.slug === categoryId);
 
     return (
         <aside className={cn(
@@ -122,9 +122,14 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                 {(() => {
                     if (!category) return null;
 
+                    // Get attributes from category schema
+                    const attributes = category.attributes_schema?.fields || [];
+
+                    if (attributes.length === 0) return null;
+
                     return (
                         <div className="space-y-4">
-                            {getAttributesForCategory(String(category.id)).map(attr => (
+                            {attributes.map((attr: any) => (
                                 <div key={attr.name} className="border-t border-gray-50 pt-4">
                                     <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2 text-sm">
                                         {attr.name === 'subcategory' ? (
@@ -145,7 +150,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                                                     ? attr.label.slice(0, -1) + 'ies'
                                                     : attr.label + 's'}
                                             </option>
-                                            {attr.options?.map(opt => (
+                                            {attr.options?.map((opt: string) => (
                                                 <option key={opt} value={opt}>{opt}</option>
                                             ))}
                                         </select>
