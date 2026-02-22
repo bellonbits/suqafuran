@@ -1,7 +1,7 @@
 from typing import List, Optional
 from sqlmodel import Session, select, func
 from sqlalchemy.orm import selectinload
-from app.models.listing import Listing, ListingBase, Category
+from app.models.listing import Listing, ListingBase, Category, SubCategory
 
 
 def get_listing(db: Session, id: int) -> Optional[Listing]:
