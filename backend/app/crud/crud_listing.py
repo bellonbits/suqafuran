@@ -79,7 +79,7 @@ def remove_listing(db: Session, *, id: int) -> Listing:
 
 
 def get_categories(db: Session) -> List[Category]:
-    return db.exec(select(Category)).all()
+    return db.exec(select(Category).options(selectinload(Category.subcategories))).all()
 
 
 def get_category_by_slug(db: Session, slug: str) -> Optional[Category]:
@@ -95,6 +95,44 @@ def create_category(db: Session, *, category_in: Category) -> Category:
 
 def remove_category(db: Session, *, id: int) -> Category:
     obj = db.get(Category, id)
+    db.delete(obj)
+    db.commit()
+    return obj
+
+
+def get_subcategories(db: Session, *, category_id: Optional[int] = None) -> List[SubCategory]:
+    from app.models.listing import SubCategory
+    statement = select(SubCategory)
+    if category_id:
+        statement = statement.where(SubCategory.category_id == category_id)
+    return db.exec(statement).all()
+
+
+def get_subcategory_by_slug(db: Session, slug: str) -> Optional[SubCategory]:
+    from app.models.listing import SubCategory
+    return db.exec(select(SubCategory).where(SubCategory.slug == slug)).first()
+
+
+def create_subcategory(db: Session, *, subcategory_in: any) -> any:
+    db.add(subcategory_in)
+    db.commit()
+    db.refresh(subcategory_in)
+    return subcategory_in
+
+
+def update_subcategory(db: Session, *, db_obj: any, subcategory_in: dict) -> any:
+    for field, value in subcategory_in.items():
+        if hasattr(db_obj, field):
+            setattr(db_obj, field, value)
+    db.add(db_obj)
+    db.commit()
+    db.refresh(db_obj)
+    return db_obj
+
+
+def remove_subcategory(db: Session, *, id: int) -> any:
+    from app.models.listing import SubCategory
+    obj = db.get(SubCategory, id)
     db.delete(obj)
     db.commit()
     return obj

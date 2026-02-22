@@ -100,9 +100,35 @@ def create_category(
         name=category_in["name"],
         slug=category_in["slug"],
         icon_name=category_in["icon_name"],
+        image_url=category_in.get("image_url"),
         attributes_schema=category_in.get("attributes_schema", {})
     )
     return crud_listing.create_category(db, category_in=cat)
+
+
+@router.patch("/categories/{id}", response_model=Any)
+def update_category(
+    *,
+    db: Session = Depends(deps.get_db),
+    id: int,
+    category_in: dict,
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Update a category (Admin only).
+    """
+    category = db.get(Category, id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    
+    for field, value in category_in.items():
+        if hasattr(category, field):
+            setattr(category, field, value)
+    
+    db.add(category)
+    db.commit()
+    db.refresh(category)
+    return category
 
 
 @router.delete("/categories/{id}", response_model=Any)
@@ -116,6 +142,63 @@ def delete_category(
     Delete a category (Admin only).
     """
     return crud_listing.remove_category(db, id=id)
+
+
+@router.post("/subcategories", response_model=Any)
+def create_subcategory(
+    *,
+    db: Session = Depends(deps.get_db),
+    subcategory_in: dict,
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Create a new subcategory (Admin only).
+    """
+    from app.models.listing import SubCategory
+    # Check if slug exists
+    if crud_listing.get_subcategory_by_slug(db, subcategory_in["slug"]):
+        raise HTTPException(status_code=400, detail="Subcategory slug already exists")
+    
+    subcat = SubCategory(
+        name=subcategory_in["name"],
+        slug=subcategory_in["slug"],
+        image_url=subcategory_in.get("image_url"),
+        category_id=subcategory_in["category_id"],
+        attributes_schema=subcategory_in.get("attributes_schema", {})
+    )
+    return crud_listing.create_subcategory(db, subcategory_in=subcat)
+
+
+@router.patch("/subcategories/{id}", response_model=Any)
+def update_subcategory(
+    *,
+    db: Session = Depends(deps.get_db),
+    id: int,
+    subcategory_in: dict,
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Update a subcategory (Admin only).
+    """
+    from app.models.listing import SubCategory
+    subcat = db.get(SubCategory, id)
+    if not subcat:
+        raise HTTPException(status_code=404, detail="Subcategory not found")
+    
+    return crud_listing.update_subcategory(db, db_obj=subcat, subcategory_in=subcategory_in)
+
+
+@router.delete("/subcategories/{id}", response_model=Any)
+def delete_subcategory(
+    *,
+    db: Session = Depends(deps.get_db),
+    id: int,
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Delete a subcategory (Admin only).
+    """
+    return crud_listing.remove_subcategory(db, id=id)
 
 
 @router.get("/categories/{slug}/attributes", response_model=dict)
