@@ -73,12 +73,7 @@ const LandingPage: React.FC = () => {
                         }}
                     />
 
-                    <div className="mt-8 flex flex-wrap justify-center gap-6 text-[11px] font-bold text-white/90 uppercase tracking-widest">
-                        <span className="opacity-60">Popular:</span>
-                        <button className="hover:text-white transition-colors border-b border-transparent hover:border-white pb-0.5">Toyota Corolla</button>
-                        <button className="hover:text-white transition-colors border-b border-transparent hover:border-white pb-0.5">Samsung S24</button>
-                        <button className="hover:text-white transition-colors border-b border-transparent hover:border-white pb-0.5">Apartments</button>
-                    </div>
+
                 </div>
             </section>
 
