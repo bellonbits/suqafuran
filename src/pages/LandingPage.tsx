@@ -258,6 +258,27 @@ const LandingPage: React.FC = () => {
                                 </div>
                             </div>
 
+                            {/* Mobile Categories (Scrollable) */}
+                            <div className="lg:hidden overflow-hidden -mx-4 px-4">
+                                <h3 className="font-bold text-gray-900 mb-4 text-sm">Top Categories</h3>
+                                <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
+                                    {displayCategories?.map((cat) => (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() => navigate(`/category/${cat.slug || cat.id}`)}
+                                            className="flex flex-col items-center gap-2 min-w-[80px] group"
+                                        >
+                                            <div className="w-14 h-14 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-500 group-active:bg-primary-600 group-active:text-white transition-all">
+                                                {(() => {
+                                                    const Icon = getCategoryIcon(cat.icon_name || cat.slug);
+                                                    return <Icon size={24} />;
+                                                })()}
+                                            </div>
+                                            <span className="text-[10px] font-bold text-gray-600 text-center line-clamp-1">{cat.name}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
 
                             {/* Trending Grid */}
                             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -299,29 +320,7 @@ const LandingPage: React.FC = () => {
                 </div>
             </section>
 
-            {/* Mobile Categories (Scrollable) */}
-            <section className="py-6 lg:hidden bg-white overflow-hidden">
-                <div className="container mx-auto px-4">
-                    <h3 className="font-bold text-gray-900 mb-4 text-sm px-1">Top Categories</h3>
-                    <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
-                        {displayCategories?.map((cat) => (
-                            <button
-                                key={cat.id}
-                                onClick={() => navigate(`/category/${cat.slug || cat.id}`)}
-                                className="flex flex-col items-center gap-2 min-w-[80px] group"
-                            >
-                                <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-500 group-active:bg-primary-600 group-active:text-white transition-all">
-                                    {(() => {
-                                        const Icon = getCategoryIcon(cat.icon_name || cat.slug);
-                                        return <Icon size={24} />;
-                                    })()}
-                                </div>
-                                <span className="text-[10px] font-bold text-gray-600 text-center line-clamp-1">{cat.name}</span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </section>
+
 
             {/* Call to Action */}
             <section className="py-20 bg-gray-900 text-white relative">
