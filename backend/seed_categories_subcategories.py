@@ -9,6 +9,7 @@ JIJI_CATEGORIES = [
         'label': 'Raashinka & Cuntada (Food & Groceries)',
         'icon': 'utensils',
         'image': 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=600',
+        'attributes': [],
         'subcategories': [
             { 'name': '1 Qudaarta (Vegetables)', 'image': 'https://images.unsplash.com/photo-1566385101042-1a0aa0c12e8c?auto=format&fit=crop&q=80&w=200' },
             { 'name': '2 Miraha (Fruits)', 'image': 'https://images.unsplash.com/photo-1619566636858-adf3ef46400c?auto=format&fit=crop&q=80&w=200' },
@@ -25,6 +26,11 @@ JIJI_CATEGORIES = [
         'label': 'Dharka & Kabaha (Clothing & Shoes)',
         'icon': 'fashion',
         'image': 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&q=80&w=600',
+        'attributes': [
+            { 'name': 'size', 'label': 'Size', 'type': 'text', 'placeholder': 'e.g. XL, 42, M' },
+            { 'name': 'brand', 'label': 'Brand', 'type': 'text', 'placeholder': 'e.g. Nike, Zara' },
+            { 'name': 'gender', 'label': 'Gender', 'type': 'select', 'options': ['Men', 'Women', 'Unisex', 'Kids'] }
+        ],
         'subcategories': [
             { 'name': '1 Dharka Ragga (Men’s Clothing)', 'image': 'https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?auto=format&fit=crop&q=80&w=200' },
             { 'name': '2 Dharka Dumarka (Women’s Clothing)', 'image': 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=200' },
@@ -38,9 +44,12 @@ JIJI_CATEGORIES = [
         'label': 'Alaabta Guriga (Household Items)',
         'icon': 'home-living',
         'image': 'https://images.unsplash.com/photo-1581850518616-bcb8077fa2aa?auto=format&fit=crop&q=80&w=600',
+        'attributes': [
+            { 'name': 'material', 'label': 'Material', 'type': 'text', 'placeholder': 'e.g. Wood, Plastic, Metal' }
+        ],
         'subcategories': [
             { 'name': '1 Qalabka Jikada (Kitchenware)', 'image': 'https://images.unsplash.com/photo-1584346133934-a3afd2a33c4c?auto=format&fit=crop&q=80&w=200' },
-            { 'name': '2 Gogosha (Bedding)', 'image': 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '2 Gogosha (Bedding)', 'image': 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&get=crop&q=80&w=200' },
             { 'name': '3 Alaabta Qurxinta (Home Décor)', 'image': 'https://images.unsplash.com/photo-1513519247388-4e282660bf6b?auto=format&fit=crop&q=80&w=200' },
             { 'name': '4 Qalabka Nadaafadda (Cleaning Supplies)', 'image': 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=200' },
             { 'name': '5 Qalabka Korontada (Appliances)', 'image': 'https://images.unsplash.com/photo-1583944246415-3200b343809e?auto=format&fit=crop&q=80&w=200' }
@@ -51,6 +60,10 @@ JIJI_CATEGORIES = [
         'label': 'Korontada & Elektaroonigga (Electronics)',
         'icon': 'laptop',
         'image': 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&q=80&w=600',
+        'attributes': [
+            { 'name': 'brand', 'label': 'Brand', 'type': 'text', 'placeholder': 'e.g. Samsung, Apple, Sony' },
+            { 'name': 'model', 'label': 'Model', 'type': 'text' }
+        ],
         'subcategories': [
             { 'name': '1 Mobaylada (Mobile Phones)', 'image': 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&q=80&w=200' },
             { 'name': '2 Kombiyuutarada (Computers)', 'image': 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&q=80&w=200' },
@@ -64,6 +77,12 @@ JIJI_CATEGORIES = [
         'label': 'Gaadiidka (Vehicles)',
         'icon': 'car',
         'image': 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=600',
+        'attributes': [
+            { 'name': 'brand', 'label': 'Brand', 'type': 'select', 'options': ['Toyota', 'Mazda', 'Nissan', 'Honda', 'Mercedes-Benz', 'BMW', 'Volkswagen', 'Subaru', 'Mitsubishi', 'Audi'] },
+            { 'name': 'year', 'label': 'Year', 'type': 'number', 'placeholder': 'e.g. 2020' },
+            { 'name': 'mileage', 'label': 'Mileage (km)', 'type': 'number' },
+            { 'name': 'transmission', 'label': 'Transmission', 'type': 'select', 'options': ['Automatic', 'Manual'] }
+        ],
         'subcategories': [
             { 'name': '1 Baabuurta (Cars)', 'image': 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&q=80&w=200' },
             { 'name': '2 Mootooyinka (Motorcycles)', 'image': 'https://images.unsplash.com/photo-1558981403-c5f91cb9c2f1?auto=format&fit=crop&q=80&w=200' },
@@ -76,6 +95,10 @@ JIJI_CATEGORIES = [
         'label': 'Xoolaha Nool (Livestock)',
         'icon': 'animals',
         'image': 'https://images.unsplash.com/photo-1484557985045-edf25e08da73?auto=format&fit=crop&q=80&w=600',
+        'attributes': [
+            { 'name': 'breed', 'label': 'Breed', 'type': 'text' },
+            { 'name': 'age', 'label': 'Age', 'type': 'text' }
+        ],
         'subcategories': [
             { 'name': '1 Riyaha (Goats)', 'image': 'https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&q=80&w=200' },
             { 'name': '2 Idaha (Sheep)', 'image': 'https://images.unsplash.com/photo-1484557985045-edf25e08da73?auto=format&fit=crop&q=80&w=200' },
@@ -89,10 +112,76 @@ JIJI_CATEGORIES = [
         'label': 'Dhul & Beeraha (Land & Farms)',
         'icon': 'agriculture',
         'image': 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=600',
+        'attributes': [
+            { 'name': 'size', 'label': 'Size (sqm)', 'type': 'number' }
+        ],
         'subcategories': [
             { 'name': '1 Dhul Banaan (Vacant Land)', 'image': 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=200' },
             { 'name': '2 Beeraha (Farms)', 'image': 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&q=80&w=200' },
             { 'name': '3 Dhul Beereed (Agricultural Land)', 'image': 'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&q=80&w=200' }
+        ]
+    },
+    {
+        'id': 'services',
+        'label': 'Adeegyo (Services)',
+        'icon': 'briefcase',
+        'image': 'https://images.unsplash.com/photo-1454165833767-027ffea9e77b?auto=format&fit=crop&q=80&w=600',
+        'attributes': [],
+        'subcategories': [
+            { 'name': '1 Adeegyada Gadiidka (Transport Services)', 'image': 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '2 Adeegyada Guriga (Cleaning & Domestic)', 'image': 'https://images.unsplash.com/photo-1581578731548-c64695cc6954?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '3 Adeegyada Teknoolajiyada (IT & Computer)', 'image': 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '4 Barashada & Tababarka (Tutors & Training)', 'image': 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '5 Qurxinta & Dharka (Beauty & Fashion Services)', 'image': 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=200' }
+        ]
+    },
+    {
+        'id': 'health-beauty',
+        'label': 'Caafimaadka & Quruxda (Health & Beauty)',
+        'icon': 'heart',
+        'image': 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=600',
+        'attributes': [
+            { 'name': 'brand', 'label': 'Brand', 'type': 'text' }
+        ],
+        'subcategories': [
+            { 'name': '1 Qurxinta Wajiga (Makeup)', 'image': 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '2 Udgoonka (Perfumes)', 'image': 'https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '3 Daryeelka Maqaarka (Skin Care)', 'image': 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '4 Vitamiinnada & Kabayaasha (Vitamins & Supplements)', 'image': 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&q=80&w=200' }
+        ]
+    },
+    {
+        'id': 'property',
+        'label': 'Guryaha & Dhulka (Property)',
+        'icon': 'home',
+        'image': 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=600',
+        'attributes': [
+            { 'name': 'bedrooms', 'label': 'Bedrooms', 'type': 'number' },
+            { 'name': 'bathrooms', 'label': 'Bathrooms', 'type': 'number' },
+            { 'name': 'furnished', 'label': 'Furnished', 'type': 'select', 'options': ['Yes', 'No'] }
+        ],
+        'subcategories': [
+            { 'name': '1 Guryo Ijaar ah (Houses for Rent)', 'image': 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '2 Guryo Iib ah (Houses for Sale)', 'image': 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '3 Xafiisyo & Ganacsi (Offices & Commercial)', 'image': 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '4 Dhul & Beeraha (Land & Plots)', 'image': 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=200' }
+        ]
+    },
+    {
+        'id': 'jobs',
+        'label': 'Shaqooyin (Jobs)',
+        'icon': 'graduation-cap',
+        'image': 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&q=80&w=600',
+        'attributes': [
+            { 'name': 'job_type', 'label': 'Job Type', 'type': 'select', 'options': ['Full-time', 'Part-time', 'Contract', 'Temporary'] },
+            { 'name': 'salary', 'label': 'Salary Range', 'type': 'text' }
+        ],
+        'subcategories': [
+            { 'name': '1 Maamulka & Xafiiska (Admin & Office)', 'image': 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '2 Iibka & Market-ka (Sales & Marketing)', 'image': 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '3 Waxbarashada (Teaching)', 'image': 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '4 Caafimaadka (Healthcare)', 'image': 'https://images.unsplash.com/photo-1505751172107-597d5a4d73b9?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '5 Darawal & Gadiid (Driver & Transport)', 'image': 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&q=80&w=200' }
         ]
     }
 ]
@@ -109,20 +198,23 @@ def seed_categories():
             cur.execute("SELECT id FROM category WHERE slug = %s", (cat_data['id'],))
             row = cur.fetchone()
             
+            # Attributes schema
+            attr_schema = {"fields": cat_data.get('attributes', [])}
+            
             if not row:
                 cur.execute("""
                     INSERT INTO category (name, slug, icon_name, image_url, attributes_schema)
                     VALUES (%s, %s, %s, %s, %s)
                     RETURNING id
-                """, (cat_data['label'], cat_data['id'], cat_data['icon'], cat_data['image'], json.dumps({})))
+                """, (cat_data['label'], cat_data['id'], cat_data['icon'], cat_data['image'], json.dumps(attr_schema)))
                 cat_id = cur.fetchone()[0]
             else:
                 cat_id = row[0]
                 cur.execute("""
                     UPDATE category 
-                    SET image_url = %s, icon_name = %s
+                    SET image_url = %s, icon_name = %s, attributes_schema = %s
                     WHERE id = %s
-                """, (cat_data['image'], cat_data['icon'], cat_id))
+                """, (cat_data['image'], cat_data['icon'], json.dumps(attr_schema), cat_id))
             
             # Subcategories
             cur.execute("DELETE FROM subcategory WHERE category_id = %s", (cat_id,))

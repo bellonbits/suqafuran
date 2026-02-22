@@ -18,7 +18,6 @@ import { LocationPickerModal } from '../components/LocationPickerModal';
 import { MapPin } from 'lucide-react';
 
 const steps = ['Basic Info', 'Category & Details', 'Pricing', 'Photos'];
-
 interface EditAdValues {
     title: string;
     description: string;
@@ -28,6 +27,7 @@ interface EditAdValues {
     location: string;
     condition: string;
     images: string[];
+    attributes: Record<string, any>;
 }
 
 const EditAdPage: React.FC = () => {
@@ -74,6 +74,7 @@ const EditAdPage: React.FC = () => {
         location: listing.location,
         condition: listing.condition,
         images: listing.images || [],
+        attributes: listing.attributes || {},
     };
 
     const validationSchema = [
@@ -163,6 +164,7 @@ const EditAdPage: React.FC = () => {
                                 category_id: values.category!,
                                 subcategory_id: values.subcategory,
                                 images: values.images,
+                                attributes: values.attributes,
                                 condition: values.condition,
                                 status: listing.status
                             });
@@ -314,6 +316,52 @@ const EditAdPage: React.FC = () => {
                                             <p className="text-xs text-red-500 font-medium">{errors.description as string}</p>
                                         )}
                                     </div>
+
+                                    {/* Dynamic Attributes (From API Schema) */}
+                                    {(() => {
+                                        const selectedCat = categories?.find(c => c.id === values.category);
+                                        const selectedSub = selectedCat?.subcategories?.find(s => s.id === values.subcategory);
+
+                                        // Merge attributes from both category and subcategory if they exist
+                                        const catAttrs = selectedCat?.attributes_schema?.fields || [];
+                                        const subAttrs = selectedSub?.attributes_schema?.fields || [];
+                                        const attributes = [...catAttrs, ...subAttrs];
+
+                                        if (attributes.length === 0) return null;
+
+                                        return (
+                                            <div className="pt-6 border-t border-gray-100 space-y-6">
+                                                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Specific Details</h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    {attributes.map(attr => (
+                                                        <div key={attr.name}>
+                                                            <label className="text-sm font-medium text-gray-700 mb-2 block">{attr.label} {attr.required && '*'}</label>
+                                                            {attr.type === 'select' ? (
+                                                                <select
+                                                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none transition-all bg-white"
+                                                                    value={values.attributes[attr.name] || ''}
+                                                                    onChange={(e) => setFieldValue(`attributes.${attr.name}`, e.target.value)}
+                                                                >
+                                                                    <option value="">Select {attr.label}</option>
+                                                                    {attr.options?.map(opt => (
+                                                                        <option key={opt} value={opt}>{opt}</option>
+                                                                    ))}
+                                                                </select>
+                                                            ) : (
+                                                                <input
+                                                                    type={attr.type}
+                                                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+                                                                    placeholder={attr.placeholder}
+                                                                    value={values.attributes[attr.name] || ''}
+                                                                    onChange={(e) => setFieldValue(`attributes.${attr.name}`, attr.type === 'number' ? Number(e.target.value) : e.target.value)}
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             )}
 
