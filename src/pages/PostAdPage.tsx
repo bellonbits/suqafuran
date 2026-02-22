@@ -13,7 +13,6 @@ import {
 import { cn } from '../utils/cn';
 import { getImageUrl } from '../utils/imageUtils';
 import { getCategoryIcon } from '../utils/categoryIcons';
-import { getAttributesForCategory } from '../utils/categoryAttributes';
 import { LocationPickerModal } from '../components/LocationPickerModal';
 
 const steps = ['Basic Info', 'Category & Details', 'Pricing', 'Photos'];
@@ -309,10 +308,15 @@ const PostAdPage: React.FC = () => {
                                         )}
                                     </div>
 
-                                    {/* Dynamic Attributes (Root Category fallback for now) */}
+                                    {/* Dynamic Attributes (From API Schema) */}
                                     {(() => {
                                         const selectedCat = categories?.find(c => c.id === values.category);
-                                        const attributes = selectedCat ? getAttributesForCategory(selectedCat.slug) : [];
+                                        const selectedSub = selectedCat?.subcategories?.find(s => s.id === values.subcategory);
+
+                                        // Merge attributes from both category and subcategory if they exist
+                                        const catAttrs = selectedCat?.attributes_schema?.fields || [];
+                                        const subAttrs = selectedSub?.attributes_schema?.fields || [];
+                                        const attributes = [...catAttrs, ...subAttrs];
 
                                         if (attributes.length === 0) return null;
 
