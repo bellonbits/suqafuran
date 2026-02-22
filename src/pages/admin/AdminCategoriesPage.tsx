@@ -8,9 +8,7 @@ import {
     ChevronDown, ChevronRight, Image as ImageIcon, Upload, X, Check
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
-import { cn } from '../../utils/cn';
 import { getImageUrl } from '../../utils/imageUtils';
-import type { Category, SubCategory } from '../../types/listing';
 
 const AdminCategoriesPage: React.FC = () => {
     const queryClient = useQueryClient();
