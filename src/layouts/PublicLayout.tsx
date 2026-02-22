@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, PlusCircle, Heart, Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
+import { Search, PlusCircle, Heart, Facebook, Twitter, Instagram, Youtube, User } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Logo } from '../components/Logo';
 import { getAvatarUrl } from '../utils/imageUtils';
@@ -42,24 +42,44 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                         </Button>
 
                         {!isAuthenticated ? (
-                            <Link to="/login" className="hidden sm:block">
-                                <Button variant="ghost" size="sm" className="text-gray-700 hover:bg-gray-50 font-semibold">Sign In</Button>
-                            </Link>
+                            <>
+                                <Link to="/login" className="hidden sm:block">
+                                    <Button variant="ghost" size="sm" className="text-gray-700 hover:bg-gray-50 font-semibold">Sign In</Button>
+                                </Link>
+                                <Link to="/login" className="sm:hidden text-gray-600 hover:text-primary-600 transition-colors p-2">
+                                    <User className="h-6 w-6" />
+                                </Link>
+                            </>
                         ) : (
-                            <Link to="/dashboard" className="hidden sm:flex items-center gap-2 group">
-                                <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 font-bold border border-primary-100 group-hover:bg-primary-100 transition-colors overflow-hidden">
-                                    {getAvatarUrl(user?.avatar_url) ? (
-                                        <img
-                                            src={getAvatarUrl(user?.avatar_url)!}
-                                            alt={user?.full_name || 'User'}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        user?.full_name?.[0] || 'U'
-                                    )}
-                                </div>
-                                <span className="text-sm font-semibold text-gray-700 group-hover:text-primary-600 transition-colors">My Account</span>
-                            </Link>
+                            <>
+                                <Link to="/dashboard" className="hidden sm:flex items-center gap-2 group">
+                                    <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 font-bold border border-primary-100 group-hover:bg-primary-100 transition-colors overflow-hidden">
+                                        {getAvatarUrl(user?.avatar_url) ? (
+                                            <img
+                                                src={getAvatarUrl(user?.avatar_url)!}
+                                                alt={user?.full_name || 'User'}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            user?.full_name?.[0] || 'U'
+                                        )}
+                                    </div>
+                                    <span className="text-sm font-semibold text-gray-700 group-hover:text-primary-600 transition-colors">My Account</span>
+                                </Link>
+                                <Link to="/dashboard" className="sm:hidden flex items-center p-2">
+                                    <div className="w-7 h-7 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 font-bold border border-primary-100 overflow-hidden">
+                                        {getAvatarUrl(user?.avatar_url) ? (
+                                            <img
+                                                src={getAvatarUrl(user?.avatar_url)!}
+                                                alt={user?.full_name || 'User'}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <span className="text-[10px]">{user?.full_name?.[0] || 'U'}</span>
+                                        )}
+                                    </div>
+                                </Link>
+                            </>
                         )}
 
                         <Link to="/favorites" className="text-gray-600 hover:text-primary-600 transition-colors p-2">
