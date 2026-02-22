@@ -43,12 +43,31 @@ export const adminService = {
         return response.data;
     },
 
-    async createCategory(data: { name: string; slug: string; icon_name: string }): Promise<any> {
+    async createCategory(data: { name: string; slug: string; icon_name: string; image_url?: string }): Promise<any> {
         const response = await api.post('/listings/categories', data);
+        return response.data;
+    },
+
+    async updateCategory(id: number, data: Partial<{ name: string; slug: string; icon_name: string; image_url?: string }>): Promise<any> {
+        const response = await api.patch(`/listings/categories/${id}`, data);
         return response.data;
     },
 
     async deleteCategory(id: number): Promise<void> {
         await api.delete(`/listings/categories/${id}`);
+    },
+
+    async createSubCategory(data: { name: string; slug: string; category_id: number; image_url?: string }): Promise<any> {
+        const response = await api.post('/listings/subcategories', data);
+        return response.data;
+    },
+
+    async updateSubCategory(id: number, data: Partial<{ name: string; slug: string; image_url?: string }>): Promise<any> {
+        const response = await api.patch(`/listings/subcategories/${id}`, data);
+        return response.data;
+    },
+
+    async deleteSubCategory(id: number): Promise<void> {
+        await api.delete(`/listings/subcategories/${id}`);
     }
 };

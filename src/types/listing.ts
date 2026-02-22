@@ -9,6 +9,7 @@ export interface Listing {
     location: string;
     condition: string;
     category_id: number;
+    subcategory_id?: number;
     owner_id: number;
     status: string;
     images: string[];
@@ -33,6 +34,7 @@ export interface ListingCreate {
     location: string;
     condition: string;
     category_id: number;
+    subcategory_id?: number;
     images: string[];
     status?: string;
     attributes?: Record<string, any>;
@@ -43,6 +45,17 @@ export interface Category {
     name: string;
     slug: string;
     icon_name: string;
+    image_url?: string;
     icon?: string;
+    attributes_schema?: any;
+    subcategories?: SubCategory[];
+}
+
+export interface SubCategory {
+    id: number;
+    name: string;
+    slug: string;
+    image_url?: string;
+    category_id: number;
     attributes_schema?: any;
 }

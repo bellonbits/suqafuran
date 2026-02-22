@@ -17,6 +17,7 @@ class ListingBase(SQLModel):
     location: str
     condition: str  # New, Used, Refurbished
     category_id: int = Field(foreign_key="category.id")
+    subcategory_id: Optional[int] = Field(default=None, foreign_key="subcategory.id")
     status: str = Field(default="pending")  # pending, active, closed, reported
     boost_level: int = Field(default=0)  # 0: none, 1: basic, 2: vip, 3: diamond
     boost_expires_at: Optional[datetime] = None

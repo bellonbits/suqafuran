@@ -1,7 +1,6 @@
 import json
-from sqlalchemy import create_engine, text
+import psycopg2
 
-# Hardcoded connection string
 DB_URL = "postgresql://avnadmin:AVNS_VhxnhYRqZ0hN_5ezNt-@pg-27a6ed6a-lymwa519-0171.k.aivencloud.com:23236/defaultdb"
 
 JIJI_CATEGORIES = [
@@ -14,7 +13,7 @@ JIJI_CATEGORIES = [
             { 'name': '1 Qudaarta (Vegetables)', 'image': 'https://images.unsplash.com/photo-1566385101042-1a0aa0c12e8c?auto=format&fit=crop&q=80&w=200' },
             { 'name': '2 Miraha (Fruits)', 'image': 'https://images.unsplash.com/photo-1619566636858-adf3ef46400c?auto=format&fit=crop&q=80&w=200' },
             { 'name': '3 Bariiska & Baastada (Rice & Pasta)', 'image': 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&q=80&w=200' },
-            { 'name': '4 Hilibka (Meat)', 'image': 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '4 Hilibka (Meat)', 'image': 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&get=crop&q=80&w=200' },
             { 'name': '5 Kalluun & Cunto Badeed (Seafood)', 'image': 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&q=80&w=200' },
             { 'name': '6 Caanaha & Caanaha La\'eg (Milk & Dairy)', 'image': 'https://images.unsplash.com/photo-1550583724-1255818c0533?auto=format&fit=crop&q=80&w=200' },
             { 'name': '7 Ukunta (Eggs)', 'image': 'https://images.unsplash.com/photo-1582722472900-2fc70bafe824?auto=format&fit=crop&q=80&w=200' },
@@ -99,59 +98,50 @@ JIJI_CATEGORIES = [
 ]
 
 def seed_categories():
-    engine = create_engine(DB_URL)
-    with engine.connect() as conn:
+    conn = psycopg2.connect(DB_URL)
+    cur = conn.cursor()
+    
+    try:
         for cat_data in JIJI_CATEGORIES:
             print(f"Processing category: {cat_data['label']}")
-            # Update existing category with image_url
-            conn.execute(text("""
-                UPDATE category 
-                SET image_url = :image_url, icon_name = :icon_name
-                WHERE slug = :slug
-            """), {
-                "image_url": cat_data['image'],
-                "icon_name": cat_data['icon'],
-                "slug": cat_data['id']
-            })
             
-            # Get category ID
-            result = conn.execute(text("SELECT id FROM category WHERE slug = :slug"), {"slug": cat_data['id']}).fetchone()
-            if not result:
-                # Create if missing (though unlikely in current state)
-                res = conn.execute(text("""
+            # Check if exists
+            cur.execute("SELECT id FROM category WHERE slug = %s", (cat_data['id'],))
+            row = cur.fetchone()
+            
+            if not row:
+                cur.execute("""
                     INSERT INTO category (name, slug, icon_name, image_url, attributes_schema)
-                    VALUES (:name, :slug, :icon_name, :image_url, :attributes_schema)
+                    VALUES (%s, %s, %s, %s, %s)
                     RETURNING id
-                """), {
-                    "name": cat_data['label'],
-                    "slug": cat_data['id'],
-                    "icon_name": cat_data['icon'],
-                    "image_url": cat_data['image'],
-                    "attributes_schema": json.dumps({})
-                })
-                cat_id = res.fetchone()[0]
+                """, (cat_data['label'], cat_data['id'], cat_data['icon'], cat_data['image'], json.dumps({})))
+                cat_id = cur.fetchone()[0]
             else:
-                cat_id = result[0]
-
-            # Clear existing subcategories for this category to avoid duplicates during re-runs
-            conn.execute(text("DELETE FROM subcategory WHERE category_id = :cat_id"), {"cat_id": cat_id})
-
-            # Add subcategories
-            for sub in cat_data['subcategories']:
-                sub_slug = sub['name'].lower().replace(" ", "-").replace("(", "").replace(")", "").replace("’", "")
-                conn.execute(text("""
+                cat_id = row[0]
+                cur.execute("""
+                    UPDATE category 
+                    SET image_url = %s, icon_name = %s
+                    WHERE id = %s
+                """, (cat_data['image'], cat_data['icon'], cat_id))
+            
+            # Subcategories
+            cur.execute("DELETE FROM subcategory WHERE category_id = %s", (cat_id,))
+            
+            for sub_data in cat_data['subcategories']:
+                sub_slug = sub_data['name'].lower().replace(" ", "-").replace("(", "").replace(")", "").replace("’", "")
+                cur.execute("""
                     INSERT INTO subcategory (name, slug, image_url, category_id, attributes_schema)
-                    VALUES (:name, :slug, :image_url, :cat_id, :attributes_schema)
-                """), {
-                    "name": sub['name'],
-                    "slug": sub_slug,
-                    "image_url": sub['image'],
-                    "cat_id": cat_id,
-                    "attributes_schema": json.dumps({})
-                })
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (sub_data['name'], sub_slug, sub_data['image'], cat_id, json.dumps({})))
         
         conn.commit()
-    print("Seeding completed successfully.")
+        print("Seeding completed successfully.")
+    except Exception as e:
+        print(f"Seeding failed: {e}")
+        conn.rollback()
+    finally:
+        cur.close()
+        conn.close()
 
 if __name__ == "__main__":
     seed_categories()

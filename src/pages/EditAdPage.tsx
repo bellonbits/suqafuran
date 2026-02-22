@@ -14,11 +14,21 @@ import {
 import { cn } from '../utils/cn';
 import { getImageUrl } from '../utils/imageUtils';
 import { getCategoryIcon } from '../utils/categoryIcons';
-import { JIJI_CATEGORIES } from '../utils/jijiCategories';
 import { LocationPickerModal } from '../components/LocationPickerModal';
 import { MapPin } from 'lucide-react';
 
 const steps = ['Basic Info', 'Category & Details', 'Pricing', 'Photos'];
+
+interface EditAdValues {
+    title: string;
+    description: string;
+    category?: number;
+    subcategory?: number;
+    price: string;
+    location: string;
+    condition: string;
+    images: string[];
+}
 
 const EditAdPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -55,10 +65,11 @@ const EditAdPage: React.FC = () => {
 
     if (!listing) return null;
 
-    const initialValues = {
+    const initialValues: EditAdValues = {
         title: listing.title,
         description: listing.description,
         category: listing.category_id,
+        subcategory: listing.subcategory_id,
         price: listing.price.toString(),
         location: listing.location,
         condition: listing.condition,
@@ -136,7 +147,7 @@ const EditAdPage: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <Formik
+                <Formik<EditAdValues>
                     initialValues={initialValues}
                     validationSchema={validationSchema[currentStep]}
                     onSubmit={async (values, { setSubmitting }) => {
@@ -150,6 +161,7 @@ const EditAdPage: React.FC = () => {
                                 price: Number(values.price),
                                 location: values.location,
                                 category_id: values.category!,
+                                subcategory_id: values.subcategory,
                                 images: values.images,
                                 condition: values.condition,
                                 status: listing.status
@@ -203,47 +215,94 @@ const EditAdPage: React.FC = () => {
                             )}
 
                             {currentStep === 1 && (
-                                <div className="space-y-6">
-                                    <h3 className="text-xl font-bold">Category & Details</h3>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                        {catsLoading ? (
-                                            <div className="col-span-full flex justify-center py-12">
-                                                <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-                                            </div>
-                                        ) : (
-                                            categories?.map(cat => {
-                                                const Icon = getCategoryIcon(cat.icon_name || cat.icon);
-                                                const categoryData = JIJI_CATEGORIES.find(c => c.id === cat.slug);
-                                                const categoryImage = categoryData?.image;
-
-                                                return (
-                                                    <button
-                                                        key={cat.id}
-                                                        type="button"
-                                                        onClick={() => setFieldValue('category', cat.id)}
-                                                        className={cn(
-                                                            "flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all group",
-                                                            values.category === cat.id
-                                                                ? "border-primary-600 bg-primary-50 text-primary-700 shadow-md ring-4 ring-primary-100/50"
-                                                                : "border-gray-50 bg-white hover:bg-primary-50/30 hover:border-primary-200 text-gray-600"
-                                                        )}
-                                                    >
-                                                        <div className={cn(
-                                                            "w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center transition-all",
-                                                            values.category === cat.id ? "bg-primary-600 text-white ring-2 ring-primary-500 ring-offset-2" : "bg-gray-50 text-gray-400 group-hover:bg-white group-hover:text-primary-600"
-                                                        )}>
-                                                            {categoryImage ? (
-                                                                <img src={categoryImage} alt={cat.name} className="w-full h-full object-cover" />
-                                                            ) : (
-                                                                <Icon className="h-6 w-6" />
+                                <div className="space-y-8">
+                                    <div className="space-y-4">
+                                        <h3 className="text-xl font-bold">Select Category</h3>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                            {catsLoading ? (
+                                                <div className="col-span-full flex justify-center py-12">
+                                                    <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+                                                </div>
+                                            ) : (
+                                                categories?.map(cat => {
+                                                    const Icon = getCategoryIcon(cat.icon_name || cat.slug);
+                                                    return (
+                                                        <button
+                                                            key={cat.id}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFieldValue('category', cat.id);
+                                                                setFieldValue('subcategory', undefined);
+                                                            }}
+                                                            className={cn(
+                                                                "flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all group",
+                                                                values.category === cat.id
+                                                                    ? "border-primary-600 bg-primary-50 text-primary-700 shadow-md ring-4 ring-primary-100/50"
+                                                                    : "border-gray-50 bg-white hover:bg-primary-50/30 hover:border-primary-200 text-gray-600"
                                                             )}
-                                                        </div>
-                                                        <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-center">{cat.name}</span>
-                                                    </button>
-                                                );
-                                            })
-                                        )}
+                                                        >
+                                                            <div className={cn(
+                                                                "w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center transition-all",
+                                                                values.category === cat.id ? "bg-primary-600 text-white shadow-lg" : "bg-gray-50 text-gray-400 group-hover:bg-white group-hover:text-primary-600"
+                                                            )}>
+                                                                {cat.image_url ? (
+                                                                    <img src={getImageUrl(cat.image_url)} alt="" className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <Icon className="h-6 w-6" />
+                                                                )}
+                                                            </div>
+                                                            <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-center">{cat.name}</span>
+                                                        </button>
+                                                    );
+                                                })
+                                            )}
+                                        </div>
                                     </div>
+
+                                    {/* Subcategory Selection */}
+                                    {(() => {
+                                        const selectedCat = categories?.find(c => c.id === values.category);
+                                        if (!selectedCat || !selectedCat.subcategories || selectedCat.subcategories.length === 0) return null;
+
+                                        return (
+                                            <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
+                                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Select Subcategory</h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                    {selectedCat.subcategories.map(sub => (
+                                                        <button
+                                                            key={sub.id}
+                                                            type="button"
+                                                            onClick={() => setFieldValue('subcategory', sub.id)}
+                                                            className={cn(
+                                                                "flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left",
+                                                                values.subcategory === sub.id
+                                                                    ? "border-secondary-500 bg-secondary-50 text-secondary-900 shadow-sm"
+                                                                    : "border-gray-100 bg-white hover:border-secondary-200 text-gray-700"
+                                                            )}
+                                                        >
+                                                            <div className="w-10 h-10 rounded-lg bg-gray-50 shrink-0 overflow-hidden">
+                                                                {sub.image_url ? (
+                                                                    <img src={getImageUrl(sub.image_url)} alt="" className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <div className="w-full h-full flex items-center justify-center text-gray-200">
+                                                                        <ImageIcon size={16} />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <span className="text-sm font-semibold truncate">
+                                                                {sub.name.replace(/^\d+\s/, '')}
+                                                            </span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {touched.category && errors.category && (
+                                        <p className="text-xs text-red-500 font-medium">{errors.category as string}</p>
+                                    )}
+
                                     <div className="space-y-2 mt-4">
                                         <label className="text-sm font-medium text-gray-700">Detailed Description</label>
                                         <textarea
@@ -252,7 +311,7 @@ const EditAdPage: React.FC = () => {
                                             onChange={(e) => setFieldValue('description', e.target.value)}
                                         ></textarea>
                                         {touched.description && errors.description && (
-                                            <p className="text-xs text-red-500 font-medium">{errors.description}</p>
+                                            <p className="text-xs text-red-500 font-medium">{errors.description as string}</p>
                                         )}
                                     </div>
                                 </div>

@@ -9,7 +9,6 @@ import { Search, MapPin, TrendingUp, ShieldCheck, Loader2, ChevronRight, Shoppin
 import { Button } from '../components/Button';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { LocationPickerModal } from '../components/LocationPickerModal';
-import { JIJI_CATEGORIES } from '../utils/jijiCategories';
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
@@ -91,29 +90,28 @@ const LandingPage: React.FC = () => {
                                     </h3>
                                 </div>
                                 <div className="divide-y divide-gray-50 max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar relative">
-                                    {JIJI_CATEGORIES.map((cat) => (
+                                    {displayCategories.map((cat) => (
                                         <div
                                             key={cat.id}
-                                            onMouseEnter={() => setHoveredCategory(cat.id)}
+                                            onMouseEnter={() => setHoveredCategory(cat.slug || String(cat.id))}
                                             className="group"
                                         >
                                             <button
-                                                onClick={() => navigate(`/category/${cat.id}`)}
-                                                className={`w-full flex items-center justify-between p-3.5 transition-colors text-left ${hoveredCategory === cat.id ? 'bg-primary-50 text-primary-900' : 'hover:bg-gray-50'}`}
+                                                onClick={() => navigate(`/category/${cat.slug || cat.id}`)}
+                                                className={`w-full flex items-center justify-between p-3.5 transition-colors text-left ${hoveredCategory === (cat.slug || String(cat.id)) ? 'bg-primary-50 text-primary-900' : 'hover:bg-gray-50'}`}
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${hoveredCategory === cat.id ? 'bg-primary-500 text-white' : 'bg-gray-50 text-gray-500 group-hover:bg-primary-100 group-hover:text-primary-600'}`}>
+                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${hoveredCategory === (cat.slug || String(cat.id)) ? 'bg-primary-500 text-white' : 'bg-gray-50 text-gray-500 group-hover:bg-primary-100 group-hover:text-primary-600'}`}>
                                                         {(() => {
-                                                            const Icon = getCategoryIcon(cat.icon);
+                                                            const Icon = getCategoryIcon(cat.icon_name || cat.slug);
                                                             return <Icon size={18} />;
                                                         })()}
                                                     </div>
                                                     <div>
-                                                        <p className={`text-sm font-semibold ${hoveredCategory === cat.id ? 'text-primary-900' : 'text-gray-700'}`}>{cat.label}</p>
-                                                        {/* <p className="text-[10px] text-gray-400">{cat.count.toLocaleString()} ads</p> */}
+                                                        <p className={`text-sm font-semibold ${hoveredCategory === (cat.slug || String(cat.id)) ? 'text-primary-900' : 'text-gray-700'}`}>{cat.name}</p>
                                                     </div>
                                                 </div>
-                                                <ChevronRight className={`w-4 h-4 transition-all ${hoveredCategory === cat.id ? 'text-primary-500' : 'text-gray-300'}`} />
+                                                <ChevronRight className={`w-4 h-4 transition-all ${hoveredCategory === (cat.slug || String(cat.id)) ? 'text-primary-500' : 'text-gray-300'}`} />
                                             </button>
                                         </div>
                                     ))}
@@ -132,7 +130,7 @@ const LandingPage: React.FC = () => {
                                             onMouseLeave={() => setHoveredCategory(null)}
                                         >
                                             {(() => {
-                                                const activeCat = JIJI_CATEGORIES.find(c => c.id === hoveredCategory);
+                                                const activeCat = displayCategories.find(c => (c.slug || String(c.id)) === hoveredCategory);
                                                 if (!activeCat) return null;
 
                                                 return (
@@ -142,12 +140,12 @@ const LandingPage: React.FC = () => {
                                                             <div className="flex items-center gap-4 mb-8 pb-4 border-b border-gray-100">
                                                                 <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center text-primary-600 shadow-inner">
                                                                     {(() => {
-                                                                        const Icon = getCategoryIcon(activeCat.icon);
+                                                                        const Icon = getCategoryIcon(activeCat.icon_name || activeCat.slug);
                                                                         return <Icon size={32} />;
                                                                     })()}
                                                                 </div>
                                                                 <div>
-                                                                    <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{activeCat.label}</h2>
+                                                                    <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{activeCat.name}</h2>
                                                                     <p className="text-sm text-primary-600 font-medium tracking-wide flex items-center gap-1.5 mt-0.5">
                                                                         Browse Best Deals
                                                                         <ChevronRight size={14} />
@@ -156,18 +154,18 @@ const LandingPage: React.FC = () => {
                                                             </div>
 
                                                             <div className="grid grid-cols-2 gap-y-4 gap-x-6 content-start flex-1 overflow-y-auto custom-scrollbar pr-2">
-                                                                {activeCat.subcategories.map((sub, idx) => (
+                                                                {activeCat.subcategories?.map((sub, idx) => (
                                                                     <button
-                                                                        key={idx}
+                                                                        key={sub.id || idx}
                                                                         onClick={() => {
-                                                                            navigate(`/category/${activeCat.id}?subcategory=${sub.name}`);
+                                                                            navigate(`/category/${activeCat.slug || activeCat.id}?subcategory=${sub.slug || sub.name}`);
                                                                             setHoveredCategory(null);
                                                                         }}
                                                                         className="flex items-center gap-3 p-2 rounded-xl border border-transparent hover:border-primary-100 hover:bg-primary-50/50 transition-all text-left group"
                                                                     >
                                                                         <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 shadow-sm transition-transform group-hover:scale-105">
                                                                             <img
-                                                                                src={sub.image || activeCat.image}
+                                                                                src={sub.image_url || activeCat.image_url || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=200'}
                                                                                 alt={sub.name}
                                                                                 className="w-full h-full object-cover"
                                                                             />
@@ -182,12 +180,12 @@ const LandingPage: React.FC = () => {
                                                             <div className="mt-8 pt-6 border-t border-gray-100">
                                                                 <button
                                                                     onClick={() => {
-                                                                        navigate(`/category/${activeCat.id}`);
+                                                                        navigate(`/category/${activeCat.slug || activeCat.id}`);
                                                                         setHoveredCategory(null);
                                                                     }}
                                                                     className="flex items-center gap-2 text-primary-600 font-bold hover:gap-3 transition-all"
                                                                 >
-                                                                    View all in {activeCat.label.split(' (')[0]}
+                                                                    View all in {activeCat.name.split(' (')[0]}
                                                                     <ChevronRight size={18} />
                                                                 </button>
                                                             </div>
@@ -196,14 +194,14 @@ const LandingPage: React.FC = () => {
                                                         {/* Right side: Featured Category Image */}
                                                         <div className="w-64 bg-gray-50 relative overflow-hidden group/featured">
                                                             <img
-                                                                src={activeCat.image}
-                                                                alt={activeCat.label}
+                                                                src={activeCat.image_url || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=600'}
+                                                                alt={activeCat.name}
                                                                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover/featured:scale-110"
                                                             />
                                                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                                                             <div className="absolute bottom-0 left-0 p-6 text-white">
                                                                 <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-1.5 opacity-80">Featured</p>
-                                                                <h4 className="text-lg font-bold leading-tight">{activeCat.label.split(' (')[0]}</h4>
+                                                                <h4 className="text-lg font-bold leading-tight">{activeCat.name.split(' (')[0]}</h4>
                                                             </div>
                                                         </div>
                                                     </>
