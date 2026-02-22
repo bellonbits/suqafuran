@@ -49,4 +49,19 @@ class Category(SQLModel, table=True):
     name: str = Field(unique=True, index=True)
     slug: str = Field(unique=True)
     icon_name: str
+    image_url: Optional[str] = None
     attributes_schema: dict = Field(default={}, sa_column=Column(JSON))
+
+    subcategories: List["SubCategory"] = Relationship(back_populates="category", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+
+
+class SubCategory(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(index=True)
+    slug: str = Field(index=True)
+    image_url: Optional[str] = None
+    category_id: int = Field(foreign_key="category.id")
+    attributes_schema: dict = Field(default={}, sa_column=Column(JSON))
+
+    category: Optional[Category] = Relationship(back_populates="subcategories")
+

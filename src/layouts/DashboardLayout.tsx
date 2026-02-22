@@ -165,6 +165,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                                 <Folder className="h-5 w-5" />
                                 Promotions
                             </Link>
+                            <Link
+                                to="/admin/categories"
+                                className={cn(
+                                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-secondary-600 hover:bg-secondary-50",
+                                    location.pathname === '/admin/categories' && "bg-secondary-50 shadow-sm shadow-secondary-100"
+                                )}
+                            >
+                                <Folder className="h-5 w-5" />
+                                Categories
+                            </Link>
                         </div>
                     )}
                 </nav>
