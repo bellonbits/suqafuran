@@ -197,6 +197,28 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                             </div>
                         </div>
 
+                        {/* Kaalay Heedhe Section */}
+                        <div className="border-b border-black/5 md:border-none pb-4 md:pb-0">
+                            <button
+                                onClick={() => toggleSection('kh')}
+                                className="w-full flex items-center justify-between md:cursor-default"
+                                disabled={window.innerWidth >= 768}
+                            >
+                                <h3 className="text-black font-extrabold mb-0 md:mb-4 uppercase tracking-wider text-sm">Digital Address</h3>
+                                <ChevronDown className={cn("h-5 w-5 md:hidden transition-transform", openSections['kh'] ? "rotate-180" : "")} />
+                            </button>
+                            <div className={cn("mt-4 md:mt-0 space-y-2 text-sm md:block", openSections['kh'] ? "block" : "hidden")}>
+                                <ul className="space-y-2">
+                                    <li><Link to="/kh" className="hover:opacity-70 transition-opacity font-bold text-black flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-black"></div>
+                                        Get KH-PIN
+                                    </Link></li>
+                                    <li><Link to="/kh" className="hover:opacity-70 transition-opacity">Landmark Directory</Link></li>
+                                    <li><Link to="/kh" className="hover:opacity-70 transition-opacity">Emergency contacts</Link></li>
+                                </ul>
+                            </div>
+                        </div>
+
                         {/* Apps Section */}
                         <div className="border-b border-black/5 md:border-none pb-4 md:pb-0">
                             <button
