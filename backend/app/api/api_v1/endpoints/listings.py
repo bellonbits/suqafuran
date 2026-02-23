@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from sqlmodel import Session
 from app.api import deps
 from app.crud import crud_listing
-from app.models.listing import Listing, ListingBase, ListingRead
+from app.models.listing import Listing, ListingBase, ListingRead, Category, SubCategory
 from app.models.user import User
 from app.models.audit import AuditLog
 from app.core.config import settings
@@ -113,7 +113,6 @@ def create_category(
     """
     Create a new category (Admin only).
     """
-    from app.models.listing import Category
     # Check if slug exists
     if crud_listing.get_category_by_slug(db, category_in["slug"]):
         raise HTTPException(status_code=400, detail="Category slug already exists")
