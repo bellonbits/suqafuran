@@ -2,14 +2,15 @@ import random
 import string
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlmodel import Session, select, or_
-from app.db.engine import get_session
+from sqlmodel import Session, select
+from app.db.session import get_db
 from app.models.kh_models import KaalayHeedhePin, Landmark, Place, AdminArea, EmergencyContact
 from app.api.api_v1.endpoints.auth import get_current_user
 from app.models.user import User
 from pydantic import BaseModel
 
 router = APIRouter()
+
 
 # Schemas
 class PinCreate(BaseModel):
@@ -18,6 +19,7 @@ class PinCreate(BaseModel):
     landmark_id: Optional[int] = None
     place_id: int
     privacy_level: str = "public"
+
 
 class PinRead(BaseModel):
     code: str
@@ -28,6 +30,7 @@ class PinRead(BaseModel):
     district_name: Optional[str] = None
     city_name: Optional[str] = None
 
+
 class NearbyLandmark(BaseModel):
     id: int
     name: str
@@ -36,20 +39,22 @@ class NearbyLandmark(BaseModel):
     longitude: float
     distance: float
 
+
 def generate_kh_code(session: Session) -> str:
     """Generates a unique KH-XXXX code."""
     chars = string.ascii_uppercase + string.digits
-    for _ in range(10):  # Try 10 times to find a unique one
+    for _ in range(10):
         code = f"KH-{''.join(random.choice(chars) for _ in range(4))}"
         statement = select(KaalayHeedhePin).where(KaalayHeedhePin.code == code)
         if not session.exec(statement).first():
             return code
     raise HTTPException(status_code=500, detail="Could not generate unique PIN")
 
+
 @router.post("/pin", response_model=KaalayHeedhePin)
 def create_pin(
     *,
-    session: Session = Depends(get_session),
+    session: Session = Depends(get_db),
     pin_in: PinCreate,
     current_user: User = Depends(get_current_user)
 ):
@@ -69,10 +74,11 @@ def create_pin(
     session.refresh(db_pin)
     return db_pin
 
+
 @router.get("/pin/{code}", response_model=PinRead)
 def get_pin_details(
     *,
-    session: Session = Depends(get_session),
+    session: Session = Depends(get_db),
     code: str
 ):
     """Retrieve PIN location details."""
@@ -80,49 +86,46 @@ def get_pin_details(
     pin = session.exec(statement).first()
     if not pin:
         raise HTTPException(status_code=404, detail="PIN not found")
-    
+
     place = session.get(Place, pin.place_id)
     landmark = session.get(Landmark, pin.landmark_id) if pin.landmark_id else None
-    
+
     return PinRead(
         code=pin.code,
         latitude=pin.latitude,
         longitude=pin.longitude,
         landmark_name=landmark.name if landmark else None,
-        place_name=place.name,
-        district_name=place.admin_area.name if place.admin_area.level == "district" else None,
-        city_name=place.name if place.type == "city" else None
+        place_name=place.name if place else "Unknown",
+        district_name=place.admin_area.name if place and place.admin_area and place.admin_area.level == "district" else None,
+        city_name=place.name if place and place.type == "city" else None
     )
+
 
 @router.get("/search")
 def search_kaalay_heedhe(
     *,
-    session: Session = Depends(get_session),
+    session: Session = Depends(get_db),
     q: str = Query(..., min_length=2)
 ):
     """Search by PIN, Landmark, or City."""
-    # Search PINs
     pins = session.exec(select(KaalayHeedhePin).where(KaalayHeedhePin.code.ilike(f"%{q}%"))).all()
-    
-    # Search Landmarks
     landmarks = session.exec(select(Landmark).where(Landmark.name.ilike(f"%{q}%"))).all()
-    
-    # Search Places
     places = session.exec(select(Place).where(Place.name.ilike(f"%{q}%"))).all()
-    
+
     return {
         "pins": pins[:5],
         "landmarks": landmarks[:5],
         "places": places[:5]
     }
 
+
 @router.get("/nearby", response_model=List[NearbyLandmark])
 def get_nearby_landmarks(
     *,
-    session: Session = Depends(get_session),
+    session: Session = Depends(get_db),
     lat: float,
     lng: float,
-    radius: float = 0.05  # roughly 5km
+    radius: float = 0.05
 ):
     """Get nearby landmarks based on coordinates."""
     statement = select(Landmark).where(
@@ -130,26 +133,26 @@ def get_nearby_landmarks(
         Landmark.longitude.between(lng - radius, lng + radius)
     )
     landmarks = session.exec(statement).all()
-    
+
     results = []
-    for l in landmarks:
-        # Simple Euclidean distance for MVP (could be improved with Haversine)
-        dist = ((l.latitude - lat)**2 + (l.longitude - lng)**2)**0.5
+    for lm in landmarks:
+        dist = ((lm.latitude - lat)**2 + (lm.longitude - lng)**2)**0.5
         results.append(NearbyLandmark(
-            id=l.id,
-            name=l.name,
-            category=l.category,
-            latitude=l.latitude,
-            longitude=l.longitude,
-            distance=dist * 111.32  # convert to km roughly
+            id=lm.id,
+            name=lm.name,
+            category=lm.category,
+            latitude=lm.latitude,
+            longitude=lm.longitude,
+            distance=dist * 111.32
         ))
-    
+
     return sorted(results, key=lambda x: x.distance)[:10]
+
 
 @router.get("/emergency")
 def get_emergency_contacts(
     *,
-    session: Session = Depends(get_session),
+    session: Session = Depends(get_db),
     district_id: Optional[int] = None
 ):
     """Fetch emergency contacts."""
@@ -157,5 +160,5 @@ def get_emergency_contacts(
         statement = select(EmergencyContact).where(EmergencyContact.admin_area_id == district_id)
     else:
         statement = select(EmergencyContact)
-    
+
     return session.exec(statement).all()
