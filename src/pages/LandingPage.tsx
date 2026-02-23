@@ -316,18 +316,18 @@ const LandingPage: React.FC = () => {
 
 
             {/* Call to Action */}
-            <section className="py-20 bg-gray-900 text-white relative">
-                <div className="absolute top-0 right-0 w-1/3 h-full bg-primary-600/10 skew-x-12 transform origin-top-right"></div>
+            <section className="py-12 bg-primary-300 relative">
+                <div className="absolute top-0 right-0 w-1/3 h-full bg-white/10 skew-x-12 transform origin-top-right"></div>
                 <div className="container mx-auto px-4 relative z-10">
                     <div className="max-w-3xl">
-                        <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to declutter and <br /> make some money?</h2>
-                        <p className="text-lg text-gray-400 mb-10">
+                        <h2 className="text-3xl md:text-5xl font-bold mb-4 text-black">Ready to declutter and <br /> make some money?</h2>
+                        <p className="text-lg text-black/80 mb-8">
                             Thousands of potential buyers are searching for what you have right now.
                             Start selling in less than 2 minutes.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4">
-                            <Button size="lg" className="rounded-full px-10 text-lg">Post an Ad Now</Button>
-                            <Button size="lg" variant="ghost" className="rounded-full px-10 text-lg border border-white/20 text-white hover:bg-white/10">Learn How to Sell</Button>
+                            <Button size="lg" className="rounded-full px-10 text-lg bg-white text-primary-600 hover:bg-gray-50 border-none shadow-xl">Post an Ad Now</Button>
+                            <Button size="lg" variant="outline" className="rounded-full px-10 text-lg border-white/40 text-black hover:bg-white/10">Learn How to Sell</Button>
                         </div>
                     </div>
                 </div>
