@@ -76,9 +76,31 @@ def read_categories(
     db: Session = Depends(deps.get_db),
 ) -> Any:
     """
-    Retrieve categories.
+    Retrieve categories with subcategories.
     """
-    return crud_listing.get_categories(db)
+    categories = crud_listing.get_categories(db)
+    result = []
+    for cat in categories:
+        cat_dict = {
+            "id": cat.id,
+            "name": cat.name,
+            "slug": cat.slug,
+            "icon_name": cat.icon_name,
+            "image_url": cat.image_url,
+            "attributes_schema": cat.attributes_schema,
+            "subcategories": [
+                {
+                    "id": sub.id,
+                    "name": sub.name,
+                    "slug": sub.slug,
+                    "image_url": sub.image_url,
+                    "attributes_schema": sub.attributes_schema,
+                }
+                for sub in (cat.subcategories or [])
+            ],
+        }
+        result.append(cat_dict)
+    return result
 
 
 @router.post("/categories", response_model=Any)
