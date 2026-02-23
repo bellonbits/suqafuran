@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type Currency = 'KES' | 'SOS' | 'USD';
+export type Currency = 'KES' | 'USD';
 
 interface CurrencyState {
     currency: Currency;
