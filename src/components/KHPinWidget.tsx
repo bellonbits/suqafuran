@@ -7,16 +7,23 @@ import { cn } from '../utils/cn';
 
 interface KHPinWidgetProps {
     initialCode?: string;
+    emergency?: boolean;
 }
 
-const KHPinWidget: React.FC<KHPinWidgetProps> = ({ initialCode }) => {
+const KHPinWidget: React.FC<KHPinWidgetProps> = ({ initialCode, emergency }) => {
     const [code, setCode] = useState(initialCode || '');
     const [details, setDetails] = useState<KHPinDetails | null>(null);
     const [loading, setLoading] = useState(false);
     const [copied, setCopied] = useState(false);
-    const [showEmergency, setShowEmergency] = useState(false);
+    const [showEmergency, setShowEmergency] = useState(emergency || false);
     const [mode, setMode] = useState<'view' | 'create'>('view');
     const [createdPin, setCreatedPin] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (emergency !== undefined) {
+            setShowEmergency(emergency);
+        }
+    }, [emergency]);
 
     useEffect(() => {
         if (code && code.length >= 6) {
