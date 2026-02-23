@@ -55,7 +55,6 @@ const KHPinWidget: React.FC<KHPinWidgetProps> = ({ initialCode, emergency }) => 
             const res = await khService.createPin({
                 latitude: coords.lat,
                 longitude: coords.lng,
-                place_id: 1, // Defaulting to 1 for MVP
                 privacy_level: 'public'
             });
             setCreatedPin(res.code);

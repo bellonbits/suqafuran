@@ -17,7 +17,7 @@ class PinCreate(BaseModel):
     latitude: float
     longitude: float
     landmark_id: Optional[int] = None
-    place_id: int
+    place_id: Optional[int] = None
     privacy_level: str = "public"
 
 
@@ -60,12 +60,41 @@ def create_pin(
 ):
     """Create a new location PIN."""
     code = generate_kh_code(session)
+    
+    # Validate or find place_id
+    place_id = pin_in.place_id
+    if place_id:
+        db_place = session.get(Place, place_id)
+        if not db_place:
+            place_id = None
+            
+    if not place_id:
+        # Fallback: Find nearest place
+        # Using a simple bounding box or distance search
+        radius = 0.5 # About 50km
+        statement = select(Place).where(
+            Place.latitude.between(pin_in.latitude - radius, pin_in.latitude + radius),
+            Place.longitude.between(pin_in.longitude - radius, pin_in.longitude + radius)
+        )
+        places = session.exec(statement).all()
+        if places:
+            # Pick the closest one
+            closest_place = min(places, key=lambda p: (p.latitude - pin_in.latitude)**2 + (p.longitude - pin_in.longitude)**2)
+            place_id = closest_place.id
+        else:
+            # absolute fallback: pick the first available place in DB if any
+            first_place = session.exec(select(Place)).first()
+            if first_place:
+                place_id = first_place.id
+            else:
+                raise HTTPException(status_code=400, detail="No valid city/place found in database. Please seed geographic data.")
+
     db_pin = KaalayHeedhePin(
         code=code,
         latitude=pin_in.latitude,
         longitude=pin_in.longitude,
         landmark_id=pin_in.landmark_id,
-        place_id=pin_in.place_id,
+        place_id=place_id,
         owner_id=current_user.id,
         privacy_level=pin_in.privacy_level
     )
