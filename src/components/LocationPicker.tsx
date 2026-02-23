@@ -15,11 +15,9 @@ interface LocationPickerProps {
 
 const W3WGrid: React.FC = () => {
     const map = useMap();
-    const [gridLayer, setGridLayer] = useState<L.LayerGroup | null>(null);
 
     useEffect(() => {
         const layerGroup = L.layerGroup().addTo(map);
-        setGridLayer(layerGroup);
 
         const updateGrid = async () => {
             const zoom = map.getZoom();
@@ -68,7 +66,7 @@ const W3WGrid: React.FC = () => {
 
 const MapEvents: React.FC<{ onClick: (lat: number, lng: number) => void }> = ({ onClick }) => {
     useMapEvents({
-        click(e) {
+        click(e: L.LeafletMouseEvent) {
             onClick(e.latlng.lat, e.latlng.lng);
         },
     });
