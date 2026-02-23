@@ -375,8 +375,6 @@ const PostAdPage: React.FC = () => {
                                             >
                                                 <option value="USD">USD ($)</option>
                                                 <option value="KES">KES (KSh)</option>
-                                                <option value="SOS">SOS (Sh.So.)</option>
-                                                <option value="SLS">SLS (Sl.Sh.)</option>
                                                 <option value="EUR">EUR (€)</option>
                                             </select>
                                         </div>
