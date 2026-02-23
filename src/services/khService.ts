@@ -6,7 +6,7 @@ export interface KHPin {
     latitude: number;
     longitude: number;
     landmark_id?: number;
-    place_id: number;
+    place_id?: number;
     owner_id?: number;
     privacy_level: 'public' | 'private';
 }
@@ -31,7 +31,7 @@ export interface NearbyLandmark {
 }
 
 export const khService = {
-    createPin: async (data: { latitude: number; longitude: number; landmark_id?: number; place_id: number; privacy_level?: string }) => {
+    createPin: async (data: { latitude: number; longitude: number; landmark_id?: number; place_id?: number; privacy_level?: string }) => {
         const response = await api.post<KHPin>('/kh/pin', data);
         return response.data;
     },
