@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select
 from app.db.session import get_db
 from app.models.kh_models import KaalayHeedhePin, Landmark, Place, AdminArea, EmergencyContact
-from app.api.api_v1.endpoints.auth import get_current_user
+from app.api.api_v1 import deps
 from app.models.user import User
 from pydantic import BaseModel
 
@@ -56,7 +56,7 @@ def create_pin(
     *,
     session: Session = Depends(get_db),
     pin_in: PinCreate,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(deps.get_current_active_user)
 ):
     """Create a new location PIN."""
     code = generate_kh_code(session)
