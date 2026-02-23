@@ -8,6 +8,7 @@ from app.models.interaction import Interaction
 from app.models.meeting_deal import Meeting, Deal
 from app.models.trust import Rating, Report
 from app.models.promotion import Promotion, PromotionPlan
+from app.models.kh_models import AdminArea, Place, Landmark, KaalayHeedhePin, EmergencyContact
 
 __all__ = [
     "User",
@@ -25,4 +26,9 @@ __all__ = [
     "Report",
     "Promotion",
     "PromotionPlan",
+    "AdminArea",
+    "Place",
+    "Landmark",
+    "KaalayHeedhePin",
+    "EmergencyContact",
 ]

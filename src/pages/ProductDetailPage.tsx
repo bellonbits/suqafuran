@@ -7,7 +7,7 @@ import { interactionService, InteractionType } from '../services/interactionServ
 import {
     Phone, Heart, Share2,
     MapPin, Clock, ShieldCheck, Flag,
-    ChevronLeft, Info, Loader2
+    ChevronLeft, Info, Loader2, Navigation
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { ProductCard } from '../components/ProductCard';
@@ -137,6 +137,26 @@ const ProductDetailPage: React.FC = () => {
                                         </div>
                                     )}
                                 </div>
+                            </div>
+
+                            {/* Kaalay Heedhe PIN Integration */}
+                            <div className="mb-8 p-4 bg-primary-50 rounded-2xl border border-primary-100 flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-white p-2 rounded-lg shadow-sm">
+                                        <Navigation className="h-5 w-5 text-primary-500" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-bold text-primary-600 uppercase tracking-wider">Digital Address</p>
+                                        <p className="text-sm font-bold text-gray-900">
+                                            {displayAd.attributes?.kh_pin || "Find exact location using KH-PIN"}
+                                        </p>
+                                    </div>
+                                </div>
+                                <Link to="/kh">
+                                    <Button variant="outline" size="sm" className="bg-white hover:bg-white/80 text-[10px] h-8 font-bold border-primary-200">
+                                        GET PIN
+                                    </Button>
+                                </Link>
                             </div>
 
                             {displayAd.attributes && Object.keys(displayAd.attributes).length > 0 && (
