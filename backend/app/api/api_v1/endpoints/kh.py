@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select
 from app.db.session import get_db
 from app.models.kh_models import KaalayHeedhePin, Landmark, Place, AdminArea, EmergencyContact
-from app.api.api_v1 import deps
+from app.api import deps
 from app.models.user import User
 from pydantic import BaseModel
 
