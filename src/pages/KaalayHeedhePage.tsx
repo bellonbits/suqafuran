@@ -17,9 +17,9 @@ const KaalayHeedhePage: React.FC = () => {
     return (
         <div className="min-h-screen bg-[#fcfcfd] pt-10 pb-20 px-4 relative overflow-hidden">
             {/* Background Decorative Elements */}
-            <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-primary-50 to-transparent -z-10" />
-            <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary-100/50 rounded-full blur-3xl -z-10" />
-            <div className="absolute top-1/2 -left-24 w-72 h-72 bg-blue-100/30 rounded-full blur-3xl -z-10" />
+            <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-primary-50 to-transparent -z-10 pointer-events-none" />
+            <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary-100/50 rounded-full blur-3xl -z-10 pointer-events-none" />
+            <div className="absolute top-1/2 -left-24 w-72 h-72 bg-blue-100/30 rounded-full blur-3xl -z-10 pointer-events-none" />
 
             {/* Back Navigation */}
             <div className="max-w-4xl mx-auto mb-8">
@@ -70,9 +70,9 @@ const KaalayHeedhePage: React.FC = () => {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2, duration: 0.5 }}
-                    className="relative"
+                    className="relative z-20"
                 >
-                    <div className="absolute -inset-8 bg-primary-500/10 blur-[80px] rounded-full"></div>
+                    <div className="absolute -inset-8 bg-primary-500/10 blur-[80px] rounded-full pointer-events-none"></div>
                     <KHPinWidget emergency={khMode.emergency} />
                 </motion.div>
 
