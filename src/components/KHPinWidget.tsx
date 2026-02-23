@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Share2, PhoneCall, Search, Navigation, Copy, Check, Target, PlusCircle, Shield } from 'lucide-react';
+import { MapPin, Share2, PhoneCall, Search, Navigation, Copy, Check, PlusCircle, Shield } from 'lucide-react';
 import { khService } from '../services/khService';
 import type { KHPinDetails } from '../services/khService';
 import { Button } from './Button';
@@ -185,7 +185,7 @@ const KHPinWidget: React.FC<KHPinWidgetProps> = ({ initialCode, emergency }) => 
                             variant="primary"
                             size="lg"
                             className="w-full rounded-[1.5rem] py-8 text-lg font-black tracking-tight"
-                            loading={loading}
+                            isLoading={loading}
                             onClick={handleCreatePin}
                             disabled={!coords}
                         >
