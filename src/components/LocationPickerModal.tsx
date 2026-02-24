@@ -112,7 +112,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                                 <div>
                                     <h2 className="text-xl font-bold text-gray-900">{title}</h2>
                                     <p className="text-xs text-secondary-500 font-semibold uppercase tracking-wider mt-0.5">
-                                        {level === 'state' ? 'Select State' :
+                                        {level === 'state' ? 'Select Region' :
                                             level === 'region' ? `Region in ${selectedState?.name}` :
                                                 `Town in ${selectedRegion?.name}`}
                                     </p>
@@ -146,14 +146,14 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                             <div className="space-y-1.5">
                                 {level === 'state' && (
                                     <button
-                                        onClick={() => { onSelect("All Somalia"); onClose(); }}
+                                        onClick={() => { onSelect("All Locations"); onClose(); }}
                                         className="w-full text-left p-4 rounded-2xl hover:bg-primary-50 text-gray-600 font-medium transition-colors flex items-center justify-between group"
                                     >
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-primary-100 group-hover:text-primary-600 transition-colors">
                                                 <MapPin className="w-5 h-5" />
                                             </div>
-                                            <span>All Somalia</span>
+                                            <span>All Locations</span>
                                         </div>
                                         <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-primary-500 transition-colors" />
                                     </button>

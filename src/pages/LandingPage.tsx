@@ -45,7 +45,7 @@ const LandingPage: React.FC = () => {
                                 onClick={() => setLocationOpen(true)}
                                 className="w-full h-14 pl-4 pr-10 text-gray-700 focus:outline-none text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
                             >
-                                <span className="truncate font-medium">{selectedLocation || "All Somalia"}</span>
+                                <span className="truncate font-medium">{selectedLocation || "All Locations"}</span>
                                 <MapPin className="ml-2 w-4 h-4 text-primary-500" />
                             </button>
                         </div>
@@ -68,7 +68,7 @@ const LandingPage: React.FC = () => {
                         isOpen={isLocationOpen}
                         onClose={() => setLocationOpen(false)}
                         onSelect={(location) => {
-                            setSelectedLocation(location === "All Somalia" ? "" : location.split(',')[0]);
+                            setSelectedLocation(location === "All Locations" ? "" : location.split(',')[0]);
                         }}
                     />
 
