@@ -12,14 +12,14 @@ export interface State {
     regions: Region[];
 }
 
-export const SOMALI_STATES: State[] = [
+export const LOCATION_HIERARCHY: State[] = [
     {
         name: "Banadir",
         regions: [
             {
                 name: "Banadir",
                 towns: [
-                    "Cabdicasis", "Boondheere", "Dayniile", "Dharkeenly", "Xamar Jajab",
+                    "Mogadishu", "Cabdicasis", "Boondheere", "Dayniile", "Dharkeenly", "Xamar Jajab",
                     "Xamar Weyne", "Hodan", "Howlwadaag", "Karaan", "Shangani",
                     "Shibis", "Waaberi", "Wadajir", "Warta Nabadda", "Yaqshiid",
                     "Kahda", "Garsabaaley"
@@ -28,41 +28,15 @@ export const SOMALI_STATES: State[] = [
         ]
     },
     {
-        name: "Puntland",
+        name: "Hargeysa",
         regions: [
-            {
-                name: "Bari",
-                towns: ["Boosaaso", "Qardho", "Iskushuban", "Caluula", "Ufayn", "Bargaal", "Bandar Bayla", "Timirshe"]
-            },
-            {
-                name: "Nugaal",
-                towns: ["Garowe", "Burtinle", "Eyl", "Dangorayo"]
-            },
-            {
-                name: "Mudug (North)",
-                towns: ["Gaalkacyo", "Jariiban", "Goldogob", "Bursaalah"]
-            }
-        ]
-    },
-    {
-        name: "North East",
-        regions: [
-            {
-                name: "Sool",
-                towns: ["Laascaanood", "Taleex", "Xudun", "Boocame", "Kalabaydh", "Yagoori", "Adhi Cadeeye"]
-            }
-        ]
-    },
-    {
-        name: "Somaliland",
-        regions: [
-            {
-                name: "Awdal",
-                towns: ["Boorama", "Saylac", "Lughaya", "Baki"]
-            },
             {
                 name: "Maroodi Jeex",
                 towns: ["Hargeysa", "Gabiley", "Arabsiyo", "Baligubadle"]
+            },
+            {
+                name: "Awdal",
+                towns: ["Boorama", "Saylac", "Lughaya", "Baki"]
             },
             {
                 name: "Togdheer",
@@ -75,7 +49,29 @@ export const SOMALI_STATES: State[] = [
         ]
     },
     {
-        name: "Jubaland",
+        name: "Garowe",
+        regions: [
+            {
+                name: "Nugaal",
+                towns: ["Garowe", "Burtinle", "Eyl", "Dangorayo"]
+            },
+            {
+                name: "Bari",
+                towns: ["Boosaaso", "Qardho", "Iskushuban", "Caluula", "Ufayn", "Bargaal", "Bandar Bayla", "Timirshe"]
+            }
+        ]
+    },
+    {
+        name: "Gaalkacyo",
+        regions: [
+            {
+                name: "Mudug",
+                towns: ["Gaalkacyo", "Jariiban", "Goldogob", "Bursaalah", "Hobyo", "Xarardheere"]
+            }
+        ]
+    },
+    {
+        name: "Kismayo",
         regions: [
             {
                 name: "Jubbada Hoose",
@@ -92,7 +88,7 @@ export const SOMALI_STATES: State[] = [
         ]
     },
     {
-        name: "Koonfur Galbeed",
+        name: "Baidoa",
         regions: [
             {
                 name: "Baay",
@@ -109,7 +105,7 @@ export const SOMALI_STATES: State[] = [
         ]
     },
     {
-        name: "Hirshabelle",
+        name: "Beledweyne",
         regions: [
             {
                 name: "Hiiraan",
@@ -122,22 +118,56 @@ export const SOMALI_STATES: State[] = [
         ]
     },
     {
-        name: "Galmudug",
+        name: "Dhusamareeb",
         regions: [
             {
                 name: "Galgaduud",
                 towns: ["Dhuusamareeb", "Cadaado", "Guriceel", "Ceel Dheer"]
-            },
+            }
+        ]
+    },
+    {
+        name: "Las Anod",
+        regions: [
             {
-                name: "Mudug (South)",
-                towns: ["Gaalkacyo", "Hobyo", "Xarardheere"]
+                name: "Sool",
+                towns: ["Laascaanood", "Taleex", "Xudun", "Boocame", "Kalabaydh", "Yagoori", "Adhi Cadeeye"]
+            }
+        ]
+    },
+    {
+        name: "Kenya",
+        regions: [
+            {
+                name: "Cities",
+                towns: ["Nairobi", "Mombasa", "Garisa"]
+            }
+        ]
+    },
+    {
+        name: "Ogaden",
+        regions: [
+            {
+                name: "Cities",
+                towns: ["Degahbur", "Godey", "Qabri Dahare", "Shilabo", "Qalaafe", "Wardheer", "Danan"]
+            }
+        ]
+    },
+    {
+        name: "Border",
+        regions: [
+            {
+                name: "Towns",
+                towns: ["Tog Wajale"]
             }
         ]
     }
 ];
 
-// Compatibility exports to avoid breaking existing code
-export const SOMALI_REGIONS = SOMALI_STATES.flatMap(state =>
+// For backward compatibility and generic usage
+export const SOMALI_STATES = LOCATION_HIERARCHY;
+
+export const SOMALI_REGIONS = LOCATION_HIERARCHY.flatMap(state =>
     state.regions.map(region => ({
         name: region.name,
         cities: region.towns
@@ -145,7 +175,7 @@ export const SOMALI_REGIONS = SOMALI_STATES.flatMap(state =>
 );
 
 export const ALL_LOCATIONS = Array.from(
-    new Set(SOMALI_STATES.flatMap(state =>
+    new Set(LOCATION_HIERARCHY.flatMap(state =>
         state.regions.flatMap(region => region.towns)
     ))
 ).sort();

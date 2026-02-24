@@ -11,7 +11,7 @@ const PromotionPage: React.FC = () => {
     const { adId } = useParams<{ adId: string }>();
     const navigate = useNavigate();
     const [selectedPlan, setSelectedPlan] = useState<any>(null);
-    const [paymentRegion, setPaymentRegion] = useState<'kenya' | 'somalia'>('kenya');
+    const [paymentRegion, setPaymentRegion] = useState<'kenya' | 'local'>('kenya');
     const [paymentPhone, setPaymentPhone] = useState('');
     const [step, setStep] = useState<'plan' | 'payment' | 'success'>('plan');
     const [error, setError] = useState<string | null>(null);
@@ -124,10 +124,10 @@ const PromotionPage: React.FC = () => {
                                         Kenya (M-Pesa)
                                     </button>
                                     <button
-                                        onClick={() => setPaymentRegion('somalia')}
-                                        className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${paymentRegion === 'somalia' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                        onClick={() => setPaymentRegion('local')}
+                                        className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${paymentRegion === 'local' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                                     >
-                                        Somalia
+                                        Local
                                     </button>
                                 </div>
                             </div>
@@ -165,7 +165,7 @@ const PromotionPage: React.FC = () => {
                                     </div>
                                     <h4 className="font-bold text-primary-900 text-lg mb-2">Manual Payment Required</h4>
                                     <p className="text-sm text-primary-700 mb-6 font-medium">
-                                        To promote your ad in Somalia, please call and send your payment to the number below:
+                                        To promote your ad in Mogadishu & major cities, please call and send your payment to the number below:
                                     </p>
                                     <div className="bg-white py-4 px-6 rounded-2xl border-2 border-primary-200 shadow-sm inline-block">
                                         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Call & Pay</p>

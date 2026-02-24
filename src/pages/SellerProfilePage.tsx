@@ -107,7 +107,7 @@ const SellerProfilePage: React.FC = () => {
                                     </div>
                                     <div className="flex items-center gap-2 text-sm text-gray-500">
                                         <MapPin className="h-4 w-4" />
-                                        <span>Mogadishu, Somalia</span>
+                                        <span>Mogadishu</span>
                                     </div>
                                 </div>
 

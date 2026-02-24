@@ -56,7 +56,7 @@ const KaalayHeedhePage: React.FC = () => {
                             <svg className="absolute -bottom-2 left-0 w-full" height="8" viewBox="0 0 100 8" preserveAspectRatio="none">
                                 <path d="M0 7C30 7 70 2 100 2" stroke="currentColor" strokeWidth="4" strokeLinecap="round" fill="none" />
                             </svg>
-                        </span> in Somalia
+                        </span> in Mogadishu & Cities
                     </h1>
                     <p className="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto font-medium leading-relaxed">
                         Kaalay Heedhe simplifies addresses. No more describing long routes—just share your
@@ -79,7 +79,7 @@ const KaalayHeedhePage: React.FC = () => {
                 {/* Features Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-10">
                     {[
-                        { icon: MapIcon, color: "blue", title: "Landmark Directory", desc: "Search for mosques, malls, hospitals, and schools across Somalia. All major landmarks integrated.", action: () => scrollToWidget(false) },
+                        { icon: MapIcon, color: "blue", title: "Landmark Directory", desc: "Search for mosques, malls, hospitals, and schools across Mogadishu & major cities. All major landmarks integrated.", action: () => scrollToWidget(false) },
                         { icon: Share2, color: "green", title: "Instant Sharing", desc: "Share your exact location PIN via WhatsApp, SMS, or Link. Perfect for delivery and visitors.", action: () => scrollToWidget(false) },
                         { icon: Shield, color: "red", title: "Emergency Mode", desc: "One-tap access to Police (888) and Fire (555) services based on your current district.", action: () => scrollToWidget(true) }
                     ].map((feature, i) => (
@@ -126,7 +126,7 @@ const KaalayHeedhePage: React.FC = () => {
                             {[
                                 "Pin your location on the map in Suqafuran.",
                                 "Get your unique KH-XXXX digital address code.",
-                                "Share it with anyone—it works everywhere in Somalia."
+                                "Share it with anyone—it works in major cities."
                             ].map((step, i) => (
                                 <li key={i} className="flex items-start gap-4 group">
                                     <span className="h-8 w-8 rounded-xl bg-primary-500 flex items-center justify-center text-sm text-white font-black shrink-0 shadow-lg shadow-primary-500/40 group-hover:scale-110 transition-transform">
