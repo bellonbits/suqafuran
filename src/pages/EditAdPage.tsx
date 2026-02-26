@@ -206,12 +206,6 @@ const EditAdPage: React.FC = () => {
                                         {touched.location && errors.location && (
                                             <p className="text-xs text-red-500 mt-1 font-medium">{errors.location}</p>
                                         )}
-                                        <LocationPickerModal
-                                            isOpen={isLocationModalOpen}
-                                            onClose={() => setIsLocationModalOpen(false)}
-                                            onSelect={(loc) => setFieldValue('location', loc)}
-                                            title="Update Listing Location"
-                                        />
                                     </div>
                                 </div>
                             )}
@@ -451,6 +445,13 @@ const EditAdPage: React.FC = () => {
                                     <ChevronRight className="h-5 w-5 ml-2" />
                                 </Button>
                             </div>
+
+                            <LocationPickerModal
+                                isOpen={isLocationModalOpen}
+                                onClose={() => setIsLocationModalOpen(false)}
+                                onSelect={(loc) => setFieldValue('location', loc)}
+                                title="Update Listing Location"
+                            />
                         </Form>
                     )}
                 </Formik>

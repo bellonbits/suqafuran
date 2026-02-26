@@ -63,16 +63,6 @@ const LandingPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Hierarchical Location Picker Modal */}
-                    <LocationPickerModal
-                        isOpen={isLocationOpen}
-                        onClose={() => setLocationOpen(false)}
-                        onSelect={(location) => {
-                            setSelectedLocation(location === "All Locations" ? "" : location.split(',')[0]);
-                        }}
-                    />
-
-
                 </div>
             </section>
 
@@ -332,6 +322,15 @@ const LandingPage: React.FC = () => {
                     </div>
                 </div>
             </section>
+
+            {/* Hierarchical Location Picker Modal - Moved here to prevent stacking context overlap */}
+            <LocationPickerModal
+                isOpen={isLocationOpen}
+                onClose={() => setLocationOpen(false)}
+                onSelect={(location) => {
+                    setSelectedLocation(location === "All Locations" ? "" : location.split(',')[0]);
+                }}
+            />
         </PublicLayout >
     );
 };

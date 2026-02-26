@@ -191,12 +191,6 @@ const PostAdPage: React.FC = () => {
                                         {touched.location && errors.location && (
                                             <p className="text-xs text-red-500 mt-1 font-medium">{errors.location}</p>
                                         )}
-                                        <LocationPickerModal
-                                            isOpen={isLocationModalOpen}
-                                            onClose={() => setIsLocationModalOpen(false)}
-                                            onSelect={(loc) => setFieldValue('location', loc)}
-                                            title="Select Listing Location"
-                                        />
                                     </div>
                                     <div className="p-4 bg-primary-50 rounded-xl border border-primary-100 flex gap-3 mt-4 text-xs text-primary-800">
                                         <Info className="h-5 w-5 shrink-0" />
@@ -477,10 +471,17 @@ const PostAdPage: React.FC = () => {
                                     className="rounded-xl px-12 w-full md:w-auto"
                                     isLoading={isSubmitting}
                                 >
-                                    {currentStep === steps.length - 1 ? 'Post My Ad' : 'Continue'}
                                     <ChevronRight className="h-5 w-5 ml-2" />
+                                    {currentStep === steps.length - 1 ? 'Post My Ad' : 'Continue'}
                                 </Button>
                             </div>
+
+                            <LocationPickerModal
+                                isOpen={isLocationModalOpen}
+                                onClose={() => setIsLocationModalOpen(false)}
+                                onSelect={(loc) => setFieldValue('location', loc)}
+                                title="Select Listing Location"
+                            />
                         </Form>
                     )}
                 </Formik>
