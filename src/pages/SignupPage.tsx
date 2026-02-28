@@ -49,12 +49,22 @@ const SignupPage: React.FC = () => {
             // On success, navigate to verification page
             navigate(`/phone-verification?phone=${encodeURIComponent(formData.phone)}`);
         } catch (err: any) {
-            const detail = err.response?.data?.detail;
-            const message = typeof detail === 'string'
-                ? detail
-                : Array.isArray(detail)
-                    ? detail[0]?.msg || 'Signup failed'
-                    : 'Failed to create account. Please try again.';
+            console.error('Signup error:', err);
+            let message = 'Failed to create account. Please try again.';
+            
+            if (err.response) {
+                const detail = err.response.data?.detail;
+                message = typeof detail === 'string'
+                    ? detail
+                    : Array.isArray(detail)
+                        ? detail[0]?.msg || 'Signup failed'
+                        : `Server error (${err.response.status})`;
+            } else if (err.request) {
+                message = 'Network error: Cannot reach the server. Please check your internet connection.';
+            } else {
+                message = err.message || message;
+            }
+            
             setError(message);
         } finally {
             setIsLoading(false);
