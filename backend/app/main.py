@@ -75,6 +75,3 @@ def health():
 
     return JSONResponse(content=checks, status_code=status_code)
 
-
-from mangum import Mangum
-handler = Mangum(app)
