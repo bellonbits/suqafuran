@@ -7,12 +7,10 @@ const getBaseUrl = () => {
     if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
 
     const isDev = import.meta.env.DEV;
-    const PROD_API_URL = 'http://143.198.30.249:8888/api/v1';
-    const LOCAL_API_URL = 'http://172.20.10.3:8000/api/v1';
+    const PROD_API_URL = 'https://suqafuran.vercel.app/api/v1';
+    const LOCAL_API_URL = 'https://suqafuran.vercel.app/api/v1';
 
     if (Capacitor.isNativePlatform()) {
-        // Use the computer's local Wi-Fi IP for all native development
-        // This works for both emulators and physical phones on the same network
         return isDev ? LOCAL_API_URL : PROD_API_URL;
     }
 
