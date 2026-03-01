@@ -42,10 +42,10 @@ class Promotion(SQLModel, table=True):
     admin_notes: Optional[str] = None
     promotion_code: Optional[str] = Field(default=None, unique=True, index=True)
     approved_by: Optional[int] = Field(default=None, foreign_key="user.id")
-    approved_at: Optional[datetime] = None
+    approved_at: Optional[datetime] = Field(default=None)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    expires_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = Field(default=None)
     lipana_tx_id: Optional[str] = Field(default=None, index=True)  # Lipana transaction ID
 
 
@@ -56,4 +56,4 @@ class PromotionCode(SQLModel, table=True):
     listing_id: Optional[int] = Field(default=None, foreign_key="listing.id")
     plan_id: Optional[int] = Field(default=None, foreign_key="promotionplan.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    used_at: Optional[datetime] = None
+    used_at: Optional[datetime] = Field(default=None)

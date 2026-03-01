@@ -2,6 +2,7 @@
 fastapi>=0.111
 uvicorn[standard]
 gunicorn
+mangum
 
 # Database
 sqlmodel
@@ -28,6 +29,7 @@ httpx
 africastalking
 authlib
 itsdangerous
+appwrite
 
 # Config
 pydantic[email]

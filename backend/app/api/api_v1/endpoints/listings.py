@@ -9,6 +9,7 @@ from app.models.audit import AuditLog
 from app.core.config import settings
 import uuid
 import os
+from app.services.storage_service import storage_service
 
 router = APIRouter()
 
@@ -33,12 +34,12 @@ async def upload_image(
         raise HTTPException(status_code=400, detail="File too large")
     
     filename = f"{uuid.uuid4()}.{extension}"
-    file_path = os.path.join(settings.UPLOAD_DIR, filename)
     
-    with open(file_path, "wb") as f:
-        f.write(contents)
-    
-    return {"filename": filename, "url": f"/api/v1/listings/images/{filename}"}
+    try:
+        url = await storage_service.upload_file(contents, filename)
+        return {"filename": filename, "url": url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")
 
 
 @router.post("/upload-multiple")
@@ -61,12 +62,13 @@ async def upload_multiple_images(
             continue
             
         filename = f"{uuid.uuid4()}.{extension}"
-        file_path = os.path.join(settings.UPLOAD_DIR, filename)
         
-        with open(file_path, "wb") as f:
-            f.write(contents)
-        
-        results.append({"filename": filename, "url": f"/api/v1/listings/images/{filename}"})
+        try:
+            url = await storage_service.upload_file(contents, filename)
+            results.append({"filename": filename, "url": url})
+        except Exception as e:
+            # For multiple uploads, we might just skip the failed ones or log them
+            continue
     
     return results
 
