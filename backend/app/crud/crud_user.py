@@ -36,7 +36,15 @@ def authenticate(
     user = get_user_by_email(db, email=email)
     # If not found, try by phone (treating email param as username/phone)
     if not user:
-        user = get_user_by_phone(db, phone=email)
+        # Normalize phone if it looks like a phone number (e.g. starts with digit or +)
+        phone_to_check = email
+        if email and (email.strip().startswith(('0', '+', '254'))):
+            try:
+                from app.services.africastalking_service import africastalking_service
+                phone_to_check = africastalking_service.normalize_phone(email)
+            except Exception:
+                pass
+        user = get_user_by_phone(db, phone=phone_to_check)
     
     if not user:
         return None

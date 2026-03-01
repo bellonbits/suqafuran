@@ -32,7 +32,7 @@ const LandingPage: React.FC = () => {
     return (
         <PublicLayout>
             {/* Hero Section - Jiji Style with Bright Blue 300 */}
-            <section className="relative bg-primary-300 pt-12 pb-20 z-30 overflow-hidden">
+            <section className="relative bg-primary-300 pt-12 pb-20 z-30">
                 <div className="container mx-auto px-4 h-full relative z-10 flex flex-col items-center">
                     <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-8 tracking-tight drop-shadow-sm">
                         What are you looking for?

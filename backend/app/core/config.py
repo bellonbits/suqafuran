@@ -28,6 +28,12 @@ class Settings(BaseSettings):
     LIPANA_WEBHOOK_SECRET: str = ""
     KES_CONVERSION_RATE: float = 1.0  # Treating DB prices as native KES
     
+    # APPWRITE
+    APPWRITE_ENDPOINT: str = "https://cloud.appwrite.io/v1"
+    APPWRITE_PROJECT_ID: Optional[str] = None
+    APPWRITE_API_KEY: Optional[str] = None
+    APPWRITE_BUCKET_ID: Optional[str] = None
+    
     # ENVIRONMENT
     ENVIRONMENT: str = "development"  # development, staging, production
     

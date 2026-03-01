@@ -16,9 +16,9 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
     imageCaption = "Connecting Africa, One Listing at a Time."
 }) => {
     return (
-        <div className="fixed inset-0 w-full h-full flex bg-gray-50 text-gray-900 overflow-hidden">
+        <div className="min-h-screen w-full flex flex-col lg:flex-row bg-gray-50 text-gray-900">
             {/* Left Side - Image/Visuals (Hidden on mobile) */}
-            <div className="hidden lg:flex lg:w-1/2 relative p-4">
+            <div className="hidden lg:flex lg:w-1/2 relative p-4 lg:fixed lg:inset-y-0 lg:left-0">
                 <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl bg-blue-300">
                     {/* Background Pattern with Icons */}
                     <div className="absolute inset-0 opacity-10">
@@ -60,7 +60,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
                 </div>
             </div>
 
-            <div className="flex-1 flex flex-col justify-center items-center px-6 lg:px-20 py-6 relative overflow-y-auto bg-white">
+            <div className="flex-1 flex flex-col justify-start lg:justify-center items-center px-6 lg:px-20 py-12 lg:py-6 relative bg-white lg:ml-[50%]">
                 <div className="w-full max-w-[440px] space-y-6 pb-6">
                     {/* Mobile Logo */}
                     <div className="lg:hidden mb-6 flex justify-center">
