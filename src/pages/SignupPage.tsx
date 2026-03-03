@@ -49,13 +49,14 @@ const SignupPage: React.FC = () => {
             // On success, navigate to verification page
             navigate(`/phone-verification?phone=${encodeURIComponent(formData.phone)}`);
         } catch (err: any) {
-            console.error('Signup Error Debug:', {
+            console.error('Signup Error Debug:', JSON.stringify({
                 message: err.message,
                 config_url: err.config?.url,
                 config_baseURL: err.config?.baseURL,
                 code: err.code,
-                status: err.response?.status
-            });
+                status: err.response?.status,
+                data: err.response?.data,
+            }));
             let message = 'Failed to create account. Please try again.';
             
             if (err.response) {

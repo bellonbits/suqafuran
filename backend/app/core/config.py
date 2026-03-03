@@ -88,7 +88,7 @@ class Settings(BaseSettings):
     # SECURITY
     RATE_LIMIT_PER_MINUTE: int = 60
     RATE_LIMIT_PER_HOUR: int = 1000
-    CORS_ORIGINS: Any = ["http://localhost:5173", "http://localhost", "https://localhost", "capacitor://localhost", "https://suqafuran.vercel.app"]
+    CORS_ORIGINS: Any = ["http://localhost:5173", "http://localhost", "https://localhost", "capacitor://localhost", "https://suqafuran.vercel.app", "http://143.198.30.249:8888", "http://143.198.30.249", "http://api.guri24.com:8888", "http://api.guri24.com"]
     
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

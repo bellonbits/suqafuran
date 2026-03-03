@@ -47,18 +47,23 @@ class CRUDMessage:
         results = db.exec(statement).all()
         
         conversations = {}
+        unread_counts: dict = {}
         for msg, user_obj in results:
-            other_user_id = user_obj.id
-            if other_user_id not in conversations:
-                conversations[other_user_id] = {
-                    "other_user_id": other_user_id,
+            other_id = user_obj.id
+            if other_id not in conversations:
+                conversations[other_id] = {
+                    "other_user_id": other_id,
                     "other_user_name": user_obj.full_name,
-                    "is_verified": user_obj.is_verified,
+                    "other_user_avatar": user_obj.avatar_url,
                     "last_message": msg.content,
-                    "created_at": msg.created_at,
-                    "listing_id": msg.listing_id
+                    "last_message_at": msg.created_at.isoformat() if msg.created_at else None,
+                    "unread_count": 0,
+                    "listing_id": msg.listing_id,
                 }
-        
+            # Count unread messages sent to the current user
+            if msg.receiver_id == user_id and not msg.is_read:
+                conversations[other_id]["unread_count"] = conversations[other_id].get("unread_count", 0) + 1
+
         return list(conversations.values())
 
 crud_message = CRUDMessage()
