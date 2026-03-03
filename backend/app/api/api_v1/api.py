@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.api_v1.endpoints import auth, users, listings, admin, favorites, notifications, dashboard, verifications, wallet, boosts, interactions, meetings, deals, trust_ops, promotions, login, mobile_money, audit, kh
+from app.api.api_v1.endpoints import auth, users, listings, admin, favorites, notifications, dashboard, verifications, wallet, boosts, interactions, meetings, deals, trust_ops, promotions, login, mobile_money, audit, kh, messages
 
 api_router = APIRouter()
 api_router.include_router(login.router, tags=["login"])
@@ -7,7 +7,7 @@ api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(listings.router, prefix="/listings", tags=["listings"])
 api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
-# api_router.include_router(messages.router, prefix="/messages", tags=["messages"]) # Disabled for MVP
+api_router.include_router(messages.router, prefix="/messages", tags=["messages"])
 api_router.include_router(favorites.router, prefix="/favorites", tags=["favorites"])
 api_router.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
 api_router.include_router(verifications.router, prefix="/verifications", tags=["verifications"])

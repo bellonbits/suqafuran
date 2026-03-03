@@ -1,9 +1,11 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useState, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { AdminLayout } from './layouts/AdminLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SplashScreen } from './components/SplashScreen';
+import { OnboardingScreen } from './components/OnboardingScreen';
 
 // Helper for named exports
 const lazyNamed = (importFn: () => Promise<any>, name: string) =>
@@ -44,10 +46,25 @@ const AgentDashboard = lazy(() => import('./pages/agent/AgentDashboard'));
 
 const queryClient = new QueryClient();
 
+type AppPhase = 'splash' | 'onboarding' | 'app';
+
 const App: React.FC = () => {
+  const onboardingSeen = localStorage.getItem('suqafuran-onboarding-seen') === '1';
+  const [phase, setPhase] = useState<AppPhase>('splash');
+
+  const handleSplashDone = useCallback(() => {
+    setPhase(onboardingSeen ? 'app' : 'onboarding');
+  }, [onboardingSeen]);
+
+  const handleOnboardingDone = useCallback(() => {
+    setPhase('app');
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        {phase === 'splash' && <SplashScreen onDone={handleSplashDone} />}
+        {phase === 'onboarding' && <OnboardingScreen onDone={handleOnboardingDone} />}
         <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
           <Routes>
             <Route path="/" element={<LandingPage />} />

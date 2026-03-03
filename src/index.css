@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+/* Safe area insets for Capacitor (Android/iOS notch & status bar) */
+html, body {
+  padding-top: env(safe-area-inset-top);
+  padding-top: constant(safe-area-inset-top);
+}
+
+/* Sticky/fixed headers must account for safe area */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+  padding-top: constant(safe-area-inset-top);
+}
+
 @theme {
   --color-primary-50: #f0f7fb;
   --color-primary-100: #e0f0f7;
@@ -40,11 +52,18 @@
 
 html,
 body {
-  @apply overflow-x-hidden w-full;
+  @apply w-full;
   min-height: 100vh;
   margin: 0;
   padding: 0;
   -webkit-overflow-scrolling: touch;
+}
+
+#root {
+  @apply w-full overflow-x-hidden;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 body {
