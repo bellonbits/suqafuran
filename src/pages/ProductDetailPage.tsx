@@ -70,19 +70,166 @@ const ProductDetailPage: React.FC = () => {
 
     return (
         <PublicLayout>
-            <div className="bg-white border-b border-gray-100">
-                <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-                    <button onClick={() => window.history.back()} className="flex items-center text-sm text-gray-600 hover:text-primary-600">
-                        <ChevronLeft className="h-4 w-4 mr-1" />
-                        Back
+            {/* ── Mobile view: reference-style layout ───────────────── */}
+            <div className="lg:hidden bg-[#f7f9fc] min-h-screen pb-28">
+
+                {/* Floating top bar */}
+                <div className="flex items-center justify-between px-4 pt-4 pb-2">
+                    <button
+                        onClick={() => window.history.back()}
+                        className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center active:scale-95 transition-transform"
+                    >
+                        <ChevronLeft className="h-5 w-5 text-gray-700" />
                     </button>
-                    <div className="flex gap-4">
-                        <button className="text-gray-500 hover:text-primary-600"><Share2 className="h-5 w-5" /></button>
-                        <button className="text-gray-500 hover:text-red-500"><Heart className="h-5 w-5" /></button>
+                    <div className="flex gap-2">
+                        <button className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center active:scale-95 transition-transform">
+                            <Heart className="h-4 w-4 text-gray-600" />
+                        </button>
+                        <button className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center active:scale-95 transition-transform">
+                            <Share2 className="h-4 w-4 text-gray-600" />
+                        </button>
                     </div>
+                </div>
+
+                {/* Image card — cream background like reference */}
+                <div className="mx-4 mb-4 rounded-3xl overflow-hidden bg-[#f0ede8]" style={{ aspectRatio: '1/1' }}>
+                    <img
+                        src={getImageUrl(images[activeImage])}
+                        alt={displayAd.title}
+                        className="w-full h-full object-contain p-4"
+                    />
+                </div>
+
+                {/* Thumbnail strip */}
+                {images.length > 1 && (
+                    <div className="flex gap-2 px-4 mb-4">
+                        {images.map((img: string, i: number) => (
+                            <button
+                                key={i}
+                                onClick={() => setActiveImage(i)}
+                                className={cn(
+                                    'w-16 h-16 rounded-2xl overflow-hidden bg-[#f0ede8] shrink-0 transition-all active:scale-95',
+                                    activeImage === i ? 'ring-2 ring-primary-500 ring-offset-1' : 'opacity-60'
+                                )}
+                            >
+                                <img src={getImageUrl(img)} alt="" className="w-full h-full object-contain p-1" />
+                            </button>
+                        ))}
+                    </div>
+                )}
+
+                {/* Product info card */}
+                <div className="mx-4 bg-white rounded-3xl p-5 shadow-sm mb-4">
+                    {/* Title + badge */}
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                        <h1 className="text-xl font-extrabold text-gray-900 leading-tight flex-1">{displayAd.title}</h1>
+                        {displayAd.boost_level && displayAd.boost_level > 0 && (
+                            <span className="shrink-0 bg-primary-100 text-primary-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                                Featured
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Price */}
+                    <div className="flex items-baseline gap-2 mb-4">
+                        <span className="text-2xl font-extrabold text-gray-900">
+                            {formatConvertedPrice(displayAd.price, displayAd.currency, targetCurrency)}
+                        </span>
+                    </div>
+
+                    {/* Meta */}
+                    <div className="flex flex-wrap gap-3 text-xs text-gray-500 mb-4">
+                        <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{displayAd.location}</span>
+                        <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />Posted recently</span>
+                    </div>
+
+                    {/* KH PIN */}
+                    {displayAd.attributes?.kh_pin && (
+                        <div className="flex items-center gap-3 p-3 bg-primary-50 rounded-2xl mb-4">
+                            <Navigation className="h-4 w-4 text-primary-500 shrink-0" />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[10px] font-bold text-primary-600 uppercase tracking-wider">Digital Address</p>
+                                <p className="text-sm font-bold text-gray-900 truncate">{displayAd.attributes.kh_pin}</p>
+                            </div>
+                            <Link to="/kh" className="text-[10px] font-bold text-primary-600 bg-white px-2 py-1 rounded-lg border border-primary-100">Map</Link>
+                        </div>
+                    )}
+
+                    {/* Description */}
+                    <div>
+                        <h3 className="font-bold text-sm text-gray-900 mb-2">Description</h3>
+                        <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{displayAd.description}</p>
+                        {displayAd.description && displayAd.description.length > 120 && (
+                            <button className="text-primary-500 text-sm font-semibold mt-1">…See more</button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Seller card */}
+                <div className="mx-4 bg-white rounded-3xl p-4 shadow-sm mb-4 flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold text-lg overflow-hidden shrink-0">
+                        {displayAd.owner?.avatar_url ? (
+                            <img src={getImageUrl(displayAd.owner.avatar_url)} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                            displayAd.owner?.full_name?.charAt(0) || 'S'
+                        )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="font-bold text-gray-900 text-sm truncate">{displayAd.owner?.full_name || 'Seller'}</p>
+                        {displayAd.owner?.is_verified && (
+                            <div className="flex items-center gap-1 text-primary-600">
+                                <ShieldCheck className="h-3 w-3" />
+                                <span className="text-[10px] font-bold">Verified Seller</span>
+                            </div>
+                        )}
+                    </div>
+                    <Link to={`/seller/${displayAd.owner_id}`} className="text-xs font-bold text-primary-500 bg-primary-50 px-3 py-1.5 rounded-full">View</Link>
+                </div>
+
+                {/* Safety tip */}
+                <div className="mx-4 bg-amber-50 rounded-2xl p-3 flex gap-2 items-start">
+                    <Info className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-800 leading-relaxed">
+                        <strong>Safety tip:</strong> Never pay in advance. Meet in a public place.
+                    </p>
                 </div>
             </div>
 
+            {/* Mobile sticky CTA */}
+            <div
+                className="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 z-40 flex gap-3 px-4 pt-3"
+                style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}
+            >
+                <button
+                    onClick={async () => {
+                        setShowPhone(true);
+                        if (displayAd) {
+                            try { await interactionService.logInteraction(displayAd.id, InteractionType.CALL); } catch {}
+                        }
+                    }}
+                    className="flex-1 h-12 rounded-2xl bg-gray-100 text-gray-800 font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                >
+                    <Phone className="h-4 w-4" />
+                    {showPhone ? (displayAd.owner?.phone || '+252 6X XXX XXX') : 'Call'}
+                </button>
+                <a
+                    href={`https://wa.me/${displayAd.owner?.phone?.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi, I'm interested in: ${displayAd.title}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-[2] h-12 rounded-2xl bg-gray-900 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                    onClick={async () => {
+                        if (displayAd) {
+                            try { await interactionService.logInteraction(displayAd.id, InteractionType.WHATSAPP); } catch {}
+                        }
+                    }}
+                >
+                    <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" /></svg>
+                    Contact Seller
+                </a>
+            </div>
+
+            {/* ── Desktop view (unchanged structure) ─────────────────── */}
+            <div className="hidden lg:block">
             <div className="container mx-auto px-4 py-8 pb-32 md:pb-8">
                 <div className="grid lg:grid-cols-3 gap-8">
                     {/* Main Content Column */}
@@ -304,8 +451,8 @@ const ProductDetailPage: React.FC = () => {
                 </section>
             </div>
 
-            {/* Mobile Sticky Action Bar */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden z-40 flex gap-3 safe-area-bottom shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+            {/* Desktop sticky action bar (hidden on mobile — handled above) */}
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 hidden z-40 flex gap-3 safe-area-bottom shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
                 <Button
                     className={cn(
                         "flex-1 gap-2 h-12 rounded-xl text-sm font-bold shadow-none border transition-all",
@@ -348,6 +495,7 @@ const ProductDetailPage: React.FC = () => {
                     WhatsApp
                 </a>
             </div>
+            </div> {/* end desktop wrapper */}
         </PublicLayout>
     );
 };

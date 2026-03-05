@@ -3,77 +3,22 @@ import { useNavigate } from 'react-router-dom';
 
 const SLIDES = [
   {
-    bg: 'linear-gradient(160deg, #7dcce9 0%, #5ab8d6 100%)',
-    icon: (
-      <svg viewBox="0 0 120 120" fill="none" style={{ width: 200, height: 200 }}>
-        <circle cx="60" cy="60" r="55" fill="rgba(255,255,255,0.15)" />
-        <rect x="25" y="35" width="70" height="55" rx="8" fill="white" />
-        <rect x="33" y="44" width="30" height="22" rx="4" fill="#7dcce9" />
-        <rect x="33" y="71" width="20" height="4" rx="2" fill="#e2e8f0" />
-        <rect x="33" y="79" width="14" height="3" rx="1.5" fill="#f57e20" />
-        <rect x="69" y="44" width="18" height="3" rx="1.5" fill="#e2e8f0" />
-        <rect x="69" y="51" width="14" height="3" rx="1.5" fill="#e2e8f0" />
-        <rect x="69" y="58" width="16" height="3" rx="1.5" fill="#e2e8f0" />
-        <rect x="69" y="71" width="22" height="3" rx="1.5" fill="#e2e8f0" />
-        <rect x="69" y="78" width="18" height="3" rx="1.5" fill="#e2e8f0" />
-        {/* Shopping bag */}
-        <circle cx="85" cy="30" r="14" fill="#f57e20" />
-        <path d="M79 30 Q79 25 85 25 Q91 25 91 30" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-        <rect x="77" y="30" width="16" height="12" rx="2" fill="white" opacity="0.9" />
-        <path d="M82 35 L84 37 L88 33" stroke="#f57e20" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
-    title: 'Discover Great Deals',
-    subtitle: 'Browse thousands of listings in your city — electronics, fashion, cars, and more.',
-    accent: '#5ab8d6',
+    gradient: 'linear-gradient(160deg, #7dcce9 0%, #4aafc8 60%, #2d8fab 100%)',
+    pattern: '#5ab8d6',
+    title: 'Discover Great\nDeals Near You',
+    subtitle: 'Browse thousands of listings — electronics, fashion, cars, furniture, and more.',
   },
   {
-    bg: 'linear-gradient(160deg, #f57e20 0%, #e06010 100%)',
-    icon: (
-      <svg viewBox="0 0 120 120" fill="none" style={{ width: 200, height: 200 }}>
-        <circle cx="60" cy="60" r="55" fill="rgba(255,255,255,0.15)" />
-        {/* Phone */}
-        <rect x="35" y="28" width="50" height="65" rx="8" fill="white" />
-        <rect x="40" y="35" width="40" height="28" rx="4" fill="#7dcce9" opacity="0.3" />
-        {/* Camera icon */}
-        <circle cx="60" cy="49" r="10" fill="#7dcce9" opacity="0.6" />
-        <circle cx="60" cy="49" r="6" fill="white" opacity="0.8" />
-        {/* Form lines */}
-        <rect x="40" y="69" width="40" height="4" rx="2" fill="#e2e8f0" />
-        <rect x="40" y="77" width="28" height="4" rx="2" fill="#e2e8f0" />
-        {/* Price tag */}
-        <circle cx="82" cy="35" r="14" fill="#f57e20" />
-        <text x="82" y="40" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">$</text>
-        {/* Upload arrow */}
-        <circle cx="38" cy="90" r="10" fill="#f57e20" />
-        <path d="M38 94 L38 87 M35 90 L38 87 L41 90" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
-    title: 'Sell Anything Easily',
-    subtitle: 'Post your ad in under 2 minutes. Upload photos, set your price, and start getting calls.',
-    accent: '#e06010',
+    gradient: 'linear-gradient(160deg, #1e3a4a 0%, #2d5a70 60%, #7dcce9 100%)',
+    pattern: '#2d5a70',
+    title: 'Sell Anything\nIn Minutes',
+    subtitle: 'Post an ad in under 2 minutes. Upload photos, set your price, get buyers.',
   },
   {
-    bg: 'linear-gradient(160deg, #1e293b 0%, #334155 100%)',
-    icon: (
-      <svg viewBox="0 0 120 120" fill="none" style={{ width: 200, height: 200 }}>
-        <circle cx="60" cy="60" r="55" fill="rgba(255,255,255,0.08)" />
-        {/* Shield */}
-        <path d="M60 25 L85 36 L85 58 Q85 78 60 90 Q35 78 35 58 L35 36 Z" fill="#7dcce9" opacity="0.9" />
-        <path d="M60 32 L78 41 L78 57 Q78 72 60 82 Q42 72 42 57 L42 41 Z" fill="white" opacity="0.15" />
-        {/* Check */}
-        <path d="M50 60 L57 67 L72 50" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-        {/* Stars */}
-        <circle cx="88" cy="32" r="9" fill="#f57e20" />
-        <text x="88" y="36.5" textAnchor="middle" fill="white" fontSize="11">★</text>
-        {/* Verified badge */}
-        <circle cx="32" cy="82" r="9" fill="#22c55e" />
-        <path d="M28 82 L31 85 L36 79" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
-    title: 'Safe & Trusted',
-    subtitle: 'All sellers are verified with ID. Ratings, reviews and trust scores keep you protected.',
-    accent: '#334155',
+    gradient: 'linear-gradient(160deg, #0f2027 0%, #1a3a4a 50%, #2d6a7a 100%)',
+    pattern: '#1a3a4a',
+    title: 'Safe, Verified\n& Trusted',
+    subtitle: 'Verified sellers, trusted ratings and buyer protection — so you can deal with confidence.',
   },
 ];
 
@@ -89,11 +34,6 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onDone }) =>
   const finish = () => {
     localStorage.setItem('suqafuran-onboarding-seen', '1');
     onDone();
-  };
-
-  const next = () => {
-    if (current < SLIDES.length - 1) setCurrent(current + 1);
-    else finish();
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -117,134 +57,258 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onDone }) =>
         position: 'fixed',
         inset: 0,
         zIndex: 9998,
-        background: slide.bg,
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        transition: 'background 0.5s ease',
-        paddingBottom: 'env(safe-area-inset-bottom, 24px)',
+        background: slide.gradient,
+        transition: 'background 0.6s ease',
         userSelect: 'none',
       }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Skip button */}
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', padding: '56px 24px 0' }}>
-        {!isLast && (
-          <button
-            onClick={finish}
+      {/* Decorative circles (depth effect) */}
+      <div style={{
+        position: 'absolute',
+        top: '-15%',
+        right: '-20%',
+        width: '70vw',
+        height: '70vw',
+        borderRadius: '50%',
+        background: 'rgba(255,255,255,0.06)',
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute',
+        top: '10%',
+        left: '-25%',
+        width: '55vw',
+        height: '55vw',
+        borderRadius: '50%',
+        background: 'rgba(255,255,255,0.04)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* Top row: progress bars + skip */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '56px 24px 0',
+        zIndex: 1,
+      }}>
+        {SLIDES.map((_, i) => (
+          <div
+            key={i}
             style={{
-              background: 'rgba(255,255,255,0.25)',
-              border: 'none',
-              borderRadius: 20,
-              color: 'white',
-              padding: '6px 18px',
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: 'pointer',
+              flex: 1,
+              height: 4,
+              borderRadius: 2,
+              background: i <= current ? 'white' : 'rgba(255,255,255,0.3)',
+              transition: 'background 0.4s ease',
             }}
-          >
-            Skip
-          </button>
-        )}
+          />
+        ))}
+        <button
+          onClick={finish}
+          style={{
+            background: 'rgba(255,255,255,0.2)',
+            border: 'none',
+            borderRadius: 20,
+            color: 'white',
+            padding: '6px 16px',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: 'pointer',
+            marginLeft: 8,
+            backdropFilter: 'blur(4px)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Skip
+        </button>
       </div>
 
-      {/* Illustration */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '0 24px',
-          transition: 'all 0.35s ease',
-        }}
-        key={current}
-      >
-        {slide.icon}
+      {/* Illustration area (centered) */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '32px 24px',
+      }}>
+        {/* Abstract product illustration */}
+        <svg viewBox="0 0 280 280" fill="none" style={{ width: '75vw', maxWidth: 300 }} key={current}>
+          {/* Background card */}
+          <rect x="20" y="40" width="240" height="200" rx="24" fill="rgba(255,255,255,0.12)" />
+          <rect x="36" y="56" width="208" height="130" rx="16" fill="rgba(255,255,255,0.15)" />
+
+          {current === 0 && (
+            <>
+              {/* Discovery / listings */}
+              <rect x="52" y="72" width="80" height="80" rx="12" fill="rgba(255,255,255,0.9)" />
+              <rect x="60" y="80" width="64" height="44" rx="8" fill="#7dcce9" opacity="0.5" />
+              <circle cx="92" cy="102" r="16" fill="#7dcce9" opacity="0.8" />
+              <circle cx="92" cy="102" r="9" fill="white" opacity="0.9" />
+              <rect x="60" y="132" width="40" height="5" rx="2.5" fill="#64748b" opacity="0.5" />
+              <rect x="60" y="141" width="28" height="4" rx="2" fill="#f57e20" opacity="0.7" />
+
+              <rect x="148" y="72" width="80" height="80" rx="12" fill="rgba(255,255,255,0.9)" />
+              <rect x="156" y="80" width="64" height="44" rx="8" fill="#f57e20" opacity="0.3" />
+              <circle cx="188" cy="102" r="16" fill="#f57e20" opacity="0.6" />
+              <circle cx="188" cy="102" r="9" fill="white" opacity="0.9" />
+              <rect x="156" y="132" width="40" height="5" rx="2.5" fill="#64748b" opacity="0.5" />
+              <rect x="156" y="141" width="32" height="4" rx="2" fill="#7dcce9" opacity="0.7" />
+
+              {/* Search bar */}
+              <rect x="52" y="168" width="176" height="32" rx="16" fill="rgba(255,255,255,0.9)" />
+              <circle cx="72" cy="184" r="7" stroke="#94a3b8" strokeWidth="2" fill="none" />
+              <line x1="77" y1="189" x2="81" y2="193" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" />
+              <rect x="88" y="181" width="80" height="6" rx="3" fill="#e2e8f0" />
+            </>
+          )}
+
+          {current === 1 && (
+            <>
+              {/* Sell / camera */}
+              <rect x="72" y="68" width="136" height="110" rx="16" fill="rgba(255,255,255,0.9)" />
+              <rect x="84" y="80" width="112" height="60" rx="10" fill="#7dcce9" opacity="0.25" />
+              <circle cx="140" cy="110" r="24" fill="rgba(125,204,233,0.4)" />
+              <circle cx="140" cy="110" r="16" fill="white" opacity="0.9" />
+              <circle cx="140" cy="110" r="10" fill="#7dcce9" opacity="0.7" />
+              <rect x="84" y="150" width="60" height="6" rx="3" fill="#e2e8f0" />
+              <rect x="84" y="160" width="40" height="5" rx="2.5" fill="#e2e8f0" />
+
+              {/* Price badge */}
+              <circle cx="192" cy="80" r="22" fill="#f57e20" />
+              <text x="192" y="85" textAnchor="middle" fill="white" fontSize="16" fontWeight="bold">$</text>
+
+              {/* Upload arrow */}
+              <circle cx="88" cy="190" r="18" fill="rgba(255,255,255,0.25)" />
+              <path d="M88 198 L88 184 M83 189 L88 184 L93 189" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </>
+          )}
+
+          {current === 2 && (
+            <>
+              {/* Trust / shield */}
+              <path d="M140 66 L190 88 L190 126 Q190 160 140 180 Q90 160 90 126 L90 88 Z" fill="rgba(255,255,255,0.9)" />
+              <path d="M140 80 L174 96 L174 122 Q174 148 140 164 Q106 148 106 122 L106 96 Z" fill="#7dcce9" opacity="0.35" />
+              <path d="M124 126 L134 136 L158 110" stroke="#7dcce9" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+
+              {/* Star badge */}
+              <circle cx="196" cy="80" r="20" fill="#f57e20" />
+              <text x="196" y="86" textAnchor="middle" fill="white" fontSize="18">★</text>
+
+              {/* Verified badge */}
+              <circle cx="84" cy="178" r="18" fill="#22c55e" />
+              <path d="M76 178 L81 183 L92 172" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+
+              {/* Users */}
+              <circle cx="140" cy="202" r="10" fill="rgba(255,255,255,0.5)" />
+              <circle cx="156" cy="202" r="10" fill="rgba(255,255,255,0.4)" />
+              <circle cx="124" cy="202" r="10" fill="rgba(255,255,255,0.4)" />
+            </>
+          )}
+        </svg>
       </div>
 
-      {/* Text content */}
-      <div style={{ width: '100%', padding: '0 32px 32px' }}>
+      {/* Bottom content */}
+      <div style={{
+        padding: '0 28px',
+        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 28px)',
+        zIndex: 1,
+      }}>
+        {/* Title */}
         <h1 style={{
           color: 'white',
-          fontSize: 28,
+          fontSize: 32,
           fontWeight: 800,
-          margin: '0 0 12px',
-          lineHeight: 1.2,
-          textAlign: 'center',
+          margin: '0 0 14px',
+          lineHeight: 1.15,
+          letterSpacing: -0.5,
+          whiteSpace: 'pre-line',
         }}>
           {slide.title}
         </h1>
+
+        {/* Subtitle */}
         <p style={{
-          color: 'rgba(255,255,255,0.82)',
+          color: 'rgba(255,255,255,0.75)',
           fontSize: 15,
-          lineHeight: 1.6,
-          textAlign: 'center',
+          lineHeight: 1.65,
           margin: '0 0 36px',
+          maxWidth: 320,
         }}>
           {slide.subtitle}
         </p>
 
-        {/* Dot indicators */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 32 }}>
-          {SLIDES.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrent(i)}
-              style={{
-                width: i === current ? 24 : 8,
-                height: 8,
-                borderRadius: 4,
-                background: i === current ? 'white' : 'rgba(255,255,255,0.4)',
-                border: 'none',
-                padding: 0,
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-              }}
-            />
-          ))}
-        </div>
-
-        {/* CTA button */}
+        {/* Sign In button (light) */}
         <button
-          onClick={next}
+          onClick={() => { finish(); navigate('/login'); }}
           style={{
             width: '100%',
             padding: '16px',
-            borderRadius: 14,
-            background: 'white',
-            color: isLast ? '#1e293b' : slide.accent,
-            fontSize: 17,
+            borderRadius: 100,
+            background: 'rgba(255,255,255,0.18)',
+            border: '1.5px solid rgba(255,255,255,0.4)',
+            color: 'white',
+            fontSize: 16,
             fontWeight: 700,
-            border: 'none',
             cursor: 'pointer',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+            marginBottom: 12,
+            backdropFilter: 'blur(8px)',
+            letterSpacing: 0.2,
           }}
         >
-          {isLast ? 'Get Started' : 'Next'}
+          Sign In
         </button>
 
-        {isLast && (
+        {/* Get Started button (dark) */}
+        <button
+          onClick={() => { if (isLast) { finish(); navigate('/signup'); } else { setCurrent(c => c + 1); } }}
+          style={{
+            width: '100%',
+            padding: '16px',
+            borderRadius: 100,
+            background: '#0f172a',
+            border: 'none',
+            color: 'white',
+            fontSize: 16,
+            fontWeight: 700,
+            cursor: 'pointer',
+            marginBottom: 20,
+            boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+            letterSpacing: 0.2,
+          }}
+        >
+          {isLast ? 'Get Started' : 'Continue'}
+        </button>
+
+        {/* Register link */}
+        <p style={{
+          textAlign: 'center',
+          color: 'rgba(255,255,255,0.6)',
+          fontSize: 14,
+          margin: 0,
+          paddingBottom: 8,
+        }}>
+          Don't have an account?{' '}
           <button
-            onClick={() => { finish(); navigate('/login'); }}
+            onClick={() => { finish(); navigate('/signup'); }}
             style={{
-              width: '100%',
-              padding: '14px',
-              borderRadius: 14,
-              background: 'transparent',
-              border: '2px solid rgba(255,255,255,0.5)',
+              background: 'none',
+              border: 'none',
               color: 'white',
-              fontSize: 15,
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: 'pointer',
-              marginTop: 12,
+              textDecoration: 'underline',
+              fontSize: 14,
+              padding: 0,
             }}
           >
-            Sign In
+            Register
           </button>
-        )}
+        </p>
       </div>
     </div>
   );

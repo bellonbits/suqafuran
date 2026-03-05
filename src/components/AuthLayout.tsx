@@ -62,9 +62,17 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
 
             <div className="flex-1 flex flex-col justify-start lg:justify-center items-center px-6 lg:px-20 py-12 lg:py-6 relative bg-white lg:ml-[50%]">
                 <div className="w-full max-w-[440px] space-y-6 pb-6">
-                    {/* Mobile Logo */}
-                    <div className="lg:hidden mb-6 flex justify-center">
-                        <Logo size="md" />
+                    {/* Mobile top bar — back button + logo */}
+                    <div className="lg:hidden flex items-center justify-between mb-4">
+                        <Link
+                            to="/"
+                            className="flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-primary-500 active:scale-95 transition-all bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-full"
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                            Back
+                        </Link>
+                        <Logo size="sm" />
+                        <div className="w-16" /> {/* spacer */}
                     </div>
                     <div className="space-y-3 text-center lg:text-left">
                         <h1 className="text-2xl font-bold tracking-tight text-gray-900">

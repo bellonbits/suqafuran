@@ -269,28 +269,54 @@ const AdminCategoriesPage: React.FC = () => {
 
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 <div className="space-y-4">
-                                    {/* Image Upload */}
-                                    <div className="flex items-center gap-6 p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                                        <div className="w-20 h-20 rounded-2xl bg-white shadow-sm flex items-center justify-center overflow-hidden border border-gray-100 relative group">
-                                            {formData.image_url ? (
-                                                <img src={getImageUrl(formData.image_url)} alt="" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <ImageIcon className="w-8 h-8 text-gray-200" />
-                                            )}
-                                            <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                                                <Upload className="w-6 h-6 text-white" />
-                                                <input type="file" className="hidden" onChange={handleImageUpload} accept="image/*" />
-                                            </label>
-                                            {isUploading && (
-                                                <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
-                                                    <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
+                                    {/* Image — Upload file OR paste URL */}
+                                    <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
+                                        <p className="text-sm font-bold text-gray-900">Category Image</p>
+                                        <div className="flex items-center gap-4">
+                                            {/* Preview circle */}
+                                            <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center overflow-hidden border border-gray-200 shrink-0 relative group">
+                                                {formData.image_url ? (
+                                                    <img src={formData.image_url} alt="" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <ImageIcon className="w-7 h-7 text-gray-200" />
+                                                )}
+                                                {isUploading && (
+                                                    <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                                                        <Loader2 className="w-5 w-5 animate-spin text-primary-600" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 space-y-2">
+                                                {/* Upload button */}
+                                                <label className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 w-full">
+                                                    <Upload className="w-4 h-4 text-primary-500 shrink-0" />
+                                                    Upload image file
+                                                    <input type="file" className="hidden" onChange={handleImageUpload} accept="image/*" />
+                                                </label>
+                                                <div className="flex items-center gap-2 text-xs text-gray-400">
+                                                    <div className="flex-1 h-px bg-gray-200" />
+                                                    <span>or paste URL</span>
+                                                    <div className="flex-1 h-px bg-gray-200" />
                                                 </div>
-                                            )}
+                                            </div>
                                         </div>
-                                        <div className="flex-1">
-                                            <p className="text-sm font-bold text-gray-900">Brand Image / Icon</p>
-                                            <p className="text-xs text-gray-500 mt-1">Recommended size: 400x400px. JPG, PNG accepted.</p>
-                                        </div>
+                                        {/* URL input */}
+                                        <input
+                                            type="url"
+                                            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 outline-none text-sm transition-all"
+                                            placeholder="https://images.unsplash.com/... or picsum.photos/..."
+                                            value={formData.image_url}
+                                            onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                                        />
+                                        {formData.image_url && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, image_url: '' })}
+                                                className="text-xs text-red-500 hover:underline flex items-center gap-1"
+                                            >
+                                                <X size={12} /> Remove image
+                                            </button>
+                                        )}
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
