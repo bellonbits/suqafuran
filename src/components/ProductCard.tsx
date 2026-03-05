@@ -42,11 +42,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <Link
             to={`/listing/${id}`}
             className={cn(
-                'group bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all flex flex-col',
+                'group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md active:scale-[0.98] transition-all flex flex-col',
                 className
             )}
         >
-            <div className="relative aspect-[4/5] sm:aspect-[4/3] overflow-hidden bg-gray-100">
+            <div className="relative aspect-[4/5] overflow-hidden bg-gray-100 rounded-2xl">
                 <img
                     src={getImageUrl(imageUrl)}
                     alt={title}
@@ -75,11 +75,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 </div>
 
                 <div className="absolute top-2 right-2 flex flex-col gap-1.5">
-                    {rating && (
-                        <div className="bg-white/90 backdrop-blur-sm text-gray-800 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
-                            {rating.toFixed(1)} ★
-                        </div>
-                    )}
                     <button
                         onClick={(e) => {
                             e.preventDefault();
@@ -99,21 +94,24 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </div>
 
             <div className="p-3 flex flex-col flex-1">
-                <div className="flex items-start justify-between mb-1">
-                    <h3 className="text-secondary-600 font-bold text-base sm:text-lg leading-tight truncate">
-                        {formatConvertedPrice(price, originalCurrency, targetCurrency)}
-                    </h3>
-                </div>
-
-                <p className="text-gray-800 text-sm font-medium line-clamp-2 mb-2 group-hover:text-primary-500 transition-colors">
+                <p className="text-gray-800 text-sm font-semibold line-clamp-2 mb-1.5 group-hover:text-primary-600 transition-colors leading-snug">
                     {title}
                 </p>
 
-                <div className="mt-auto flex items-center justify-between text-[11px] text-gray-500 mb-3">
-                    <div className="flex items-center gap-1 group/loc px-3">
-                        <MapPin className="h-3 w-3 shrink-0 group-hover/loc:text-secondary-500 transition-colors" />
-                        <span className="truncate">{location}</span>
-                    </div>
+                <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-secondary-600 font-extrabold text-base leading-tight">
+                        {formatConvertedPrice(price, originalCurrency, targetCurrency)}
+                    </h3>
+                    {rating && (
+                        <span className="text-[10px] font-bold text-amber-500 flex items-center gap-0.5">
+                            ★ {rating.toFixed(1)}
+                        </span>
+                    )}
+                </div>
+
+                <div className="flex items-center gap-1 text-[10px] text-gray-400 mb-2">
+                    <MapPin className="h-3 w-3 shrink-0" />
+                    <span className="truncate">{location}</span>
                 </div>
 
                 <div className="flex gap-1.5 p-2 mt-auto pt-0">

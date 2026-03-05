@@ -1,15 +1,13 @@
 @import "tailwindcss";
 
 /* Safe area insets for Capacitor (Android/iOS notch & status bar) */
+/* Do NOT pad html/body — the sticky header handles safe-area-inset-top itself */
 html, body {
-  padding-top: env(safe-area-inset-top);
-  padding-top: constant(safe-area-inset-top);
+  padding-top: 0 !important;
 }
 
-/* Sticky/fixed headers must account for safe area */
 .safe-top {
-  padding-top: env(safe-area-inset-top);
-  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 @theme {

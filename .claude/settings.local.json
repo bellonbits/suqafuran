@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 /c/Users/learn/Desktop/suqafuran/write_layout.py)",
+      "Bash(npm run build)"
+    ]
+  }
+}
