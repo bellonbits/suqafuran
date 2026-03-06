@@ -13,27 +13,21 @@ import { Button } from '../components/Button';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { LocationPickerModal } from '../components/LocationPickerModal';
 
-// picsum.photos — seed-based, always loads, no auth needed
-// Each seed gives a consistent unique photo every time
 const CATEGORY_IMG_MAP: Array<{ keywords: string[]; url: string }> = [
     { keywords: ['raashin', 'food', 'cunto', 'grocery', 'restau', 'eat', 'meal'],
-      url: 'https://picsum.photos/seed/grocery/200/200' },
+      url: 'https://img.freepik.com/free-vector/hand-drawn-flat-design-food-bank-illustration_23-2149344810.jpg?w=200&q=80' },
     { keywords: ['dhar', 'fashion', 'cloth', 'wear', 'dress', 'shoe'],
-      url: 'https://picsum.photos/seed/fashion/200/200' },
-    { keywords: ['dhul', 'property', 'real', 'estate', 'land', 'guri', 'rent', 'hous'],
-      url: 'https://picsum.photos/seed/house/200/200' },
+      url: 'https://img.freepik.com/free-vector/hand-drawn-thrift-store-illustration_23-2150052941.jpg?w=200&q=80' },
+    { keywords: ['dhul', 'property', 'real', 'estate', 'land', 'guri', 'rent', 'hous', 'farm', 'agri', 'beeraha'],
+      url: 'https://img.freepik.com/free-photo/sunny-meadow-landscape_1112-134.jpg?w=200&q=80' },
     { keywords: ['xool', 'animal', 'livestock', 'cattle', 'goat', 'sheep', 'geela'],
-      url: 'https://picsum.photos/seed/livestock/200/200' },
+      url: 'https://png.pngtree.com/png-clipart/20230913/original/pngtree-livestock-clipart-cartoon-farm-animals-and-their-family-portrait-vector-png-image_11076865.png' },
     { keywords: ['gaadii', 'car', 'vehicle', 'auto', 'motor', 'baabuur', 'truck'],
-      url: 'https://picsum.photos/seed/cars/200/200' },
+      url: 'https://img.freepik.com/free-vector/electric-transport-isometric-icons-set-with-electromobiles-buses-motorbikes-isolated-vector-illustration_1284-82376.jpg?w=200&q=80' },
     { keywords: ['koront', 'electr', 'phone', 'mobile', 'laptop', 'computer', 'tech'],
-      url: 'https://picsum.photos/seed/technology/200/200' },
-    { keywords: ['alaab', 'furnitur', 'guriga', 'household', 'seat', 'bed', 'living'],
-      url: 'https://picsum.photos/seed/furniture/200/200' },
-    { keywords: ['agri', 'farm', 'beeraha', 'crop', 'harvest', 'plant'],
-      url: 'https://picsum.photos/seed/farming/200/200' },
-    { keywords: ['tool', 'hardware', 'build', 'equip'],
-      url: 'https://picsum.photos/seed/tools/200/200' },
+      url: 'https://img.freepik.com/premium-photo/home-appliance-with-ribbons-discounts_252025-696.jpg?w=200&q=80' },
+    { keywords: ['alaab', 'furnitur', 'guriga', 'household', 'seat', 'bed', 'living', 'tool', 'hardware', 'build', 'equip'],
+      url: 'https://img.freepik.com/free-photo/garden-tools-isolated-white_93675-133336.jpg?w=200&q=80' },
     { keywords: ['job', 'work', 'shaqo', 'employ', 'career'],
       url: 'https://picsum.photos/seed/office/200/200' },
     { keywords: ['service', 'adeeg', 'repair', 'fix', 'clean', 'salon', 'beauty'],
@@ -79,7 +73,7 @@ const LandingPage: React.FC = () => {
             {/* ═══════════════════════════════════════════════
                 MOBILE LAYOUT
             ═══════════════════════════════════════════════ */}
-            <div className="lg:hidden bg-[#f7f9fc] min-h-screen">
+            <div className="lg:hidden bg-[#f7f9fc]">
 
                 {/* Hero headline */}
                 <div className="px-5 pt-6 pb-4">
@@ -112,7 +106,7 @@ const LandingPage: React.FC = () => {
                     <div className="flex gap-3 overflow-x-auto px-5 pb-2 hide-scrollbar">
                         {/* "All" chip */}
                         <button
-                            onClick={() => setActiveCategory(null)}
+                            onClick={() => { setActiveCategory(null); navigate('/search'); }}
                             className="flex flex-col items-center gap-1.5 shrink-0"
                         >
                             <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-95 ${
@@ -168,18 +162,18 @@ const LandingPage: React.FC = () => {
                     <div
                         onClick={() => navigate('/post-ad')}
                         className="relative overflow-hidden rounded-3xl p-5 active:scale-[0.98] transition-transform cursor-pointer"
-                        style={{ background: 'linear-gradient(135deg, #1e3a4a 0%, #2d6a7a 60%, #7dcce9 100%)' }}
+                        style={{ background: 'linear-gradient(135deg, #7dcce9 0%, #93d5f0 60%, #bae6fd 100%)' }}
                     >
                         <div className="relative z-10">
-                            <span className="inline-flex items-center gap-1 bg-white/20 text-white text-[10px] font-bold px-2 py-1 rounded-full mb-2 uppercase tracking-wider">
-                                <Zap className="h-3 w-3" /> Free to post
+                            <span className="inline-flex items-center gap-1 bg-white/40 text-primary-800 text-[10px] font-bold px-2 py-1 rounded-full mb-2 uppercase tracking-wider">
+                                <Zap className="h-3 w-3" /> 100% Free
                             </span>
-                            <h3 className="text-white font-extrabold text-xl leading-tight mb-1">
-                                The best place<br />+ to sell
+                            <h3 className="text-primary-900 font-extrabold text-xl leading-tight mb-1">
+                                Sell Anything,<br />Reach Everyone
                             </h3>
-                            <p className="text-white/70 text-xs mb-3">Post your ad and reach 50,000+ buyers</p>
-                            <div className="inline-flex items-center gap-1 bg-white text-gray-900 text-xs font-bold px-3 py-1.5 rounded-full">
-                                Sell Now <ArrowRight className="h-3 w-3" />
+                            <p className="text-primary-800/80 text-xs mb-3">List in 2 minutes · Buyers are waiting now</p>
+                            <div className="inline-flex items-center gap-1 bg-secondary-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">
+                                Post Free Ad <ArrowRight className="h-3 w-3" />
                             </div>
                         </div>
                         {/* Decorative circles */}
