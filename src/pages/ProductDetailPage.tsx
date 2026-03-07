@@ -5,10 +5,10 @@ import { PublicLayout } from '../layouts/PublicLayout';
 import { listingService } from '../services/listingService';
 import { interactionService, InteractionType } from '../services/interactionService';
 import {
-    Phone, Heart, Share2,
+    Phone, Heart,
     MapPin, Clock, ShieldCheck, Flag,
     ChevronLeft, Info, Loader2, Navigation,
-    MoreVertical, Camera, ChevronDown, ChevronUp, Truck
+    MoreVertical, Camera, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { ProductCard } from '../components/ProductCard';
@@ -139,7 +139,7 @@ const ProductDetailPage: React.FC = () => {
                                 onClick={() => setActiveImage(i)}
                                 className={cn(
                                     'w-14 h-14 rounded-lg overflow-hidden shrink-0 border-2 transition-all',
-                                    activeImage === i ? 'border-green-500' : 'border-transparent opacity-60'
+                                    activeImage === i ? 'border-primary-500' : 'border-transparent opacity-60'
                                 )}
                             >
                                 <img src={getImageUrl(img)} alt="" className="w-full h-full object-cover" />
@@ -164,7 +164,7 @@ const ProductDetailPage: React.FC = () => {
 
                 {/* Price */}
                 <div className="px-4 pb-4 flex items-center gap-2">
-                    <span className="text-2xl font-bold text-green-600">
+                    <span className="text-2xl font-bold text-primary-600">
                         {formatConvertedPrice(ad.price, ad.currency, targetCurrency)}
                     </span>
                     {isNegotiable && (
@@ -181,7 +181,7 @@ const ProductDetailPage: React.FC = () => {
                         onClick={async () => {
                             try { await interactionService.logInteraction(ad.id, InteractionType.WHATSAPP); } catch {}
                         }}
-                        className="flex-1 h-12 rounded-xl border-2 border-green-500 text-green-600 font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                        className="flex-1 h-12 rounded-xl border-2 border-primary-500 text-primary-600 font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
                     >
                         {WA_ICON} WhatsApp
                     </a>
@@ -190,7 +190,7 @@ const ProductDetailPage: React.FC = () => {
                             setShowPhone(true);
                             try { await interactionService.logInteraction(ad.id, InteractionType.CALL); } catch {}
                         }}
-                        className="flex-1 h-12 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                        className="flex-1 h-12 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
                     >
                         <Phone className="h-4 w-4" />
                         {showPhone ? (ad.owner?.phone || 'N/A') : 'Call'}
@@ -234,7 +234,7 @@ const ProductDetailPage: React.FC = () => {
                         {ad.description.length > 200 && (
                             <button
                                 onClick={() => setShowFullDesc(v => !v)}
-                                className="mt-2 text-green-600 text-sm font-semibold flex items-center gap-1"
+                                className="mt-2 text-primary-600 text-sm font-semibold flex items-center gap-1"
                             >
                                 {showFullDesc ? <>Show less <ChevronUp className="h-4 w-4" /></> : <>Show more <ChevronDown className="h-4 w-4" /></>}
                             </button>
@@ -266,7 +266,7 @@ const ProductDetailPage: React.FC = () => {
                     <div className="flex-1 min-w-0">
                         <p className="font-bold text-gray-900 text-sm truncate">{ad.owner?.full_name || 'Seller'}</p>
                         {ad.owner?.is_verified && (
-                            <div className="flex items-center gap-1 text-green-600">
+                            <div className="flex items-center gap-1 text-primary-600">
                                 <ShieldCheck className="h-3 w-3" />
                                 <span className="text-[10px] font-bold">Verified Seller</span>
                             </div>
@@ -298,7 +298,7 @@ const ProductDetailPage: React.FC = () => {
                     onClick={async () => {
                         try { await interactionService.logInteraction(ad.id, InteractionType.WHATSAPP); } catch {}
                     }}
-                    className="flex-1 h-12 rounded-xl border-2 border-green-500 text-green-600 font-bold text-sm flex items-center justify-center gap-2"
+                    className="flex-1 h-12 rounded-xl border-2 border-primary-500 text-primary-600 font-bold text-sm flex items-center justify-center gap-2"
                 >
                     {WA_ICON} WhatsApp
                 </a>
@@ -307,7 +307,7 @@ const ProductDetailPage: React.FC = () => {
                         setShowPhone(true);
                         try { await interactionService.logInteraction(ad.id, InteractionType.CALL); } catch {}
                     }}
-                    className="flex-1 h-12 rounded-xl bg-green-500 text-white font-bold text-sm flex items-center justify-center gap-2"
+                    className="flex-1 h-12 rounded-xl bg-primary-500 text-white font-bold text-sm flex items-center justify-center gap-2"
                 >
                     <Phone className="h-4 w-4" />
                     {showPhone ? (ad.owner?.phone || 'N/A') : 'Call'}
@@ -331,7 +331,7 @@ const ProductDetailPage: React.FC = () => {
                                     {images.map((img: string, i: number) => (
                                         <button key={i} onClick={() => setActiveImage(i)}
                                             className={cn('w-20 h-20 rounded-lg overflow-hidden border-2 transition-all shrink-0',
-                                                activeImage === i ? 'border-green-500 shadow-md' : 'border-transparent opacity-60 hover:opacity-100')}>
+                                                activeImage === i ? 'border-primary-500 shadow-md' : 'border-transparent opacity-60 hover:opacity-100')}>
                                             <img src={getImageUrl(img)} alt="" className="w-full h-full object-cover" />
                                         </button>
                                     ))}
@@ -352,7 +352,7 @@ const ProductDetailPage: React.FC = () => {
                                 </div>
 
                                 <div className="flex items-center gap-3 mb-6">
-                                    <span className="text-3xl font-bold text-green-600">
+                                    <span className="text-3xl font-bold text-primary-600">
                                         {formatConvertedPrice(ad.price, ad.currency, targetCurrency)}
                                     </span>
                                     {isNegotiable && <span className="text-gray-500 font-medium">Negotiable</span>}
@@ -381,7 +381,7 @@ const ProductDetailPage: React.FC = () => {
                                         </p>
                                         {ad.description.length > 300 && (
                                             <button onClick={() => setShowFullDesc(v => !v)}
-                                                className="mt-2 text-green-600 text-sm font-semibold flex items-center gap-1">
+                                                className="mt-2 text-primary-600 text-sm font-semibold flex items-center gap-1">
                                                 {showFullDesc ? <>Show less <ChevronUp className="h-4 w-4" /></> : <>Show more <ChevronDown className="h-4 w-4" /></>}
                                             </button>
                                         )}
@@ -402,12 +402,12 @@ const ProductDetailPage: React.FC = () => {
                                     </div>
                                 )}
 
-                                <div className="mt-6 flex items-center justify-between p-4 bg-green-50 rounded-xl border border-green-100">
-                                    <div className="flex items-center gap-2 text-green-800">
+                                <div className="mt-6 flex items-center justify-between p-4 bg-primary-50 rounded-xl border border-primary-100">
+                                    <div className="flex items-center gap-2 text-primary-800">
                                         <ShieldCheck className="h-5 w-5" />
                                         <span className="text-sm font-medium">Verified Seller Guarantee</span>
                                     </div>
-                                    <Link to="/safety" className="text-xs text-green-600 underline font-medium">Learn More</Link>
+                                    <Link to="/safety" className="text-xs text-primary-600 underline font-medium">Learn More</Link>
                                 </div>
                             </div>
                         </div>
@@ -423,9 +423,9 @@ const ProductDetailPage: React.FC = () => {
                                                 : ad.owner?.full_name?.charAt(0) || 'S'}
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-lg text-gray-900 group-hover:text-green-600 transition-colors">{ad.owner?.full_name || 'Seller'}</h3>
+                                            <h3 className="font-bold text-lg text-gray-900 group-hover:text-primary-600 transition-colors">{ad.owner?.full_name || 'Seller'}</h3>
                                             {ad.owner?.is_verified && (
-                                                <div className="flex items-center gap-1 mt-1 text-green-600">
+                                                <div className="flex items-center gap-1 mt-1 text-primary-600">
                                                     <ShieldCheck className="h-3.5 w-3.5" />
                                                     <span className="text-[10px] font-bold uppercase tracking-wider">Verified Seller</span>
                                                 </div>
@@ -436,7 +436,7 @@ const ProductDetailPage: React.FC = () => {
                                     <div className="flex flex-col gap-3">
                                         <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
                                             onClick={async () => { try { await interactionService.logInteraction(ad.id, InteractionType.WHATSAPP); } catch {} }}
-                                            className="w-full h-14 rounded-xl border-2 border-green-500 text-green-600 font-bold text-base flex items-center justify-center gap-2 hover:bg-green-50 transition-colors">
+                                            className="w-full h-14 rounded-xl border-2 border-primary-500 text-primary-600 font-bold text-base flex items-center justify-center gap-2 hover:bg-primary-50 transition-colors">
                                             {WA_ICON} WhatsApp
                                         </a>
                                         <button
@@ -444,7 +444,7 @@ const ProductDetailPage: React.FC = () => {
                                                 setShowPhone(true);
                                                 try { await interactionService.logInteraction(ad.id, InteractionType.CALL); } catch {}
                                             }}
-                                            className="w-full h-14 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold text-base flex items-center justify-center gap-2 transition-colors">
+                                            className="w-full h-14 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-bold text-base flex items-center justify-center gap-2 transition-colors">
                                             <Phone className="h-5 w-5" />
                                             {showPhone ? (ad.owner?.phone || 'N/A') : 'Call'}
                                         </button>
