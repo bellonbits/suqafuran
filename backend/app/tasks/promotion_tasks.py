@@ -26,7 +26,7 @@ def expire_stale_promotions():
             update(Promotion)
             .where(Promotion.status == PromotionStatus.WAITING_FOR_PAYMENT)
             .where(Promotion.created_at < cutoff)
-            .values(status="EXPIRED", updated_at=datetime.utcnow())
+            .values(status=PromotionStatus.EXPIRED, updated_at=datetime.utcnow())
         )
         db.commit()
         logger.info(f"Expired {result.rowcount} stale promotions")
