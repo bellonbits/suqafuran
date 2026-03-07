@@ -45,6 +45,7 @@ const KaalayHeedhePage = lazy(() => import('./pages/KaalayHeedhePage'));
 const AdminCategoriesPage = lazy(() => import('./pages/admin/AdminCategoriesPage'));
 const AdminPromotionsPage = lazy(() => import('./pages/admin/AdminPromotionsPage'));
 const AdminVouchersPage = lazy(() => import('./pages/admin/AdminVouchersPage'));
+const AdminListingsPage = lazy(() => import('./pages/admin/AdminListingsPage'));
 const AgentDashboard = lazy(() => import('./pages/agent/AgentDashboard'));
 
 const queryClient = new QueryClient();
@@ -106,6 +107,7 @@ const App: React.FC = () => {
             {/* Admin Routes */}
             <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminLayout /></ProtectedRoute>}>
               <Route index element={<AdminDashboard />} />
+              <Route path="listings" element={<AdminListingsPage />} />
               <Route path="categories" element={<AdminCategoriesPage />} />
               <Route path="promotions" element={<AdminPromotionsPage />} />
               <Route path="vouchers" element={<AdminVouchersPage />} />
