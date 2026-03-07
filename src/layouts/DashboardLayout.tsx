@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { notificationService } from '../services/notificationService';
 import {
     LayoutDashboard, ShoppingBag,
@@ -14,6 +15,7 @@ import { Button } from '../components/Button';
 import { Logo } from '../components/Logo';
 import { useAuthStore } from '../store/useAuthStore';
 import { CurrencySwitcher } from '../components/CurrencySwitcher';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 interface DashboardLayoutProps {
     children?: React.ReactNode;
@@ -22,6 +24,7 @@ interface DashboardLayoutProps {
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const location = useLocation();
     const { user, logout } = useAuthStore();
+    const { t } = useTranslation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
     const { data: notifications } = useQuery({
@@ -33,20 +36,18 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
     const unreadCount = notifications?.filter(n => !n.is_read)?.length || 0;
 
-    // Close mobile menu when route changes
-
     React.useEffect(() => {
         setIsMobileMenuOpen(false);
     }, [location.pathname]);
 
     const menuItems = [
-        { label: 'Overview', icon: LayoutDashboard, path: '/dashboard' },
-        { label: 'My Wallet', icon: Wallet, path: '/wallet' },
-        { label: 'My Ads', icon: ShoppingBag, path: '/my-ads' },
-        { label: 'Saved Ads', icon: Heart, path: '/favorites' },
-        { label: 'Notifications', icon: Bell, path: '/notifications' },
-        { label: 'Help Center', icon: HelpCircle, path: '/help' },
-        { label: 'Account Settings', icon: Settings, path: '/settings' },
+        { labelKey: 'dashboard.overview', icon: LayoutDashboard, path: '/dashboard' },
+        { labelKey: 'dashboard.myWallet', icon: Wallet, path: '/wallet' },
+        { labelKey: 'dashboard.myAds', icon: ShoppingBag, path: '/my-ads' },
+        { labelKey: 'dashboard.savedAds', icon: Heart, path: '/favorites' },
+        { labelKey: 'dashboard.notifications', icon: Bell, path: '/notifications' },
+        { labelKey: 'dashboard.helpCenter', icon: HelpCircle, path: '/help' },
+        { labelKey: 'dashboard.accountSettings', icon: Settings, path: '/settings' },
     ];
 
     return (
@@ -83,7 +84,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     </Link>
                 </div>
 
-                {/* Mobile Logo in Sidebar (optional, but good for context if opening menu pushes content) */}
                 <div className="p-6 border-b border-gray-50 flex justify-between items-center md:hidden">
                     <Logo size="md" />
                     <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-400">
@@ -122,7 +122,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             )}
                         >
                             <item.icon className="h-5 w-5" />
-                            {item.label}
+                            {t(item.labelKey)}
                         </Link>
                     ))}
 
@@ -183,7 +183,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     <Link to="/post-ad">
                         <Button className="w-full rounded-xl gap-2 font-bold mb-2 shadow-md">
                             <PlusCircle className="h-5 w-5" />
-                            Post New Ad
+                            {t('listing.postAd')}
                         </Button>
                     </Link>
                     <button
@@ -191,7 +191,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                         className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-all text-left"
                     >
                         <LogOut className="h-5 w-5" />
-                        Sign Out
+                        {t('auth.logout')}
                     </button>
                 </div>
             </aside>
@@ -199,10 +199,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             {/* Main Content Area */}
             <main className="flex-1 flex flex-col min-w-0 bg-gray-50 min-h-screen">
                 <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-100 p-4 md:px-8 flex items-center justify-between">
-                    {/* Placeholder for desktop layout alignment */}
                     <div className="md:hidden"></div>
-
                     <div className="flex items-center gap-4 ml-auto">
+                        <LanguageSwitcher />
                         <CurrencySwitcher />
                         <Link to="/notifications" className="p-2 text-gray-400 hover:text-primary-600 relative">
                             <Bell className="h-6 w-6" />

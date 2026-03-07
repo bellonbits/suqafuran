@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PublicLayout } from '../layouts/PublicLayout';
@@ -50,6 +51,7 @@ const getCategoryImg = (cat: { slug?: string; name?: string }, index = 0): strin
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
     const [isLocationOpen, setLocationOpen] = useState(false);
@@ -78,7 +80,7 @@ const LandingPage: React.FC = () => {
                 {/* Hero headline */}
                 <div className="px-5 pt-6 pb-4">
                     <h1 className="text-[28px] font-extrabold text-gray-900 leading-tight tracking-tight">
-                        Discover Great<br />Deals Near You !
+                        {t('landing.heroTitle')}
                     </h1>
                 </div>
 
@@ -90,7 +92,7 @@ const LandingPage: React.FC = () => {
                             className="flex-1 flex items-center gap-3 bg-white rounded-2xl px-4 h-12 shadow-sm border border-gray-100 text-gray-400 active:bg-gray-50 transition-colors"
                         >
                             <Search className="h-4 w-4 shrink-0 text-gray-400" />
-                            <span className="text-sm">Search listings…</span>
+                            <span className="text-sm">{t('landing.searchPlaceholder')}</span>
                         </button>
                         <button
                             onClick={() => setLocationOpen(true)}
@@ -116,7 +118,9 @@ const LandingPage: React.FC = () => {
                             }`}>
                                 <TrendingUp className={`h-5 w-5 ${activeCategory === null ? 'text-white' : 'text-gray-500'}`} />
                             </div>
-                            <span className={`text-[10px] font-semibold ${activeCategory === null ? 'text-gray-900' : 'text-gray-500'}`}>All</span>
+                            <span className={`text-[10px] font-semibold ${activeCategory === null ? 'text-gray-900' : 'text-gray-500'}`}>
+                                {t('landing.allCategories')}
+                            </span>
                         </button>
 
                         {displayCategories.slice(0, 12).map((cat, idx) => {
@@ -132,11 +136,9 @@ const LandingPage: React.FC = () => {
                                     style={{ width: 60 }}
                                     className="flex flex-col items-center gap-1.5 shrink-0 active:scale-95 transition-transform"
                                 >
-                                    <div
-                                        className={`w-14 h-14 rounded-full overflow-hidden shrink-0 transition-all bg-gray-100 ${
-                                            isAct ? 'ring-2 ring-primary-500 ring-offset-2 shadow-lg' : 'shadow-sm'
-                                        }`}
-                                    >
+                                    <div className={`w-14 h-14 rounded-full overflow-hidden shrink-0 transition-all bg-gray-100 ${
+                                        isAct ? 'ring-2 ring-primary-500 ring-offset-2 shadow-lg' : 'shadow-sm'
+                                    }`}>
                                         <img
                                             src={imgSrc}
                                             alt={cat.name}
@@ -166,17 +168,16 @@ const LandingPage: React.FC = () => {
                     >
                         <div className="relative z-10">
                             <span className="inline-flex items-center gap-1 bg-white/40 text-primary-800 text-[10px] font-bold px-2 py-1 rounded-full mb-2 uppercase tracking-wider">
-                                <Zap className="h-3 w-3" /> 100% Free
+                                <Zap className="h-3 w-3" /> {t('landing.sellBannerBadge')}
                             </span>
                             <h3 className="text-primary-900 font-extrabold text-xl leading-tight mb-1">
-                                Sell Anything,<br />Reach Everyone
+                                {t('landing.sellBannerTitle')}
                             </h3>
-                            <p className="text-primary-800/80 text-xs mb-3">List in 2 minutes · Buyers are waiting now</p>
+                            <p className="text-primary-800/80 text-xs mb-3">{t('landing.sellBannerDesc')}</p>
                             <div className="inline-flex items-center gap-1 bg-secondary-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">
-                                Post Free Ad <ArrowRight className="h-3 w-3" />
+                                {t('landing.sellBannerBtn')} <ArrowRight className="h-3 w-3" />
                             </div>
                         </div>
-                        {/* Decorative circles */}
                         <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/10" />
                         <div className="absolute -right-4 bottom-0 w-24 h-24 rounded-full bg-white/05" />
                     </div>
@@ -186,10 +187,10 @@ const LandingPage: React.FC = () => {
                 <div className="px-5 flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <TrendingUp className="h-4 w-4 text-primary-500" />
-                        <h2 className="text-base font-bold text-gray-900">Trending Ads</h2>
+                        <h2 className="text-base font-bold text-gray-900">{t('landing.featuredAds')}</h2>
                     </div>
                     <button onClick={() => navigate('/search')} className="text-primary-500 text-sm font-semibold flex items-center gap-0.5 active:opacity-70">
-                        See all <ChevronRight className="h-4 w-4" />
+                        {t('landing.seeAll')} <ChevronRight className="h-4 w-4" />
                     </button>
                 </div>
 
@@ -224,8 +225,8 @@ const LandingPage: React.FC = () => {
                 <div className="mx-5 mb-6">
                     <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex items-center justify-between">
                         <div>
-                            <h4 className="font-bold text-gray-900 text-base">I want to sell</h4>
-                            <p className="text-xs text-gray-500 mt-0.5">Post an ad for free in 2 mins</p>
+                            <h4 className="font-bold text-gray-900 text-base">{t('listing.postAd')}</h4>
+                            <p className="text-xs text-gray-500 mt-0.5">{t('landing.sellBannerDesc')}</p>
                         </div>
                         <button
                             onClick={() => navigate('/post-ad')}
@@ -243,8 +244,8 @@ const LandingPage: React.FC = () => {
                             <ShieldCheck className="h-5 w-5 text-green-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h4 className="font-bold text-gray-900 text-sm">Buying safely</h4>
-                            <p className="text-xs text-gray-500 mt-0.5">Read our safety guidelines</p>
+                            <h4 className="font-bold text-gray-900 text-sm">{t('footer.safetyTips')}</h4>
+                            <p className="text-xs text-gray-500 mt-0.5">{t('footer.safetyTips')}</p>
                         </div>
                         <button onClick={() => navigate('/safety')} className="shrink-0 text-primary-500">
                             <ChevronRight className="h-5 w-5" />
@@ -254,14 +255,14 @@ const LandingPage: React.FC = () => {
             </div>
 
             {/* ═══════════════════════════════════════════════
-                DESKTOP LAYOUT (unchanged structure, improved styling)
+                DESKTOP LAYOUT
             ═══════════════════════════════════════════════ */}
             <div className="hidden lg:block">
                 {/* Hero */}
                 <section className="relative bg-primary-500 pt-14 pb-24">
                     <div className="container mx-auto px-4 flex flex-col items-center">
                         <h1 className="text-3xl font-extrabold text-white mb-8 tracking-tight">
-                            What are you looking for?
+                            {t('landing.heroTitle')}
                         </h1>
                         <div className="max-w-4xl w-full flex shadow-2xl rounded-2xl overflow-hidden border border-white/10">
                             <div className="relative bg-white w-1/3 border-r border-gray-100">
@@ -269,14 +270,14 @@ const LandingPage: React.FC = () => {
                                     onClick={() => setLocationOpen(true)}
                                     className="w-full h-14 pl-4 pr-10 text-gray-700 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
                                 >
-                                    <span className="truncate font-medium">{selectedLocation || 'All Locations'}</span>
+                                    <span className="truncate font-medium">{selectedLocation || t('landing.allLocations')}</span>
                                     <MapPin className="ml-2 w-4 h-4 text-primary-500" />
                                 </button>
                             </div>
                             <div className="flex-1 relative bg-white">
                                 <input
                                     type="text"
-                                    placeholder="I am looking for..."
+                                    placeholder={t('landing.searchPlaceholder')}
                                     className="w-full h-14 pl-4 pr-14 text-gray-900 focus:outline-none placeholder:text-gray-400 font-medium"
                                 />
                                 <div className="absolute right-0 top-0 h-14 w-14 flex items-center justify-center text-gray-400">
@@ -297,7 +298,7 @@ const LandingPage: React.FC = () => {
                                     <div className="p-4 border-b border-primary-500 bg-primary-500 rounded-t-xl">
                                         <h3 className="font-bold text-white flex items-center gap-2 text-sm uppercase tracking-wider">
                                             <div className="w-1 h-4 bg-white rounded-full" />
-                                            Categories
+                                            {t('listing.category')}
                                         </h3>
                                     </div>
                                     <div className="divide-y divide-gray-50 max-h-[calc(100vh-200px)] overflow-y-auto">
@@ -354,7 +355,7 @@ const LandingPage: React.FC = () => {
                                                                     <div>
                                                                         <h2 className="text-2xl font-bold text-gray-900">{activeCat.name}</h2>
                                                                         <p className="text-sm text-primary-600 font-medium flex items-center gap-1 mt-0.5">
-                                                                            Browse Best Deals <ChevronRight size={14} />
+                                                                            {t('landing.seeAll')} <ChevronRight size={14} />
                                                                         </p>
                                                                     </div>
                                                                 </div>
@@ -382,7 +383,7 @@ const LandingPage: React.FC = () => {
                                                                         onClick={() => { navigate(`/category/${activeCat.slug || activeCat.id}`); setHoveredCategory(null); }}
                                                                         className="flex items-center gap-2 text-primary-600 font-bold hover:gap-3 transition-all"
                                                                     >
-                                                                        View all in {activeCat.name.split(' (')[0]}
+                                                                        {t('landing.viewAll')} {activeCat.name.split(' (')[0]}
                                                                         <ChevronRight size={18} />
                                                                     </button>
                                                                 </div>
@@ -391,7 +392,7 @@ const LandingPage: React.FC = () => {
                                                                 <img src={activeCat.image_url || ''} alt={activeCat.name} className="absolute inset-0 w-full h-full object-cover" />
                                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                                                                 <div className="absolute bottom-0 left-0 p-6 text-white">
-                                                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-1.5 opacity-80">Featured</p>
+                                                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-1.5 opacity-80">{t('landing.sponsored')}</p>
                                                                     <h4 className="text-lg font-bold">{activeCat.name.split(' (')[0]}</h4>
                                                                 </div>
                                                             </div>
@@ -413,8 +414,8 @@ const LandingPage: React.FC = () => {
                                         className="bg-[#ebf9eb] border border-[#d3f0d3] p-4 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between min-h-[100px]"
                                     >
                                         <div>
-                                            <h4 className="font-bold text-[#2d3a2d] text-lg">I want to sell</h4>
-                                            <p className="text-sm text-[#5a705a]">Post an ad for free now</p>
+                                            <h4 className="font-bold text-[#2d3a2d] text-lg">{t('listing.postAd')}</h4>
+                                            <p className="text-sm text-[#5a705a]">{t('landing.sellBannerDesc')}</p>
                                         </div>
                                         <div className="w-14 h-14 bg-white rounded-xl shadow-sm flex items-center justify-center">
                                             <ShoppingBag className="w-8 h-8 text-[#28a745]" />
@@ -422,8 +423,8 @@ const LandingPage: React.FC = () => {
                                     </div>
                                     <div className="bg-[#f0f0ff] border border-[#e0e0ff] p-4 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between min-h-[100px]">
                                         <div>
-                                            <h4 className="font-bold text-[#2e2e4e] text-lg">How to buy</h4>
-                                            <p className="text-sm text-[#62628e]">Safety tips & guidelines</p>
+                                            <h4 className="font-bold text-[#2e2e4e] text-lg">{t('footer.safetyTips')}</h4>
+                                            <p className="text-sm text-[#62628e]">{t('landing.learnToSell')}</p>
                                         </div>
                                         <div className="w-14 h-14 bg-white rounded-xl shadow-sm flex items-center justify-center">
                                             <ShieldCheck className="w-8 h-8 text-[#5151d5]" />
@@ -435,9 +436,9 @@ const LandingPage: React.FC = () => {
                                     <div className="flex items-center justify-between mb-6">
                                         <div className="flex items-center gap-2">
                                             <TrendingUp className="h-5 w-5 text-primary-500" />
-                                            <h2 className="text-xl font-bold text-gray-900">Trending Ads</h2>
+                                            <h2 className="text-xl font-bold text-gray-900">{t('landing.featuredAds')}</h2>
                                         </div>
-                                        <Button variant="ghost" className="text-primary-600 text-sm" onClick={() => navigate('/search')}>See all</Button>
+                                        <Button variant="ghost" className="text-primary-600 text-sm" onClick={() => navigate('/search')}>{t('landing.seeAll')}</Button>
                                     </div>
                                     {adsLoading ? (
                                         <div className="flex justify-center py-12">
@@ -474,11 +475,11 @@ const LandingPage: React.FC = () => {
                     <div className="absolute top-0 right-0 w-1/3 h-full bg-white/10 skew-x-12 transform origin-top-right" />
                     <div className="container mx-auto px-4 relative z-10">
                         <div className="max-w-3xl">
-                            <h2 className="text-4xl font-bold mb-4 text-black">Ready to sell something today?</h2>
-                            <p className="text-lg text-black/80 mb-8">Thousands of buyers are searching right now. Start in under 2 minutes.</p>
+                            <h2 className="text-4xl font-bold mb-4 text-black">{t('landing.ctaTitle')}</h2>
+                            <p className="text-lg text-black/80 mb-8">{t('landing.ctaSubtitle')}</p>
                             <div className="flex gap-4">
-                                <Link to="/post-ad"><Button size="lg" className="rounded-full px-10 bg-white text-primary-600 hover:bg-gray-50 border-none shadow-xl">Post an Ad Now</Button></Link>
-                                <Link to="/help"><Button size="lg" variant="outline" className="rounded-full px-10 border-white/40 text-black hover:bg-white/10">Learn How to Sell</Button></Link>
+                                <Link to="/post-ad"><Button size="lg" className="rounded-full px-10 bg-white text-primary-600 hover:bg-gray-50 border-none shadow-xl">{t('landing.postAdNow')}</Button></Link>
+                                <Link to="/help"><Button size="lg" variant="outline" className="rounded-full px-10 border-white/40 text-black hover:bg-white/10">{t('landing.learnToSell')}</Button></Link>
                             </div>
                         </div>
                     </div>
