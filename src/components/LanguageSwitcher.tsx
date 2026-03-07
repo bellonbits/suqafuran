@@ -22,7 +22,7 @@ const LanguageSwitcher: React.FC<Props> = ({ compact = false }) => {
         className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition-colors"
         title={isSomali ? 'Switch to English' : 'Af-Soomaali'}
       >
-        {isSomali ? '🇬🇧 EN' : '🇸🇴 SO'}
+        {isSomali ? 'EN' : 'SO'}
       </button>
     );
   }
@@ -32,7 +32,6 @@ const LanguageSwitcher: React.FC<Props> = ({ compact = false }) => {
       onClick={toggle}
       className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium transition-colors shadow-sm"
     >
-      <span>{isSomali ? '🇬🇧' : '🇸🇴'}</span>
       <span>{isSomali ? 'English' : 'Somali'}</span>
     </button>
   );
