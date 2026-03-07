@@ -156,6 +156,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                                 Admin Panel
                             </Link>
                             <Link
+                                to="/admin/listings"
+                                className={cn(
+                                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
+                                    location.pathname === '/admin/listings' && "bg-primary-50 shadow-sm shadow-primary-100"
+                                )}
+                            >
+                                <ShoppingBag className="h-5 w-5" />
+                                All Listings
+                            </Link>
+                            <Link
                                 to="/admin/promotions"
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
