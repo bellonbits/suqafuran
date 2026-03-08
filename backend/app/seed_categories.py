@@ -108,10 +108,14 @@ def make_slug(name: str) -> str:
 def seed_categories():
     with Session(engine) as session:
         for cat_data in CATEGORIES:
-            # Upsert category
+            # Upsert category — find by slug OR name
             existing = session.exec(
                 select(Category).where(Category.slug == cat_data["slug"])
             ).first()
+            if not existing:
+                existing = session.exec(
+                    select(Category).where(Category.name == cat_data["name"])
+                ).first()
 
             if not existing:
                 cat = Category(
@@ -125,6 +129,7 @@ def seed_categories():
                 print(f"Created category: {cat_data['name']}")
             else:
                 existing.name = cat_data["name"]
+                existing.slug = cat_data["slug"]
                 existing.icon_name = cat_data["icon_name"]
                 session.add(existing)
                 session.flush()
