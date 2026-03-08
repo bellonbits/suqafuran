@@ -7,8 +7,8 @@ import { interactionService, InteractionType } from '../services/interactionServ
 import {
     Phone, Heart,
     MapPin, Clock, ShieldCheck, Flag,
-    ChevronLeft, Info, Loader2, Navigation,
-    MoreVertical, Camera, ChevronDown, ChevronUp
+    ChevronLeft, ChevronRight, Info, Loader2, Navigation,
+    MoreVertical, Camera, ChevronDown, ChevronUp, MessageCircle
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { ProductCard } from '../components/ProductCard';
@@ -83,14 +83,17 @@ const ProductDetailPage: React.FC = () => {
         ? Object.entries(ad.attributes).filter(([k]) => k !== 'negotiable' && k !== 'kh_pin')
         : [];
 
+    const prevImage = () => setActiveImage(i => (i - 1 + images.length) % images.length);
+    const nextImage = () => setActiveImage(i => (i + 1) % images.length);
+
     return (
         <PublicLayout>
             {/* ══════════════════════════════════════════
                 MOBILE — Jiji-style layout
             ══════════════════════════════════════════ */}
-            <div className="lg:hidden bg-white pb-32">
+            <div className="lg:hidden bg-gray-50 pb-32">
 
-                {/* Full-width image with overlaid nav */}
+                {/* ── Full-width hero image ── */}
                 <div className="relative w-full bg-black" style={{ aspectRatio: '4/3' }}>
                     <img
                         src={getImageUrl(images[activeImage])}
@@ -98,28 +101,52 @@ const ProductDetailPage: React.FC = () => {
                         className="w-full h-full object-cover"
                     />
 
-                    {/* Overlay top bar */}
-                    <div className="absolute top-0 inset-x-0 flex items-center justify-between px-3 pt-3">
+                    {/* Top nav overlay */}
+                    <div className="absolute top-0 inset-x-0 flex items-center justify-between px-3 pt-10">
                         <button
                             onClick={() => window.history.back()}
-                            className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center"
+                            className="w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center"
                         >
                             <ChevronLeft className="h-5 w-5 text-white" />
                         </button>
                         <div className="flex gap-2">
-                            <button className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+                            <button className="w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
                                 <Heart className="h-4 w-4 text-white" />
                             </button>
-                            <button className="w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+                            <button className="w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
                                 <MoreVertical className="h-4 w-4 text-white" />
                             </button>
                         </div>
                     </div>
 
-                    {/* Photo count */}
-                    <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-black/50 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                        <Camera className="h-3 w-3" />
-                        {images.length}
+                    {/* Left / Right tap zones */}
+                    {images.length > 1 && (
+                        <>
+                            <button
+                                onClick={prevImage}
+                                className="absolute left-0 top-0 w-1/3 h-full flex items-center justify-start pl-2 opacity-0 active:opacity-100"
+                                aria-label="Previous image"
+                            >
+                                <div className="w-8 h-8 rounded-full bg-black/40 flex items-center justify-center">
+                                    <ChevronLeft className="h-5 w-5 text-white" />
+                                </div>
+                            </button>
+                            <button
+                                onClick={nextImage}
+                                className="absolute right-0 top-0 w-1/3 h-full flex items-center justify-end pr-2 opacity-0 active:opacity-100"
+                                aria-label="Next image"
+                            >
+                                <div className="w-8 h-8 rounded-full bg-black/40 flex items-center justify-center">
+                                    <ChevronRight className="h-5 w-5 text-white" />
+                                </div>
+                            </button>
+                        </>
+                    )}
+
+                    {/* Photo count badge */}
+                    <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-black/55 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+                        <Camera className="h-3.5 w-3.5" />
+                        {activeImage + 1}/{images.length}
                     </div>
 
                     {/* VIP badge */}
@@ -128,18 +155,35 @@ const ProductDetailPage: React.FC = () => {
                             👑 VIP
                         </div>
                     )}
+
+                    {/* Dot indicators */}
+                    {images.length > 1 && (
+                        <div className="absolute bottom-3 inset-x-0 flex justify-center gap-1.5 pointer-events-none">
+                            {images.map((_: string, i: number) => (
+                                <div
+                                    key={i}
+                                    className={cn(
+                                        'rounded-full transition-all',
+                                        i === activeImage
+                                            ? 'w-4 h-1.5 bg-white'
+                                            : 'w-1.5 h-1.5 bg-white/50'
+                                    )}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Thumbnail strip */}
                 {images.length > 1 && (
-                    <div className="flex gap-2 px-3 py-2 overflow-x-auto border-b border-gray-100">
+                    <div className="flex gap-2 px-3 py-2 bg-white overflow-x-auto border-b border-gray-100">
                         {images.map((img: string, i: number) => (
                             <button
                                 key={i}
                                 onClick={() => setActiveImage(i)}
                                 className={cn(
                                     'w-14 h-14 rounded-lg overflow-hidden shrink-0 border-2 transition-all',
-                                    activeImage === i ? 'border-primary-500' : 'border-transparent opacity-60'
+                                    activeImage === i ? 'border-primary-500' : 'border-transparent opacity-50'
                                 )}
                             >
                                 <img src={getImageUrl(img)} alt="" className="w-full h-full object-cover" />
@@ -148,32 +192,40 @@ const ProductDetailPage: React.FC = () => {
                     </div>
                 )}
 
-                {/* Location + date */}
-                <div className="flex items-center justify-between px-4 pt-3 pb-1">
-                    <div className="flex items-center gap-1 text-gray-500 text-xs">
-                        <MapPin className="h-3.5 w-3.5 shrink-0" />
-                        <span>{ad.location}</span>
-                        {postedDate && <span className="ml-1">· {postedDate}</span>}
+                {/* ── Location + Date + VIP row ── */}
+                <div className="bg-white px-4 pt-3 pb-2 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 text-gray-500 text-xs min-w-0">
+                        <MapPin className="h-3.5 w-3.5 shrink-0 text-primary-500" />
+                        <span className="truncate">{ad.location}</span>
+                        {postedDate && (
+                            <>
+                                <Clock className="h-3 w-3 shrink-0 ml-1" />
+                                <span className="truncate">{postedDate}</span>
+                            </>
+                        )}
                     </div>
+                    {isBoosted && (
+                        <span className="text-[10px] font-bold text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded-full shrink-0">👑 VIP</span>
+                    )}
                 </div>
 
-                {/* Title */}
-                <div className="px-4 pb-1">
-                    <h1 className="text-lg font-bold text-gray-900 leading-snug">{ad.title}</h1>
+                {/* ── Title ── */}
+                <div className="bg-white px-4 pb-1">
+                    <h1 className="text-[17px] font-bold text-gray-900 leading-snug">{ad.title}</h1>
                 </div>
 
-                {/* Price */}
-                <div className="px-4 pb-4 flex items-center gap-2">
+                {/* ── Price ── */}
+                <div className="bg-white px-4 pb-4 flex items-baseline gap-2">
                     <span className="text-2xl font-bold text-primary-600">
                         {formatConvertedPrice(ad.price, ad.currency, targetCurrency)}
                     </span>
                     {isNegotiable && (
-                        <span className="text-sm text-gray-500 font-medium">Negotiable</span>
+                        <span className="text-sm text-gray-400 font-medium">Negotiable</span>
                     )}
                 </div>
 
-                {/* Action buttons */}
-                <div className="px-4 pb-4 flex gap-3">
+                {/* ── Action buttons ── */}
+                <div className="bg-white px-4 pb-5 flex gap-3 border-b border-gray-100">
                     <a
                         href={whatsappUrl}
                         target="_blank"
@@ -190,45 +242,32 @@ const ProductDetailPage: React.FC = () => {
                             setShowPhone(true);
                             try { await interactionService.logInteraction(ad.id, InteractionType.CALL); } catch {}
                         }}
-                        className="flex-1 h-12 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                        className="flex-1 h-12 rounded-xl bg-primary-500 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
                     >
                         <Phone className="h-4 w-4" />
                         {showPhone ? (ad.owner?.phone || 'N/A') : 'Call'}
                     </button>
                 </div>
 
-                {/* Specs row (attributes as pills) */}
+                {/* ── Condition / Key Specs row ── */}
                 {attrEntries.length > 0 && (
-                    <div className="border-t border-b border-gray-100 px-4 py-3">
-                        <div className="flex flex-wrap gap-4">
-                            {attrEntries.slice(0, 4).map(([key, value]) => (
-                                <div key={key} className="flex flex-col items-center gap-1 min-w-[70px]">
-                                    <span className="text-sm font-semibold text-gray-700">{String(value)}</span>
-                                    <span className="text-[10px] text-gray-400 uppercase tracking-wide">{key.replace(/_/g, ' ')}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Details table */}
-                {attrEntries.length > 0 && (
-                    <div className="px-4 py-4 border-b border-gray-100">
-                        <div className="grid grid-cols-2 gap-y-4">
+                    <div className="bg-white mt-2 px-4 py-4 border-b border-gray-100">
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-4">
                             {attrEntries.map(([key, value]) => (
-                                <div key={key}>
-                                    <p className="text-sm font-semibold text-gray-900">{String(value)}</p>
-                                    <p className="text-[11px] text-gray-400 uppercase tracking-wide mt-0.5">{key.replace(/_/g, ' ')}</p>
+                                <div key={key} className="flex flex-col">
+                                    <span className="text-[13px] font-bold text-gray-900">{String(value)}</span>
+                                    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mt-0.5">{key.replace(/_/g, ' ')}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
                 )}
 
-                {/* Description */}
+                {/* ── Description ── */}
                 {ad.description && (
-                    <div className="px-4 py-4 border-b border-gray-100">
-                        <p className={cn('text-sm text-gray-700 leading-relaxed', !showFullDesc && 'line-clamp-4')}>
+                    <div className="bg-white mt-2 px-4 py-4 border-b border-gray-100">
+                        <h3 className="text-[13px] font-bold text-gray-900 mb-2">Description</h3>
+                        <p className={cn('text-[13px] text-gray-600 leading-relaxed', !showFullDesc && 'line-clamp-4')}>
                             {ad.description}
                         </p>
                         {ad.description.length > 200 && (
@@ -236,15 +275,17 @@ const ProductDetailPage: React.FC = () => {
                                 onClick={() => setShowFullDesc(v => !v)}
                                 className="mt-2 text-primary-600 text-sm font-semibold flex items-center gap-1"
                             >
-                                {showFullDesc ? <>Show less <ChevronUp className="h-4 w-4" /></> : <>Show more <ChevronDown className="h-4 w-4" /></>}
+                                {showFullDesc
+                                    ? <>Show less <ChevronUp className="h-4 w-4" /></>
+                                    : <>Show more <ChevronDown className="h-4 w-4" /></>}
                             </button>
                         )}
                     </div>
                 )}
 
-                {/* KH PIN */}
+                {/* ── KH PIN ── */}
                 {ad.attributes?.kh_pin && (
-                    <div className="px-4 py-4 border-b border-gray-100">
+                    <div className="bg-white mt-2 px-4 py-4 border-b border-gray-100">
                         <div className="flex items-center gap-3 p-3 bg-primary-50 rounded-xl">
                             <Navigation className="h-4 w-4 text-primary-500 shrink-0" />
                             <div className="flex-1 min-w-0">
@@ -256,33 +297,46 @@ const ProductDetailPage: React.FC = () => {
                     </div>
                 )}
 
-                {/* Seller */}
-                <div className="px-4 py-4 border-b border-gray-100 flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold text-lg overflow-hidden shrink-0">
-                        {ad.owner?.avatar_url
-                            ? <img src={getImageUrl(ad.owner.avatar_url)} alt="" className="w-full h-full object-cover" />
-                            : ad.owner?.full_name?.charAt(0) || 'S'}
+                {/* ── Seller card ── */}
+                <div className="bg-white mt-2 px-4 py-4 border-b border-gray-100">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold text-lg overflow-hidden shrink-0">
+                            {ad.owner?.avatar_url
+                                ? <img src={getImageUrl(ad.owner.avatar_url)} alt="" className="w-full h-full object-cover" />
+                                : ad.owner?.full_name?.charAt(0) || 'S'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="font-bold text-gray-900 text-sm truncate">{ad.owner?.full_name || 'Seller'}</p>
+                            {ad.owner?.is_verified && (
+                                <div className="flex items-center gap-1 text-primary-600 mt-0.5">
+                                    <ShieldCheck className="h-3 w-3" />
+                                    <span className="text-[10px] font-bold">Verified Seller</span>
+                                </div>
+                            )}
+                        </div>
+                        <Link
+                            to={`/seller/${ad.owner_id}`}
+                            className="text-xs font-bold text-primary-600 border border-primary-200 bg-primary-50 px-3 py-1.5 rounded-full shrink-0"
+                        >
+                            View
+                        </Link>
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="font-bold text-gray-900 text-sm truncate">{ad.owner?.full_name || 'Seller'}</p>
-                        {ad.owner?.is_verified && (
-                            <div className="flex items-center gap-1 text-primary-600">
-                                <ShieldCheck className="h-3 w-3" />
-                                <span className="text-[10px] font-bold">Verified Seller</span>
-                            </div>
-                        )}
-                    </div>
-                    <Link to={`/seller/${ad.owner_id}`} className="text-xs font-bold text-primary-600 bg-primary-50 px-3 py-1.5 rounded-full shrink-0">View Profile</Link>
                 </div>
 
-                {/* Safety tip */}
-                <div className="px-4 py-4">
-                    <div className="flex gap-2 items-start bg-amber-50 rounded-xl p-3">
-                        <Info className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                        <p className="text-xs text-amber-800 leading-relaxed">
-                            <strong>Safety tip:</strong> Never pay in advance. Meet in a public place. Inspect before you pay.
-                        </p>
-                    </div>
+                {/* ── Report ── */}
+                <div className="bg-white mt-2 px-4 py-3 border-b border-gray-100">
+                    <button className="flex items-center gap-2 text-sm text-gray-400 hover:text-red-500 transition-colors">
+                        <Flag className="h-4 w-4" />
+                        Report this ad
+                    </button>
+                </div>
+
+                {/* ── Safety tip ── */}
+                <div className="bg-white mt-2 mx-4 mb-4 rounded-xl p-3 border border-amber-100 flex gap-2 items-start">
+                    <Info className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-800 leading-relaxed">
+                        <strong>Safety tip:</strong> Never pay in advance. Meet in a public place. Inspect before you pay.
+                    </p>
                 </div>
             </div>
 
@@ -315,17 +369,36 @@ const ProductDetailPage: React.FC = () => {
             </div>
 
             {/* ══════════════════════════════════════════
-                DESKTOP — unchanged structure
+                DESKTOP
             ══════════════════════════════════════════ */}
             <div className="hidden lg:block">
                 <div className="container mx-auto px-4 py-8">
                     <div className="grid lg:grid-cols-3 gap-8">
                         {/* Main */}
-                        <div className="lg:col-span-2 space-y-8">
+                        <div className="lg:col-span-2 space-y-6">
                             {/* Gallery */}
                             <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
-                                <div className="aspect-video bg-gray-100">
+                                <div className="relative aspect-video bg-gray-100">
                                     <img src={getImageUrl(images[activeImage])} alt={ad.title} className="w-full h-full object-contain" />
+                                    {images.length > 1 && (
+                                        <>
+                                            <button onClick={prevImage} className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 flex items-center justify-center hover:bg-black/60 transition-colors">
+                                                <ChevronLeft className="h-5 w-5 text-white" />
+                                            </button>
+                                            <button onClick={nextImage} className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 flex items-center justify-center hover:bg-black/60 transition-colors">
+                                                <ChevronRight className="h-5 w-5 text-white" />
+                                            </button>
+                                        </>
+                                    )}
+                                    <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-black/55 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+                                        <Camera className="h-3.5 w-3.5" />
+                                        {activeImage + 1}/{images.length}
+                                    </div>
+                                    {isBoosted && (
+                                        <div className="absolute bottom-3 right-3 bg-yellow-400 text-yellow-900 text-xs font-bold px-2.5 py-1 rounded-full">
+                                            👑 VIP
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex gap-2 p-4 overflow-x-auto">
                                     {images.map((img: string, i: number) => (
@@ -338,34 +411,29 @@ const ProductDetailPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Info */}
+                            {/* Info card */}
                             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                                <div className="flex items-start justify-between gap-4 mb-4">
-                                    <div>
-                                        <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-                                            <MapPin className="h-4 w-4" />{ad.location}
-                                            {postedDate && <><Clock className="h-4 w-4 ml-2" />{postedDate}</>}
-                                        </div>
-                                        <h1 className="text-2xl font-bold text-gray-900">{ad.title}</h1>
-                                    </div>
-                                    {isBoosted && <span className="bg-yellow-100 text-yellow-700 text-xs font-bold px-3 py-1 rounded-full shrink-0">👑 VIP</span>}
+                                <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+                                    <MapPin className="h-4 w-4 text-primary-500" />{ad.location}
+                                    {postedDate && <><Clock className="h-4 w-4 ml-2" />{postedDate}</>}
+                                    {isBoosted && <span className="ml-auto bg-yellow-100 text-yellow-700 text-xs font-bold px-2.5 py-0.5 rounded-full">👑 VIP</span>}
                                 </div>
-
-                                <div className="flex items-center gap-3 mb-6">
+                                <h1 className="text-2xl font-bold text-gray-900 mb-3">{ad.title}</h1>
+                                <div className="flex items-baseline gap-3 mb-6">
                                     <span className="text-3xl font-bold text-primary-600">
                                         {formatConvertedPrice(ad.price, ad.currency, targetCurrency)}
                                     </span>
-                                    {isNegotiable && <span className="text-gray-500 font-medium">Negotiable</span>}
+                                    {isNegotiable && <span className="text-gray-400 font-medium">Negotiable</span>}
                                 </div>
 
-                                {/* Attributes table */}
+                                {/* Attributes grid */}
                                 {attrEntries.length > 0 && (
                                     <div className="mb-6 border border-gray-100 rounded-xl overflow-hidden">
-                                        <div className="grid grid-cols-2">
-                                            {attrEntries.map(([key, value], i) => (
-                                                <div key={key} className={cn('p-3', i % 2 === 0 ? 'bg-gray-50' : 'bg-white', 'border-b border-gray-100')}>
-                                                    <p className="text-[11px] text-gray-400 uppercase tracking-wide">{key.replace(/_/g, ' ')}</p>
-                                                    <p className="text-sm font-semibold text-gray-800 mt-0.5">{String(value)}</p>
+                                        <div className="grid grid-cols-2 divide-x divide-y divide-gray-100">
+                                            {attrEntries.map(([key, value]) => (
+                                                <div key={key} className="p-4">
+                                                    <p className="text-sm font-bold text-gray-900">{String(value)}</p>
+                                                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mt-1">{key.replace(/_/g, ' ')}</p>
                                                 </div>
                                             ))}
                                         </div>
@@ -374,9 +442,9 @@ const ProductDetailPage: React.FC = () => {
 
                                 {/* Description */}
                                 {ad.description && (
-                                    <div className="border-t border-gray-100 pt-6">
-                                        <h3 className="font-bold text-lg mb-3">Description</h3>
-                                        <p className={cn('text-gray-600 whitespace-pre-line leading-relaxed', !showFullDesc && 'line-clamp-5')}>
+                                    <div className="border-t border-gray-100 pt-5">
+                                        <h3 className="font-bold text-base mb-3 text-gray-900">Description</h3>
+                                        <p className={cn('text-gray-600 whitespace-pre-line leading-relaxed text-sm', !showFullDesc && 'line-clamp-5')}>
                                             {ad.description}
                                         </p>
                                         {ad.description.length > 300 && (
@@ -390,7 +458,7 @@ const ProductDetailPage: React.FC = () => {
 
                                 {/* KH Pin */}
                                 {ad.attributes?.kh_pin && (
-                                    <div className="mt-6 p-4 bg-primary-50 rounded-xl border border-primary-100 flex items-center justify-between gap-4">
+                                    <div className="mt-5 p-4 bg-primary-50 rounded-xl border border-primary-100 flex items-center justify-between gap-4">
                                         <div className="flex items-center gap-3">
                                             <Navigation className="h-5 w-5 text-primary-500" />
                                             <div>
@@ -402,7 +470,7 @@ const ProductDetailPage: React.FC = () => {
                                     </div>
                                 )}
 
-                                <div className="mt-6 flex items-center justify-between p-4 bg-primary-50 rounded-xl border border-primary-100">
+                                <div className="mt-5 flex items-center justify-between p-4 bg-primary-50 rounded-xl border border-primary-100">
                                     <div className="flex items-center gap-2 text-primary-800">
                                         <ShieldCheck className="h-5 w-5" />
                                         <span className="text-sm font-medium">Verified Seller Guarantee</span>
@@ -414,7 +482,8 @@ const ProductDetailPage: React.FC = () => {
 
                         {/* Sidebar */}
                         <div className="space-y-6">
-                            <div className="sticky top-24 space-y-6">
+                            <div className="sticky top-24 space-y-4">
+                                {/* Seller */}
                                 <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
                                     <Link to={`/seller/${ad.owner_id}`} className="flex items-center gap-4 mb-6 group">
                                         <div className="w-16 h-16 rounded-full bg-primary-50 border-2 border-primary-100 flex items-center justify-center text-primary-600 text-2xl font-bold overflow-hidden">
@@ -436,7 +505,7 @@ const ProductDetailPage: React.FC = () => {
                                     <div className="flex flex-col gap-3">
                                         <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
                                             onClick={async () => { try { await interactionService.logInteraction(ad.id, InteractionType.WHATSAPP); } catch {} }}
-                                            className="w-full h-14 rounded-xl border-2 border-primary-500 text-primary-600 font-bold text-base flex items-center justify-center gap-2 hover:bg-primary-50 transition-colors">
+                                            className="w-full h-13 rounded-xl border-2 border-primary-500 text-primary-600 font-bold text-base flex items-center justify-center gap-2 hover:bg-primary-50 transition-colors py-3">
                                             {WA_ICON} WhatsApp
                                         </a>
                                         <button
@@ -444,23 +513,31 @@ const ProductDetailPage: React.FC = () => {
                                                 setShowPhone(true);
                                                 try { await interactionService.logInteraction(ad.id, InteractionType.CALL); } catch {}
                                             }}
-                                            className="w-full h-14 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-bold text-base flex items-center justify-center gap-2 transition-colors">
+                                            className="w-full h-13 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-bold text-base flex items-center justify-center gap-2 transition-colors py-3">
                                             <Phone className="h-5 w-5" />
-                                            {showPhone ? (ad.owner?.phone || 'N/A') : 'Call'}
+                                            {showPhone ? (ad.owner?.phone || 'N/A') : 'Call Seller'}
                                         </button>
+                                        <Link
+                                            to={`/messages?user=${ad.owner_id}`}
+                                            className="w-full rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors py-3"
+                                        >
+                                            <MessageCircle className="h-4 w-4" />
+                                            Send Message
+                                        </Link>
                                     </div>
 
-                                    <div className="mt-6 pt-6 border-t border-dashed border-gray-200 text-center">
-                                        <button className="text-sm text-red-500 flex items-center justify-center gap-2 mx-auto hover:underline font-medium">
+                                    <div className="mt-5 pt-4 border-t border-dashed border-gray-200 text-center">
+                                        <button className="text-sm text-gray-400 hover:text-red-500 flex items-center justify-center gap-2 mx-auto transition-colors">
                                             <Flag className="h-4 w-4" /> Report Abuse
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100 flex gap-3">
-                                    <Info className="h-5 w-5 text-yellow-600 shrink-0 mt-0.5" />
-                                    <p className="text-xs text-yellow-800 leading-normal">
-                                        <strong>Safety First:</strong> Avoid paying in advance. Meet the seller in a public place.
+                                {/* Safety tip */}
+                                <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 flex gap-3">
+                                    <Info className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                                    <p className="text-xs text-amber-800 leading-relaxed">
+                                        <strong>Safety First:</strong> Avoid paying in advance. Meet the seller in a public place. Inspect the item before paying.
                                     </p>
                                 </div>
                             </div>
