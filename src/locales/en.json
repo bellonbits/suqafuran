@@ -144,6 +144,9 @@
     "and": "and",
     "free": "Free",
     "negotiable": "Negotiable",
-    "currency": "KSh"
+    "currency": "KSh",
+    "enterprise": "Enterprise",
+    "popular": "Popular",
+    "verifiedId": "Verified ID"
   }
 }

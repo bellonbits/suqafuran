@@ -1,6 +1,7 @@
 import React from 'react';
 import { Heart, MapPin, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { cn } from '../utils/cn';
 import { getImageUrl } from '../utils/imageUtils';
 import { useCurrencyStore } from '../store/useCurrencyStore';
@@ -36,6 +37,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     className,
 }) => {
     const { currency: targetCurrency } = useCurrencyStore();
+    const { t } = useTranslation();
 
     return (
         <Link
@@ -56,19 +58,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 pointer-events-none">
                     {isPromoted && (
                         <div className="bg-secondary-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow-sm uppercase tracking-wider w-fit">
-                            Enterprise
+                            {t('common.enterprise')}
                         </div>
                     )}
                     {/* Hide Popular if Enterprise to reduce clutter */}
                     {isPopular && !isPromoted && (
                         <div className="bg-white/90 backdrop-blur-sm text-gray-800 text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-sm flex items-center gap-1 w-fit">
                             <span className="w-1.5 h-1.5 bg-secondary-500 rounded-full animate-pulse" />
-                            Popular
+                            {t('common.popular')}
                         </div>
                     )}
                     {isVerified && (
                         <div className="bg-blue-300 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow-sm w-fit">
-                            Verified ID
+                            {t('common.verifiedId')}
                         </div>
                     )}
                 </div>
