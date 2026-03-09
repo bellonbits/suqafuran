@@ -77,34 +77,34 @@ const LandingPage: React.FC = () => {
             ═══════════════════════════════════════════════ */}
             <div className="lg:hidden bg-[#f7f9fc]">
 
-                {/* Hero headline */}
-                <div className="px-5 pt-6 pb-4">
-                    <h1 className="text-[28px] font-extrabold text-gray-900 leading-tight tracking-tight">
+                {/* ── Jiji-style hero banner ── */}
+                <div className="bg-primary-500 px-5 pt-10 pb-6">
+                    <h1 className="text-white text-[22px] font-extrabold text-center mb-4 tracking-tight">
                         {t('landing.heroTitle')}
                     </h1>
-                </div>
-
-                {/* Search bar */}
-                <div className="px-5 mb-5">
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => navigate('/search')}
-                            className="flex-1 flex items-center gap-3 bg-white rounded-2xl px-4 h-12 shadow-sm border border-gray-100 text-gray-400 active:bg-gray-50 transition-colors"
-                        >
-                            <Search className="h-4 w-4 shrink-0 text-gray-400" />
-                            <span className="text-sm">{t('landing.searchPlaceholder')}</span>
-                        </button>
+                    <div className="flex gap-2">
+                        {/* Location pill */}
                         <button
                             onClick={() => setLocationOpen(true)}
-                            className="w-12 h-12 rounded-2xl bg-primary-500 flex items-center justify-center shadow-sm active:scale-95 transition-transform shrink-0"
+                            className="flex items-center gap-2 bg-white rounded-2xl px-4 h-12 shadow-sm text-gray-600 font-semibold text-sm whitespace-nowrap active:bg-gray-50 transition-colors shrink-0"
                         >
-                            <MapPin className="h-5 w-5 text-white" />
+                            <MapPin className="h-4 w-4 text-primary-500 shrink-0" />
+                            <span className="truncate max-w-[90px]">{selectedLocation || 'All Somalia'}</span>
+                            <ChevronRight className="h-3.5 w-3.5 text-gray-400 rotate-90 shrink-0" />
+                        </button>
+                        {/* Search input */}
+                        <button
+                            onClick={() => navigate('/search')}
+                            className="flex-1 flex items-center gap-2 bg-white rounded-2xl px-4 h-12 shadow-sm text-gray-400 active:bg-gray-50 transition-colors"
+                        >
+                            <Search className="h-4 w-4 shrink-0 text-gray-400" />
+                            <span className="text-sm truncate">{t('landing.searchPlaceholder')}</span>
                         </button>
                     </div>
                 </div>
 
                 {/* Category chips — horizontal scroll */}
-                <div className="mb-5">
+                <div className="mb-5 mt-4">
                     <div className="flex gap-3 overflow-x-auto px-5 pb-2 hide-scrollbar">
                         {/* "All" chip */}
                         <button
