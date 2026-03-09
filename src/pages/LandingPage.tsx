@@ -78,27 +78,27 @@ const LandingPage: React.FC = () => {
             <div className="lg:hidden bg-[#f7f9fc]">
 
                 {/* ── Jiji-style hero banner ── */}
-                <div className="bg-primary-500 px-5 pt-10 pb-6">
-                    <h1 className="text-white text-[22px] font-extrabold text-center mb-4 tracking-tight">
+                <div className="bg-primary-500 px-4 pt-8 pb-5">
+                    <h1 className="text-white text-xl font-extrabold text-center mb-4 tracking-tight">
                         {t('landing.heroTitle')}
                     </h1>
-                    <div className="flex gap-2">
-                        {/* Location pill */}
+                    <div className="flex gap-2 w-full overflow-hidden">
+                        {/* Location pill — fixed width */}
                         <button
                             onClick={() => setLocationOpen(true)}
-                            className="flex items-center gap-2 bg-white rounded-2xl px-4 h-12 shadow-sm text-gray-600 font-semibold text-sm whitespace-nowrap active:bg-gray-50 transition-colors shrink-0"
+                            className="flex items-center gap-1.5 bg-white rounded-2xl px-3 h-11 shadow-sm text-gray-700 font-semibold text-sm active:bg-gray-50 transition-colors shrink-0 w-[130px]"
                         >
-                            <MapPin className="h-4 w-4 text-primary-500 shrink-0" />
-                            <span className="truncate max-w-[90px]">{selectedLocation || 'All Somalia'}</span>
-                            <ChevronRight className="h-3.5 w-3.5 text-gray-400 rotate-90 shrink-0" />
+                            <MapPin className="h-3.5 w-3.5 text-primary-500 shrink-0" />
+                            <span className="truncate flex-1 text-left text-xs">{selectedLocation || 'All Somalia'}</span>
+                            <ChevronRight className="h-3 w-3 text-gray-400 rotate-90 shrink-0" />
                         </button>
-                        {/* Search input */}
+                        {/* Search input — takes remaining space */}
                         <button
                             onClick={() => navigate('/search')}
-                            className="flex-1 flex items-center gap-2 bg-white rounded-2xl px-4 h-12 shadow-sm text-gray-400 active:bg-gray-50 transition-colors"
+                            className="flex-1 min-w-0 flex items-center gap-2 bg-white rounded-2xl px-3 h-11 shadow-sm text-gray-400 active:bg-gray-50 transition-colors"
                         >
                             <Search className="h-4 w-4 shrink-0 text-gray-400" />
-                            <span className="text-sm truncate">{t('landing.searchPlaceholder')}</span>
+                            <span className="text-sm truncate">Search...</span>
                         </button>
                     </div>
                 </div>
