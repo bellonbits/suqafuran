@@ -18,6 +18,7 @@ class ListingBase(SQLModel):
     condition: str  # New, Used, Refurbished
     category_id: int = Field(foreign_key="category.id")
     subcategory_id: Optional[int] = Field(default=None, foreign_key="subcategory.id")
+    subsubcategory_id: Optional[int] = Field(default=None, foreign_key="subsubcategory.id")
     status: str = Field(default="pending")  # pending, active, closed, reported
     boost_level: int = Field(default=0)  # 0: none, 1: basic, 2: vip, 3: diamond
     boost_expires_at: Optional[datetime] = None
@@ -65,4 +66,17 @@ class SubCategory(SQLModel, table=True):
     attributes_schema: dict = Field(default={}, sa_column=Column(JSON))
 
     category: Optional[Category] = Relationship(back_populates="subcategories")
+    subsubcategories: List["SubSubCategory"] = Relationship(back_populates="subcategory", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+
+
+class SubSubCategory(SQLModel, table=True):
+    __tablename__ = "subsubcategory"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(index=True)
+    slug: str = Field(index=True)
+    image_url: Optional[str] = None
+    subcategory_id: int = Field(foreign_key="subcategory.id")
+
+    subcategory: Optional[SubCategory] = Relationship(back_populates="subsubcategories")
 

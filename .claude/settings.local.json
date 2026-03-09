@@ -4,7 +4,8 @@
       "Bash(python3 /c/Users/learn/Desktop/suqafuran/write_layout.py)",
       "Bash(npm run build)",
       "Bash(docker ps --format \"{{.Names}}\")",
-      "Bash(npm install i18next react-i18next)"
+      "Bash(npm install i18next react-i18next)",
+      "WebFetch(domain:jiji.co.ke)"
     ],
     "additionalDirectories": [
       "C:\\Users\\learn\\Desktop\\suqafuran\\src"
