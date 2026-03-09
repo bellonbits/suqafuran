@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from sqlmodel import Session
 from app.api import deps
 from app.crud import crud_listing
-from app.models.listing import Listing, ListingBase, ListingRead, Category, SubCategory
+from app.models.listing import Listing, ListingBase, ListingRead, Category, SubCategory, SubSubCategory
 from app.models.user import User
 from app.models.audit import AuditLog
 from app.core.config import settings
@@ -97,6 +97,15 @@ def read_categories(
                     "slug": sub.slug,
                     "image_url": sub.image_url,
                     "attributes_schema": sub.attributes_schema,
+                    "subsubcategories": [
+                        {
+                            "id": ssub.id,
+                            "name": ssub.name,
+                            "slug": ssub.slug,
+                            "image_url": ssub.image_url,
+                        }
+                        for ssub in (sub.subsubcategories or [])
+                    ],
                 }
                 for sub in (cat.subcategories or [])
             ],

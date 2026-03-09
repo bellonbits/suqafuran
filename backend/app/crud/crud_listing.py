@@ -1,7 +1,7 @@
 from typing import List, Optional
 from sqlmodel import Session, select, func
 from sqlalchemy.orm import selectinload
-from app.models.listing import Listing, ListingBase, Category, SubCategory
+from app.models.listing import Listing, ListingBase, Category, SubCategory, SubSubCategory
 
 
 def get_listing(db: Session, id: int) -> Optional[Listing]:
@@ -79,7 +79,11 @@ def remove_listing(db: Session, *, id: int) -> Listing:
 
 
 def get_categories(db: Session) -> List[Category]:
-    return db.exec(select(Category).options(selectinload(Category.subcategories))).all()
+    return db.exec(
+        select(Category).options(
+            selectinload(Category.subcategories).selectinload(SubCategory.subsubcategories)
+        )
+    ).all()
 
 
 def get_category_by_slug(db: Session, slug: str) -> Optional[Category]:
