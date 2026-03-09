@@ -80,7 +80,22 @@
     "favorite": "Kaydi",
     "unfavorite": "Ka Saar",
     "deleteAd": "Xayeysiiska Tirtir",
-    "boostAd": "Xayeysiiska Xooji"
+    "boostAd": "Xayeysiiska Xooji",
+    "showMore": "Wax badan tus",
+    "showLess": "Yareey",
+    "verifiedSeller": "Gadeeyaha La Xaqiijiyay",
+    "verifiedSellerGuarantee": "Damaanad Gadeeyaha La Xaqiijiyay",
+    "learnMore": "Wax Badan Baaro",
+    "reportAd": "Xayeysiiskan ka Warbixin",
+    "viewProfile": "Arag",
+    "safetyTip": "Talo Amaan",
+    "safetyTipText": "Ha bixinin lacag horey. Meel dadweyne ah ku kulmow. Ka hubi ka hor intaadan bixin.",
+    "digitalAddress": "Cinwaanka Dhijitaalka",
+    "postedRecently": "Dhawaan la geeyay",
+    "getPin": "Khariidadda",
+    "callSeller": "Gadeeyaha Wac",
+    "sendMessage": "Fariin Dir",
+    "relatedListings": "Xayeysiisyada La Xiriira"
   },
   "auth": {
     "login": "Gal",

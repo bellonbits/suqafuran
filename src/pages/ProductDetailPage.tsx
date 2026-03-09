@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { PublicLayout } from '../layouts/PublicLayout';
@@ -26,6 +27,7 @@ const WA_ICON = (
 
 const ProductDetailPage: React.FC = () => {
     const { listingId } = useParams<{ listingId: string }>();
+    const { t } = useTranslation();
     const [showPhone, setShowPhone] = useState(false);
     const [activeImage, setActiveImage] = useState(0);
     const [showFullDesc, setShowFullDesc] = useState(false);
@@ -220,7 +222,7 @@ const ProductDetailPage: React.FC = () => {
                         {formatConvertedPrice(ad.price, ad.currency, targetCurrency)}
                     </span>
                     {isNegotiable && (
-                        <span className="text-sm text-gray-400 font-medium">Negotiable</span>
+                        <span className="text-sm text-gray-400 font-medium">{t('common.negotiable')}</span>
                     )}
                 </div>
 
@@ -245,7 +247,7 @@ const ProductDetailPage: React.FC = () => {
                         className="flex-1 h-12 rounded-xl bg-primary-500 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
                     >
                         <Phone className="h-4 w-4" />
-                        {showPhone ? (ad.owner?.phone || 'N/A') : 'Call'}
+                        {showPhone ? (ad.owner?.phone || 'N/A') : t('listing.callSeller')}
                     </button>
                 </div>
 
@@ -266,7 +268,7 @@ const ProductDetailPage: React.FC = () => {
                 {/* ── Description ── */}
                 {ad.description && (
                     <div className="bg-white mt-2 px-4 py-4 border-b border-gray-100">
-                        <h3 className="text-[13px] font-bold text-gray-900 mb-2">Description</h3>
+                        <h3 className="text-[13px] font-bold text-gray-900 mb-2">{t('listing.description')}</h3>
                         <p className={cn('text-[13px] text-gray-600 leading-relaxed', !showFullDesc && 'line-clamp-4')}>
                             {ad.description}
                         </p>
@@ -276,8 +278,8 @@ const ProductDetailPage: React.FC = () => {
                                 className="mt-2 text-primary-600 text-sm font-semibold flex items-center gap-1"
                             >
                                 {showFullDesc
-                                    ? <>Show less <ChevronUp className="h-4 w-4" /></>
-                                    : <>Show more <ChevronDown className="h-4 w-4" /></>}
+                                    ? <>{t('listing.showLess')} <ChevronUp className="h-4 w-4" /></>
+                                    : <>{t('listing.showMore')} <ChevronDown className="h-4 w-4" /></>}
                             </button>
                         )}
                     </div>
@@ -289,10 +291,10 @@ const ProductDetailPage: React.FC = () => {
                         <div className="flex items-center gap-3 p-3 bg-primary-50 rounded-xl">
                             <Navigation className="h-4 w-4 text-primary-500 shrink-0" />
                             <div className="flex-1 min-w-0">
-                                <p className="text-[10px] font-bold text-primary-600 uppercase tracking-wider">Digital Address</p>
+                                <p className="text-[10px] font-bold text-primary-600 uppercase tracking-wider">{t('listing.digitalAddress')}</p>
                                 <p className="text-sm font-bold text-gray-900">{ad.attributes.kh_pin}</p>
                             </div>
-                            <Link to="/kh" className="text-xs font-bold text-primary-600 bg-white px-2 py-1 rounded-lg border border-primary-200">Map</Link>
+                            <Link to="/kh" className="text-xs font-bold text-primary-600 bg-white px-2 py-1 rounded-lg border border-primary-200">{t('listing.getPin')}</Link>
                         </div>
                     </div>
                 )}
@@ -310,7 +312,7 @@ const ProductDetailPage: React.FC = () => {
                             {ad.owner?.is_verified && (
                                 <div className="flex items-center gap-1 text-primary-600 mt-0.5">
                                     <ShieldCheck className="h-3 w-3" />
-                                    <span className="text-[10px] font-bold">Verified Seller</span>
+                                    <span className="text-[10px] font-bold">{t('listing.verifiedSeller')}</span>
                                 </div>
                             )}
                         </div>
@@ -318,7 +320,7 @@ const ProductDetailPage: React.FC = () => {
                             to={`/seller/${ad.owner_id}`}
                             className="text-xs font-bold text-primary-600 border border-primary-200 bg-primary-50 px-3 py-1.5 rounded-full shrink-0"
                         >
-                            View
+                            {t('listing.viewProfile')}
                         </Link>
                     </div>
                 </div>
@@ -327,7 +329,7 @@ const ProductDetailPage: React.FC = () => {
                 <div className="bg-white mt-2 px-4 py-3 border-b border-gray-100">
                     <button className="flex items-center gap-2 text-sm text-gray-400 hover:text-red-500 transition-colors">
                         <Flag className="h-4 w-4" />
-                        Report this ad
+                        {t('listing.reportAd')}
                     </button>
                 </div>
 
@@ -335,7 +337,7 @@ const ProductDetailPage: React.FC = () => {
                 <div className="bg-white mt-2 mx-4 mb-4 rounded-xl p-3 border border-amber-100 flex gap-2 items-start">
                     <Info className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
                     <p className="text-xs text-amber-800 leading-relaxed">
-                        <strong>Safety tip:</strong> Never pay in advance. Meet in a public place. Inspect before you pay.
+                        <strong>{t('listing.safetyTip')}:</strong> {t('listing.safetyTipText')}
                     </p>
                 </div>
             </div>
@@ -364,7 +366,7 @@ const ProductDetailPage: React.FC = () => {
                     className="flex-1 h-12 rounded-xl bg-primary-500 text-white font-bold text-sm flex items-center justify-center gap-2"
                 >
                     <Phone className="h-4 w-4" />
-                    {showPhone ? (ad.owner?.phone || 'N/A') : 'Call'}
+                    {showPhone ? (ad.owner?.phone || 'N/A') : t('listing.callSeller')}
                 </button>
             </div>
 
@@ -423,7 +425,7 @@ const ProductDetailPage: React.FC = () => {
                                     <span className="text-3xl font-bold text-primary-600">
                                         {formatConvertedPrice(ad.price, ad.currency, targetCurrency)}
                                     </span>
-                                    {isNegotiable && <span className="text-gray-400 font-medium">Negotiable</span>}
+                                    {isNegotiable && <span className="text-gray-400 font-medium">{t('common.negotiable')}</span>}
                                 </div>
 
                                 {/* Attributes grid */}
@@ -443,14 +445,14 @@ const ProductDetailPage: React.FC = () => {
                                 {/* Description */}
                                 {ad.description && (
                                     <div className="border-t border-gray-100 pt-5">
-                                        <h3 className="font-bold text-base mb-3 text-gray-900">Description</h3>
+                                        <h3 className="font-bold text-base mb-3 text-gray-900">{t('listing.description')}</h3>
                                         <p className={cn('text-gray-600 whitespace-pre-line leading-relaxed text-sm', !showFullDesc && 'line-clamp-5')}>
                                             {ad.description}
                                         </p>
                                         {ad.description.length > 300 && (
                                             <button onClick={() => setShowFullDesc(v => !v)}
                                                 className="mt-2 text-primary-600 text-sm font-semibold flex items-center gap-1">
-                                                {showFullDesc ? <>Show less <ChevronUp className="h-4 w-4" /></> : <>Show more <ChevronDown className="h-4 w-4" /></>}
+                                                {showFullDesc ? <>{t('listing.showLess')} <ChevronUp className="h-4 w-4" /></> : <>{t('listing.showMore')} <ChevronDown className="h-4 w-4" /></>}
                                             </button>
                                         )}
                                     </div>
@@ -462,20 +464,20 @@ const ProductDetailPage: React.FC = () => {
                                         <div className="flex items-center gap-3">
                                             <Navigation className="h-5 w-5 text-primary-500" />
                                             <div>
-                                                <p className="text-[10px] font-bold text-primary-600 uppercase tracking-wider">Digital Address</p>
+                                                <p className="text-[10px] font-bold text-primary-600 uppercase tracking-wider">{t('listing.digitalAddress')}</p>
                                                 <p className="text-sm font-bold text-gray-900">{ad.attributes.kh_pin}</p>
                                             </div>
                                         </div>
-                                        <Link to="/kh"><Button variant="outline" size="sm" className="bg-white text-xs font-bold border-primary-200">GET PIN</Button></Link>
+                                        <Link to="/kh"><Button variant="outline" size="sm" className="bg-white text-xs font-bold border-primary-200">{t('listing.getPin')}</Button></Link>
                                     </div>
                                 )}
 
                                 <div className="mt-5 flex items-center justify-between p-4 bg-primary-50 rounded-xl border border-primary-100">
                                     <div className="flex items-center gap-2 text-primary-800">
                                         <ShieldCheck className="h-5 w-5" />
-                                        <span className="text-sm font-medium">Verified Seller Guarantee</span>
+                                        <span className="text-sm font-medium">{t('listing.verifiedSellerGuarantee')}</span>
                                     </div>
-                                    <Link to="/safety" className="text-xs text-primary-600 underline font-medium">Learn More</Link>
+                                    <Link to="/safety" className="text-xs text-primary-600 underline font-medium">{t('listing.learnMore')}</Link>
                                 </div>
                             </div>
                         </div>
@@ -496,7 +498,7 @@ const ProductDetailPage: React.FC = () => {
                                             {ad.owner?.is_verified && (
                                                 <div className="flex items-center gap-1 mt-1 text-primary-600">
                                                     <ShieldCheck className="h-3.5 w-3.5" />
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider">Verified Seller</span>
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider">{t('listing.verifiedSeller')}</span>
                                                 </div>
                                             )}
                                         </div>
@@ -515,20 +517,20 @@ const ProductDetailPage: React.FC = () => {
                                             }}
                                             className="w-full h-13 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-bold text-base flex items-center justify-center gap-2 transition-colors py-3">
                                             <Phone className="h-5 w-5" />
-                                            {showPhone ? (ad.owner?.phone || 'N/A') : 'Call Seller'}
+                                            {showPhone ? (ad.owner?.phone || 'N/A') : t('listing.callSeller')}
                                         </button>
                                         <Link
                                             to={`/messages?user=${ad.owner_id}`}
                                             className="w-full rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors py-3"
                                         >
                                             <MessageCircle className="h-4 w-4" />
-                                            Send Message
+                                            {t('listing.sendMessage')}
                                         </Link>
                                     </div>
 
                                     <div className="mt-5 pt-4 border-t border-dashed border-gray-200 text-center">
                                         <button className="text-sm text-gray-400 hover:text-red-500 flex items-center justify-center gap-2 mx-auto transition-colors">
-                                            <Flag className="h-4 w-4" /> Report Abuse
+                                            <Flag className="h-4 w-4" /> {t('listing.reportAd')}
                                         </button>
                                     </div>
                                 </div>
@@ -537,7 +539,7 @@ const ProductDetailPage: React.FC = () => {
                                 <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 flex gap-3">
                                     <Info className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
                                     <p className="text-xs text-amber-800 leading-relaxed">
-                                        <strong>Safety First:</strong> Avoid paying in advance. Meet the seller in a public place. Inspect the item before paying.
+                                        <strong>{t('listing.safetyTip')}:</strong> {t('listing.safetyTipText')}
                                     </p>
                                 </div>
                             </div>
@@ -547,7 +549,7 @@ const ProductDetailPage: React.FC = () => {
                     {/* Related */}
                     {displayRelatedAds.length > 0 && (
                         <section className="mt-16">
-                            <h2 className="text-2xl font-bold mb-8">Related Listings</h2>
+                            <h2 className="text-2xl font-bold mb-8">{t('listing.relatedListings')}</h2>
                             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
                                 {displayRelatedAds.map((item: Listing, idx: number) => (
                                     <ProductCard
