@@ -89,7 +89,7 @@ const LandingPage: React.FC = () => {
                             className="flex items-center gap-1.5 bg-white rounded-2xl px-3 h-11 shadow-sm text-gray-700 font-semibold text-sm active:bg-gray-50 transition-colors shrink-0 w-[130px]"
                         >
                             <MapPin className="h-3.5 w-3.5 text-primary-500 shrink-0" />
-                            <span className="truncate flex-1 text-left text-xs">{selectedLocation || 'All Somalia'}</span>
+                            <span className="truncate flex-1 text-left text-xs">{selectedLocation || t('landing.allLocations')}</span>
                             <ChevronRight className="h-3 w-3 text-gray-400 rotate-90 shrink-0" />
                         </button>
                         {/* Search input — takes remaining space */}
