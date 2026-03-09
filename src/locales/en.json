@@ -80,7 +80,22 @@
     "favorite": "Save",
     "unfavorite": "Unsave",
     "deleteAd": "Delete Ad",
-    "boostAd": "Boost Ad"
+    "boostAd": "Boost Ad",
+    "showMore": "Show more",
+    "showLess": "Show less",
+    "verifiedSeller": "Verified Seller",
+    "verifiedSellerGuarantee": "Verified Seller Guarantee",
+    "learnMore": "Learn More",
+    "reportAd": "Report this ad",
+    "viewProfile": "View",
+    "safetyTip": "Safety tip",
+    "safetyTipText": "Never pay in advance. Meet in a public place. Inspect before you pay.",
+    "digitalAddress": "Digital Address",
+    "postedRecently": "Posted recently",
+    "getPin": "Map",
+    "callSeller": "Call Seller",
+    "sendMessage": "Send Message",
+    "relatedListings": "Related Listings"
   },
   "auth": {
     "login": "Login",
