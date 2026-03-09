@@ -34,38 +34,35 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
             {/* ── MOBILE HEADER ── */}
             <header className="md:hidden sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm"
                 style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-                <div className="px-4 h-14 flex items-center gap-3">
+                <div className="px-3 h-14 flex items-center gap-2">
                     <Link to="/" className="shrink-0">
                         <Logo size="sm" />
                     </Link>
                     <Link
                         to="/search"
-                        className="flex-1 flex items-center gap-2 bg-gray-100 hover:bg-gray-200 active:bg-gray-200 rounded-full px-3 h-9 transition-colors"
+                        className="flex-1 min-w-0 flex items-center gap-2 bg-gray-100 rounded-full px-3 h-9"
                     >
                         <Search className="h-4 w-4 text-gray-400 shrink-0" />
                         <span className="text-sm text-gray-400 truncate">{t('nav.search')}</span>
                     </Link>
-                    <div className="flex items-center gap-0.5 shrink-0">
-                        <LanguageSwitcher compact />
-                        <Link to="/notifications" className="p-2 rounded-full text-gray-500 hover:bg-gray-100 active:bg-gray-200 transition-colors">
-                            <Bell className="h-5 w-5" />
+                    <Link to="/notifications" className="p-2 shrink-0 text-gray-500">
+                        <Bell className="h-5 w-5" />
+                    </Link>
+                    {isAuthenticated ? (
+                        <Link to="/dashboard" className="shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold text-sm overflow-hidden border-2 border-primary-200">
+                                {getAvatarUrl(user?.avatar_url) ? (
+                                    <img src={getAvatarUrl(user?.avatar_url)!} alt={user?.full_name || 'U'} className="w-full h-full object-cover" />
+                                ) : (
+                                    <span>{user?.full_name?.[0]?.toUpperCase() || 'U'}</span>
+                                )}
+                            </div>
                         </Link>
-                        {isAuthenticated ? (
-                            <Link to="/dashboard" className="p-1">
-                                <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold text-sm overflow-hidden border-2 border-primary-200">
-                                    {getAvatarUrl(user?.avatar_url) ? (
-                                        <img src={getAvatarUrl(user?.avatar_url)!} alt={user?.full_name || 'U'} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <span>{user?.full_name?.[0]?.toUpperCase() || 'U'}</span>
-                                    )}
-                                </div>
-                            </Link>
-                        ) : (
-                            <Link to="/login" className="p-2 rounded-full text-gray-500 hover:bg-gray-100 active:bg-gray-200 transition-colors">
-                                <User className="h-5 w-5" />
-                            </Link>
-                        )}
-                    </div>
+                    ) : (
+                        <Link to="/login" className="p-2 shrink-0 text-gray-500">
+                            <User className="h-5 w-5" />
+                        </Link>
+                    )}
                 </div>
             </header>
 
