@@ -129,6 +129,11 @@
     "activeBoosts": "Xoojinta Firfircoon"
   },
   "messages": {
+    "myMessages": "Farriimaadaydii",
+    "search": "Raadi",
+    "tabAll": "Dhammaan",
+    "tabUnread": "Aan la akhrin",
+    "tabSpam": "Spam",
     "noConversations": "Wax xiriir ah ma jiraan",
     "unknownUser": "Isticmaale aan la garanayn",
     "active": "Firfircoon",
@@ -136,7 +141,10 @@
     "typeMessage": "Fariin qor…",
     "loginRequired": "Gal si aad farriimaha u aragto",
     "loginToView": "Waa inaad galaysaa si aad farriimaad u diri iyo u helid.",
-    "selectConversation": "Xiriir dooro si aad la hadashid"
+    "selectConversation": "Xiriir dooro si aad la hadashid",
+    "noMessagesYet": "Wali farriimaad ma lihid.",
+    "findThings": "Wax raadi",
+    "toDiscuss": "si aad ka hadashid ama wax u iibisid"
   },
   "common": {
     "loading": "Waa la rarayo...",
