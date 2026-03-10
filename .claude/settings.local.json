@@ -10,10 +10,16 @@
       "Bash(grep -A20 '\"\"scripts\"\"')",
       "Bash(git add capacitor.config.ts ios/App/App/Info.plist ios/App/CapApp-SPM/Package.swift)",
       "Bash(git commit:*)",
-      "Bash(git push origin main)"
+      "Bash(git push origin main)",
+      "Read(//Users/learn/Desktop/suqafuran/src/services/**)",
+      "Read(//c/Users/learn/Desktop/suqafuran/src/services/**)",
+      "Read(//Users/learn/Desktop/suqafuran/ios/App/App/**)",
+      "Read(//c/Users/learn/Desktop/suqafuran/ios/App/App/**)"
     ],
     "additionalDirectories": [
-      "C:\\Users\\learn\\Desktop\\suqafuran\\src"
+      "C:\\Users\\learn\\Desktop\\suqafuran\\src",
+      "\\Users\\learn\\Desktop\\suqafuran\\ios\\App\\App",
+      "c:\\Users\\learn\\Desktop\\suqafuran\\ios\\App\\App"
     ]
   }
 }
