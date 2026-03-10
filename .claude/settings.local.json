@@ -5,7 +5,12 @@
       "Bash(npm run build)",
       "Bash(docker ps --format \"{{.Names}}\")",
       "Bash(npm install i18next react-i18next)",
-      "WebFetch(domain:jiji.co.ke)"
+      "WebFetch(domain:jiji.co.ke)",
+      "Bash(grep -A5 '\"\"scripts\"\"')",
+      "Bash(grep -A20 '\"\"scripts\"\"')",
+      "Bash(git add capacitor.config.ts ios/App/App/Info.plist ios/App/CapApp-SPM/Package.swift)",
+      "Bash(git commit:*)",
+      "Bash(git push origin main)"
     ],
     "additionalDirectories": [
       "C:\\Users\\learn\\Desktop\\suqafuran\\src"
