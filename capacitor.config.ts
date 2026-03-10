@@ -7,6 +7,20 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: true,
   },
+  ios: {
+    contentInset: 'automatic',
+  },
+  plugins: {
+    StatusBar: {
+      style: 'default',
+      backgroundColor: '#7dcce9',
+    },
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: '#7dcce9',
+      showSpinner: false,
+    },
+  },
 };
 
 export default config;
