@@ -43,3 +43,16 @@ def get_conversation(
     return crud_message.get_conversation(
         db, user_id=current_user.id, other_user_id=other_user_id, listing_id=listing_id
     )
+
+@router.post("/{other_user_id}/read")
+def mark_read(
+    *,
+    db: Session = Depends(deps.get_db),
+    other_user_id: int,
+    current_user = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Mark all messages from other_user_id to current_user as read.
+    """
+    crud_message.mark_as_read(db, user_id=current_user.id, other_user_id=other_user_id)
+    return {"ok": True}

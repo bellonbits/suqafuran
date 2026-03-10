@@ -66,4 +66,16 @@ class CRUDMessage:
 
         return list(conversations.values())
 
+    def mark_as_read(self, db: Session, *, user_id: int, other_user_id: int) -> None:
+        statement = select(Message).where(
+            Message.sender_id == other_user_id,
+            Message.receiver_id == user_id,
+            Message.is_read == False,  # noqa: E712
+        )
+        messages = db.exec(statement).all()
+        for msg in messages:
+            msg.is_read = True
+            db.add(msg)
+        db.commit()
+
 crud_message = CRUDMessage()
