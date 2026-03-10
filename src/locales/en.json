@@ -129,6 +129,11 @@
     "activeBoosts": "Active Boosts"
   },
   "messages": {
+    "myMessages": "My messages",
+    "search": "Search",
+    "tabAll": "All",
+    "tabUnread": "Unread",
+    "tabSpam": "Spam",
     "noConversations": "No conversations yet",
     "unknownUser": "Unknown User",
     "active": "Active",
@@ -136,7 +141,10 @@
     "typeMessage": "Type a message…",
     "loginRequired": "Sign in to view messages",
     "loginToView": "You need to be logged in to send and receive messages.",
-    "selectConversation": "Select a conversation to start chatting"
+    "selectConversation": "Select a conversation to start chatting",
+    "noMessagesYet": "You have no messages yet.",
+    "findThings": "Find things",
+    "toDiscuss": "to discuss or sell something"
   },
   "common": {
     "loading": "Loading...",
