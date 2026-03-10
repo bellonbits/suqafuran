@@ -45,4 +45,9 @@ export const messageService = {
     async markAsRead(otherUserId: number): Promise<void> {
         await api.post(`/messages/${otherUserId}/read`);
     },
+
+    async getPublicUser(userId: number): Promise<{ id: number; full_name: string; avatar_url: string | null }> {
+        const res = await api.get(`/users/public/${userId}`);
+        return res.data;
+    },
 };
