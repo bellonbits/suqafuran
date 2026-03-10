@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 interface Props {
   compact?: boolean;
+  light?: boolean;
 }
 
-const LanguageSwitcher: React.FC<Props> = ({ compact = false }) => {
+const LanguageSwitcher: React.FC<Props> = ({ compact = false, light = false }) => {
   const { i18n } = useTranslation();
   const isSomali = i18n.language === 'so';
 
@@ -19,7 +20,11 @@ const LanguageSwitcher: React.FC<Props> = ({ compact = false }) => {
     return (
       <button
         onClick={toggle}
-        className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition-colors"
+        className={
+          light
+            ? 'flex items-center gap-1 px-2.5 py-1 rounded-full border border-gray-200 bg-gray-50 text-gray-700 text-xs font-bold transition-colors hover:bg-gray-100'
+            : 'flex items-center gap-1 px-2 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition-colors'
+        }
         title={isSomali ? 'Switch to English' : 'Af-Soomaali'}
       >
         {isSomali ? 'EN' : 'SO'}

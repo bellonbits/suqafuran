@@ -128,6 +128,16 @@
     "balance": "Balance",
     "activeBoosts": "Active Boosts"
   },
+  "messages": {
+    "noConversations": "No conversations yet",
+    "unknownUser": "Unknown User",
+    "active": "Active",
+    "startConversation": "Start the conversation",
+    "typeMessage": "Type a message…",
+    "loginRequired": "Sign in to view messages",
+    "loginToView": "You need to be logged in to send and receive messages.",
+    "selectConversation": "Select a conversation to start chatting"
+  },
   "common": {
     "loading": "Loading...",
     "error": "Something went wrong",

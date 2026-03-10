@@ -128,6 +128,16 @@
     "balance": "Residual",
     "activeBoosts": "Xoojinta Firfircoon"
   },
+  "messages": {
+    "noConversations": "Wax xiriir ah ma jiraan",
+    "unknownUser": "Isticmaale aan la garanayn",
+    "active": "Firfircoon",
+    "startConversation": "Xiriirka bilow",
+    "typeMessage": "Fariin qor…",
+    "loginRequired": "Gal si aad farriimaha u aragto",
+    "loginToView": "Waa inaad galaysaa si aad farriimaad u diri iyo u helid.",
+    "selectConversation": "Xiriir dooro si aad la hadashid"
+  },
   "common": {
     "loading": "Waa la rarayo...",
     "error": "Wax baa qaldamay",

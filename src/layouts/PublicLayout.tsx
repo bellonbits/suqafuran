@@ -45,6 +45,7 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                         <Search className="h-4 w-4 text-gray-400 shrink-0" />
                         <span className="text-sm text-gray-400 truncate">{t('nav.search')}</span>
                     </Link>
+                    <LanguageSwitcher compact light />
                     <Link to="/notifications" className="p-2 shrink-0 text-gray-500">
                         <Bell className="h-5 w-5" />
                     </Link>
