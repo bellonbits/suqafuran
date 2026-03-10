@@ -1,23 +1,28 @@
-from typing import Any, List
+from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session
+from sqlmodel import Session, SQLModel
 from app.api import deps
 from app.crud.crud_message import crud_message
 from app.models.message import Message
 
 router = APIRouter()
 
+class MessageCreate(SQLModel):
+    receiver_id: int
+    content: str
+    listing_id: Optional[int] = None
+
 @router.post("/", response_model=Message)
 def send_message(
     *,
     db: Session = Depends(deps.get_db),
-    message_in: dict,
+    message_in: MessageCreate,
     current_user = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Send a new message.
     """
-    return crud_message.create(db, obj_in=message_in, sender_id=current_user.id)
+    return crud_message.create(db, obj_in=message_in.model_dump(), sender_id=current_user.id)
 
 @router.get("/conversations", response_model=List[Any])
 def get_my_conversations(

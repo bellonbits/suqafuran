@@ -178,8 +178,12 @@ const ChatView: React.FC<{
     const sendMutation = useMutation({
         mutationFn: (content: string) =>
             messageService.sendMessage(conversation.other_user_id, content, conversation.listing_id ?? undefined),
-        onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ['messages', conversation.other_user_id] });
+        onSuccess: (newMsg) => {
+            // Immediately append to cache so UI is instant
+            qc.setQueryData<Message[]>(
+                ['messages', conversation.other_user_id],
+                (old = []) => [...old, newMsg]
+            );
             qc.invalidateQueries({ queryKey: ['conversations'] });
             setText('');
             inputRef.current?.focus();
@@ -326,20 +330,43 @@ const MessagesPage: React.FC = () => {
     const [tab, setTab] = useState<TabFilter>('all');
     const qc = useQueryClient();
 
+    const targetUserId = searchParams.get('user') ? Number(searchParams.get('user')) : null;
+    const targetListingId = searchParams.get('listing') ? Number(searchParams.get('listing')) : null;
+
     const { data: conversations = [], isLoading } = useQuery<Conversation[]>({
         queryKey: ['conversations'],
         queryFn: messageService.getConversations,
         enabled: isAuthenticated,
-        refetchInterval: 10_000,
+        refetchInterval: 8_000,
     });
 
+    // Fetch seller info if navigating directly to a new conversation
+    const { data: targetUser } = useQuery({
+        queryKey: ['public-user', targetUserId],
+        queryFn: () => messageService.getPublicUser(targetUserId!),
+        enabled: !!targetUserId && isAuthenticated,
+        staleTime: 60_000,
+    });
+
+    // Open conversation: prefer existing, fall back to stub from URL params
     useEffect(() => {
-        const userId = searchParams.get('user');
-        if (userId && conversations.length > 0) {
-            const found = conversations.find(c => c.other_user_id === Number(userId));
-            if (found) setActiveConv(found);
+        if (!targetUserId || !isAuthenticated) return;
+        const existing = conversations.find(c => c.other_user_id === targetUserId);
+        if (existing) {
+            setActiveConv(existing);
+        } else if (targetUser) {
+            // Create a stub so the user can start the first message
+            setActiveConv({
+                other_user_id: targetUser.id,
+                other_user_name: targetUser.full_name,
+                other_user_avatar: targetUser.avatar_url,
+                last_message: '',
+                last_message_at: null,
+                unread_count: 0,
+                listing_id: targetListingId,
+            });
         }
-    }, [searchParams, conversations]);
+    }, [targetUserId, targetUser, conversations, isAuthenticated, targetListingId]);
 
     if (!isAuthenticated) {
         return (

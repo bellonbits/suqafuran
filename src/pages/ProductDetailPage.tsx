@@ -227,7 +227,7 @@ const ProductDetailPage: React.FC = () => {
                 </div>
 
                 {/* ── Action buttons ── */}
-                <div className="bg-white px-4 pb-5 flex gap-3 border-b border-gray-100">
+                <div className="bg-white px-4 pb-5 flex gap-2 border-b border-gray-100">
                     <a
                         href={whatsappUrl}
                         target="_blank"
@@ -249,6 +249,13 @@ const ProductDetailPage: React.FC = () => {
                         <Phone className="h-4 w-4" />
                         {showPhone ? (ad.owner?.phone || 'N/A') : t('listing.callSeller')}
                     </button>
+                    <Link
+                        to={`/messages?user=${ad.owner_id}&listing=${ad.id}`}
+                        className="flex-1 h-12 rounded-xl border border-gray-200 text-gray-600 font-bold text-sm flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+                    >
+                        <MessageCircle className="h-4 w-4" />
+                        {t('listing.sendMessage')}
+                    </Link>
                 </div>
 
                 {/* ── Condition / Key Specs row ── */}
@@ -344,7 +351,7 @@ const ProductDetailPage: React.FC = () => {
 
             {/* Mobile sticky bottom CTA */}
             <div
-                className="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 z-40 flex gap-3 px-4 pt-3"
+                className="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 z-40 flex gap-2 px-4 pt-3"
                 style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}
             >
                 <a
@@ -368,6 +375,13 @@ const ProductDetailPage: React.FC = () => {
                     <Phone className="h-4 w-4" />
                     {showPhone ? (ad.owner?.phone || 'N/A') : t('listing.callSeller')}
                 </button>
+                <Link
+                    to={`/messages?user=${ad.owner_id}&listing=${ad.id}`}
+                    className="flex-1 h-12 rounded-xl border border-gray-200 text-gray-600 font-bold text-sm flex items-center justify-center gap-1.5"
+                >
+                    <MessageCircle className="h-4 w-4" />
+                    {t('listing.sendMessage')}
+                </Link>
             </div>
 
             {/* ══════════════════════════════════════════
@@ -520,7 +534,7 @@ const ProductDetailPage: React.FC = () => {
                                             {showPhone ? (ad.owner?.phone || 'N/A') : t('listing.callSeller')}
                                         </button>
                                         <Link
-                                            to={`/messages?user=${ad.owner_id}`}
+                                            to={`/messages?user=${ad.owner_id}&listing=${ad.id}`}
                                             className="w-full rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors py-3"
                                         >
                                             <MessageCircle className="h-4 w-4" />
