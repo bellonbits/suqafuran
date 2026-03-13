@@ -1,5 +1,3 @@
-const CLOUD_NAME = 'dyyo8cnqc';
-
 export function getCloudinaryUrl(
     url: string | undefined,
     options?: { width?: number; height?: number }
