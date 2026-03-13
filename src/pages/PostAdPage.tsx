@@ -2,18 +2,20 @@ import React, { useState } from 'react';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { listingService } from '../services/listingService';
 import {
     Image as ImageIcon, Upload, CheckCircle2,
-    ChevronRight, ChevronLeft, Tag, Info, Loader2, MapPin
+    ChevronRight, ChevronLeft, Tag, Info, Loader2, MapPin, ShieldAlert, Shield, Clock
 } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { getImageUrl } from '../utils/imageUtils';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { LocationPickerModal } from '../components/LocationPickerModal';
+import { useAuthStore } from '../store/useAuthStore';
 
 const steps = ['Basic Info', 'Category & Details', 'Pricing', 'Photos'];
 
@@ -34,6 +36,13 @@ const PostAdPage: React.FC = () => {
     const [currentStep, setCurrentStep] = useState(0);
     const [submitted, setSubmitted] = useState(false);
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+    const { user } = useAuthStore();
+
+    const { data: verificationStatus } = useQuery({
+        queryKey: ['verification-status'],
+        queryFn: () => import('../services/api').then(m => m.default.get('/verifications/me').then(r => r.data)),
+        enabled: !!user && !user.is_verified,
+    });
 
     const { data: categories, isLoading: catsLoading } = useQuery({
         queryKey: ['categories'],
@@ -73,6 +82,40 @@ const PostAdPage: React.FC = () => {
 
     const handleNext = () => setCurrentStep(prev => prev + 1);
     const handleBack = () => setCurrentStep(prev => prev - 1);
+
+    // Verification gate
+    if (!user?.is_verified) {
+        const isPending = verificationStatus?.status === 'pending';
+        return (
+            <div className="max-w-xl mx-auto py-20 text-center">
+                <div className={cn(
+                    "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6",
+                    isPending ? "bg-blue-50" : "bg-amber-50"
+                )}>
+                    {isPending
+                        ? <Clock className="h-10 w-10 text-blue-500" />
+                        : <ShieldAlert className="h-10 w-10 text-amber-500" />
+                    }
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                    {isPending ? 'Verification Pending' : 'Verify Your Account First'}
+                </h2>
+                <p className="text-gray-500 mb-8">
+                    {isPending
+                        ? 'Your documents are being reviewed (24-48 hours). You\'ll be able to post once approved.'
+                        : 'To keep Suqafuran safe, all sellers must verify their identity before posting ads.'}
+                </p>
+                {!isPending && (
+                    <Link to="/dashboard/verify">
+                        <Button className="rounded-xl gap-2">
+                            <Shield className="h-5 w-5" />
+                            Verify My Account
+                        </Button>
+                    </Link>
+                )}
+            </div>
+        );
+    }
 
     if (submitted) {
         return (

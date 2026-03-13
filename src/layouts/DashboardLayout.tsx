@@ -48,6 +48,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         { labelKey: 'dashboard.notifications', icon: Bell, path: '/notifications' },
         { labelKey: 'dashboard.helpCenter', icon: HelpCircle, path: '/help' },
         { labelKey: 'dashboard.accountSettings', icon: Settings, path: '/settings' },
+        { labelKey: 'dashboard.verification', icon: Shield, path: '/dashboard/verify', badge: !user?.is_verified },
     ];
 
     return (
@@ -122,7 +123,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             )}
                         >
                             <item.icon className="h-5 w-5" />
-                            {t(item.labelKey)}
+                            <span className="flex-1">{t(item.labelKey)}</span>
+                            {item.badge && (
+                                <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                            )}
                         </Link>
                     ))}
 
@@ -184,6 +188,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             >
                                 <Folder className="h-5 w-5" />
                                 Categories
+                            </Link>
+                            <Link
+                                to="/admin/verifications"
+                                className={cn(
+                                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-amber-600 hover:bg-amber-50",
+                                    location.pathname === '/admin/verifications' && "bg-amber-50 shadow-sm"
+                                )}
+                            >
+                                <Shield className="h-5 w-5" />
+                                Verifications
                             </Link>
                         </div>
                     )}
