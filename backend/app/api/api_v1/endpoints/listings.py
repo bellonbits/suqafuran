@@ -312,6 +312,11 @@ def create_listing(
     """
     Create new listing.
     """
+    if not current_user.is_verified:
+        raise HTTPException(
+            status_code=403,
+            detail="Your account must be verified before posting. Please submit your ID for verification."
+        )
     listing = crud_listing.create_listing(
         db=db, listing_in=listing_in, owner_id=current_user.id
     )

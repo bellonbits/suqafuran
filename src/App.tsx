@@ -47,6 +47,7 @@ const AdminCategoriesPage = lazy(() => import('./pages/admin/AdminCategoriesPage
 const AdminPromotionsPage = lazy(() => import('./pages/admin/AdminPromotionsPage'));
 const AdminVouchersPage = lazy(() => import('./pages/admin/AdminVouchersPage'));
 const AdminListingsPage = lazy(() => import('./pages/admin/AdminListingsPage'));
+const AdminVerificationsPage = lazy(() => import('./pages/admin/AdminVerificationsPage'));
 const AgentDashboard = lazy(() => import('./pages/agent/AgentDashboard'));
 
 const queryClient = new QueryClient();
@@ -76,7 +77,6 @@ const App: React.FC = () => {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
-            <Route path="/verify" element={<VerificationPage />} />
             <Route path="/phone-verification" element={<PhoneVerificationPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -93,6 +93,7 @@ const App: React.FC = () => {
               <Route path="/help" element={<HelpCenterPage />} />
               <Route path="/edit-ad/:id" element={<EditAdPage />} />
               <Route path="/promote/:adId" element={<PromotionPage />} />
+              <Route path="/dashboard/verify" element={<VerificationPage />} />
               <Route path="/agent-dashboard" element={<AgentDashboard />} />
             </Route>
 
@@ -115,6 +116,7 @@ const App: React.FC = () => {
               <Route path="categories" element={<AdminCategoriesPage />} />
               <Route path="promotions" element={<AdminPromotionsPage />} />
               <Route path="vouchers" element={<AdminVouchersPage />} />
+              <Route path="verifications" element={<AdminVerificationsPage />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

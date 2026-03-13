@@ -141,9 +141,11 @@ def update_verification_status(
     
     # If approved, update user's verification status
     if status == VerificationStatus.APPROVED:
+        from app.models.user import UserVerifiedLevel
         user = db.get(User, request.user_id)
         if user:
             user.is_verified = True
+            user.verified_level = UserVerifiedLevel.id
             db.add(user)
             
     db.commit()
