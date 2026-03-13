@@ -29,7 +29,7 @@ httpx
 africastalking
 authlib
 itsdangerous
-appwrite
+cloudinary
 
 # Config
 pydantic[email]
