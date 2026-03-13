@@ -7,21 +7,19 @@ export const authService = {
         return response.data;
     },
 
-    async requestOTP(phone: string): Promise<{ message: string }> {
-        const response = await api.post('/auth/request-otp', { phone });
+    async requestOTP(email: string): Promise<{ message: string }> {
+        const response = await api.post('/auth/request-otp', { email });
         return response.data;
     },
 
-    async verifyOTP(phone: string, code: string, fullName?: string): Promise<AuthResponse> {
-        const response = await api.post('/auth/verify-otp', { phone, otp: code, full_name: fullName });
+    async verifyOTP(email: string, code: string): Promise<AuthResponse> {
+        const response = await api.post('/auth/verify-otp', { email, otp: code });
         return response.data;
     },
 
     async login(credentials: LoginCredentials): Promise<AuthResponse> {
         const formData = new FormData();
-        // Backend expects 'username' and 'password' for OAuth2 flow
-        // We map 'phone' (from UI) to 'username'
-        formData.append('username', credentials.phone || credentials.email || '');
+        formData.append('username', credentials.email || '');
         formData.append('password', credentials.password || '');
 
         const response = await api.post('/login/access-token', formData, {

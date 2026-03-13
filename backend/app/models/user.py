@@ -18,11 +18,12 @@ class UserVerifiedLevel(str, enum.Enum):
 
 class UserBase(SQLModel):
     full_name: Optional[str] = None
-    email: Optional[str] = Field(default=None, unique=True, index=True)
-    phone: str = Field(unique=True, index=True)
+    email: str = Field(unique=True, index=True)
+    phone: Optional[str] = Field(default=None, unique=True, index=True)
     is_active: bool = True
     is_verified: bool = False
-    phone_verified: bool = Field(default=False)
+    email_verified: bool = Field(default=False)
+    phone_verified: bool = Field(default=False)  # kept for legacy
     is_admin: bool = False
     verified_level: UserVerifiedLevel = Field(default=UserVerifiedLevel.guest)
     avatar_url: Optional[str] = None

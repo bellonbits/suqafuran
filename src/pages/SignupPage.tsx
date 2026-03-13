@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Phone, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { User, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { AuthInput } from '../components/AuthInput';
 import { AuthLayout } from '../components/AuthLayout';
@@ -10,7 +10,7 @@ const SignupPage: React.FC = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         full_name: '',
-        phone: '',
+        email: '',
         password: '',
         confirm_password: ''
     });
@@ -43,11 +43,10 @@ const SignupPage: React.FC = () => {
         try {
             await authService.signup({
                 full_name: formData.full_name,
-                phone: formData.phone,
+                email: formData.email,
                 password: formData.password
             });
-            // On success, navigate to verification page
-            navigate(`/phone-verification?phone=${encodeURIComponent(formData.phone)}`);
+            navigate(`/email-verification?email=${encodeURIComponent(formData.email)}`);
         } catch (err: any) {
             console.error('Signup Error Debug:', JSON.stringify({
                 message: err.message,
@@ -103,13 +102,13 @@ const SignupPage: React.FC = () => {
                 />
 
                 <AuthInput
-                    id="phone"
-                    type="tel"
-                    label="Phone Number"
-                    placeholder="+254 7..."
-                    icon={<Phone className="w-5 h-5" />}
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    id="email"
+                    type="email"
+                    label="Email Address"
+                    placeholder="you@example.com"
+                    icon={<Mail className="w-5 h-5" />}
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     required
                 />
 

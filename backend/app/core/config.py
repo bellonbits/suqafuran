@@ -18,10 +18,15 @@ class Settings(BaseSettings):
     GITHUB_CLIENT_ID: Optional[str] = None
     GITHUB_CLIENT_SECRET: Optional[str] = None
     
-    # AFRICA'S TALKING
+    # RESEND EMAIL
+    RESEND_API_KEY: Optional[str] = None
+    EMAIL_FROM: str = "no-reply@guri24.com"
+    EMAIL_FROM_NAME: str = "Suqafuran"
+
+    # AFRICA'S TALKING (kept for legacy/SMS use)
     AFRICASTALKING_USERNAME: str = "sandbox"
     AFRICASTALKING_API_KEY: str = ""
-    AFRICASTALKING_SENDER_ID: str = "SUQAFURAN"  # Your approved sender ID
+    AFRICASTALKING_SENDER_ID: str = "SUQAFURAN"
 
     # LIPANA M-PESA
     LIPANA_SECRET_KEY: str = ""

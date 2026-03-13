@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Phone, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { AuthInput } from '../components/AuthInput';
 import { AuthLayout } from '../components/AuthLayout';
@@ -10,7 +10,7 @@ import { authService } from '../services/authService';
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
     const login = useAuthStore((state) => state.login);
-    const [phone, setPhone] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -21,10 +21,7 @@ const LoginPage: React.FC = () => {
         setIsLoading(true);
 
         try {
-            const response = await authService.login({
-                email: phone, // We map phone to email/username field in service
-                password: password
-            });
+            const response = await authService.login({ email, password });
 
             useAuthStore.setState({ token: response.access_token });
             const user = await authService.getMe();
@@ -34,7 +31,7 @@ const LoginPage: React.FC = () => {
             const detail = err.response?.data?.detail;
             const message = typeof detail === 'string'
                 ? detail
-                : 'Invalid phone number or password';
+                : 'Invalid email or password';
             setError(message);
         } finally {
             setIsLoading(false);
@@ -60,13 +57,13 @@ const LoginPage: React.FC = () => {
                 )}
 
                 <AuthInput
-                    label="Phone Number"
-                    id="phone"
-                    type="tel"
-                    placeholder="+252 61 XXX XXXX"
-                    icon={<Phone className="h-4 w-4" />}
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    label="Email Address"
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    icon={<Mail className="h-4 w-4" />}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                 />
 

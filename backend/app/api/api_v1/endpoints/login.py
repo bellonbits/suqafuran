@@ -27,10 +27,10 @@ def login_access_token(
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     elif not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
-    elif not user.phone_verified:
+    elif not user.email_verified:
         raise HTTPException(
-            status_code=400, 
-            detail="Phone number not verified. Please verify your phone number first."
+            status_code=400,
+            detail="Email not verified. Please check your inbox for the verification code."
         )
     
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)

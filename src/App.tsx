@@ -20,6 +20,7 @@ const LoginPage = lazyNamed(() => import('./pages/LoginPage'), 'LoginPage');
 const SignupPage = lazyNamed(() => import('./pages/SignupPage'), 'SignupPage');
 const VerificationPage = lazyNamed(() => import('./pages/VerificationPage'), 'VerificationPage'); // Was VerifyPage
 const PhoneVerificationPage = lazyNamed(() => import('./pages/PhoneVerificationPage'), 'PhoneVerificationPage');
+const EmailVerificationPage = lazyNamed(() => import('./pages/EmailVerificationPage'), 'EmailVerificationPage');
 const CategoryListingPage = lazyNamed(() => import('./pages/CategoryListingPage'), 'CategoryListingPage');
 const PostAdPage = lazyNamed(() => import('./pages/PostAdPage'), 'PostAdPage');
 const ProductDetailPage = lazyNamed(() => import('./pages/ProductDetailPage'), 'ProductDetailPage'); // Was ListingDetailsPage
@@ -78,6 +79,7 @@ const App: React.FC = () => {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/phone-verification" element={<PhoneVerificationPage />} />
+            <Route path="/email-verification" element={<EmailVerificationPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
 

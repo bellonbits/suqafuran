@@ -30,6 +30,7 @@ africastalking
 authlib
 itsdangerous
 cloudinary
+resend
 
 # Config
 pydantic[email]
