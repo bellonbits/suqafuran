@@ -15,11 +15,11 @@ def get_user_by_phone(db: Session, phone: str) -> Optional[User]:
     return db.exec(statement).first()
 
 
-def create_user(db: Session, phone: str, password: str, full_name: Optional[str] = None, email: Optional[str] = None) -> User:
+def create_user(db: Session, email: str, password: str, full_name: Optional[str] = None, phone: Optional[str] = None) -> User:
     db_obj = User(
+        email=email,
         phone=phone,
         full_name=full_name,
-        email=email,
         hashed_password=get_password_hash(password),
         is_active=True,
     )
@@ -32,20 +32,7 @@ def create_user(db: Session, phone: str, password: str, full_name: Optional[str]
 def authenticate(
     db: Session, email: str, password: str
 ) -> Optional[User]:
-    # Try by email first
     user = get_user_by_email(db, email=email)
-    # If not found, try by phone (treating email param as username/phone)
-    if not user:
-        # Normalize phone if it looks like a phone number (e.g. starts with digit or +)
-        phone_to_check = email
-        if email and (email.strip().startswith(('0', '+', '254'))):
-            try:
-                from app.services.africastalking_service import africastalking_service
-                phone_to_check = africastalking_service.normalize_phone(email)
-            except Exception:
-                pass
-        user = get_user_by_phone(db, phone=phone_to_check)
-    
     if not user:
         return None
     if not user.hashed_password:

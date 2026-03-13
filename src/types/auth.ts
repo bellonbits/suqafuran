@@ -1,8 +1,8 @@
 export interface User {
     id: number;
     full_name: string;
-    email?: string | null;
-    phone: string;
+    email: string;
+    phone?: string | null;
     is_active: boolean;
     is_verified: boolean;
     is_admin: boolean;
@@ -16,15 +16,14 @@ export interface User {
 }
 
 export interface LoginCredentials {
-    email?: string;
-    phone?: string;
+    email: string;
     password?: string;
 }
 
 export interface SignupCredentials {
     full_name: string;
-    phone: string;
-    email?: string;
+    email: string;
+    phone?: string;
     password?: string;
 }
 
