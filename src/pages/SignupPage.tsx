@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { User, Mail, Lock, Phone, ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { AuthInput } from '../components/AuthInput';
 import { AuthLayout } from '../components/AuthLayout';
@@ -11,6 +11,7 @@ const SignupPage: React.FC = () => {
     const [formData, setFormData] = useState({
         full_name: '',
         email: '',
+        phone: '',
         password: '',
         confirm_password: ''
     });
@@ -44,6 +45,7 @@ const SignupPage: React.FC = () => {
             await authService.signup({
                 full_name: formData.full_name,
                 email: formData.email,
+                phone: formData.phone || undefined,
                 password: formData.password
             });
             navigate(`/email-verification?email=${encodeURIComponent(formData.email)}`);
@@ -110,6 +112,16 @@ const SignupPage: React.FC = () => {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     required
+                />
+
+                <AuthInput
+                    id="phone"
+                    type="tel"
+                    label="Phone Number (optional)"
+                    placeholder="+254712345678"
+                    icon={<Phone className="w-5 h-5" />}
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -10,8 +10,8 @@ RUN npm install
 # Copy source
 COPY . .
 
-# Build with production API URL (proxy path)
-ENV VITE_API_URL=/api/v1
+# Build with production API URL
+ENV VITE_API_URL=https://api.suqafuran.com/api/v1
 RUN npm run build
 
 # Production stage
