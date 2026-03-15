@@ -96,14 +96,27 @@ def list_verification_requests(
     """
     (Admin) List all verification requests.
     """
-    stmt = (
+    requests = db.exec(
         select(VerificationRequest)
-        .options(selectinload(VerificationRequest.user))
         .order_by(VerificationRequest.created_at.desc())
         .offset(skip)
         .limit(limit)
-    )
-    return db.exec(stmt).all()
+    ).all()
+
+    result = []
+    for req in requests:
+        user = db.get(User, req.user_id)
+        data = req.dict()
+        if user:
+            data["user"] = {
+                "full_name": user.full_name,
+                "phone": user.phone,
+                "email": user.email,
+                "is_verified": user.is_verified,
+                "avatar_url": user.avatar_url,
+            }
+        result.append(data)
+    return result
 
 @router.patch("/{id}", response_model=VerificationRequest)
 def update_verification_status(
