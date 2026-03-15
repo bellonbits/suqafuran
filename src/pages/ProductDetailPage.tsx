@@ -8,7 +8,7 @@ import { interactionService, InteractionType } from '../services/interactionServ
 import {
     Phone, Heart,
     MapPin, Clock, ShieldCheck, Flag,
-    ChevronLeft, ChevronRight, Info, Loader2, Navigation,
+    ChevronLeft, ChevronRight, Info, Navigation,
     MoreVertical, Camera, ChevronDown, ChevronUp, MessageCircle
 } from 'lucide-react';
 import { Button } from '../components/Button';
@@ -37,6 +37,7 @@ const ProductDetailPage: React.FC = () => {
         queryFn: () => listingService.getListing(Number(listingId)),
         enabled: !!listingId,
         retry: false,
+        staleTime: 60_000,
     });
 
     const { data: relatedAds } = useQuery<Listing[]>({
@@ -50,8 +51,39 @@ const ProductDetailPage: React.FC = () => {
     if (isLoading) {
         return (
             <PublicLayout>
-                <div className="min-h-[60vh] flex items-center justify-center">
-                    <Loader2 className="w-12 h-12 animate-spin text-primary-600" />
+                {/* Mobile skeleton */}
+                <div className="lg:hidden bg-gray-50 pb-32 animate-pulse">
+                    <div className="w-full bg-gray-200" style={{ aspectRatio: '4/3' }} />
+                    <div className="bg-white px-4 pt-4 pb-3 space-y-3">
+                        <div className="h-3 w-32 bg-gray-200 rounded-full" />
+                        <div className="h-5 w-3/4 bg-gray-200 rounded-full" />
+                        <div className="h-7 w-1/3 bg-gray-200 rounded-full" />
+                        <div className="flex gap-2 pt-2">
+                            <div className="flex-1 h-12 bg-gray-200 rounded-xl" />
+                            <div className="flex-1 h-12 bg-gray-200 rounded-xl" />
+                        </div>
+                    </div>
+                    <div className="bg-white mt-2 px-4 py-4 space-y-2">
+                        <div className="h-3 w-full bg-gray-200 rounded-full" />
+                        <div className="h-3 w-5/6 bg-gray-200 rounded-full" />
+                        <div className="h-3 w-4/6 bg-gray-200 rounded-full" />
+                    </div>
+                </div>
+                {/* Desktop skeleton */}
+                <div className="hidden lg:block animate-pulse">
+                    <div className="container mx-auto px-4 py-8">
+                        <div className="grid lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-2 space-y-6">
+                                <div className="bg-gray-200 rounded-2xl aspect-video" />
+                                <div className="bg-white rounded-2xl p-6 space-y-4">
+                                    <div className="h-4 w-1/2 bg-gray-200 rounded-full" />
+                                    <div className="h-6 w-3/4 bg-gray-200 rounded-full" />
+                                    <div className="h-8 w-1/4 bg-gray-200 rounded-full" />
+                                </div>
+                            </div>
+                            <div className="bg-white rounded-2xl p-6 h-64 bg-gray-100" />
+                        </div>
+                    </div>
                 </div>
             </PublicLayout>
         );
@@ -101,6 +133,8 @@ const ProductDetailPage: React.FC = () => {
                         src={getImageUrl(images[activeImage])}
                         alt={ad.title}
                         className="w-full h-full object-cover"
+                        loading="eager"
+                        fetchPriority="high"
                     />
 
                     {/* Top nav overlay */}

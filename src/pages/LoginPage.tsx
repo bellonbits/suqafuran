@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { z } from 'zod';
+
+const loginSchema = z.object({
+    email: z.string().email('Invalid email address'),
+    password: z.string().min(1, 'Password is required').max(128),
+});
 import { Button } from '../components/Button';
 import { AuthInput } from '../components/AuthInput';
 import { AuthLayout } from '../components/AuthLayout';
@@ -18,6 +24,13 @@ const LoginPage: React.FC = () => {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+
+        const result = loginSchema.safeParse({ email, password });
+        if (!result.success) {
+            setError(result.error.errors[0].message);
+            return;
+        }
+
         setIsLoading(true);
 
         try {

@@ -126,7 +126,7 @@ def verify_otp(
         key="access_token", value=access_token, httponly=True,
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         expires=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        samesite="lax", secure=False,
+        samesite="lax", secure=True,
     )
 
     return {
