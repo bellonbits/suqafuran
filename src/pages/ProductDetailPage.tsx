@@ -8,8 +8,9 @@ import { interactionService, InteractionType } from '../services/interactionServ
 import {
     Phone, Heart,
     MapPin, Clock, ShieldCheck, Flag,
-    ChevronLeft, ChevronRight, Info, Navigation,
-    MoreVertical, Camera, ChevronDown, ChevronUp, MessageCircle
+    ChevronLeft, ChevronRight, Navigation,
+    MoreVertical, Camera, ChevronDown, ChevronUp, MessageCircle,
+    Share2, PhoneCall, AlertTriangle, XCircle
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { ProductCard } from '../components/ProductCard';
@@ -34,14 +35,23 @@ const ProductDetailPage: React.FC = () => {
     const queryClient = useQueryClient();
 
     // Use cached listing from the home/search page as instant placeholder
-    const cachedListing = queryClient.getQueryData<Listing[]>(['listings'])
-        ?.find(l => l.id === Number(listingId))
-        ?? queryClient.getQueryData<Listing[]>(['featured-listings'])
-            ?.find(l => l.id === Number(listingId));
+    const id = Number(listingId);
+    const cachedListing =
+        queryClient.getQueryData<Listing[]>(['featured-ads'])?.find(l => l.id === id)
+        ?? queryClient.getQueryData<Listing[]>(['listings'])?.find(l => l.id === id)
+        ?? (() => {
+            // Also search any category/search page caches
+            const allCaches = queryClient.getQueriesData<Listing[]>({ queryKey: ['listings'] });
+            for (const [, data] of allCaches) {
+                const found = data?.find(l => l.id === id);
+                if (found) return found;
+            }
+            return undefined;
+        })();
 
-    const { data: ad, isFetching, isSuccess } = useQuery<Listing>({
+    const { data: ad, isLoading, isSuccess } = useQuery<Listing>({
         queryKey: ['listing', listingId],
-        queryFn: () => listingService.getListing(Number(listingId)),
+        queryFn: () => listingService.getListing(id),
         enabled: !!listingId,
         retry: false,
         staleTime: 60_000,
@@ -56,55 +66,8 @@ const ProductDetailPage: React.FC = () => {
     const displayRelatedAds = relatedAds || [];
     const { currency: targetCurrency } = useCurrencyStore();
 
-    // No data yet — show skeleton inside the full layout so navbar is visible instantly
-    if (!ad && isFetching) {
-        return (
-            <PublicLayout>
-                {/* Mobile skeleton */}
-                <div className="lg:hidden bg-gray-50 pb-32">
-                    <div className="w-full bg-gray-200 animate-pulse" style={{ aspectRatio: '4/3' }} />
-                    <div className="bg-white px-4 pt-4 pb-3 space-y-3 animate-pulse">
-                        <div className="h-3 w-24 bg-gray-200 rounded-full" />
-                        <div className="h-5 w-3/4 bg-gray-200 rounded-full" />
-                        <div className="h-7 w-1/3 bg-gray-200 rounded-full" />
-                        <div className="flex gap-2 pt-2">
-                            <div className="flex-1 h-12 bg-gray-200 rounded-xl" />
-                            <div className="flex-1 h-12 bg-gray-200 rounded-xl" />
-                        </div>
-                    </div>
-                    <div className="bg-white mt-2 px-4 py-4 space-y-2 animate-pulse">
-                        <div className="h-3 w-full bg-gray-200 rounded-full" />
-                        <div className="h-3 w-5/6 bg-gray-200 rounded-full" />
-                        <div className="h-3 w-4/6 bg-gray-200 rounded-full" />
-                    </div>
-                </div>
-                {/* Desktop skeleton */}
-                <div className="hidden lg:block">
-                    <div className="container mx-auto px-4 py-8">
-                        <div className="grid lg:grid-cols-3 gap-8 animate-pulse">
-                            <div className="lg:col-span-2 space-y-4">
-                                <div className="bg-gray-200 rounded-2xl aspect-video" />
-                                <div className="bg-white rounded-2xl p-6 space-y-3">
-                                    <div className="h-4 w-1/3 bg-gray-200 rounded-full" />
-                                    <div className="h-6 w-2/3 bg-gray-200 rounded-full" />
-                                    <div className="h-8 w-1/4 bg-gray-200 rounded-full" />
-                                    <div className="h-3 w-full bg-gray-200 rounded-full" />
-                                    <div className="h-3 w-5/6 bg-gray-200 rounded-full" />
-                                </div>
-                            </div>
-                            <div className="space-y-4">
-                                <div className="bg-white rounded-2xl p-6 h-48 bg-gray-100" />
-                                <div className="bg-white rounded-2xl p-6 h-32 bg-gray-100" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </PublicLayout>
-        );
-    }
-
-    // Fetch finished but no data — listing doesn't exist
-    if (!ad && isSuccess) {
+    // Fetch done but listing doesn't exist
+    if (!isLoading && isSuccess && !ad) {
         return (
             <PublicLayout>
                 <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
@@ -116,22 +79,28 @@ const ProductDetailPage: React.FC = () => {
         );
     }
 
-    if (!ad) return null;
+    // Skeleton helpers — inline, not full-page blocks
+    const S = {
+        line: (w = 'w-full', h = 'h-3') =>
+            <div className={cn('bg-gray-200 rounded-full animate-pulse', w, h)} />,
+        box: (cls = '') =>
+            <div className={cn('bg-gray-200 rounded-xl animate-pulse', cls)} />,
+    };
 
 
-    const images = ad.images && ad.images.length > 0
+    const images = ad?.images && ad.images.length > 0
         ? ad.images
         : ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800'];
 
-    const isNegotiable = ad.attributes?.negotiable === true || ad.attributes?.negotiable === 'true';
-    const isBoosted = (ad.boost_level ?? 0) > 0;
-    const postedDate = ad.created_at
+    const isNegotiable = ad?.attributes?.negotiable === true || ad?.attributes?.negotiable === 'true';
+    const isBoosted = (ad?.boost_level ?? 0) > 0;
+    const postedDate = ad?.created_at
         ? new Date(ad.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
         : '';
 
-    const whatsappUrl = `https://wa.me/${ad.owner?.phone?.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi, I'm interested in: ${ad.title}`)}`;
+    const whatsappUrl = `https://wa.me/${ad?.owner?.phone?.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi, I'm interested in: ${ad?.title ?? ''}`)}`;
 
-    const attrEntries = ad.attributes
+    const attrEntries = ad?.attributes
         ? Object.entries(ad.attributes).filter(([k]) => k !== 'negotiable' && k !== 'kh_pin')
         : [];
 
@@ -149,7 +118,7 @@ const ProductDetailPage: React.FC = () => {
                 <div className="relative w-full bg-black" style={{ aspectRatio: '4/3' }}>
                     <img
                         src={getImageUrl(images[activeImage])}
-                        alt={ad.title}
+                        alt={ad?.title ?? ''}
                         className="w-full h-full object-cover"
                         loading="eager"
                         fetchPriority="high"
@@ -250,7 +219,7 @@ const ProductDetailPage: React.FC = () => {
                 <div className="bg-white px-4 pt-3 pb-2 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 text-gray-500 text-xs min-w-0">
                         <MapPin className="h-3.5 w-3.5 shrink-0 text-primary-500" />
-                        <span className="truncate">{ad.location}</span>
+                        {ad ? <span className="truncate">{ad.location}</span> : S.line('w-32', 'h-3')}
                         {postedDate && (
                             <>
                                 <Clock className="h-3 w-3 shrink-0 ml-1" />
@@ -265,53 +234,90 @@ const ProductDetailPage: React.FC = () => {
 
                 {/* ── Title ── */}
                 <div className="bg-white px-4 pb-1">
-                    <h1 className="text-[17px] font-bold text-gray-900 leading-snug">{ad.title}</h1>
+                    {ad
+                        ? <h1 className="text-[17px] font-bold text-gray-900 leading-snug">{ad.title}</h1>
+                        : <div className="space-y-2 py-1">{S.line('w-3/4', 'h-5')}{S.line('w-1/2', 'h-5')}</div>
+                    }
                 </div>
 
                 {/* ── Price ── */}
                 <div className="bg-white px-4 pb-4 flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-primary-600">
-                        {formatConvertedPrice(ad.price, ad.currency, targetCurrency)}
-                    </span>
-                    {isNegotiable && (
-                        <span className="text-sm text-gray-400 font-medium">{t('common.negotiable')}</span>
-                    )}
+                    {ad ? (
+                        <>
+                            <span className="text-2xl font-bold text-primary-600">
+                                {formatConvertedPrice(ad.price, ad.currency, targetCurrency)}
+                            </span>
+                            {isNegotiable && (
+                                <span className="text-sm text-gray-400 font-medium">{t('common.negotiable')}</span>
+                            )}
+                        </>
+                    ) : S.line('w-1/3', 'h-7')}
                 </div>
 
                 {/* ── Action buttons ── */}
                 <div className="bg-white px-4 pb-5 flex gap-2 border-b border-gray-100">
-                    <a
-                        href={whatsappUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={async () => {
-                            try { await interactionService.logInteraction(ad.id, InteractionType.WHATSAPP); } catch {}
-                        }}
-                        className="flex-1 h-12 rounded-xl border-2 border-primary-500 text-primary-600 font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
-                    >
-                        {WA_ICON} WhatsApp
-                    </a>
-                    <button
-                        onClick={async () => {
-                            setShowPhone(true);
-                            try { await interactionService.logInteraction(ad.id, InteractionType.CALL); } catch {}
-                        }}
-                        className="flex-1 h-12 rounded-xl bg-primary-500 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
-                    >
-                        <Phone className="h-4 w-4" />
-                        {showPhone ? (ad.owner?.phone || 'N/A') : t('listing.callSeller')}
-                    </button>
-                    <Link
-                        to={`/messages?user=${ad.owner_id}&listing=${ad.id}`}
-                        className="flex-1 h-12 rounded-xl border border-gray-200 text-gray-600 font-bold text-sm flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
-                    >
-                        <MessageCircle className="h-4 w-4" />
-                        {t('listing.sendMessage')}
-                    </Link>
+                    {!ad ? (
+                        <>{S.box('flex-1 h-12')}{S.box('flex-1 h-12')}{S.box('flex-1 h-12')}</>
+                    ) : (
+                        <>
+                            <a
+                                href={whatsappUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={async () => {
+                                    try { await interactionService.logInteraction(ad.id, InteractionType.WHATSAPP); } catch {}
+                                }}
+                                className="flex-1 h-12 rounded-xl border-2 border-primary-500 text-primary-600 font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                            >
+                                {WA_ICON} WhatsApp
+                            </a>
+                            <button
+                                onClick={async () => {
+                                    setShowPhone(true);
+                                    try { await interactionService.logInteraction(ad.id, InteractionType.CALL); } catch {}
+                                }}
+                                className="flex-1 h-12 rounded-xl bg-primary-500 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                            >
+                                <Phone className="h-4 w-4" />
+                                {showPhone ? (ad.owner?.phone || 'N/A') : t('listing.callSeller')}
+                            </button>
+                            <Link
+                                to={`/messages?user=${ad.owner_id}&listing=${ad.id}`}
+                                className="flex-1 h-12 rounded-xl border border-gray-200 text-gray-600 font-bold text-sm flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+                            >
+                                <MessageCircle className="h-4 w-4" />
+                                {t('listing.sendMessage')}
+                            </Link>
+                        </>
+                    )}
                 </div>
 
+                {/* ── Chat with seller ── */}
+                {ad && (
+                    <div className="bg-white mt-2 px-4 py-4 border-b border-gray-100">
+                        <h3 className="text-[13px] font-bold text-gray-900 mb-3">Chat with the seller</h3>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                            {['Make an offer', 'Is this available?', 'Last price?'].map(msg => (
+                                <Link
+                                    key={msg}
+                                    to={`/messages?user=${ad.owner_id}&listing=${ad.id}&msg=${encodeURIComponent(msg)}`}
+                                    className="px-3 py-1.5 rounded-full border border-primary-400 text-primary-600 text-xs font-semibold active:bg-primary-50 transition-colors"
+                                >
+                                    {msg}
+                                </Link>
+                            ))}
+                        </div>
+                        <Link
+                            to={`/messages?user=${ad.owner_id}&listing=${ad.id}`}
+                            className="w-full h-11 rounded-xl bg-secondary-500 text-white font-bold text-sm flex items-center justify-center"
+                        >
+                            Start chat
+                        </Link>
+                    </div>
+                )}
+
                 {/* ── Condition / Key Specs row ── */}
-                {attrEntries.length > 0 && (
+                {ad && attrEntries.length > 0 && (
                     <div className="bg-white mt-2 px-4 py-4 border-b border-gray-100">
                         <div className="grid grid-cols-2 gap-x-4 gap-y-4">
                             {attrEntries.map(([key, value]) => (
@@ -325,7 +331,7 @@ const ProductDetailPage: React.FC = () => {
                 )}
 
                 {/* ── Description ── */}
-                {ad.description && (
+                {ad?.description && (
                     <div className="bg-white mt-2 px-4 py-4 border-b border-gray-100">
                         <h3 className="text-[13px] font-bold text-gray-900 mb-2">{t('listing.description')}</h3>
                         <p className={cn('text-[13px] text-gray-600 leading-relaxed', !showFullDesc && 'line-clamp-4')}>
@@ -345,7 +351,7 @@ const ProductDetailPage: React.FC = () => {
                 )}
 
                 {/* ── KH PIN ── */}
-                {ad.attributes?.kh_pin && (
+                {ad?.attributes?.kh_pin && (
                     <div className="bg-white mt-2 px-4 py-4 border-b border-gray-100">
                         <div className="flex items-center gap-3 p-3 bg-primary-50 rounded-xl">
                             <Navigation className="h-4 w-4 text-primary-500 shrink-0" />
@@ -360,45 +366,69 @@ const ProductDetailPage: React.FC = () => {
 
                 {/* ── Seller card ── */}
                 <div className="bg-white mt-2 px-4 py-4 border-b border-gray-100">
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold text-lg overflow-hidden shrink-0">
-                            {ad.owner?.avatar_url
-                                ? <img src={getImageUrl(ad.owner.avatar_url)} alt="" className="w-full h-full object-cover" />
-                                : ad.owner?.full_name?.charAt(0) || 'S'}
+                    {!ad ? (
+                        <div className="flex items-center gap-3 animate-pulse">
+                            <div className="w-12 h-12 rounded-full bg-gray-200 shrink-0" />
+                            <div className="flex-1 space-y-2">{S.line('w-1/2', 'h-4')}{S.line('w-1/3', 'h-3')}</div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="font-bold text-gray-900 text-sm truncate">{ad.owner?.full_name || 'Seller'}</p>
-                            {ad.owner?.is_verified && (
-                                <div className="flex items-center gap-1 text-primary-600 mt-0.5">
-                                    <ShieldCheck className="h-3 w-3" />
-                                    <span className="text-[10px] font-bold">{t('listing.verifiedSeller')}</span>
-                                </div>
-                            )}
+                    ) : (
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold text-lg overflow-hidden shrink-0">
+                                {ad.owner?.avatar_url
+                                    ? <img src={getImageUrl(ad.owner.avatar_url)} alt="" className="w-full h-full object-cover" />
+                                    : ad.owner?.full_name?.charAt(0) || 'S'}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-bold text-gray-900 text-sm truncate">{ad.owner?.full_name || 'Seller'}</p>
+                                {ad.owner?.is_verified && (
+                                    <div className="flex items-center gap-1 text-primary-600 mt-0.5">
+                                        <ShieldCheck className="h-3 w-3" />
+                                        <span className="text-[10px] font-bold">{t('listing.verifiedSeller')}</span>
+                                    </div>
+                                )}
+                            </div>
+                            <Link
+                                to={`/seller/${ad.owner_id}`}
+                                className="text-xs font-bold text-primary-600 border border-primary-200 bg-primary-50 px-3 py-1.5 rounded-full shrink-0"
+                            >
+                                {t('listing.viewProfile')}
+                            </Link>
                         </div>
-                        <Link
-                            to={`/seller/${ad.owner_id}`}
-                            className="text-xs font-bold text-primary-600 border border-primary-200 bg-primary-50 px-3 py-1.5 rounded-full shrink-0"
-                        >
-                            {t('listing.viewProfile')}
-                        </Link>
-                    </div>
+                    )}
                 </div>
 
                 {/* ── Report ── */}
+                {ad && (
                 <div className="bg-white mt-2 px-4 py-3 border-b border-gray-100">
                     <button className="flex items-center gap-2 text-sm text-gray-400 hover:text-red-500 transition-colors">
                         <Flag className="h-4 w-4" />
                         {t('listing.reportAd')}
                     </button>
                 </div>
+                )}
 
-                {/* ── Safety tip ── */}
-                <div className="bg-white mt-2 mx-4 mb-4 rounded-xl p-3 border border-amber-100 flex gap-2 items-start">
-                    <Info className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                    <p className="text-xs text-amber-800 leading-relaxed">
-                        <strong>{t('listing.safetyTip')}:</strong> {t('listing.safetyTipText')}
-                    </p>
+                {/* ── Safety tips ── */}
+                <div className="bg-white mt-2 px-4 py-4 border-b border-gray-100">
+                    <h3 className="text-[13px] font-bold text-gray-900 mb-2">{t('listing.safetyTip')}</h3>
+                    <ul className="text-[12px] text-gray-600 space-y-1.5 list-disc list-inside leading-relaxed">
+                        <li>Avoid paying in advance, even for delivery</li>
+                        <li>Meet the seller at a safe public place</li>
+                        <li>Check what you're buying to make sure it's what you need</li>
+                        <li>Only pay if you're satisfied</li>
+                    </ul>
                 </div>
+
+                {/* ── Post Ad Like This ── */}
+                {ad && (
+                    <div className="px-4 py-4 mb-2">
+                        <Link
+                            to={`/post-ad?category=${ad.category_id}`}
+                            className="w-full h-12 rounded-xl border-2 border-primary-500 text-primary-600 font-extrabold text-sm flex items-center justify-center tracking-wide"
+                        >
+                            POST AD LIKE THIS
+                        </Link>
+                    </div>
+                )}
             </div>
 
             {/* Mobile sticky bottom CTA */}
@@ -406,48 +436,56 @@ const ProductDetailPage: React.FC = () => {
                 className="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 z-40 flex gap-2 px-4 pt-3"
                 style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}
             >
-                <a
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={async () => {
-                        try { await interactionService.logInteraction(ad.id, InteractionType.WHATSAPP); } catch {}
-                    }}
-                    className="flex-1 h-12 rounded-xl border-2 border-primary-500 text-primary-600 font-bold text-sm flex items-center justify-center gap-2"
-                >
-                    {WA_ICON} WhatsApp
-                </a>
-                <button
-                    onClick={async () => {
-                        setShowPhone(true);
-                        try { await interactionService.logInteraction(ad.id, InteractionType.CALL); } catch {}
-                    }}
-                    className="flex-1 h-12 rounded-xl bg-primary-500 text-white font-bold text-sm flex items-center justify-center gap-2"
-                >
-                    <Phone className="h-4 w-4" />
-                    {showPhone ? (ad.owner?.phone || 'N/A') : t('listing.callSeller')}
-                </button>
-                <Link
-                    to={`/messages?user=${ad.owner_id}&listing=${ad.id}`}
-                    className="flex-1 h-12 rounded-xl border border-gray-200 text-gray-600 font-bold text-sm flex items-center justify-center gap-1.5"
-                >
-                    <MessageCircle className="h-4 w-4" />
-                    {t('listing.sendMessage')}
-                </Link>
+                {!ad ? (
+                    <>{S.box('flex-1 h-12')}{S.box('flex-1 h-12')}{S.box('flex-1 h-12')}</>
+                ) : (
+                    <>
+                        <a
+                            href={whatsappUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={async () => {
+                                try { await interactionService.logInteraction(ad.id, InteractionType.WHATSAPP); } catch {}
+                            }}
+                            className="flex-1 h-12 rounded-xl border-2 border-primary-500 text-primary-600 font-bold text-sm flex items-center justify-center gap-2"
+                        >
+                            {WA_ICON} WhatsApp
+                        </a>
+                        <button
+                            onClick={async () => {
+                                setShowPhone(true);
+                                try { await interactionService.logInteraction(ad.id, InteractionType.CALL); } catch {}
+                            }}
+                            className="flex-1 h-12 rounded-xl bg-primary-500 text-white font-bold text-sm flex items-center justify-center gap-2"
+                        >
+                            <Phone className="h-4 w-4" />
+                            {showPhone ? (ad.owner?.phone || 'N/A') : t('listing.callSeller')}
+                        </button>
+                        <Link
+                            to={`/messages?user=${ad.owner_id}&listing=${ad.id}`}
+                            className="flex-1 h-12 rounded-xl border border-gray-200 text-gray-600 font-bold text-sm flex items-center justify-center gap-1.5"
+                        >
+                            <MessageCircle className="h-4 w-4" />
+                            {t('listing.sendMessage')}
+                        </Link>
+                    </>
+                )}
             </div>
 
             {/* ══════════════════════════════════════════
-                DESKTOP
+                DESKTOP — Jiji-style layout
             ══════════════════════════════════════════ */}
-            <div className="hidden lg:block">
-                <div className="container mx-auto px-4 py-8">
-                    <div className="grid lg:grid-cols-3 gap-8">
-                        {/* Main */}
-                        <div className="lg:col-span-2 space-y-6">
+            <div className="hidden lg:block bg-gray-50 min-h-screen">
+                <div className="container mx-auto px-4 py-6 max-w-6xl">
+                    <div className="flex gap-6 items-start">
+
+                        {/* ── Main column ── */}
+                        <div className="flex-1 min-w-0 space-y-4">
+
                             {/* Gallery */}
                             <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
-                                <div className="relative aspect-video bg-gray-100">
-                                    <img src={getImageUrl(images[activeImage])} alt={ad.title} className="w-full h-full object-contain" />
+                                <div className="relative bg-gray-100" style={{ aspectRatio: '16/9' }}>
+                                    <img src={getImageUrl(images[activeImage])} alt={ad?.title ?? ''} className="w-full h-full object-contain" />
                                     {images.length > 1 && (
                                         <>
                                             <button onClick={prevImage} className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 flex items-center justify-center hover:bg-black/60 transition-colors">
@@ -463,151 +501,245 @@ const ProductDetailPage: React.FC = () => {
                                         {activeImage + 1}/{images.length}
                                     </div>
                                     {isBoosted && (
-                                        <div className="absolute bottom-3 right-3 bg-yellow-400 text-yellow-900 text-xs font-bold px-2.5 py-1 rounded-full">
+                                        <div className="absolute top-3 left-3 bg-yellow-400 text-yellow-900 text-xs font-bold px-2.5 py-1 rounded-full">
                                             👑 VIP
                                         </div>
                                     )}
                                 </div>
-                                <div className="flex gap-2 p-4 overflow-x-auto">
-                                    {images.map((img: string, i: number) => (
-                                        <button key={i} onClick={() => setActiveImage(i)}
-                                            className={cn('w-20 h-20 rounded-lg overflow-hidden border-2 transition-all shrink-0',
-                                                activeImage === i ? 'border-primary-500 shadow-md' : 'border-transparent opacity-60 hover:opacity-100')}>
-                                            <img src={getImageUrl(img)} alt="" className="w-full h-full object-cover" />
-                                        </button>
-                                    ))}
-                                </div>
+                                {images.length > 1 && (
+                                    <div className="flex gap-2 p-3 overflow-x-auto">
+                                        {images.map((img: string, i: number) => (
+                                            <button key={i} onClick={() => setActiveImage(i)}
+                                                className={cn('w-16 h-16 rounded-lg overflow-hidden border-2 transition-all shrink-0',
+                                                    activeImage === i ? 'border-primary-500 shadow-md' : 'border-transparent opacity-60 hover:opacity-100')}>
+                                                <img src={getImageUrl(img)} alt="" className="w-full h-full object-cover" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
-                            {/* Info card */}
-                            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                                <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                                    <MapPin className="h-4 w-4 text-primary-500" />{ad.location}
-                                    {postedDate && <><Clock className="h-4 w-4 ml-2" />{postedDate}</>}
-                                    {isBoosted && <span className="ml-auto bg-yellow-100 text-yellow-700 text-xs font-bold px-2.5 py-0.5 rounded-full">👑 VIP</span>}
+                            {/* Title + Price + Meta */}
+                            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                                <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                                    <MapPin className="h-3.5 w-3.5 text-primary-500" />
+                                    {ad ? <span>{ad.location}</span> : S.line('w-28', 'h-3')}
+                                    {postedDate && <><Clock className="h-3.5 w-3.5 ml-1" /><span>{postedDate}</span></>}
                                 </div>
-                                <h1 className="text-2xl font-bold text-gray-900 mb-3">{ad.title}</h1>
-                                <div className="flex items-baseline gap-3 mb-6">
-                                    <span className="text-3xl font-bold text-primary-600">
-                                        {formatConvertedPrice(ad.price, ad.currency, targetCurrency)}
-                                    </span>
-                                    {isNegotiable && <span className="text-gray-400 font-medium">{t('common.negotiable')}</span>}
+                                {ad
+                                    ? <h1 className="text-xl font-bold text-gray-900 mb-2 leading-snug">{ad.title}</h1>
+                                    : <div className="space-y-2 mb-2">{S.line('w-2/3', 'h-6')}{S.line('w-1/2', 'h-5')}</div>
+                                }
+                                <div className="flex items-baseline gap-3 mb-4">
+                                    {ad ? (
+                                        <>
+                                            <span className="text-2xl font-extrabold text-secondary-500">
+                                                {formatConvertedPrice(ad.price, ad.currency, targetCurrency)}
+                                            </span>
+                                            {isNegotiable && <span className="text-sm text-gray-400">{t('common.negotiable')}</span>}
+                                        </>
+                                    ) : S.line('w-1/4', 'h-7')}
                                 </div>
 
-                                {/* Attributes grid */}
-                                {attrEntries.length > 0 && (
-                                    <div className="mb-6 border border-gray-100 rounded-xl overflow-hidden">
-                                        <div className="grid grid-cols-2 divide-x divide-y divide-gray-100">
-                                            {attrEntries.map(([key, value]) => (
-                                                <div key={key} className="p-4">
-                                                    <p className="text-sm font-bold text-gray-900">{String(value)}</p>
-                                                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mt-1">{key.replace(/_/g, ' ')}</p>
-                                                </div>
-                                            ))}
-                                        </div>
+                                {/* Share row */}
+                                {ad && (
+                                    <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
+                                        <span className="text-xs text-gray-400 font-semibold flex items-center gap-1"><Share2 className="h-3.5 w-3.5" /> Share:</span>
+                                        <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noopener noreferrer"
+                                            className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center hover:opacity-80 transition-opacity text-xs font-bold">f</a>
+                                        <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(ad.title)}`} target="_blank" rel="noopener noreferrer"
+                                            className="w-8 h-8 rounded-full bg-sky-400 text-white flex items-center justify-center hover:opacity-80 transition-opacity text-xs font-bold">𝕏</a>
+                                        <a href={`https://wa.me/?text=${encodeURIComponent(ad.title + ' ' + window.location.href)}`} target="_blank" rel="noopener noreferrer"
+                                            className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center hover:opacity-80 transition-opacity">
+                                            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                                        </a>
+                                        <button onClick={() => navigator.clipboard?.writeText(window.location.href)}
+                                            className="ml-auto text-xs text-gray-400 hover:text-primary-500 flex items-center gap-1 transition-colors">
+                                            <Share2 className="h-3.5 w-3.5" /> Copy link
+                                        </button>
                                     </div>
                                 )}
+                            </div>
 
-                                {/* Description */}
-                                {ad.description && (
-                                    <div className="border-t border-gray-100 pt-5">
-                                        <h3 className="font-bold text-base mb-3 text-gray-900">{t('listing.description')}</h3>
-                                        <p className={cn('text-gray-600 whitespace-pre-line leading-relaxed text-sm', !showFullDesc && 'line-clamp-5')}>
-                                            {ad.description}
-                                        </p>
-                                        {ad.description.length > 300 && (
-                                            <button onClick={() => setShowFullDesc(v => !v)}
-                                                className="mt-2 text-primary-600 text-sm font-semibold flex items-center gap-1">
-                                                {showFullDesc ? <>{t('listing.showLess')} <ChevronUp className="h-4 w-4" /></> : <>{t('listing.showMore')} <ChevronDown className="h-4 w-4" /></>}
-                                            </button>
-                                        )}
-                                    </div>
-                                )}
-
-                                {/* KH Pin */}
-                                {ad.attributes?.kh_pin && (
-                                    <div className="mt-5 p-4 bg-primary-50 rounded-xl border border-primary-100 flex items-center justify-between gap-4">
-                                        <div className="flex items-center gap-3">
-                                            <Navigation className="h-5 w-5 text-primary-500" />
-                                            <div>
-                                                <p className="text-[10px] font-bold text-primary-600 uppercase tracking-wider">{t('listing.digitalAddress')}</p>
-                                                <p className="text-sm font-bold text-gray-900">{ad.attributes.kh_pin}</p>
+                            {/* Attributes */}
+                            {ad && attrEntries.length > 0 && (
+                                <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                                    <h3 className="font-bold text-sm text-gray-900 mb-3">Details</h3>
+                                    <div className="grid grid-cols-2 gap-y-3 gap-x-6">
+                                        {attrEntries.map(([key, value]) => (
+                                            <div key={key} className="flex justify-between items-center border-b border-gray-50 pb-2">
+                                                <span className="text-xs text-gray-400 uppercase tracking-wider">{key.replace(/_/g, ' ')}</span>
+                                                <span className="text-sm font-semibold text-gray-800">{String(value)}</span>
                                             </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Description */}
+                            {ad?.description && (
+                                <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                                    <h3 className="font-bold text-sm text-gray-900 mb-3">{t('listing.description')}</h3>
+                                    <p className={cn('text-gray-600 whitespace-pre-line leading-relaxed text-sm', !showFullDesc && 'line-clamp-5')}>
+                                        {ad.description}
+                                    </p>
+                                    {ad.description.length > 300 && (
+                                        <button onClick={() => setShowFullDesc(v => !v)}
+                                            className="mt-3 text-primary-600 text-sm font-semibold flex items-center gap-1">
+                                            {showFullDesc ? <>{t('listing.showLess')} <ChevronUp className="h-4 w-4" /></> : <>{t('listing.showMore')} <ChevronDown className="h-4 w-4" /></>}
+                                        </button>
+                                    )}
+                                    {/* Make an offer */}
+                                    {ad && (
+                                        <div className="mt-4 pt-4 border-t border-gray-100">
+                                            <Link to={`/messages?user=${ad.owner_id}&listing=${ad.id}&msg=${encodeURIComponent('I would like to make an offer')}`}
+                                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-primary-400 text-primary-600 font-bold text-sm hover:bg-primary-50 transition-colors">
+                                                <MessageCircle className="h-4 w-4" /> Make an offer
+                                            </Link>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* KH Pin */}
+                            {ad?.attributes?.kh_pin && (
+                                <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                                    <div className="flex items-center gap-3 p-3 bg-primary-50 rounded-xl">
+                                        <Navigation className="h-5 w-5 text-primary-500 shrink-0" />
+                                        <div className="flex-1">
+                                            <p className="text-[10px] font-bold text-primary-600 uppercase tracking-wider">{t('listing.digitalAddress')}</p>
+                                            <p className="text-sm font-bold text-gray-900">{ad.attributes.kh_pin}</p>
                                         </div>
                                         <Link to="/kh"><Button variant="outline" size="sm" className="bg-white text-xs font-bold border-primary-200">{t('listing.getPin')}</Button></Link>
                                     </div>
-                                )}
-
-                                <div className="mt-5 flex items-center justify-between p-4 bg-primary-50 rounded-xl border border-primary-100">
-                                    <div className="flex items-center gap-2 text-primary-800">
-                                        <ShieldCheck className="h-5 w-5" />
-                                        <span className="text-sm font-medium">{t('listing.verifiedSellerGuarantee')}</span>
-                                    </div>
-                                    <Link to="/safety" className="text-xs text-primary-600 underline font-medium">{t('listing.learnMore')}</Link>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
-                        {/* Sidebar */}
-                        <div className="space-y-6">
-                            <div className="sticky top-24 space-y-4">
-                                {/* Seller */}
-                                <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                                    <Link to={`/seller/${ad.owner_id}`} className="flex items-center gap-4 mb-6 group">
-                                        <div className="w-16 h-16 rounded-full bg-primary-50 border-2 border-primary-100 flex items-center justify-center text-primary-600 text-2xl font-bold overflow-hidden">
-                                            {ad.owner?.avatar_url
-                                                ? <img src={getImageUrl(ad.owner.avatar_url)} alt={ad.owner.full_name} className="w-full h-full object-cover" />
-                                                : ad.owner?.full_name?.charAt(0) || 'S'}
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-lg text-gray-900 group-hover:text-primary-600 transition-colors">{ad.owner?.full_name || 'Seller'}</h3>
-                                            {ad.owner?.is_verified && (
-                                                <div className="flex items-center gap-1 mt-1 text-primary-600">
-                                                    <ShieldCheck className="h-3.5 w-3.5" />
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider">{t('listing.verifiedSeller')}</span>
+                        {/* ── Sidebar ── */}
+                        <div className="w-72 shrink-0">
+                            <div className="sticky top-20 space-y-4">
+
+                                {/* Price + CTA card */}
+                                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                                    {/* Price header */}
+                                    <div className="px-5 pt-5 pb-3 border-b border-gray-100">
+                                        {ad ? (
+                                            <>
+                                                <div className="text-2xl font-extrabold text-secondary-500 mb-0.5">
+                                                    {formatConvertedPrice(ad.price, ad.currency, targetCurrency)}
                                                 </div>
-                                            )}
+                                                {isNegotiable && <p className="text-xs text-gray-400">{t('common.negotiable')}</p>}
+                                            </>
+                                        ) : S.line('w-1/2', 'h-7')}
+                                    </div>
+
+                                    {/* Seller info */}
+                                    <div className="px-5 py-4 border-b border-gray-100">
+                                        {!ad ? (
+                                            <div className="flex items-center gap-3 animate-pulse">
+                                                <div className="w-12 h-12 rounded-full bg-gray-200 shrink-0" />
+                                                <div className="flex-1 space-y-2">{S.line('w-1/2', 'h-4')}{S.line('w-1/3', 'h-3')}</div>
+                                            </div>
+                                        ) : (
+                                            <Link to={`/seller/${ad.owner_id}`} className="flex items-center gap-3 group">
+                                                <div className="w-12 h-12 rounded-full bg-primary-50 border-2 border-primary-100 flex items-center justify-center text-primary-600 text-lg font-bold overflow-hidden shrink-0">
+                                                    {ad.owner?.avatar_url
+                                                        ? <img src={getImageUrl(ad.owner.avatar_url)} alt={ad.owner?.full_name ?? ''} className="w-full h-full object-cover" />
+                                                        : ad.owner?.full_name?.charAt(0) || 'S'}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="font-bold text-sm text-gray-900 group-hover:text-primary-600 transition-colors truncate">{ad.owner?.full_name || 'Seller'}</p>
+                                                    {ad.owner?.is_verified ? (
+                                                        <div className="flex items-center gap-1 mt-0.5 text-green-600">
+                                                            <ShieldCheck className="h-3.5 w-3.5" />
+                                                            <span className="text-[11px] font-bold">Verified</span>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-[11px] text-gray-400 mt-0.5">Member</p>
+                                                    )}
+                                                </div>
+                                            </Link>
+                                        )}
+                                    </div>
+
+                                    {/* Action buttons */}
+                                    <div className="px-4 py-4 flex flex-col gap-2.5">
+                                        {!ad ? (
+                                            <>{S.box('w-full h-11')}{S.box('w-full h-11')}{S.box('w-full h-10')}</>
+                                        ) : (
+                                            <>
+                                                {/* Show Phone / Call */}
+                                                <button
+                                                    onClick={async () => {
+                                                        setShowPhone(true);
+                                                        try { await interactionService.logInteraction(ad.id, InteractionType.CALL); } catch {}
+                                                    }}
+                                                    className="w-full h-11 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors">
+                                                    <Phone className="h-4 w-4" />
+                                                    {showPhone ? (ad.owner?.phone || 'N/A') : 'Show contact'}
+                                                </button>
+
+                                                {/* Start chat */}
+                                                <Link
+                                                    to={`/messages?user=${ad.owner_id}&listing=${ad.id}`}
+                                                    className="w-full h-11 rounded-xl border-2 border-gray-200 text-gray-700 font-bold text-sm flex items-center justify-center gap-2 hover:border-primary-300 hover:text-primary-600 transition-colors">
+                                                    <MessageCircle className="h-4 w-4" /> Start chat
+                                                </Link>
+
+                                                {/* WhatsApp */}
+                                                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+                                                    onClick={async () => { try { await interactionService.logInteraction(ad.id, InteractionType.WHATSAPP); } catch {} }}
+                                                    className="w-full h-10 rounded-xl border border-gray-200 text-gray-500 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-green-50 hover:border-green-300 hover:text-green-600 transition-colors">
+                                                    {WA_ICON} WhatsApp
+                                                </a>
+
+                                                {/* Request call back */}
+                                                <button
+                                                    onClick={async () => { try { await interactionService.logInteraction(ad.id, InteractionType.CALL); } catch {} }}
+                                                    className="w-full h-10 rounded-xl border border-gray-200 text-gray-500 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors">
+                                                    <PhoneCall className="h-4 w-4" /> Request call back
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* Mark unavailable + Report */}
+                                    {ad && (
+                                        <div className="px-4 pb-4 flex gap-2">
+                                            <button className="flex-1 h-9 rounded-lg border border-gray-200 text-gray-400 hover:text-gray-600 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-gray-50 transition-colors">
+                                                <XCircle className="h-3.5 w-3.5" /> Mark unavailable
+                                            </button>
+                                            <button className="flex-1 h-9 rounded-lg border border-gray-200 text-gray-400 hover:text-red-500 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-red-50 transition-colors">
+                                                <Flag className="h-3.5 w-3.5" /> Report Abuse
+                                            </button>
                                         </div>
+                                    )}
+                                </div>
+
+                                {/* Safety tips */}
+                                <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+                                    <h4 className="font-bold text-sm text-gray-900 mb-3 flex items-center gap-2">
+                                        <AlertTriangle className="h-4 w-4 text-amber-500" />
+                                        Safety tips
+                                    </h4>
+                                    <ul className="text-xs text-gray-600 space-y-2 list-disc list-inside leading-relaxed">
+                                        <li>Avoid paying in advance, even for delivery</li>
+                                        <li>Meet the seller at a safe public place</li>
+                                        <li>Check what you're buying to make sure it's what you need</li>
+                                        <li>Only pay if you're satisfied</li>
+                                    </ul>
+                                    <Link to="/safety" className="mt-3 block text-xs text-primary-600 font-semibold hover:underline">Read all safety tips →</Link>
+                                </div>
+
+                                {/* Post Ad Like This */}
+                                {ad && (
+                                    <Link
+                                        to={`/post-ad?category=${ad.category_id}`}
+                                        className="w-full h-11 rounded-xl border-2 border-primary-500 text-primary-600 font-extrabold text-sm flex items-center justify-center tracking-wide hover:bg-primary-50 transition-colors">
+                                        POST AD LIKE THIS
                                     </Link>
-
-                                    <div className="flex flex-col gap-3">
-                                        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
-                                            onClick={async () => { try { await interactionService.logInteraction(ad.id, InteractionType.WHATSAPP); } catch {} }}
-                                            className="w-full h-13 rounded-xl border-2 border-primary-500 text-primary-600 font-bold text-base flex items-center justify-center gap-2 hover:bg-primary-50 transition-colors py-3">
-                                            {WA_ICON} WhatsApp
-                                        </a>
-                                        <button
-                                            onClick={async () => {
-                                                setShowPhone(true);
-                                                try { await interactionService.logInteraction(ad.id, InteractionType.CALL); } catch {}
-                                            }}
-                                            className="w-full h-13 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-bold text-base flex items-center justify-center gap-2 transition-colors py-3">
-                                            <Phone className="h-5 w-5" />
-                                            {showPhone ? (ad.owner?.phone || 'N/A') : t('listing.callSeller')}
-                                        </button>
-                                        <Link
-                                            to={`/messages?user=${ad.owner_id}&listing=${ad.id}`}
-                                            className="w-full rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors py-3"
-                                        >
-                                            <MessageCircle className="h-4 w-4" />
-                                            {t('listing.sendMessage')}
-                                        </Link>
-                                    </div>
-
-                                    <div className="mt-5 pt-4 border-t border-dashed border-gray-200 text-center">
-                                        <button className="text-sm text-gray-400 hover:text-red-500 flex items-center justify-center gap-2 mx-auto transition-colors">
-                                            <Flag className="h-4 w-4" /> {t('listing.reportAd')}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Safety tip */}
-                                <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 flex gap-3">
-                                    <Info className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
-                                    <p className="text-xs text-amber-800 leading-relaxed">
-                                        <strong>{t('listing.safetyTip')}:</strong> {t('listing.safetyTipText')}
-                                    </p>
-                                </div>
+                                )}
                             </div>
                         </div>
                     </div>

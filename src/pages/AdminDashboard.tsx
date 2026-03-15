@@ -172,7 +172,7 @@ const AdminDashboard: React.FC = () => {
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="text-sm font-bold text-gray-900 truncate">{ad.title}</p>
-                                                    <p className="text-[10px] text-gray-500">KES {ad.price.toLocaleString()}</p>
+                                                    <p className="text-[10px] text-gray-500">$ {ad.price.toLocaleString()}</p>
                                                 </div>
                                             </div>
                                         </td>

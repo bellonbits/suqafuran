@@ -411,8 +411,6 @@ const PostAdPage: React.FC = () => {
                                                 onChange={(e) => setFieldValue('currency', e.target.value)}
                                             >
                                                 <option value="USD">USD ($)</option>
-                                                <option value="KES">KES (KSh)</option>
-                                                <option value="EUR">EUR (€)</option>
                                             </select>
                                         </div>
                                         <div className="flex-1">
