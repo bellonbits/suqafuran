@@ -56,8 +56,52 @@ const ProductDetailPage: React.FC = () => {
     const displayRelatedAds = relatedAds || [];
     const { currency: targetCurrency } = useCurrencyStore();
 
-    // Still fetching with no cached data — wait silently
-    if (!ad && isFetching) return null;
+    // No data yet — show skeleton inside the full layout so navbar is visible instantly
+    if (!ad && isFetching) {
+        return (
+            <PublicLayout>
+                {/* Mobile skeleton */}
+                <div className="lg:hidden bg-gray-50 pb-32">
+                    <div className="w-full bg-gray-200 animate-pulse" style={{ aspectRatio: '4/3' }} />
+                    <div className="bg-white px-4 pt-4 pb-3 space-y-3 animate-pulse">
+                        <div className="h-3 w-24 bg-gray-200 rounded-full" />
+                        <div className="h-5 w-3/4 bg-gray-200 rounded-full" />
+                        <div className="h-7 w-1/3 bg-gray-200 rounded-full" />
+                        <div className="flex gap-2 pt-2">
+                            <div className="flex-1 h-12 bg-gray-200 rounded-xl" />
+                            <div className="flex-1 h-12 bg-gray-200 rounded-xl" />
+                        </div>
+                    </div>
+                    <div className="bg-white mt-2 px-4 py-4 space-y-2 animate-pulse">
+                        <div className="h-3 w-full bg-gray-200 rounded-full" />
+                        <div className="h-3 w-5/6 bg-gray-200 rounded-full" />
+                        <div className="h-3 w-4/6 bg-gray-200 rounded-full" />
+                    </div>
+                </div>
+                {/* Desktop skeleton */}
+                <div className="hidden lg:block">
+                    <div className="container mx-auto px-4 py-8">
+                        <div className="grid lg:grid-cols-3 gap-8 animate-pulse">
+                            <div className="lg:col-span-2 space-y-4">
+                                <div className="bg-gray-200 rounded-2xl aspect-video" />
+                                <div className="bg-white rounded-2xl p-6 space-y-3">
+                                    <div className="h-4 w-1/3 bg-gray-200 rounded-full" />
+                                    <div className="h-6 w-2/3 bg-gray-200 rounded-full" />
+                                    <div className="h-8 w-1/4 bg-gray-200 rounded-full" />
+                                    <div className="h-3 w-full bg-gray-200 rounded-full" />
+                                    <div className="h-3 w-5/6 bg-gray-200 rounded-full" />
+                                </div>
+                            </div>
+                            <div className="space-y-4">
+                                <div className="bg-white rounded-2xl p-6 h-48 bg-gray-100" />
+                                <div className="bg-white rounded-2xl p-6 h-32 bg-gray-100" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </PublicLayout>
+        );
+    }
 
     // Fetch finished but no data — listing doesn't exist
     if (!ad && isSuccess) {
