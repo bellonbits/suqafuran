@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { listingService } from '../services/listingService';
 import { interactionService, InteractionType } from '../services/interactionService';
@@ -31,6 +31,13 @@ const ProductDetailPage: React.FC = () => {
     const [showPhone, setShowPhone] = useState(false);
     const [activeImage, setActiveImage] = useState(0);
     const [showFullDesc, setShowFullDesc] = useState(false);
+    const queryClient = useQueryClient();
+
+    // Use cached listing from the home/search page as instant placeholder
+    const cachedListing = queryClient.getQueryData<Listing[]>(['listings'])
+        ?.find(l => l.id === Number(listingId))
+        ?? queryClient.getQueryData<Listing[]>(['featured-listings'])
+            ?.find(l => l.id === Number(listingId));
 
     const { data: ad, isLoading } = useQuery<Listing>({
         queryKey: ['listing', listingId],
@@ -38,6 +45,7 @@ const ProductDetailPage: React.FC = () => {
         enabled: !!listingId,
         retry: false,
         staleTime: 60_000,
+        placeholderData: cachedListing,
     });
 
     const { data: relatedAds } = useQuery<Listing[]>({
@@ -48,7 +56,7 @@ const ProductDetailPage: React.FC = () => {
     const displayRelatedAds = relatedAds || [];
     const { currency: targetCurrency } = useCurrencyStore();
 
-    if (!ad && !isLoading) {
+    if (!ad) {
         return (
             <PublicLayout>
                 <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
@@ -60,7 +68,6 @@ const ProductDetailPage: React.FC = () => {
         );
     }
 
-    if (isLoading || !ad) return null;
 
     const images = ad.images && ad.images.length > 0
         ? ad.images
