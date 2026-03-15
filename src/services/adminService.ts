@@ -34,7 +34,7 @@ export const adminService = {
     },
 
     async getVerificationRequests() {
-        const response = await api.get('/verifications');
+        const response = await api.get('/verifications/');
         return response.data;
     },
 
