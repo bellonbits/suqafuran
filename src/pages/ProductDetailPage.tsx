@@ -39,7 +39,7 @@ const ProductDetailPage: React.FC = () => {
         ?? queryClient.getQueryData<Listing[]>(['featured-listings'])
             ?.find(l => l.id === Number(listingId));
 
-    const { data: ad } = useQuery<Listing>({
+    const { data: ad, isFetching, isSuccess } = useQuery<Listing>({
         queryKey: ['listing', listingId],
         queryFn: () => listingService.getListing(Number(listingId)),
         enabled: !!listingId,
@@ -56,7 +56,11 @@ const ProductDetailPage: React.FC = () => {
     const displayRelatedAds = relatedAds || [];
     const { currency: targetCurrency } = useCurrencyStore();
 
-    if (!ad) {
+    // Still fetching with no cached data — wait silently
+    if (!ad && isFetching) return null;
+
+    // Fetch finished but no data — listing doesn't exist
+    if (!ad && isSuccess) {
         return (
             <PublicLayout>
                 <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
@@ -67,6 +71,8 @@ const ProductDetailPage: React.FC = () => {
             </PublicLayout>
         );
     }
+
+    if (!ad) return null;
 
 
     const images = ad.images && ad.images.length > 0
