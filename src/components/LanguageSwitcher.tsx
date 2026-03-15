@@ -6,6 +6,20 @@ interface Props {
   light?: boolean;
 }
 
+function applyGoogleTranslate(lang: string) {
+  // Give the GT widget a moment to initialise on first use
+  const attempt = (retries: number) => {
+    const select = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
+    if (select) {
+      select.value = lang === 'so' ? 'so' : '';
+      select.dispatchEvent(new Event('change'));
+    } else if (retries > 0) {
+      setTimeout(() => attempt(retries - 1), 300);
+    }
+  };
+  attempt(10);
+}
+
 const LanguageSwitcher: React.FC<Props> = ({ compact = false, light = false }) => {
   const { i18n } = useTranslation();
   const isSomali = i18n.language === 'so';
@@ -14,6 +28,7 @@ const LanguageSwitcher: React.FC<Props> = ({ compact = false, light = false }) =
     const next = isSomali ? 'en' : 'so';
     i18n.changeLanguage(next);
     localStorage.setItem('suqafuran_lang', next);
+    applyGoogleTranslate(next);
   };
 
   if (compact) {

@@ -11,9 +11,27 @@
   <title>suqafuran</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <!-- Google Translate -->
+  <style>
+    /* Hide the Google Translate toolbar/banner */
+    .goog-te-banner-frame, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
+    body { top: 0 !important; }
+    .goog-te-combo { display: none !important; }
+    .skiptranslate { display: none !important; }
+  </style>
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement(
+        { pageLanguage: 'en', includedLanguages: 'en,so', autoDisplay: false },
+        'google_translate_element'
+      );
+    }
+  </script>
+  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </head>
 
 <body>
+  <div id="google_translate_element" style="display:none"></div>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
 </body>
