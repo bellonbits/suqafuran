@@ -45,7 +45,7 @@ def login_access_token(
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         expires=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         samesite="lax",
-        secure=False,  # Set to True in production with HTTPS
+        secure=True,
     )
     
     return {

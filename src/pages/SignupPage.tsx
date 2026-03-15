@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Phone, ArrowRight, Loader2 } from 'lucide-react';
+import { z } from 'zod';
 import { Button } from '../components/Button';
 import { AuthInput } from '../components/AuthInput';
 import { AuthLayout } from '../components/AuthLayout';
 import { authService } from '../services/authService';
+
+const signupSchema = z.object({
+    full_name: z.string().min(2, 'Name must be at least 2 characters').max(100).regex(/^[a-zA-Z\s'-]+$/, 'Name contains invalid characters'),
+    email: z.string().email('Invalid email address').max(254),
+    phone: z.string().regex(/^\+?[0-9\s\-()]{7,20}$/, 'Invalid phone number').optional().or(z.literal('')),
+    password: z.string().min(8, 'Password must be at least 8 characters').max(128)
+        .regex(/[A-Z]/, 'Must contain uppercase letter')
+        .regex(/[0-9]/, 'Must contain a number'),
+    confirm_password: z.string(),
+}).refine(d => d.password === d.confirm_password, { message: 'Passwords do not match', path: ['confirm_password'] });
 
 const SignupPage: React.FC = () => {
     const navigate = useNavigate();
@@ -18,24 +29,13 @@ const SignupPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const checkPasswordStrength = (password: string) => {
-        if (password.length < 8) return "Password must be at least 8 characters";
-        return null;
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
 
-        // Basic Validation
-        if (formData.password !== formData.confirm_password) {
-            setError("Passwords do not match");
-            return;
-        }
-
-        const strengthError = checkPasswordStrength(formData.password);
-        if (strengthError) {
-            setError(strengthError);
+        const result = signupSchema.safeParse(formData);
+        if (!result.success) {
+            setError(result.error.errors[0].message);
             return;
         }
 

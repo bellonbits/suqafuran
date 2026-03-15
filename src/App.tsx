@@ -1,5 +1,11 @@
-import React, { lazy, Suspense, useState, useCallback } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { lazy, Suspense, useState, useCallback, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+
+function ScrollToTop() {
+    const { pathname } = useLocation();
+    useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+    return null;
+}
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { AdminLayout } from './layouts/AdminLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -73,6 +79,7 @@ const App: React.FC = () => {
       <BrowserRouter>
         {phase === 'splash' && <SplashScreen onDone={handleSplashDone} />}
         {phase === 'onboarding' && <OnboardingScreen onDone={handleOnboardingDone} />}
+        <ScrollToTop />
         <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
