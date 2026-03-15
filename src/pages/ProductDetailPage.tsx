@@ -39,7 +39,7 @@ const ProductDetailPage: React.FC = () => {
         ?? queryClient.getQueryData<Listing[]>(['featured-listings'])
             ?.find(l => l.id === Number(listingId));
 
-    const { data: ad, isLoading } = useQuery<Listing>({
+    const { data: ad } = useQuery<Listing>({
         queryKey: ['listing', listingId],
         queryFn: () => listingService.getListing(Number(listingId)),
         enabled: !!listingId,
