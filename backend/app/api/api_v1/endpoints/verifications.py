@@ -1,6 +1,7 @@
 from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Body, File, UploadFile, Form
 from sqlmodel import Session, select
+from sqlalchemy.orm import selectinload
 from app.api import deps
 from app.models.user import User
 from app.models.verification import (
@@ -95,7 +96,14 @@ def list_verification_requests(
     """
     (Admin) List all verification requests.
     """
-    return db.exec(select(VerificationRequest).offset(skip).limit(limit)).all()
+    stmt = (
+        select(VerificationRequest)
+        .options(selectinload(VerificationRequest.user))
+        .order_by(VerificationRequest.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+    )
+    return db.exec(stmt).all()
 
 @router.patch("/{id}", response_model=VerificationRequest)
 def update_verification_status(
