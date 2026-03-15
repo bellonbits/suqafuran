@@ -74,7 +74,7 @@ const FavoritesPage: React.FC = () => {
                                     </div>
 
                                     <h3 className="font-bold text-gray-900 truncate mb-1 group-hover:text-primary-600 transition-colors">{ad.title}</h3>
-                                    <p className="text-lg font-black text-primary-600 mb-4">KES {ad.price.toLocaleString()}</p>
+                                    <p className="text-lg font-black text-primary-600 mb-4">$ {ad.price.toLocaleString()}</p>
 
                                     <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
                                         <Link to={`/listing/${ad.id}`}>

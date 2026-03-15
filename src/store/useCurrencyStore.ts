@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type Currency = 'KES' | 'USD';
+export type Currency = 'USD';
 
 interface CurrencyState {
     currency: Currency;
@@ -11,7 +11,7 @@ interface CurrencyState {
 export const useCurrencyStore = create<CurrencyState>()(
     persist(
         (set) => ({
-            currency: 'KES',
+            currency: 'USD',
             setCurrency: (currency) => set({ currency }),
         }),
         {

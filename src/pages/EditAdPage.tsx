@@ -363,7 +363,7 @@ const EditAdPage: React.FC = () => {
                                 <div className="space-y-6">
                                     <h3 className="text-xl font-bold flex items-center gap-2">Pricing & Condition</h3>
                                     <Input
-                                        label="Price (KES)"
+                                        label="Price (USD)"
                                         name="price"
                                         type="number"
                                         value={values.price}
