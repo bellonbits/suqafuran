@@ -2,10 +2,12 @@ import React from 'react';
 import { Heart, MapPin, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '../utils/cn';
 import { getImageUrl } from '../utils/imageUtils';
 import { useCurrencyStore } from '../store/useCurrencyStore';
 import { formatConvertedPrice } from '../utils/currencyUtils';
+import { listingService } from '../services/listingService';
 
 interface ProductCardProps {
     id: string;
@@ -16,7 +18,7 @@ interface ProductCardProps {
     imageUrl: string;
     isVerified?: boolean;
     isPromoted?: boolean;
-    registrationAge?: string; // e.g. "3+ Yrs on Platform"
+    registrationAge?: string;
     rating?: number;
     isPopular?: boolean;
     className?: string;
@@ -38,6 +40,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
     const { currency: targetCurrency } = useCurrencyStore();
     const { t } = useTranslation();
+    const queryClient = useQueryClient();
+
+    const prefetch = () => {
+        queryClient.prefetchQuery({
+            queryKey: ['listing', id],
+            queryFn: () => listingService.getListing(Number(id)),
+            staleTime: 60_000,
+        });
+    };
 
     return (
         <Link
@@ -46,6 +57,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 'group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md active:scale-[0.98] transition-all flex flex-col',
                 className
             )}
+            onMouseEnter={prefetch}
+            onTouchStart={prefetch}
         >
             <div className="relative aspect-[4/5] overflow-hidden bg-gray-100 rounded-2xl">
                 <img
@@ -61,7 +74,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
                             {t('common.enterprise')}
                         </div>
                     )}
-                    {/* Hide Popular if Enterprise to reduce clutter */}
                     {isPopular && !isPromoted && (
                         <div className="bg-white/90 backdrop-blur-sm text-gray-800 text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-sm flex items-center gap-1 w-fit">
                             <span className="w-1.5 h-1.5 bg-secondary-500 rounded-full animate-pulse" />
