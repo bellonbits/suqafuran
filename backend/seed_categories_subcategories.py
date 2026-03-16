@@ -217,20 +217,25 @@ def seed_categories():
             else:
                 cat_id = row[0]
                 cur.execute("""
-                    UPDATE category 
-                    SET image_url = %s, icon_name = %s, attributes_schema = %s
+                    UPDATE category
+                    SET name = %s, image_url = %s, icon_name = %s, attributes_schema = %s
                     WHERE id = %s
-                """, (cat_data['image'], cat_data['icon'], json.dumps(attr_schema), cat_id))
+                """, (cat_data['label'], cat_data['image'], cat_data['icon'], json.dumps(attr_schema), cat_id))
             
-            # Subcategories
-            cur.execute("DELETE FROM subcategory WHERE category_id = %s", (cat_id,))
-            
-            for sub_data in cat_data['subcategories']:
-                sub_slug = sub_data['name'].lower().replace(" ", "-").replace("(", "").replace(")", "").replace("’", "")
-                cur.execute("""
-                    INSERT INTO subcategory (name, slug, image_url, category_id, attributes_schema)
-                    VALUES (%s, %s, %s, %s, %s)
-                """, (sub_data['name'], sub_slug, sub_data['image'], cat_id, json.dumps({})))
+            # Subcategories — upsert by slug to avoid breaking FK references from listings
+            for sub_data in cat_data[‘subcategories’]:
+                sub_slug = sub_data[‘name’].lower().replace(" ", "-").replace("(", "").replace(")", "").replace("’", "")
+                cur.execute("SELECT id FROM subcategory WHERE slug = %s AND category_id = %s", (sub_slug, cat_id))
+                existing_sub = cur.fetchone()
+                if existing_sub:
+                    cur.execute("""
+                        UPDATE subcategory SET name = %s, image_url = %s WHERE id = %s
+                    """, (sub_data[‘name’], sub_data[‘image’], existing_sub[0]))
+                else:
+                    cur.execute("""
+                        INSERT INTO subcategory (name, slug, image_url, category_id, attributes_schema)
+                        VALUES (%s, %s, %s, %s, %s)
+                    """, (sub_data[‘name’], sub_slug, sub_data[‘image’], cat_id, json.dumps({})))
         
         conn.commit()
         print("Seeding completed successfully.")
