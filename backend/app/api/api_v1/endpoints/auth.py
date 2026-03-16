@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from typing import Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from sqlmodel import Session, select
+from sqlalchemy.exc import IntegrityError
 from app.api import deps
 from app.core import security
 from app.core.config import settings
@@ -62,6 +63,11 @@ def signup(
     if existing:
         raise HTTPException(status_code=400, detail="An account with this email already exists.")
 
+    if payload.phone:
+        existing_phone = crud_user.get_user_by_phone(db, phone=payload.phone)
+        if existing_phone:
+            raise HTTPException(status_code=400, detail="An account with this phone number already exists.")
+
     signup_data = {"full_name": payload.full_name, "email": payload.email, "password": payload.password, "phone": payload.phone}
     stored = email_service.store_pending_signup(payload.email, signup_data)
     if not stored:
@@ -91,23 +97,30 @@ def verify_otp(
         signup_data = email_service.get_pending_signup(payload.email)
         if not signup_data:
             raise HTTPException(status_code=400, detail="Signup session expired. Please sign up again.")
-        user = crud_user.create_user(
-            db,
-            email=signup_data["email"],
-            password=signup_data["password"],
-            full_name=signup_data["full_name"],
-            phone=signup_data.get("phone"),
-        )
-        user.email_verified = True
-        user.phone_verified = True
-        user.verified_level = UserVerifiedLevel.phone
-        db.add(user)
-        db.add(AuditLog(
-            user_id=user.id, action="USER_SIGNUP", resource_type="user",
-            resource_id=user.id, details=f"New user: {user.full_name} ({user.email})"
-        ))
-        db.commit()
-        db.refresh(user)
+        try:
+            user = crud_user.create_user(
+                db,
+                email=signup_data["email"],
+                password=signup_data["password"],
+                full_name=signup_data["full_name"],
+                phone=signup_data.get("phone"),
+            )
+            user.email_verified = True
+            user.phone_verified = True
+            user.verified_level = UserVerifiedLevel.phone
+            db.add(user)
+            db.add(AuditLog(
+                user_id=user.id, action="USER_SIGNUP", resource_type="user",
+                resource_id=user.id, details=f"New user: {user.full_name} ({user.email})"
+            ))
+            db.commit()
+            db.refresh(user)
+        except IntegrityError as e:
+            db.rollback()
+            email_service.delete_pending_signup(payload.email)
+            if "ix_user_phone" in str(e.orig):
+                raise HTTPException(status_code=400, detail="An account with this phone number already exists.")
+            raise HTTPException(status_code=400, detail="Account creation failed. Please try again.")
         email_service.delete_pending_signup(payload.email)
     else:
         user.email_verified = True
