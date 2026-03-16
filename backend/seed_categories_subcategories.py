@@ -137,17 +137,23 @@ JIJI_CATEGORIES = [
     },
     {
         'id': 'health-beauty',
-        'label': 'Caafimaadka & Quruxda (Health & Beauty)',
+        'label': 'Qurxinta & Caafimaadka (Beauty & Personal Care)',
         'icon': 'heart',
         'image': 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=600',
         'attributes': [
             { 'name': 'brand', 'label': 'Brand', 'type': 'text' }
         ],
         'subcategories': [
-            { 'name': '1 Qurxinta Wajiga (Makeup)', 'image': 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=200' },
-            { 'name': '2 Udgoonka (Perfumes)', 'image': 'https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&q=80&w=200' },
-            { 'name': '3 Daryeelka Maqaarka (Skin Care)', 'image': 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&q=80&w=200' },
-            { 'name': '4 Vitamiinnada & Kabayaasha (Vitamins & Supplements)', 'image': 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&q=80&w=200' }
+            { 'name': '1 Timaha (Hair Beauty)', 'image': 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '2 Daryeelka Wajiga (Face Care)', 'image': 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '3 Daryeelka Afka (Oral Care)', 'image': 'https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '4 Daryeelka Jirka (Body Care)', 'image': 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '5 Udgoonka (Fragrance)', 'image': 'https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '6 Qurxinta Wajiga (Makeup)', 'image': 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '7 Qalab & Agab (Tools & Accessories)', 'image': 'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '8 Vitamiinnada & Kabayaasha (Vitamins & Supplements)', 'image': 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '9 Masaajida (Massagers)', 'image': 'https://images.unsplash.com/photo-1519824145371-296894a0daa9?auto=format&fit=crop&q=80&w=200' },
+            { 'name': '10 Adeegyada Qurxinta (Health & Beauty Services)', 'image': 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&q=80&w=200' }
         ]
     },
     {
