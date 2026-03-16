@@ -32,9 +32,9 @@ JIJI_CATEGORIES = [
             { 'name': 'gender', 'label': 'Gender', 'type': 'select', 'options': ['Men', 'Women', 'Unisex', 'Kids'] }
         ],
         'subcategories': [
-            { 'name': '1 Dharka Ragga (Men’s Clothing)', 'image': 'https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?auto=format&fit=crop&q=80&w=200' },
-            { 'name': '2 Dharka Dumarka (Women’s Clothing)', 'image': 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=200' },
-            { 'name': '3 Dharka Carruurta (Children’s Clothing)', 'image': 'https://images.unsplash.com/photo-1522771935377-50b32915cd67?auto=format&fit=crop&q=80&w=200' },
+            { 'name': "1 Dharka Ragga (Men's Clothing)", 'image': 'https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?auto=format&fit=crop&q=80&w=200' },
+            { 'name': "2 Dharka Dumarka (Women's Clothing)", 'image': 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=200' },
+            { 'name': "3 Dharka Carruurta (Children's Clothing)", 'image': 'https://images.unsplash.com/photo-1522771935377-50b32915cd67?auto=format&fit=crop&q=80&w=200' },
             { 'name': '4 Kabaha (Shoes)', 'image': 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=200' },
             { 'name': '5 Agabka Dharka (Clothing Accessories)', 'image': 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?auto=format&fit=crop&q=80&w=200' }
         ]
@@ -102,7 +102,7 @@ JIJI_CATEGORIES = [
         'subcategories': [
             { 'name': '1 Riyaha (Goats)', 'image': 'https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&q=80&w=200' },
             { 'name': '2 Idaha (Sheep)', 'image': 'https://images.unsplash.com/photo-1484557985045-edf25e08da73?auto=format&fit=crop&q=80&w=200' },
-            { 'name': '3 Lo’da (Cattle)', 'image': 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&q=80&w=200' },
+            { 'name': "3 Lo'da (Cattle)", 'image': 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&q=80&w=200' },
             { 'name': '4 Digaagga (Chickens)', 'image': 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&q=80&w=200' },
             { 'name': '5 Geela (Camels)', 'image': 'https://images.unsplash.com/photo-1510425482613-333e8b091f09?auto=format&fit=crop&q=80&w=200' }
         ]
@@ -223,19 +223,19 @@ def seed_categories():
                 """, (cat_data['label'], cat_data['image'], cat_data['icon'], json.dumps(attr_schema), cat_id))
             
             # Subcategories — upsert by slug to avoid breaking FK references from listings
-            for sub_data in cat_data[‘subcategories’]:
-                sub_slug = sub_data[‘name’].lower().replace(" ", "-").replace("(", "").replace(")", "").replace("’", "")
+            for sub_data in cat_data['subcategories']:
+                sub_slug = sub_data['name'].lower().replace(" ", "-").replace("(", "").replace(")", "").replace("'", "")
                 cur.execute("SELECT id FROM subcategory WHERE slug = %s AND category_id = %s", (sub_slug, cat_id))
                 existing_sub = cur.fetchone()
                 if existing_sub:
                     cur.execute("""
                         UPDATE subcategory SET name = %s, image_url = %s WHERE id = %s
-                    """, (sub_data[‘name’], sub_data[‘image’], existing_sub[0]))
+                    """, (sub_data['name'], sub_data['image'], existing_sub[0]))
                 else:
                     cur.execute("""
                         INSERT INTO subcategory (name, slug, image_url, category_id, attributes_schema)
                         VALUES (%s, %s, %s, %s, %s)
-                    """, (sub_data[‘name’], sub_slug, sub_data[‘image’], cat_id, json.dumps({})))
+                    """, (sub_data['name'], sub_slug, sub_data['image'], cat_id, json.dumps({})))
         
         conn.commit()
         print("Seeding completed successfully.")
