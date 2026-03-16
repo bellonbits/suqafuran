@@ -28,6 +28,7 @@ class SignupIn(BaseModel):
     full_name: str
     email: str
     password: str
+    phone: Optional[str] = None
 
 class AuthOut(BaseModel):
     access_token: str
@@ -61,7 +62,7 @@ def signup(
     if existing:
         raise HTTPException(status_code=400, detail="An account with this email already exists.")
 
-    signup_data = {"full_name": payload.full_name, "email": payload.email, "password": payload.password}
+    signup_data = {"full_name": payload.full_name, "email": payload.email, "password": payload.password, "phone": payload.phone}
     stored = email_service.store_pending_signup(payload.email, signup_data)
     if not stored:
         raise HTTPException(status_code=500, detail="Failed to store signup data. Please try again.")
@@ -95,6 +96,7 @@ def verify_otp(
             email=signup_data["email"],
             password=signup_data["password"],
             full_name=signup_data["full_name"],
+            phone=signup_data.get("phone"),
         )
         user.email_verified = True
         user.phone_verified = True
