@@ -14,7 +14,11 @@
       "Read(//Users/learn/Desktop/suqafuran/src/services/**)",
       "Read(//c/Users/learn/Desktop/suqafuran/src/services/**)",
       "Read(//Users/learn/Desktop/suqafuran/ios/App/App/**)",
-      "Read(//c/Users/learn/Desktop/suqafuran/ios/App/App/**)"
+      "Read(//c/Users/learn/Desktop/suqafuran/ios/App/App/**)",
+      "Bash(wc -l /home/gatitu/suqafuran/backend/app/api/api_v1/endpoints/*.py)",
+      "Bash(find /home/gatitu/suqafuran/backend/app/api/api_v1/endpoints -name \"*.py\" -exec wc -l {} +)",
+      "Bash(docker compose:*)",
+      "Bash(docker-compose ps:*)"
     ],
     "additionalDirectories": [
       "C:\\Users\\learn\\Desktop\\suqafuran\\src",
