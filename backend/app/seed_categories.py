@@ -262,33 +262,60 @@ def seed_categories():
                 cat_id = existing.id
                 print(f"Updated category: {cat_data['name']}")
 
-            # Remove old subcategories (cascades to subsubcategories)
-            old_subs = session.exec(
-                select(SubCategory).where(SubCategory.category_id == cat_id)
-            ).all()
-            for sub in old_subs:
-                session.delete(sub)
-            session.flush()
-
-            # Insert subcategories + sub-sub-categories
+            # Upsert subcategories + sub-sub-categories (never delete — listings may reference them)
             for sub_data in cat_data["subcategories"]:
-                sub = SubCategory(
-                    name=sub_data["name"],
-                    slug=make_slug(sub_data["name"]),
-                    category_id=cat_id,
-                )
-                session.add(sub)
-                session.flush()
-                print(f"  + {sub_data['name']}")
+                sub_slug = make_slug(sub_data["name"])
+                existing_sub = session.exec(
+                    select(SubCategory).where(
+                        SubCategory.category_id == cat_id,
+                        SubCategory.slug == sub_slug,
+                    )
+                ).first()
+                if not existing_sub:
+                    existing_sub = session.exec(
+                        select(SubCategory).where(
+                            SubCategory.category_id == cat_id,
+                            SubCategory.name == sub_data["name"],
+                        )
+                    ).first()
+
+                if existing_sub:
+                    existing_sub.name = sub_data["name"]
+                    existing_sub.slug = sub_slug
+                    session.add(existing_sub)
+                    session.flush()
+                    sub_id = existing_sub.id
+                    print(f"  ~ {sub_data['name']}")
+                else:
+                    new_sub = SubCategory(
+                        name=sub_data["name"],
+                        slug=sub_slug,
+                        category_id=cat_id,
+                    )
+                    session.add(new_sub)
+                    session.flush()
+                    sub_id = new_sub.id
+                    print(f"  + {sub_data['name']}")
 
                 for ssub_name in sub_data.get("subs", []):
-                    ssub = SubSubCategory(
-                        name=ssub_name,
-                        slug=make_slug(ssub_name),
-                        subcategory_id=sub.id,
-                    )
-                    session.add(ssub)
-                    print(f"    - {ssub_name}")
+                    ssub_slug = make_slug(ssub_name)
+                    existing_ssub = session.exec(
+                        select(SubSubCategory).where(
+                            SubSubCategory.subcategory_id == sub_id,
+                            SubSubCategory.slug == ssub_slug,
+                        )
+                    ).first()
+                    if existing_ssub:
+                        existing_ssub.name = ssub_name
+                        session.add(existing_ssub)
+                        print(f"    ~ {ssub_name}")
+                    else:
+                        session.add(SubSubCategory(
+                            name=ssub_name,
+                            slug=ssub_slug,
+                            subcategory_id=sub_id,
+                        ))
+                        print(f"    + {ssub_name}")
 
         session.commit()
     print("\nAll categories, subcategories and sub-subcategories seeded successfully.")
