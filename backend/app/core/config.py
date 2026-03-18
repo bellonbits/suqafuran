@@ -111,6 +111,11 @@ class Settings(BaseSettings):
     ALLOWED_EXTENSIONS: Any = ["jpg", "jpeg", "png", "pdf"]
     UPLOAD_DIR: str = "./uploads"
 
+    # CLOUDINARY
+    CLOUDINARY_CLOUD_NAME: str = ""
+    CLOUDINARY_API_KEY: str = ""
+    CLOUDINARY_API_SECRET: str = ""
+
     @field_validator("ALLOWED_EXTENSIONS", mode="before")
     @classmethod
     def assemble_allowed_extensions(cls, v: Any) -> List[str]:

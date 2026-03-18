@@ -8,6 +8,47 @@ MAX_HEIGHT = 1200
 WEBP_QUALITY = 82
 
 
+def _resize_to_bytes(file_content: bytes) -> bytes:
+    """Resize image and return as JPEG bytes for Cloudinary upload."""
+    try:
+        from PIL import Image
+        img = Image.open(io.BytesIO(file_content))
+        if img.mode in ("RGBA", "P", "LA"):
+            img = img.convert("RGB")
+        img.thumbnail((MAX_WIDTH, MAX_HEIGHT), Image.LANCZOS)
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=WEBP_QUALITY, optimize=True)
+        return buf.getvalue()
+    except Exception:
+        return file_content
+
+
+class CloudinaryStorage:
+    def __init__(self):
+        import cloudinary
+        import cloudinary.uploader
+        cloudinary.config(
+            cloud_name=settings.CLOUDINARY_CLOUD_NAME,
+            api_key=settings.CLOUDINARY_API_KEY,
+            api_secret=settings.CLOUDINARY_API_SECRET,
+            secure=True,
+        )
+
+    async def upload_file(self, file_content: bytes, filename: str) -> str:
+        import cloudinary.uploader
+        resized = _resize_to_bytes(file_content)
+        public_id = f"suqafuran/{uuid.uuid4().hex}"
+        result = cloudinary.uploader.upload(
+            resized,
+            public_id=public_id,
+            overwrite=True,
+            resource_type="image",
+            format="webp",
+            transformation=[{"quality": "auto", "fetch_format": "auto"}],
+        )
+        return result["secure_url"]
+
+
 class LocalStorage:
     def __init__(self):
         os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
@@ -19,19 +60,11 @@ class LocalStorage:
         try:
             from PIL import Image
             img = Image.open(io.BytesIO(file_content))
-
-            # Convert to RGB (WebP doesn't support palette/alpha in all cases)
             if img.mode in ("RGBA", "P", "LA"):
                 img = img.convert("RGB")
-
-            # Resize down if oversized — keeps aspect ratio
             img.thumbnail((MAX_WIDTH, MAX_HEIGHT), Image.LANCZOS)
-
-            # Save as WebP (~60% smaller than JPEG at same quality)
             img.save(dest, format="WEBP", quality=WEBP_QUALITY, method=6)
-
         except Exception:
-            # Fallback: save original bytes unchanged
             ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
             unique_name = f"{uuid.uuid4()}.{ext}"
             dest = os.path.join(settings.UPLOAD_DIR, unique_name)
@@ -41,4 +74,8 @@ class LocalStorage:
         return f"/api/v1/listings/images/{unique_name}"
 
 
-storage_service = LocalStorage()
+# Use Cloudinary if credentials are configured, otherwise local disk
+if settings.CLOUDINARY_CLOUD_NAME and settings.CLOUDINARY_API_KEY and settings.CLOUDINARY_API_SECRET:
+    storage_service = CloudinaryStorage()
+else:
+    storage_service = LocalStorage()
