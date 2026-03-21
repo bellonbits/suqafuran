@@ -10,14 +10,16 @@ html, body {
   padding-top: env(safe-area-inset-top, 0px);
 }
 
-/* Ensure bottom nav is never hidden by Android/iOS system bar */
-.bottom-nav-safe {
-  padding-bottom: max(env(safe-area-inset-bottom, 0px), 10px);
-}
+/* Ensure bottom nav is never hidden by Android/iOS system bar — mobile only */
+@media (max-width: 767px) {
+  .bottom-nav-safe {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 10px);
+  }
 
-/* Mobile content must clear bottom nav + system bar */
-.content-bottom-safe {
-  padding-bottom: calc(68px + max(env(safe-area-inset-bottom, 0px), 10px));
+  /* Mobile content must clear bottom nav + system bar */
+  .content-bottom-safe {
+    padding-bottom: calc(68px + max(env(safe-area-inset-bottom, 0px), 10px));
+  }
 }
 
 @theme {
