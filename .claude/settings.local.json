@@ -18,7 +18,17 @@
       "Bash(wc -l /home/gatitu/suqafuran/backend/app/api/api_v1/endpoints/*.py)",
       "Bash(find /home/gatitu/suqafuran/backend/app/api/api_v1/endpoints -name \"*.py\" -exec wc -l {} +)",
       "Bash(docker compose:*)",
-      "Bash(docker-compose ps:*)"
+      "Bash(docker-compose ps:*)",
+      "Bash(npx cap:*)",
+      "Bash(./gradlew assembleDebug)",
+      "Bash(chmod +x /home/gatitu/suqafuran/android/gradlew)",
+      "Bash(convert -background none -size 1024x1024 /home/gatitu/suqafuran/public/suqafuran.svg /home/gatitu/suqafuran/public/icon.png)",
+      "Bash(convert -background '#0ea5e9' -gravity center /home/gatitu/suqafuran/public/icon.png -resize 700x700 -extent 1024x1024 /home/gatitu/suqafuran/public/icon-square.png)",
+      "Bash(convert /home/gatitu/suqafuran/public/icon-square.png -background '#0ea5e9' -flatten /home/gatitu/suqafuran/public/icon-final.png)",
+      "Bash(npx @capacitor/assets generate --iconBackgroundColor '#0ea5e9' --iconBackgroundColorDark '#0ea5e9' --splashBackgroundColor '#0ea5e9' --splashBackgroundColorDark '#0a7abf' --logoSplashScale 0.4)",
+      "Bash(grep -r \"api.suqafuran.com\\\\|VITE_API\" /home/gatitu/suqafuran/src /home/gatitu/suqafuran/.env*)",
+      "Bash(git add:*)",
+      "Bash(git push:*)"
     ],
     "additionalDirectories": [
       "C:\\Users\\learn\\Desktop\\suqafuran\\src",

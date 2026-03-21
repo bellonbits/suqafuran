@@ -75,51 +75,61 @@ const LandingPage: React.FC = () => {
             {/* ═══════════════════════════════════════════════
                 MOBILE LAYOUT
             ═══════════════════════════════════════════════ */}
-            <div className="lg:hidden bg-[#f7f9fc]">
+            <div className="lg:hidden" style={{ background: '#f4f7fa' }}>
 
-                {/* ── Jiji-style hero banner ── */}
-                <div className="bg-primary-500 px-4 pt-8 pb-5">
-                    <h1 className="text-white text-xl font-extrabold text-center mb-4 tracking-tight">
+                {/* ── Hero banner ── */}
+                <div
+                    className="relative overflow-hidden px-4 pt-6 pb-6"
+                    style={{ background: 'linear-gradient(160deg, #0ea5e9 0%, #7dcce9 80%, #bae6fd 100%)' }}
+                >
+                    {/* decorative circles */}
+                    <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
+                    <div className="absolute top-4 -left-8  w-24 h-24 rounded-full bg-white/08 pointer-events-none" />
+
+                    <h1 className="text-white text-[22px] font-extrabold mb-4 leading-tight tracking-tight relative z-10">
                         {t('landing.heroTitle')}
                     </h1>
-                    <div className="flex gap-2 w-full overflow-hidden">
-                        {/* Location pill — fixed width */}
+
+                    {/* Search row */}
+                    <div className="flex gap-2 relative z-10">
                         <button
                             onClick={() => setLocationOpen(true)}
-                            className="flex items-center gap-1.5 bg-white rounded-2xl px-3 h-11 shadow-sm text-gray-700 font-semibold text-sm active:bg-gray-50 transition-colors shrink-0 w-[130px]"
+                            className="flex items-center gap-1.5 bg-white/95 rounded-2xl px-3 h-11 shadow-md text-gray-700 font-semibold active:scale-98 transition-transform shrink-0"
+                            style={{ minWidth: 120 }}
                         >
                             <MapPin className="h-3.5 w-3.5 text-primary-500 shrink-0" />
-                            <span className="truncate flex-1 text-left text-xs">{selectedLocation || t('landing.allLocations')}</span>
+                            <span className="truncate flex-1 text-left text-xs font-semibold">
+                                {selectedLocation || t('landing.allLocations')}
+                            </span>
                             <ChevronRight className="h-3 w-3 text-gray-400 rotate-90 shrink-0" />
                         </button>
-                        {/* Search input — takes remaining space */}
                         <button
                             onClick={() => navigate('/search')}
-                            className="flex-1 min-w-0 flex items-center gap-2 bg-white rounded-2xl px-3 h-11 shadow-sm text-gray-400 active:bg-gray-50 transition-colors"
+                            className="flex-1 min-w-0 flex items-center gap-2 bg-white/95 rounded-2xl px-4 h-11 shadow-md text-gray-400 active:scale-98 transition-transform"
                         >
-                            <Search className="h-4 w-4 shrink-0 text-gray-400" />
-                            <span className="text-sm truncate">Search...</span>
+                            <Search className="h-4 w-4 shrink-0 text-primary-400" />
+                            <span className="text-sm truncate">{t('nav.search')}</span>
                         </button>
                     </div>
                 </div>
 
                 {/* Category chips — horizontal scroll */}
-                <div className="mb-5 mt-4">
-                    <div className="flex gap-3 overflow-x-auto px-5 pb-2 hide-scrollbar">
+                <div className="pt-4 pb-1">
+                    <div className="flex gap-3 overflow-x-auto px-4 pb-2 hide-scrollbar">
                         {/* "All" chip */}
                         <button
                             onClick={() => { setActiveCategory(null); navigate('/search'); }}
-                            className="flex flex-col items-center gap-1.5 shrink-0"
+                            className="flex flex-col items-center gap-1.5 shrink-0 active:scale-95 transition-transform"
                         >
-                            <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-95 ${
+                            <div className={`w-[52px] h-[52px] rounded-2xl flex items-center justify-center transition-all shadow-sm ${
                                 activeCategory === null
-                                    ? 'bg-gray-900 shadow-lg'
-                                    : 'bg-white border border-gray-200 shadow-sm'
+                                    ? 'bg-primary-500 shadow-primary-200 shadow-md'
+                                    : 'bg-white'
                             }`}>
-                                <TrendingUp className={`h-5 w-5 ${activeCategory === null ? 'text-white' : 'text-gray-500'}`} />
+                                <TrendingUp className={`h-5 w-5 ${activeCategory === null ? 'text-white' : 'text-gray-400'}`} />
                             </div>
-                            <span className={`text-[10px] font-semibold ${activeCategory === null ? 'text-gray-900' : 'text-gray-500'}`}>
-                                {t('landing.allCategories')}
+                            <span className={`text-[10px] font-bold ${activeCategory === null ? 'text-primary-600' : 'text-gray-500'}`}>
+                                All
                             </span>
                         </button>
 
@@ -133,11 +143,11 @@ const LandingPage: React.FC = () => {
                                         setActiveCategory(String(cat.id));
                                         navigate(`/category/${cat.slug || cat.id}`);
                                     }}
-                                    style={{ width: 60 }}
                                     className="flex flex-col items-center gap-1.5 shrink-0 active:scale-95 transition-transform"
+                                    style={{ width: 56 }}
                                 >
-                                    <div className={`w-14 h-14 rounded-full overflow-hidden shrink-0 transition-all bg-gray-100 ${
-                                        isAct ? 'ring-2 ring-primary-500 ring-offset-2 shadow-lg' : 'shadow-sm'
+                                    <div className={`w-[52px] h-[52px] rounded-2xl overflow-hidden bg-white shadow-sm transition-all ${
+                                        isAct ? 'ring-2 ring-primary-400 ring-offset-1' : ''
                                     }`}>
                                         <img
                                             src={imgSrc}
@@ -148,8 +158,8 @@ const LandingPage: React.FC = () => {
                                         />
                                     </div>
                                     <span
-                                        className={`text-[10px] font-semibold text-center w-full ${isAct ? 'text-primary-600' : 'text-gray-500'}`}
-                                        style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', display: 'block' }}
+                                        className={`text-[10px] font-bold text-center ${isAct ? 'text-primary-600' : 'text-gray-500'}`}
+                                        style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 56, display: 'block' }}
                                     >
                                         {cat.name.split(' ')[0]}
                                     </span>
@@ -159,48 +169,51 @@ const LandingPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Featured promo banner */}
-                <div className="mx-5 mb-6">
+                {/* Sell promo banner */}
+                <div className="mx-4 my-4">
                     <div
                         onClick={() => navigate('/post-ad')}
                         className="relative overflow-hidden rounded-3xl p-5 active:scale-[0.98] transition-transform cursor-pointer"
-                        style={{ background: 'linear-gradient(135deg, #7dcce9 0%, #93d5f0 60%, #bae6fd 100%)' }}
+                        style={{ background: 'linear-gradient(135deg, #0ea5e9 0%, #7dcce9 60%, #bae6fd 100%)' }}
                     >
                         <div className="relative z-10">
-                            <span className="inline-flex items-center gap-1 bg-white/40 text-primary-800 text-[10px] font-bold px-2 py-1 rounded-full mb-2 uppercase tracking-wider">
+                            <span className="inline-flex items-center gap-1 bg-white/30 text-white text-[10px] font-bold px-2.5 py-1 rounded-full mb-2.5 uppercase tracking-widest backdrop-blur-sm">
                                 <Zap className="h-3 w-3" /> {t('landing.sellBannerBadge')}
                             </span>
-                            <h3 className="text-primary-900 font-extrabold text-xl leading-tight mb-1">
+                            <h3 className="text-white font-extrabold text-[20px] leading-tight mb-1.5">
                                 {t('landing.sellBannerTitle')}
                             </h3>
-                            <p className="text-primary-800/80 text-xs mb-3">{t('landing.sellBannerDesc')}</p>
-                            <div className="inline-flex items-center gap-1 bg-secondary-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">
-                                {t('landing.sellBannerBtn')} <ArrowRight className="h-3 w-3" />
+                            <p className="text-white/80 text-xs mb-4 leading-relaxed">{t('landing.sellBannerDesc')}</p>
+                            <div className="inline-flex items-center gap-1.5 bg-secondary-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-md">
+                                {t('landing.sellBannerBtn')} <ArrowRight className="h-3.5 w-3.5" />
                             </div>
                         </div>
-                        <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/10" />
-                        <div className="absolute -right-4 bottom-0 w-24 h-24 rounded-full bg-white/05" />
+                        <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
+                        <div className="absolute right-4 bottom-0 w-20 h-20 rounded-full bg-white/08 pointer-events-none" />
                     </div>
                 </div>
 
-                {/* Trending section header */}
-                <div className="px-5 flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-primary-500" />
-                        <h2 className="text-base font-bold text-gray-900">{t('landing.featuredAds')}</h2>
+                {/* Section header — Featured */}
+                <div className="px-4 flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-1 h-5 rounded-full bg-primary-500" />
+                        <h2 className="text-[15px] font-extrabold text-gray-900">{t('landing.featuredAds')}</h2>
                     </div>
-                    <button onClick={() => navigate('/search')} className="text-primary-500 text-sm font-semibold flex items-center gap-0.5 active:opacity-70">
-                        {t('landing.seeAll')} <ChevronRight className="h-4 w-4" />
+                    <button
+                        onClick={() => navigate('/search')}
+                        className="text-primary-500 text-xs font-bold flex items-center gap-0.5 active:opacity-70"
+                    >
+                        {t('landing.seeAll')} <ChevronRight className="h-3.5 w-3.5" />
                     </button>
                 </div>
 
                 {/* Product grid */}
                 {adsLoading ? (
                     <div className="flex justify-center py-16">
-                        <Loader2 className="w-8 h-8 animate-spin text-primary-400" />
+                        <Loader2 className="w-7 h-7 animate-spin text-primary-400" />
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 gap-3 px-5 pb-4">
+                    <div className="grid grid-cols-2 gap-3 px-4 pb-4">
                         {displayAds.map((ad, idx) => (
                             <ProductCard
                                 key={ad.id}
@@ -215,41 +228,42 @@ const LandingPage: React.FC = () => {
                                 isPopular={idx < 2}
                                 rating={4.8 + (idx / 10)}
                                 registrationAge={idx % 2 === 0 ? '3+ Years' : 'Verified ID'}
-                                className="rounded-2xl border-0 shadow-sm"
                             />
                         ))}
                     </div>
                 )}
 
-                {/* Sell CTA */}
-                <div className="mx-5 mb-6">
-                    <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex items-center justify-between">
+                {/* Sell CTA card */}
+                <div className="mx-4 mb-4">
+                    <div
+                        onClick={() => navigate('/post-ad')}
+                        className="bg-white rounded-3xl p-4 card-shadow flex items-center justify-between active:scale-[0.98] transition-transform cursor-pointer"
+                    >
                         <div>
-                            <h4 className="font-bold text-gray-900 text-base">{t('listing.postAd')}</h4>
-                            <p className="text-xs text-gray-500 mt-0.5">{t('landing.sellBannerDesc')}</p>
+                            <h4 className="font-extrabold text-gray-900 text-sm">{t('listing.postAd')}</h4>
+                            <p className="text-xs text-gray-400 mt-0.5">{t('landing.sellBannerDesc')}</p>
                         </div>
-                        <button
-                            onClick={() => navigate('/post-ad')}
-                            className="w-11 h-11 rounded-2xl bg-primary-500 flex items-center justify-center active:scale-95 transition-transform shadow-sm"
-                        >
+                        <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                            style={{ background: 'linear-gradient(135deg, #0ea5e9, #7dcce9)' }}>
                             <ShoppingBag className="h-5 w-5 text-white" />
-                        </button>
+                        </div>
                     </div>
                 </div>
 
                 {/* Safety banner */}
-                <div className="mx-5 mb-8">
-                    <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
+                <div className="mx-4 mb-8">
+                    <div
+                        onClick={() => navigate('/safety')}
+                        className="bg-white rounded-3xl p-4 card-shadow flex items-center gap-3 active:scale-[0.98] transition-transform cursor-pointer"
+                    >
                         <div className="w-11 h-11 rounded-2xl bg-green-50 flex items-center justify-center shrink-0">
                             <ShieldCheck className="h-5 w-5 text-green-600" />
                         </div>
                         <div className="flex-1 min-w-0">
                             <h4 className="font-bold text-gray-900 text-sm">{t('footer.safetyTips')}</h4>
-                            <p className="text-xs text-gray-500 mt-0.5">{t('footer.safetyTips')}</p>
+                            <p className="text-xs text-gray-400 mt-0.5">Stay safe when buying & selling</p>
                         </div>
-                        <button onClick={() => navigate('/safety')} className="shrink-0 text-primary-500">
-                            <ChevronRight className="h-5 w-5" />
-                        </button>
+                        <ChevronRight className="h-4 w-4 text-gray-300 shrink-0" />
                     </div>
                 </div>
             </div>
