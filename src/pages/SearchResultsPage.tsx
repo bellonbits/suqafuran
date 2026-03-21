@@ -74,7 +74,7 @@ const SearchResultsPage: React.FC = () => {
                                 <Loader2 className="w-12 h-12 animate-spin text-blue-400" />
                             </div>
                         ) : results.length > 0 ? (
-                            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                                 {results.map((ad) => (
                                     <ProductCard
                                         key={ad.id}

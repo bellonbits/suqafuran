@@ -119,7 +119,7 @@ const CategoryListingPage: React.FC = () => {
                                 <Loader2 className="w-12 h-12 animate-spin text-primary-600" />
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
                                 {listings?.length === 0 ? (
                                     <div className="col-span-full py-20 text-center">
                                         <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
