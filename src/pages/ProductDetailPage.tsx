@@ -257,7 +257,7 @@ const ProductDetailPage: React.FC = () => {
                 {/* ── Action buttons ── */}
                 <div className="bg-white px-4 pb-5 flex gap-2 border-b border-gray-100">
                     {!ad ? (
-                        <>{S.box('flex-1 h-12')}{S.box('flex-1 h-12')}{S.box('flex-1 h-12')}</>
+                        <>{S.box('flex-1 h-11')}{S.box('flex-1 h-11')}{S.box('flex-1 h-11')}</>
                     ) : (
                         <>
                             <a
@@ -267,7 +267,7 @@ const ProductDetailPage: React.FC = () => {
                                 onClick={async () => {
                                     try { await interactionService.logInteraction(ad.id, InteractionType.WHATSAPP); } catch {}
                                 }}
-                                className="flex-1 h-12 rounded-xl border-2 border-primary-500 text-primary-600 font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                                className="flex-1 h-11 rounded-xl border-2 border-primary-500 text-primary-600 font-bold text-xs flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 transition-transform"
                             >
                                 {WA_ICON} WhatsApp
                             </a>
@@ -276,16 +276,16 @@ const ProductDetailPage: React.FC = () => {
                                     setShowPhone(true);
                                     try { await interactionService.logInteraction(ad.id, InteractionType.CALL); } catch {}
                                 }}
-                                className="flex-1 h-12 rounded-xl bg-primary-500 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                                className="flex-1 h-11 rounded-xl bg-primary-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 transition-transform"
                             >
-                                <Phone className="h-4 w-4" />
+                                <Phone className="h-3.5 w-3.5" />
                                 {showPhone ? (ad.owner?.phone || 'N/A') : t('listing.callSeller')}
                             </button>
                             <Link
                                 to={`/messages?user=${ad.owner_id}&listing=${ad.id}`}
-                                className="flex-1 h-12 rounded-xl border border-gray-200 text-gray-600 font-bold text-sm flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+                                className="flex-1 h-11 rounded-xl border border-gray-200 text-gray-600 font-bold text-xs flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 transition-transform"
                             >
-                                <MessageCircle className="h-4 w-4" />
+                                <MessageCircle className="h-3.5 w-3.5" />
                                 {t('listing.sendMessage')}
                             </Link>
                         </>
@@ -437,7 +437,7 @@ const ProductDetailPage: React.FC = () => {
                 style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}
             >
                 {!ad ? (
-                    <>{S.box('flex-1 h-12')}{S.box('flex-1 h-12')}{S.box('flex-1 h-12')}</>
+                    <>{S.box('flex-1 h-11')}{S.box('flex-1 h-11')}{S.box('flex-1 h-11')}</>
                 ) : (
                     <>
                         <a
@@ -447,7 +447,7 @@ const ProductDetailPage: React.FC = () => {
                             onClick={async () => {
                                 try { await interactionService.logInteraction(ad.id, InteractionType.WHATSAPP); } catch {}
                             }}
-                            className="flex-1 h-12 rounded-xl border-2 border-primary-500 text-primary-600 font-bold text-sm flex items-center justify-center gap-2"
+                            className="flex-1 h-11 rounded-xl border-2 border-primary-500 text-primary-600 font-bold text-xs flex items-center justify-center gap-1.5 whitespace-nowrap"
                         >
                             {WA_ICON} WhatsApp
                         </a>
@@ -456,16 +456,16 @@ const ProductDetailPage: React.FC = () => {
                                 setShowPhone(true);
                                 try { await interactionService.logInteraction(ad.id, InteractionType.CALL); } catch {}
                             }}
-                            className="flex-1 h-12 rounded-xl bg-primary-500 text-white font-bold text-sm flex items-center justify-center gap-2"
+                            className="flex-1 h-11 rounded-xl bg-primary-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 whitespace-nowrap"
                         >
-                            <Phone className="h-4 w-4" />
+                            <Phone className="h-3.5 w-3.5" />
                             {showPhone ? (ad.owner?.phone || 'N/A') : t('listing.callSeller')}
                         </button>
                         <Link
                             to={`/messages?user=${ad.owner_id}&listing=${ad.id}`}
-                            className="flex-1 h-12 rounded-xl border border-gray-200 text-gray-600 font-bold text-sm flex items-center justify-center gap-1.5"
+                            className="flex-1 h-11 rounded-xl border border-gray-200 text-gray-600 font-bold text-xs flex items-center justify-center gap-1.5 whitespace-nowrap"
                         >
-                            <MessageCircle className="h-4 w-4" />
+                            <MessageCircle className="h-3.5 w-3.5" />
                             {t('listing.sendMessage')}
                         </Link>
                     </>
