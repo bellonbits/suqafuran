@@ -10,6 +10,16 @@ html, body {
   padding-top: env(safe-area-inset-top, 0px);
 }
 
+/* Ensure bottom nav is never hidden by Android/iOS system bar */
+.bottom-nav-safe {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 10px);
+}
+
+/* Mobile content must clear bottom nav + system bar */
+.content-bottom-safe {
+  padding-bottom: calc(68px + max(env(safe-area-inset-bottom, 0px), 10px));
+}
+
 @theme {
   --color-primary-50: #f0f7fb;
   --color-primary-100: #e0f0f7;
@@ -55,6 +65,12 @@ body {
   margin: 0;
   padding: 0;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
 }
 
 #root {
@@ -66,4 +82,64 @@ body {
 
 body {
   @apply bg-white text-gray-900 font-sans antialiased;
+  font-feature-settings: "kern" 1, "liga" 1;
+}
+
+/* ── Scrollbar utilities ── */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Animations ── */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes ringPulse {
+  0%   { transform: scale(1);   opacity: 0.5; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+@keyframes floatY {
+  0%, 100% { transform: translateY(0);   }
+  50%       { transform: translateY(-6px); }
+}
+
+.animate-fade-in-up  { animation: fadeInUp 0.45s cubic-bezier(0.22,1,0.36,1) forwards; }
+.animate-scale-in    { animation: scaleIn  0.3s  cubic-bezier(0.22,1,0.36,1) forwards; }
+.animate-ring-pulse  { animation: ringPulse 2s ease-out infinite; }
+.animate-float       { animation: floatY   3s ease-in-out infinite; }
+
+/* ── Glass effect ── */
+.glass {
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ── Card shadow ── */
+.card-shadow    { box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+.card-shadow-lg { box-shadow: 0 8px 32px rgba(0,0,0,0.10); }
+
+/* ── Gradient text ── */
+.gradient-text {
+  background: linear-gradient(135deg, #0ea5e9, #7dcce9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

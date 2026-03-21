@@ -6,6 +6,8 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   android: {
     allowMixedContent: true,
+    captureInput: true,
+    webContentsDebuggingEnabled: false,
   },
   ios: {
     contentInset: 'automatic',

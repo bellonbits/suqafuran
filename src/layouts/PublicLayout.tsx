@@ -32,26 +32,31 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
         <div className="min-h-screen flex flex-col bg-gray-50">
 
             {/* ── MOBILE HEADER ── */}
-            <header className="md:hidden sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm"
-                style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+            <header
+                className="md:hidden sticky top-0 z-50 bg-white border-b border-gray-100"
+                style={{
+                    paddingTop: 'env(safe-area-inset-top, 0px)',
+                    boxShadow: '0 1px 12px rgba(0,0,0,0.06)',
+                }}
+            >
                 <div className="px-3 h-14 flex items-center gap-2">
                     <Link to="/" className="shrink-0">
                         <Logo size="sm" />
                     </Link>
                     <Link
                         to="/search"
-                        className="flex-1 min-w-0 flex items-center gap-2 bg-gray-100 rounded-full px-3 h-9"
+                        className="flex-1 min-w-0 flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-2xl px-3 h-9"
                     >
-                        <Search className="h-4 w-4 text-gray-400 shrink-0" />
-                        <span className="text-sm text-gray-400 truncate">{t('nav.search')}</span>
+                        <Search className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                        <span className="text-[13px] text-gray-400 truncate">{t('nav.search')}</span>
                     </Link>
                     <LanguageSwitcher compact light />
-                    <Link to="/notifications" className="p-2 shrink-0 text-gray-500">
+                    <Link to="/notifications" className="relative p-2 shrink-0 text-gray-500">
                         <Bell className="h-5 w-5" />
                     </Link>
                     {isAuthenticated ? (
                         <Link to="/dashboard" className="shrink-0">
-                            <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold text-sm overflow-hidden border-2 border-primary-200">
+                            <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center text-primary-700 font-bold text-sm overflow-hidden border-2 border-primary-200">
                                 {getAvatarUrl(user?.avatar_url) ? (
                                     <img src={getAvatarUrl(user?.avatar_url)!} alt={user?.full_name || 'U'} className="w-full h-full object-cover" />
                                 ) : (
@@ -60,8 +65,11 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                             </div>
                         </Link>
                     ) : (
-                        <Link to="/login" className="p-2 shrink-0 text-gray-500">
-                            <User className="h-5 w-5" />
+                        <Link
+                            to="/login"
+                            className="shrink-0 px-3 h-8 rounded-full bg-primary-500 text-white text-xs font-bold flex items-center"
+                        >
+                            {t('nav.signIn')}
                         </Link>
                     )}
                 </div>
@@ -124,58 +132,98 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
             </header>
 
             {/* Main content */}
-            <main className="flex-1 md:pb-0" style={{ paddingBottom: 'calc(64px + env(safe-area-inset-bottom, 16px))' }}>
+            <main className="flex-1 md:pb-0 content-bottom-safe">
                 {children}
             </main>
 
             {/* Bottom Navigation — mobile only */}
             <nav
-                className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white border-t border-gray-100"
-                style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+                className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white border-t border-gray-100 bottom-nav-safe"
+                style={{
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    boxShadow: '0 -1px 16px rgba(0,0,0,0.08)',
+                }}
             >
-                <div className="flex items-stretch h-16">
+                <div className="flex items-stretch h-[60px] px-1">
+
+                    {/* Home */}
                     <Link to="/"
-                        className={cn('flex-1 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform',
-                            isActive('/') ? 'text-primary-500' : 'text-gray-400')}>
-                        <Home className="h-[22px] w-[22px]" strokeWidth={isActive('/') ? 2.5 : 1.8}
-                            fill={isActive('/') ? 'rgba(125,204,233,0.25)' : 'none'} />
-                        <span className="text-[10px] font-semibold">{t('nav.home')}</span>
+                        className="flex-1 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform">
+                        <div className={cn(
+                            'w-10 h-7 rounded-xl flex items-center justify-center transition-all duration-200',
+                            isActive('/') ? 'bg-primary-100' : ''
+                        )}>
+                            <Home className={cn('h-5 w-5 transition-colors', isActive('/') ? 'text-primary-600' : 'text-gray-400')}
+                                strokeWidth={isActive('/') ? 2.5 : 1.8} />
+                        </div>
+                        <span className={cn('text-[10px] font-semibold', isActive('/') ? 'text-primary-600' : 'text-gray-400')}>
+                            {t('nav.home')}
+                        </span>
                     </Link>
 
+                    {/* Favorites */}
                     <Link to="/favorites"
-                        className={cn('flex-1 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform',
-                            isActive('/favorites') ? 'text-primary-500' : 'text-gray-400')}>
-                        <Heart className="h-[22px] w-[22px]" strokeWidth={isActive('/favorites') ? 2.5 : 1.8}
-                            fill={isActive('/favorites') ? 'rgba(125,204,233,0.25)' : 'none'} />
-                        <span className="text-[10px] font-semibold">{t('nav.saved')}</span>
+                        className="flex-1 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform">
+                        <div className={cn(
+                            'w-10 h-7 rounded-xl flex items-center justify-center transition-all duration-200',
+                            isActive('/favorites') ? 'bg-primary-100' : ''
+                        )}>
+                            <Heart className={cn('h-5 w-5 transition-colors', isActive('/favorites') ? 'text-primary-600' : 'text-gray-400')}
+                                strokeWidth={isActive('/favorites') ? 2.5 : 1.8}
+                                fill={isActive('/favorites') ? 'rgba(125,204,233,0.3)' : 'none'} />
+                        </div>
+                        <span className={cn('text-[10px] font-semibold', isActive('/favorites') ? 'text-primary-600' : 'text-gray-400')}>
+                            {t('nav.saved')}
+                        </span>
                     </Link>
 
-                    {/* Sell FAB */}
-                    <div className="flex-1 flex flex-col items-center justify-center" style={{ marginTop: '-24px' }}>
-                        <Link to="/post-ad" className="flex flex-col items-center gap-1">
-                            <div className="w-14 h-14 rounded-full bg-primary-500 flex items-center justify-center active:scale-95 transition-transform"
-                                style={{ boxShadow: '0 6px 24px rgba(125,204,233,0.55)' }}>
-                                <Plus className="h-7 w-7 text-white" strokeWidth={2.5} />
+                    {/* Sell FAB — elevated center button */}
+                    <div className="flex-1 flex flex-col items-center justify-center" style={{ marginTop: '-22px' }}>
+                        <Link to="/post-ad" className="flex flex-col items-center gap-1 active:scale-95 transition-transform">
+                            <div
+                                className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center"
+                                style={{
+                                    background: 'linear-gradient(145deg, #7dcce9 0%, #4aafc8 100%)',
+                                    boxShadow: '0 6px 20px rgba(125,204,233,0.5), 0 2px 6px rgba(0,0,0,0.1)',
+                                }}
+                            >
+                                <Plus className="h-6 w-6 text-white" strokeWidth={2.8} />
                             </div>
-                            <span className="text-[10px] font-semibold text-gray-400 mt-0.5">{t('nav.sell')}</span>
+                            <span className="text-[10px] font-semibold text-gray-400">{t('nav.sell')}</span>
                         </Link>
                     </div>
 
+                    {/* Messages */}
                     <Link to="/messages"
-                        className={cn('flex-1 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform',
-                            isActive('/messages') ? 'text-primary-500' : 'text-gray-400')}>
-                        <MessageSquare className="h-[22px] w-[22px]" strokeWidth={isActive('/messages') ? 2.5 : 1.8}
-                            fill={isActive('/messages') ? 'rgba(125,204,233,0.25)' : 'none'} />
-                        <span className="text-[10px] font-semibold">{t('nav.messages')}</span>
+                        className="flex-1 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform">
+                        <div className={cn(
+                            'w-10 h-7 rounded-xl flex items-center justify-center transition-all duration-200',
+                            isActive('/messages') ? 'bg-primary-100' : ''
+                        )}>
+                            <MessageSquare className={cn('h-5 w-5 transition-colors', isActive('/messages') ? 'text-primary-600' : 'text-gray-400')}
+                                strokeWidth={isActive('/messages') ? 2.5 : 1.8} />
+                        </div>
+                        <span className={cn('text-[10px] font-semibold', isActive('/messages') ? 'text-primary-600' : 'text-gray-400')}>
+                            {t('nav.messages')}
+                        </span>
                     </Link>
 
+                    {/* Profile */}
                     <Link to="/dashboard"
-                        className={cn('flex-1 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform',
-                            isActive('/dashboard') ? 'text-primary-500' : 'text-gray-400')}>
-                        <User className="h-[22px] w-[22px]" strokeWidth={isActive('/dashboard') ? 2.5 : 1.8}
-                            fill={isActive('/dashboard') ? 'rgba(125,204,233,0.25)' : 'none'} />
-                        <span className="text-[10px] font-semibold">{t('nav.profile')}</span>
+                        className="flex-1 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform">
+                        <div className={cn(
+                            'w-10 h-7 rounded-xl flex items-center justify-center transition-all duration-200',
+                            isActive('/dashboard') ? 'bg-primary-100' : ''
+                        )}>
+                            <User className={cn('h-5 w-5 transition-colors', isActive('/dashboard') ? 'text-primary-600' : 'text-gray-400')}
+                                strokeWidth={isActive('/dashboard') ? 2.5 : 1.8} />
+                        </div>
+                        <span className={cn('text-[10px] font-semibold', isActive('/dashboard') ? 'text-primary-600' : 'text-gray-400')}>
+                            {t('nav.profile')}
+                        </span>
                     </Link>
+
                 </div>
             </nav>
 
