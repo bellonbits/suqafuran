@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { User, Mail, Lock, Phone, ArrowRight, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { Button } from '../components/Button';
@@ -18,6 +19,7 @@ const signupSchema = z.object({
 }).refine(d => d.password === d.confirm_password, { message: 'Passwords do not match', path: ['confirm_password'] });
 
 const SignupPage: React.FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         full_name: '',
@@ -81,9 +83,9 @@ const SignupPage: React.FC = () => {
 
     return (
         <AuthLayout
-            title="Create Account"
-            subtitle="Join Suqafuran to start buying and selling"
-            imageCaption="Your Gateway to Africa's Marketplace."
+            title={t('auth.signupTitle')}
+            subtitle={t('auth.signupSubtitle')}
+            imageCaption={t('auth.imageCaption')}
         >
             <form className="space-y-4" onSubmit={handleSubmit}>
                 {error && (
@@ -95,8 +97,8 @@ const SignupPage: React.FC = () => {
                 <AuthInput
                     id="fullName"
                     type="text"
-                    label="Full Name"
-                    placeholder="Enter your full name"
+                    label={t('auth.fullName')}
+                    placeholder={t('auth.fullNamePlaceholder')}
                     icon={<User className="w-5 h-5" />}
                     value={formData.full_name}
                     onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
@@ -106,7 +108,7 @@ const SignupPage: React.FC = () => {
                 <AuthInput
                     id="email"
                     type="email"
-                    label="Email Address"
+                    label={t('auth.emailAddress')}
                     placeholder="you@example.com"
                     icon={<Mail className="w-5 h-5" />}
                     value={formData.email}
@@ -117,7 +119,7 @@ const SignupPage: React.FC = () => {
                 <AuthInput
                     id="phone"
                     type="tel"
-                    label="Phone Number (optional)"
+                    label={t('auth.phoneOptional')}
                     placeholder="+254712345678"
                     icon={<Phone className="w-5 h-5" />}
                     value={formData.phone}
@@ -128,7 +130,7 @@ const SignupPage: React.FC = () => {
                     <AuthInput
                         id="password"
                         type="password"
-                        label="Password"
+                        label={t('auth.password')}
                         placeholder="••••••••"
                         icon={<Lock className="w-5 h-5" />}
                         value={formData.password}
@@ -139,7 +141,7 @@ const SignupPage: React.FC = () => {
                     <AuthInput
                         id="confirmPassword"
                         type="password"
-                        label="Confirm Password"
+                        label={t('auth.confirmPassword')}
                         placeholder="••••••••"
                         icon={<Lock className="w-5 h-5" />}
                         value={formData.confirm_password}

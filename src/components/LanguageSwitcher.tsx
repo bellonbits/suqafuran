@@ -73,7 +73,11 @@ function restoreOriginal() {
   window.location.reload();
 }
 
-const LanguageSwitcher: React.FC<Props> = ({ compact = false, light = false }) => {
+/* Somali flag colours */
+const SO_BG = '#4189DD';   // Somali blue
+const EN_BG = '#CF101A';   // English red (UK/US)
+
+const LanguageSwitcher: React.FC<Props> = ({ compact = false, light: _light = false }) => {
   const { i18n } = useTranslation();
   const isSomali = i18n.language === 'so';
 
@@ -84,30 +88,77 @@ const LanguageSwitcher: React.FC<Props> = ({ compact = false, light = false }) =
     applyGoogleTranslate(next);
   };
 
-  if (compact) {
-    return (
-      <button
-        onClick={toggle}
-        className={
-          light
-            ? 'flex items-center gap-1 px-2.5 py-1 rounded-full border border-gray-200 bg-gray-50 text-gray-700 text-xs font-bold transition-colors hover:bg-gray-100'
-            : 'flex items-center gap-1 px-2 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition-colors'
-        }
-        title={isSomali ? 'Switch to English' : 'Af-Soomaali'}
-      >
-        {isSomali ? 'EN' : 'SO'}
-      </button>
-    );
-  }
-
-  return (
+  /* ── shared pill toggle (used everywhere) ── */
+  const Pill = ({ small = false }: { small?: boolean }) => (
     <button
       onClick={toggle}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium transition-colors shadow-sm"
+      title={isSomali ? 'Switch to English' : 'Ku beddel Soomaali'}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        borderRadius: 999,
+        overflow: 'hidden',
+        border: '1.5px solid rgba(255,255,255,0.35)',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.18)',
+        cursor: 'pointer',
+        padding: 0,
+        background: 'none',
+        gap: 0,
+        flexShrink: 0,
+      }}
     >
-      <span>{isSomali ? 'English' : 'Somali'}</span>
+      {/* SO segment */}
+      <span
+        style={{
+          background: SO_BG,
+          color: 'white',
+          fontWeight: 800,
+          fontSize: small ? 10 : 11,
+          letterSpacing: 0.5,
+          padding: small ? '3px 7px' : '4px 9px',
+          opacity: isSomali ? 1 : 0.45,
+          transition: 'opacity 0.2s',
+          lineHeight: 1,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 3,
+        }}
+      >
+        {/* Somali star ★ */}
+        <span style={{ fontSize: small ? 8 : 9, lineHeight: 1 }}>★</span>
+        SO
+      </span>
+
+      {/* divider */}
+      <span style={{ width: 1, alignSelf: 'stretch', background: 'rgba(255,255,255,0.4)' }} />
+
+      {/* EN segment */}
+      <span
+        style={{
+          background: EN_BG,
+          color: 'white',
+          fontWeight: 800,
+          fontSize: small ? 10 : 11,
+          letterSpacing: 0.5,
+          padding: small ? '3px 7px' : '4px 9px',
+          opacity: isSomali ? 0.45 : 1,
+          transition: 'opacity 0.2s',
+          lineHeight: 1,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 3,
+        }}
+      >
+        {/* UK union-jack dots */}
+        <span style={{ fontSize: small ? 8 : 9, lineHeight: 1 }}>🇬🇧</span>
+        EN
+      </span>
     </button>
   );
+
+  if (compact) return <Pill small />;
+
+  return <Pill />;
 };
 
 export default LanguageSwitcher;

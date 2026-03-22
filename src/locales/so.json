@@ -54,11 +54,16 @@
     "postAd": "Xayeysiis Geli",
     "editAd": "Xayeysiis Wax ka Bedel",
     "title": "Cinwaanka",
+    "titleLabel": "Maxaad iibineysaa?",
+    "titlePlaceholder": "tusaale. iPhone 15 Pro Max 256GB – Nadiif",
     "description": "Sharaxaad",
+    "descriptionPlaceholder": "Sharax waxa aad iibineysaa. Xal xaaladda, khaladaadka, ama sababta aad u iibineysaa.",
     "price": "Qiimaha",
     "category": "Qaybta",
     "subcategory": "Qaybta Hoose",
     "location": "Goobta",
+    "selectLocation": "Goob dooro (Gobolka › Degmada › Magaalada)",
+    "selectListingLocation": "Goobta Xayeysiiska Dooro",
     "photos": "Sawirada",
     "addPhotos": "Sawiro Ku Dar",
     "clickToUpload": "Guji si aad sawiro u soo geliso",
@@ -95,16 +100,21 @@
     "getPin": "Khariidadda",
     "callSeller": "Gadeeyaha Wac",
     "sendMessage": "Fariin Dir",
-    "relatedListings": "Xayeysiisyada La Xiriira"
+    "relatedListings": "Xayeysiisyada La Xiriira",
+    "currencyUSD": "USD ($)",
+    "currencyKES": "KES (KSh)"
   },
   "auth": {
     "login": "Gal",
     "logout": "Ka Bax",
     "register": "Diiwaan Geli",
     "phone": "Lambarka Telefoonka",
+    "phoneOptional": "Lambarka Telefoonka (ikhtiyaari)",
     "password": "Erayga Sirta",
     "confirmPassword": "Xaqiiji Erayga Sirta",
     "fullName": "Magaca Buuxa",
+    "fullNamePlaceholder": "Magacaaga buuxa geli",
+    "emailAddress": "Ciwaanka Iimeelka",
     "otp": "Koodhka OTP",
     "sendOtp": "OTP Dir",
     "verifyOtp": "OTP Xaqiiji",
@@ -113,7 +123,13 @@
     "haveAccount": "Horay akoon u leedahay?",
     "signUp": "Isdiiwaangeli",
     "signIn": "Gal",
-    "continueWith": "Telefoon ku sii wad"
+    "continueWith": "Telefoon ku sii wad",
+    "loginTitle": "Ku Soo Dhawoow",
+    "loginSubtitle": "Akoonkaaga Suqafuran gal si aad u sii wadato.",
+    "signupTitle": "Akoon Samee",
+    "signupSubtitle": "Suqafuran ku biir si aad wax u iibiso ama u iibsato",
+    "imageCaption": "Albaabkaaga Suuqa Afrika.",
+    "passwordMismatch": "Erayada sirta cusub ma is dhigaan"
   },
   "dashboard": {
     "overview": "Guud mar",
@@ -146,6 +162,15 @@
     "noMessagesYet": "Wali farriimaad ma lihid.",
     "findThings": "Wax raadi",
     "toDiscuss": "si aad ka hadashid ama wax u iibisid"
+  },
+  "search": {
+    "resultsFor": "Natiijooyinka raadinta",
+    "allListings": "Dhammaan Xayeysiisyada",
+    "tip": "Talo",
+    "tipText": "Si gaar ah u sheeg. Halkii aad \"baabuur\" ku qori lahayd, isku day \"Toyota Corolla 2015\" natiijooyinka ka wanaagsan."
+  },
+  "settings": {
+    "yourFullName": "Magacaaga buuxa"
   },
   "common": {
     "loading": "Waa la rarayo...",

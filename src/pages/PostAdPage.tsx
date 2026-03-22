@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import { useQuery } from '@tanstack/react-query';
@@ -36,6 +37,7 @@ const PostAdPage: React.FC = () => {
     const [currentStep, setCurrentStep] = useState(0);
     const [submitted, setSubmitted] = useState(false);
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+    const { t } = useTranslation();
     const { user } = useAuthStore();
 
     const { data: verificationStatus } = useQuery({
@@ -204,17 +206,17 @@ const PostAdPage: React.FC = () => {
                         <Form className="p-6 md:p-10">
                             {currentStep === 0 && (
                                 <div className="space-y-6">
-                                    <h3 className="text-xl font-bold flex items-center gap-2">Listing Title & Location</h3>
+                                    <h3 className="text-xl font-bold flex items-center gap-2">{t('listing.basicInfo')}</h3>
                                     <Input
-                                        label="What are you selling?"
+                                        label={t('listing.titleLabel')}
                                         name="title"
-                                        placeholder="e.g. iPhone 15 Pro Max 256GB - Clean"
+                                        placeholder={t('listing.titlePlaceholder')}
                                         value={values.title}
                                         onChange={(e) => setFieldValue('title', e.target.value)}
                                         error={touched.title ? errors.title : undefined}
                                     />
                                     <div className="relative group">
-                                        <label className="text-sm font-medium text-gray-700 mb-2 block">Location</label>
+                                        <label className="text-sm font-medium text-gray-700 mb-2 block">{t('listing.location')}</label>
                                         <button
                                             type="button"
                                             onClick={() => setIsLocationModalOpen(true)}
@@ -226,7 +228,7 @@ const PostAdPage: React.FC = () => {
                                             <div className="flex items-center gap-3">
                                                 <MapPin className={cn("h-5 w-5", values.location ? "text-primary-600" : "text-gray-400")} />
                                                 <span className={cn("text-sm", !values.location && "text-gray-400")}>
-                                                    {values.location || "Select location (State > Region > Town)"}
+                                                    {values.location || t('listing.selectLocation')}
                                                 </span>
                                             </div>
                                             <ChevronRight className="h-4 w-4 text-gray-400" />
@@ -333,10 +335,10 @@ const PostAdPage: React.FC = () => {
                                     )}
 
                                     <div className="space-y-2 mt-4">
-                                        <label className="text-sm font-medium text-gray-700">Detailed Description</label>
+                                        <label className="text-sm font-medium text-gray-700">{t('listing.description')}</label>
                                         <textarea
                                             className="w-full min-h-[150px] p-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-                                            placeholder="Describe what you are selling. Mention its condition, any flaws, or why you are selling."
+                                            placeholder={t('listing.descriptionPlaceholder')}
                                             value={values.description}
                                             onChange={(e) => setFieldValue('description', e.target.value)}
                                         ></textarea>
@@ -399,23 +401,23 @@ const PostAdPage: React.FC = () => {
                                 <div className="space-y-6">
                                     <h3 className="text-xl font-bold flex items-center gap-2">
                                         <Tag className="h-6 w-6 text-primary-600" />
-                                        Pricing & Condition
+                                        {t('listing.pricing')} & {t('listing.condition')}
                                     </h3>
                                     <div className="flex gap-4">
                                         <div className="w-1/3">
-                                            <label className="text-sm font-medium text-gray-700 mb-2 block">Currency</label>
+                                            <label className="text-sm font-medium text-gray-700 mb-2 block">{t('common.currency')}</label>
                                             <select
                                                 name="currency"
                                                 className="w-full h-12 px-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none transition-all bg-white"
                                                 value={values.currency}
                                                 onChange={(e) => setFieldValue('currency', e.target.value)}
                                             >
-                                                <option value="USD">USD ($)</option>
+                                                <option value="USD">{t('listing.currencyUSD')}</option>
                                             </select>
                                         </div>
                                         <div className="flex-1">
                                             <Input
-                                                label="Price"
+                                                label={t('listing.price')}
                                                 name="price"
                                                 type="number"
                                                 placeholder="0.00"
@@ -521,7 +523,7 @@ const PostAdPage: React.FC = () => {
                                 isOpen={isLocationModalOpen}
                                 onClose={() => setIsLocationModalOpen(false)}
                                 onSelect={(loc) => setFieldValue('location', loc)}
-                                title="Select Listing Location"
+                                title={t('listing.selectListingLocation')}
                             />
                         </Form>
                     )}

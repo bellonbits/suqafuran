@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { ProductCard } from '../components/ProductCard';
 import { listingService } from '../services/listingService';
@@ -9,6 +10,7 @@ import { Button } from '../components/Button';
 import { FilterSidebar } from '../components/FilterSidebar';
 
 const SearchResultsPage: React.FC = () => {
+    const { t } = useTranslation();
     const [searchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
     const [showFilters, setShowFilters] = React.useState(false);
@@ -36,7 +38,7 @@ const SearchResultsPage: React.FC = () => {
                 <div className="flex items-center justify-between mb-8">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">
-                            {query ? `Search results for "${query}"` : "All Listings"}
+                            {query ? `${t('search.resultsFor')} "${query}"` : t('search.allListings')}
                         </h1>
                         <p className="text-sm text-gray-500 mt-1">{results.length} items found</p>
                     </div>
@@ -117,7 +119,7 @@ const SearchResultsPage: React.FC = () => {
                 <div className="mt-12 p-4 bg-primary-50 rounded-xl border border-primary-100 flex gap-3">
                     <Info className="h-5 w-5 text-primary-600 shrink-0" />
                     <p className="text-xs text-primary-800 leading-normal">
-                        <strong>Tip:</strong> Be specific. Instead of "car", try "Toyota Corolla 2015" for better results.
+                        <strong>{t('search.tip')}:</strong> {t('search.tipText')}
                     </p>
                 </div>
             </div>

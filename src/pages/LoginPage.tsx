@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Mail, Lock, ArrowRight, Loader2, ShieldAlert } from 'lucide-react';
 import { z } from 'zod';
 
@@ -30,6 +31,7 @@ function saveLockout(data: { attempts: number; lockedUntil: number }) {
 }
 
 const LoginPage: React.FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const login = useAuthStore((state) => state.login);
     const [email, setEmail] = useState('');
@@ -118,9 +120,9 @@ const LoginPage: React.FC = () => {
 
     return (
         <AuthLayout
-            title="Welcome Back"
-            subtitle="Sign in to your Suqafuran account to continue."
-            imageCaption="Your Gateway to Africa's Marketplace."
+            title={t('auth.loginTitle')}
+            subtitle={t('auth.loginSubtitle')}
+            imageCaption={t('auth.imageCaption')}
         >
             <form onSubmit={handleLogin} className="space-y-6">
                 {isLocked ? (
@@ -141,7 +143,7 @@ const LoginPage: React.FC = () => {
                 )}
 
                 <AuthInput
-                    label="Email Address"
+                    label={t('auth.emailAddress')}
                     id="email"
                     type="email"
                     placeholder="you@example.com"
@@ -154,7 +156,7 @@ const LoginPage: React.FC = () => {
 
                 <div className="space-y-1">
                     <AuthInput
-                        label="Password"
+                        label={t('auth.password')}
                         id="password"
                         type="password"
                         placeholder="••••••••"

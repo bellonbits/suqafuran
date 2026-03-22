@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-
+import { useTranslation } from 'react-i18next';
 import { authService } from '../services/authService';
 import { useAuthStore } from '../store/useAuthStore';
 import {
@@ -14,6 +14,7 @@ import { cn } from '../utils/cn';
 import { getAvatarUrl } from '../utils/imageUtils';
 
 const SettingsPage: React.FC = () => {
+    const { t } = useTranslation();
     const { user, setUser } = useAuthStore();
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -105,7 +106,7 @@ const SettingsPage: React.FC = () => {
     const handlePasswordSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (passwordData.new_password !== passwordData.confirm_password) {
-            setError("New passwords do not match");
+            setError(t('auth.passwordMismatch'));
             return;
         }
         passwordMutation.mutate({
@@ -216,7 +217,7 @@ const SettingsPage: React.FC = () => {
                                         icon={<User className="h-4 w-4" />}
                                         value={formData.full_name}
                                         onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                                        placeholder="Your full name"
+                                        placeholder={t('settings.yourFullName')}
                                     />
                                 </div>
                                 <div className="space-y-1.5">

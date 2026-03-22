@@ -54,11 +54,16 @@
     "postAd": "Post Ad",
     "editAd": "Edit Ad",
     "title": "Title",
+    "titleLabel": "What are you selling?",
+    "titlePlaceholder": "e.g. iPhone 15 Pro Max 256GB – Clean",
     "description": "Description",
+    "descriptionPlaceholder": "Describe what you are selling. Mention its condition, any flaws, or why you are selling.",
     "price": "Price",
     "category": "Category",
     "subcategory": "Subcategory",
     "location": "Location",
+    "selectLocation": "Select location (State › Region › Town)",
+    "selectListingLocation": "Select Listing Location",
     "photos": "Photos",
     "addPhotos": "Add Photos",
     "clickToUpload": "Click to upload photos",
@@ -95,16 +100,21 @@
     "getPin": "Map",
     "callSeller": "Call Seller",
     "sendMessage": "Send Message",
-    "relatedListings": "Related Listings"
+    "relatedListings": "Related Listings",
+    "currencyUSD": "USD ($)",
+    "currencyKES": "KES (KSh)"
   },
   "auth": {
     "login": "Login",
     "logout": "Logout",
     "register": "Register",
     "phone": "Phone Number",
+    "phoneOptional": "Phone Number (optional)",
     "password": "Password",
     "confirmPassword": "Confirm Password",
     "fullName": "Full Name",
+    "fullNamePlaceholder": "Enter your full name",
+    "emailAddress": "Email Address",
     "otp": "OTP Code",
     "sendOtp": "Send OTP",
     "verifyOtp": "Verify OTP",
@@ -113,7 +123,13 @@
     "haveAccount": "Already have an account?",
     "signUp": "Sign Up",
     "signIn": "Sign In",
-    "continueWith": "Continue with phone"
+    "continueWith": "Continue with phone",
+    "loginTitle": "Welcome Back",
+    "loginSubtitle": "Sign in to your Suqafuran account to continue.",
+    "signupTitle": "Create Account",
+    "signupSubtitle": "Join Suqafuran to start buying and selling",
+    "imageCaption": "Your Gateway to Africa's Marketplace.",
+    "passwordMismatch": "New passwords do not match"
   },
   "dashboard": {
     "overview": "Overview",
@@ -146,6 +162,15 @@
     "noMessagesYet": "You have no messages yet.",
     "findThings": "Find things",
     "toDiscuss": "to discuss or sell something"
+  },
+  "search": {
+    "resultsFor": "Search results for",
+    "allListings": "All Listings",
+    "tip": "Tip",
+    "tipText": "Be specific. Instead of \"car\", try \"Toyota Corolla 2015\" for better results."
+  },
+  "settings": {
+    "yourFullName": "Your full name"
   },
   "common": {
     "loading": "Loading...",
