@@ -48,6 +48,7 @@ const ResetPasswordPage = lazyNamed(() => import('./pages/ResetPasswordPage'), '
 const PromotionPage = lazyNamed(() => import('./pages/PromotionPage'), 'PromotionPage');
 const MessagesPage = lazyNamed(() => import('./pages/MessagesPage'), 'MessagesPage');
 const KaalayHeedhePage = lazy(() => import('./pages/KaalayHeedhePage'));
+const PrivacyPolicyPage = lazyNamed(() => import('./pages/PrivacyPolicyPage'), 'PrivacyPolicyPage');
 
 // Lazy load pages - Default Exports (Admin/Agent Pages)
 const AdminCategoriesPage = lazy(() => import('./pages/admin/AdminCategoriesPage'));
@@ -116,6 +117,7 @@ const App: React.FC = () => {
             <Route path="/search" element={<SearchResultsPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/safety" element={<SafetyTipsPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
             <Route path="/kh" element={<KaalayHeedhePage />} />
 
             {/* Admin Routes */}
