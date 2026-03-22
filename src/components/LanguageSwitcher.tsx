@@ -121,12 +121,9 @@ const LanguageSwitcher: React.FC<Props> = ({ compact = false, light: _light = fa
           lineHeight: 1,
           display: 'flex',
           alignItems: 'center',
-          gap: 3,
         }}
       >
-        {/* Somali star ★ */}
-        <span style={{ fontSize: small ? 8 : 9, lineHeight: 1 }}>★</span>
-        SO
+          SO
       </span>
 
       {/* divider */}
@@ -146,12 +143,9 @@ const LanguageSwitcher: React.FC<Props> = ({ compact = false, light: _light = fa
           lineHeight: 1,
           display: 'flex',
           alignItems: 'center',
-          gap: 3,
         }}
       >
-        {/* UK union-jack dots */}
-        <span style={{ fontSize: small ? 8 : 9, lineHeight: 1 }}>🇬🇧</span>
-        EN
+          EN
       </span>
     </button>
   );
