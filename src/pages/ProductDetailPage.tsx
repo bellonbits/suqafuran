@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Spin } from 'antd';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { listingService } from '../services/listingService';
 import { interactionService, InteractionType } from '../services/interactionService';
@@ -79,13 +80,32 @@ const ProductDetailPage: React.FC = () => {
         );
     }
 
-    // Skeleton helpers — inline, not full-page blocks
+    // Skeleton helpers (kept as null — loader above handles no-data state)
     const S = {
-        line: (w = 'w-full', h = 'h-3') =>
-            <div className={cn('bg-gray-200 rounded-full animate-pulse', w, h)} />,
-        box: (cls = '') =>
-            <div className={cn('bg-gray-200 rounded-xl animate-pulse', cls)} />,
+        line: (_w = 'w-full', _h = 'h-3') => null,
+        box: (_cls = '') => null,
     };
+
+    // Show full-page loader while fetching and no cached data
+    if (isLoading && !ad) {
+        return (
+            <PublicLayout>
+                <div style={{
+                    minHeight: '70vh',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 16,
+                }}>
+                    <Spin size="large" />
+                    <p style={{ color: '#94a3b8', fontSize: 14, fontWeight: 500, letterSpacing: 0.3 }}>
+                        Loading listing…
+                    </p>
+                </div>
+            </PublicLayout>
+        );
+    }
 
 
     const images = ad?.images && ad.images.length > 0
