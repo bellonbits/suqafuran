@@ -14,21 +14,47 @@
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <!-- Google Translate -->
   <style>
-    /* Hide the Google Translate toolbar/banner */
-    .goog-te-banner-frame, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
-    body { top: 0 !important; }
-    .goog-te-combo { display: none !important; }
-    .skiptranslate { display: none !important; }
+    /* Hide GT toolbar completely */
+    .goog-te-banner-frame,
+    #goog-gt-tt,
+    .goog-te-balloon-frame,
+    .goog-te-ftab-float,
+    #goog-gt-votingFrame { display: none !important; }
+    body { top: 0 !important; position: static !important; }
+    .goog-te-combo, .skiptranslate { display: none !important; }
+    /* Prevent the translated font from looking ugly */
+    font { background-color: transparent !important; }
   </style>
+  <script>
+    // Before React mounts: ensure googtrans cookie matches localStorage choice
+    // so Google Translate is applied from the very first paint on every page.
+    (function() {
+      var saved = localStorage.getItem('suqafuran_lang') || 'en';
+      var cookieMatch = document.cookie.match(/(?:^|;\s*)googtrans=([^;]+)/);
+      var cookieVal = cookieMatch ? cookieMatch[1] : '';
+      var desired = saved === 'so' ? '/en/so' : '/en/en';
+      if (cookieVal !== desired) {
+        var d = window.location.hostname;
+        document.cookie = 'googtrans=' + desired + '; path=/';
+        document.cookie = 'googtrans=' + desired + '; path=/; domain=' + d;
+        document.cookie = 'googtrans=' + desired + '; path=/; domain=.' + d;
+      }
+    })();
+  </script>
   <script type="text/javascript">
     function googleTranslateElementInit() {
       new google.translate.TranslateElement(
-        { pageLanguage: 'en', includedLanguages: 'en,so', autoDisplay: false },
+        {
+          pageLanguage: 'en',
+          includedLanguages: 'en,so',
+          autoDisplay: false,
+          layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+        },
         'google_translate_element'
       );
     }
   </script>
-  <script defer src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </head>
 
 <body>
