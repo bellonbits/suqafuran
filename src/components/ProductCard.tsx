@@ -8,6 +8,7 @@ import { getImageUrl } from '../utils/imageUtils';
 import { useCurrencyStore } from '../store/useCurrencyStore';
 import { formatConvertedPrice } from '../utils/currencyUtils';
 import { listingService } from '../services/listingService';
+import { useTranslateSingle } from '../hooks/useTranslateContent';
 
 interface ProductCardProps {
     id: string;
@@ -42,6 +43,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     const { t } = useTranslation();
     const queryClient = useQueryClient();
     const [liked, setLiked] = useState(false);
+    const translatedTitle = useTranslateSingle(title);
 
     const prefetch = () => {
         queryClient.prefetchQuery({
@@ -127,7 +129,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             <div className="px-3 pt-2.5 pb-3 flex flex-col flex-1">
                 {/* Title */}
                 <p className="text-gray-800 text-[13px] font-semibold line-clamp-2 leading-snug mb-2">
-                    {title}
+                    {translatedTitle}
                 </p>
 
                 {/* Price + rating */}

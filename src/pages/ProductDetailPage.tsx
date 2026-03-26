@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Spin } from 'antd';
+import { useTranslateContent } from '../hooks/useTranslateContent';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { listingService } from '../services/listingService';
 import { interactionService, InteractionType } from '../services/interactionService';
@@ -107,6 +108,12 @@ const ProductDetailPage: React.FC = () => {
         );
     }
 
+
+    // Translate dynamic content server-side when Somali is active
+    const [translatedTitle, translatedDesc] = useTranslateContent([
+        ad?.title ?? '',
+        ad?.description ?? '',
+    ]);
 
     const images = ad?.images && ad.images.length > 0
         ? ad.images
@@ -255,7 +262,7 @@ const ProductDetailPage: React.FC = () => {
                 {/* ── Title ── */}
                 <div className="bg-white px-4 pb-1">
                     {ad
-                        ? <h1 className="text-[17px] font-bold text-gray-900 leading-snug">{ad.title}</h1>
+                        ? <h1 className="text-[17px] font-bold text-gray-900 leading-snug">{translatedTitle}</h1>
                         : <div className="space-y-2 py-1">{S.line('w-3/4', 'h-5')}{S.line('w-1/2', 'h-5')}</div>
                     }
                 </div>
@@ -355,7 +362,7 @@ const ProductDetailPage: React.FC = () => {
                     <div className="bg-white mt-2 px-4 py-4 border-b border-gray-100">
                         <h3 className="text-[13px] font-bold text-gray-900 mb-2">{t('listing.description')}</h3>
                         <p className={cn('text-[13px] text-gray-600 leading-relaxed', !showFullDesc && 'line-clamp-4')}>
-                            {ad.description}
+                            {translatedDesc}
                         </p>
                         {ad.description.length > 200 && (
                             <button
@@ -547,7 +554,7 @@ const ProductDetailPage: React.FC = () => {
                                     {postedDate && <><Clock className="h-3.5 w-3.5 ml-1" /><span>{postedDate}</span></>}
                                 </div>
                                 {ad
-                                    ? <h1 className="text-xl font-bold text-gray-900 mb-2 leading-snug">{ad.title}</h1>
+                                    ? <h1 className="text-xl font-bold text-gray-900 mb-2 leading-snug">{translatedTitle}</h1>
                                     : <div className="space-y-2 mb-2">{S.line('w-2/3', 'h-6')}{S.line('w-1/2', 'h-5')}</div>
                                 }
                                 <div className="flex items-baseline gap-3 mb-4">
@@ -601,7 +608,7 @@ const ProductDetailPage: React.FC = () => {
                                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                                     <h3 className="font-bold text-sm text-gray-900 mb-3">{t('listing.description')}</h3>
                                     <p className={cn('text-gray-600 whitespace-pre-line leading-relaxed text-sm', !showFullDesc && 'line-clamp-5')}>
-                                        {ad.description}
+                                        {translatedDesc}
                                     </p>
                                     {ad.description.length > 300 && (
                                         <button onClick={() => setShowFullDesc(v => !v)}
