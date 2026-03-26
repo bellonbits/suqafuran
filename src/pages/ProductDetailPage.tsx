@@ -73,9 +73,9 @@ const ProductDetailPage: React.FC = () => {
         return (
             <PublicLayout>
                 <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Listing Not Found</h2>
-                    <p className="text-gray-500 mb-6">This ad may have been removed or is no longer available.</p>
-                    <Link to="/"><Button>Back to Marketplace</Button></Link>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('listing.notFound')}</h2>
+                    <p className="text-gray-500 mb-6">{t('listing.notFoundDesc')}</p>
+                    <Link to="/"><Button>{t('listing.backToMarketplace')}</Button></Link>
                 </div>
             </PublicLayout>
         );
@@ -338,7 +338,7 @@ const ProductDetailPage: React.FC = () => {
                             to={`/messages?user=${ad.owner_id}&listing=${ad.id}`}
                             className="w-full h-11 rounded-xl bg-secondary-500 text-white font-bold text-sm flex items-center justify-center"
                         >
-                            Start chat
+                            {t('listing.startChat')}
                         </Link>
                     </div>
                 )}
@@ -438,10 +438,10 @@ const ProductDetailPage: React.FC = () => {
                 <div className="bg-white mt-2 px-4 py-4 border-b border-gray-100">
                     <h3 className="text-[13px] font-bold text-gray-900 mb-2">{t('listing.safetyTip')}</h3>
                     <ul className="text-[12px] text-gray-600 space-y-1.5 list-disc list-inside leading-relaxed">
-                        <li>Avoid paying in advance, even for delivery</li>
-                        <li>Meet the seller at a safe public place</li>
-                        <li>Check what you're buying to make sure it's what you need</li>
-                        <li>Only pay if you're satisfied</li>
+                        <li>{t('listing.safetyTip1')}</li>
+                        <li>{t('listing.safetyTip2')}</li>
+                        <li>{t('listing.safetyTip3')}</li>
+                        <li>{t('listing.safetyTip4')}</li>
                     </ul>
                 </div>
 
@@ -452,7 +452,7 @@ const ProductDetailPage: React.FC = () => {
                             to={`/post-ad?category=${ad.category_id}`}
                             className="w-full h-12 rounded-xl border-2 border-primary-500 text-primary-600 font-extrabold text-sm flex items-center justify-center tracking-wide"
                         >
-                            POST AD LIKE THIS
+                            {t('listing.postAdLikeThis')}
                         </Link>
                     </div>
                 )}
@@ -591,7 +591,7 @@ const ProductDetailPage: React.FC = () => {
                             {/* Attributes */}
                             {ad && attrEntries.length > 0 && (
                                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                                    <h3 className="font-bold text-sm text-gray-900 mb-3">Details</h3>
+                                    <h3 className="font-bold text-sm text-gray-900 mb-3">{t('listing.details')}</h3>
                                     <div className="grid grid-cols-2 gap-y-3 gap-x-6">
                                         {attrEntries.map(([key, value]) => (
                                             <div key={key} className="flex justify-between items-center border-b border-gray-50 pb-2">
@@ -680,10 +680,10 @@ const ProductDetailPage: React.FC = () => {
                                                     {ad.owner?.is_verified ? (
                                                         <div className="flex items-center gap-1 mt-0.5 text-green-600">
                                                             <ShieldCheck className="h-3.5 w-3.5" />
-                                                            <span className="text-[11px] font-bold">Verified</span>
+                                                            <span className="text-[11px] font-bold">{t('listing.verified')}</span>
                                                         </div>
                                                     ) : (
-                                                        <p className="text-[11px] text-gray-400 mt-0.5">Member</p>
+                                                        <p className="text-[11px] text-gray-400 mt-0.5">{t('listing.member')}</p>
                                                     )}
                                                 </div>
                                             </Link>
@@ -704,14 +704,14 @@ const ProductDetailPage: React.FC = () => {
                                                     }}
                                                     className="w-full h-11 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors">
                                                     <Phone className="h-4 w-4" />
-                                                    {showPhone ? (ad.owner?.phone || 'N/A') : 'Show contact'}
+                                                    {showPhone ? (ad.owner?.phone || 'N/A') : t('listing.showContact')}
                                                 </button>
 
                                                 {/* Start chat */}
                                                 <Link
                                                     to={`/messages?user=${ad.owner_id}&listing=${ad.id}`}
                                                     className="w-full h-11 rounded-xl border-2 border-gray-200 text-gray-700 font-bold text-sm flex items-center justify-center gap-2 hover:border-primary-300 hover:text-primary-600 transition-colors">
-                                                    <MessageCircle className="h-4 w-4" /> Start chat
+                                                    <MessageCircle className="h-4 w-4" /> {t('listing.startChat')}
                                                 </Link>
 
                                                 {/* WhatsApp */}
@@ -725,7 +725,7 @@ const ProductDetailPage: React.FC = () => {
                                                 <button
                                                     onClick={async () => { try { await interactionService.logInteraction(ad.id, InteractionType.CALL); } catch {} }}
                                                     className="w-full h-10 rounded-xl border border-gray-200 text-gray-500 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors">
-                                                    <PhoneCall className="h-4 w-4" /> Request call back
+                                                    <PhoneCall className="h-4 w-4" /> {t('listing.requestCallBack')}
                                                 </button>
                                             </>
                                         )}
@@ -735,10 +735,10 @@ const ProductDetailPage: React.FC = () => {
                                     {ad && (
                                         <div className="px-4 pb-4 flex gap-2">
                                             <button className="flex-1 h-9 rounded-lg border border-gray-200 text-gray-400 hover:text-gray-600 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-gray-50 transition-colors">
-                                                <XCircle className="h-3.5 w-3.5" /> Mark unavailable
+                                                <XCircle className="h-3.5 w-3.5" /> {t('listing.markUnavailable')}
                                             </button>
                                             <button className="flex-1 h-9 rounded-lg border border-gray-200 text-gray-400 hover:text-red-500 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-red-50 transition-colors">
-                                                <Flag className="h-3.5 w-3.5" /> Report Abuse
+                                                <Flag className="h-3.5 w-3.5" /> {t('listing.reportAbuse')}
                                             </button>
                                         </div>
                                     )}
@@ -748,15 +748,15 @@ const ProductDetailPage: React.FC = () => {
                                 <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
                                     <h4 className="font-bold text-sm text-gray-900 mb-3 flex items-center gap-2">
                                         <AlertTriangle className="h-4 w-4 text-amber-500" />
-                                        Safety tips
+                                        {t('listing.safetyTip')}
                                     </h4>
                                     <ul className="text-xs text-gray-600 space-y-2 list-disc list-inside leading-relaxed">
-                                        <li>Avoid paying in advance, even for delivery</li>
-                                        <li>Meet the seller at a safe public place</li>
-                                        <li>Check what you're buying to make sure it's what you need</li>
-                                        <li>Only pay if you're satisfied</li>
+                                        <li>{t('listing.safetyTip1')}</li>
+                                        <li>{t('listing.safetyTip2')}</li>
+                                        <li>{t('listing.safetyTip3')}</li>
+                                        <li>{t('listing.safetyTip4')}</li>
                                     </ul>
-                                    <Link to="/safety" className="mt-3 block text-xs text-primary-600 font-semibold hover:underline">Read all safety tips →</Link>
+                                    <Link to="/safety" className="mt-3 block text-xs text-primary-600 font-semibold hover:underline">{t('listing.readAllSafetyTips')}</Link>
                                 </div>
 
                                 {/* Post Ad Like This */}
@@ -764,7 +764,7 @@ const ProductDetailPage: React.FC = () => {
                                     <Link
                                         to={`/post-ad?category=${ad.category_id}`}
                                         className="w-full h-11 rounded-xl border-2 border-primary-500 text-primary-600 font-extrabold text-sm flex items-center justify-center tracking-wide hover:bg-primary-50 transition-colors">
-                                        POST AD LIKE THIS
+                                        {t('listing.postAdLikeThis')}
                                     </Link>
                                 )}
                             </div>

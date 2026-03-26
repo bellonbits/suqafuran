@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     Wallet,
@@ -20,6 +21,7 @@ import { cn } from '../utils/cn';
 import type { Transaction, WalletBalance } from '../services/walletService';
 
 export const WalletPage: React.FC = () => {
+    const { t } = useTranslation();
     const queryClient = useQueryClient();
     const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
     const [isRechargeModalOpen, setIsRechargeModalOpen] = useState(false);
@@ -91,9 +93,9 @@ export const WalletPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-gradient-to-br from-blue-300 to-blue-400 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
                     <div className="relative z-10">
-                        <p className="text-white/90 text-sm font-medium mb-1">Available Balance</p>
+                        <p className="text-white/90 text-sm font-medium mb-1">{t('wallet.availableBalance')}</p>
                         <h3 className="text-4xl font-bold mb-6">
-                            {balanceLoading ? '...' : `${balance?.balance?.toLocaleString()} Tokens`}
+                            {balanceLoading ? '...' : `${balance?.balance?.toLocaleString()} ${t('wallet.tokens')}`}
                         </h3>
                         <div className="flex flex-wrap gap-2">
                             <Button
@@ -101,7 +103,7 @@ export const WalletPage: React.FC = () => {
                                 className="bg-white text-blue-500 hover:bg-white/90 rounded-xl gap-2 font-bold border-none"
                             >
                                 <Plus className="h-5 w-5" />
-                                Add Funds
+                                {t('wallet.addFunds')}
                             </Button>
                             <Button
                                 onClick={() => setIsRechargeModalOpen(true)}
@@ -109,7 +111,7 @@ export const WalletPage: React.FC = () => {
                                 className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-xl gap-2 font-bold"
                             >
                                 <Clock className="h-5 w-5" />
-                                Redeem Code
+                                {t('wallet.redeemCode')}
                             </Button>
                         </div>
                     </div>
@@ -118,24 +120,24 @@ export const WalletPage: React.FC = () => {
 
                 <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex flex-col justify-between">
                     <div>
-                        <p className="text-gray-500 text-sm font-medium mb-1">Total Spent</p>
+                        <p className="text-gray-500 text-sm font-medium mb-1">{t('wallet.totalSpent')}</p>
                         <h3 className="text-2xl font-bold text-gray-900 tracking-tight">
-                            {balanceLoading ? '...' : `${balance?.total_spent?.toLocaleString() || '0'} Tokens`}
+                            {balanceLoading ? '...' : `${balance?.total_spent?.toLocaleString() || '0'} ${t('wallet.tokens')}`}
                         </h3>
                     </div>
                 </div>
 
                 <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex flex-col justify-between">
                     <div>
-                        <p className="text-gray-500 text-sm font-medium mb-1">Active Boosts</p>
+                        <p className="text-gray-500 text-sm font-medium mb-1">{t('wallet.activeBoosts')}</p>
                         <h3 className="text-2xl font-bold text-gray-900 tracking-tight">
-                            {balanceLoading ? '...' : `${balance?.active_boosts || 0} Listings`}
+                            {balanceLoading ? '...' : `${balance?.active_boosts || 0} ${t('wallet.listings')}`}
                         </h3>
                     </div>
                     {balance && balance.active_boosts > 0 && (
                         <div className="mt-4 flex items-center gap-2 text-primary-600 bg-primary-50 px-3 py-1 rounded-full w-fit text-xs font-bold">
                             <ShieldCheck className="h-4 w-4" />
-                            <span>Premium Seller</span>
+                            <span>{t('wallet.premiumSeller')}</span>
                         </div>
                     )}
                 </div>
@@ -144,15 +146,15 @@ export const WalletPage: React.FC = () => {
             {/* Transaction History */}
             <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="p-6 border-b border-gray-50 flex items-center justify-between">
-                    <h3 className="text-lg font-bold text-gray-900">Recent Transactions</h3>
-                    <Button variant="outline" size="sm" className="rounded-xl text-xs">View All</Button>
+                    <h3 className="text-lg font-bold text-gray-900">{t('wallet.recentTransactions')}</h3>
+                    <Button variant="outline" size="sm" className="rounded-xl text-xs">{t('wallet.viewAll')}</Button>
                 </div>
 
                 <div className="divide-y divide-gray-50">
                     {txLoading ? (
-                        <div className="p-12 text-center text-gray-400">Loading transactions...</div>
+                        <div className="p-12 text-center text-gray-400">{t('wallet.loadingTransactions')}</div>
                     ) : transactions?.length === 0 ? (
-                        <div className="p-12 text-center text-gray-400">No transactions yet</div>
+                        <div className="p-12 text-center text-gray-400">{t('wallet.noTransactions')}</div>
                     ) : (
                         transactions?.map((tx: any) => (
                             <div key={tx.id} className="p-6 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
@@ -180,18 +182,18 @@ export const WalletPage: React.FC = () => {
                                         "text-lg font-bold tracking-tight",
                                         tx.type === 'deposit' ? "text-green-600" : "text-gray-900"
                                     )}>
-                                        {tx.type === 'deposit' ? '+' : ''}{tx.amount.toLocaleString()} Tokens
+                                        {tx.type === 'deposit' ? '+' : ''}{tx.amount.toLocaleString()} {t('wallet.tokens')}
                                     </p>
                                     <div className="flex items-center gap-1 justify-end mt-0.5">
                                         {tx.status === 'completed' ? (
                                             <span className="text-[10px] font-bold text-green-600 uppercase flex items-center gap-1">
                                                 <CheckCircle2 className="h-3 w-3" />
-                                                Success
+                                                {t('wallet.success')}
                                             </span>
                                         ) : (
                                             <span className="text-[10px] font-bold text-red-500 uppercase flex items-center gap-1">
                                                 <XCircle className="h-3 w-3" />
-                                                Failed
+                                                {t('wallet.failed')}
                                             </span>
                                         )}
                                     </div>
@@ -206,12 +208,12 @@ export const WalletPage: React.FC = () => {
             {isDepositModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl">
-                        <h3 className="text-xl font-bold mb-2">Add Funds</h3>
-                        <p className="text-gray-500 text-sm mb-6">Enter the amount you'd like to deposit into your Suqafuran wallet (Simulated).</p>
+                        <h3 className="text-xl font-bold mb-2">{t('wallet.addFundsTitle')}</h3>
+                        <p className="text-gray-500 text-sm mb-6">{t('wallet.addFundsDesc')}</p>
 
                         <form onSubmit={handleDeposit}>
                             <div className="mb-6">
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Amount (Tokens)</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">{t('wallet.amountTokens')}</label>
                                 <input
                                     type="number"
                                     value={depositAmount}
@@ -230,14 +232,14 @@ export const WalletPage: React.FC = () => {
                                     className="flex-1 rounded-xl"
                                     onClick={() => setIsDepositModalOpen(false)}
                                 >
-                                    Cancel
+                                    {t('wallet.cancel')}
                                 </Button>
                                 <Button
                                     type="submit"
                                     className="flex-1 rounded-xl"
                                     isLoading={depositMutation.isPending}
                                 >
-                                    Deposit
+                                    {t('wallet.deposit')}
                                 </Button>
                             </div>
                         </form>
@@ -248,8 +250,8 @@ export const WalletPage: React.FC = () => {
             {/* Pricing Guide Section */}
             <div className="mt-12">
                 <div className="mb-8">
-                    <h3 className="text-2xl font-black text-gray-900 tracking-tight">Boost Pricing Guide</h3>
-                    <p className="text-gray-500 mt-1">See how many tokens you need for each boost level.</p>
+                    <h3 className="text-2xl font-black text-gray-900 tracking-tight">{t('wallet.boostPricingGuide')}</h3>
+                    <p className="text-gray-500 mt-1">{t('wallet.boostPricingDesc')}</p>
                 </div>
                 <BoostPricingGrid
                     plans={plans || []}
@@ -263,12 +265,12 @@ export const WalletPage: React.FC = () => {
             {isRechargeModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl">
-                        <h3 className="text-xl font-bold mb-2">Redeem Recharge Code</h3>
-                        <p className="text-gray-500 text-sm mb-6">Enter your 8-character recharge code to automatically add funds to your wallet.</p>
+                        <h3 className="text-xl font-bold mb-2">{t('wallet.redeemCodeTitle')}</h3>
+                        <p className="text-gray-500 text-sm mb-6">{t('wallet.redeemCodeDesc')}</p>
 
                         <form onSubmit={handleRecharge}>
                             <div className="mb-6">
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Recharge Code</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">{t('wallet.rechargeCode')}</label>
                                 <input
                                     type="text"
                                     value={rechargeCode}
@@ -293,14 +295,14 @@ export const WalletPage: React.FC = () => {
                                         setRechargeError(null);
                                     }}
                                 >
-                                    Cancel
+                                    {t('wallet.cancel')}
                                 </Button>
                                 <Button
                                     type="submit"
                                     className="flex-1 rounded-xl"
                                     isLoading={rechargeMutation.isPending}
                                 >
-                                    Redeem
+                                    {t('wallet.redeem')}
                                 </Button>
                             </div>
                         </form>

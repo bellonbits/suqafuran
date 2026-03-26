@@ -1,6 +1,7 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { ProductCard } from '../components/ProductCard';
 import { listingService } from '../services/listingService';
@@ -13,6 +14,7 @@ import { FilterSidebar } from '../components/FilterSidebar';
 const CategoryListingPage: React.FC = () => {
     const { categoryId } = useParams<{ categoryId: string }>();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [showFilters, setShowFilters] = useState(false);
     const [searchParams] = useSearchParams();
     const subcategoryParam = searchParams.get('subcategory');
@@ -68,13 +70,13 @@ const CategoryListingPage: React.FC = () => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <nav className="text-sm text-gray-500 mb-1">
-                            <span className="hover:text-blue-400 cursor-pointer" onClick={() => navigate('/dashboard')}>Dashboard</span>
+                            <span className="hover:text-blue-400 cursor-pointer" onClick={() => navigate('/dashboard')}>{t('category.dashboard')}</span>
                             <span className="mx-2">/</span>
-                            <Link to="/dashboard" className="hover:text-blue-400">Categories</Link>
+                            <Link to="/dashboard" className="hover:text-blue-400">{t('category.categories')}</Link>
                             <span className="mx-2">/</span>
                             <span className="text-gray-900 font-medium">{category?.name}</span>
                         </nav>
-                        <h1 className="text-2xl font-bold text-gray-900">{category?.name || 'Products'} <span className="text-gray-400 font-normal text-lg">in Africa</span></h1>
+                        <h1 className="text-2xl font-bold text-gray-900">{category?.name || 'Products'} <span className="text-gray-400 font-normal text-lg">{t('listing.inAfrica')}</span></h1>
                     </div>
                     <div className="flex items-center gap-2">
                         <Button
@@ -84,12 +86,12 @@ const CategoryListingPage: React.FC = () => {
                             onClick={() => setShowFilters(!showFilters)}
                         >
                             <Filter className="h-4 w-4 mr-2" />
-                            Filters
+                            {t('category.filters')}
                         </Button>
                         <div className="relative group">
                             <Button variant="outline" size="sm" className="gap-2 bg-white">
                                 <ListFilter className="h-4 w-4" />
-                                Sort: Newest
+                                {t('category.sortNewest')}
                                 <ChevronDown className="h-4 w-4" />
                             </Button>
                         </div>
@@ -125,12 +127,10 @@ const CategoryListingPage: React.FC = () => {
                                         <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
                                             <Tag className="h-10 w-10 text-gray-300" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-gray-900 mb-2">No listings found</h3>
-                                        <p className="text-gray-500 max-w-sm mx-auto mb-8">
-                                            We couldn't find any items in <span className="font-bold text-gray-700">{category?.name}</span> matching your filters.
-                                        </p>
+                                        <h3 className="text-xl font-bold text-gray-900 mb-2">{t('category.noListings')}</h3>
+                                        <p className="text-gray-500 max-w-sm mx-auto mb-8">{t('category.noListingsDesc')}</p>
                                         <Button onClick={() => navigate('/post-ad')} className="rounded-xl px-8 shadow-lg shadow-primary-500/20">
-                                            Post an Ad in this Category
+                                            {t('category.postInCategory')}
                                         </Button>
                                     </div>
                                 ) : (
@@ -153,7 +153,7 @@ const CategoryListingPage: React.FC = () => {
                         {/* Pagination */}
                         {listings && listings.length > 0 && (
                             <div className="mt-12 flex justify-center gap-2">
-                                <Button variant="outline" size="sm" disabled className="rounded-lg">Previous</Button>
+                                <Button variant="outline" size="sm" disabled className="rounded-lg">{t('category.previous')}</Button>
                                 {[1, 2, 3].map((page, i) => (
                                     <Button
                                         key={i}
@@ -164,7 +164,7 @@ const CategoryListingPage: React.FC = () => {
                                         {page}
                                     </Button>
                                 ))}
-                                <Button variant="outline" size="sm" className="rounded-lg">Next</Button>
+                                <Button variant="outline" size="sm" className="rounded-lg">{t('category.next')}</Button>
                             </div>
                         )}
                     </div>

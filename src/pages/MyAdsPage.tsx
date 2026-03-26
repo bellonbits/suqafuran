@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { listingService } from '../services/listingService';
 import {
     ShoppingBag, Eye, Edit2,
@@ -18,6 +19,7 @@ import { dashboardService } from '../services/dashboardService';
 const MyAdsPage: React.FC = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
     const [deletingId, setDeletingId] = React.useState<number | null>(null);
 
 
@@ -51,13 +53,13 @@ const MyAdsPage: React.FC = () => {
                         <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
                             <AlertTriangle className="h-8 w-8 text-red-600" />
                         </div>
-                        <h3 className="text-xl font-bold text-center mb-2">Delete Ad?</h3>
-                        <p className="text-gray-500 text-center mb-8">This action cannot be undone. All views and leads will be lost.</p>
+                        <h3 className="text-xl font-bold text-center mb-2">{t('myads.deleteTitle')}</h3>
+                        <p className="text-gray-500 text-center mb-8">{t('myads.deleteDesc')}</p>
                         <div className="flex gap-4">
-                            <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setDeletingId(null)}>Cancel</Button>
+                            <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setDeletingId(null)}>{t('common.cancel')}</Button>
                             <Button variant="secondary" className="flex-1 rounded-xl bg-red-600 hover:bg-red-700 text-white border-none"
                                 isLoading={deleteMutation.isPending}
-                                onClick={() => deleteMutation.mutate(deletingId)}>Delete</Button>
+                                onClick={() => deleteMutation.mutate(deletingId)}>{t('common.delete')}</Button>
                         </div>
                     </div>
                 </div>
@@ -65,12 +67,12 @@ const MyAdsPage: React.FC = () => {
 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">My Listings</h1>
-                    <p className="text-sm text-gray-500 mt-1">Manage, edit and boost your ads performance.</p>
+                    <h1 className="text-2xl font-bold text-gray-900">{t('myads.title')}</h1>
+                    <p className="text-sm text-gray-500 mt-1">{t('myads.subtitle')}</p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="rounded-xl font-bold border-2">Pending ({myAds?.filter(a => a.status === 'pending').length || 0})</Button>
-                    <Button variant="ghost" size="sm" className="rounded-xl font-bold">Closed ({myAds?.filter(a => a.status === 'closed').length || 0})</Button>
+                    <Button variant="outline" size="sm" className="rounded-xl font-bold border-2">{t('myads.pending')} ({myAds?.filter(a => a.status === 'pending').length || 0})</Button>
+                    <Button variant="ghost" size="sm" className="rounded-xl font-bold">{t('myads.closed')} ({myAds?.filter(a => a.status === 'closed').length || 0})</Button>
                 </div>
             </div>
 
@@ -82,10 +84,10 @@ const MyAdsPage: React.FC = () => {
                 ) : myAds?.length === 0 ? (
                     <div className="py-20 text-center bg-white rounded-2xl border border-dashed border-gray-200">
                         <ShoppingBag className="h-12 w-12 text-gray-200 mx-auto mb-4" />
-                        <h3 className="text-lg font-bold text-gray-900">No active ads yet</h3>
-                        <p className="text-gray-500 mb-8 max-w-xs mx-auto text-sm">You haven't posted any items for sale. Start now and make some cash!</p>
+                        <h3 className="text-lg font-bold text-gray-900">{t('myads.noAdsTitle')}</h3>
+                        <p className="text-gray-500 mb-8 max-w-xs mx-auto text-sm">{t('myads.noAdsDesc')}</p>
                         <Link to="/post-ad">
-                            <Button className="rounded-xl px-8">Post Your First Ad</Button>
+                            <Button className="rounded-xl px-8">{t('myads.postFirstAd')}</Button>
                         </Link>
                     </div>
                 ) : (
@@ -101,7 +103,7 @@ const MyAdsPage: React.FC = () => {
                                         "text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded",
                                         ad.status === 'active' ? "bg-green-50 text-green-600" : "bg-yellow-50 text-yellow-600"
                                     )}>{ad.status}</span>
-                                    <span className="text-xs text-gray-400">• Posted recently</span>
+                                    <span className="text-xs text-gray-400">• {t('myads.postedRecently')}</span>
                                 </div>
                                 <h3 className="font-bold text-gray-900 truncate mb-1">{ad.title}</h3>
                                 <p className="text-primary-600 font-bold mb-2">{ad.currency} {ad.price.toLocaleString()}</p>
@@ -109,11 +111,11 @@ const MyAdsPage: React.FC = () => {
                                 <div className="flex items-center gap-6 text-xs text-gray-400">
                                     <div className="flex items-center gap-1">
                                         <Eye className="h-3.5 w-3.5" />
-                                        <span>{ad.views || 0} Views</span>
+                                        <span>{ad.views || 0} {t('myads.views')}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <TrendingUp className="h-3.5 w-3.5" />
-                                        <span>{ad.leads || 0} Leads</span>
+                                        <span>{ad.leads || 0} {t('myads.leads')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -125,7 +127,7 @@ const MyAdsPage: React.FC = () => {
                                     onClick={() => navigate(`/promote/${ad.id}`)}
                                 >
                                     <TrendingUp className="h-4 w-4" />
-                                    {ad.boost_level && ad.boost_level > 0 ? 'Upgrade' : 'Boost Ad'}
+                                    {ad.boost_level && ad.boost_level > 0 ? t('myads.upgrade') : t('myads.boostAd')}
                                 </Button>
                                 <div className="flex gap-2">
                                     <Button
@@ -156,9 +158,9 @@ const MyAdsPage: React.FC = () => {
                 <div className="absolute bottom-0 right-0 w-64 h-64 bg-primary-600/20 blur-3xl rounded-full translate-x-1/2 translate-y-1/2"></div>
                 <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
                     <div>
-                        <h3 className="text-2xl font-bold text-white mb-2">Grow your sales with Suqafuran Premium</h3>
-                        <p className="text-gray-400 mb-6">Promoted ads get 10x more reach and 5x more messages from serious buyers.</p>
-                        <Button variant="secondary" className="rounded-xl px-10">Upgrade to Premium</Button>
+                        <h3 className="text-2xl font-bold text-white mb-2">{t('myads.premiumTitle')}</h3>
+                        <p className="text-gray-400 mb-6">{t('myads.premiumDesc')}</p>
+                        <Button variant="secondary" className="rounded-xl px-10">{t('myads.upgradePremium')}</Button>
                     </div>
                     <div className="flex justify-end order-first md:order-last">
                         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10 w-full max-w-xs">
@@ -170,9 +172,9 @@ const MyAdsPage: React.FC = () => {
                                     <div className="h-12 w-2 bg-white/20 rounded-full"></div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-xs text-gray-400">Total Views</p>
+                                    <p className="text-xs text-gray-400">{t('myads.totalViews')}</p>
                                     <p className="text-3xl font-bold text-white">{realStats?.views || '0'}</p>
-                                    <p className="text-[10px] text-green-400 mt-1 uppercase font-bold">+12% this week</p>
+                                    <p className="text-[10px] text-green-400 mt-1 uppercase font-bold">{t('myads.thisWeek')}</p>
                                 </div>
                             </div>
                         </div>

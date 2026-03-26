@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     HelpCircle, MessageCircle, Shield,
     Search, ChevronDown, ChevronUp,
@@ -14,64 +15,29 @@ interface FAQ {
     category: string;
 }
 
-const faqs: FAQ[] = [
-    // Buying
-    {
-        category: 'buying',
-        question: 'How do I buy an item on Suqafuran?',
-        answer: 'Buying is simple! Browse or search for items, click on a listing you like, and use the "Chat" or "Reveal Phone" buttons to contact the seller directly. Always meet in person in a safe, public place to inspect the item before paying.'
-    },
-    {
-        category: 'buying',
-        question: 'Are the prices negotiable?',
-        answer: 'Many sellers are open to offers. You can discuss the price with the seller through our in-app chat or by calling them. Look for the "Negotiable" tag on listings.'
-    },
-    // Selling
-    {
-        category: 'selling',
-        question: 'How do I post an ad?',
-        answer: 'Click the "Post New Ad" button in your dashboard or the "Sell Now" button in the header. Choose a category, upload clear photos, add a descriptive title and price, then click "Post Listing". It\'s free!'
-    },
-    {
-        category: 'selling',
-        question: 'How can I sell my items faster?',
-        answer: 'To sell faster: 1. Use high-quality photos. 2. Write a detailed description. 3. Set a fair, competitive price. 4. Become a "Verified Seller" to build more trust with buyers.'
-    },
-    // Safety
-    {
-        category: 'safety',
-        question: 'How do I stay safe while trading?',
-        answer: 'Safety is our priority. Always meet in public places (like malls or cafes), never send money before seeing the item, and trust your instincts. If a deal seems too good to be true, it probably is.'
-    },
-    {
-        category: 'safety',
-        question: 'What is the Verified Seller program?',
-        answer: 'Our Verified Seller program badges sellers who have provided official ID documentation. This helps buyers identify trustworthy partners. You can apply for verification in your account settings.'
-    },
-    // Account
-    {
-        category: 'account',
-        question: 'How do I change my password?',
-        answer: 'Go to "Account Settings" from your dashboard sidebar. In the "Security" tab, you can update your password and manage your active sessions.'
-    },
-    {
-        category: 'account',
-        question: 'I forgot my password, what should I do?',
-        answer: 'On the login page, click "Forgot Password?". Enter your email address, and we\'ll send you a secure link to reset it.'
-    }
-];
-
 const HelpCenterPage: React.FC = () => {
+    const { t } = useTranslation();
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategory, setActiveCategory] = useState('all');
     const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
+    const faqs: FAQ[] = [
+        { category: 'buying', question: t('help.faqBuy1Q'), answer: t('help.faqBuy1A') },
+        { category: 'buying', question: t('help.faqBuy2Q'), answer: t('help.faqBuy2A') },
+        { category: 'selling', question: t('help.faqSell1Q'), answer: t('help.faqSell1A') },
+        { category: 'selling', question: t('help.faqSell2Q'), answer: t('help.faqSell2A') },
+        { category: 'safety', question: t('help.faqSafety1Q'), answer: t('help.faqSafety1A') },
+        { category: 'safety', question: t('help.faqSafety2Q'), answer: t('help.faqSafety2A') },
+        { category: 'account', question: t('help.faqAccount1Q'), answer: t('help.faqAccount1A') },
+        { category: 'account', question: t('help.faqAccount2Q'), answer: t('help.faqAccount2A') },
+    ];
+
     const categories = [
-        { id: 'all', label: 'All Topics', icon: HelpCircle },
-        { id: 'buying', label: 'Buying', icon: ShoppingBag },
-        { id: 'selling', label: 'Selling', icon: TagIcon },
-        { id: 'safety', label: 'Safety', icon: ShieldCheck },
-        { id: 'account', label: 'Account', icon: User },
+        { id: 'all', label: t('help.allTopics'), icon: HelpCircle },
+        { id: 'buying', label: t('help.buying'), icon: ShoppingBag },
+        { id: 'selling', label: t('help.selling'), icon: TagIcon },
+        { id: 'safety', label: t('help.safety'), icon: ShieldCheck },
+        { id: 'account', label: t('help.account'), icon: User },
     ];
 
     const filteredFaqs = faqs.filter(faq => {
@@ -86,16 +52,16 @@ const HelpCenterPage: React.FC = () => {
             {/* Header Section */}
             <div className="bg-primary-600 rounded-3xl p-8 text-white relative overflow-hidden shadow-lg">
                 <div className="relative z-10">
-                    <h1 className="text-3xl font-bold mb-4">How can we help you?</h1>
+                    <h1 className="text-3xl font-bold mb-4">{t('help.heroTitle')}</h1>
                     <p className="text-primary-100 mb-8 max-w-2xl">
-                        Find answers to common questions about buying, selling, and staying safe on Suqafuran.
+                        {t('help.heroSubtitle')}
                     </p>
 
                     <div className="relative max-w-xl group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-primary-600 transition-colors" />
                         <input
                             type="text"
-                            placeholder="Search for help (e.g. 'how to sell', 'verification'...)"
+                            placeholder={t('help.searchPlaceholder')}
                             className="w-full h-12 pl-12 pr-4 rounded-xl border-none bg-white text-gray-900 placeholder:text-gray-400 focus:ring-4 focus:ring-primary-500/30 transition-all outline-none shadow-sm"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -111,7 +77,7 @@ const HelpCenterPage: React.FC = () => {
             <div className="grid lg:grid-cols-4 gap-8">
                 {/* Sidebar Navigation - Visible on Desktop */}
                 <div className="hidden lg:block space-y-2">
-                    <h3 className="font-bold text-gray-900 px-4 mb-2">Categories</h3>
+                    <h3 className="font-bold text-gray-900 px-4 mb-2">{t('help.categories')}</h3>
                     {categories.map((cat) => (
                         <button
                             key={cat.id}
@@ -156,7 +122,7 @@ const HelpCenterPage: React.FC = () => {
                         <div className="p-6 border-b border-gray-50">
                             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                                 <MessageCircle className="h-5 w-5 text-primary-600" />
-                                {activeCategory === 'all' ? 'Frequently Asked Questions' : `${categories.find(c => c.id === activeCategory)?.label}`}
+                                {activeCategory === 'all' ? t('help.faqTitle') : `${categories.find(c => c.id === activeCategory)?.label}`}
                             </h2>
                         </div>
 
@@ -185,7 +151,7 @@ const HelpCenterPage: React.FC = () => {
                                                 <p>{faq.answer}</p>
                                                 <div className="mt-4 flex items-center gap-4">
                                                     <button className="text-xs font-bold text-primary-600 flex items-center gap-1 hover:underline">
-                                                        Was this helpful? <span className="text-gray-400 font-normal ml-2 hover:text-green-600 cursor-pointer">Yes</span> <span className="text-gray-400 font-normal hover:text-red-500 cursor-pointer">No</span>
+                                                        {t('help.wasHelpful')} <span className="text-gray-400 font-normal ml-2 hover:text-green-600 cursor-pointer">{t('help.yes')}</span> <span className="text-gray-400 font-normal hover:text-red-500 cursor-pointer">{t('help.no')}</span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -197,14 +163,14 @@ const HelpCenterPage: React.FC = () => {
                                     <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
                                         <Search className="h-8 w-8" />
                                     </div>
-                                    <h3 className="text-lg font-bold text-gray-900 mb-1">No results found</h3>
-                                    <p className="text-gray-500 text-sm">We couldn't find any help articles matching "{searchQuery}"</p>
+                                    <h3 className="text-lg font-bold text-gray-900 mb-1">{t('help.noResults')}</h3>
+                                    <p className="text-gray-500 text-sm">{t('help.noResultsDesc')} "{searchQuery}"</p>
                                     <Button
                                         variant="ghost"
                                         className="mt-4 font-bold text-primary-600"
                                         onClick={() => setSearchQuery('')}
                                     >
-                                        Clear search
+                                        {t('help.clearSearch')}
                                     </Button>
                                 </div>
                             )}
@@ -218,9 +184,9 @@ const HelpCenterPage: React.FC = () => {
                                 <MessageCircle className="h-6 w-6" />
                             </div>
                             <div>
-                                <h3 className="font-bold text-gray-900 mb-1">Live Chat</h3>
-                                <p className="text-sm text-gray-500 mb-3">Available 8 AM - 8 PM</p>
-                                <button className="text-sm font-bold text-blue-600 hover:text-blue-700 hover:underline">Start Chat</button>
+                                <h3 className="font-bold text-gray-900 mb-1">{t('help.liveChat')}</h3>
+                                <p className="text-sm text-gray-500 mb-3">{t('help.liveChatHours')}</p>
+                                <button className="text-sm font-bold text-blue-600 hover:text-blue-700 hover:underline">{t('help.startChat')}</button>
                             </div>
                         </div>
 
@@ -229,10 +195,10 @@ const HelpCenterPage: React.FC = () => {
                                 <Shield className="h-6 w-6" />
                             </div>
                             <div>
-                                <h3 className="font-bold text-gray-900 mb-1">Safety Tips</h3>
-                                <p className="text-sm text-gray-500 mb-3">Learn to trade safely</p>
+                                <h3 className="font-bold text-gray-900 mb-1">{t('help.safetyTipsTitle')}</h3>
+                                <p className="text-sm text-gray-500 mb-3">{t('help.safetyTipsDesc')}</p>
                                 <button className="text-sm font-bold text-green-600 hover:text-green-700 hover:underline flex items-center gap-1">
-                                    Read Guide <ExternalLink className="h-3 w-3" />
+                                    {t('help.readGuide')} <ExternalLink className="h-3 w-3" />
                                 </button>
                             </div>
                         </div>

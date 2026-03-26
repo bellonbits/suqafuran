@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { notificationService } from '../services/notificationService';
@@ -12,6 +13,7 @@ import { cn } from '../utils/cn';
 import { formatDistanceToNow } from 'date-fns';
 
 const NotificationsPage: React.FC = () => {
+    const { t } = useTranslation();
     const queryClient = useQueryClient();
     const { data: notifications, isLoading } = useQuery<Notification[]>({
         queryKey: ['notifications'],
@@ -38,11 +40,11 @@ const NotificationsPage: React.FC = () => {
         <div className="max-w-4xl mx-auto">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
-                    <p className="text-sm text-gray-500 mt-1">Stay updated with your account activity.</p>
+                    <h1 className="text-2xl font-bold text-gray-900">{t('notifications.title')}</h1>
+                    <p className="text-sm text-gray-500 mt-1">{t('notifications.subtitle')}</p>
                 </div>
                 <Button variant="ghost" size="sm" className="text-primary-600 font-bold hover:bg-primary-50 rounded-xl">
-                    Mark all as read
+                    {t('notifications.markAllRead')}
                 </Button>
             </div>
 
@@ -56,8 +58,8 @@ const NotificationsPage: React.FC = () => {
                         <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
                             <Bell className="h-10 w-10 text-gray-200" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">All caught up!</h3>
-                        <p className="text-gray-500 max-w-xs mx-auto text-sm">No new notifications at the moment. We'll let you know when something important happens.</p>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">{t('notifications.allCaughtUp')}</h3>
+                        <p className="text-gray-500 max-w-xs mx-auto text-sm">{t('notifications.noNotifications')}</p>
                     </div>
                 ) : (
                     notifications?.map((notif) => (
@@ -84,8 +86,8 @@ const NotificationsPage: React.FC = () => {
                                         "font-bold text-sm",
                                         notif.is_read ? "text-gray-600" : "text-gray-900"
                                     )}>
-                                        {notif.type === 'message' ? 'New Message' :
-                                            notif.type === 'ad_approved' ? 'Ad Approved' : 'Update'}
+                                        {notif.type === 'message' ? t('notifications.newMessage') :
+                                            notif.type === 'ad_approved' ? t('notifications.adApproved') : t('notifications.update')}
                                     </h3>
                                     <div className="flex items-center gap-1 text-[10px] text-gray-400 font-medium">
                                         <Clock className="h-3 w-3" />

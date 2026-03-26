@@ -160,12 +160,12 @@ const SettingsPage: React.FC = () => {
 
                     {/* Name & meta */}
                     <div className="flex-1 text-center sm:text-left pb-1">
-                        <h2 className="text-xl font-bold text-gray-900">{user?.full_name || 'Your Name'}</h2>
+                        <h2 className="text-xl font-bold text-gray-900">{user?.full_name || t('settings.yourName')}</h2>
                         <p className="text-sm text-gray-500 mt-0.5">{user?.email}</p>
                         <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
                             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-green-50 text-green-700 text-xs font-semibold border border-green-100">
                                 <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                                Active Member
+                                {t('settings.activeMember')}
                             </span>
                         </div>
                     </div>
@@ -173,7 +173,7 @@ const SettingsPage: React.FC = () => {
                     {/* Edit hint */}
                     <div className="hidden sm:flex items-center gap-1.5 text-xs text-gray-400 pb-1">
                         <Edit3 className="h-3.5 w-3.5" />
-                        <span>Edit below</span>
+                        <span>{t('settings.editBelow')}</span>
                     </div>
                 </div>
             </div>
@@ -186,7 +186,7 @@ const SettingsPage: React.FC = () => {
                     {success && (
                         <div className="flex items-center gap-2.5 p-4 bg-green-50 border border-green-200 rounded-2xl text-green-700 text-sm font-semibold">
                             <CheckCircle className="h-5 w-5 flex-shrink-0" />
-                            Changes saved successfully!
+                            {t('settings.savedSuccess')}
                         </div>
                     )}
                     {error && (
@@ -203,15 +203,15 @@ const SettingsPage: React.FC = () => {
                                 <User className="h-4 w-4 text-primary-600" />
                             </div>
                             <div>
-                                <h3 className="text-base font-bold text-gray-900">Personal Information</h3>
-                                <p className="text-xs text-gray-400">Update your profile details</p>
+                                <h3 className="text-base font-bold text-gray-900">{t('settings.personalInfo')}</h3>
+                                <p className="text-xs text-gray-400">{t('settings.personalInfoDesc')}</p>
                             </div>
                         </div>
 
                         <div className="p-8 space-y-5">
                             <div className="grid md:grid-cols-2 gap-5">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wide ml-1">Full Name</label>
+                                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wide ml-1">{t('settings.fullName')}</label>
                                     <Input
                                         className="rounded-xl"
                                         icon={<User className="h-4 w-4" />}
@@ -221,7 +221,7 @@ const SettingsPage: React.FC = () => {
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wide ml-1">Email Address</label>
+                                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wide ml-1">{t('settings.emailAddress')}</label>
                                     <Input
                                         className="rounded-xl bg-gray-50 text-gray-400"
                                         icon={<Mail className="h-4 w-4" />}
@@ -230,7 +230,7 @@ const SettingsPage: React.FC = () => {
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wide ml-1">Phone Number</label>
+                                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wide ml-1">{t('settings.phoneNumber')}</label>
                                     <Input
                                         className="rounded-xl"
                                         icon={<Phone className="h-4 w-4" />}
@@ -249,7 +249,7 @@ const SettingsPage: React.FC = () => {
                                 disabled={updateMutation.isPending}
                             >
                                 {updateMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                                Save Changes
+                                {t('settings.saveChanges')}
                             </Button>
                         </div>
                     </form>
@@ -261,22 +261,22 @@ const SettingsPage: React.FC = () => {
                                 <Lock className="h-4 w-4 text-red-500" />
                             </div>
                             <div>
-                                <h3 className="text-base font-bold text-gray-900">Security</h3>
-                                <p className="text-xs text-gray-400">Manage your password and account safety</p>
+                                <h3 className="text-base font-bold text-gray-900">{t('settings.security')}</h3>
+                                <p className="text-xs text-gray-400">{t('settings.securityDesc')}</p>
                             </div>
                         </div>
                         <div className="p-8">
                             <div className="flex items-center justify-between p-5 bg-gray-50 rounded-2xl border border-gray-100">
                                 <div>
-                                    <p className="font-bold text-sm text-gray-900">Password</p>
-                                    <p className="text-xs text-gray-400 mt-0.5">Last changed: unknown</p>
+                                    <p className="font-bold text-sm text-gray-900">{t('settings.password')}</p>
+                                    <p className="text-xs text-gray-400 mt-0.5">{t('settings.lastChanged')}</p>
                                 </div>
                                 <Button
                                     variant="outline"
                                     className="rounded-xl text-sm font-semibold border-2"
                                     onClick={() => { setError(null); setIsPasswordModalOpen(true); }}
                                 >
-                                    Change Password
+                                    {t('settings.changePassword')}
                                 </Button>
                             </div>
                         </div>
@@ -290,9 +290,9 @@ const SettingsPage: React.FC = () => {
                         <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-white/5 rounded-full" />
                         <div className="absolute -top-4 -left-4 w-20 h-20 bg-white/5 rounded-full" />
                         <Shield className="h-8 w-8 mb-4 text-primary-200" />
-                        <h4 className="text-base font-bold mb-2">Stay Safe</h4>
+                        <h4 className="text-base font-bold mb-2">{t('settings.staySafe')}</h4>
                         <p className="text-primary-100 text-sm leading-relaxed">
-                            Never share your password or OTP with anyone. Suqafuran will never ask for your credentials.
+                            {t('settings.staySafeDesc')}
                         </p>
                     </div>
 
@@ -302,12 +302,12 @@ const SettingsPage: React.FC = () => {
                             <div className="p-2 bg-amber-50 rounded-xl">
                                 <Bell className="h-4 w-4 text-amber-500" />
                             </div>
-                            <h3 className="text-base font-bold text-gray-900">Notifications</h3>
+                            <h3 className="text-base font-bold text-gray-900">{t('settings.notificationsTitle')}</h3>
                         </div>
                         <div className="p-6 space-y-4">
                             {[
-                                { key: 'email_notifications' as const, label: 'Email Notifications', desc: 'Receive updates via email' },
-                                { key: 'sms_notifications' as const, label: 'SMS Alerts', desc: 'Get alerts via SMS' },
+                                { key: 'email_notifications' as const, label: t('settings.emailNotifications'), desc: t('settings.emailNotificationsDesc') },
+                                { key: 'sms_notifications' as const, label: t('settings.smsAlerts'), desc: t('settings.smsAlertsDesc') },
                             ].map(({ key, label, desc }) => (
                                 <div key={key} className="flex items-center justify-between gap-3">
                                     <div>
@@ -342,7 +342,7 @@ const SettingsPage: React.FC = () => {
                                 <div className="p-2 bg-red-50 rounded-xl">
                                     <Lock className="h-4 w-4 text-red-500" />
                                 </div>
-                                <h3 className="text-lg font-bold text-gray-900">Change Password</h3>
+                                <h3 className="text-lg font-bold text-gray-900">{t('settings.changePasswordTitle')}</h3>
                             </div>
                             <button
                                 onClick={() => { setIsPasswordModalOpen(false); setError(null); }}
@@ -361,9 +361,9 @@ const SettingsPage: React.FC = () => {
 
                         <form onSubmit={handlePasswordSubmit} className="p-6 space-y-4">
                             {[
-                                { label: 'Current Password', key: 'current_password' as const },
-                                { label: 'New Password', key: 'new_password' as const },
-                                { label: 'Confirm New Password', key: 'confirm_password' as const },
+                                { label: t('settings.currentPassword'), key: 'current_password' as const },
+                                { label: t('settings.newPassword'), key: 'new_password' as const },
+                                { label: t('settings.confirmNewPassword'), key: 'confirm_password' as const },
                             ].map(({ label, key }) => (
                                 <div key={key} className="space-y-1.5">
                                     <label className="text-xs font-bold text-gray-600 uppercase tracking-wide ml-1">{label}</label>
@@ -378,11 +378,11 @@ const SettingsPage: React.FC = () => {
                             ))}
                             <div className="pt-2 flex gap-3">
                                 <Button type="button" variant="outline" className="flex-1 rounded-xl" onClick={() => { setIsPasswordModalOpen(false); setError(null); }}>
-                                    Cancel
+                                    {t('common.cancel')}
                                 </Button>
                                 <Button type="submit" className="flex-1 rounded-xl" disabled={passwordMutation.isPending}>
                                     {passwordMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                                    Update
+                                    {t('settings.update')}
                                 </Button>
                             </div>
                         </form>

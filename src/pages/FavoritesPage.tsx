@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 
@@ -12,6 +13,7 @@ import { getImageUrl } from '../utils/imageUtils';
 import type { Listing } from '../types/listing';
 
 const FavoritesPage: React.FC = () => {
+    const { t } = useTranslation();
     const queryClient = useQueryClient();
     const { data: favorites, isLoading } = useQuery<Listing[]>({
         queryKey: ['favorites'],
@@ -28,8 +30,8 @@ const FavoritesPage: React.FC = () => {
     return (
         <div className="max-w-6xl mx-auto">
             <div className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">Saved Ads</h1>
-                <p className="text-sm text-gray-500 mt-1">Keep track of the items you're interested in.</p>
+                <h1 className="text-2xl font-bold text-gray-900">{t('favorites.title')}</h1>
+                <p className="text-sm text-gray-500 mt-1">{t('favorites.subtitle')}</p>
             </div>
 
             <div className="space-y-4 min-h-[400px]">
@@ -40,10 +42,10 @@ const FavoritesPage: React.FC = () => {
                 ) : favorites?.length === 0 ? (
                     <div className="py-20 text-center bg-white rounded-2xl border border-dashed border-gray-200">
                         <Heart className="h-12 w-12 text-gray-200 mx-auto mb-4" />
-                        <h3 className="text-lg font-bold text-gray-900">No saved ads yet</h3>
-                        <p className="text-gray-500 mb-8 max-w-xs mx-auto text-sm">Tap the heart icon on any ad to save it here for later.</p>
+                        <h3 className="text-lg font-bold text-gray-900">{t('favorites.noFavorites')}</h3>
+                        <p className="text-gray-500 mb-8 max-w-xs mx-auto text-sm">{t('favorites.noFavoritesDesc')}</p>
                         <Link to="/">
-                            <Button variant="outline" className="rounded-xl px-8 border-2">Explore Ads</Button>
+                            <Button variant="outline" className="rounded-xl px-8 border-2">{t('favorites.exploreAds')}</Button>
                         </Link>
                     </div>
                 ) : (
@@ -79,7 +81,7 @@ const FavoritesPage: React.FC = () => {
                                     <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
                                         <Link to={`/listing/${ad.id}`}>
                                             <Button variant="ghost" size="sm" className="rounded-lg gap-2 text-primary-600 hover:bg-primary-50">
-                                                View Details
+                                                {t('favorites.viewDetails')}
                                                 <ArrowRight className="h-4 w-4" />
                                             </Button>
                                         </Link>

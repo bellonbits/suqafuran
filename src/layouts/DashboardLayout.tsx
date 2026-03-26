@@ -132,7 +132,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
                     {(user?.is_admin || user?.is_agent) && (
                         <div className="pt-4 mt-4 border-t border-gray-50">
-                            <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Agent Tools</p>
+                            <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('dashboard.agentTools')}</p>
                             <Link
                                 to="/agent-dashboard"
                                 className={cn(
@@ -141,14 +141,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                                 )}
                             >
                                 <Shield className="h-5 w-5" />
-                                Agent Portal
+                                {t('dashboard.agentPortal')}
                             </Link>
                         </div>
                     )}
 
                     {user?.is_admin && (
                         <div className="pt-4 mt-4 border-t border-gray-50">
-                            <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Admin Tools</p>
+                            <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">{ t('dashboard.adminTools') }</p>
                             <Link
                                 to="/admin"
                                 className={cn(
@@ -157,7 +157,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                                 )}
                             >
                                 <Shield className="h-5 w-5" />
-                                Admin Panel
+                                {t('dashboard.adminPanel')}
                             </Link>
                             <Link
                                 to="/admin/listings"
@@ -167,7 +167,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                                 )}
                             >
                                 <ShoppingBag className="h-5 w-5" />
-                                All Listings
+                                {t('dashboard.allListings')}
                             </Link>
                             <Link
                                 to="/admin/promotions"
@@ -177,7 +177,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                                 )}
                             >
                                 <Folder className="h-5 w-5" />
-                                Promotions
+                                {t('dashboard.promotions')}
                             </Link>
                             <Link
                                 to="/admin/categories"
@@ -187,7 +187,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                                 )}
                             >
                                 <Folder className="h-5 w-5" />
-                                Categories
+                                {t('dashboard.categories')}
                             </Link>
                             <Link
                                 to="/admin/verifications"
@@ -197,7 +197,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                                 )}
                             >
                                 <Shield className="h-5 w-5" />
-                                Verifications
+                                {t('dashboard.verifications')}
                             </Link>
                         </div>
                     )}
