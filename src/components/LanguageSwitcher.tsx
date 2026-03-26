@@ -6,58 +6,17 @@ interface Props {
   light?: boolean;
 }
 
-/* ── Read current Google Translate language from cookie ── */
-function getGTLang(): string {
-  const match = document.cookie.match(/(?:^|;\s*)googtrans=\/en\/([^;]+)/);
-  // Only treat as non-English if it's explicitly set to a non-English language
-  if (!match) return 'en';
-  const lang = match[1];
-  return lang && lang !== 'en' ? lang : 'en';
-}
-
-/* ── Expire (delete) the googtrans cookie on all paths/domains ── */
-function clearGTCookie() {
-  const domain = window.location.hostname;
-  const past = 'expires=Thu, 01 Jan 1970 00:00:00 UTC';
-  document.cookie = `googtrans=; ${past}; path=/`;
-  document.cookie = `googtrans=; ${past}; path=/; domain=${domain}`;
-  document.cookie = `googtrans=; ${past}; path=/; domain=.${domain}`;
-}
-
-/* ── Set googtrans cookie on both path and domain, then reload ── */
-function setGTLang(lang: string) {
-  const domain = window.location.hostname;
-  if (lang === 'en') {
-    // Delete cookie entirely — setting /en/en can still trigger GT on some browsers
-    clearGTCookie();
-  } else {
-    const value = `/en/${lang}`;
-    document.cookie = `googtrans=${value}; path=/`;
-    document.cookie = `googtrans=${value}; path=/; domain=${domain}`;
-    document.cookie = `googtrans=${value}; path=/; domain=.${domain}`;
-  }
-  localStorage.setItem('suqafuran_lang', lang);
-  window.location.reload();
-}
-
 const SO_BG = '#4189DD';
 const EN_BG = '#CF101A';
 
 const LanguageSwitcher: React.FC<Props> = ({ compact = false, light: _light = false }) => {
   const { i18n } = useTranslation();
-
-  // Derive current language: cookie is ground truth after reload,
-  // localStorage is used before first toggle so the pill renders correctly.
-  const currentLang = getGTLang() !== 'en'
-    ? getGTLang()
-    : (localStorage.getItem('suqafuran_lang') || 'en');
-
-  const isSomali = currentLang === 'so';
+  const isSomali = i18n.language === 'so';
 
   const switchTo = (lang: string) => {
-    if (lang === currentLang) return;
-    i18n.changeLanguage(lang); // sync i18n too
-    setGTLang(lang);
+    if (i18n.language === lang) return;
+    i18n.changeLanguage(lang);
+    localStorage.setItem('suqafuran_lang', lang);
   };
 
   const Pill = ({ small = false }: { small?: boolean }) => (
@@ -72,7 +31,6 @@ const LanguageSwitcher: React.FC<Props> = ({ compact = false, light: _light = fa
         flexShrink: 0,
       }}
     >
-      {/* SO */}
       <button
         onClick={() => switchTo('so')}
         title="Af-Soomaali"
@@ -93,10 +51,8 @@ const LanguageSwitcher: React.FC<Props> = ({ compact = false, light: _light = fa
         SO
       </button>
 
-      {/* divider */}
       <span style={{ width: 1, alignSelf: 'stretch', background: 'rgba(255,255,255,0.5)' }} />
 
-      {/* EN */}
       <button
         onClick={() => switchTo('en')}
         title="English"
