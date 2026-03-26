@@ -26,18 +26,25 @@
     font { background-color: transparent !important; }
   </style>
   <script>
-    // Before React mounts: ensure googtrans cookie matches localStorage choice
-    // so Google Translate is applied from the very first paint on every page.
+    // Before React mounts: sync googtrans cookie with the user's saved language.
+    // For English: DELETE the cookie so GT never activates.
+    // For Somali: SET /en/so so GT translates on first paint.
     (function() {
       var saved = localStorage.getItem('suqafuran_lang') || 'en';
-      var cookieMatch = document.cookie.match(/(?:^|;\s*)googtrans=([^;]+)/);
-      var cookieVal = cookieMatch ? cookieMatch[1] : '';
-      var desired = saved === 'so' ? '/en/so' : '/en/en';
-      if (cookieVal !== desired) {
-        var d = window.location.hostname;
-        document.cookie = 'googtrans=' + desired + '; path=/';
-        document.cookie = 'googtrans=' + desired + '; path=/; domain=' + d;
-        document.cookie = 'googtrans=' + desired + '; path=/; domain=.' + d;
+      var d = window.location.hostname;
+      var past = 'expires=Thu, 01 Jan 1970 00:00:00 UTC';
+      if (saved === 'so') {
+        var cookieMatch = document.cookie.match(/(?:^|;\s*)googtrans=([^;]+)/);
+        if (!cookieMatch || cookieMatch[1] !== '/en/so') {
+          document.cookie = 'googtrans=/en/so; path=/';
+          document.cookie = 'googtrans=/en/so; path=/; domain=' + d;
+          document.cookie = 'googtrans=/en/so; path=/; domain=.' + d;
+        }
+      } else {
+        // English — wipe the cookie so GT stays off
+        document.cookie = 'googtrans=; ' + past + '; path=/';
+        document.cookie = 'googtrans=; ' + past + '; path=/; domain=' + d;
+        document.cookie = 'googtrans=; ' + past + '; path=/; domain=.' + d;
       }
     })();
   </script>

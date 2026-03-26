@@ -9,18 +9,33 @@ interface Props {
 /* ── Read current Google Translate language from cookie ── */
 function getGTLang(): string {
   const match = document.cookie.match(/(?:^|;\s*)googtrans=\/en\/([^;]+)/);
-  return match ? match[1] : 'en';
+  // Only treat as non-English if it's explicitly set to a non-English language
+  if (!match) return 'en';
+  const lang = match[1];
+  return lang && lang !== 'en' ? lang : 'en';
+}
+
+/* ── Expire (delete) the googtrans cookie on all paths/domains ── */
+function clearGTCookie() {
+  const domain = window.location.hostname;
+  const past = 'expires=Thu, 01 Jan 1970 00:00:00 UTC';
+  document.cookie = `googtrans=; ${past}; path=/`;
+  document.cookie = `googtrans=; ${past}; path=/; domain=${domain}`;
+  document.cookie = `googtrans=; ${past}; path=/; domain=.${domain}`;
 }
 
 /* ── Set googtrans cookie on both path and domain, then reload ── */
 function setGTLang(lang: string) {
-  const value = lang === 'en' ? '/en/en' : `/en/${lang}`;
   const domain = window.location.hostname;
-  // Set on root path and on the domain so it persists across all pages
-  document.cookie = `googtrans=${value}; path=/`;
-  document.cookie = `googtrans=${value}; path=/; domain=${domain}`;
-  document.cookie = `googtrans=${value}; path=/; domain=.${domain}`;
-  // Persist choice so the pill shows correctly after reload
+  if (lang === 'en') {
+    // Delete cookie entirely — setting /en/en can still trigger GT on some browsers
+    clearGTCookie();
+  } else {
+    const value = `/en/${lang}`;
+    document.cookie = `googtrans=${value}; path=/`;
+    document.cookie = `googtrans=${value}; path=/; domain=${domain}`;
+    document.cookie = `googtrans=${value}; path=/; domain=.${domain}`;
+  }
   localStorage.setItem('suqafuran_lang', lang);
   window.location.reload();
 }
