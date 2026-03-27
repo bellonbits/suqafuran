@@ -110,4 +110,4 @@ const OverviewDashboard: React.FC = () => {
     );
 };
 
-export default OverviewDashboard;
+export { OverviewDashboard };

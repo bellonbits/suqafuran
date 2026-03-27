@@ -70,11 +70,11 @@ const LandingPage: React.FC = () => {
 
     const displayCategories = categories || [];
     const displayAds = featuredAds || [];
-    const translatedCatNames = useTranslateContent(displayCategories.map(c => c.name));
-    const catNameMap = Object.fromEntries(displayCategories.map((c, i) => [c.name, translatedCatNames[i] || c.name]));
+    const catNames = displayCategories.map(c => c.name);
     const allSubNames = displayCategories.flatMap(c => c.subcategories?.map((s: any) => s.name || s) || []);
-    const translatedSubNamesArr = useTranslateContent(allSubNames);
-    const subNameMap = Object.fromEntries(allSubNames.map((name, i) => [name, translatedSubNamesArr[i] || name]));
+    const translatedAll = useTranslateContent([...catNames, ...allSubNames]);
+    const catNameMap = Object.fromEntries(catNames.map((name, i) => [name, translatedAll[i] || name]));
+    const subNameMap = Object.fromEntries(allSubNames.map((name, i) => [name, translatedAll[catNames.length + i] || name]));
 
     return (
         <PublicLayout>

@@ -68,6 +68,12 @@ const ProductDetailPage: React.FC = () => {
     const displayRelatedAds = relatedAds || [];
     const { currency: targetCurrency } = useCurrencyStore();
 
+    // Translate dynamic content — must be called unconditionally before any early returns
+    const [translatedTitle, translatedDesc] = useTranslateContent([
+        ad?.title ?? '',
+        ad?.description ?? '',
+    ]);
+
     // Fetch done but listing doesn't exist
     if (!isLoading && isSuccess && !ad) {
         return (
@@ -107,13 +113,6 @@ const ProductDetailPage: React.FC = () => {
             </PublicLayout>
         );
     }
-
-
-    // Translate dynamic content server-side when Somali is active
-    const [translatedTitle, translatedDesc] = useTranslateContent([
-        ad?.title ?? '',
-        ad?.description ?? '',
-    ]);
 
     const images = ad?.images && ad.images.length > 0
         ? ad.images

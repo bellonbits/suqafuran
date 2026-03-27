@@ -57,14 +57,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <Link
             to={`/listing/${id}`}
             className={cn(
-                'group bg-white rounded-2xl overflow-hidden active:scale-[0.97] transition-all duration-200 flex flex-col card-shadow',
+                'group bg-white rounded-xl overflow-hidden active:scale-[0.97] transition-all duration-200 flex flex-col card-shadow',
                 className
             )}
             onMouseEnter={prefetch}
             onTouchStart={prefetch}
         >
-            {/* Image */}
-            <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+            {/* Image — shorter aspect ratio */}
+            <div className="relative aspect-[16/9] overflow-hidden bg-gray-100">
                 <img
                     src={getImageUrl(imageUrl)}
                     alt={title}
@@ -73,22 +73,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     decoding="async"
                 />
 
-                {/* Bottom gradient for readability */}
-                <div
-                    className="absolute inset-x-0 bottom-0 h-20 pointer-events-none"
-                    style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 100%)' }}
-                />
-
                 {/* Top-left badges */}
-                <div className="absolute top-2 left-2 flex flex-col gap-1 pointer-events-none">
+                <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 pointer-events-none">
                     {isPromoted && (
-                        <span className="inline-flex items-center gap-0.5 bg-secondary-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow">
-                            <Zap className="w-2.5 h-2.5" />
+                        <span className="inline-flex items-center gap-0.5 bg-secondary-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow">
+                            <Zap className="w-2 h-2" />
                             {t('common.enterprise')}
                         </span>
                     )}
                     {isPopular && !isPromoted && (
-                        <span className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-sm text-gray-800 text-[9px] font-bold px-2 py-0.5 rounded-full shadow">
+                        <span className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-sm text-gray-800 text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow">
                             <span className="w-1.5 h-1.5 bg-secondary-500 rounded-full animate-pulse" />
                             {t('common.popular')}
                         </span>
@@ -99,56 +93,51 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 <button
                     onClick={(e) => { e.preventDefault(); setLiked(l => !l); }}
                     className={cn(
-                        'absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-sm active:scale-90',
-                        liked
-                            ? 'bg-red-500 text-white'
-                            : 'bg-white/85 backdrop-blur-sm text-gray-500'
+                        'absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center transition-all shadow-sm active:scale-90',
+                        liked ? 'bg-red-500 text-white' : 'bg-white/85 backdrop-blur-sm text-gray-500'
                     )}
                 >
-                    <Heart className="h-4 w-4" fill={liked ? 'white' : 'none'} />
+                    <Heart className="h-3 w-3" fill={liked ? 'white' : 'none'} />
                 </button>
-
-                {/* Bottom-left — verified age */}
-                {registrationAge && (
-                    <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 bg-black/40 backdrop-blur-sm text-white text-[9px] font-semibold px-2 py-0.5 rounded-full pointer-events-none">
-                        <ShieldCheck className="w-2.5 h-2.5 text-primary-300" />
-                        {registrationAge}
-                    </span>
-                )}
-
-                {/* Verified badge — bottom right */}
-                {isVerified && (
-                    <span className="absolute bottom-2 right-2 inline-flex items-center gap-0.5 bg-primary-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full pointer-events-none shadow">
-                        <ShieldCheck className="w-2.5 h-2.5" />
-                        {t('common.verifiedId')}
-                    </span>
-                )}
             </div>
 
             {/* Card body */}
-            <div className="px-3 pt-2.5 pb-3 flex flex-col flex-1">
+            <div className="px-2.5 pt-2 pb-2.5 flex flex-col gap-1">
                 {/* Title */}
-                <p className="text-gray-800 text-[13px] font-semibold line-clamp-2 leading-snug mb-2">
+                <p className="text-gray-800 text-[12px] font-semibold line-clamp-2 leading-snug">
                     {translatedTitle}
                 </p>
 
-                {/* Price + rating */}
-                <div className="flex items-center justify-between">
-                    <span className="text-secondary-500 font-extrabold text-[15px] leading-none">
-                        {formatConvertedPrice(price, originalCurrency, targetCurrency)}
-                    </span>
-                    {rating && (
-                        <span className="text-[10px] font-bold text-amber-500 flex items-center gap-0.5">
-                            ★ {rating.toFixed(1)}
-                        </span>
-                    )}
+                {/* Price */}
+                <span className="text-secondary-500 font-extrabold text-[14px] leading-none">
+                    {formatConvertedPrice(price, originalCurrency, targetCurrency)}
+                </span>
+
+                {/* Location + verified row */}
+                <div className="flex items-center justify-between gap-1">
+                    <div className="flex items-center gap-0.5 text-[10px] text-gray-400 min-w-0">
+                        <MapPin className="h-2.5 w-2.5 shrink-0" />
+                        <span className="truncate">{location}</span>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                        {rating && (
+                            <span className="text-[9px] font-bold text-amber-500">★ {rating.toFixed(1)}</span>
+                        )}
+                        {isVerified && (
+                            <span className="inline-flex items-center gap-0.5 bg-primary-50 text-primary-600 text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-primary-100">
+                                <ShieldCheck className="w-2 h-2" />
+                                {t('common.verifiedId')}
+                            </span>
+                        )}
+                    </div>
                 </div>
 
-                {/* Location */}
-                <div className="flex items-center gap-1 mt-1.5 text-[10px] text-gray-400">
-                    <MapPin className="h-2.5 w-2.5 shrink-0" />
-                    <span className="truncate">{location}</span>
-                </div>
+                {registrationAge && (
+                    <div className="flex items-center gap-0.5 text-[9px] text-gray-400">
+                        <ShieldCheck className="w-2 h-2 text-primary-400 shrink-0" />
+                        {registrationAge}
+                    </div>
+                )}
             </div>
         </Link>
     );

@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { cn } from '../utils/cn';
 import { FilterSidebar } from '../components/FilterSidebar';
-import { useTranslateSingle } from '../hooks/useTranslateContent';
+import { useTranslateContent } from '../hooks/useTranslateContent';
 
 const CategoryListingPage: React.FC = () => {
     const { categoryId } = useParams<{ categoryId: string }>();
@@ -47,7 +47,7 @@ const CategoryListingPage: React.FC = () => {
 
     const displayCategories = categories || [];
     const category = displayCategories.find(c => String(c.id) === String(categoryId));
-    const translatedCategoryName = useTranslateSingle(category?.name || '');
+    const [translatedCategoryName] = useTranslateContent([category?.name || '']);
 
     const [location, setLocation] = useState('');
     const [minPrice, setMinPrice] = useState('');

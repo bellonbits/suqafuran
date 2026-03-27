@@ -4,7 +4,7 @@ import { Button } from './Button';
 import { cn } from '../utils/cn';
 import { useQuery } from '@tanstack/react-query';
 import { listingService } from '../services/listingService';
-import { useTranslateContent, useTranslateSingle } from '../hooks/useTranslateContent';
+import { useTranslateContent } from '../hooks/useTranslateContent';
 
 interface FilterSidebarProps {
     showFilters: boolean;
@@ -64,9 +64,10 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
     const category = categories?.find(c => String(c.id) === String(categoryId) || c.slug === categoryId);
     const subcategories: string[] = category?.subcategories?.map((s: any) => s.name || s) || [];
-    const translatedCategoryName = useTranslateSingle(category?.name || '');
-    const translatedSubNames = useTranslateContent(subcategories);
-    const subNameMap = Object.fromEntries(subcategories.map((s, i) => [s, translatedSubNames[i] || s]));
+    const namesToTranslate = [category?.name || '', ...subcategories];
+    const translatedNames = useTranslateContent(namesToTranslate);
+    const translatedCategoryName = translatedNames[0] || category?.name || '';
+    const subNameMap = Object.fromEntries(subcategories.map((s, i) => [s, translatedNames[i + 1] || s]));
 
     const activePriceRange = PRICE_RANGES.find(r => r.min === (minPrice ?? '') && r.max === (maxPrice ?? ''));
 

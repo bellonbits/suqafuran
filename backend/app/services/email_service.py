@@ -147,6 +147,62 @@ class EmailService:
 
         return False
 
+    def send_reset_code(self, email: str, code: str) -> bool:
+        html_body = f"""
+        <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:32px;">
+          <h2 style="color:#1a1a1a;">Reset your password</h2>
+          <p style="color:#555;">Use the code below to reset your Suqafuran password. It expires in 1 hour.</p>
+          <div style="background:#f4f4f4;border-radius:12px;padding:24px;text-align:center;margin:24px 0;">
+            <span style="font-size:36px;font-weight:bold;letter-spacing:8px;color:#1a1a1a;">{code}</span>
+          </div>
+          <p style="color:#999;font-size:13px;">If you didn't request this, ignore this email.</p>
+          <p style="color:#999;font-size:13px;">&mdash; The Suqafuran Team</p>
+        </div>
+        """
+
+        if settings.RESEND_API_KEY:
+            try:
+                import resend
+                resend.api_key = settings.RESEND_API_KEY
+                resend.Emails.send({
+                    "from": f"{settings.EMAIL_FROM_NAME} <{settings.EMAIL_FROM}>",
+                    "to": [email],
+                    "subject": "Reset your Suqafuran password",
+                    "html": html_body,
+                })
+                print(f"[Email] Reset code sent via Resend to {email}")
+                return True
+            except Exception as e:
+                print(f"[Email] Resend failed for reset code ({e})")
+
+        if settings.SMTP_HOST and settings.SMTP_USER and settings.SMTP_PASSWORD:
+            try:
+                import smtplib
+                from email.mime.multipart import MIMEMultipart
+                from email.mime.text import MIMEText
+                msg = MIMEMultipart("alternative")
+                msg["Subject"] = "Reset your Suqafuran password"
+                msg["From"] = f"{settings.EMAIL_FROM_NAME} <{settings.SMTP_USER}>"
+                msg["To"] = email
+                msg.attach(MIMEText(html_body, "html"))
+                if settings.SMTP_SSL:
+                    with smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT) as server:
+                        server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+                        server.sendmail(settings.SMTP_USER, email, msg.as_string())
+                else:
+                    with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
+                        if settings.SMTP_TLS:
+                            server.starttls()
+                        server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+                        server.sendmail(settings.SMTP_USER, email, msg.as_string())
+                print(f"[Email] Reset code sent via SMTP to {email}")
+                return True
+            except Exception as e:
+                print(f"[Email] SMTP failed for reset code: {e}")
+
+        print(f"[Email] No email provider available for reset code to {email}")
+        return False
+
     def check_verification_code(self, email: str, code: str) -> bool:
         if not self.redis:
             if settings.ENVIRONMENT != "production":

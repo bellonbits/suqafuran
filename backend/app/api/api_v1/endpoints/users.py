@@ -226,10 +226,10 @@ def forgot_password(
     
     code = generate_verification_code()
     from app.utils.redis import set_reset_token
-    from app.utils.email import send_reset_password_email
-    
+    from app.services.email_service import email_service
+
     set_reset_token(email, code)
-    background_tasks.add_task(send_reset_password_email, email, code)
+    background_tasks.add_task(email_service.send_reset_code, email, code)
     
     return {"message": "Password reset code sent"}
 
