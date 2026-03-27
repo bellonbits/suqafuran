@@ -19,20 +19,6 @@ services:
       timeout: 5s
       retries: 5
 
-  frontend:
-    build:
-      context: .
-      dockerfile: frontend.Dockerfile
-    container_name: suqafuran_frontend
-    restart: always
-    expose:
-      - "80"
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:80" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
   api:
     build:
       context: ./backend
@@ -107,7 +93,6 @@ services:
     restart: always
     depends_on:
       - api
-      - frontend
     ports:
       - "80:80"
       - "443:443"
