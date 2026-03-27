@@ -233,7 +233,7 @@ const LandingPage: React.FC = () => {
                                 isPromoted={(ad.boost_level ?? 0) > 0}
                                 isPopular={idx < 2}
                                 rating={4.8 + (idx / 10)}
-                                registrationAge={idx % 2 === 0 ? '3+ Years' : 'Verified ID'}
+                                registrationAge={idx % 2 === 0 ? t('common.yearsPlus') : t('common.verifiedId')}
                             />
                         ))}
                     </div>
@@ -479,7 +479,7 @@ const LandingPage: React.FC = () => {
                                                     isPromoted={(ad.boost_level ?? 0) > 0}
                                                     isPopular={idx < 2}
                                                     rating={4.8 + (idx / 10)}
-                                                    registrationAge={idx % 2 === 0 ? '3+ Years' : 'Verified ID'}
+                                                    registrationAge={idx % 2 === 0 ? t('common.yearsPlus') : t('common.verifiedId')}
                                                 />
                                             ))}
                                         </div>

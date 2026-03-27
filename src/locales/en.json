@@ -390,6 +390,7 @@
     "currency": "KSh",
     "enterprise": "Enterprise",
     "popular": "Popular",
-    "verifiedId": "Verified ID"
+    "verifiedId": "Verified ID",
+    "yearsPlus": "3+ Years"
   }
 }

@@ -789,7 +789,7 @@ const ProductDetailPage: React.FC = () => {
                                         isPromoted={(item.boost_level ?? 0) > 1}
                                         isPopular={idx < 2}
                                         rating={Number((4.5 + idx / 10).toFixed(1))}
-                                        registrationAge={idx % 2 === 0 ? '3+ Years' : 'Verified ID'}
+                                        registrationAge={idx % 2 === 0 ? t('common.yearsPlus') : t('common.verifiedId')}
                                     />
                                 ))}
                             </div>
