@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { cn } from '../utils/cn';
 import { FilterSidebar } from '../components/FilterSidebar';
+import { useTranslateSingle } from '../hooks/useTranslateContent';
 
 const CategoryListingPage: React.FC = () => {
     const { categoryId } = useParams<{ categoryId: string }>();
@@ -46,6 +47,7 @@ const CategoryListingPage: React.FC = () => {
 
     const displayCategories = categories || [];
     const category = displayCategories.find(c => String(c.id) === String(categoryId));
+    const translatedCategoryName = useTranslateSingle(category?.name || '');
 
     const [location, setLocation] = useState('');
     const [minPrice, setMinPrice] = useState('');
@@ -74,9 +76,9 @@ const CategoryListingPage: React.FC = () => {
                             <span className="mx-2">/</span>
                             <Link to="/dashboard" className="hover:text-blue-400">{t('category.categories')}</Link>
                             <span className="mx-2">/</span>
-                            <span className="text-gray-900 font-medium">{category?.name}</span>
+                            <span className="text-gray-900 font-medium">{translatedCategoryName || category?.name}</span>
                         </nav>
-                        <h1 className="text-2xl font-bold text-gray-900">{category?.name || 'Products'} <span className="text-gray-400 font-normal text-lg">{t('listing.inAfrica')}</span></h1>
+                        <h1 className="text-2xl font-bold text-gray-900">{translatedCategoryName || category?.name || 'Products'} <span className="text-gray-400 font-normal text-lg">{t('listing.inAfrica')}</span></h1>
                     </div>
                     <div className="flex items-center gap-2">
                         <Button

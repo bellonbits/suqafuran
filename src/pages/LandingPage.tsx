@@ -13,6 +13,7 @@ import {
 import { Button } from '../components/Button';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { LocationPickerModal } from '../components/LocationPickerModal';
+import { useTranslateContent } from '../hooks/useTranslateContent';
 
 const CATEGORY_IMG_MAP: Array<{ keywords: string[]; url: string }> = [
     { keywords: ['raashin', 'food', 'cunto', 'grocery', 'restau', 'eat', 'meal'],
@@ -69,6 +70,11 @@ const LandingPage: React.FC = () => {
 
     const displayCategories = categories || [];
     const displayAds = featuredAds || [];
+    const translatedCatNames = useTranslateContent(displayCategories.map(c => c.name));
+    const catNameMap = Object.fromEntries(displayCategories.map((c, i) => [c.name, translatedCatNames[i] || c.name]));
+    const allSubNames = displayCategories.flatMap(c => c.subcategories?.map((s: any) => s.name || s) || []);
+    const translatedSubNamesArr = useTranslateContent(allSubNames);
+    const subNameMap = Object.fromEntries(allSubNames.map((name, i) => [name, translatedSubNamesArr[i] || name]));
 
     return (
         <PublicLayout>
@@ -161,7 +167,7 @@ const LandingPage: React.FC = () => {
                                         className={`text-[10px] font-bold text-center ${isAct ? 'text-primary-600' : 'text-gray-500'}`}
                                         style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 56, display: 'block' }}
                                     >
-                                        {cat.name.split(' ')[0]}
+                                        {(catNameMap[cat.name] || cat.name).split(' ')[0]}
                                     </span>
                                 </button>
                             );
@@ -333,7 +339,7 @@ const LandingPage: React.FC = () => {
                                                                 return <Icon size={18} />;
                                                             })()}
                                                         </div>
-                                                        <p className="text-sm font-semibold text-gray-700">{cat.name}</p>
+                                                        <p className="text-sm font-semibold text-gray-700">{catNameMap[cat.name] || cat.name}</p>
                                                     </div>
                                                     <ChevronRight className="w-4 h-4 text-gray-300" />
                                                 </button>
@@ -367,7 +373,7 @@ const LandingPage: React.FC = () => {
                                                                         })()}
                                                                     </div>
                                                                     <div>
-                                                                        <h2 className="text-2xl font-bold text-gray-900">{activeCat.name}</h2>
+                                                                        <h2 className="text-2xl font-bold text-gray-900">{catNameMap[activeCat.name] || activeCat.name}</h2>
                                                                         <p className="text-sm text-primary-600 font-medium flex items-center gap-1 mt-0.5">
                                                                             {t('landing.seeAll')} <ChevronRight size={14} />
                                                                         </p>
@@ -387,7 +393,7 @@ const LandingPage: React.FC = () => {
                                                                                 <img src={sub.image_url || activeCat.image_url || ''} alt={sub.name} className="w-full h-full object-cover" />
                                                                             </div>
                                                                             <span className="text-sm font-semibold text-gray-700 group-hover:text-primary-700 line-clamp-2">
-                                                                                {sub.name.replace(/^\d+\s/, '')}
+                                                                                {(subNameMap[sub.name] || sub.name).replace(/^\d+\s/, '')}
                                                                             </span>
                                                                         </button>
                                                                     ))}
@@ -397,7 +403,7 @@ const LandingPage: React.FC = () => {
                                                                         onClick={() => { navigate(`/category/${activeCat.slug || activeCat.id}`); setHoveredCategory(null); }}
                                                                         className="flex items-center gap-2 text-primary-600 font-bold hover:gap-3 transition-all"
                                                                     >
-                                                                        {t('landing.viewAll')} {activeCat.name.split(' (')[0]}
+                                                                        {t('landing.viewAll')} {(catNameMap[activeCat.name] || activeCat.name).split(' (')[0]}
                                                                         <ChevronRight size={18} />
                                                                     </button>
                                                                 </div>
@@ -407,7 +413,7 @@ const LandingPage: React.FC = () => {
                                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                                                                 <div className="absolute bottom-0 left-0 p-6 text-white">
                                                                     <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-1.5 opacity-80">{t('landing.sponsored')}</p>
-                                                                    <h4 className="text-lg font-bold">{activeCat.name.split(' (')[0]}</h4>
+                                                                    <h4 className="text-lg font-bold">{(catNameMap[activeCat.name] || activeCat.name).split(' (')[0]}</h4>
                                                                 </div>
                                                             </div>
                                                         </>

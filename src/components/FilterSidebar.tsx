@@ -4,6 +4,7 @@ import { Button } from './Button';
 import { cn } from '../utils/cn';
 import { useQuery } from '@tanstack/react-query';
 import { listingService } from '../services/listingService';
+import { useTranslateContent, useTranslateSingle } from '../hooks/useTranslateContent';
 
 interface FilterSidebarProps {
     showFilters: boolean;
@@ -63,6 +64,9 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
     const category = categories?.find(c => String(c.id) === String(categoryId) || c.slug === categoryId);
     const subcategories: string[] = category?.subcategories?.map((s: any) => s.name || s) || [];
+    const translatedCategoryName = useTranslateSingle(category?.name || '');
+    const translatedSubNames = useTranslateContent(subcategories);
+    const subNameMap = Object.fromEntries(subcategories.map((s, i) => [s, translatedSubNames[i] || s]));
 
     const activePriceRange = PRICE_RANGES.find(r => r.min === (minPrice ?? '') && r.max === (maxPrice ?? ''));
 
@@ -90,7 +94,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                         >
                             <span className="flex items-center gap-2">
                                 <ListFilter className="h-4 w-4 text-primary-500" />
-                                {category?.name}
+                                {translatedCategoryName || category?.name}
                             </span>
                             {expandedSections.categories
                                 ? <ChevronUp className="h-4 w-4 text-gray-400" />
@@ -109,7 +113,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                                                 : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
                                         )}
                                     >
-                                        {sub}
+                                        {subNameMap[sub] || sub}
                                     </button>
                                 ))}
                             </div>
