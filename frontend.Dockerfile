@@ -12,7 +12,8 @@ COPY . .
 
 # Build with production API URL
 ENV VITE_API_URL=https://api.suqafuran.com/api/v1
-RUN npm run build
+ENV NODE_OPTIONS="--max-old-space-size=3072"
+RUN npx vite build
 
 # Production stage
 FROM nginx:alpine
