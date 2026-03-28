@@ -57,9 +57,9 @@ const CategoryListingPage: React.FC = () => {
         queryKey: ['listings', categoryId, location, minPrice, maxPrice, attributeFilters],
         queryFn: () => listingService.getListings({
             category_id: categoryId,
-            location,
-            min_price: minPrice,
-            max_price: maxPrice,
+            ...(location ? { location } : {}),
+            ...(minPrice !== '' ? { min_price: minPrice } : {}),
+            ...(maxPrice !== '' ? { max_price: maxPrice } : {}),
             attrs: Object.keys(attributeFilters).length > 0 ? JSON.stringify(attributeFilters) : undefined
         }),
         enabled: !!categoryId,

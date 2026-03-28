@@ -25,9 +25,9 @@ const SearchResultsPage: React.FC = () => {
         queryKey: ['listings', 'search', query, location, minPrice, maxPrice, attributeFilters],
         queryFn: () => listingService.getListings({
             q: query,
-            location,
-            min_price: minPrice,
-            max_price: maxPrice,
+            ...(location ? { location } : {}),
+            ...(minPrice !== '' ? { min_price: minPrice } : {}),
+            ...(maxPrice !== '' ? { max_price: maxPrice } : {}),
             attrs: Object.keys(attributeFilters).length > 0 ? JSON.stringify(attributeFilters) : undefined
         }),
     });
