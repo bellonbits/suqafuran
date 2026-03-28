@@ -18,6 +18,8 @@ def get_listings(
     search: Optional[str] = None,
     location: Optional[str] = None,
     attributes: Optional[dict] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
 ) -> List[Listing]:
     statement = (
         select(Listing)
@@ -37,11 +39,25 @@ def get_listings(
         )
     if location:
         statement = statement.where(Listing.location.ilike(f"%{location}%"))
-    
+    if min_price is not None:
+        statement = statement.where(Listing.price >= min_price)
+    if max_price is not None:
+        statement = statement.where(Listing.price <= max_price)
+
     if attributes:
-        for key, value in attributes.items():
-            # Use PostgreSQL-specific function to extract JSON value as text
-            # This avoids operator errors and ensures correct comparison
+        attrs_copy = dict(attributes)
+        # Handle subcategory filter by name → subcategory_id
+        subcategory_name = attrs_copy.pop("subcategory", None)
+        if subcategory_name and category_id:
+            sc = db.exec(
+                select(SubCategory).where(
+                    SubCategory.category_id == category_id,
+                    SubCategory.name == subcategory_name,
+                )
+            ).first()
+            if sc:
+                statement = statement.where(Listing.subcategory_id == sc.id)
+        for key, value in attrs_copy.items():
             statement = statement.where(func.json_extract_path_text(Listing.attributes, key) == str(value))
     
     return db.exec(statement).all()

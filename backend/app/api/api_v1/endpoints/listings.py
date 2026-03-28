@@ -271,6 +271,8 @@ def read_listings(
     q: Optional[str] = None,
     location: Optional[str] = None,
     attrs: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
 ) -> Any:
     """
     Retrieve listings.
@@ -287,17 +289,17 @@ def read_listings(
     # Resolve category_id if it's a slug
     resolved_category_id = None
     if category_id:
-        # Try to parse as int first
         try:
             resolved_category_id = int(category_id)
         except ValueError:
-            # It's a slug, look up the category
             category = crud_listing.get_category_by_slug(db, slug=category_id)
             if category:
                 resolved_category_id = category.id
 
     listings = crud_listing.get_listings(
-        db, skip=skip, limit=limit, category_id=resolved_category_id, search=q, location=location, attributes=attributes, owner_id=owner_id
+        db, skip=skip, limit=limit, category_id=resolved_category_id, search=q,
+        location=location, attributes=attributes, owner_id=owner_id,
+        min_price=min_price, max_price=max_price,
     )
     return listings
 
