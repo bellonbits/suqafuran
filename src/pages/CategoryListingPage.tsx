@@ -1,16 +1,40 @@
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { ProductCard } from '../components/ProductCard';
 import { listingService } from '../services/listingService';
-import { Filter, ChevronDown, ListFilter, Loader2, Tag } from 'lucide-react';
+import { Filter, ChevronDown, ListFilter, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { cn } from '../utils/cn';
 import { FilterSidebar } from '../components/FilterSidebar';
 import { useTranslateContent } from '../hooks/useTranslateContent';
+
+// Skeleton card shown while listings load
+const SkeletonCard = () => (
+    <div className="bg-white rounded-xl overflow-hidden card-shadow animate-pulse">
+        <div className="aspect-[16/9] bg-gray-200" />
+        <div className="px-2.5 pt-2 pb-2.5 space-y-2">
+            <div className="h-3 bg-gray-200 rounded w-4/5" />
+            <div className="h-3 bg-gray-200 rounded w-3/5" />
+            <div className="h-3 bg-gray-100 rounded w-2/5" />
+        </div>
+    </div>
+);
+
+const SKELETON_COUNT = 8;
+
+// Debounce hook — delays queryKey update until user stops typing/clicking
+function useDebounce<T>(value: T, delay: number): T {
+    const [debounced, setDebounced] = useState(value);
+    useEffect(() => {
+        const timer = setTimeout(() => setDebounced(value), delay);
+        return () => clearTimeout(timer);
+    }, [value, delay]);
+    return debounced;
+}
 
 const CategoryListingPage: React.FC = () => {
     const { categoryId } = useParams<{ categoryId: string }>();
@@ -19,51 +43,68 @@ const CategoryListingPage: React.FC = () => {
     const [showFilters, setShowFilters] = useState(false);
     const [searchParams] = useSearchParams();
     const subcategoryParam = searchParams.get('subcategory');
+
     const [attributeFilters, setAttributeFilters] = useState<Record<string, any>>(() => {
         const filters: Record<string, any> = {};
-        if (subcategoryParam) {
-            filters['subcategory'] = subcategoryParam;
-        }
+        if (subcategoryParam) filters['subcategory'] = subcategoryParam;
         return filters;
     });
 
-    // Sync subcategory from URL if it changes
+    // Sync subcategory from URL
     useEffect(() => {
         setAttributeFilters(prev => {
-            const newFilters = { ...prev };
-            if (subcategoryParam) {
-                newFilters['subcategory'] = subcategoryParam;
-            } else {
-                delete newFilters['subcategory'];
-            }
-            return newFilters;
+            const next = { ...prev };
+            if (subcategoryParam) next['subcategory'] = subcategoryParam;
+            else delete next['subcategory'];
+            return next;
         });
     }, [subcategoryParam]);
-
-    const { data: categories } = useQuery({
-        queryKey: ['categories'],
-        queryFn: listingService.getCategories,
-    });
-
-    const displayCategories = categories || [];
-    const category = displayCategories.find(c => String(c.id) === String(categoryId));
-    const [translatedCategoryName] = useTranslateContent([category?.name || '']);
 
     const [location, setLocation] = useState('');
     const [minPrice, setMinPrice] = useState('');
     const [maxPrice, setMaxPrice] = useState('');
 
-    const { data: listings, isLoading } = useQuery({
-        queryKey: ['listings', categoryId, location, minPrice, maxPrice, attributeFilters],
+    // Debounce all filter inputs — 350ms means no API call while user is typing
+    const debouncedLocation = useDebounce(location, 350);
+    const debouncedMin = useDebounce(minPrice, 350);
+    const debouncedMax = useDebounce(maxPrice, 350);
+    const debouncedFilters = useDebounce(attributeFilters, 350);
+
+    // Stable serialisation to avoid unnecessary query key changes
+    const attrsParam = useMemo(
+        () => Object.keys(debouncedFilters).length > 0 ? JSON.stringify(debouncedFilters) : undefined,
+        [debouncedFilters]
+    );
+
+    const { data: categories } = useQuery({
+        queryKey: ['categories'],
+        queryFn: listingService.getCategories,
+        staleTime: 10 * 60_000, // categories change rarely — cache 10 min
+    });
+
+    const displayCategories = useMemo(() => categories || [], [categories]);
+    const category = useMemo(
+        () => displayCategories.find(c => String(c.id) === String(categoryId)),
+        [displayCategories, categoryId]
+    );
+    const [translatedCategoryName] = useTranslateContent([category?.name || '']);
+
+    const { data: listings, isLoading, isFetching } = useQuery({
+        queryKey: ['listings', categoryId, debouncedLocation, debouncedMin, debouncedMax, attrsParam],
         queryFn: () => listingService.getListings({
             category_id: categoryId,
-            ...(location ? { location } : {}),
-            ...(minPrice !== '' ? { min_price: minPrice } : {}),
-            ...(maxPrice !== '' ? { max_price: maxPrice } : {}),
-            attrs: Object.keys(attributeFilters).length > 0 ? JSON.stringify(attributeFilters) : undefined
+            ...(debouncedLocation ? { location: debouncedLocation } : {}),
+            ...(debouncedMin !== '' ? { min_price: debouncedMin } : {}),
+            ...(debouncedMax !== '' ? { max_price: debouncedMax } : {}),
+            ...(attrsParam ? { attrs: attrsParam } : {}),
+            limit: 40,
         }),
         enabled: !!categoryId,
+        placeholderData: (prev) => prev, // keep old data visible while refetching
     });
+
+    const onCloseFilters = useCallback(() => setShowFilters(false), []);
+    const onToggleFilters = useCallback(() => setShowFilters(v => !v), []);
 
     return (
         <PublicLayout>
@@ -78,15 +119,13 @@ const CategoryListingPage: React.FC = () => {
                             <span className="mx-2">/</span>
                             <span className="text-gray-900 font-medium">{translatedCategoryName || category?.name}</span>
                         </nav>
-                        <h1 className="text-2xl font-bold text-gray-900">{translatedCategoryName || category?.name || 'Products'} <span className="text-gray-400 font-normal text-lg">{t('listing.inAfrica')}</span></h1>
+                        <h1 className="text-2xl font-bold text-gray-900">
+                            {translatedCategoryName || category?.name || 'Products'}{' '}
+                            <span className="text-gray-400 font-normal text-lg">{t('listing.inAfrica')}</span>
+                        </h1>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="md:hidden"
-                            onClick={() => setShowFilters(!showFilters)}
-                        >
+                        <Button variant="outline" size="sm" className="md:hidden" onClick={onToggleFilters}>
                             <Filter className="h-4 w-4 mr-2" />
                             {t('category.filters')}
                         </Button>
@@ -101,10 +140,9 @@ const CategoryListingPage: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-6">
-                    {/* Sidebar Filters */}
                     <FilterSidebar
                         showFilters={showFilters}
-                        onClose={() => setShowFilters(false)}
+                        onClose={onCloseFilters}
                         categoryId={categoryId}
                         location={location}
                         setLocation={setLocation}
@@ -118,9 +156,16 @@ const CategoryListingPage: React.FC = () => {
 
                     {/* Listings Grid */}
                     <div className="flex-1 min-w-0">
+                        {/* Subtle top bar shows background refetch without blocking UI */}
+                        {isFetching && !isLoading && (
+                            <div className="h-0.5 bg-primary-500 animate-pulse rounded mb-2" />
+                        )}
+
                         {isLoading ? (
-                            <div className="flex justify-center py-20">
-                                <Loader2 className="w-12 h-12 animate-spin text-primary-600" />
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+                                {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+                                    <SkeletonCard key={i} />
+                                ))}
                             </div>
                         ) : (
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
@@ -152,7 +197,6 @@ const CategoryListingPage: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Pagination */}
                         {listings && listings.length > 0 && (
                             <div className="mt-12 flex justify-center gap-2">
                                 <Button variant="outline" size="sm" disabled className="rounded-lg">{t('category.previous')}</Button>

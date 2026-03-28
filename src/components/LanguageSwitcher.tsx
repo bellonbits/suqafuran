@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { loadSomali } from '../i18n';
 
 interface Props {
   compact?: boolean;
@@ -13,11 +14,15 @@ const LanguageSwitcher: React.FC<Props> = ({ compact = false, light: _light = fa
   const { i18n } = useTranslation();
   const isSomali = i18n.language === 'so';
 
-  const switchTo = (lang: string) => {
+  const switchTo = async (lang: string) => {
     if (i18n.language === lang) return;
+    if (lang === 'so') await loadSomali(); // ensure bundle is loaded before switching
     i18n.changeLanguage(lang);
     localStorage.setItem('suqafuran_lang', lang);
   };
+
+  // Preload Somali bundle the moment user hovers the SO button — so it's ready by click time
+  const preloadSomali = () => loadSomali();
 
   const Pill = ({ small = false }: { small?: boolean }) => (
     <div
@@ -33,6 +38,8 @@ const LanguageSwitcher: React.FC<Props> = ({ compact = false, light: _light = fa
     >
       <button
         onClick={() => switchTo('so')}
+        onMouseEnter={preloadSomali}
+        onTouchStart={preloadSomali}
         title="Af-Soomaali"
         style={{
           background: SO_BG,

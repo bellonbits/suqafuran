@@ -25,7 +25,7 @@ interface ProductCardProps {
     className?: string;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({
+const ProductCard = React.memo(function ProductCard({
     id,
     title,
     price,
@@ -38,7 +38,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     rating,
     isPopular = false,
     className,
-}) => {
+}: ProductCardProps) {
     const { currency: targetCurrency } = useCurrencyStore();
     const { t } = useTranslation();
     const queryClient = useQueryClient();
@@ -141,6 +141,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </div>
         </Link>
     );
-};
+});
 
 export { ProductCard };

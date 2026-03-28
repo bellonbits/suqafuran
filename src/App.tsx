@@ -59,7 +59,16 @@ const AdminListingsPage = lazy(() => import('./pages/admin/AdminListingsPage'));
 const AdminVerificationsPage = lazy(() => import('./pages/admin/AdminVerificationsPage'));
 const AgentDashboard = lazy(() => import('./pages/agent/AgentDashboard'));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,        // data stays fresh 60s — no refetch on every mount
+      gcTime: 5 * 60_000,       // keep unused data in cache 5 min
+      retry: 1,                 // fail fast on mobile networks
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 type AppPhase = 'splash' | 'onboarding' | 'app';
 
