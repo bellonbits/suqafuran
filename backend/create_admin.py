@@ -21,6 +21,7 @@ def create_admin():
             print(f"Admin user {admin_email} already exists. Updating password and permissions...")
             existing_user.is_admin = True
             existing_user.is_verified = True
+            existing_user.email_verified = True
             existing_user.verified_level = UserVerifiedLevel.trusted
             existing_user.hashed_password = get_password_hash(admin_password)
             session.add(existing_user)
