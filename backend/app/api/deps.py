@@ -53,6 +53,30 @@ def get_current_user(
     return user
 
 
+def get_current_user_optional(
+    db: Session = Depends(get_db),
+    token: Optional[str] = Depends(reusable_oauth2),
+    request: Request = None
+) -> Optional[User]:
+    # Try getting token from cookie first
+    if request:
+        token = request.cookies.get("access_token") or token
+    
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+        )
+        token_data = payload.get("sub")
+        if not token_data:
+            return None
+    except (jwt.JWTError, ValidationError):
+        return None
+    
+    return db.get(User, token_data)
+
+
 def get_current_active_user(
     current_user: User = Depends(get_current_user),
 ) -> User:

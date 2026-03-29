@@ -20,6 +20,7 @@ def get_listings(
     attributes: Optional[dict] = None,
     min_price: Optional[float] = None,
     max_price: Optional[float] = None,
+    status: Optional[str] = None,
 ) -> List[Listing]:
     statement = (
         select(Listing)
@@ -43,6 +44,8 @@ def get_listings(
         statement = statement.where(Listing.price >= min_price)
     if max_price is not None:
         statement = statement.where(Listing.price <= max_price)
+    if status is not None:
+        statement = statement.where(Listing.status == status)
 
     if attributes:
         attrs_copy = dict(attributes)

@@ -45,6 +45,7 @@ export interface ListingCreate {
 export interface Category {
     id: number;
     name: string;
+    name_so?: string;
     slug: string;
     icon_name: string;
     image_url?: string;
@@ -56,6 +57,7 @@ export interface Category {
 export interface SubCategory {
     id: number;
     name: string;
+    name_so?: string;
     slug: string;
     image_url?: string;
     category_id: number;

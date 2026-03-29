@@ -18,28 +18,34 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const AdminListingsPage: React.FC = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const queryClient = useQueryClient();
     const navigate = useNavigate();
 
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('');
     const [page, setPage] = useState(1);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
     const limit = 20;
 
+    const { data: categories = [] } = useQuery({
+        queryKey: ['categories'],
+        queryFn: () => listingService.getCategories(),
+    });
+
     const { data: listings = [], isLoading } = useQuery({
-        queryKey: ['admin-listings', search, statusFilter, page],
+        queryKey: ['admin-listings', search, statusFilter, categoryFilter, page],
         queryFn: () => listingService.getListings({
             q: search || undefined,
+            status: statusFilter || undefined,
+            category_id: categoryFilter || undefined,
             limit,
             skip: (page - 1) * limit,
         }),
     });
 
-    const filteredListings = statusFilter
-        ? listings.filter(l => l.status === statusFilter)
-        : listings;
+    const filteredListings = listings;
 
     const deleteMutation = useMutation({
         mutationFn: (id: number) => listingService.deleteListing(id),
@@ -86,9 +92,22 @@ const AdminListingsPage: React.FC = () => {
                 <div className="flex items-center gap-2">
                     <Filter className="h-4 w-4 text-gray-400" />
                     <select
+                        value={categoryFilter}
+                        onChange={e => { setCategoryFilter(e.target.value); setPage(1); }}
+                        className="py-2 px-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                    >
+                        <option value="">{t('admin.allCategories')}</option>
+                        {categories.map(cat => (
+                            <option key={cat.id} value={cat.id}>
+                                {i18n.language === 'so' ? (cat.name_so || cat.name) : cat.name}
+                            </option>
+                        ))}
+                    </select>
+
+                    <select
                         value={statusFilter}
                         onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
-                        className="py-2 px-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                        className="py-2 px-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ml-2"
                     >
                         <option value="">{t('admin.allStatuses')}</option>
                         <option value="active">{t('admin.approved')}</option>

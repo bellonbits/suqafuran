@@ -273,6 +273,8 @@ def read_listings(
     attrs: Optional[str] = None,
     min_price: Optional[float] = None,
     max_price: Optional[float] = None,
+    status: Optional[str] = None,
+    current_user: Optional[User] = Depends(deps.get_current_user_optional),
 ) -> Any:
     """
     Retrieve listings.
@@ -296,10 +298,23 @@ def read_listings(
             if category:
                 resolved_category_id = category.id
 
+    # Security: Only admins can filter by non-active statuses or see all statuses
+    effective_status = status
+    if not current_user or not current_user.is_admin:
+        effective_status = "active"
+
     listings = crud_listing.get_listings(
-        db, skip=skip, limit=limit, category_id=resolved_category_id, search=q,
-        location=location, attributes=attributes, owner_id=owner_id,
-        min_price=min_price, max_price=max_price,
+        db, 
+        skip=skip, 
+        limit=limit, 
+        category_id=resolved_category_id, 
+        search=q,
+        status=effective_status,
+        location=location, 
+        attributes=attributes, 
+        owner_id=owner_id,
+        min_price=min_price, 
+        max_price=max_price,
     )
     return listings
 
