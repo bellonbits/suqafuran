@@ -18,14 +18,14 @@ def create_admin():
         existing_user = session.exec(statement).first()
 
         if existing_user:
-            print(f"Admin user {admin_email} already exists.")
-            # Ensure they are admin
-            if not existing_user.is_admin:
-                existing_user.is_admin = True
-                existing_user.hashed_password = get_password_hash(admin_password)
-                session.add(existing_user)
-                session.commit()
-                print("Updated existing user to admin status and reset password.")
+            print(f"Admin user {admin_email} already exists. Updating password and permissions...")
+            existing_user.is_admin = True
+            existing_user.is_verified = True
+            existing_user.verified_level = UserVerifiedLevel.trusted
+            existing_user.hashed_password = get_password_hash(admin_password)
+            session.add(existing_user)
+            session.commit()
+            print(f"Admin password reset to: {admin_password}")
             return
 
         # Create new admin

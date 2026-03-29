@@ -57,3 +57,7 @@ venv.bak/
 
 # Turbo
 .turbo
+
+# Celery
+backend/celerybeat-schedule
+celerybeat-schedule*
