@@ -98,9 +98,20 @@ services:
       - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/certs:/etc/nginx/certs:ro
+      - certs:/etc/nginx/certs:ro
+      - certbot_webroot:/var/www/certbot:ro
       - uploads:/app/uploads:ro
+
+  certbot:
+    image: certbot/certbot
+    container_name: suqafuran_certbot
+    volumes:
+      - certs:/etc/letsencrypt
+      - certbot_webroot:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 volumes:
   redis_data:
   uploads:
+  certs:
+  certbot_webroot:
