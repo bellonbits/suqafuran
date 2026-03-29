@@ -13,8 +13,6 @@ import {
 import { Button } from '../components/Button';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { LocationPickerModal } from '../components/LocationPickerModal';
-import { useTranslateContent } from '../hooks/useTranslateContent';
-
 const CATEGORY_IMG_MAP: Array<{ keywords: string[]; url: string }> = [
     { keywords: ['raashin', 'food', 'cunto', 'grocery', 'restau', 'eat', 'meal'],
       url: 'https://img.freepik.com/free-vector/hand-drawn-flat-design-food-bank-illustration_23-2149344810.jpg?w=200&q=80' },
@@ -72,9 +70,8 @@ const LandingPage: React.FC = () => {
     const displayAds = featuredAds || [];
     const catNames = displayCategories.map(c => c.name);
     const allSubNames = displayCategories.flatMap(c => c.subcategories?.map((s: any) => s.name || s) || []);
-    const translatedAll = useTranslateContent([...catNames, ...allSubNames]);
-    const catNameMap = Object.fromEntries(catNames.map((name, i) => [name, translatedAll[i] || name]));
-    const subNameMap = Object.fromEntries(allSubNames.map((name, i) => [name, translatedAll[catNames.length + i] || name]));
+    const catNameMap = Object.fromEntries(catNames.map(name => [name, t(`categories.${name}`, name as any) as string]));
+    const subNameMap = Object.fromEntries(allSubNames.map(name => [name, t(`categories.${name}`, name as any) as string]));
 
     return (
         <PublicLayout>
@@ -225,6 +222,7 @@ const LandingPage: React.FC = () => {
                                 key={ad.id}
                                 id={String(ad.id)}
                                 title={ad.title || ''}
+                                title_so={ad.title_so}
                                 price={ad.price || 0}
                                 currency={ad.currency || 'USD'}
                                 location={ad.location || ''}
@@ -267,7 +265,7 @@ const LandingPage: React.FC = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                             <h4 className="font-bold text-gray-900 text-sm">{t('footer.safetyTips')}</h4>
-                            <p className="text-xs text-gray-400 mt-0.5">Stay safe when buying & selling</p>
+                            <p className="text-xs text-gray-400 mt-0.5">{t('landing.staySafe')}</p>
                         </div>
                         <ChevronRight className="h-4 w-4 text-gray-300 shrink-0" />
                     </div>
@@ -471,6 +469,7 @@ const LandingPage: React.FC = () => {
                                                     key={ad.id}
                                                     id={String(ad.id)}
                                                     title={ad.title || ''}
+                                                    title_so={ad.title_so}
                                                     price={ad.price || 0}
                                                     currency={ad.currency || 'USD'}
                                                     location={ad.location || ''}

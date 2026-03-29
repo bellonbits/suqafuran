@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Check, Zap } from 'lucide-react';
 import { Button } from './Button';
 import type { PromotionPlan } from '../services/promotionService';
@@ -15,7 +16,7 @@ export const BoostPricingGrid: React.FC<BoostPricingGridProps> = ({
     onSelect,
     selectedPlanId,
 }) => {
-
+    const { t } = useTranslation();
 
     return (
         <div className="space-y-10">
@@ -31,7 +32,7 @@ export const BoostPricingGrid: React.FC<BoostPricingGridProps> = ({
                     >
                         {plan.name === 'Diamond' && (
                             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-secondary-500 text-white text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-[0.2em] shadow-lg">
-                                Best Results
+                                {t('boost.bestResults')}
                             </div>
                         )}
 
@@ -44,23 +45,23 @@ export const BoostPricingGrid: React.FC<BoostPricingGridProps> = ({
                             </div>
                             <div>
                                 <h3 className="font-black text-gray-900 text-lg">{plan.name}</h3>
-                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none mt-0.5">Ad Boost</p>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none mt-0.5">{t('boost.adBoost')}</p>
                             </div>
                         </div>
 
                         <div className="mb-8">
                             <div className="flex items-baseline gap-1">
                                 <span className="text-4xl font-black text-gray-900">KSh {plan.price_usd}</span>
-                                <span className="text-gray-400 font-bold text-sm tracking-tight">/ {plan.duration_days} days</span>
+                                <span className="text-gray-400 font-bold text-sm tracking-tight">/ {plan.duration_days} {t('boost.days')}</span>
                             </div>
                         </div>
 
                         <ul className="space-y-4 mb-10">
                             {[
-                                "Show at top of category",
-                                "Show on landing page",
-                                "Priority badge highlight",
-                                plan.name === 'Diamond' ? "10x more reach guaranteed" : "Increase visibility",
+                                t('boost.showAtTop'),
+                                t('boost.showOnLanding'),
+                                t('boost.priorityBadge'),
+                                plan.name === 'Diamond' ? t('boost.tenXReach') : t('boost.increaseVisibility'),
                             ].map((feature, i) => (
                                 <li key={i} className="flex items-start gap-3 text-sm font-medium text-gray-600">
                                     <div className="mt-0.5 w-5 h-5 rounded-full bg-green-50 flex items-center justify-center shrink-0">
@@ -81,7 +82,7 @@ export const BoostPricingGrid: React.FC<BoostPricingGridProps> = ({
                                 onSelect?.(plan);
                             }}
                         >
-                            {selectedPlanId === plan.id ? 'Plan Selected' : 'Choose Plan'}
+                            {selectedPlanId === plan.id ? t('boost.planSelected') : t('boost.choosePlan')}
                         </Button>
                     </div>
                 ))}

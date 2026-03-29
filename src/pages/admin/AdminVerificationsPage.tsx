@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { CheckCircle, XCircle, Eye, Loader2, Shield, User, FileText, X } from 'lucide-react';
 import { adminService } from '../../services/adminService';
 import { getImageUrl } from '../../utils/imageUtils';
@@ -24,6 +25,7 @@ interface VerificationRequest {
 }
 
 const AdminVerificationsPage: React.FC = () => {
+    const { t } = useTranslation();
     const queryClient = useQueryClient();
     const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
     const [preview, setPreview] = useState<VerificationRequest | null>(null);
@@ -51,16 +53,23 @@ const AdminVerificationsPage: React.FC = () => {
         rejected: requests.filter(r => r.status === 'rejected').length,
     };
 
+    const TAB_LABELS: Record<string, string> = {
+        all: t('admin.all'),
+        pending: t('admin.pending'),
+        approved: t('admin.approved'),
+        rejected: t('admin.rejected'),
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Verifications</h1>
-                    <p className="text-sm text-gray-500 mt-1">Review and approve seller verification requests</p>
+                    <h1 className="text-2xl font-bold text-gray-900">{t('admin.verifications')}</h1>
+                    <p className="text-sm text-gray-500 mt-1">{t('admin.verificationsSubtitle')}</p>
                 </div>
                 <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2">
                     <Shield className="w-4 h-4 text-amber-600" />
-                    <span className="text-sm font-bold text-amber-700">{counts.pending} pending</span>
+                    <span className="text-sm font-bold text-amber-700">{t('admin.pendingCount', { count: counts.pending })}</span>
                 </div>
             </div>
 
@@ -77,7 +86,7 @@ const AdminVerificationsPage: React.FC = () => {
                                 : "border-transparent text-gray-500 hover:text-gray-700"
                         )}
                     >
-                        {tab} <span className="ml-1 text-xs text-gray-400">({counts[tab]})</span>
+                        {TAB_LABELS[tab]} <span className="ml-1 text-xs text-gray-400">({counts[tab]})</span>
                     </button>
                 ))}
             </div>
@@ -89,18 +98,18 @@ const AdminVerificationsPage: React.FC = () => {
             ) : filtered.length === 0 ? (
                 <div className="text-center py-20 text-gray-400">
                     <Shield className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                    <p>No {filter === 'all' ? '' : filter} requests</p>
+                    <p>{t('admin.noRequests', { filter: filter === 'all' ? '' : TAB_LABELS[filter] })}</p>
                 </div>
             ) : (
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                     <table className="w-full text-sm">
                         <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
                             <tr>
-                                <th className="px-6 py-3 text-left">User</th>
-                                <th className="px-6 py-3 text-left">Document Type</th>
-                                <th className="px-6 py-3 text-left">Submitted</th>
-                                <th className="px-6 py-3 text-left">Status</th>
-                                <th className="px-6 py-3 text-left">Actions</th>
+                                <th className="px-6 py-3 text-left">{t('admin.user')}</th>
+                                <th className="px-6 py-3 text-left">{t('admin.documentType')}</th>
+                                <th className="px-6 py-3 text-left">{t('admin.submitted')}</th>
+                                <th className="px-6 py-3 text-left">{t('admin.status')}</th>
+                                <th className="px-6 py-3 text-left">{t('admin.actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -123,7 +132,7 @@ const AdminVerificationsPage: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={cn("px-2 py-1 rounded-full text-xs font-semibold capitalize", STATUS_COLORS[req.status])}>
-                                            {req.status}
+                                            {TAB_LABELS[req.status] || req.status}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
@@ -131,7 +140,7 @@ const AdminVerificationsPage: React.FC = () => {
                                             <button
                                                 onClick={() => setPreview(req)}
                                                 className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                                                title="View documents"
+                                                title={t('admin.viewDocuments')}
                                             >
                                                 <Eye className="w-4 h-4" />
                                             </button>
@@ -141,7 +150,7 @@ const AdminVerificationsPage: React.FC = () => {
                                                         onClick={() => moderateMutation.mutate({ id: req.id, status: 'approved' })}
                                                         disabled={moderateMutation.isPending}
                                                         className="p-1.5 rounded-lg text-green-600 hover:bg-green-50"
-                                                        title="Approve"
+                                                        title={t('admin.approve')}
                                                     >
                                                         <CheckCircle className="w-4 h-4" />
                                                     </button>
@@ -149,7 +158,7 @@ const AdminVerificationsPage: React.FC = () => {
                                                         onClick={() => moderateMutation.mutate({ id: req.id, status: 'rejected' })}
                                                         disabled={moderateMutation.isPending}
                                                         className="p-1.5 rounded-lg text-red-600 hover:bg-red-50"
-                                                        title="Reject"
+                                                        title={t('admin.reject')}
                                                     >
                                                         <XCircle className="w-4 h-4" />
                                                     </button>
@@ -170,7 +179,7 @@ const AdminVerificationsPage: React.FC = () => {
                     <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-between p-6 border-b border-gray-100">
                             <div>
-                                <h3 className="font-bold text-gray-900">Verification Request #{preview.id}</h3>
+                                <h3 className="font-bold text-gray-900">{t('admin.verificationRequest', { id: preview.id })}</h3>
                                 <p className="text-sm text-gray-500">{preview.user?.full_name || `User #${preview.user_id}`}</p>
                             </div>
                             <button onClick={() => setPreview(null)} className="p-2 rounded-lg hover:bg-gray-100">
@@ -180,14 +189,14 @@ const AdminVerificationsPage: React.FC = () => {
                         <div className="p-6 space-y-6">
                             {preview.selfie_url && (
                                 <div>
-                                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Selfie</p>
-                                    <img src={getImageUrl(preview.selfie_url)} alt="Selfie" className="w-40 h-40 object-cover rounded-xl border border-gray-100" />
+                                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t('admin.selfie')}</p>
+                                    <img src={getImageUrl(preview.selfie_url)} alt={t('admin.selfie')} className="w-40 h-40 object-cover rounded-xl border border-gray-100" />
                                 </div>
                             )}
                             {preview.document_urls?.length > 0 && (
                                 <div>
                                     <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1">
-                                        <FileText className="w-3 h-3" /> Documents
+                                        <FileText className="w-3 h-3" /> {t('admin.documents')}
                                     </p>
                                     <div className="grid grid-cols-2 gap-3">
                                         {preview.document_urls.map((url, i) => (
@@ -206,7 +215,7 @@ const AdminVerificationsPage: React.FC = () => {
                                         className="flex-1 flex items-center justify-center gap-2 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition-colors"
                                     >
                                         {moderateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
-                                        Approve
+                                        {t('admin.approve')}
                                     </button>
                                     <button
                                         onClick={() => moderateMutation.mutate({ id: preview.id, status: 'rejected' })}
@@ -214,7 +223,7 @@ const AdminVerificationsPage: React.FC = () => {
                                         className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-colors"
                                     >
                                         {moderateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                                        Reject
+                                        {t('admin.reject')}
                                     </button>
                                 </div>
                             )}

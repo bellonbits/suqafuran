@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { listingService } from '../../services/listingService';
 import {
     Search, Trash2, Edit, Eye, CheckCircle, XCircle,
@@ -17,6 +18,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const AdminListingsPage: React.FC = () => {
+    const { t } = useTranslation();
     const queryClient = useQueryClient();
     const navigate = useNavigate();
 
@@ -63,10 +65,10 @@ const AdminListingsPage: React.FC = () => {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">All Listings</h1>
-                    <p className="text-sm text-gray-500 mt-1">View, edit, moderate or delete any listing</p>
+                    <h1 className="text-2xl font-bold text-gray-900">{t('admin.allListings')}</h1>
+                    <p className="text-sm text-gray-500 mt-1">{t('admin.allListingsSubtitle')}</p>
                 </div>
-                <span className="text-sm text-gray-400">{filteredListings.length} results</span>
+                <span className="text-sm text-gray-400">{filteredListings.length} {t('admin.results')}</span>
             </div>
 
             {/* Filters */}
@@ -75,7 +77,7 @@ const AdminListingsPage: React.FC = () => {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <input
                         type="text"
-                        placeholder="Search by title..."
+                        placeholder={t('admin.searchByTitle')}
                         value={search}
                         onChange={e => { setSearch(e.target.value); setPage(1); }}
                         className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
@@ -88,12 +90,12 @@ const AdminListingsPage: React.FC = () => {
                         onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
                         className="py-2 px-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
                     >
-                        <option value="">All Statuses</option>
-                        <option value="active">Active</option>
-                        <option value="pending">Pending</option>
-                        <option value="rejected">Rejected</option>
-                        <option value="sold">Sold</option>
-                        <option value="inactive">Inactive</option>
+                        <option value="">{t('admin.allStatuses')}</option>
+                        <option value="active">{t('admin.approved')}</option>
+                        <option value="pending">{t('admin.pending')}</option>
+                        <option value="rejected">{t('admin.rejected')}</option>
+                        <option value="sold">{t('admin.sold')}</option>
+                        <option value="inactive">{t('admin.inactive')}</option>
                     </select>
                 </div>
             </div>
@@ -105,32 +107,31 @@ const AdminListingsPage: React.FC = () => {
                         <Loader2 className="h-8 w-8 animate-spin text-primary-400" />
                     </div>
                 ) : filteredListings.length === 0 ? (
-                    <div className="text-center py-20 text-gray-400">No listings found</div>
+                    <div className="text-center py-20 text-gray-400">{t('admin.noListings')}</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead className="bg-gray-50 border-b border-gray-100">
                                 <tr>
-                                    <th className="text-left px-4 py-3 font-semibold text-gray-600">Listing</th>
-                                    <th className="text-left px-4 py-3 font-semibold text-gray-600">Seller</th>
-                                    <th className="text-left px-4 py-3 font-semibold text-gray-600">Price</th>
-                                    <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
-                                    <th className="text-left px-4 py-3 font-semibold text-gray-600">Views</th>
-                                    <th className="text-left px-4 py-3 font-semibold text-gray-600">Posted</th>
-                                    <th className="text-right px-4 py-3 font-semibold text-gray-600">Actions</th>
+                                    <th className="text-left px-4 py-3 font-semibold text-gray-600">{t('admin.listing')}</th>
+                                    <th className="text-left px-4 py-3 font-semibold text-gray-600">{t('admin.seller')}</th>
+                                    <th className="text-left px-4 py-3 font-semibold text-gray-600">{t('admin.price')}</th>
+                                    <th className="text-left px-4 py-3 font-semibold text-gray-600">{t('admin.status')}</th>
+                                    <th className="text-left px-4 py-3 font-semibold text-gray-600">{t('admin.views')}</th>
+                                    <th className="text-left px-4 py-3 font-semibold text-gray-600">{t('admin.posted')}</th>
+                                    <th className="text-right px-4 py-3 font-semibold text-gray-600">{t('admin.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
                                 {filteredListings.map(listing => (
                                     <tr key={listing.id} className="hover:bg-gray-50/50 transition-colors">
-                                        {/* Listing info */}
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden shrink-0">
                                                     {listing.images?.[0] ? (
                                                         <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover" />
                                                     ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">No img</div>
+                                                        <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">{t('admin.noImg')}</div>
                                                     )}
                                                 </div>
                                                 <div className="min-w-0">
@@ -139,50 +140,44 @@ const AdminListingsPage: React.FC = () => {
                                                 </div>
                                             </div>
                                         </td>
-                                        {/* Seller */}
                                         <td className="px-4 py-3 text-gray-600">
                                             <p className="font-medium">{listing.owner?.full_name || '—'}</p>
                                             <p className="text-xs text-gray-400">{listing.owner?.phone}</p>
                                         </td>
-                                        {/* Price */}
                                         <td className="px-4 py-3 font-semibold text-gray-900">
-                                            {listing.price ? `${listing.currency || 'KSh'} ${listing.price.toLocaleString()}` : 'Free'}
+                                            {listing.price ? `${listing.currency || 'KSh'} ${listing.price.toLocaleString()}` : t('common.free')}
                                         </td>
-                                        {/* Status */}
                                         <td className="px-4 py-3">
                                             <select
                                                 value={listing.status || 'active'}
                                                 onChange={e => statusMutation.mutate({ id: listing.id, status: e.target.value })}
                                                 className={`text-xs font-semibold px-2 py-1 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-300 ${STATUS_COLORS[listing.status || 'active']}`}
                                             >
-                                                <option value="active">Active</option>
-                                                <option value="pending">Pending</option>
-                                                <option value="rejected">Rejected</option>
-                                                <option value="sold">Sold</option>
-                                                <option value="inactive">Inactive</option>
+                                                <option value="active">{t('myads.active')}</option>
+                                                <option value="pending">{t('admin.pending')}</option>
+                                                <option value="rejected">{t('admin.rejected')}</option>
+                                                <option value="sold">{t('admin.sold')}</option>
+                                                <option value="inactive">{t('admin.inactive')}</option>
                                             </select>
                                         </td>
-                                        {/* Views */}
                                         <td className="px-4 py-3 text-gray-500">{listing.views ?? 0}</td>
-                                        {/* Date */}
                                         <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">
                                             {listing.created_at ? new Date(listing.created_at).toLocaleDateString() : '—'}
                                         </td>
-                                        {/* Actions */}
                                         <td className="px-4 py-3">
                                             <div className="flex items-center justify-end gap-1">
                                                 {listing.status === 'pending' && (
                                                     <>
                                                         <button
                                                             onClick={() => moderateMutation.mutate({ id: listing.id, approve: true })}
-                                                            title="Approve"
+                                                            title={t('admin.approve')}
                                                             className="p-1.5 rounded-lg text-green-600 hover:bg-green-50 transition-colors"
                                                         >
                                                             <CheckCircle className="h-4 w-4" />
                                                         </button>
                                                         <button
                                                             onClick={() => moderateMutation.mutate({ id: listing.id, approve: false })}
-                                                            title="Reject"
+                                                            title={t('admin.reject')}
                                                             className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
                                                         >
                                                             <XCircle className="h-4 w-4" />
@@ -191,21 +186,21 @@ const AdminListingsPage: React.FC = () => {
                                                 )}
                                                 <button
                                                     onClick={() => navigate(`/listing/${listing.id}`)}
-                                                    title="View"
+                                                    title={t('listing.viewProfile')}
                                                     className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => navigate(`/edit-ad/${listing.id}`)}
-                                                    title="Edit"
+                                                    title={t('common.edit')}
                                                     className="p-1.5 rounded-lg text-primary-600 hover:bg-primary-50 transition-colors"
                                                 >
                                                     <Edit className="h-4 w-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => setDeleteTarget(listing.id)}
-                                                    title="Delete"
+                                                    title={t('common.delete')}
                                                     className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
@@ -228,15 +223,15 @@ const AdminListingsPage: React.FC = () => {
                         disabled={page === 1}
                         className="flex items-center gap-1 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                     >
-                        <ChevronLeft className="h-4 w-4" /> Previous
+                        <ChevronLeft className="h-4 w-4" /> {t('admin.previous')}
                     </button>
-                    <span className="text-sm text-gray-500">Page {page}</span>
+                    <span className="text-sm text-gray-500">{t('admin.page')} {page}</span>
                     <button
                         onClick={() => setPage(p => p + 1)}
                         disabled={listings.length < limit}
                         className="flex items-center gap-1 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                     >
-                        Next <ChevronRight className="h-4 w-4" />
+                        {t('admin.next')} <ChevronRight className="h-4 w-4" />
                     </button>
                 </div>
             )}
@@ -250,8 +245,8 @@ const AdminListingsPage: React.FC = () => {
                                 <AlertTriangle className="h-5 w-5 text-red-600" />
                             </div>
                             <div>
-                                <h3 className="font-bold text-gray-900">Delete Listing</h3>
-                                <p className="text-sm text-gray-500">This action cannot be undone.</p>
+                                <h3 className="font-bold text-gray-900">{t('admin.deleteListing')}</h3>
+                                <p className="text-sm text-gray-500">{t('admin.cannotUndo')}</p>
                             </div>
                         </div>
                         <div className="flex gap-3 mt-6">
@@ -259,14 +254,14 @@ const AdminListingsPage: React.FC = () => {
                                 onClick={() => setDeleteTarget(null)}
                                 className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </button>
                             <button
                                 onClick={() => deleteMutation.mutate(deleteTarget)}
                                 disabled={deleteMutation.isPending}
                                 className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-colors disabled:opacity-60"
                             >
-                                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                                {deleteMutation.isPending ? t('admin.deleting') : t('common.delete')}
                             </button>
                         </div>
                     </div>

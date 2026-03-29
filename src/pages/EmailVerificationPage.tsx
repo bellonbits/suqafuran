@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Mail, CheckCircle, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '../components/Button';
 import { AuthInput } from '../components/AuthInput';
@@ -8,6 +9,7 @@ import { authService } from '../services/authService';
 import { useAuthStore } from '../store/useAuthStore';
 
 const EmailVerificationPage: React.FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const email = searchParams.get('email') || '';
@@ -35,7 +37,7 @@ const EmailVerificationPage: React.FC = () => {
             navigate('/dashboard');
         } catch (err: any) {
             const detail = err.response?.data?.detail;
-            setError(typeof detail === 'string' ? detail : 'Invalid code. Please try again.');
+            setError(typeof detail === 'string' ? detail : t('auth.otp') + ' invalid');
         } finally {
             setIsLoading(false);
         }
@@ -50,7 +52,7 @@ const EmailVerificationPage: React.FC = () => {
             setResent(true);
         } catch (err: any) {
             const detail = err.response?.data?.detail;
-            setError(typeof detail === 'string' ? detail : 'Failed to resend. Try again.');
+            setError(typeof detail === 'string' ? detail : t('common.error'));
         } finally {
             setResendLoading(false);
         }
@@ -58,9 +60,9 @@ const EmailVerificationPage: React.FC = () => {
 
     return (
         <AuthLayout
-            title="Check your inbox"
-            subtitle={`We've sent a 6-digit code to ${email}`}
-            imageCaption="Secure your marketplace account."
+            title={t('auth.checkYourInbox')}
+            subtitle={t('auth.codeSentTo', { email })}
+            imageCaption={t('auth.secureAccount')}
         >
             <form className="space-y-6" onSubmit={handleVerify}>
                 {error && (
@@ -70,7 +72,7 @@ const EmailVerificationPage: React.FC = () => {
                 )}
                 {resent && (
                     <div className="bg-green-50 text-green-700 p-3 rounded-xl text-sm border border-green-100 font-medium">
-                        A new code has been sent to {email}
+                        {t('auth.newCodeSent', { email })}
                     </div>
                 )}
 
@@ -83,8 +85,8 @@ const EmailVerificationPage: React.FC = () => {
                 <AuthInput
                     id="otp"
                     type="text"
-                    label="Verification Code"
-                    placeholder="Enter 6-digit code"
+                    label={t('auth.verificationCode')}
+                    placeholder={t('auth.enter6DigitCode')}
                     icon={<CheckCircle className="w-5 h-5" />}
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
@@ -101,13 +103,13 @@ const EmailVerificationPage: React.FC = () => {
                     ) : (
                         <div className="flex items-center justify-center gap-2">
                             <CheckCircle className="w-5 h-5" />
-                            <span>Verify & Continue</span>
+                            <span>{t('auth.verifyAndContinue')}</span>
                         </div>
                     )}
                 </Button>
 
                 <div className="text-center space-y-2">
-                    <p className="text-sm text-gray-500">Didn't receive the code?</p>
+                    <p className="text-sm text-gray-500">{t('auth.didntReceiveCode')}</p>
                     <button
                         type="button"
                         onClick={handleResend}
@@ -115,14 +117,14 @@ const EmailVerificationPage: React.FC = () => {
                         className="flex items-center gap-1 mx-auto text-sm font-bold text-primary-600 hover:text-primary-700 hover:underline disabled:opacity-50"
                     >
                         {resendLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                        Resend code
+                        {t('auth.resendCode')}
                     </button>
                     <button
                         type="button"
                         onClick={() => navigate('/signup')}
                         className="block mx-auto text-sm text-gray-400 hover:text-gray-600 mt-2"
                     >
-                        Use a different email
+                        {t('auth.useDifferentEmail')}
                     </button>
                 </div>
             </form>

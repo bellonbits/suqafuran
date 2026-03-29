@@ -8,19 +8,18 @@ import { AuthInput } from '../components/AuthInput';
 import { AuthLayout } from '../components/AuthLayout';
 import { authService } from '../services/authService';
 
-const signupSchema = z.object({
-    full_name: z.string().min(2, 'Name must be at least 2 characters').max(100).regex(/^[a-zA-Z\s'-]+$/, 'Name contains invalid characters'),
-    email: z.string().email('Invalid email address').max(254),
-    phone: z.string().regex(/^\+?[0-9\s\-()]{7,20}$/, 'Invalid phone number').optional().or(z.literal('')),
-    password: z.string().min(8, 'Password must be at least 8 characters').max(128)
-        .regex(/[A-Z]/, 'Must contain uppercase letter')
-        .regex(/[0-9]/, 'Must contain a number'),
-    confirm_password: z.string(),
-}).refine(d => d.password === d.confirm_password, { message: 'Passwords do not match', path: ['confirm_password'] });
-
 const SignupPage: React.FC = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const signupSchema = z.object({
+        full_name: z.string().min(2, t('auth.nameTooShort')).max(100).regex(/^[a-zA-Z\s'-]+$/, t('auth.nameInvalid')),
+        email: z.string().email(t('auth.invalidEmail')).max(254),
+        phone: z.string().regex(/^\+?[0-9\s\-()]{7,20}$/, t('auth.phoneInvalid')).optional().or(z.literal('')),
+        password: z.string().min(8, t('auth.passwordTooShort')).max(128)
+            .regex(/[A-Z]/, t('auth.passwordUppercase'))
+            .regex(/[0-9]/, t('auth.passwordNumber')),
+        confirm_password: z.string(),
+    }).refine(d => d.password === d.confirm_password, { message: t('auth.passwordsMismatch'), path: ['confirm_password'] });
     const [formData, setFormData] = useState({
         full_name: '',
         email: '',
@@ -60,7 +59,7 @@ const SignupPage: React.FC = () => {
                 status: err.response?.status,
                 data: err.response?.data,
             }));
-            let message = 'Failed to create account. Please try again.';
+            let message = t('auth.signupFailed');
             
             if (err.response) {
                 const detail = err.response.data?.detail;
@@ -70,7 +69,7 @@ const SignupPage: React.FC = () => {
                         ? detail[0]?.msg || 'Signup failed'
                         : `Server error (${err.response.status})`;
             } else if (err.request) {
-                message = 'Network error: Cannot reach the server. Please check your internet connection.';
+                message = t('auth.networkError');
             } else {
                 message = err.message || message;
             }
@@ -159,7 +158,7 @@ const SignupPage: React.FC = () => {
                         <Loader2 className="w-5 h-5 animate-spin mx-auto" />
                     ) : (
                         <div className="flex items-center justify-center gap-2">
-                            <span>Continue</span>
+                            <span>{t('auth.continue')}</span>
                             <ArrowRight className="w-5 h-5" />
                         </div>
                     )}
@@ -167,13 +166,13 @@ const SignupPage: React.FC = () => {
 
                 <div className="text-center mt-6">
                     <p className="text-sm text-gray-600">
-                        Already have an account?{' '}
+                        {t('auth.haveAccount')}{' '}
                         <button
                             type="button"
                             onClick={() => navigate('/login')}
                             className="font-bold text-blue-400 hover:text-blue-500 hover:underline"
                         >
-                            Log in
+                            {t('auth.logIn')}
                         </button>
                     </p>
                 </div>

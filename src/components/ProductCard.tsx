@@ -8,11 +8,11 @@ import { getImageUrl } from '../utils/imageUtils';
 import { useCurrencyStore } from '../store/useCurrencyStore';
 import { formatConvertedPrice } from '../utils/currencyUtils';
 import { listingService } from '../services/listingService';
-import { useTranslateSingle } from '../hooks/useTranslateContent';
 
 interface ProductCardProps {
     id: string;
     title: string;
+    title_so?: string;
     price: number;
     currency: string;
     location: string;
@@ -28,6 +28,7 @@ interface ProductCardProps {
 const ProductCard = React.memo(function ProductCard({
     id,
     title,
+    title_so,
     price,
     currency: originalCurrency,
     location,
@@ -40,10 +41,12 @@ const ProductCard = React.memo(function ProductCard({
     className,
 }: ProductCardProps) {
     const { currency: targetCurrency } = useCurrencyStore();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const queryClient = useQueryClient();
     const [liked, setLiked] = useState(false);
-    const translatedTitle = useTranslateSingle(title);
+    
+    // Fallback to title if title_so is not available yet (for older listings)
+    const displayTitle = i18n.language === 'so' ? (title_so || title) : title;
 
     const prefetch = () => {
         queryClient.prefetchQuery({
@@ -105,7 +108,7 @@ const ProductCard = React.memo(function ProductCard({
             <div className="px-2.5 pt-2 pb-2.5 flex flex-col gap-1">
                 {/* Title */}
                 <p className="text-gray-800 text-[12px] font-semibold line-clamp-2 leading-snug">
-                    {translatedTitle}
+                    {displayTitle}
                 </p>
 
                 {/* Price */}

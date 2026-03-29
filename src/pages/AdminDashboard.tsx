@@ -1,5 +1,6 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import { adminService, type AdminStats } from '../services/adminService';
 import {
@@ -11,6 +12,7 @@ import { Button } from '../components/Button';
 import { getImageUrl } from '../utils/imageUtils';
 
 const AdminDashboard: React.FC = () => {
+    const { t } = useTranslation();
     const queryClient = useQueryClient();
 
     const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
@@ -55,12 +57,12 @@ const AdminDashboard: React.FC = () => {
         <div className="space-y-10">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
-                    <p className="text-gray-500 mt-1 italic">Moderation and platform analytics.</p>
+                    <h1 className="text-3xl font-bold text-gray-900">{t('admin.title')}</h1>
+                    <p className="text-gray-500 mt-1 italic">{t('admin.subtitle')}</p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" className="rounded-xl border-2">Export Data</Button>
-                    <Button className="rounded-xl">System Settings</Button>
+                    <Button variant="outline" className="rounded-xl border-2">{t('admin.exportData')}</Button>
+                    <Button className="rounded-xl">{t('admin.systemSettings')}</Button>
                 </div>
             </div>
 
@@ -73,7 +75,7 @@ const AdminDashboard: React.FC = () => {
                         </div>
                     </div>
                     <p className="text-2xl font-bold">{statsLoading ? '...' : stats?.total_users}</p>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Total Users</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">{t('admin.totalUsers')}</p>
                 </div>
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                     <div className="flex justify-between items-start mb-4">
@@ -82,7 +84,7 @@ const AdminDashboard: React.FC = () => {
                         </div>
                     </div>
                     <p className="text-2xl font-bold text-secondary-600">{statsLoading ? '...' : stats?.pending_listings}</p>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Pending Ads</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">{t('admin.pendingAds')}</p>
                 </div>
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 border-l-primary-500 cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => window.location.href = '/admin/promotions'}>
                     <div className="flex justify-between items-start mb-4">
@@ -92,7 +94,7 @@ const AdminDashboard: React.FC = () => {
                         <span className="text-[10px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full uppercase">Action</span>
                     </div>
                     <p className="text-2xl font-bold text-primary-600">{statsLoading ? '...' : stats?.pending_promotions || 0}</p>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Promotions</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">{t('dashboard.promotions')}</p>
                 </div>
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 border-l-green-500 cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => window.location.href = '/admin/vouchers'}>
                     <div className="flex justify-between items-start mb-4">
@@ -101,8 +103,8 @@ const AdminDashboard: React.FC = () => {
                         </div>
                         <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full uppercase">Action</span>
                     </div>
-                    <p className="text-xl font-bold text-green-600">Vouchers</p>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Recharge Codes</p>
+                    <p className="text-xl font-bold text-green-600">{t('admin.vouchers')}</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">{t('admin.rechargeCodes')}</p>
                 </div>
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                     <div className="flex justify-between items-start mb-4">
@@ -111,7 +113,7 @@ const AdminDashboard: React.FC = () => {
                         </div>
                     </div>
                     <p className="text-2xl font-bold">{statsLoading ? '...' : stats?.active_listings}</p>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Active Listings</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">{t('admin.activeListings')}</p>
                 </div>
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                     <div className="flex justify-between items-start mb-4">
@@ -120,7 +122,7 @@ const AdminDashboard: React.FC = () => {
                         </div>
                     </div>
                     <p className="text-2xl font-bold">{statsLoading ? '...' : stats?.total_listings}</p>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Total Listings</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">{t('admin.totalListings')}</p>
                 </div>
             </div>
 
@@ -129,10 +131,10 @@ const AdminDashboard: React.FC = () => {
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                         <Check className="h-6 w-6 text-primary-600" />
-                        Moderation Queue
+                        {t('admin.moderationQueue')}
                     </h2>
                     <button className="text-sm font-bold text-primary-600 hover:underline">
-                        View All ({pendingAds?.length || 0})
+                        {t('admin.viewAll')} ({pendingAds?.length || 0})
                     </button>
                 </div>
 
@@ -144,16 +146,16 @@ const AdminDashboard: React.FC = () => {
                     ) : pendingAds?.length === 0 ? (
                         <div className="py-20 text-center">
                             <Check className="w-12 h-12 text-green-500 mx-auto mb-4 opacity-20" />
-                            <p className="text-gray-400 font-medium italic">Queue is clean! No ads pending review.</p>
+                            <p className="text-gray-400 font-medium italic">{t('admin.queueClean')}</p>
                         </div>
                     ) : (
                         <table className="w-full text-left">
                             <thead className="bg-gray-50 border-b border-gray-100">
                                 <tr>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Ad Detail</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Seller</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Actions</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">{t('admin.adDetail')}</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">{t('admin.seller')}</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">{t('admin.status')}</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">{t('admin.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
@@ -218,10 +220,10 @@ const AdminDashboard: React.FC = () => {
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                         <ShieldCheck className="h-6 w-6 text-primary-600" />
-                        Verification Requests
+                        {t('admin.verificationRequests')}
                     </h2>
                     <span className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                        {verificationRequests?.filter((r: any) => r.status === 'pending').length || 0} Pending
+                        {verificationRequests?.filter((r: any) => r.status === 'pending').length || 0} {t('admin.pending')}
                     </span>
                 </div>
 
@@ -232,16 +234,16 @@ const AdminDashboard: React.FC = () => {
                         </div>
                     ) : verificationRequests?.length === 0 ? (
                         <div className="py-12 text-center text-gray-400 italic">
-                            No verification requests found.
+                            {t('admin.noVerifications')}
                         </div>
                     ) : (
                         <table className="w-full text-left">
                             <thead className="bg-gray-50 border-b border-gray-100">
                                 <tr>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">User</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Doc Type</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Actions</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">{t('admin.user')}</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">{t('admin.docType')}</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">{t('admin.status')}</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">{t('admin.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
@@ -270,7 +272,7 @@ const AdminDashboard: React.FC = () => {
                                                         onClick={() => verifyMutation.mutate({ id: req.id, status: 'rejected' })}
                                                         disabled={verifyMutation.isPending}
                                                     >
-                                                        Reject
+                                                        {t('admin.reject')}
                                                     </Button>
                                                     <Button
                                                         size="sm"
@@ -278,7 +280,7 @@ const AdminDashboard: React.FC = () => {
                                                         onClick={() => verifyMutation.mutate({ id: req.id, status: 'approved' })}
                                                         disabled={verifyMutation.isPending}
                                                     >
-                                                        Approve
+                                                        {t('admin.approve')}
                                                     </Button>
                                                 </div>
                                             )}
@@ -296,17 +298,17 @@ const AdminDashboard: React.FC = () => {
                 <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm opacity-60">
                     <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <AlertOctagon className="h-5 w-5 text-secondary-600" />
-                        Recent Reports
+                        {t('admin.recentReports')}
                     </h3>
                     <div className="py-10 text-center text-gray-400 italic">
-                        No active reports found. platform is safe!
+                        {t('admin.noReports')}
                     </div>
                 </div>
 
                 <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
                     <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <Users className="h-5 w-5 text-primary-600" />
-                        New User Signups
+                        {t('admin.newSignups')}
                     </h3>
                     <div className="space-y-4">
                         {usersLoading ? (
@@ -314,7 +316,7 @@ const AdminDashboard: React.FC = () => {
                                 <Loader2 className="h-5 w-5 animate-spin text-primary-600" />
                             </div>
                         ) : users?.length === 0 ? (
-                            <div className="py-4 text-center text-gray-400 italic">No new signups.</div>
+                            <div className="py-4 text-center text-gray-400 italic">{t('admin.noSignups')}</div>
                         ) : (
                             users?.slice(0, 5).map(user => (
                                 <div key={user.id} className="flex items-center justify-between">
@@ -327,7 +329,7 @@ const AdminDashboard: React.FC = () => {
                                             <p className="text-[10px] text-gray-400 truncate max-w-[150px]">{user.email}</p>
                                         </div>
                                     </div>
-                                    <Button variant="ghost" size="sm" className="h-8 text-[10px] font-bold">Review</Button>
+                                    <Button variant="ghost" size="sm" className="h-8 text-[10px] font-bold">{t('admin.review')}</Button>
                                 </div>
                             ))
                         )}

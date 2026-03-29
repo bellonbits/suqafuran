@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminService } from '../../services/adminService';
 import { listingService } from '../../services/listingService';
@@ -11,6 +12,7 @@ import * as LucideIcons from 'lucide-react';
 import { getImageUrl } from '../../utils/imageUtils';
 
 const AdminCategoriesPage: React.FC = () => {
+    const { t } = useTranslation();
     const queryClient = useQueryClient();
     const [expandedCategory, setExpandedCategory] = useState<number | null>(null);
     const [isEditing, setIsEditing] = useState<{ type: 'category' | 'subcategory', data: any } | null>(null);
@@ -32,7 +34,7 @@ const AdminCategoriesPage: React.FC = () => {
             queryClient.invalidateQueries({ queryKey: ['categories'] });
             closeModals();
         },
-        onError: (err: any) => setError(err.response?.data?.detail || 'Operation failed')
+        onError: (err: any) => setError(err.response?.data?.detail || t('admin.operationFailed'))
     });
 
     const subCategoryMutation = useMutation({
@@ -43,7 +45,7 @@ const AdminCategoriesPage: React.FC = () => {
             queryClient.invalidateQueries({ queryKey: ['categories'] });
             closeModals();
         },
-        onError: (err: any) => setError(err.response?.data?.detail || 'Operation failed')
+        onError: (err: any) => setError(err.response?.data?.detail || t('admin.operationFailed'))
     });
 
     const deleteMutation = useMutation({
@@ -62,7 +64,7 @@ const AdminCategoriesPage: React.FC = () => {
             const result = await listingService.uploadImage(file);
             setFormData(prev => ({ ...prev, image_url: result.url }));
         } catch (err) {
-            setError('Failed to upload image');
+            setError(t('admin.uploadFailed'));
         } finally {
             setIsUploading(false);
         }
@@ -93,7 +95,7 @@ const AdminCategoriesPage: React.FC = () => {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.name || !formData.slug) {
-            setError('Name and slug are required');
+            setError(t('admin.nameSlugRequired'));
             return;
         }
 
@@ -117,12 +119,12 @@ const AdminCategoriesPage: React.FC = () => {
         <div className="max-w-6xl mx-auto space-y-8 pb-20">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Platform Categories</h1>
-                    <p className="text-gray-500 mt-1 italic">Manage listing structure and visual branding.</p>
+                    <h1 className="text-3xl font-bold text-gray-900">{t('admin.platformCategories')}</h1>
+                    <p className="text-gray-500 mt-1 italic">{t('admin.manageCategoriesDesc')}</p>
                 </div>
                 <Button onClick={() => openAdd('category')} className="gap-2 rounded-xl">
                     <Plus size={18} />
-                    Add Root Category
+                    {t('admin.addRootCategory')}
                 </Button>
             </div>
 
@@ -151,7 +153,7 @@ const AdminCategoriesPage: React.FC = () => {
                                 <div className="flex items-center gap-3 text-xs text-gray-500 font-mono mt-0.5">
                                     <span className="bg-gray-50 px-2 py-0.5 rounded">{cat.slug}</span>
                                     <span>•</span>
-                                    <span>{cat.subcategories?.length || 0} Subcategories</span>
+                                    <span>{t('admin.subcategoriesCount', { count: cat.subcategories?.length || 0 })}</span>
                                 </div>
                             </div>
 
@@ -170,14 +172,14 @@ const AdminCategoriesPage: React.FC = () => {
                                     className="h-9 text-primary-600 font-bold hidden md:flex"
                                     onClick={() => openAdd('subcategory', cat.id)}
                                 >
-                                    <Plus size={16} className="mr-1" /> Add Sub
+                                    <Plus size={16} className="mr-1" /> {t('admin.addSub')}
                                 </Button>
                                 <Button
                                     size="sm"
                                     variant="ghost"
                                     className="h-9 w-9 p-0 text-red-500 hover:bg-red-50"
                                     onClick={() => {
-                                        if (confirm(`Delete category "${cat.name}" and all its subcategories?`)) {
+                                        if (confirm(t('admin.deleteListing') + ` "${cat.name}"?`)) {
                                             deleteMutation.mutate({ type: 'category', id: cat.id });
                                         }
                                     }}
@@ -192,14 +194,14 @@ const AdminCategoriesPage: React.FC = () => {
                             <div className="bg-gray-50/50 border-t border-gray-50 px-6 py-4 md:px-20">
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center mb-4 md:hidden">
-                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Subcategories</span>
+                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('admin.subcategories')}</span>
                                         <Button size="sm" variant="outline" className="h-8 py-0 rounded-lg text-xs" onClick={() => openAdd('subcategory', cat.id)}>
                                             + Add
                                         </Button>
                                     </div>
 
                                     {cat.subcategories?.length === 0 ? (
-                                        <p className="text-sm text-gray-400 italic py-4">No subcategories yet.</p>
+                                        <p className="text-sm text-gray-400 italic py-4">{t('admin.noSubcategoriesYet')}</p>
                                     ) : (
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                             {cat.subcategories?.map(sub => (
@@ -225,7 +227,7 @@ const AdminCategoriesPage: React.FC = () => {
                                                         </button>
                                                         <button
                                                             onClick={() => {
-                                                                if (confirm(`Delete subcategory "${sub.name}"?`)) {
+                                                                if (confirm(t('common.delete') + ` "${sub.name}"?`)) {
                                                                     deleteMutation.mutate({ type: 'subcategory', id: sub.id });
                                                                 }
                                                             }}
@@ -247,7 +249,7 @@ const AdminCategoriesPage: React.FC = () => {
                 {categories?.length === 0 && (
                     <div className="py-20 text-center bg-white rounded-3xl border border-dashed border-gray-200">
                         <Folder className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-                        <p className="text-gray-500 italic">No categories found. Start by adding one.</p>
+                        <p className="text-gray-500 italic">{t('admin.noCategoriesFound')}</p>
                     </div>
                 )}
             </div>
@@ -260,7 +262,7 @@ const AdminCategoriesPage: React.FC = () => {
                         <div className="p-6 md:p-8 space-y-6">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-2xl font-bold text-gray-900">
-                                    {isEditing ? `Edit ${isEditing.type}` : `Add New ${isAdding?.type}`}
+                                    {isEditing ? `${t('common.edit')} ${isEditing.type}` : `${t('common.save')} ${isAdding?.type}`}
                                 </h2>
                                 <button onClick={closeModals} className="p-2 text-gray-400 hover:bg-gray-100 rounded-full">
                                     <X size={20} />
@@ -271,7 +273,7 @@ const AdminCategoriesPage: React.FC = () => {
                                 <div className="space-y-4">
                                     {/* Image — Upload file OR paste URL */}
                                     <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
-                                        <p className="text-sm font-bold text-gray-900">Category Image</p>
+                                        <p className="text-sm font-bold text-gray-900">{t('admin.categoryImage')}</p>
                                         <div className="flex items-center gap-4">
                                             {/* Preview circle */}
                                             <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center overflow-hidden border border-gray-200 shrink-0 relative group">
@@ -290,12 +292,12 @@ const AdminCategoriesPage: React.FC = () => {
                                                 {/* Upload button */}
                                                 <label className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 w-full">
                                                     <Upload className="w-4 h-4 text-primary-500 shrink-0" />
-                                                    Upload image file
+                                                    {t('admin.uploadImageFile')}
                                                     <input type="file" className="hidden" onChange={handleImageUpload} accept="image/*" />
                                                 </label>
                                                 <div className="flex items-center gap-2 text-xs text-gray-400">
                                                     <div className="flex-1 h-px bg-gray-200" />
-                                                    <span>or paste URL</span>
+                                                    <span>{t('admin.orPasteUrl')}</span>
                                                     <div className="flex-1 h-px bg-gray-200" />
                                                 </div>
                                             </div>
@@ -314,14 +316,14 @@ const AdminCategoriesPage: React.FC = () => {
                                                 onClick={() => setFormData({ ...formData, image_url: '' })}
                                                 className="text-xs text-red-500 hover:underline flex items-center gap-1"
                                             >
-                                                <X size={12} /> Remove image
+                                                <X size={12} /> {t('admin.removeImage')}
                                             </button>
                                         )}
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="col-span-full">
-                                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Display Name</label>
+                                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">{t('admin.displayName')}</label>
                                             <input
                                                 type="text"
                                                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 outline-none transition-all font-medium"
@@ -331,7 +333,7 @@ const AdminCategoriesPage: React.FC = () => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Slug (URL ID)</label>
+                                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">{t('admin.slugUrlId')}</label>
                                             <input
                                                 type="text"
                                                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 outline-none transition-all font-mono text-sm"
@@ -342,7 +344,7 @@ const AdminCategoriesPage: React.FC = () => {
                                         </div>
                                         {(isEditing?.type === 'category' || isAdding?.type === 'category') && (
                                             <div>
-                                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Lucide Icon</label>
+                                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">{t('admin.lucideIcon')}</label>
                                                 <input
                                                     type="text"
                                                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 outline-none transition-all text-sm"
@@ -364,7 +366,7 @@ const AdminCategoriesPage: React.FC = () => {
 
                                 <div className="flex gap-3 pt-2">
                                     <Button type="button" variant="outline" className="flex-1 rounded-xl h-12" onClick={closeModals}>
-                                        Cancel
+                                        {t('common.cancel')}
                                     </Button>
                                     <Button
                                         type="submit"
@@ -376,7 +378,7 @@ const AdminCategoriesPage: React.FC = () => {
                                         ) : (
                                             <div className="flex items-center gap-2">
                                                 <Check size={18} />
-                                                <span>{isEditing ? 'Save Changes' : 'Create Entry'}</span>
+                                                <span>{isEditing ? t('admin.saveChanges') : t('admin.createEntry')}</span>
                                             </div>
                                         )}
                                     </Button>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Mail, ArrowLeft, Send, CheckCircle } from 'lucide-react';
 import { Button } from '../components/Button';
 import { AuthInput } from '../components/AuthInput';
@@ -7,6 +8,7 @@ import { AuthLayout } from '../components/AuthLayout';
 import { authService } from '../services/authService';
 
 const ForgotPasswordPage: React.FC = () => {
+    const { t } = useTranslation();
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -24,8 +26,8 @@ const ForgotPasswordPage: React.FC = () => {
             const message = typeof detail === 'string'
                 ? detail
                 : Array.isArray(detail)
-                    ? detail[0]?.msg || 'Validation error'
-                    : 'Failed to send reset link';
+                    ? detail[0]?.msg || t('common.error')
+                    : t('common.error');
             setError(message);
         } finally {
             setLoading(false);
@@ -39,13 +41,13 @@ const ForgotPasswordPage: React.FC = () => {
                     <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
                         <CheckCircle className="w-10 h-10 text-green-600" />
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Check Your Email</h2>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('auth.checkYourEmail')}</h2>
                     <p className="text-gray-600 mb-8">
-                        If an account exists for {email}, we've sent instructions to reset your password.
+                        {t('auth.checkEmailDesc', { email })}
                     </p>
                     <Link to="/login">
                         <Button variant="outline" className="w-full rounded-xl">
-                            Back to Login
+                            {t('auth.backToLogin')}
                         </Button>
                     </Link>
                 </div>
@@ -55,13 +57,13 @@ const ForgotPasswordPage: React.FC = () => {
 
     return (
         <AuthLayout
-            title="Forgot Password?"
-            subtitle="Enter your email and we'll send you a code to reset your password."
-            imageCaption="Recover access to your marketplace."
+            title={t('auth.forgotPassword')}
+            subtitle={t('auth.forgotPasswordSubtitle')}
+            imageCaption={t('auth.forgotPasswordCaption')}
         >
             <form className="space-y-6" onSubmit={handleSubmit}>
                 <AuthInput
-                    label="Email Address"
+                    label={t('auth.emailAddress')}
                     id="email"
                     type="email"
                     required
@@ -78,7 +80,7 @@ const ForgotPasswordPage: React.FC = () => {
                     isLoading={loading}
                 >
                     <Send className="mr-2 w-5 h-5" />
-                    Send Reset Code
+                    {t('auth.sendResetCode')}
                 </Button>
 
                 <div className="text-center">
@@ -87,7 +89,7 @@ const ForgotPasswordPage: React.FC = () => {
                         className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
                     >
                         <ArrowLeft className="mr-2 w-4 h-4" />
-                        Back to login
+                        {t('auth.backToLogin')}
                     </Link>
                 </div>
             </form>

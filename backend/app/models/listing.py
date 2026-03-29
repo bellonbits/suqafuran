@@ -12,7 +12,9 @@ if TYPE_CHECKING:
 
 class ListingBase(SQLModel):
     title: str = Field(index=True)
+    title_so: Optional[str] = Field(default=None)
     description: str
+    description_so: Optional[str] = Field(default=None)
     price: float
     location: str
     condition: str  # New, Used, Refurbished

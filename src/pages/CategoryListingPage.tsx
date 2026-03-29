@@ -10,8 +10,6 @@ import { Link } from 'react-router-dom';
 import { Button } from '../components/Button';
 import { cn } from '../utils/cn';
 import { FilterSidebar } from '../components/FilterSidebar';
-import { useTranslateContent } from '../hooks/useTranslateContent';
-
 // Skeleton card shown while listings load
 const SkeletonCard = () => (
     <div className="bg-white rounded-xl overflow-hidden card-shadow animate-pulse">
@@ -87,7 +85,8 @@ const CategoryListingPage: React.FC = () => {
         () => displayCategories.find(c => String(c.id) === String(categoryId)),
         [displayCategories, categoryId]
     );
-    const [translatedCategoryName] = useTranslateContent([category?.name || '']);
+    const categoryName = category?.name || '';
+    const translatedCategoryName = categoryName ? (t(`categories.${categoryName}`, categoryName as any) as string) : '';
 
     const { data: listings, isLoading, isFetching } = useQuery({
         queryKey: ['listings', categoryId, debouncedLocation, debouncedMin, debouncedMax, attrsParam],
@@ -186,6 +185,7 @@ const CategoryListingPage: React.FC = () => {
                                             key={ad.id}
                                             id={String(ad.id)}
                                             title={ad.title}
+                                            title_so={ad.title_so}
                                             price={ad.price}
                                             currency={ad.currency}
                                             location={ad.location}

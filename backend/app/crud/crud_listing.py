@@ -66,6 +66,17 @@ def get_listings(
 def create_listing(
     db: Session, *, listing_in: ListingBase, owner_id: int
 ) -> Listing:
+    try:
+        from deep_translator import GoogleTranslator
+        translator = GoogleTranslator(source="en", target="so")
+        if getattr(listing_in, "title_so", None) is None and listing_in.title:
+            listing_in.title_so = translator.translate(listing_in.title)
+        if getattr(listing_in, "description_so", None) is None and listing_in.description:
+            listing_in.description_so = translator.translate(listing_in.description[:5000])
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"Listing auto-translation failed: {e}")
+
     db_obj = Listing.model_validate(
         listing_in, update={"owner_id": owner_id}
     )
@@ -78,6 +89,17 @@ def create_listing(
 def update_listing(
     db: Session, *, db_obj: Listing, listing_in: ListingBase
 ) -> Listing:
+    try:
+        from deep_translator import GoogleTranslator
+        translator = GoogleTranslator(source="en", target="so")
+        if getattr(listing_in, "title_so", None) is None and listing_in.title:
+            listing_in.title_so = translator.translate(listing_in.title)
+        if getattr(listing_in, "description_so", None) is None and listing_in.description:
+            listing_in.description_so = translator.translate(listing_in.description[:5000])
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"Listing auto-translation failed: {e}")
+
     update_data = listing_in.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(db_obj, field, value)

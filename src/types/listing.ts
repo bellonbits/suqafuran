@@ -3,7 +3,9 @@ import type { User } from './auth';
 export interface Listing {
     id: number;
     title: string;
+    title_so?: string;
     description: string;
+    description_so?: string;
     price: number;
     currency: string;
     location: string;

@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { Lock, CheckCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Lock, CheckCircle, ArrowRight, ArrowLeft, ShieldCheck, KeyRound } from 'lucide-react';
 import { Button } from '../components/Button';
-import { Input } from '../components/Input';
+import { AuthInput } from '../components/AuthInput';
+import { AuthLayout } from '../components/AuthLayout';
 import { authService } from '../services/authService';
 
 const ResetPasswordPage: React.FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const emailFromUrl = searchParams.get('email') || '';
@@ -21,7 +24,7 @@ const ResetPasswordPage: React.FC = () => {
     const handleReset = async (e: React.FormEvent) => {
         e.preventDefault();
         if (password !== confirmPassword) {
-            setError('Passwords do not match');
+            setError(t('auth.passwordMismatch'));
             return;
         }
 
@@ -30,14 +33,14 @@ const ResetPasswordPage: React.FC = () => {
         try {
             await authService.resetPassword({ email, code, new_password: password });
             setSuccess(true);
-            setTimeout(() => navigate('/login'), 2000);
+            setTimeout(() => navigate('/login'), 2500);
         } catch (err: any) {
             const detail = err.response?.data?.detail;
             const message = typeof detail === 'string'
                 ? detail
                 : Array.isArray(detail)
-                    ? detail[0]?.msg || 'Validation error'
-                    : 'Failed to reset password';
+                    ? detail[0]?.msg || t('common.error')
+                    : t('common.error');
             setError(message);
         } finally {
             setLoading(false);
@@ -51,86 +54,97 @@ const ResetPasswordPage: React.FC = () => {
                     <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
                         <CheckCircle className="w-10 h-10 text-green-600" />
                     </div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">Password Reset!</h2>
-                    <p className="text-gray-600 mb-8">Your password has been successfully updated. Redirecting to login...</p>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('auth.passwordResetSuccess')}</h2>
+                    <p className="text-gray-600">{t('auth.passwordResetSuccessDesc')}</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
-            <div className="max-w-md w-full space-y-8 bg-white p-8 md:p-10 rounded-2xl shadow-xl border border-gray-100">
-                <div className="text-center">
-                    <div className="mx-auto w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mb-6">
-                        <ShieldCheck className="w-8 h-8 text-primary-600" />
+        <AuthLayout
+            title={t('auth.resetPasswordTitle')}
+            subtitle={t('auth.resetPasswordSubtitle')}
+            imageCaption={t('auth.forgotPasswordCaption')}
+        >
+            <form className="space-y-4" onSubmit={handleReset}>
+                {error && (
+                    <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm border border-red-100 font-medium">
+                        {error}
                     </div>
-                    <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-                        Reset Password
-                    </h2>
-                    <p className="mt-4 text-gray-600">
-                        Enter the reset code sent to your email and your new password.
-                    </p>
+                )}
+
+                <div className="flex justify-center mb-2">
+                    <div className="w-14 h-14 rounded-full bg-primary-50 flex items-center justify-center">
+                        <ShieldCheck className="w-7 h-7 text-primary-600" />
+                    </div>
                 </div>
 
-                <form className="mt-8 space-y-4" onSubmit={handleReset}>
-                    <Input
-                        label="Email Address"
-                        id="email"
-                        type="email"
-                        required
-                        placeholder="name@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-                    <Input
-                        label="Reset Code"
-                        id="code"
-                        type="text"
-                        required
-                        placeholder="123456"
-                        value={code}
-                        onChange={(e) => setCode(e.target.value)}
-                    />
-                    <Input
-                        label="New Password"
-                        id="password"
-                        type="password"
-                        required
-                        placeholder="••••••••"
-                        icon={<Lock className="h-4 w-4" />}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                    <Input
-                        label="Confirm New Password"
-                        id="confirmPassword"
-                        type="password"
-                        required
-                        placeholder="••••••••"
-                        icon={<Lock className="h-4 w-4" />}
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        error={error || undefined}
-                    />
+                <AuthInput
+                    label={t('auth.emailAddress')}
+                    id="email"
+                    type="email"
+                    required
+                    placeholder="name@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
 
-                    <Button
-                        type="submit"
-                        className="w-full h-12 text-lg rounded-xl mt-6"
-                        isLoading={loading}
-                    >
-                        Reset Password
-                        <ArrowRight className="ml-2 w-5 h-5" />
-                    </Button>
+                <AuthInput
+                    label={t('auth.resetCode')}
+                    id="code"
+                    type="text"
+                    required
+                    placeholder="123456"
+                    icon={<KeyRound className="h-4 w-4" />}
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                />
 
-                    <div className="text-center mt-4">
-                        <Link to="/login" className="text-sm font-medium text-primary-600 hover:text-primary-500">
-                            Wait, I remember it! Back to login
-                        </Link>
+                <AuthInput
+                    label={t('auth.newPassword')}
+                    id="password"
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                    icon={<Lock className="h-4 w-4" />}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+
+                <AuthInput
+                    label={t('auth.confirmNewPassword')}
+                    id="confirmPassword"
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                    icon={<Lock className="h-4 w-4" />}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+
+                <Button
+                    type="submit"
+                    className="w-full h-12 rounded-xl bg-blue-300 hover:bg-blue-400 text-white font-bold shadow-lg shadow-blue-300/30 mt-2"
+                    isLoading={loading}
+                >
+                    <div className="flex items-center justify-center gap-2">
+                        <span>{t('auth.resetPasswordBtn')}</span>
+                        <ArrowRight className="w-4 h-4" />
                     </div>
-                </form>
-            </div>
-        </div>
+                </Button>
+
+                <div className="text-center">
+                    <Link
+                        to="/login"
+                        className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                    >
+                        <ArrowLeft className="mr-2 w-4 h-4" />
+                        {t('auth.rememberPassword')}
+                    </Link>
+                </div>
+            </form>
+        </AuthLayout>
     );
 };
 

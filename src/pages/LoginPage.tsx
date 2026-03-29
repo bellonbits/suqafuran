@@ -4,10 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { Mail, Lock, ArrowRight, Loader2, ShieldAlert } from 'lucide-react';
 import { z } from 'zod';
 
-const loginSchema = z.object({
-    email: z.string().email('Invalid email address'),
-    password: z.string().min(1, 'Password is required').max(128),
-});
 import { Button } from '../components/Button';
 import { AuthInput } from '../components/AuthInput';
 import { AuthLayout } from '../components/AuthLayout';
@@ -33,6 +29,10 @@ function saveLockout(data: { attempts: number; lockedUntil: number }) {
 const LoginPage: React.FC = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const loginSchema = z.object({
+        email: z.string().email(t('auth.invalidEmail')),
+        password: z.string().min(1, t('auth.passwordRequired')).max(128),
+    });
     const login = useAuthStore((state) => state.login);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -91,7 +91,7 @@ const LoginPage: React.FC = () => {
             const detail = err.response?.data?.detail;
             const message = typeof detail === 'string'
                 ? detail
-                : 'Invalid email or password';
+                : t('auth.invalidCredentials');
 
             const lockout = getLockout();
             const newAttempts = (lockout.attempts || 0) + 1;
@@ -100,11 +100,11 @@ const LoginPage: React.FC = () => {
                 const lockedUntil = Date.now() + LOCKOUT_SECONDS * 1000;
                 saveLockout({ attempts: newAttempts, lockedUntil });
                 startCountdown(LOCKOUT_SECONDS);
-                setError(`Too many failed attempts. Try again in ${formatTime(LOCKOUT_SECONDS)}.`);
+                setError(t('auth.tooManyAttemptsDesc', { time: formatTime(LOCKOUT_SECONDS) }));
             } else {
                 saveLockout({ attempts: newAttempts, lockedUntil: 0 });
                 const remaining = MAX_ATTEMPTS - newAttempts;
-                setError(`${message}. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`);
+                setError(`${message}. ${t('auth.attemptsRemaining', { count: remaining })}`);
             }
         } finally {
             setIsLoading(false);
@@ -129,10 +129,9 @@ const LoginPage: React.FC = () => {
                     <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
                         <ShieldAlert className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
                         <div>
-                            <p className="text-sm font-bold text-red-700">Account temporarily locked</p>
+                            <p className="text-sm font-bold text-red-700">{t('auth.accountLocked')}</p>
                             <p className="text-sm text-red-600 mt-0.5">
-                                Too many failed attempts. Try again in{' '}
-                                <span className="font-mono font-bold">{formatTime(countdown)}</span>
+                                {t('auth.tooManyAttemptsDesc', { time: formatTime(countdown) })}
                             </p>
                         </div>
                     </div>
@@ -171,7 +170,7 @@ const LoginPage: React.FC = () => {
                             to="/forgot-password"
                             className="text-sm font-medium text-blue-400 hover:text-blue-500 hover:underline"
                         >
-                            Forgot Password?
+                            {t('auth.forgotPasswordLink')}
                         </Link>
                     </div>
                 </div>
@@ -184,10 +183,10 @@ const LoginPage: React.FC = () => {
                     {isLoading ? (
                         <Loader2 className="w-5 h-5 animate-spin mx-auto" />
                     ) : isLocked ? (
-                        <span>Locked — {formatTime(countdown)}</span>
+                        <span>{t('auth.lockedBtn', { time: formatTime(countdown) })}</span>
                     ) : (
                         <div className="flex items-center justify-center gap-2">
-                            <span>Sign In</span>
+                            <span>{t('auth.signIn')}</span>
                             <ArrowRight className="w-4 h-4" />
                         </div>
                     )}
@@ -195,13 +194,13 @@ const LoginPage: React.FC = () => {
 
                 <div className="text-center">
                     <p className="text-sm text-gray-600">
-                        Don't have an account?{' '}
+                        {t('auth.noAccount')}{' '}
                         <button
                             type="button"
                             onClick={() => navigate('/signup')}
                             className="font-bold text-blue-400 hover:text-blue-500 hover:underline"
                         >
-                            Create Account
+                            {t('auth.createAccount')}
                         </button>
                     </p>
                 </div>
@@ -211,7 +210,7 @@ const LoginPage: React.FC = () => {
                         <div className="w-full border-t border-gray-200"></div>
                     </div>
                     <div className="relative flex justify-center text-xs uppercase tracking-widest font-bold">
-                        <span className="px-3 bg-white text-gray-400">Or continue with</span>
+                        <span className="px-3 bg-white text-gray-400">{t('auth.orContinueWith')}</span>
                     </div>
                 </div>
 

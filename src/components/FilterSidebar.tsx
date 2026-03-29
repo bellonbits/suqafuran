@@ -4,7 +4,7 @@ import { Button } from './Button';
 import { cn } from '../utils/cn';
 import { useQuery } from '@tanstack/react-query';
 import { listingService } from '../services/listingService';
-import { useTranslateContent } from '../hooks/useTranslateContent';
+import { useTranslation } from 'react-i18next';
 
 interface FilterSidebarProps {
     showFilters: boolean;
@@ -62,12 +62,13 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         queryFn: listingService.getCategories,
     });
 
+    const { t } = useTranslation();
+
     const category = categories?.find(c => String(c.id) === String(categoryId) || c.slug === categoryId);
     const subcategories: string[] = category?.subcategories?.map((s: any) => s.name || s) || [];
-    const namesToTranslate = [category?.name || '', ...subcategories];
-    const translatedNames = useTranslateContent(namesToTranslate);
-    const translatedCategoryName = translatedNames[0] || category?.name || '';
-    const subNameMap = Object.fromEntries(subcategories.map((s, i) => [s, translatedNames[i + 1] || s]));
+    const categoryName = category?.name || '';
+    const translatedCategoryName = categoryName ? (t(`categories.${categoryName}`, categoryName as any) as string) : '';
+    const subNameMap = Object.fromEntries(subcategories.map(s => [s, t(`categories.${s}`, s as any) as string]));
 
     const activePriceRange = PRICE_RANGES.find(r => r.min === (minPrice ?? '') && r.max === (maxPrice ?? ''));
 

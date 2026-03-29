@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, MapPin, Tag, Search, ListFilter } from 'lucide-react';
 import { Logo } from './Logo';
 
@@ -15,6 +16,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
     subtitle,
     imageCaption = "Connecting Africa, One Listing at a Time."
 }) => {
+    const { t } = useTranslation();
     return (
         <div className="min-h-screen w-full flex flex-col lg:flex-row bg-gray-50 text-gray-900">
             {/* Left Side - Image/Visuals (Hidden on mobile) */}
@@ -42,7 +44,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
                                 to="/"
                                 className="flex items-center text-sm font-medium text-white hover:text-white/80 transition-colors bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20"
                             >
-                                Back to website <ArrowLeft className="ml-2 w-4 h-4 rotate-180" />
+                                {t('auth.backToWebsite')} <ArrowLeft className="ml-2 w-4 h-4 rotate-180" />
                             </Link>
                         </div>
 
@@ -69,7 +71,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
                             className="flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-primary-500 active:scale-95 transition-all bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-full"
                         >
                             <ArrowLeft className="h-4 w-4" />
-                            Back
+                            {t('auth.backBtn')}
                         </Link>
                         <Logo size="sm" />
                         <div className="w-16" /> {/* spacer */}
