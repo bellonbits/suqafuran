@@ -4,35 +4,32 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m2
 
+    integrations:
+      app_store_connect: suqafuran
+
     environment:
       ios_signing:
-        distribution_type: app_store      # change to "ad_hoc" if you want ad-hoc IPA
+        distribution_type: app_store
         bundle_identifier: com.suqafuran.app
       node: 20
       xcode: latest
       cocoapods: default
-      vars:
-        BUNDLE_ID: com.suqafuran.app
 
     scripts:
-      # 1. Install JS dependencies and build the web bundle
-      - name: Install dependencies
+      - name: Install JS dependencies
         script: npm ci
 
       - name: Build web app
         script: npm run build
 
-      # 2. Sync Capacitor (copies dist/ into the iOS project)
       - name: Capacitor sync
         script: npx cap sync ios
 
-      # 3. Install CocoaPods
       - name: Install CocoaPods
         script: |
           cd ios/App
           pod install
 
-      # 4. Build the IPA
       - name: Build IPA
         script: |
           cd ios/App
@@ -43,7 +40,6 @@ workflows:
             -configuration Release \
             -archivePath $CM_BUILD_DIR/App.xcarchive \
             archive \
-            CODE_SIGN_STYLE=Manual \
             | xcpretty
           xcodebuild \
             -exportArchive \
@@ -53,14 +49,14 @@ workflows:
             | xcpretty
 
     artifacts:
-      - ios/App/build/App.xcarchive
       - $CM_BUILD_DIR/ipa/*.ipa
+      - $CM_BUILD_DIR/App.xcarchive
       - /tmp/xcodebuild_logs/*.log
 
     publishing:
       email:
         recipients:
-          - your@email.com          # replace with your email
+          - your@email.com   # replace with your email
         notify:
           success: true
           failure: true
