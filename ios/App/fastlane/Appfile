@@ -1,0 +1,4 @@
+app_identifier("com.suqafuran.app")
+
+# apple_id("your@email.com")       # Your Apple Developer account email
+# team_id("XXXXXXXXXX")            # Your Apple Developer Team ID

@@ -39,7 +39,7 @@ const CategoryListingPage: React.FC = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const [showFilters, setShowFilters] = useState(false);
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const subcategoryParam = searchParams.get('subcategory');
 
     const [attributeFilters, setAttributeFilters] = useState<Record<string, any>>(() => {
@@ -82,11 +82,24 @@ const CategoryListingPage: React.FC = () => {
 
     const displayCategories = useMemo(() => categories || [], [categories]);
     const category = useMemo(
-        () => displayCategories.find(c => String(c.id) === String(categoryId)),
+        () => displayCategories.find(c => String(c.id) === String(categoryId) || c.slug === categoryId),
         [displayCategories, categoryId]
     );
     const categoryName = category?.name || '';
     const translatedCategoryName = categoryName ? (t(`categories.${categoryName}`, categoryName as any) as string) : '';
+    const subcategories: Array<{ id?: any; name: string; slug?: string; image_url?: string }> =
+        category?.subcategories || [];
+
+    const activeSubcategory = subcategoryParam || attributeFilters['subcategory'] || null;
+
+    const selectSubcategory = useCallback((slug: string | null) => {
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            if (slug) next.set('subcategory', slug);
+            else next.delete('subcategory');
+            return next;
+        });
+    }, [setSearchParams]);
 
     const { data: listings, isLoading, isFetching } = useQuery({
         queryKey: ['listings', categoryId, debouncedLocation, debouncedMin, debouncedMax, attrsParam],
@@ -137,6 +150,42 @@ const CategoryListingPage: React.FC = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Subcategory chips */}
+                {subcategories.length > 0 && (
+                    <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+                        <button
+                            onClick={() => selectSubcategory(null)}
+                            className={cn(
+                                'shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors',
+                                !activeSubcategory
+                                    ? 'bg-primary-500 text-white border-primary-500'
+                                    : 'bg-white text-gray-600 border-gray-200 hover:border-primary-300 hover:text-primary-600'
+                            )}
+                        >
+                            {t('category.all', 'All')}
+                        </button>
+                        {subcategories.map((sub, idx) => {
+                            const label = (t(`categories.${sub.name}`, sub.name as any) as string).replace(/^\d+\s/, '');
+                            const value = sub.name;
+                            const isActive = activeSubcategory === value;
+                            return (
+                                <button
+                                    key={sub.id ?? idx}
+                                    onClick={() => selectSubcategory(isActive ? null : value)}
+                                    className={cn(
+                                        'shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors',
+                                        isActive
+                                            ? 'bg-primary-500 text-white border-primary-500'
+                                            : 'bg-white text-gray-600 border-gray-200 hover:border-primary-300 hover:text-primary-600'
+                                    )}
+                                >
+                                    {label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
 
                 <div className="flex flex-col lg:flex-row gap-6">
                     <FilterSidebar

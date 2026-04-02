@@ -1,0 +1,59 @@
+default_platform(:ios)
+
+platform :ios do
+
+  desc "Build and upload to TestFlight"
+  lane :beta do
+    # Increment build number automatically
+    increment_build_number(
+      xcodeproj: "App.xcodeproj"
+    )
+
+    # Build the app
+    build_app(
+      scheme: "App",
+      workspace: "App.xcworkspace",
+      export_method: "app-store",
+      configuration: "Release"
+    )
+
+    # Upload to TestFlight
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Build and submit to App Store"
+  lane :release do
+    # Increment version and build number
+    increment_build_number(
+      xcodeproj: "App.xcodeproj"
+    )
+
+    # Build the app
+    build_app(
+      scheme: "App",
+      workspace: "App.xcworkspace",
+      export_method: "app-store",
+      configuration: "Release"
+    )
+
+    # Upload to App Store Connect
+    upload_to_app_store(
+      force: true,
+      reject_if_possible: true,
+      skip_screenshots: true,
+      skip_metadata: false
+    )
+  end
+
+  desc "Sync code signing certificates (readonly)"
+  lane :certificates do
+    match(
+      type: "appstore",
+      app_identifier: "com.suqafuran.app",
+      readonly: true
+    )
+  end
+
+end

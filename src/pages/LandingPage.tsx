@@ -139,12 +139,16 @@ const LandingPage: React.FC = () => {
                         {displayCategories.slice(0, 12).map((cat, idx) => {
                             const isAct = activeCategory === String(cat.id);
                             const imgSrc = cat.image_url || getCategoryImg(cat, idx);
+                            const hasSubs = (cat.subcategories?.length ?? 0) > 0;
                             return (
                                 <button
                                     key={cat.id}
                                     onClick={() => {
-                                        setActiveCategory(String(cat.id));
-                                        navigate(`/category/${cat.slug || cat.id}`);
+                                        if (!hasSubs) {
+                                            navigate(`/category/${cat.slug || cat.id}`);
+                                        } else {
+                                            setActiveCategory(isAct ? null : String(cat.id));
+                                        }
                                     }}
                                     className="flex flex-col items-center gap-1.5 shrink-0 active:scale-95 transition-transform"
                                     style={{ width: 56 }}
@@ -170,6 +174,47 @@ const LandingPage: React.FC = () => {
                             );
                         })}
                     </div>
+
+                    {/* Subcategory chips — shown when a category with subcategories is active */}
+                    <AnimatePresence>
+                        {activeCategory && (() => {
+                            const activeCat = displayCategories.find(c => String(c.id) === activeCategory);
+                            const subs: Array<{ id?: any; name: string; slug?: string }> = activeCat?.subcategories || [];
+                            if (!activeCat || subs.length === 0) return null;
+                            return (
+                                <motion.div
+                                    key={activeCategory}
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="overflow-hidden"
+                                >
+                                    <div className="flex gap-2 overflow-x-auto px-4 pb-2 pt-1 hide-scrollbar">
+                                        {/* All subcategories chip */}
+                                        <button
+                                            onClick={() => navigate(`/category/${activeCat.slug || activeCat.id}`)}
+                                            className="shrink-0 px-3 py-1 rounded-full text-xs font-bold bg-primary-500 text-white"
+                                        >
+                                            {t('landing.seeAll')} {(catNameMap[activeCat.name] || activeCat.name).split(' (')[0]}
+                                        </button>
+                                        {subs.map((sub, idx) => {
+                                            const label = (subNameMap[sub.name] || sub.name).replace(/^\d+\s/, '');
+                                            return (
+                                                <button
+                                                    key={sub.id ?? idx}
+                                                    onClick={() => navigate(`/category/${activeCat.slug || activeCat.id}?subcategory=${sub.name}`)}
+                                                    className="shrink-0 px-3 py-1 rounded-full text-xs font-semibold bg-white border border-gray-200 text-gray-700 active:bg-primary-50 active:border-primary-300 active:text-primary-700"
+                                                >
+                                                    {label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </motion.div>
+                            );
+                        })()}
+                    </AnimatePresence>
                 </div>
 
                 {/* Sell promo banner */}
@@ -382,7 +427,7 @@ const LandingPage: React.FC = () => {
                                                                         <button
                                                                             key={sub.id || idx}
                                                                             onClick={() => {
-                                                                                navigate(`/category/${activeCat.slug || activeCat.id}?subcategory=${sub.slug || sub.name}`);
+                                                                                navigate(`/category/${activeCat.slug || activeCat.id}?subcategory=${sub.name}`);
                                                                                 setHoveredCategory(null);
                                                                             }}
                                                                             className="flex items-center gap-3 p-2 rounded-xl hover:border-primary-100 hover:bg-primary-50/50 transition-all text-left group"
