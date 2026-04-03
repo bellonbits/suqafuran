@@ -59,7 +59,13 @@ platform :ios do
 
     # Use the actual profile name returned by sigh
     profile_name = lane_context[SharedValues::SIGH_NAME]
-    profile_uuid = lane_context[SharedValues::SIGH_UUID]
+
+    # Auto-increment build number using timestamp to always be unique
+    build_number = Time.now.strftime('%Y%m%d%H%M')
+    increment_build_number(
+      build_number: build_number,
+      xcodeproj: "App.xcodeproj"
+    )
 
     build_app(
       scheme: "App",
