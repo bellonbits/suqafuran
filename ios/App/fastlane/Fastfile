@@ -2,7 +2,7 @@ default_platform(:ios)
 
 platform :ios do
 
-  desc "Build IPA only (no upload) — output on Desktop"
+  desc "Build IPA only (no upload)"
   lane :build do
     api_key = app_store_connect_api_key(
       key_id: "C8V4ZN3UG9",
@@ -12,17 +12,35 @@ platform :ios do
       in_house: false
     )
 
-    cert(
-      api_key: api_key,
-      team_id: "2969422VU2"
+    # Create a temporary keychain for CI environments
+    keychain_name = "fastlane_tmp_keychain"
+    keychain_password = "fastlane123"
+    create_keychain(
+      name: keychain_name,
+      password: keychain_password,
+      default_keychain: true,
+      unlock: true,
+      timeout: 3600,
+      lock_when_sleeps: false
     )
 
-    sigh(
+    cert(
+      api_key: api_key,
+      team_id: "2969422VU2",
+      keychain_path: "~/Library/Keychains/#{keychain_name}-db",
+      keychain_password: keychain_password
+    )
+
+    profile_path = sigh(
       api_key: api_key,
       app_identifier: "com.suqafuran.app",
       team_id: "2969422VU2",
       force: true
     )
+
+    # Use the actual profile name returned by sigh
+    profile_name = lane_context[SharedValues::SIGH_NAME]
+    profile_uuid = lane_context[SharedValues::SIGH_UUID]
 
     build_app(
       scheme: "App",
@@ -32,13 +50,13 @@ platform :ios do
       output_directory: "#{ENV['HOME']}/Desktop/SuqafuranIPA",
       output_name: "Suqafuran.ipa",
       clean: true,
-      xcargs: "CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=2969422VU2 CODE_SIGN_IDENTITY='Apple Distribution' PROVISIONING_PROFILE_SPECIFIER='com.suqafuran.app AppStore'",
+      xcargs: "CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=2969422VU2 CODE_SIGN_IDENTITY='Apple Distribution' PROVISIONING_PROFILE_SPECIFIER='#{profile_name}'",
       export_options: {
         method: "app-store",
         teamID: "2969422VU2",
         signingStyle: "manual",
         provisioningProfiles: {
-          "com.suqafuran.app" => "com.suqafuran.app AppStore"
+          "com.suqafuran.app" => profile_name
         }
       }
     )
@@ -54,6 +72,33 @@ platform :ios do
       in_house: false
     )
 
+    keychain_name = "fastlane_tmp_keychain"
+    keychain_password = "fastlane123"
+    create_keychain(
+      name: keychain_name,
+      password: keychain_password,
+      default_keychain: true,
+      unlock: true,
+      timeout: 3600,
+      lock_when_sleeps: false
+    )
+
+    cert(
+      api_key: api_key,
+      team_id: "2969422VU2",
+      keychain_path: "~/Library/Keychains/#{keychain_name}-db",
+      keychain_password: keychain_password
+    )
+
+    profile_name = sigh(
+      api_key: api_key,
+      app_identifier: "com.suqafuran.app",
+      team_id: "2969422VU2",
+      force: true
+    )
+
+    profile_name = lane_context[SharedValues::SIGH_NAME]
+
     increment_build_number(xcodeproj: "App.xcodeproj")
 
     build_app(
@@ -62,7 +107,15 @@ platform :ios do
       configuration: "Release",
       export_method: "app-store",
       clean: true,
-      xcargs: "-allowProvisioningUpdates"
+      xcargs: "CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=2969422VU2 CODE_SIGN_IDENTITY='Apple Distribution' PROVISIONING_PROFILE_SPECIFIER='#{profile_name}'",
+      export_options: {
+        method: "app-store",
+        teamID: "2969422VU2",
+        signingStyle: "manual",
+        provisioningProfiles: {
+          "com.suqafuran.app" => profile_name
+        }
+      }
     )
 
     upload_to_testflight(
