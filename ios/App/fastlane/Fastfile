@@ -12,17 +12,22 @@ platform :ios do
       in_house: false
     )
 
-    # Create a temporary keychain for CI environments
+    # Create a temporary keychain (CI needs this; skip if it already exists locally)
     keychain_name = "fastlane_tmp_keychain"
     keychain_password = "fastlane123"
-    create_keychain(
-      name: keychain_name,
-      password: keychain_password,
-      default_keychain: true,
-      unlock: true,
-      timeout: 3600,
-      lock_when_sleeps: false
-    )
+    begin
+      create_keychain(
+        name: keychain_name,
+        password: keychain_password,
+        default_keychain: true,
+        unlock: true,
+        timeout: 3600,
+        lock_when_sleeps: false
+      )
+    rescue => e
+      UI.message("Keychain already exists, unlocking: #{e.message}")
+      unlock_keychain(path: keychain_name, password: keychain_password)
+    end
 
     cert(
       api_key: api_key,
@@ -74,14 +79,19 @@ platform :ios do
 
     keychain_name = "fastlane_tmp_keychain"
     keychain_password = "fastlane123"
-    create_keychain(
-      name: keychain_name,
-      password: keychain_password,
-      default_keychain: true,
-      unlock: true,
-      timeout: 3600,
-      lock_when_sleeps: false
-    )
+    begin
+      create_keychain(
+        name: keychain_name,
+        password: keychain_password,
+        default_keychain: true,
+        unlock: true,
+        timeout: 3600,
+        lock_when_sleeps: false
+      )
+    rescue => e
+      UI.message("Keychain already exists, unlocking: #{e.message}")
+      unlock_keychain(path: keychain_name, password: keychain_password)
+    end
 
     cert(
       api_key: api_key,
