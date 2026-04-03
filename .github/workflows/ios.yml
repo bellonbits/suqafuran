@@ -72,5 +72,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Suqafuran.ipa
-          path: ~/Desktop/SuqafuranIPA/Suqafuran.ipa
+          path: ~/Desktop/SuqafuranIPA/*.ipa
           retention-days: 30

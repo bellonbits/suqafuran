@@ -67,7 +67,7 @@ platform :ios do
       configuration: "Release",
       export_method: "app-store",
       output_directory: "#{ENV['HOME']}/Desktop/SuqafuranIPA",
-      output_name: "Suqafuran.ipa",
+      output_name: "Suqafuran-#{Time.now.strftime('%Y%m%d-%H%M')}.ipa",
       clean: true,
       xcargs: "CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=2969422VU2 CODE_SIGN_IDENTITY='Apple Distribution' PROVISIONING_PROFILE_SPECIFIER='#{profile_name}'",
       export_options: {
