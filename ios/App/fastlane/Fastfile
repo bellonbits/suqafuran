@@ -2,57 +2,72 @@ default_platform(:ios)
 
 platform :ios do
 
+  desc "Build IPA only (no upload) — output on Desktop"
+  lane :build do
+    api_key = app_store_connect_api_key(
+      key_id: "C8V4ZN3UG9",
+      issuer_id: "13e1bb92-bfb0-43fa-804d-cc88a754587e",
+      key_filepath: "#{ENV['HOME']}/Downloads/AuthKey_C8V4ZN3UG9.p8",
+      duration: 1200,
+      in_house: false
+    )
+
+    cert(
+      api_key: api_key,
+      team_id: "2969422VU2"
+    )
+
+    sigh(
+      api_key: api_key,
+      app_identifier: "com.suqafuran.app",
+      team_id: "2969422VU2",
+      force: true
+    )
+
+    build_app(
+      scheme: "App",
+      project: "App.xcodeproj",
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: "#{ENV['HOME']}/Desktop/SuqafuranIPA",
+      output_name: "Suqafuran.ipa",
+      clean: true,
+      xcargs: "CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=2969422VU2 CODE_SIGN_IDENTITY='Apple Distribution' PROVISIONING_PROFILE_SPECIFIER='com.suqafuran.app AppStore'",
+      export_options: {
+        method: "app-store",
+        teamID: "2969422VU2",
+        signingStyle: "manual",
+        provisioningProfiles: {
+          "com.suqafuran.app" => "com.suqafuran.app AppStore"
+        }
+      }
+    )
+  end
+
   desc "Build and upload to TestFlight"
   lane :beta do
-    # Increment build number automatically
-    increment_build_number(
-      xcodeproj: "App.xcodeproj"
+    api_key = app_store_connect_api_key(
+      key_id: "C8V4ZN3UG9",
+      issuer_id: "13e1bb92-bfb0-43fa-804d-cc88a754587e",
+      key_filepath: "#{ENV['HOME']}/Downloads/AuthKey_C8V4ZN3UG9.p8",
+      duration: 1200,
+      in_house: false
     )
 
-    # Build the app
+    increment_build_number(xcodeproj: "App.xcodeproj")
+
     build_app(
       scheme: "App",
-      workspace: "App.xcworkspace",
+      project: "App.xcodeproj",
+      configuration: "Release",
       export_method: "app-store",
-      configuration: "Release"
+      clean: true,
+      xcargs: "-allowProvisioningUpdates"
     )
 
-    # Upload to TestFlight
     upload_to_testflight(
+      api_key: api_key,
       skip_waiting_for_build_processing: true
-    )
-  end
-
-  desc "Build and submit to App Store"
-  lane :release do
-    # Increment version and build number
-    increment_build_number(
-      xcodeproj: "App.xcodeproj"
-    )
-
-    # Build the app
-    build_app(
-      scheme: "App",
-      workspace: "App.xcworkspace",
-      export_method: "app-store",
-      configuration: "Release"
-    )
-
-    # Upload to App Store Connect
-    upload_to_app_store(
-      force: true,
-      reject_if_possible: true,
-      skip_screenshots: true,
-      skip_metadata: false
-    )
-  end
-
-  desc "Sync code signing certificates (readonly)"
-  lane :certificates do
-    match(
-      type: "appstore",
-      app_identifier: "com.suqafuran.app",
-      readonly: true
     )
   end
 
