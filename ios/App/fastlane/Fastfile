@@ -12,7 +12,6 @@ platform :ios do
       in_house: false
     )
 
-    # Create a temporary keychain (CI needs this; skip if it already exists locally)
     keychain_name = "fastlane_tmp_keychain"
     keychain_password = "fastlane123"
     begin
@@ -29,12 +28,27 @@ platform :ios do
       unlock_keychain(path: keychain_name, password: keychain_password)
     end
 
-    cert(
-      api_key: api_key,
-      team_id: "2969422VU2",
-      keychain_path: "~/Library/Keychains/#{keychain_name}-db",
-      keychain_password: keychain_password
-    )
+    # Import existing certificate from env (CI) or use cert action (local)
+    p12_path = "#{ENV['HOME']}/Downloads/distribution.p12"
+    if ENV['DISTRIBUTION_CERT_P12']
+      # CI: decode base64 secret into a .p12 file then import it
+      require 'base64'
+      File.write(p12_path, Base64.decode64(ENV['DISTRIBUTION_CERT_P12']))
+      import_certificate(
+        certificate_path: p12_path,
+        certificate_password: ENV['DISTRIBUTION_CERT_PASSWORD'] || "export123",
+        keychain_name: keychain_name,
+        keychain_password: keychain_password
+      )
+    else
+      # Local: use cert to find/download existing certificate
+      cert(
+        api_key: api_key,
+        team_id: "2969422VU2",
+        keychain_path: "~/Library/Keychains/#{keychain_name}-db",
+        keychain_password: keychain_password
+      )
+    end
 
     profile_path = sigh(
       api_key: api_key,

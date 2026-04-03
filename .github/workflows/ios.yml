@@ -49,6 +49,9 @@ jobs:
       - name: Build IPA
         working-directory: ios/App
         run: fastlane build
+        env:
+          DISTRIBUTION_CERT_P12: ${{ secrets.DISTRIBUTION_CERT_P12 }}
+          DISTRIBUTION_CERT_PASSWORD: ${{ secrets.DISTRIBUTION_CERT_PASSWORD }}
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
