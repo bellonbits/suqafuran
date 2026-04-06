@@ -144,6 +144,20 @@ def upload_avatar(
     return current_user
 
 
+@router.delete("/me")
+def delete_user_me(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Permanently delete the current user's account and all associated data.
+    """
+    db.delete(current_user)
+    db.commit()
+    return {"message": "Account deleted successfully"}
+
+
 @router.post("/me/change-password")
 def change_password(
     *,

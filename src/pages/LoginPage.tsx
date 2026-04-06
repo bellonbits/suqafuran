@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Mail, Lock, ArrowRight, Loader2, ShieldAlert } from 'lucide-react';
 import { z } from 'zod';
-
 import { Button } from '../components/Button';
 import { AuthInput } from '../components/AuthInput';
 import { AuthLayout } from '../components/AuthLayout';
@@ -113,11 +112,6 @@ const LoginPage: React.FC = () => {
 
     const isLocked = countdown > 0;
 
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
-    const handleSocialLogin = (provider: string) => {
-        window.location.href = `${API_BASE_URL}/auth/login/${provider}`;
-    };
-
     return (
         <AuthLayout
             title={t('auth.loginTitle')}
@@ -205,35 +199,6 @@ const LoginPage: React.FC = () => {
                     </p>
                 </div>
 
-                <div className="relative py-2">
-                    <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-200"></div>
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase tracking-widest font-bold">
-                        <span className="px-3 bg-white text-gray-400">{t('auth.orContinueWith')}</span>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full rounded-xl gap-2 h-12 bg-white border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold"
-                        onClick={() => handleSocialLogin('google')}
-                    >
-                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
-                        Google
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full rounded-xl gap-2 h-12 bg-white border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold"
-                        onClick={() => handleSocialLogin('github')}
-                    >
-                        <img src="https://cdn-icons-png.flaticon.com/512/0/747.png" alt="Github" className="w-5 h-5" />
-                        Github
-                    </Button>
-                </div>
             </form>
         </AuthLayout>
     );

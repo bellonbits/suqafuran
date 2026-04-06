@@ -50,6 +50,7 @@ const MessagesPage = lazyNamed(() => import('./pages/MessagesPage'), 'MessagesPa
 const KaalayHeedhePage = lazy(() => import('./pages/KaalayHeedhePage'));
 const PrivacyPolicyPage = lazyNamed(() => import('./pages/PrivacyPolicyPage'), 'PrivacyPolicyPage');
 const DeleteAccountPage = lazyNamed(() => import('./pages/DeleteAccountPage'), 'DeleteAccountPage');
+const SocialAuthCallback = lazyNamed(() => import('./pages/SocialAuthCallback'), 'SocialAuthCallback');
 
 // Lazy load pages - Default Exports (Admin/Agent Pages)
 const AdminCategoriesPage = lazy(() => import('./pages/admin/AdminCategoriesPage'));
@@ -100,6 +101,7 @@ const App: React.FC = () => {
             <Route path="/email-verification" element={<EmailVerificationPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/auth/callback" element={<SocialAuthCallback />} />
 
             {/* Protected Routes */}
             <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>

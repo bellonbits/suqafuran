@@ -65,7 +65,9 @@
       "Bash(git rebase:*)",
       "Bash(gh run:*)",
       "Read(//tmp/**)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(grep -E \"\\\\.\\(py|yml\\)$\")",
+      "Bash(xargs cat:*)"
     ],
     "additionalDirectories": [
       "C:\\Users\\learn\\Desktop\\suqafuran\\src",
