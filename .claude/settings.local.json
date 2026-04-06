@@ -59,7 +59,13 @@
       "Bash(ls /Users/mac/suqafuran/.env*)",
       "Bash(ls -la /Users/mac/suqafuran/.env*)",
       "Bash(ls /Users/mac/suqafuran/ios/App/*.xcworkspace)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)",
+      "Bash(git rebase:*)",
+      "Bash(gh run:*)",
+      "Read(//tmp/**)",
+      "Bash(git checkout:*)"
     ],
     "additionalDirectories": [
       "C:\\Users\\learn\\Desktop\\suqafuran\\src",

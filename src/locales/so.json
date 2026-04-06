@@ -278,7 +278,21 @@
     "noListingsDesc": "Ma heli karno wax ku haboon shaandhayntaada.",
     "postInCategory": "Qaybtan Xayeysiis Ku Geli",
     "previous": "Hore",
-    "next": "Xiga"
+    "next": "Xiga",
+    "priceRange": "Qiimaha",
+    "under10": "Ka yar $10",
+    "10_50": "$10 – $50",
+    "50_200": "$50 – $200",
+    "200_500": "$200 – $500",
+    "moreThan500": "In ka badan $500",
+    "verifiedSellers": "Gadeeyayaasha La Xaqiijiyay",
+    "showAll": "Dhammaan Muuji",
+    "unverifiedSellers": "Gadeeyayaasha Aan La Xaqiijiyay",
+    "condition": "Xaalada",
+    "applyFilters": "Shaandhaynta Codso",
+    "min": "ugu yar",
+    "max": "ugu badnaan",
+    "regionOrCity": "Gobolka ama Magaalada"
   },
   "settings": {
     "yourFullName": "Magacaaga buuxa",

@@ -21,11 +21,11 @@ interface FilterSidebarProps {
 }
 
 const PRICE_RANGES = [
-    { label: 'Under $10', min: '', max: '10' },
-    { label: '$10 – $50', min: '10', max: '50' },
-    { label: '$50 – $200', min: '50', max: '200' },
-    { label: '$200 – $500', min: '200', max: '500' },
-    { label: 'More than $500', min: '500', max: '' },
+    { label: 'category.under10', min: '', max: '10' },
+    { label: 'category.10_50', min: '10', max: '50' },
+    { label: 'category.50_200', min: '50', max: '200' },
+    { label: 'category.200_500', min: '200', max: '500' },
+    { label: 'category.moreThan500', min: '500', max: '' },
 ];
 
 const FilterSidebar: React.FC<FilterSidebarProps> = ({
@@ -127,11 +127,11 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                 <div className="px-4 py-3">
                     <label className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-2">
                         <MapPin className="h-4 w-4 text-primary-500" />
-                        Location
+                        {t('listing.location')}
                     </label>
                     <input
                         type="text"
-                        placeholder="Region or City"
+                        placeholder={t('category.regionOrCity')}
                         className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm bg-gray-50 outline-none focus:ring-1 focus:ring-primary-400"
                         value={location}
                         onChange={e => setLocation(e.target.value)}
@@ -144,7 +144,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                         onClick={() => toggleSection('price')}
                         className="w-full flex items-center justify-between px-4 py-3 font-bold text-sm text-gray-900"
                     >
-                        Price, $
+                        {t('category.priceRange')}
                         {expandedSections.price
                             ? <ChevronUp className="h-4 w-4 text-gray-400" />
                             : <ChevronDown className="h-4 w-4 text-gray-400" />}
@@ -154,7 +154,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                             <div className="flex gap-2">
                                 <input
                                     type="number"
-                                    placeholder="min"
+                                    placeholder={t('category.min')}
                                     className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-sm bg-gray-50 outline-none focus:ring-1 focus:ring-primary-400"
                                     value={minPrice}
                                     onChange={e => { setMinPrice?.(e.target.value); }}
@@ -162,7 +162,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                                 <span className="text-gray-400 self-center">–</span>
                                 <input
                                     type="number"
-                                    placeholder="max"
+                                    placeholder={t('category.max')}
                                     className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-sm bg-gray-50 outline-none focus:ring-1 focus:ring-primary-400"
                                     value={maxPrice}
                                     onChange={e => { setMaxPrice?.(e.target.value); }}
@@ -178,7 +178,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                                             checked={activePriceRange?.label === r.label}
                                             onChange={() => selectPriceRange(r)}
                                         />
-                                        <span className="text-[13px] text-gray-700">{r.label}</span>
+                                        <span className="text-[13px] text-gray-700">{t(r.label)}</span>
                                     </label>
                                 ))}
                             </div>
@@ -203,9 +203,9 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                     {expandedSections.verified && (
                         <div className="px-4 pb-3 space-y-1">
                             {[
-                                { label: 'Show all', value: '' },
-                                { label: 'Verified sellers', value: 'true' },
-                                { label: 'Unverified sellers', value: 'false' },
+                                { label: 'category.showAll', value: '' },
+                                { label: 'category.verifiedSellers', value: 'true' },
+                                { label: 'category.unverifiedSellers', value: 'false' },
                             ].map(opt => (
                                 <label key={opt.label} className="flex items-center gap-2 cursor-pointer">
                                     <input
@@ -215,7 +215,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                                         checked={(attributeFilters['verified'] ?? '') === opt.value}
                                         onChange={() => updateFilter('verified', opt.value)}
                                     />
-                                    <span className="text-[13px] text-gray-700">{opt.label}</span>
+                                    <span className="text-[13px] text-gray-700">{t(opt.label)}</span>
                                 </label>
                             ))}
                         </div>
@@ -229,7 +229,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                             onClick={() => toggleSection('condition')}
                             className="w-full flex items-center justify-between px-4 py-3 font-bold text-sm text-gray-900"
                         >
-                            Condition
+                            {t('category.condition')}
                             {expandedSections.condition
                                 ? <ChevronUp className="h-4 w-4 text-gray-400" />
                                 : <ChevronDown className="h-4 w-4 text-gray-400" />}
@@ -310,7 +310,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                         className="w-full rounded-xl h-10 font-bold bg-primary-500 hover:bg-primary-600 text-white"
                         onClick={onClose}
                     >
-                        Apply Filters
+                        {t('category.applyFilters')}
                     </Button>
                 </div>
             </div>

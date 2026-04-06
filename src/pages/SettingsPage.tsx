@@ -12,6 +12,8 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { cn } from '../utils/cn';
 import { getAvatarUrl } from '../utils/imageUtils';
+import LanguageSwitcher from '../components/LanguageSwitcher';
+import { Globe } from 'lucide-react';
 
 const SettingsPage: React.FC = () => {
     const { t } = useTranslation();
@@ -294,6 +296,24 @@ const SettingsPage: React.FC = () => {
                         <p className="text-primary-100 text-sm leading-relaxed">
                             {t('settings.staySafeDesc')}
                         </p>
+                    </div>
+
+                    {/* App Language */}
+                    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden transition-all hover:shadow-md">
+                        <div className="px-6 py-5 border-b border-gray-50 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-primary-50 rounded-xl">
+                                    <Globe className="h-4 w-4 text-primary-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-bold text-gray-900">{t('settings.language', 'App Language')}</h3>
+                                    <p className="text-xs text-gray-400">{t('settings.languageDesc', 'Choose your preferred language')}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-6">
+                            <LanguageSwitcher variant="list" />
+                        </div>
                     </div>
 
                     {/* Notifications */}

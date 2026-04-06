@@ -278,7 +278,21 @@
     "noListingsDesc": "We couldn't find any items matching your filters.",
     "postInCategory": "Post an Ad in this Category",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "priceRange": "Price, $",
+    "under10": "Under $10",
+    "10_50": "$10 – $50",
+    "50_200": "$50 – $200",
+    "200_500": "$200 – $500",
+    "moreThan500": "More than $500",
+    "verifiedSellers": "Verified sellers",
+    "showAll": "Show all",
+    "unverifiedSellers": "Unverified sellers",
+    "condition": "Condition",
+    "applyFilters": "Apply Filters",
+    "min": "min",
+    "max": "max",
+    "regionOrCity": "Region or City"
   },
   "settings": {
     "yourFullName": "Your full name",

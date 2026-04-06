@@ -282,7 +282,9 @@ const PostAdPage: React.FC = () => {
                                                                     <Icon className="h-6 w-6" />
                                                                 )}
                                                             </div>
-                                                            <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-center">{cat.name}</span>
+                                                            <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-center">
+                                                                {t(`categories.${cat.name}`, cat.name)}
+                                                            </span>
                                                         </button>
                                                     );
                                                 })
@@ -321,7 +323,7 @@ const PostAdPage: React.FC = () => {
                                                                 )}
                                                             </div>
                                                             <span className="text-sm font-semibold truncate">
-                                                                {sub.name.replace(/^\d+\s/, '')}
+                                                                {t(`categories.${sub.name}`, sub.name).replace(/^\d+\s/, '')}
                                                             </span>
                                                         </button>
                                                     ))}
