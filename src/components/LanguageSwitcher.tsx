@@ -6,13 +6,20 @@ interface Props {
   variant?: 'pill' | 'list';
   className?: string;
   showLabels?: boolean;
+  compact?: boolean; // Deprecated: use variant="pill"
+  light?: boolean;   // Deprecated: used for background contrast
 }
 
 const LanguageSwitcher: React.FC<Props> = ({ 
   variant = 'pill', 
   className,
-  showLabels = false 
+  showLabels = false,
+  compact,
+  light 
 }) => {
+  // If legacy compact prop is used, default to pill variant
+  const effectiveVariant = compact ? 'pill' : variant;
+
   const { i18n } = useTranslation();
   const currentLang = i18n.language || 'en';
 
@@ -21,13 +28,13 @@ const LanguageSwitcher: React.FC<Props> = ({
     { code: 'en', label: 'English', short: 'EN', color: '#CF101A' }
   ];
 
-  const toggleLanguage = (lang: string) => {
-    if (currentLang === lang.code) return;
-    i18n.changeLanguage(lang);
-    localStorage.setItem('suqafuran_lang', lang);
+  const toggleLanguage = (langCode: string) => {
+    if (currentLang === langCode) return;
+    i18n.changeLanguage(langCode);
+    localStorage.setItem('suqafuran_lang', langCode);
   };
 
-  if (variant === 'list') {
+  if (effectiveVariant === 'list') {
     return (
       <div className={cn("space-y-2", className)}>
         {languages.map((lang) => (
@@ -71,7 +78,8 @@ const LanguageSwitcher: React.FC<Props> = ({
   // Default 'pill' variant (used in headers)
   return (
     <div className={cn(
-      "inline-flex items-center bg-white/15 backdrop-blur-md rounded-full p-1 border border-white/20 shadow-lg",
+      "inline-flex items-center backdrop-blur-md rounded-full p-1 border shadow-lg",
+      light ? "bg-black/20 border-black/10" : "bg-white/15 border-white/20",
       className
     )}>
       {languages.map((lang) => (
@@ -83,7 +91,7 @@ const LanguageSwitcher: React.FC<Props> = ({
             "relative px-4 py-2 rounded-full text-[10px] font-black transition-all flex items-center gap-2 uppercase tracking-widest",
             currentLang === lang.code 
               ? "bg-white text-primary-600 shadow-md scale-105 z-10" 
-              : "text-white/80 hover:text-white"
+              : light ? "text-white/70 hover:text-white" : "text-gray-600 hover:text-gray-900"
           )}
         >
           <div 
