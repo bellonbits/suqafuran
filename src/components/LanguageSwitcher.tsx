@@ -78,8 +78,8 @@ const LanguageSwitcher: React.FC<Props> = ({
   // Default 'pill' variant (used in headers)
   return (
     <div className={cn(
-      "inline-flex items-center backdrop-blur-md rounded-full p-1 border shadow-lg",
-      light ? "bg-black/20 border-black/10" : "bg-white/15 border-white/20",
+      "inline-flex items-center backdrop-blur-sm rounded-full p-0.5 border shadow-md",
+      light ? "bg-black/20 border-black/10" : "bg-white/10 border-white/20",
       className
     )}>
       {languages.map((lang) => (
@@ -88,15 +88,15 @@ const LanguageSwitcher: React.FC<Props> = ({
           type="button"
           onClick={() => toggleLanguage(lang.code)}
           className={cn(
-            "relative px-4 py-2 rounded-full text-[10px] font-black transition-all flex items-center gap-2 uppercase tracking-widest",
+            "relative px-2.5 py-1 rounded-full text-[9px] font-bold transition-all flex items-center gap-1.5 uppercase tracking-wider",
             currentLang === lang.code 
-              ? "bg-white text-primary-600 shadow-md scale-105 z-10" 
+              ? "bg-white text-primary-600 shadow-sm scale-105 z-10" 
               : light ? "text-white/70 hover:text-white" : "text-gray-600 hover:text-gray-900"
           )}
         >
           <div 
             className={cn(
-              "w-1.5 h-1.5 rounded-full transition-transform",
+              "w-1 h-1 rounded-full transition-transform",
               currentLang === lang.code ? "scale-125" : "opacity-50"
             )} 
             style={{ background: lang.color }} 

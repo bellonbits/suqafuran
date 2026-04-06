@@ -194,7 +194,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                     >
                         <span className="flex items-center gap-2">
                             <ShieldCheck className="h-4 w-4 text-primary-500" />
-                            Verified sellers
+                            {t('category.verifiedSellers')}
                         </span>
                         {expandedSections.verified
                             ? <ChevronUp className="h-4 w-4 text-gray-400" />
@@ -236,15 +236,19 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                         </button>
                         {expandedSections.condition && (
                             <div className="px-4 pb-3 space-y-1">
-                                {['Brand New', 'Used', 'Refurbished'].map(cond => (
-                                    <label key={cond} className="flex items-center gap-2 cursor-pointer">
+                                {[
+                                    { label: 'conditionNew', value: 'Brand New' },
+                                    { label: 'conditionUsed', value: 'Used' },
+                                    { label: 'conditionRefurbished', value: 'Refurbished' }
+                                ].map(cond => (
+                                    <label key={cond.value} className="flex items-center gap-2 cursor-pointer">
                                         <input
                                             type="checkbox"
                                             className="rounded text-primary-500 focus:ring-primary-400 border-gray-300"
-                                            checked={attributeFilters['condition'] === cond}
-                                            onChange={e => updateFilter('condition', e.target.checked ? cond : undefined)}
+                                            checked={attributeFilters['condition'] === cond.value}
+                                            onChange={e => updateFilter('condition', e.target.checked ? cond.value : undefined)}
                                         />
-                                        <span className="text-[13px] text-gray-700">{cond}</span>
+                                        <span className="text-[13px] text-gray-700">{t(cond.label)}</span>
                                     </label>
                                 ))}
                             </div>

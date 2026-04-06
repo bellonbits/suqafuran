@@ -289,6 +289,9 @@
     "showAll": "Dhammaan Muuji",
     "unverifiedSellers": "Gadeeyayaasha Aan La Xaqiijiyay",
     "condition": "Xaalada",
+    "conditionNew": "Cusub",
+    "conditionUsed": "La Isticmaalay",
+    "conditionRefurbished": "Dib u Cusboonaysiin",
     "applyFilters": "Shaandhaynta Codso",
     "min": "ugu yar",
     "max": "ugu badnaan",
@@ -783,6 +786,10 @@
     "Photography & Video": "Sawir qaade & Muuqaal",
     "TVs": "TV-yada",
     "Beverages": "Cabbitaannada",
-    "Repair & Construction": "Dayactirka & Dhismaha"
+    "Repair & Construction": "Dayactirka & Dhismaha",
+    "Food": "Cunto",
+    "Clothing": "Dhar",
+    "Household": "Alaabta Guriga",
+    "Vehicle": "Gaari"
   }
 }

@@ -289,6 +289,9 @@
     "showAll": "Show all",
     "unverifiedSellers": "Unverified sellers",
     "condition": "Condition",
+    "conditionNew": "Brand New",
+    "conditionUsed": "Used",
+    "conditionRefurbished": "Refurbished",
     "applyFilters": "Apply Filters",
     "min": "min",
     "max": "max",
@@ -783,6 +786,10 @@
     "Photography & Video": "Photography & Video",
     "TVs": "TVs",
     "Beverages": "Beverages",
-    "Repair & Construction": "Repair & Construction"
+    "Repair & Construction": "Repair & Construction",
+    "Food": "Food",
+    "Clothing": "Clothing",
+    "Household": "Household",
+    "Vehicle": "Vehicle"
   }
 }

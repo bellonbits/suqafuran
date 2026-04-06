@@ -70,8 +70,14 @@ const LandingPage: React.FC = () => {
     const displayAds = featuredAds || [];
     const catNames = displayCategories.map(c => c.name);
     const allSubNames = displayCategories.flatMap(c => c.subcategories?.map((s: any) => s.name || s) || []);
-    const catNameMap = Object.fromEntries(catNames.map(name => [name, t(`categories.${name}`, name as any) as string]));
-    const subNameMap = Object.fromEntries(allSubNames.map(name => [name, t(`categories.${name}`, name as any) as string]));
+    
+    // Create translation maps for categories and subcategories
+    const catNameMap = Object.fromEntries(
+        catNames.map(name => [name, t(`categories.${name}`, { defaultValue: name }) as string])
+    );
+    const subNameMap = Object.fromEntries(
+        allSubNames.map(name => [name, t(`categories.${name}`, { defaultValue: name }) as string])
+    );
 
     return (
         <PublicLayout>
@@ -132,7 +138,7 @@ const LandingPage: React.FC = () => {
                                 <TrendingUp className={`h-5 w-5 ${activeCategory === null ? 'text-white' : 'text-gray-400'}`} />
                             </div>
                             <span className={`text-[10px] font-bold ${activeCategory === null ? 'text-primary-600' : 'text-gray-500'}`}>
-                                All
+                                {t('landing.allCategories')}
                             </span>
                         </button>
 
