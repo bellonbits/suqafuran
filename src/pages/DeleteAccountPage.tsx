@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { Trash2, AlertTriangle, CheckCircle, LogIn } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import api from '../services/api';
 
 export const DeleteAccountPage: React.FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { isAuthenticated, logout } = useAuthStore();
     const [confirmed, setConfirmed] = useState(false);
@@ -23,7 +25,7 @@ export const DeleteAccountPage: React.FC = () => {
             logout();
             setDeleted(true);
         } catch {
-            setError('Failed to delete account. Please try again or contact support@suqafuran.com.');
+            setError(t('settings.deleteAccountError'));
         } finally {
             setIsDeleting(false);
         }
@@ -46,10 +48,10 @@ export const DeleteAccountPage: React.FC = () => {
                     <Trash2 size={32} color="white" />
                 </div>
                 <h1 style={{ color: 'white', fontSize: 26, fontWeight: 800, margin: 0 }}>
-                    Delete Account
+                    {t('settings.deleteAccountTitle')}
                 </h1>
                 <p style={{ color: 'rgba(255,255,255,0.8)', marginTop: 10, fontSize: 14, maxWidth: 520, margin: '10px auto 0' }}>
-                    Permanently delete your Suqafuran account and all associated data.
+                    {t('settings.deleteAccountSubtitle')}
                 </p>
             </div>
 
@@ -65,10 +67,10 @@ export const DeleteAccountPage: React.FC = () => {
                     }}>
                         <CheckCircle size={48} color="#16a34a" style={{ marginBottom: 16 }} />
                         <h3 style={{ fontSize: 18, fontWeight: 700, color: '#15803d', margin: '0 0 8px' }}>
-                            Account Deleted
+                            {t('settings.deleteAccountSuccess')}
                         </h3>
                         <p style={{ fontSize: 14, color: '#166534', margin: '0 0 20px', lineHeight: 1.6 }}>
-                            Your account and all associated data have been permanently deleted.
+                            {t('settings.deleteAccountSuccessDesc')}
                         </p>
                         <button
                             onClick={() => navigate('/')}
@@ -83,7 +85,7 @@ export const DeleteAccountPage: React.FC = () => {
                                 cursor: 'pointer',
                             }}
                         >
-                            Go to Home
+                            {t('settings.deleteAccountGoHome')}
                         </button>
                     </div>
                 ) : !isAuthenticated ? (
@@ -96,10 +98,10 @@ export const DeleteAccountPage: React.FC = () => {
                     }}>
                         <LogIn size={40} color="#2563eb" style={{ marginBottom: 16 }} />
                         <h3 style={{ fontSize: 17, fontWeight: 700, color: '#1d4ed8', margin: '0 0 8px' }}>
-                            Sign in to delete your account
+                            {t('settings.deleteAccountSignInRequired')}
                         </h3>
                         <p style={{ fontSize: 14, color: '#1e40af', margin: '0 0 20px', lineHeight: 1.6 }}>
-                            You must be signed in to permanently delete your account.
+                            {t('settings.deleteAccountSignInDesc')}
                         </p>
                         <button
                             onClick={() => navigate('/login')}
@@ -114,7 +116,7 @@ export const DeleteAccountPage: React.FC = () => {
                                 cursor: 'pointer',
                             }}
                         >
-                            Sign In
+                            {t('settings.deleteAccountSignIn')}
                         </button>
                     </div>
                 ) : (
@@ -129,18 +131,12 @@ export const DeleteAccountPage: React.FC = () => {
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                                 <AlertTriangle size={18} color="#ea580c" />
-                                <strong style={{ fontSize: 15, color: '#9a3412' }}>What will be permanently deleted</strong>
+                                <strong style={{ fontSize: 15, color: '#9a3412' }}>{t('settings.deleteAccountWillDelete')}</strong>
                             </div>
                             <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                {[
-                                    'Your account profile (name, email, phone number, profile photo)',
-                                    'All listings and uploaded product images',
-                                    'Your messages and chat history',
-                                    'Saved ads and preferences',
-                                    'Notification history',
-                                ].map((item, i) => (
-                                    <li key={i} style={{ display: 'flex', gap: 8, fontSize: 14, color: '#7c2d12', lineHeight: 1.55 }}>
-                                        <span style={{ color: '#ea580c', flexShrink: 0 }}>✕</span> {item}
+                                {(['deleteAccountItem1', 'deleteAccountItem2', 'deleteAccountItem3', 'deleteAccountItem4', 'deleteAccountItem5'] as const).map((key) => (
+                                    <li key={key} style={{ display: 'flex', gap: 8, fontSize: 14, color: '#7c2d12', lineHeight: 1.55 }}>
+                                        <span style={{ color: '#ea580c', flexShrink: 0 }}>✕</span> {t(`settings.${key}`)}
                                     </li>
                                 ))}
                             </ul>
@@ -157,9 +153,10 @@ export const DeleteAccountPage: React.FC = () => {
                             color: '#166534',
                             lineHeight: 1.6,
                         }}>
-                            <strong>Data retention:</strong> Your account will be permanently deleted immediately.
-                            Some anonymised transaction logs may be retained for up to <strong>90 days</strong> for
-                            legal and fraud-prevention purposes.
+                            <strong>{t('settings.deleteAccountRetention')}</strong>{' '}
+                            {t('settings.deleteAccountRetentionDesc')}{' '}
+                            <strong>{t('settings.deleteAccountRetentionDays')}</strong>{' '}
+                            {t('settings.deleteAccountRetentionReason')}
                         </div>
 
                         {error && (
@@ -185,7 +182,9 @@ export const DeleteAccountPage: React.FC = () => {
                                     style={{ marginTop: 2, width: 16, height: 16, cursor: 'pointer' }}
                                 />
                                 <span style={{ fontSize: 14, color: '#374151', lineHeight: 1.6 }}>
-                                    I understand this action is <strong>permanent and cannot be undone</strong>. All my data will be deleted immediately.
+                                    {t('settings.deleteAccountConfirmCheck')}{' '}
+                                    <strong>{t('settings.deleteAccountConfirmBold')}</strong>
+                                    {t('settings.deleteAccountConfirmEnd')}
                                 </span>
                             </label>
 
@@ -210,7 +209,7 @@ export const DeleteAccountPage: React.FC = () => {
                                 }}
                             >
                                 <Trash2 size={18} />
-                                {isDeleting ? 'Deleting account...' : 'Permanently Delete My Account'}
+                                {isDeleting ? t('settings.deleteAccountDeleting') : t('settings.deleteAccountConfirmBtn')}
                             </button>
                         </form>
                     </>

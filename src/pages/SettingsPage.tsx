@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { useAuthStore } from '../store/useAuthStore';
 import {
     User, Mail, Phone, Lock,
     Camera, Shield, Bell, CheckCircle,
-    Loader2, XCircle, Edit3
+    Loader2, XCircle, Edit3, Trash2
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -17,6 +18,7 @@ import { Globe } from 'lucide-react';
 
 const SettingsPage: React.FC = () => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const { user, setUser } = useAuthStore();
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -279,6 +281,34 @@ const SettingsPage: React.FC = () => {
                                     onClick={() => { setError(null); setIsPasswordModalOpen(true); }}
                                 >
                                     {t('settings.changePassword')}
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Delete Account */}
+                    <div className="bg-white rounded-3xl border border-red-100 shadow-sm overflow-hidden">
+                        <div className="px-8 py-5 border-b border-red-50 flex items-center gap-3">
+                            <div className="p-2 bg-red-50 rounded-xl">
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-bold text-gray-900">{t('settings.deleteAccountTitle')}</h3>
+                                <p className="text-xs text-gray-400">{t('settings.deleteAccountSubtitle')}</p>
+                            </div>
+                        </div>
+                        <div className="p-8">
+                            <div className="flex items-center justify-between p-5 bg-red-50 rounded-2xl border border-red-100">
+                                <div>
+                                    <p className="font-bold text-sm text-red-800">{t('settings.deleteAccountDangerZone')}</p>
+                                    <p className="text-xs text-red-500 mt-0.5">{t('settings.deleteAccountDangerDesc')}</p>
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    className="rounded-xl text-sm font-semibold border-2 border-red-300 text-red-600 hover:bg-red-600 hover:text-white hover:border-red-600"
+                                    onClick={() => navigate('/delete-account')}
+                                >
+                                    {t('settings.deleteAccountBtn')}
                                 </Button>
                             </div>
                         </div>

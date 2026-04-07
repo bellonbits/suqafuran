@@ -152,7 +152,77 @@ def delete_user_me(
 ) -> Any:
     """
     Permanently delete the current user's account and all associated data.
+    Deletes in FK-safe order: child rows first, then the user row.
     """
+    from sqlmodel import select
+    from app.models.notification import Notification
+    from app.models.favorite import Favorite
+    from app.models.message import Message
+    from app.models.interaction import Interaction
+    from app.models.trust import Rating, Report
+    from app.models.verification import VerificationRequest
+    from app.models.wallet import Wallet, Transaction, Voucher
+    from app.models.listing import Listing
+    from app.models.promotion import Promotion
+
+    uid = current_user.id
+
+    # 1. Notifications
+    for row in db.exec(select(Notification).where(Notification.user_id == uid)).all():
+        db.delete(row)
+
+    # 2. Favorites
+    for row in db.exec(select(Favorite).where(Favorite.user_id == uid)).all():
+        db.delete(row)
+
+    # 3. Messages (sender or receiver)
+    for row in db.exec(select(Message).where(
+        (Message.sender_id == uid) | (Message.receiver_id == uid)
+    )).all():
+        db.delete(row)
+
+    # 4. Interactions (buyer)
+    for row in db.exec(select(Interaction).where(Interaction.buyer_id == uid)).all():
+        db.delete(row)
+
+    # 5. Trust ratings & reports
+    for row in db.exec(select(Rating).where(
+        (Rating.rater_id == uid) | (Rating.rated_user_id == uid)
+    )).all():
+        db.delete(row)
+    for row in db.exec(select(Report).where(Report.reporter_id == uid)).all():
+        db.delete(row)
+
+    # 6. Verification requests
+    for row in db.exec(select(VerificationRequest).where(VerificationRequest.user_id == uid)).all():
+        db.delete(row)
+
+    # 7. Vouchers redeemed by this user (nullify reference, keep voucher)
+    for row in db.exec(select(Voucher).where(Voucher.redeemed_by_id == uid)).all():
+        row.redeemed_by_id = None
+        db.add(row)
+
+    # 8. Wallet transactions → wallet
+    wallet = db.exec(select(Wallet).where(Wallet.user_id == uid)).first()
+    if wallet:
+        for row in db.exec(select(Transaction).where(Transaction.wallet_id == wallet.id)).all():
+            db.delete(row)
+        db.delete(wallet)
+
+    # 9. Listings and their promotions
+    listings = db.exec(select(Listing).where(Listing.owner_id == uid)).all()
+    for listing in listings:
+        for row in db.exec(select(Promotion).where(Promotion.listing_id == listing.id)).all():
+            db.delete(row)
+        for row in db.exec(select(Favorite).where(Favorite.listing_id == listing.id)).all():
+            db.delete(row)
+        for row in db.exec(select(Message).where(Message.listing_id == listing.id)).all():
+            db.delete(row)
+        for row in db.exec(select(Interaction).where(Interaction.listing_id == listing.id)).all():
+            db.delete(row)
+        db.delete(listing)
+
+    # 10. Finally delete the user
     db.delete(current_user)
     db.commit()
     return {"message": "Account deleted successfully"}
