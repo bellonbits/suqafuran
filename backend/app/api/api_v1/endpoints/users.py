@@ -155,6 +155,7 @@ def delete_user_me(
     Deletes in FK-safe order: child rows first, then the user row.
     """
     from sqlmodel import select
+    from app.models.audit import AuditLog
     from app.models.notification import Notification
     from app.models.favorite import Favorite
     from app.models.message import Message
@@ -167,7 +168,11 @@ def delete_user_me(
 
     uid = current_user.id
 
-    # 1. Notifications
+    # 1. Audit logs
+    for row in db.exec(select(AuditLog).where(AuditLog.user_id == uid)).all():
+        db.delete(row)
+
+    # 2. Notifications
     for row in db.exec(select(Notification).where(Notification.user_id == uid)).all():
         db.delete(row)
 
