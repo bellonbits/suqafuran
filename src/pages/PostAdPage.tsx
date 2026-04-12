@@ -2,13 +2,14 @@ import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { ChevronRight, ChevronLeft, Plus, X, Shield, ShieldAlert, Clock, CheckCircle2, Loader2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Plus, X, Shield, ShieldAlert, Clock, CheckCircle2, Loader2, Truck } from 'lucide-react';
 
 import { listingService } from '../services/listingService';
 import { getImageUrl } from '../utils/imageUtils';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { LocationPickerModal } from '../components/LocationPickerModal';
 import { useAuthStore } from '../store/useAuthStore';
+import api from '../services/api';
 
 
 const TITLE_MAX = 70;
@@ -21,6 +22,7 @@ interface FormValues {
     subcategoryId: number | null;
     location: string;
     images: string[];
+    youtubeLink: string;
     description: string;
     price: string;
     condition: string;
@@ -41,6 +43,7 @@ const PostAdPage: React.FC = () => {
         subcategoryId: null,
         location: '',
         images: [],
+        youtubeLink: '',
         description: '',
         price: '',
         condition: 'Used',
@@ -50,6 +53,9 @@ const PostAdPage: React.FC = () => {
         attributes: {},
     });
 
+    const [step, setStep] = useState<1 | 2>(1);
+    const [showBulkPrice, setShowBulkPrice] = useState(false);
+    const [promoPlanId, setPromoPlanId] = useState<number>(0);
     const [errors, setErrors] = useState<Record<string, string | undefined>>({});
     const [showCategoryPicker, setShowCategoryPicker] = useState(false);
     const [categorySearch, setCategorySearch] = useState('');
@@ -108,11 +114,28 @@ const PostAdPage: React.FC = () => {
         setForm(f => ({ ...f, images: f.images.filter((_, i) => i !== idx) }));
     };
 
-    const validate = () => {
+    const validateStep1 = () => {
         const e: Record<string, string> = {};
         if (!form.title || form.title.length < 10) e.title = 'Length should be greater than 10';
         if (!form.categoryId) e.categoryId = 'Please select a category';
         if (!form.location) e.location = 'Please select a location';
+        if (form.images.length < 2) e.images = 'Please upload at least 2 photos';
+        return e;
+    };
+
+    const handleNext = () => {
+        const errs = validateStep1();
+        if (Object.keys(errs).length) {
+            setErrors(errs);
+            return;
+        }
+        setErrors({});
+        setStep(2);
+        window.scrollTo(0, 0);
+    };
+
+    const validate = () => {
+        const e: Record<string, string> = validateStep1();
         if (!form.description || form.description.length < 20) e.description = 'Provide at least 20 characters';
         if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0) e.price = 'Enter a valid price';
         
@@ -138,7 +161,7 @@ const PostAdPage: React.FC = () => {
         }
         setSubmitting(true);
         try {
-            await listingService.createListing({
+            const result = await listingService.createListing({
                 title: form.title,
                 description: form.description,
                 price: Number(form.price),
@@ -150,6 +173,22 @@ const PostAdPage: React.FC = () => {
                 condition: form.condition,
                 attributes: form.attributes,
             });
+            
+            if (promoPlanId > 0 && result.id) {
+                try {
+                    await api.post('/promotions/', {
+                        listing_id: result.id,
+                        plan_id: promoPlanId,
+                        payment_phone: form.phone
+                    });
+                    setSubmitting(false);
+                    alert("M-Pesa payment prompt sent! Please check your phone (" + form.phone + ") to complete the transaction.");
+                } catch (e: any) {
+                    console.error(e);
+                    alert("Ad posted, but failed to trigger M-Pesa prompt. " + (e.response?.data?.detail || ''));
+                }
+            }
+
             setSubmitted(true);
         } catch (err: any) {
             setErrors({ title: err.response?.data?.detail || 'Failed to post ad' });
@@ -165,6 +204,7 @@ const PostAdPage: React.FC = () => {
             subcategoryId: null,
             location: '',
             images: [],
+            youtubeLink: '',
             description: '',
             price: '',
             condition: 'Used',
@@ -174,6 +214,7 @@ const PostAdPage: React.FC = () => {
             attributes: {},
         });
         setErrors({});
+        setStep(1);
     };
 
     // ── Verification gate ──────────────────────────────────────────────────────
@@ -331,392 +372,352 @@ const PostAdPage: React.FC = () => {
     }
 
     // ── Main form ──────────────────────────────────────────────────────────────
+    const renderFloatingInput = (id: string, label: string, value: any, onChange: (v: string) => void, error?: string, opts?: { type?: string, maxLength?: number }) => (
+        <div className="relative mb-4">
+            <input 
+                id={id}
+                type={opts?.type || 'text'}
+                value={value}
+                onChange={e => onChange(e.target.value)}
+                maxLength={opts?.maxLength}
+                placeholder=" "
+                className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm text-gray-900 focus:outline-none ${error ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-[#90D5FF]'}`}
+            />
+            <label htmlFor={id} className={`absolute left-2 top-0 -translate-y-1/2 bg-white px-1 text-[11px] transition-all pointer-events-none peer-placeholder-shown:top-[14px] peer-placeholder-shown:-translate-y-0 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-[11px] ${error ? 'text-red-500 peer-focus:text-red-500' : 'text-gray-500 peer-focus:text-[#90D5FF]'}`}>
+                {label}
+            </label>
+            {error && <p className="text-[11px] text-red-500 mt-1">{error}</p>}
+        </div>
+    );
+
+    const renderFloatingSelect = (id: string, label: string, value: any, onChange: (v: string) => void, options: {value: string, label: string}[], error?: string) => (
+        <div className="relative mb-4">
+            <select 
+                id={id}
+                value={value || ""}
+                onChange={e => onChange(e.target.value)}
+                required
+                className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm focus:outline-none appearance-none ${error ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-[#90D5FF]'} ${!value ? 'text-transparent' : 'text-gray-900'}`}
+            >
+                <option value="" disabled hidden> </option>
+                {options.map(opt => <option key={opt.value} value={opt.value} className="text-gray-900">{opt.label}</option>)}
+            </select>
+            <label htmlFor={id} className={`absolute left-2 top-0 -translate-y-1/2 bg-white px-1 text-[11px] transition-all pointer-events-none peer-valid:top-0 peer-valid:-translate-y-1/2 peer-valid:text-[11px] peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-[11px] ${!value ? 'top-[14px] -translate-y-0 text-sm' : ''} ${error ? 'text-red-500 peer-focus:text-red-500' : 'text-gray-500 peer-focus:text-[#90D5FF]'}`}>
+                {label}
+            </label>
+            <ChevronRight className="absolute right-3 top-[14px] h-4 w-4 text-gray-400 pointer-events-none" />
+            {error && <p className="text-[11px] text-red-500 mt-1">This field is required.</p>}
+        </div>
+    );
+
     return (
-        <div style={{ maxWidth: 640, margin: '0 auto', paddingBottom: 60 }}>
-            {/* Page header */}
-            <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '16px', background: '#fff',
-                borderBottom: '1px solid #e5e7eb', marginBottom: 12,
-            }}>
-                <span style={{ fontWeight: 700, fontSize: 17, color: '#111827' }}>Post ad</span>
-                <button
-                    type="button"
-                    onClick={handleClear}
-                    style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 15 }}
-                >
+        <div className="min-h-screen bg-[#f4f6f8] pb-12 pt-4 px-3 w-full">
+            {/* Header Toolbar Card */}
+            <div className="bg-white rounded-md shadow-sm p-4 mb-4 max-w-2xl mx-auto relative flex items-center justify-center border-b-[1.5px] border-gray-200/60">
+                {step === 2 ? (
+                    <button type="button" onClick={() => { setStep(1); window.scrollTo(0,0); }} className="absolute left-2 top-1/2 -translate-y-1/2 text-[#90D5FF] font-bold flex items-center text-[13px] gap-1 hover:bg-sky-50 px-2 py-1.5 rounded-md z-10 transition-colors">
+                        <ChevronLeft size={16} /> Back
+                    </button>
+                ) : (
+                    <div className="absolute left-2 w-16" />
+                )}
+                
+                <span className="font-bold text-gray-900 text-[15px]">Post ad</span>
+                
+                <button type="button" onClick={handleClear} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#FF3B30] font-bold text-[13px] hover:bg-red-50 px-2 py-1.5 rounded-md z-10 transition-colors tracking-wide">
                     Clear
                 </button>
             </div>
 
-            <form onSubmit={handleSubmit} noValidate>
-                <div style={{ background: '#fff', borderRadius: 12, margin: '0 0 12px', padding: '20px 16px' }}>
+            <form onSubmit={step === 1 ? (e => e.preventDefault()) : handleSubmit} noValidate className="max-w-2xl mx-auto">
+                
+                {/* ── STEP 1: Basic Information ────────────────────────── */}
+                <div style={{ display: step === 1 ? 'block' : 'none' }}>
+                    <div className="bg-white rounded-md shadow-sm border-[1.5px] border-gray-200/60 p-5 mb-5">
+                        
+                        {renderFloatingInput('title', 'Title*', form.title, v => set('title', v), errors.title, { maxLength: TITLE_MAX })}
 
-                    {/* Title */}
-                    <div style={{ marginBottom: 14, position: 'relative' }} data-error={!!errors.title || undefined}>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
-                            <span style={{ fontSize: 12, color: '#9ca3af' }}>{form.title.length} / {TITLE_MAX}</span>
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Title*"
-                            maxLength={TITLE_MAX}
-                            value={form.title}
-                            onChange={e => set('title', e.target.value)}
-                            style={{
-                                width: '100%', padding: '12px 14px',
-                                border: `1.5px solid ${errors.title ? '#ef4444' : '#d1d5db'}`,
-                                borderRadius: 10, fontSize: 16, outline: 'none', boxSizing: 'border-box',
-                                transition: 'border-color 0.15s',
-                            }}
-                            onFocus={e => { e.currentTarget.style.borderColor = errors.title ? '#ef4444' : '#90D5FF'; }}
-                            onBlur={e => { e.currentTarget.style.borderColor = errors.title ? '#ef4444' : '#d1d5db'; }}
-                        />
-                        {errors.title && (
-                            <p style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.title}</p>
-                        )}
-                    </div>
-
-                    {/* Category */}
-                    <div style={{ marginBottom: 14 }} data-error={!!errors.categoryId || undefined}>
-                        <button
-                            type="button"
-                            onClick={() => setShowCategoryPicker(true)}
-                            style={{
-                                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                padding: '13px 14px',
-                                border: `1.5px solid ${errors.categoryId ? '#ef4444' : '#d1d5db'}`,
-                                borderRadius: 10, background: '#fff', cursor: 'pointer',
-                                fontSize: 16, color: selectedCategory ? '#111827' : '#9ca3af',
-                                boxSizing: 'border-box',
-                            }}
-                        >
-                            <span>{selectedCategory ? t(`categories.${selectedCategory.name}`, selectedCategory.name) : 'Category*'}</span>
-                            <ChevronRight size={18} color="#9ca3af" />
-                        </button>
-                        {errors.categoryId && (
-                            <p style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.categoryId as string}</p>
-                        )}
-                    </div>
-
-                    {/* Subcategory (if available) */}
-                    {selectedCategory?.subcategories && selectedCategory.subcategories.length > 0 && (
-                        <div style={{ marginBottom: 14 }}>
-                            <select
-                                value={form.subcategoryId ?? ''}
-                                onChange={e => {
-                                    setForm(f => ({ ...f, subcategoryId: e.target.value ? Number(e.target.value) : null, attributes: {} }));
-                                    setErrors({});
-                                }}
-                                style={{
-                                    width: '100%', padding: '13px 14px',
-                                    border: '1.5px solid #d1d5db', borderRadius: 10,
-                                    fontSize: 16, background: '#fff', color: form.subcategoryId ? '#111827' : '#9ca3af',
-                                    appearance: 'none', outline: 'none', boxSizing: 'border-box',
-                                }}
-                            >
-                                <option value="">Subcategory (optional)</option>
-                                {selectedCategory.subcategories.map((sub: any) => (
-                                    <option key={sub.id} value={sub.id}>
-                                        {String(t(`categories.${sub.name}`, sub.name))}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
-
-                    {/* Dynamic Fields */}
-                    {dynamicSchema.length > 0 && (
-                        <div style={{ marginTop: 4, marginBottom: 14 }}>
-                            {dynamicSchema.filter(f => f.name !== 'condition').map(field => {
-                                const errKey = `attr_${field.name}` as any;
-                                const fieldError = errors[errKey];
-                                return (
-                                    <div key={field.name} style={{ marginBottom: 14 }} data-error={!!fieldError || undefined}>
-                                        {field.type === 'select' ? (
-                                            <select
-                                                value={form.attributes[field.name] || ''}
-                                                onChange={e => setAttribute(field.name, e.target.value)}
-                                                style={{
-                                                    width: '100%', padding: '13px 14px',
-                                                    border: `1.5px solid ${fieldError ? '#ef4444' : '#d1d5db'}`, borderRadius: 10,
-                                                    fontSize: 16, background: '#fff', color: form.attributes[field.name] ? '#111827' : '#9ca3af',
-                                                    appearance: 'none', outline: 'none', boxSizing: 'border-box',
-                                                }}
-                                            >
-                                                <option value="">{field.label}{field.required ? '*' : ' (optional)'}</option>
-                                                {(field.options || []).map((opt: string) => (
-                                                    <option key={opt} value={opt}>{opt}</option>
-                                                ))}
-                                            </select>
-                                        ) : (
-                                            <input
-                                                type={field.type === 'number' ? 'number' : 'text'}
-                                                placeholder={`${field.label}${field.required ? '*' : ' (optional)'}`}
-                                                value={form.attributes[field.name] || ''}
-                                                onChange={e => setAttribute(field.name, e.target.value)}
-                                                style={{
-                                                    width: '100%', padding: '13px 14px',
-                                                    border: `1.5px solid ${fieldError ? '#ef4444' : '#d1d5db'}`, borderRadius: 10,
-                                                    fontSize: 16, outline: 'none', boxSizing: 'border-box', background: '#fff'
-                                                }}
-                                                onFocus={e => { e.currentTarget.style.borderColor = fieldError ? '#ef4444' : '#90D5FF'; }}
-                                                onBlur={e => { e.currentTarget.style.borderColor = fieldError ? '#ef4444' : '#d1d5db'; }}
-                                            />
-                                        )}
-                                        {fieldError && <p style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{fieldError}</p>}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-
-                    {/* Location */}
-                    <div style={{ marginBottom: 14 }} data-error={!!errors.location || undefined}>
-                        <button
-                            type="button"
-                            onClick={() => setIsLocationOpen(true)}
-                            style={{
-                                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                padding: '13px 14px',
-                                border: `1.5px solid ${errors.location ? '#ef4444' : '#d1d5db'}`,
-                                borderRadius: 10, background: '#fff', cursor: 'pointer',
-                                fontSize: 16, color: form.location ? '#111827' : '#9ca3af',
-                                boxSizing: 'border-box',
-                            }}
-                        >
-                            <span>{form.location || 'Select Location*'}</span>
-                            <ChevronRight size={18} color="#9ca3af" />
-                        </button>
-                        {errors.location && (
-                            <p style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.location}</p>
-                        )}
-                    </div>
-
-                    {/* Add photo */}
-                    <div style={{ marginBottom: 8 }}>
-                        <p style={{ fontWeight: 600, fontSize: 15, marginBottom: 6, color: '#111827' }}>Add photo</p>
-                        <p style={{ fontSize: 13, color: '#90D5FF', marginBottom: 10 }}>
-                            First picture is the title picture. You can change the order by drag &amp; drop.
-                        </p>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 8 }}>
-                            {/* Upload button */}
+                        {/* Category Chooser */}
+                        <div className="relative mb-4">
                             <button
                                 type="button"
-                                onClick={() => fileInputRef.current?.click()}
-                                disabled={uploading}
-                                style={{
-                                    width: 72, height: 72, border: '2px dashed #90D5FF', borderRadius: 10,
-                                    background: '#f4fbff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    cursor: uploading ? 'not-allowed' : 'pointer', flexShrink: 0,
-                                }}
+                                onClick={() => setShowCategoryPicker(true)}
+                                className={`flex w-full items-center justify-between rounded-md border bg-transparent px-3 py-[13px] text-sm focus:outline-none appearance-none transition-colors ${errors.categoryId ? 'border-red-500' : 'border-gray-300 hover:border-gray-400'}`}
                             >
-                                {uploading
-                                    ? <Loader2 size={22} color="#90D5FF" style={{ animation: 'spin 1s linear infinite' }} />
-                                    : <Plus size={26} color="#90D5FF" />
-                                }
+                                <span className={selectedCategory ? 'text-gray-900 font-medium' : 'text-transparent'}>{selectedCategory ? t(`categories.${selectedCategory.name}`, selectedCategory.name) : ' '}</span>
+                                <ChevronRight className="h-4 w-4 text-gray-400" />
                             </button>
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/jpeg,image/png"
-                                multiple
-                                style={{ display: 'none' }}
-                                onChange={e => handleImageUpload(e.target.files)}
-                            />
-
-                            {/* Uploaded images */}
-                            {form.images.map((url, i) => (
-                                <div key={i} style={{ position: 'relative', width: 72, height: 72, flexShrink: 0 }}>
-                                    <img
-                                        src={getImageUrl(url)}
-                                        alt={`Photo ${i + 1}`}
-                                        style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 10, border: '1px solid #e5e7eb' }}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => removeImage(i)}
-                                        style={{
-                                            position: 'absolute', top: -6, right: -6,
-                                            background: '#ef4444', border: 'none', borderRadius: '50%', width: 20, height: 20,
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0,
-                                        }}
-                                    >
-                                        <X size={12} color="#fff" />
-                                    </button>
-                                    {i === 0 && (
-                                        <span style={{
-                                            position: 'absolute', bottom: 0, left: 0, right: 0,
-                                            background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: 9, fontWeight: 600,
-                                            textAlign: 'center', padding: '2px 0', borderRadius: '0 0 10px 10px',
-                                        }}>TITLE</span>
-                                    )}
-                                </div>
-                            ))}
+                            <label className={`absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-[11px] pointer-events-none transition-all ${!selectedCategory ? 'top-[22px] -translate-y-1/2 text-[14px]' : 'font-medium'} ${errors.categoryId ? 'text-red-500' : 'text-gray-500'}`}>
+                                Category*
+                            </label>
+                            {errors.categoryId && <p className="text-[11px] text-red-500 mt-1 pl-1">{errors.categoryId}</p>}
                         </div>
-                        <p style={{ fontSize: 12, color: '#9ca3af' }}>Supported formats are * .jpg and * .png</p>
-                    </div>
-                </div>
 
-                {/* Details section */}
-                <div style={{ background: '#fff', borderRadius: 12, margin: '0 0 12px', padding: '20px 16px' }}>
-
-                    {/* Description */}
-                    <div style={{ marginBottom: 14 }} data-error={!!errors.description || undefined}>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
-                            <span style={{ fontSize: 12, color: '#9ca3af' }}>{form.description.length} / 850</span>
+                        {/* Location Chooser */}
+                        <div className="relative mb-4">
+                            <button
+                                type="button"
+                                onClick={() => setIsLocationOpen(true)}
+                                className={`flex w-full items-center justify-between rounded-md border bg-transparent px-3 py-[13px] text-sm focus:outline-none appearance-none transition-colors ${errors.location ? 'border-red-500' : 'border-gray-300 hover:border-gray-400'}`}
+                            >
+                                <span className={form.location ? 'text-gray-900 font-medium' : 'text-transparent'}>{form.location || ' '}</span>
+                                <ChevronRight className="h-4 w-4 text-gray-400" />
+                            </button>
+                            <label className={`absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-[11px] pointer-events-none transition-all ${!form.location ? 'top-[22px] -translate-y-1/2 text-[14px]' : 'font-medium'} ${errors.location ? 'text-red-500' : 'text-gray-500'}`}>
+                                Select Location*
+                            </label>
+                            {errors.location && <p className="text-[11px] text-red-500 mt-1 pl-1">{errors.location}</p>}
                         </div>
-                        <textarea
-                            placeholder="Description*"
-                            maxLength={850}
-                            rows={5}
-                            value={form.description}
-                            onChange={e => set('description', e.target.value)}
-                            style={{
-                                width: '100%', padding: '12px 14px', resize: 'vertical',
-                                border: `1.5px solid ${errors.description ? '#ef4444' : '#d1d5db'}`,
-                                borderRadius: 10, fontSize: 16, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
-                            }}
-                            onFocus={e => { e.currentTarget.style.borderColor = errors.description ? '#ef4444' : '#90D5FF'; }}
-                            onBlur={e => { e.currentTarget.style.borderColor = errors.description ? '#ef4444' : '#d1d5db'; }}
-                        />
-                        {errors.description && (
-                            <p style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.description}</p>
-                        )}
-                    </div>
 
-                    {/* Condition */}
-                    <div style={{ marginBottom: 14 }}>
-                        <select
-                            value={form.condition}
-                            onChange={e => set('condition', e.target.value)}
-                            style={{
-                                width: '100%', padding: '13px 14px',
-                                border: '1.5px solid #d1d5db', borderRadius: 10,
-                                fontSize: 16, background: '#fff', color: '#111827',
-                                appearance: 'none', outline: 'none', boxSizing: 'border-box',
-                            }}
-                        >
-                            <option value="New">New</option>
-                            <option value="Used">Used</option>
-                            <option value="Refurbished">Refurbished</option>
-                        </select>
-                    </div>
-
-                    {/* Price */}
-                    <div style={{ marginBottom: 14 }} data-error={!!errors.price || undefined}>
-                        <div style={{
-                            display: 'flex', alignItems: 'center',
-                            border: `1.5px solid ${errors.price ? '#ef4444' : '#d1d5db'}`,
-                            borderRadius: 10, overflow: 'hidden',
-                        }}>
-                            <span style={{
-                                padding: '13px 14px', background: '#f9fafb',
-                                borderRight: '1px solid #e5e7eb', color: '#374151', fontWeight: 600, fontSize: 15, whiteSpace: 'nowrap',
-                            }}>USD</span>
-                            <input
-                                type="number"
-                                placeholder="Price*"
-                                value={form.price}
-                                onChange={e => set('price', e.target.value)}
-                                min="0"
-                                style={{
-                                    flex: 1, padding: '13px 14px', border: 'none', fontSize: 16,
-                                    outline: 'none', background: '#fff', boxSizing: 'border-box',
-                                }}
-                            />
+                        {/* Photos section */}
+                        <div className="mt-8 mb-6">
+                            <h3 className="font-bold text-gray-900 text-[15px] mb-2">Add at least 2 photos</h3>
+                            <p className="text-[13px] leading-snug mb-4 pl-0.5">
+                                <span className="text-[#90D5FF] font-bold">First picture is the title picture.</span> <span className="text-gray-500 font-medium">You can change the order of photos: just grab your photos and drag</span>
+                            </p>
+                            <div className="flex flex-wrap gap-2 mb-2">
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={uploading}
+                                    className="w-[72px] h-[72px] rounded-md bg-[#eef8ff] flex items-center justify-center cursor-pointer transition-colors hover:bg-sky-100 flex-shrink-0"
+                                >
+                                    {uploading ? <Loader2 className="w-6 h-6 text-[#90D5FF] animate-spin" /> : <Plus strokeWidth={2.5} className="w-6 h-6 text-[#90D5FF]" />}
+                                </button>
+                                <input ref={fileInputRef} type="file" accept="image/jpeg,image/png" multiple className="hidden" onChange={e => handleImageUpload(e.target.files)} />
+                                
+                                {form.images.map((url, i) => (
+                                    <div key={i} className="relative w-[72px] h-[72px] flex-shrink-0">
+                                        <img src={getImageUrl(url)} alt="" className="w-full h-full object-cover rounded-md border border-gray-200" />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeImage(i)}
+                                            className="absolute -top-1.5 -right-1.5 bg-red-500 w-5 h-5 rounded-full flex items-center justify-center shadow-md pb-[1px]"
+                                        >
+                                            <X size={12} fill="white" color="white" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                            <span className="text-[13px] text-gray-500 font-medium tracking-tight mt-1 inline-block pl-0.5">Supported formats are *.jpg and *.png</span>
+                            {errors.images && <p className="text-[11px] text-red-500 mt-1 font-medium">{errors.images}</p>}
                         </div>
-                        {errors.price && (
-                            <p style={{ color: '#ef4444', fontSize: 12, marginTop: 4 }}>{errors.price}</p>
-                        )}
-                    </div>
 
-                    {/* Negotiable */}
-                    <div style={{ marginBottom: 4 }}>
-                        <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 10, color: '#374151' }}>
-                            Are you open to negotiation?
-                        </p>
-                        <div style={{ display: 'flex', gap: 20 }}>
-                            {(['yes', 'no', 'not_sure'] as Negotiable[]).map(val => (
-                                <label key={val} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 14, color: '#374151' }}>
-                                    <input
-                                        type="radio"
-                                        name="negotiable"
-                                        value={val}
-                                        checked={form.negotiable === val}
-                                        onChange={() => set('negotiable', val)}
-                                        style={{ accentColor: '#90D5FF', width: 16, height: 16 }}
-                                    />
-                                    {val === 'yes' ? 'Yes' : val === 'no' ? 'No' : 'Not sure'}
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Contact section */}
-                <div style={{ background: '#fff', borderRadius: 12, margin: '0 0 12px', padding: '20px 16px' }}>
-                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                        <div style={{ flex: 1, minWidth: 140 }}>
-                            <label style={{ display: 'block', fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>Your phone number</label>
-                            <input
-                                type="tel"
-                                value={form.phone}
-                                onChange={e => set('phone', e.target.value)}
-                                placeholder="Phone number"
-                                style={{
-                                    width: '100%', padding: '12px 14px', border: '1.5px solid #d1d5db',
-                                    borderRadius: 10, fontSize: 16, outline: 'none', boxSizing: 'border-box',
-                                }}
-                                onFocus={e => { e.currentTarget.style.borderColor = '#90D5FF'; }}
-                                onBlur={e => { e.currentTarget.style.borderColor = '#d1d5db'; }}
-                            />
-                        </div>
-                        <div style={{ flex: 1, minWidth: 140 }}>
-                            <label style={{ display: 'block', fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>Name</label>
+                        {/* YouTube */}
+                        <div className="mb-8 relative">
                             <input
                                 type="text"
-                                value={form.name}
-                                onChange={e => set('name', e.target.value)}
-                                placeholder="Your name"
-                                style={{
-                                    width: '100%', padding: '12px 14px', border: '1.5px solid #d1d5db',
-                                    borderRadius: 10, fontSize: 16, outline: 'none', boxSizing: 'border-box',
-                                }}
-                                onFocus={e => { e.currentTarget.style.borderColor = '#90D5FF'; }}
-                                onBlur={e => { e.currentTarget.style.borderColor = '#d1d5db'; }}
+                                value={form.youtubeLink}
+                                onChange={e => set('youtubeLink', e.target.value)}
+                                placeholder="Link to Youtube or Facebook video"
+                                className="block w-full rounded-md border border-gray-300 bg-transparent px-4 py-[13px] text-[15px] font-medium text-gray-900 focus:outline-none focus:border-[#90D5FF] placeholder:text-gray-500 placeholder:font-normal"
                             />
                         </div>
+
+                        <button type="button" onClick={handleNext} className="mt-2 w-full bg-[#90D5FF] hover:bg-sky-600 active:scale-[0.98] text-white font-bold text-[15px] py-3.5 rounded-md transition-all flex items-center justify-center shadow-sm">
+                            Next
+                        </button>
                     </div>
                 </div>
 
-                {/* Submit button */}
-                <div style={{ padding: '0 0 8px' }}>
-                    <button
-                        type="submit"
-                        disabled={submitting}
-                        style={{
-                            width: '100%', padding: '15px', background: submitting ? '#c1ebff' : '#90D5FF',
-                            color: '#fff', border: 'none', borderRadius: 10,
-                            fontSize: 16, fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                        }}
-                    >
-                        {submitting && <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />}
-                        {submitting ? 'Posting...' : 'Post ad'}
-                    </button>
-                    <p style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af', marginTop: 10, lineHeight: 1.5 }}>
-                        By clicking on Post Ad, you accept the Terms of Use, confirm that you will abide by the Safety Tips, and declare that this posting does not include any Prohibited Items.
-                    </p>
+                {/* ── STEP 2: Extended Details ──────────────────────────── */}
+                <div style={{ display: step === 2 ? 'block' : 'none' }}>
+                    
+                    {/* CARD 1: Core Details */}
+                    <div className="bg-white rounded-md shadow-sm border border-gray-200 p-5 mb-5">
+                        {/* Subcategory */}
+                        {selectedCategory?.subcategories && selectedCategory.subcategories.length > 0 && 
+                            renderFloatingSelect('subcategory', 'Subcategory', form.subcategoryId?.toString() || "", v => {
+                                setForm(f => ({ ...f, subcategoryId: Number(v), attributes: {} })); setErrors({});
+                            }, selectedCategory.subcategories.map((s:any) => ({value: s.id.toString(), label: t(`categories.${s.name}`, s.name)})), undefined)
+                        }
+
+                        {/* Dynamic Schema Grid */}
+                        {dynamicSchema.length > 0 && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+                                {dynamicSchema.map(field => {
+                                    const errKey = `attr_${field.name}` as any;
+                                    if (field.name === 'condition') return null;
+                                    if (field.type === 'select') {
+                                        return renderFloatingSelect(field.name, `${field.label}${field.required ? '*' : ''}`, form.attributes[field.name], v => setAttribute(field.name, v), (field.options||[]).map((o:string)=>({value: o, label: o})), errors[errKey]);
+                                    }
+                                    return renderFloatingInput(field.name, `${field.label}${field.required ? '*' : ''}`, form.attributes[field.name] || '', v => setAttribute(field.name, v), errors[errKey], { type: field.type === 'number' ? 'number' : 'text' });
+                                })}
+                            </div>
+                        )}
+
+                        {/* Condition (Static Select Fallback) */}
+                        {renderFloatingSelect('condition', 'Condition*', form.condition, v => set('condition', v), [
+                            {value: 'New', label: 'New'}, {value: 'Used', label: 'Used'}, {value: 'Refurbished', label: 'Refurbished'}
+                        ])}
+
+                        {/* Description Textarea */}
+                        <div className="relative mb-6 mt-4">
+                            <textarea 
+                                id="description"
+                                value={form.description}
+                                onChange={e => set('description', e.target.value)}
+                                maxLength={850}
+                                rows={4}
+                                placeholder=" "
+                                className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm text-gray-900 focus:outline-none resize-y ${errors.description ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-[#90D5FF]'}`}
+                            />
+                            <label htmlFor="description" className={`absolute left-2 top-0 -translate-y-1/2 bg-white px-1 text-[11px] transition-all pointer-events-none peer-placeholder-shown:top-[14px] peer-placeholder-shown:-translate-y-0 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-[11px] font-medium ${errors.description ? 'text-red-500 peer-focus:text-red-500' : 'text-gray-500 peer-focus:text-[#90D5FF]'}`}>
+                                Description*
+                            </label>
+                            <div className="flex justify-end mt-1">
+                                <span className="text-[10px] text-gray-400">{form.description.length} / 850</span>
+                            </div>
+                            {errors.description && <p className="text-[11px] text-red-500 -mt-3">{errors.description}</p>}
+                        </div>
+
+                        {/* Price Input */}
+                        <div className="flex justify-center mb-4">
+                            <div className="w-full sm:w-2/3">
+                                <div className={`relative flex border rounded-md overflow-visible bg-white transition-colors outline-none focus-within:border-[#90D5FF] ${errors.price ? 'border-red-500' : 'border-gray-300'}`}>
+                                    <div className="absolute left-2 top-0 -translate-y-1/2 bg-white px-1 text-[11px] text-gray-500 font-medium pointer-events-none z-10 hidden sm:block">
+                                        Price*
+                                    </div>
+                                    <span className="bg-gray-50 border-r border-gray-300 px-4 py-3 text-sm text-gray-700 font-bold whitespace-nowrap rounded-l-md">KSh</span>
+                                    <input
+                                        type="number"
+                                        value={form.price}
+                                        onChange={e => set('price', e.target.value)}
+                                        placeholder="Price*"
+                                        className="flex-1 w-full px-3 py-3 text-sm bg-transparent outline-none text-gray-900 font-medium peer sm:placeholder-transparent"
+                                    />
+                                </div>
+                                {errors.price && <p className="text-[11px] text-red-500 mt-1 pl-1">{errors.price}</p>}
+                            </div>
+                        </div>
+
+                        {/* Bulk Price */}
+                        <div className="flex justify-center mb-6">
+                            <div className="w-full sm:w-2/3">
+                                {!showBulkPrice ? (
+                                    <button type="button" onClick={() => setShowBulkPrice(true)} className="w-full border border-gray-200 rounded-md p-3 flex justify-between items-center bg-gray-50 opacity-60 hover:opacity-100 transition-opacity">
+                                        <span className="text-sm text-gray-500 font-medium">Add bulk price</span>
+                                        <ChevronRight size={16} className="text-gray-400" />
+                                    </button>
+                                ) : (
+                                    <div className="bg-gray-50 border border-gray-200 rounded-md p-4 transition-all pb-0">
+                                        <div className="flex justify-between items-center mb-3">
+                                            <span className="text-[14px] font-bold text-gray-900">Bulk Pricing</span>
+                                            <button type="button" onClick={() => { setShowBulkPrice(false); setAttribute('bulk_quantity', undefined); setAttribute('bulk_price', undefined); }} className="text-gray-400 hover:text-red-500 transition-colors"><X size={18} /></button>
+                                        </div>
+                                        <div className="flex flex-col sm:flex-row gap-4 mb-2">
+                                            <div className="flex-1">
+                                                {renderFloatingInput('bulk_quantity', 'Minimum Quantity', form.attributes.bulk_quantity || '', v => setAttribute('bulk_quantity', v), undefined, {type: 'number'})}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="relative mb-4 flex border rounded-md overflow-hidden bg-white focus-within:border-[#90D5FF] border-gray-300">
+                                                    <span className="bg-gray-50 border-r border-gray-300 px-3 py-3 text-sm text-gray-700 font-bold">KSh</span>
+                                                    <input type="number" placeholder="Bulk Price" value={form.attributes.bulk_price || ''} onChange={e => setAttribute('bulk_price', e.target.value)} className="w-full px-3 py-3 text-sm bg-transparent outline-none text-gray-900" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Negotiable Options */}
+                        <div className="mb-6 flex justify-center">
+                            <div className="w-full sm:w-2/3">
+                                <p className="text-[13px] font-bold text-gray-900 mb-2">Are you open to negotiation?</p>
+                                <div className="flex gap-6">
+                                    {(['yes', 'no', 'not_sure'] as const).map(val => (
+                                        <label key={val} className="flex items-center gap-2 cursor-pointer text-sm text-gray-800">
+                                            <input
+                                                type="radio"
+                                                name="negotiable"
+                                                value={val}
+                                                checked={form.negotiable === val}
+                                                onChange={() => set('negotiable', val)}
+                                                className="w-4 h-4 text-[#90D5FF] focus:ring-[#90D5FF] border-gray-300 accent-[#90D5FF]"
+                                            />
+                                            {val === 'yes' ? 'Yes' : val === 'no' ? 'No' : 'Not sure'}
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Personal Details */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
+                            {renderFloatingInput('phone', 'Your phone number*', form.phone, v => set('phone', v), errors.phone, { type: 'tel' })}
+                            {renderFloatingInput('name', 'Name*', form.name, v => set('name', v), errors.name)}
+                        </div>
+
+                    </div>
+
+                    {/* CARD 2: Delivery placeholder */}
+                    <div className="bg-white rounded-md shadow-sm border border-gray-200 p-5 mb-5 flex flex-col items-center">
+                        <h3 className="font-bold text-[15px] mb-3 flex items-center gap-2 text-gray-900 w-full sm:w-2/3 px-1">
+                            <Truck size={18} className="text-gray-800" /> Delivery
+                        </h3>
+                        <div className="w-full sm:w-2/3 border border-gray-300 rounded-md p-3 text-sm text-[#90D5FF] flex justify-between items-center cursor-pointer hover:bg-sky-50 transition-colors">
+                            <span className="font-medium">Add delivery options</span>
+                            <ChevronRight size={18} className="text-gray-400" />
+                        </div>
+                    </div>
+
+                    {/* CARD 3: Promote */}
+                    <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6 mb-5 flex flex-col items-center">
+                        <div className="w-full sm:w-4/5 flex flex-col">
+                            <h3 className="font-bold text-[19px] mb-1 text-gray-900">Promote your ad</h3>
+                            <p className="text-[13px] text-[#90D5FF] mb-6 font-medium">Choose a promotion type for your ad to post it</p>
+
+                            <label className={`border border-gray-200 rounded-md p-4 mb-4 flex justify-between items-center cursor-pointer transition-colors ${promoPlanId === 0 ? 'bg-sky-50/40 border-[#90D5FF] shadow-sm' : 'hover:bg-gray-50'}`}>
+                                <div className="flex items-center gap-3">
+                                    <input type="radio" name="promo" checked={promoPlanId === 0} onChange={() => setPromoPlanId(0)} className="w-4 h-4 text-[#90D5FF] focus:ring-[#90D5FF] accent-[#90D5FF]" />
+                                    <span className="font-bold text-[15px] text-gray-900">No promo</span>
+                                </div>
+                                <span className="text-gray-400 text-sm font-medium">free</span>
+                            </label>
+
+                            <label className={`border border-gray-200 rounded-md p-4 mb-4 flex justify-between items-center cursor-pointer transition-colors ${promoPlanId === 1 ? 'bg-sky-50/40 border-[#90D5FF] shadow-sm' : 'hover:bg-gray-50'}`}>
+                                <div className="flex items-center gap-3">
+                                    <input type="radio" name="promo" checked={promoPlanId === 1} onChange={() => setPromoPlanId(1)} className="w-4 h-4 text-[#90D5FF] focus:ring-[#90D5FF] accent-[#90D5FF]" />
+                                    <div>
+                                        <span className="font-bold text-[15px] block mb-2 text-gray-900">TOP promo</span>
+                                        <div className="flex gap-2">
+                                            <span className="bg-[#eef8ff] text-[#90D5FF] px-3 py-1 rounded-full text-[11px] font-bold">7 days</span>
+                                            <span className="bg-white border border-sky-300 text-[#90D5FF] px-3 py-1 rounded-full text-[11px] font-bold shadow-sm">30 days</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span className="font-bold text-gray-900">KSh 455</span>
+                            </label>
+
+                            <label className={`border border-gray-200 rounded-md p-4 mb-6 flex justify-between items-center cursor-pointer transition-colors ${promoPlanId === 2 ? 'bg-sky-50/40 border-[#90D5FF] shadow-sm' : 'hover:bg-gray-50'}`}>
+                                <div className="flex items-center gap-3">
+                                    <input type="radio" name="promo" checked={promoPlanId === 2} onChange={() => setPromoPlanId(2)} className="w-4 h-4 text-[#90D5FF] focus:ring-[#90D5FF] accent-[#90D5FF]" />
+                                    <div>
+                                        <span className="font-bold text-[15px] block mb-2 text-gray-900">Boost Premium promo</span>
+                                        <span className="bg-[#eef8ff] text-[#90D5FF] px-3 py-1 rounded-full text-[11px] font-bold">1 month</span>
+                                    </div>
+                                </div>
+                                <span className="font-bold text-gray-900">KSh 2,449</span>
+                            </label>
+
+                            <button
+                                type="submit"
+                                disabled={submitting}
+                                className="w-full bg-[#90D5FF] hover:bg-sky-600 active:scale-[0.98] text-white font-bold text-[17px] py-3.5 rounded-md transition-all flex items-center justify-center gap-2 shadow-sm"
+                            >
+                                {submitting && <Loader2 size={20} className="animate-spin" />}
+                                Post ad
+                            </button>
+                            
+                            <p className="text-[10px] text-gray-500 mt-5 leading-relaxed text-center px-4">
+                                By clicking on Post Ad, you accept the <a href="#" className="text-[#90D5FF] hover:underline">Terms of Use</a>, confirm that you will abide by the Safety Tips, and declare that this posting does not include any Prohibited Items.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </form>
 
-            {/* CSS for spinner */}
-            <style>{`
-                @keyframes spin { to { transform: rotate(360deg); } }
-            `}</style>
-
-            {/* Location modal */}
             <LocationPickerModal
                 isOpen={isLocationOpen}
                 onClose={() => setIsLocationOpen(false)}

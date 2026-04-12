@@ -8,6 +8,13 @@ color_field = {"name": "color", "label": "Color", "type": "text", "required": Fa
 brand_field = {"name": "brand", "label": "Brand", "type": "text", "required": False}
 qty_field = {"name": "quantity", "label": "Quantity available", "type": "number", "required": False}
 
+food_fields = [
+    brand_field,
+    {"name": "type", "label": "Type", "type": "text", "required": True},
+    {"name": "specialty", "label": "Specialty", "type": "text", "required": False},
+    {"name": "dietary_needs", "label": "Dietary Needs", "type": "text", "required": False}
+]
+
 SCHEMAS = {
     # == VEHICLES ==
     "cars": [
@@ -79,16 +86,16 @@ SCHEMAS = {
     "short-stay": [{"name": "rental_period", "label": "Rental Period", "type": "select", "options": ["Daily", "Weekly"], "required": True}, {"name": "furnished", "label": "Furnished", "type": "select", "options": ["Yes", "No"], "required": True}],
 
     # == FOOD & GROCERIES ==
-    "vegetables": [qty_field],
-    "fruits": [qty_field],
-    "rice-pasta": [qty_field, brand_field],
-    "meat": [{"name": "weight", "label": "Weight (kg)", "type": "number", "required": False}],
-    "seafood": [qty_field],
-    "milk-dairy": [qty_field],
-    "eggs": [{"name": "tray_count", "label": "Number of Trays", "type": "number", "required": False}],
-    "prepared-foods": [qty_field],
-    "spices-condiments": [qty_field],
-    "beverages": [qty_field, brand_field],
+    "vegetables": food_fields,
+    "fruits": food_fields,
+    "rice-pasta": food_fields,
+    "meat": food_fields,
+    "seafood": food_fields,
+    "milk-dairy": food_fields,
+    "eggs": food_fields,
+    "prepared-foods": food_fields,
+    "spices-condiments": food_fields,
+    "beverages": food_fields,
 
     # == CLOTHING & SHOES ==
     "mens-clothing": [size_field, color_field, brand_field],
@@ -121,18 +128,18 @@ SCHEMAS = {
     "market-gardens": [{"name": "plot_size", "label": "Plot Size (sqm)", "type": "number", "required": True}],
 
     # == SERVICES ==
-    "building-construction": [],
-    "computer-it": [],
-    "cleaning-services": [],
-    "repair-services": [],
-    "printing-services": [],
-    "legal-financial": [],
-    "travel-tourism": [],
-    "education-training": [],
-    "beauty-wellness": [],
-    "photography-video": [],
-    "healthcare": [],
-    "other-services": [],
+    "building-construction": [{"name": "service_type", "label": "Service Level", "type": "text"}],
+    "computer-it": [{"name": "service_type", "label": "Service Level", "type": "text"}],
+    "cleaning-services": [{"name": "service_type", "label": "Service Level", "type": "text"}],
+    "repair-services": [{"name": "service_type", "label": "Service Level", "type": "text"}],
+    "printing-services": [{"name": "service_type", "label": "Service Level", "type": "text"}],
+    "legal-financial": [{"name": "service_type", "label": "Service Level", "type": "text"}],
+    "travel-tourism": [{"name": "service_type", "label": "Service Level", "type": "text"}],
+    "education-training": [{"name": "service_type", "label": "Service Level", "type": "text"}],
+    "beauty-wellness": [{"name": "service_type", "label": "Service Level", "type": "text"}],
+    "photography-video": [{"name": "service_type", "label": "Service Level", "type": "text"}],
+    "healthcare": [{"name": "service_type", "label": "Service Level", "type": "text"}],
+    "other-services": [{"name": "service_type", "label": "Service Level", "type": "text"}],
 
     # == JOBS ==
     "tech-it": [{"name": "job_type", "label": "Job Type", "type": "select", "options": ["Full-time", "Part-time", "Contract", "Internship"], "required": True}, {"name": "experience", "label": "Experience Level", "type": "select", "options": ["Entry Level", "Mid Level", "Senior Level"], "required": True}],
@@ -161,7 +168,7 @@ SCHEMAS = {
     "toys-games": [basic_condition, {"name": "age_group", "label": "Age Group", "type": "select", "options": ["0-2 years", "3-5 years", "6-9 years", "10+ years"], "required": False}],
     "kids-clothing": [size_field, color_field],
     "baby-gear": [basic_condition, brand_field],
-    "baby-food": [brand_field, {"name": "expiration", "label": "Expiration Date", "type": "text", "required": False}],
+    "baby-food": food_fields,
     "kids-education": [basic_condition],
 
     # == LEISURE & SPORTS ==

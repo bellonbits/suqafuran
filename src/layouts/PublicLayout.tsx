@@ -89,44 +89,37 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                         <div className="flex items-center gap-1 ml-auto shrink-0">
                             <LanguageSwitcher compact />
 
-                            <Link to="/favorites" className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors">
-                                <Heart className="h-5 w-5" />
-                                <span className="text-[10px] font-medium">{t('nav.saved')}</span>
+                            <Link to="/favorites" className="flex items-center justify-center w-9 h-9 rounded-full bg-white text-gray-700 hover:bg-gray-100 transition-colors shadow-sm" title={t('nav.saved')}>
+                                <Heart className="h-4 w-4" strokeWidth={2.5} />
                             </Link>
-                            <Link to="/messages" className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors">
-                                <MessageSquare className="h-5 w-5" />
-                                <span className="text-[10px] font-medium">{t('nav.messages')}</span>
+                            <Link to="/messages" className="flex items-center justify-center w-9 h-9 rounded-full bg-white text-gray-700 hover:bg-gray-100 transition-colors shadow-sm" title={t('nav.messages')}>
+                                <MessageSquare className="h-4 w-4" strokeWidth={2.5} />
                             </Link>
-                            <Link to="/notifications" className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors">
-                                <Bell className="h-5 w-5" />
-                                <span className="text-[10px] font-medium">{t('nav.alerts')}</span>
+                            <Link to="/notifications" className="flex items-center justify-center w-9 h-9 rounded-full bg-white text-gray-700 hover:bg-gray-100 transition-colors shadow-sm" title={t('nav.alerts')}>
+                                <Bell className="h-4 w-4" strokeWidth={2.5} />
                             </Link>
-                            <Link to="/boost" className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors">
-                                <Zap className="h-5 w-5" />
-                                <span className="text-[10px] font-medium">{t('nav.boost')}</span>
+                            <Link to="/boost" className="flex items-center justify-center w-9 h-9 rounded-full bg-white text-gray-700 hover:bg-gray-100 transition-colors shadow-sm" title={t('nav.boost')}>
+                                <Zap className="h-4 w-4" strokeWidth={2.5} />
                             </Link>
 
                             {isAuthenticated ? (
-                                <Link to="/dashboard" className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors">
-                                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-xs overflow-hidden">
+                                <Link to="/dashboard" className="flex items-center justify-center w-9 h-9 rounded-full bg-white text-primary-600 hover:bg-gray-100 transition-colors shadow-sm border border-white" title={t('nav.profile')}>
+                                    <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center font-bold text-xs">
                                         {getAvatarUrl(user?.avatar_url) ? (
                                             <img src={getAvatarUrl(user?.avatar_url)!} alt={user?.full_name || 'U'} className="w-full h-full object-cover" />
                                         ) : (
                                             <span>{user?.full_name?.[0]?.toUpperCase() || 'U'}</span>
                                         )}
                                     </div>
-                                    <span className="text-[10px] font-medium">{t('nav.profile')}</span>
                                 </Link>
                             ) : (
-                                <Link to="/login" className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors">
-                                    <User className="h-5 w-5" />
-                                    <span className="text-[10px] font-medium">{t('nav.signIn')}</span>
+                                <Link to="/login" className="flex items-center justify-center w-9 h-9 rounded-full bg-white text-gray-700 hover:bg-gray-100 transition-colors shadow-sm" title={t('nav.signIn')}>
+                                    <User className="h-4 w-4" strokeWidth={2.5} />
                                 </Link>
                             )}
 
                             <Link to="/post-ad"
-                                className="ml-2 flex items-center gap-2 bg-secondary-500 hover:bg-secondary-600 active:scale-95 text-white font-bold text-sm px-5 h-10 rounded-lg transition-all shadow-sm shrink-0">
-                                <Plus className="h-4 w-4" strokeWidth={3} />
+                                className="ml-3 flex items-center justify-center gap-1.5 bg-[#fb923c] hover:bg-[#f97316] text-white font-bold text-[13px] tracking-wide uppercase px-6 h-9 rounded-md transition-colors shadow-sm shrink-0">
                                 {t('nav.sell')}
                             </Link>
                         </div>
