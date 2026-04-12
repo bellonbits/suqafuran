@@ -30,7 +30,7 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
         href === '/' ? path === '/' : path.startsWith(href);
 
     return (
-        <div className="min-h-screen flex flex-col bg-gray-50">
+        <div className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden relative">
 
             {/* ── MOBILE HEADER ── */}
             <header
@@ -40,18 +40,20 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                     boxShadow: '0 1px 12px rgba(0,0,0,0.06)',
                 }}
             >
-                <div className="px-3 h-14 flex items-center gap-2">
+                <div className="px-3 h-14 flex items-center justify-between gap-1.5 w-full">
                     <Link to="/" className="shrink-0">
                         <Logo size="sm" />
                     </Link>
                     <Link
                         to="/search"
-                        className="flex-1 min-w-0 flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-2xl px-3 h-9"
+                        className="flex-1 min-w-0 flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-2xl px-2 h-9"
                     >
                         <Search className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-                        <span className="text-[13px] text-gray-400 truncate">{t('nav.search')}</span>
+                        <span className="text-[12px] text-gray-400 truncate">{t('nav.search')}</span>
                     </Link>
-                    <LanguageSwitcher compact light />
+                    <div className="shrink-0">
+                        <LanguageSwitcher compact light />
+                    </div>
                     <Link to="/notifications" className="relative p-2 shrink-0 text-gray-500">
                         <Bell className="h-5 w-5" />
                     </Link>

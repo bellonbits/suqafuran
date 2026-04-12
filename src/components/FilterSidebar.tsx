@@ -132,7 +132,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                     <input
                         type="text"
                         placeholder={t('category.regionOrCity')}
-                        className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm bg-gray-50 outline-none focus:ring-1 focus:ring-primary-400"
+                        className="w-full px-3 py-2 rounded-xl border border-gray-200 text-[16px] lg:text-sm bg-gray-50 outline-none focus:ring-1 focus:ring-primary-400"
                         value={location}
                         onChange={e => setLocation(e.target.value)}
                     />
@@ -155,7 +155,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                                 <input
                                     type="number"
                                     placeholder={t('category.min')}
-                                    className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-sm bg-gray-50 outline-none focus:ring-1 focus:ring-primary-400"
+                                    className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-[16px] lg:text-sm bg-gray-50 outline-none focus:ring-1 focus:ring-primary-400"
                                     value={minPrice}
                                     onChange={e => { setMinPrice?.(e.target.value); }}
                                 />
@@ -163,7 +163,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                                 <input
                                     type="number"
                                     placeholder={t('category.max')}
-                                    className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-sm bg-gray-50 outline-none focus:ring-1 focus:ring-primary-400"
+                                    className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-[16px] lg:text-sm bg-gray-50 outline-none focus:ring-1 focus:ring-primary-400"
                                     value={maxPrice}
                                     onChange={e => { setMaxPrice?.(e.target.value); }}
                                 />
@@ -297,7 +297,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                                                 <input
                                                     type="text"
                                                     placeholder={attr.placeholder || `Search ${attr.label}`}
-                                                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm bg-gray-50 outline-none focus:ring-1 focus:ring-primary-400"
+                                                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-[16px] lg:text-sm bg-gray-50 outline-none focus:ring-1 focus:ring-primary-400"
                                                     value={attributeFilters[key] || ''}
                                                     onChange={e => updateFilter(key, e.target.value)}
                                                 />

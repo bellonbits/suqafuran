@@ -84,7 +84,7 @@ const LandingPage: React.FC = () => {
             {/* ═══════════════════════════════════════════════
                 MOBILE LAYOUT
             ═══════════════════════════════════════════════ */}
-            <div className="lg:hidden" style={{ background: '#f4f7fa' }}>
+            <div className="lg:hidden w-full overflow-x-hidden" style={{ background: '#f4f7fa' }}>
 
                 {/* ── Hero banner ── */}
                 <div
@@ -95,16 +95,15 @@ const LandingPage: React.FC = () => {
                     <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
                     <div className="absolute top-4 -left-8  w-24 h-24 rounded-full bg-white/08 pointer-events-none" />
 
-                    <h1 className="text-white text-[22px] font-extrabold mb-4 leading-tight tracking-tight relative z-10">
+                    <h1 className="text-white text-[22px] font-extrabold mb-4 leading-tight tracking-tight relative z-10 break-words">
                         {t('landing.heroTitle')}
                     </h1>
 
                     {/* Search row */}
-                    <div className="flex gap-2 relative z-10">
+                    <div className="flex flex-wrap items-center gap-2 relative z-10">
                         <button
                             onClick={() => setLocationOpen(true)}
-                            className="flex items-center gap-1.5 bg-white/95 rounded-2xl px-3 h-11 shadow-md text-gray-700 font-semibold active:scale-98 transition-transform shrink-0"
-                            style={{ minWidth: 120 }}
+                            className="flex items-center gap-1.5 bg-white/95 rounded-2xl px-3 h-11 shadow-md text-gray-700 font-semibold active:scale-98 transition-transform shrink-0 max-w-[140px]"
                         >
                             <MapPin className="h-3.5 w-3.5 text-primary-500 shrink-0" />
                             <span className="truncate flex-1 text-left text-xs font-semibold">
@@ -114,7 +113,7 @@ const LandingPage: React.FC = () => {
                         </button>
                         <button
                             onClick={() => navigate('/search')}
-                            className="flex-1 min-w-0 flex items-center gap-2 bg-white/95 rounded-2xl px-4 h-11 shadow-md text-gray-400 active:scale-98 transition-transform"
+                            className="flex-1 min-w-[120px] flex items-center gap-2 bg-white/95 rounded-2xl px-4 h-11 shadow-md text-gray-400 active:scale-98 transition-transform"
                         >
                             <Search className="h-4 w-4 shrink-0 text-primary-400" />
                             <span className="text-sm truncate">{t('nav.search')}</span>

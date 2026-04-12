@@ -339,7 +339,7 @@ const PostAdPage: React.FC = () => {
                                     <div className="space-y-2 mt-4">
                                         <label className="text-sm font-medium text-gray-700">{t('listing.description')}</label>
                                         <textarea
-                                            className="w-full min-h-[150px] p-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+                                            className="w-full min-h-[150px] p-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none transition-all text-[16px]"
                                             placeholder={t('listing.descriptionPlaceholder')}
                                             value={values.description}
                                             onChange={(e) => setFieldValue('description', e.target.value)}
@@ -369,8 +369,8 @@ const PostAdPage: React.FC = () => {
                                                         <div key={attr.name}>
                                                             <label className="text-sm font-medium text-gray-700 mb-2 block">{attr.label} {attr.required && '*'}</label>
                                                             {attr.type === 'select' ? (
-                                                                <select
-                                                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none transition-all bg-white"
+                                                                 <select
+                                                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none transition-all bg-white text-[16px]"
                                                                     value={values.attributes[attr.name] || ''}
                                                                     onChange={(e) => setFieldValue(`attributes.${attr.name}`, e.target.value)}
                                                                     required={attr.required}
@@ -383,7 +383,7 @@ const PostAdPage: React.FC = () => {
                                                             ) : (
                                                                 <input
                                                                     type={attr.type}
-                                                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+                                                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none transition-all text-[16px]"
                                                                     placeholder={attr.placeholder}
                                                                     value={values.attributes[attr.name] || ''}
                                                                     onChange={(e) => setFieldValue(`attributes.${attr.name}`, attr.type === 'number' ? Number(e.target.value) : e.target.value)}
@@ -410,7 +410,7 @@ const PostAdPage: React.FC = () => {
                                             <label className="text-sm font-medium text-gray-700 mb-2 block">{t('common.currency')}</label>
                                             <select
                                                 name="currency"
-                                                className="w-full h-12 px-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none transition-all bg-white"
+                                                className="w-full h-12 px-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none transition-all bg-white text-[16px]"
                                                 value={values.currency}
                                                 onChange={(e) => setFieldValue('currency', e.target.value)}
                                             >

@@ -62,8 +62,8 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
                 </div>
             </div>
 
-            <div className="flex-1 flex flex-col justify-start lg:justify-center items-center px-6 lg:px-20 py-12 lg:py-6 relative bg-white lg:ml-[50%]">
-                <div className="w-full max-w-[440px] space-y-6 pb-6">
+            <div className="flex-1 flex flex-col justify-start lg:justify-center items-center px-6 lg:px-20 py-12 lg:py-6 relative bg-white lg:ml-[50%] w-full overflow-x-hidden">
+                <div className="w-full max-w-[440px] space-y-6 pb-6 mx-auto">
                     {/* Mobile top bar — back button + logo */}
                     <div className="lg:hidden flex items-center justify-between mb-4">
                         <Link
