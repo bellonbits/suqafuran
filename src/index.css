@@ -26,31 +26,21 @@ html, body {
 }
 
 @theme {
-  --color-primary-50: #f0f7fb;
-  --color-primary-100: #e0f0f7;
-  --color-primary-200: #bae0f0;
-  --color-primary-300: #7dcce9;
-  --color-primary-400: #7dcce9;
-  --color-primary-500: #7dcce9;
-  --color-primary-600: #6ab8d5;
-  --color-primary-700: #57a1bc;
-  --color-primary-800: #498aa2;
-  --color-primary-900: #3a7185;
-  --color-primary-950: #295465;
+  /* ── Primary: #90D5FF ── */
+  --color-primary-50:  #f4fbff;
+  --color-primary-100: #e3f5ff;
+  --color-primary-200: #c1ebff;
+  --color-primary-300: #a0dfff;
+  --color-primary-400: #9cdbfa;
+  --color-primary-500: #90D5FF;
+  --color-primary-600: #5bb3ea;
+  --color-primary-700: #3c93cc;
+  --color-primary-800: #2b77a9;
+  --color-primary-900: #26638b;
+  --color-primary-950: #1a4160;
 
-  --color-blue-50: #f0f7fb;
-  --color-blue-100: #e0f0f7;
-  --color-blue-200: #bae0f0;
-  --color-blue-300: #7dcce9;
-  --color-blue-400: #7dcce9;
-  --color-blue-500: #7dcce9;
-  --color-blue-600: #6ab8d5;
-  --color-blue-700: #57a1bc;
-  --color-blue-800: #498aa2;
-  --color-blue-900: #3a7185;
-  --color-blue-950: #295465;
-
-  --color-secondary-50: #fef8ee;
+  /* ── Secondary: Warm Orange ── */
+  --color-secondary-50:  #fef8ee;
   --color-secondary-100: #feefd8;
   --color-secondary-200: #fcdcad;
   --color-secondary-300: #f9c277;
@@ -144,7 +134,7 @@ body {
 
 /* ── Gradient text ── */
 .gradient-text {
-  background: linear-gradient(135deg, #0ea5e9, #7dcce9);
+  background: linear-gradient(135deg, #5bb3ea, #90D5FF);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

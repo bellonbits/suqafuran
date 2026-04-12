@@ -203,28 +203,28 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     )}
                 </nav>
 
-                <div className="mt-auto shrink-0 p-4 border-t border-gray-50 space-y-4 bg-white min-h-[140px]">
+                {/* ── Sidebar Footer — always pinned at the bottom ── */}
+                <div className="shrink-0 p-4 border-t border-gray-100 bg-white space-y-1">
                     {/* Mobile Language Selection */}
-                    <div className="md:hidden space-y-2 px-1">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">{t('dashboard.language', 'App Language')}</p>
+                    <div className="md:hidden mb-3 px-1">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1 mb-1">{t('dashboard.language', 'App Language')}</p>
                         <LanguageSwitcher variant="list" />
                     </div>
 
-                    <div className="space-y-2">
-                        <Link to="/post-ad">
-                            <Button className="w-full rounded-xl gap-2 font-bold shadow-md shadow-primary-100">
-                                <PlusCircle className="h-5 w-5" />
-                                {t('listing.postAd')}
-                            </Button>
-                        </Link>
-                        <button
-                            onClick={logout}
-                            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-bold text-red-600 hover:bg-red-50 transition-all text-left active:scale-95"
-                        >
-                            <LogOut className="h-5 w-5" />
-                            {t('auth.logout')}
-                        </button>
-                    </div>
+                    <Link to="/post-ad" className="block">
+                        <Button className="w-full rounded-xl gap-2 font-bold shadow-sm">
+                            <PlusCircle className="h-5 w-5" />
+                            {t('listing.postAd')}
+                        </Button>
+                    </Link>
+
+                    <button
+                        onClick={logout}
+                        className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50 transition-all text-left active:scale-95"
+                    >
+                        <LogOut className="h-5 w-5" />
+                        {t('auth.logout')}
+                    </button>
                 </div>
             </aside>
 

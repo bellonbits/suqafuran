@@ -187,8 +187,8 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                             <div
                                 className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center"
                                 style={{
-                                    background: 'linear-gradient(145deg, #7dcce9 0%, #4aafc8 100%)',
-                                    boxShadow: '0 6px 20px rgba(125,204,233,0.5), 0 2px 6px rgba(0,0,0,0.1)',
+                                    background: 'linear-gradient(145deg, #90D5FF 0%, #5bb3ea 100%)',
+                                    boxShadow: '0 6px 20px rgba(144,213,255,0.5), 0 2px 6px rgba(0,0,0,0.1)',
                                 }}
                             >
                                 <Plus className="h-6 w-6 text-white" strokeWidth={2.8} />

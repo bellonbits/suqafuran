@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 
 const SLIDES = [
   {
-    gradient: 'linear-gradient(160deg, #7dcce9 0%, #4aafc8 60%, #2d8fab 100%)',
+    gradient: 'linear-gradient(160deg, #90D5FF 0%, #4aafc8 60%, #2d8fab 100%)',
     pattern: '#5ab8d6',
     title: 'Discover Great\nDeals Near You',
     subtitle: 'Browse thousands of listings — electronics, fashion, cars, furniture, and more.',
   },
   {
-    gradient: 'linear-gradient(160deg, #1e3a4a 0%, #2d5a70 60%, #7dcce9 100%)',
+    gradient: 'linear-gradient(160deg, #1e3a4a 0%, #2d5a70 60%, #90D5FF 100%)',
     pattern: '#2d5a70',
     title: 'Sell Anything\nIn Minutes',
     subtitle: 'Post an ad in under 2 minutes. Upload photos, set your price, get buyers.',
@@ -146,8 +146,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onDone }) =>
             <>
               {/* Discovery / listings */}
               <rect x="52" y="72" width="80" height="80" rx="12" fill="rgba(255,255,255,0.9)" />
-              <rect x="60" y="80" width="64" height="44" rx="8" fill="#7dcce9" opacity="0.5" />
-              <circle cx="92" cy="102" r="16" fill="#7dcce9" opacity="0.8" />
+              <rect x="60" y="80" width="64" height="44" rx="8" fill="#90D5FF" opacity="0.5" />
+              <circle cx="92" cy="102" r="16" fill="#90D5FF" opacity="0.8" />
               <circle cx="92" cy="102" r="9" fill="white" opacity="0.9" />
               <rect x="60" y="132" width="40" height="5" rx="2.5" fill="#64748b" opacity="0.5" />
               <rect x="60" y="141" width="28" height="4" rx="2" fill="#f57e20" opacity="0.7" />
@@ -157,7 +157,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onDone }) =>
               <circle cx="188" cy="102" r="16" fill="#f57e20" opacity="0.6" />
               <circle cx="188" cy="102" r="9" fill="white" opacity="0.9" />
               <rect x="156" y="132" width="40" height="5" rx="2.5" fill="#64748b" opacity="0.5" />
-              <rect x="156" y="141" width="32" height="4" rx="2" fill="#7dcce9" opacity="0.7" />
+              <rect x="156" y="141" width="32" height="4" rx="2" fill="#90D5FF" opacity="0.7" />
 
               {/* Search bar */}
               <rect x="52" y="168" width="176" height="32" rx="16" fill="rgba(255,255,255,0.9)" />
@@ -171,10 +171,10 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onDone }) =>
             <>
               {/* Sell / camera */}
               <rect x="72" y="68" width="136" height="110" rx="16" fill="rgba(255,255,255,0.9)" />
-              <rect x="84" y="80" width="112" height="60" rx="10" fill="#7dcce9" opacity="0.25" />
+              <rect x="84" y="80" width="112" height="60" rx="10" fill="#90D5FF" opacity="0.25" />
               <circle cx="140" cy="110" r="24" fill="rgba(125,204,233,0.4)" />
               <circle cx="140" cy="110" r="16" fill="white" opacity="0.9" />
-              <circle cx="140" cy="110" r="10" fill="#7dcce9" opacity="0.7" />
+              <circle cx="140" cy="110" r="10" fill="#90D5FF" opacity="0.7" />
               <rect x="84" y="150" width="60" height="6" rx="3" fill="#e2e8f0" />
               <rect x="84" y="160" width="40" height="5" rx="2.5" fill="#e2e8f0" />
 
@@ -192,8 +192,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onDone }) =>
             <>
               {/* Trust / shield */}
               <path d="M140 66 L190 88 L190 126 Q190 160 140 180 Q90 160 90 126 L90 88 Z" fill="rgba(255,255,255,0.9)" />
-              <path d="M140 80 L174 96 L174 122 Q174 148 140 164 Q106 148 106 122 L106 96 Z" fill="#7dcce9" opacity="0.35" />
-              <path d="M124 126 L134 136 L158 110" stroke="#7dcce9" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M140 80 L174 96 L174 122 Q174 148 140 164 Q106 148 106 122 L106 96 Z" fill="#90D5FF" opacity="0.35" />
+              <path d="M124 126 L134 136 L158 110" stroke="#90D5FF" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
 
               {/* Star badge */}
               <circle cx="196" cy="80" r="20" fill="#f57e20" />
