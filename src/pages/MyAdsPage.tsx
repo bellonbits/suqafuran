@@ -101,7 +101,7 @@ const MyAdsPage: React.FC = () => {
                                 <div className="flex items-center gap-2 mb-1">
                                     <span className={cn(
                                         "text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded",
-                                        ad.status === 'active' ? "bg-green-50 text-green-600" : "bg-yellow-50 text-yellow-600"
+                                        ad.status === 'active' ? "bg-primary-50 text-primary-600" : "bg-yellow-50 text-yellow-600"
                                     )}>{ad.status}</span>
                                     <span className="text-xs text-gray-400">• {t('myads.postedRecently')}</span>
                                 </div>
@@ -174,7 +174,7 @@ const MyAdsPage: React.FC = () => {
                                 <div className="text-right">
                                     <p className="text-xs text-gray-400">{t('myads.totalViews')}</p>
                                     <p className="text-3xl font-bold text-white">{realStats?.views || '0'}</p>
-                                    <p className="text-[10px] text-green-400 mt-1 uppercase font-bold">{t('myads.thisWeek')}</p>
+                                    <p className="text-[10px] text-primary-400 mt-1 uppercase font-bold">{t('myads.thisWeek')}</p>
                                 </div>
                             </div>
                         </div>

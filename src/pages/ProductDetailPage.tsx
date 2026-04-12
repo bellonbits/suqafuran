@@ -673,7 +673,7 @@ const ProductDetailPage: React.FC = () => {
                                                 <div className="flex-1 min-w-0">
                                                     <p className="font-bold text-sm text-gray-900 group-hover:text-primary-600 transition-colors truncate">{ad.owner?.full_name || 'Seller'}</p>
                                                     {ad.owner?.is_verified ? (
-                                                        <div className="flex items-center gap-1 mt-0.5 text-green-600">
+                                                        <div className="flex items-center gap-1 mt-0.5 text-primary-600">
                                                             <ShieldCheck className="h-3.5 w-3.5" />
                                                             <span className="text-[11px] font-bold">{t('listing.verified')}</span>
                                                         </div>
@@ -697,7 +697,7 @@ const ProductDetailPage: React.FC = () => {
                                                         setShowPhone(true);
                                                         try { await interactionService.logInteraction(ad.id, InteractionType.CALL); } catch {}
                                                     }}
-                                                    className="w-full h-11 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors">
+                                                    className="w-full h-11 rounded-xl bg-[#90D5FF] hover:bg-[#80c5ef] text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors">
                                                     <Phone className="h-4 w-4" />
                                                     {showPhone ? (ad.owner?.phone || 'N/A') : t('listing.showContact')}
                                                 </button>
@@ -712,7 +712,7 @@ const ProductDetailPage: React.FC = () => {
                                                 {/* WhatsApp */}
                                                 <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
                                                     onClick={async () => { try { await interactionService.logInteraction(ad.id, InteractionType.WHATSAPP); } catch {} }}
-                                                    className="w-full h-10 rounded-xl border border-gray-200 text-gray-500 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-green-50 hover:border-green-300 hover:text-green-600 transition-colors">
+                                                    className="w-full h-10 rounded-xl border border-gray-200 text-gray-500 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-primary-50 hover:border-primary-300 hover:text-primary-600 transition-colors">
                                                     {WA_ICON} WhatsApp
                                                 </a>
 

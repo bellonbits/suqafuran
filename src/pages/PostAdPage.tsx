@@ -9,6 +9,7 @@ import { getImageUrl } from '../utils/imageUtils';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { LocationPickerModal } from '../components/LocationPickerModal';
 import { useAuthStore } from '../store/useAuthStore';
+import { cn } from '../utils/cn';
 import api from '../services/api';
 
 
@@ -413,20 +414,43 @@ const PostAdPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-[#f4f6f8] pb-12 pt-4 px-3 w-full">
             {/* Header Toolbar Card */}
-            <div className="bg-white rounded-md shadow-sm p-4 mb-4 max-w-2xl mx-auto relative flex items-center justify-center border-b-[1.5px] border-gray-200/60">
-                {step === 2 ? (
-                    <button type="button" onClick={() => { setStep(1); window.scrollTo(0,0); }} className="absolute left-2 top-1/2 -translate-y-1/2 text-[#90D5FF] font-bold flex items-center text-[13px] gap-1 hover:bg-sky-50 px-2 py-1.5 rounded-md z-10 transition-colors">
-                        <ChevronLeft size={16} /> Back
+            <div className="bg-white rounded-md shadow-sm p-4 mb-4 max-w-2xl mx-auto relative flex flex-col items-center border-b-[1.5px] border-gray-200/60">
+                <div className="w-full flex items-center justify-between mb-2">
+                    {step === 2 ? (
+                        <button type="button" onClick={() => { setStep(1); window.scrollTo(0,0); }} className="text-[#90D5FF] font-bold flex items-center text-[13px] gap-1 hover:bg-sky-50 px-2 py-1.5 rounded-md transition-colors">
+                            <ChevronLeft size={16} /> Back
+                        </button>
+                    ) : (
+                        <div className="w-16" />
+                    )}
+                    
+                    <span className="font-bold text-gray-900 text-[16px]">Post ad</span>
+                    
+                    <button type="button" onClick={handleClear} className="text-[#FF3B30] font-bold text-[13px] hover:bg-red-50 px-2 py-1.5 rounded-md transition-colors tracking-wide">
+                        Clear
                     </button>
-                ) : (
-                    <div className="absolute left-2 w-16" />
-                )}
-                
-                <span className="font-bold text-gray-900 text-[15px]">Post ad</span>
-                
-                <button type="button" onClick={handleClear} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#FF3B30] font-bold text-[13px] hover:bg-red-50 px-2 py-1.5 rounded-md z-10 transition-colors tracking-wide">
-                    Clear
-                </button>
+                </div>
+
+                {/* Step Indicators */}
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                        <div className={cn(
+                            "w-6 h-6 rounded-full flex items-center justify-center text-[12px] font-bold border-2 transition-all",
+                            step === 1 ? "bg-white border-[#90D5FF] text-[#90D5FF] shadow-sm" : "bg-gray-100 border-gray-100 text-gray-400"
+                        )}>1</div>
+                        <span className={cn("text-[12px] font-bold transition-colors", step === 1 ? "text-gray-900" : "text-gray-400")}>Basic info</span>
+                    </div>
+                    <div className="w-8 h-[2px] bg-gray-100">
+                        <div className={cn("h-full bg-[#90D5FF] transition-all duration-500", step === 2 ? "w-full" : "w-0")} />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className={cn(
+                            "w-6 h-6 rounded-full flex items-center justify-center text-[12px] font-bold border-2 transition-all",
+                            step === 2 ? "bg-white border-[#90D5FF] text-[#90D5FF] shadow-sm" : "bg-gray-100 border-gray-100 text-gray-400"
+                        )}>2</div>
+                        <span className={cn("text-[12px] font-bold transition-colors", step === 2 ? "text-gray-900" : "text-gray-400")}>Description & Price</span>
+                    </div>
+                </div>
             </div>
 
             <form onSubmit={step === 1 ? (e => e.preventDefault()) : handleSubmit} noValidate className="max-w-2xl mx-auto">
