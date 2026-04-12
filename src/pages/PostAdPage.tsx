@@ -50,7 +50,7 @@ const PostAdPage: React.FC = () => {
         attributes: {},
     });
 
-    const [errors, setErrors] = useState<Partial<Record<keyof FormValues, string>>>({});
+    const [errors, setErrors] = useState<Record<string, string | undefined>>({});
     const [showCategoryPicker, setShowCategoryPicker] = useState(false);
     const [categorySearch, setCategorySearch] = useState('');
     const [isLocationOpen, setIsLocationOpen] = useState(false);
@@ -109,7 +109,7 @@ const PostAdPage: React.FC = () => {
     };
 
     const validate = () => {
-        const e: Partial<Record<keyof FormValues, string>> = {};
+        const e: Record<string, string> = {};
         if (!form.title || form.title.length < 10) e.title = 'Length should be greater than 10';
         if (!form.categoryId) e.categoryId = 'Please select a category';
         if (!form.location) e.location = 'Please select a location';
