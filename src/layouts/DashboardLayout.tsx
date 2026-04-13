@@ -58,18 +58,21 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     ];
 
     return (
-        <div className="h-screen max-h-screen w-full bg-gray-50 flex flex-col md:flex-row overflow-hidden relative">
+        <div className="h-[100dvh] max-h-[100dvh] w-full bg-gray-50 flex flex-col md:flex-row overflow-hidden relative">
             {/* Mobile Header */}
             <div className="md:hidden bg-white border-b border-gray-100 p-4 flex items-center justify-between sticky top-0 z-20">
                 <Link to="/">
                     <Logo size="sm" />
                 </Link>
-                <button
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                    {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                </button>
+                <div className="flex items-center gap-3">
+                    <LanguageSwitcher variant="pill" light={false} />
+                    <button
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+                    >
+                        {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                    </button>
+                </div>
             </div>
 
             {/* Mobile Overlay */}
@@ -82,7 +85,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
             {/* Sidebar */}
             <aside className={cn(
-                "fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-100 flex flex-col shrink-0 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-auto md:flex md:h-full md:top-auto overflow-hidden",
+                "fixed top-0 left-0 z-40 h-[100dvh] w-64 bg-white border-r border-gray-100 flex flex-col shrink-0 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-auto md:flex md:h-full md:top-auto overflow-hidden",
                 isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
             )}>
                 <div className="p-6 border-b border-gray-50 flex justify-center md:justify-start hidden md:flex">
@@ -120,13 +123,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 </div>
 
                 <div className="px-4 py-2">
-                    <div className="bg-orange-500 rounded-lg p-3 text-white flex items-center justify-between shadow-sm cursor-pointer hover:bg-orange-600 transition-colors">
+                    <Link to="/notifications" className="bg-orange-500 rounded-lg p-3 text-white flex items-center justify-between shadow-sm hover:bg-orange-600 transition-colors w-full">
                         <div className="flex items-center gap-3">
                             <Bell className="h-5 w-5" />
                             <span className="text-sm font-bold">Alerts</span>
                         </div>
-                        <span className="text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded">hide 1</span>
-                    </div>
+                        {unreadCount > 0 && (
+                            <span className="text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded">{unreadCount} new</span>
+                        )}
+                    </Link>
                 </div>
 
                 <nav className="flex-1 p-4 pt-1 space-y-1 overflow-y-auto custom-scrollbar min-h-0">
@@ -243,12 +248,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 </nav>
 
                 {/* ── Sidebar Footer — always pinned at the bottom ── */}
-                <div className="shrink-0 p-4 border-t border-gray-100 bg-white space-y-1">
-                    {/* Mobile Language Selection */}
-                    <div className="md:hidden mb-3 px-1">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1 mb-1">{t('dashboard.language', 'App Language')}</p>
-                        <LanguageSwitcher variant="list" />
-                    </div>
+                <div className="shrink-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-gray-100 bg-white space-y-2">
 
                     <Link to="/post-ad" className="block">
                         <Button className="w-full rounded-xl gap-2 font-bold shadow-sm">
@@ -282,6 +282,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     </div>
 
                     <div className="flex items-center gap-2 md:gap-4 ml-auto">
+                        <div className="hidden md:block mr-2">
+                            <LanguageSwitcher variant="pill" light={false} />
+                        </div>
                         <div className="flex items-center gap-1 md:gap-2">
                             <Link to="/favorites" className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all" title="Saved ads">
                                 <Heart className="h-5 w-5" />

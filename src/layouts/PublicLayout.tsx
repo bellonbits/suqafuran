@@ -131,7 +131,7 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
             </header>
 
             {/* Main content */}
-            <main className="flex-1 md:pb-0 content-bottom-safe">
+            <main className="flex-1 md:pb-0">
                 {children}
             </main>
 
@@ -305,7 +305,7 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
             </a>
 
             {/* Mobile Footer (collapsible) */}
-            <footer className="md:hidden bg-primary-500 text-black">
+            <footer className="md:hidden bg-primary-500 text-black content-bottom-safe">
                 <div className="px-4 py-3">
                     <button onClick={() => toggleSection('footer')} className="w-full flex items-center justify-between py-2">
                         <Logo size="sm" />
