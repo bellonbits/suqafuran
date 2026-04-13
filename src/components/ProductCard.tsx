@@ -70,7 +70,7 @@ const ProductCard = React.memo(function ProductCard({
             <div className="relative aspect-[16/9] overflow-hidden bg-gray-100">
                 <img
                     src={getImageUrl(imageUrl)}
-                    alt={title}
+                    alt={displayTitle}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
                     decoding="async"

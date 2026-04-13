@@ -1,6 +1,7 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useLanguageField } from '../hooks/useLanguageField';
 
 import { adminService, type AdminStats } from '../services/adminService';
 import {
@@ -14,6 +15,7 @@ import { getImageUrl } from '../utils/imageUtils';
 const AdminDashboard: React.FC = () => {
     const { t } = useTranslation();
     const queryClient = useQueryClient();
+    const { getField } = useLanguageField();
 
     const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
         queryKey: ['admin-stats'],
@@ -173,7 +175,7 @@ const AdminDashboard: React.FC = () => {
                                                     )}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="text-sm font-bold text-gray-900 truncate">{ad.title}</p>
+                                                    <p className="text-sm font-bold text-gray-900 truncate">{getField(ad, 'title')}</p>
                                                     <p className="text-[10px] text-gray-500">$ {ad.price.toLocaleString()}</p>
                                                 </div>
                                             </div>

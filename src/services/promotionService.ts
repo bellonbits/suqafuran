@@ -2,18 +2,22 @@ import api from './api';
 
 export interface PromotionPlan {
     id: number;
-    name: string;
+    name_en: string;
+    name_so?: string;
     price_usd: number;
     duration_days: number;
-    description?: string;
+    description_en?: string;
+    description_so?: string;
 }
 
 export interface Promotion {
     id: number;
     listing_id: number;
-    listing_title?: string;
+    listing_title_en?: string;
+    listing_title_so?: string;
     plan_id: number;
-    plan_name?: string;
+    plan_name_en?: string;
+    plan_name_so?: string;
     status: 'pending' | 'submitted' | 'approved' | 'rejected' | 'expired';
     payment_proof?: string;
     admin_notes?: string;

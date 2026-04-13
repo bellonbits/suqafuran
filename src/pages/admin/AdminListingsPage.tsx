@@ -2,11 +2,9 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useLanguageField } from '../../hooks/useLanguageField';
 import { listingService } from '../../services/listingService';
-import {
-    Search, Trash2, Edit, Eye, CheckCircle, XCircle,
-    ChevronLeft, ChevronRight, AlertTriangle, Loader2, Filter
-} from 'lucide-react';
+import { Button } from '../../components/Button';
 import api from '../../services/api';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -21,6 +19,7 @@ const AdminListingsPage: React.FC = () => {
     const { t, i18n } = useTranslation();
     const queryClient = useQueryClient();
     const navigate = useNavigate();
+    const { getField } = useLanguageField();
 
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
@@ -99,7 +98,7 @@ const AdminListingsPage: React.FC = () => {
                         <option value="">{t('admin.allCategories')}</option>
                         {categories.map(cat => (
                             <option key={cat.id} value={cat.id}>
-                                {i18n.language === 'so' ? (cat.name_so || cat.name) : cat.name}
+                                {getField(cat, 'name')}
                             </option>
                         ))}
                     </select>
@@ -148,13 +147,13 @@ const AdminListingsPage: React.FC = () => {
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden shrink-0">
                                                     {listing.images?.[0] ? (
-                                                        <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover" />
+                                                        <img src={listing.images[0]} alt={getField(listing, 'title')} className="w-full h-full object-cover" />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">{t('admin.noImg')}</div>
                                                     )}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="font-semibold text-gray-900 truncate max-w-[200px]">{listing.title}</p>
+                                                    <p className="font-semibold text-gray-900 truncate max-w-[200px]">{getField(listing, 'title')}</p>
                                                     <p className="text-xs text-gray-400 truncate max-w-[200px]">{listing.location}</p>
                                                 </div>
                                             </div>

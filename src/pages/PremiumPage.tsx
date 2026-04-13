@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { cn } from '../utils/cn';
+import { useLanguageField } from '../hooks/useLanguageField';
 import { listingService } from '../services/listingService';
 import { ListingSelectorModal } from '../components/ListingSelectorModal';
 import { LipanaPaymentModal } from '../components/LipanaPaymentModal';
@@ -15,10 +16,13 @@ import type { Listing } from '../types/listing';
 
 interface PromotionPlan {
     id: number;
-    name: string;
+    name_en: string;
+    name_so?: string;
     price_usd: number;
     duration_days: number;
-    description?: string;
+    description_en?: string;
+    description_so?: string;
+    [key: string]: any;
 }
 
 const PLAN_ICONS = [Target, Gem, Crown];
@@ -29,6 +33,7 @@ export const PremiumPage: React.FC = () => {
     const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
     const [showListingModal, setShowListingModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const { getField } = useLanguageField();
 
     const { data: plans = [], isLoading } = useQuery<PromotionPlan[]>({
         queryKey: ['promotionPlans'],
@@ -143,9 +148,9 @@ export const PremiumPage: React.FC = () => {
                                         <Icon className="h-8 w-8 text-primary-600" />
                                     </div>
 
-                                    <h3 className="text-2xl font-black text-gray-900 mb-2">{plan.name}</h3>
+                                    <h3 className="text-2xl font-black text-gray-900 mb-2">{getField(plan, 'name')}</h3>
                                     <p className="text-gray-500 text-sm font-medium mb-8 leading-relaxed">
-                                        {plan.description || `Boost your ad for ${plan.duration_days} days for maximum visibility.`}
+                                        {getField(plan, 'description') || `Boost your ad for ${plan.duration_days} days for maximum visibility.`}
                                     </p>
 
                                     <div className="mb-8">
@@ -264,8 +269,8 @@ export const PremiumPage: React.FC = () => {
                 onConfirm={handlePaymentConfirm}
                 onPollStatus={handlePollStatus}
                 amount={selectedPlan ? Math.round(selectedPlan.price_usd * KES_RATE) : 0}
-                planName={selectedPlan?.name || ''}
-                listingTitle={selectedListing?.title}
+                planName={selectedPlan ? getField(selectedPlan, 'name') : ''}
+                listingTitle={selectedListing ? getField(selectedListing, 'title') : undefined}
             />
         </div>
     );

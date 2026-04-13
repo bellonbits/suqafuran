@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, formatDistanceToNow } from 'date-fns';
+import { useLanguageField } from '../../hooks/useLanguageField';
 
 // Map action types to icons and colors
 const ACTION_META: Record<string, { icon: React.ElementType; color: string; bg: string; tKey: string }> = {
@@ -42,6 +43,7 @@ const AgentDashboard: React.FC = () => {
     const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState<'queue' | 'orders' | 'history'>('queue');
     const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+    const { getField } = useLanguageField();
 
     const { data: queue, isLoading: queueLoading, refetch: refetchQueue } = useQuery({
         queryKey: ['payment-queue'],
@@ -230,8 +232,8 @@ const AgentDashboard: React.FC = () => {
                                                     {order.status === 'pending' ? <CheckCircle size={20} /> : <Clock size={20} />}
                                                 </div>
                                                 <div>
-                                                    <div className="font-bold text-gray-900">{order.listing_title}</div>
-                                                    <div className="text-xs text-gray-500">{order.plan_name} • ${order.amount} • {order.payment_phone}</div>
+                                                    <div className="font-bold text-gray-900">{getField(order, 'listing_title')}</div>
+                                                    <div className="text-xs text-gray-500">{getField(order, 'plan_name')} • ${order.amount} • {order.payment_phone}</div>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -276,8 +278,8 @@ const AgentDashboard: React.FC = () => {
                                                     <Check size={20} />
                                                 </div>
                                                 <div>
-                                                    <div className="font-bold text-gray-900">{item.listing_title}</div>
-                                                    <div className="text-xs text-gray-500">{item.plan_name} • ${item.amount}</div>
+                                                    <div className="font-bold text-gray-900">{getField(item, 'listing_title')}</div>
+                                                    <div className="text-xs text-gray-500">{getField(item, 'plan_name')} • ${item.amount}</div>
                                                 </div>
                                             </div>
                                             <div className="text-right">
@@ -322,7 +324,7 @@ const AgentDashboard: React.FC = () => {
                                             <option value="">{t('agent.selectOrder')}</option>
                                             {orders?.filter((o: any) => o.status === 'waiting_for_payment' || o.status === 'pending').map((o: any) => (
                                                 <option key={o.id} value={o.id} className="bg-white text-gray-900">
-                                                    {o.listing_title} (${o.amount}) - {o.payment_phone}
+                                                    {getField(o, 'listing_title')} (${o.amount}) - {o.payment_phone}
                                                 </option>
                                             ))}
                                         </select>

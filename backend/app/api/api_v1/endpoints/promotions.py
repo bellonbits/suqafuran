@@ -70,7 +70,7 @@ def create_promotion_request(
 
     # 🔥 Fire Lipana STK push immediately
     listing = db.get(Listing, payload.listing_id)
-    listing_title = listing.title if listing else "Ad Boost"
+    listing_title = listing.title_en if listing else "Ad Boost"
     
     try:
         # Convert USD to KES for Lipana
@@ -311,8 +311,10 @@ def check_promotion_payment(
     }
 
 class PromotionRead(Promotion):
-    listing_title: Optional[str] = None
-    plan_name: Optional[str] = None
+    listing_title_en: Optional[str] = None
+    listing_title_so: Optional[str] = None
+    plan_name_en: Optional[str] = None
+    plan_name_so: Optional[str] = None
 
 # ===== AGENT PORTAL ENDPOINTS =====
 
@@ -363,7 +365,13 @@ def get_pending_orders(
 ) -> Any:
     """Agent-only: View orders waiting for payment or pending matching"""
     statement = (
-        select(Promotion, Listing.title.label("listing_title"), PromotionPlan.name.label("plan_name"))
+        select(
+            Promotion, 
+            Listing.title_en.label("listing_title_en"), 
+            Listing.title_so.label("listing_title_so"),
+            PromotionPlan.name_en.label("plan_name_en"),
+            PromotionPlan.name_so.label("plan_name_so")
+        )
         .join(Listing, Promotion.listing_id == Listing.id)
         .join(PromotionPlan, Promotion.plan_id == PromotionPlan.id)
         .where(Promotion.status.in_([PromotionStatus.WAITING_FOR_PAYMENT, PromotionStatus.PENDING]))
@@ -371,10 +379,12 @@ def get_pending_orders(
     results = db.exec(statement).all()
     
     promotions = []
-    for promo, listing_title, plan_name in results:
+    for promo, lt_en, lt_so, pn_en, pn_so in results:
         p_dict = promo.model_dump()
-        p_dict["listing_title"] = listing_title
-        p_dict["plan_name"] = plan_name
+        p_dict["listing_title_en"] = lt_en
+        p_dict["listing_title_so"] = lt_so
+        p_dict["plan_name_en"] = pn_en
+        p_dict["plan_name_so"] = pn_so
         promotions.append(PromotionRead(**p_dict))
     return promotions
 
@@ -386,7 +396,13 @@ def get_agent_history(
 ) -> Any:
     """Agent-only: View recently activated promotions"""
     statement = (
-        select(Promotion, Listing.title.label("listing_title"), PromotionPlan.name.label("plan_name"))
+        select(
+            Promotion, 
+            Listing.title_en.label("listing_title_en"), 
+            Listing.title_so.label("listing_title_so"),
+            PromotionPlan.name_en.label("plan_name_en"),
+            PromotionPlan.name_so.label("plan_name_so")
+        )
         .join(Listing, Promotion.listing_id == Listing.id)
         .join(PromotionPlan, Promotion.plan_id == PromotionPlan.id)
         .where(Promotion.status.in_([PromotionStatus.PAID, PromotionStatus.APPROVED]))
@@ -396,10 +412,12 @@ def get_agent_history(
     results = db.exec(statement).all()
     
     promotions = []
-    for promo, listing_title, plan_name in results:
+    for promo, lt_en, lt_so, pn_en, pn_so in results:
         p_dict = promo.model_dump()
-        p_dict["listing_title"] = listing_title
-        p_dict["plan_name"] = plan_name
+        p_dict["listing_title_en"] = lt_en
+        p_dict["listing_title_so"] = lt_so
+        p_dict["plan_name_en"] = pn_en
+        p_dict["plan_name_so"] = pn_so
         promotions.append(PromotionRead(**p_dict))
     return promotions
 
@@ -495,9 +513,12 @@ def activate_promotion(db: Session, promo: Promotion, matched_transaction_ref: s
         boost_mapping = {
             "Standard": 1,
             "Premium": 2,
-            "Diamond": 3
+            "Diamond": 3,
+            "Basic Boost": 1,
+            "Premium Boost": 2,
+            "Diamond Boost": 3
         }
-        listing.boost_level = boost_mapping.get(plan.name, 1)
+        listing.boost_level = boost_mapping.get(plan.name_en, 1)
         listing.boost_expires_at = promo.expires_at
         db.add(listing)
     
@@ -562,7 +583,13 @@ def get_pending_promotions(
 ) -> Any:
     """Admin-only: Get all pending/submitted promotions awaiting approval"""
     statement = (
-        select(Promotion, Listing.title.label("listing_title"), PromotionPlan.name.label("plan_name"))
+        select(
+            Promotion, 
+            Listing.title_en.label("listing_title_en"), 
+            Listing.title_so.label("listing_title_so"),
+            PromotionPlan.name_en.label("plan_name_en"),
+            PromotionPlan.name_so.label("plan_name_so")
+        )
         .join(Listing, Promotion.listing_id == Listing.id)
         .join(PromotionPlan, Promotion.plan_id == PromotionPlan.id)
         .where(Promotion.status.in_([PromotionStatus.PENDING, PromotionStatus.SUBMITTED]))
@@ -571,10 +598,12 @@ def get_pending_promotions(
     
     # Map raw rows to PromotionRead objects
     promotions = []
-    for promo, listing_title, plan_name in results:
+    for promo, lt_en, lt_so, pn_en, pn_so in results:
         p_dict = promo.model_dump()
-        p_dict["listing_title"] = listing_title
-        p_dict["plan_name"] = plan_name
+        p_dict["listing_title_en"] = lt_en
+        p_dict["listing_title_so"] = lt_so
+        p_dict["plan_name_en"] = pn_en
+        p_dict["plan_name_so"] = pn_so
         promotions.append(PromotionRead(**p_dict))
         
     return promotions
@@ -631,9 +660,12 @@ def approve_promotion(
         boost_mapping = {
             "Standard": 1,
             "Premium": 2,
-            "Diamond": 3
+            "Diamond": 3,
+            "Basic Boost": 1,
+            "Premium Boost": 2,
+            "Diamond Boost": 3
         }
-        listing.boost_level = boost_mapping.get(plan.name, 1)
+        listing.boost_level = boost_mapping.get(plan.name_en, 1)
         listing.boost_expires_at = promo.expires_at
         db.add(listing)
     
@@ -724,9 +756,10 @@ def direct_promote(
         "success": True,
         "promotion_code": code,
         "listing_id": listing.id,
-        "listing_title": listing.title,
+        "listing_title_en": listing.title_en,
+        "listing_title_so": listing.title_so,
         "status": "APPROVED",
-        "message": f"Direct promotion active for {listing.title}! Code: {code}"
+        "message": f"Direct promotion active for {listing.title_en}! Code: {code}"
     }
 
 @router.post("/codes/generate", response_model=dict)

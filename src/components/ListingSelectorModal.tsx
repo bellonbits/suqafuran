@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLanguageField } from '../hooks/useLanguageField';
 import { useQuery } from '@tanstack/react-query';
 import { X, Search, ChevronRight, Zap } from 'lucide-react';
 import { listingService } from '../services/listingService';
@@ -20,6 +21,7 @@ export const ListingSelectorModal: React.FC<ListingSelectorModalProps> = ({
     title,
 }) => {
     const { t } = useTranslation();
+    const { getField } = useLanguageField();
     const [searchQuery, setSearchQuery] = React.useState('');
 
     const { data: listings, isLoading } = useQuery({
@@ -31,7 +33,7 @@ export const ListingSelectorModal: React.FC<ListingSelectorModalProps> = ({
     if (!isOpen) return null;
 
     const filteredListings = listings?.filter(listing => 
-        listing.title.toLowerCase().includes(searchQuery.toLowerCase())
+        getField(listing, 'title').toLowerCase().includes(searchQuery.toLowerCase())
     ) || [];
 
     return (
@@ -74,7 +76,7 @@ export const ListingSelectorModal: React.FC<ListingSelectorModalProps> = ({
                             >
                                 <div className="w-16 h-16 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-100">
                                     {listing.images?.[0] ? (
-                                        <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover" />
+                                        <img src={listing.images[0]} alt={getField(listing, 'title')} className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center bg-gray-50 uppercase text-[10px] font-black text-gray-300">
                                             No Img
@@ -82,7 +84,7 @@ export const ListingSelectorModal: React.FC<ListingSelectorModalProps> = ({
                                     )}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <h4 className="font-bold text-gray-900 truncate group-hover:text-primary-700">{listing.title}</h4>
+                                    <h4 className="font-bold text-gray-900 truncate group-hover:text-primary-700">{getField(listing, 'title')}</h4>
                                     <div className="flex items-center gap-2 mt-1">
                                         <span className="text-primary-600 font-black text-sm">
                                             {listing.currency} {listing.price.toLocaleString()}
