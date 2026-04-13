@@ -2,62 +2,24 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { ProductCard } from '../components/ProductCard';
 import { listingService } from '../services/listingService';
-import { useLanguageField } from '../hooks/useLanguageField';
 import {
     Search, MapPin, TrendingUp, ShieldCheck, Loader2,
     ChevronRight, ShoppingBag, ArrowRight, Zap
 } from 'lucide-react';
 import { Button } from '../components/Button';
-import { getCategoryIcon } from '../utils/categoryIcons';
 import { LocationPickerModal } from '../components/LocationPickerModal';
-const CATEGORY_IMG_MAP: Array<{ keywords: string[]; url: string }> = [
-    { keywords: ['raashin', 'food', 'cunto', 'grocery', 'restau', 'eat', 'meal'],
-      url: 'https://img.freepik.com/free-vector/hand-drawn-flat-design-food-bank-illustration_23-2149344810.jpg?w=200&q=80' },
-    { keywords: ['dhar', 'fashion', 'cloth', 'wear', 'dress', 'shoe'],
-      url: 'https://img.freepik.com/free-vector/hand-drawn-thrift-store-illustration_23-2150052941.jpg?w=200&q=80' },
-    { keywords: ['dhul', 'property', 'real', 'estate', 'land', 'guri', 'rent', 'hous', 'farm', 'agri', 'beeraha'],
-      url: 'https://img.freepik.com/free-photo/sunny-meadow-landscape_1112-134.jpg?w=200&q=80' },
-    { keywords: ['xool', 'animal', 'livestock', 'cattle', 'goat', 'sheep', 'geela'],
-      url: 'https://png.pngtree.com/png-clipart/20230913/original/pngtree-livestock-clipart-cartoon-farm-animals-and-their-family-portrait-vector-png-image_11076865.png' },
-    { keywords: ['gaadii', 'car', 'vehicle', 'auto', 'motor', 'baabuur', 'truck'],
-      url: 'https://img.freepik.com/free-vector/electric-transport-isometric-icons-set-with-electromobiles-buses-motorbikes-isolated-vector-illustration_1284-82376.jpg?w=200&q=80' },
-    { keywords: ['koront', 'electr', 'phone', 'mobile', 'laptop', 'computer', 'tech'],
-      url: 'https://img.freepik.com/premium-photo/home-appliance-with-ribbons-discounts_252025-696.jpg?w=200&q=80' },
-    { keywords: ['alaab', 'furnitur', 'guriga', 'household', 'seat', 'bed', 'living', 'tool', 'hardware', 'build', 'equip'],
-      url: 'https://img.freepik.com/free-photo/garden-tools-isolated-white_93675-133336.jpg?w=200&q=80' },
-    { keywords: ['job', 'work', 'shaqo', 'employ', 'career'],
-      url: 'https://picsum.photos/seed/office/200/200' },
-    { keywords: ['service', 'adeeg', 'repair', 'fix', 'clean', 'salon', 'beauty'],
-      url: 'https://picsum.photos/seed/salon/200/200' },
-    { keywords: ['sport', 'ciyaar', 'gym', 'fitness', 'football'],
-      url: 'https://picsum.photos/seed/sports/200/200' },
-    { keywords: ['health', 'medical', 'caafimaad'],
-      url: 'https://picsum.photos/seed/health/200/200' },
-    { keywords: ['book', 'educat', 'school', 'waxbarasho'],
-      url: 'https://picsum.photos/seed/books/200/200' },
-];
-
-const getCategoryImg = (cat: { slug?: string; name?: string }, index = 0): string => {
-    const key = (cat.slug || cat.name || '').toLowerCase().replace(/[-_]/g, ' ');
-    for (const item of CATEGORY_IMG_MAP) {
-        if (item.keywords.some(k => key.includes(k))) return item.url;
-    }
-    return `https://picsum.photos/seed/cat${index}/200/200`;
-};
+import { CategoryDirectory } from '../components/CategoryDirectory';
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
-    const [activeCategory, setActiveCategory] = useState<string | null>(null);
     const [isLocationOpen, setLocationOpen] = useState(false);
     const [selectedLocation, setSelectedLocation] = useState('');
 
-    const { data: categories, isLoading: catsLoading, isError: catsError } = useQuery({
+    const { data: categories } = useQuery({
         queryKey: ['categories'],
         queryFn: listingService.getCategories,
         staleTime: 24 * 60 * 60 * 1000, // 24 hours
@@ -71,7 +33,6 @@ const LandingPage: React.FC = () => {
 
     const displayCategories = categories || [];
     const displayAds = featuredAds || [];
-    const { getField } = useLanguageField();
 
     return (
         <PublicLayout>
@@ -115,105 +76,17 @@ const LandingPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Category chips — horizontal scroll */}
-                <div className="pt-4 pb-1">
-                    <div className="flex gap-3 overflow-x-auto px-4 pb-2 hide-scrollbar">
-                        {/* "All" chip */}
-                        <button
-                            onClick={() => { setActiveCategory(null); navigate('/search'); }}
-                            className="flex flex-col items-center gap-1.5 shrink-0 active:scale-95 transition-transform"
-                        >
-                            <div className={`w-[52px] h-[52px] rounded-2xl flex items-center justify-center transition-all shadow-sm ${
-                                activeCategory === null
-                                    ? 'bg-primary-500 shadow-primary-200 shadow-md'
-                                    : 'bg-white'
-                            }`}>
-                                <TrendingUp className={`h-5 w-5 ${activeCategory === null ? 'text-white' : 'text-gray-400'}`} />
-                            </div>
-                            <span className={`text-[10px] font-bold ${activeCategory === null ? 'text-primary-600' : 'text-gray-500'}`}>
-                                {t('landing.allCategories')}
-                            </span>
-                        </button>
-
-                        {displayCategories.slice(0, 12).map((cat, idx) => {
-                            const isAct = activeCategory === String(cat.id);
-                            const imgSrc = cat.image_url || getCategoryImg(cat, idx);
-                            const hasSubs = (cat.subcategories?.length ?? 0) > 0;
-                            return (
-                                <button
-                                    key={cat.id}
-                                    onClick={() => {
-                                        if (!hasSubs) {
-                                            navigate(`/category/${cat.slug || cat.id}`);
-                                        } else {
-                                            setActiveCategory(isAct ? null : String(cat.id));
-                                        }
-                                    }}
-                                    className="flex flex-col items-center gap-1.5 shrink-0 active:scale-95 transition-transform"
-                                    style={{ width: 56 }}
-                                >
-                                    <div className={`w-[52px] h-[52px] rounded-2xl overflow-hidden bg-white shadow-sm transition-all ${
-                                        isAct ? 'ring-2 ring-primary-400 ring-offset-1' : ''
-                                    }`}>
-                                        <img
-                                            src={imgSrc}
-                                            alt={getField(cat, 'name')}
-                                            className="w-full h-full object-cover"
-                                            loading="lazy"
-                                            onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0'; }}
-                                        />
-                                    </div>
-                                    <span
-                                        className={`text-[10px] font-bold text-center ${isAct ? 'text-primary-600' : 'text-gray-500'}`}
-                                        style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 56, display: 'block' }}
-                                    >
-                                        {getField(cat, 'name').split(' ')[0]}
-                                    </span>
-                                </button>
-                            );
-                        })}
+                {/* Category Directory — Now visible as a grid */}
+                <div className="bg-white py-4 border-b border-gray-100">
+                    <div className="px-4 mb-4">
+                        <div className="flex items-center gap-2">
+                             <div className="w-1 h-5 rounded-full bg-primary-500" />
+                             <h2 className="text-[15px] font-extrabold text-gray-900">{t('listing.category')}</h2>
+                        </div>
                     </div>
-
-                    {/* Subcategory chips — shown when a category with subcategories is active */}
-                    <AnimatePresence>
-                        {activeCategory && (() => {
-                            const activeCat = displayCategories.find(c => String(c.id) === activeCategory);
-                            const subs = activeCat?.subcategories || [];
-                            if (!activeCat || subs.length === 0) return null;
-                            return (
-                                <motion.div
-                                    key={activeCategory}
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="overflow-hidden"
-                                >
-                                    <div className="flex gap-2 overflow-x-auto px-4 pb-2 pt-1 hide-scrollbar">
-                                        {/* All subcategories chip */}
-                                        <button
-                                            onClick={() => navigate(`/category/${activeCat.slug || activeCat.id}`)}
-                                            className="shrink-0 px-3 py-1 rounded-full text-xs font-bold bg-primary-500 text-white"
-                                        >
-                                            {t('landing.seeAll')} {getField(activeCat, 'name').split(' (')[0]}
-                                        </button>
-                                        {subs.map((sub, idx) => {
-                                            const label = getField(sub, 'name').replace(/^\d+\s/, '');
-                                            return (
-                                                <button
-                                                    key={sub.id ?? idx}
-                                                    onClick={() => navigate(`/category/${activeCat.slug || activeCat.id}?subcategory=${getField(sub, 'name')}`)}
-                                                    className="shrink-0 px-3 py-1 rounded-full text-xs font-semibold bg-white border border-gray-200 text-gray-700 active:bg-primary-50 active:border-primary-300 active:text-primary-700"
-                                                >
-                                                    {label}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </motion.div>
-                            );
-                        })()}
-                    </AnimatePresence>
+                    <div className="px-4">
+                         <CategoryDirectory categories={displayCategories} />
+                    </div>
                 </div>
 
                 {/* Sell promo banner */}
@@ -350,170 +223,53 @@ const LandingPage: React.FC = () => {
                     </div>
                 </section>
 
-                {/* Categories + Grid */}
-                <section className="py-8 bg-[#f4f7f6]">
+                {/* Main content — sidebar + feed */}
+                <section className="py-8 bg-[#f0f3f8]">
                     <div className="container mx-auto px-4">
-                        <div className="flex gap-6">
-                            {/* Sidebar */}
-                            <aside className="w-72 shrink-0 relative z-20">
-                                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible sticky top-4">
-                                    <div className="p-4 border-b border-primary-500 bg-primary-500 rounded-t-xl">
-                                        <h3 className="font-bold text-white flex items-center gap-2 text-sm uppercase tracking-wider">
-                                            <div className="w-1 h-4 bg-white rounded-full" />
-                                            {t('listing.category')}
-                                        </h3>
-                                    </div>
-                                    <div className="divide-y divide-gray-50 max-h-[calc(100vh-200px)] overflow-y-auto min-h-[300px]">
-                                        {catsLoading ? (
-                                            <div className="flex flex-col items-center justify-center py-20 gap-3">
-                                                <Loader2 className="w-8 h-8 animate-spin text-primary-400" />
-                                                <p className="text-xs text-gray-400 font-medium italic">{t('common.loading')}</p>
-                                            </div>
-                                        ) : catsError ? (
-                                            <div className="p-8 text-center">
-                                                <p className="text-xs text-red-400">{t('admin.operationFailed')}</p>
-                                            </div>
-                                        ) : displayCategories.length === 0 ? (
-                                            <div className="p-8 text-center">
-                                                <p className="text-xs text-gray-400 italic">{t('admin.noCategoriesFound')}</p>
-                                            </div>
-                                        ) : (
-                                            displayCategories.map((cat) => (
-                                                <div
-                                                    key={cat.id}
-                                                    onMouseEnter={() => setHoveredCategory(cat.slug || String(cat.id))}
-                                                    className="group"
-                                                >
-                                                    <button
-                                                        onClick={() => navigate(`/category/${cat.slug || cat.id}`)}
-                                                        className={`w-full flex items-center justify-between p-3.5 transition-colors text-left ${hoveredCategory === (cat.slug || String(cat.id)) ? 'bg-primary-50 text-primary-900' : 'hover:bg-gray-50'}`}
-                                                    >
-                                                        <div className="flex items-center gap-3">
-                                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${hoveredCategory === (cat.slug || String(cat.id)) ? 'bg-primary-500 text-white' : 'bg-gray-50 text-gray-500'}`}>
-                                                                {(() => {
-                                                                    const Icon = getCategoryIcon(cat.icon_name || cat.slug);
-                                                                    return <Icon size={18} />;
-                                                                })()}
-                                                            </div>
-                                                            <p className="text-sm font-semibold text-gray-700">{getField(cat, 'name')}</p>
-                                                        </div>
-                                                        <ChevronRight className="w-4 h-4 text-gray-300" />
-                                                    </button>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
+                        <div className="flex gap-0 items-start">
 
-                                    {/* Mega menu */}
-                                    <AnimatePresence>
-                                        {hoveredCategory && (
-                                            <motion.div
-                                                initial={{ opacity: 0, x: -10 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                exit={{ opacity: 0, x: -10 }}
-                                                transition={{ duration: 0.2 }}
-                                                className="absolute left-[calc(100%+0.5rem)] top-0 w-[750px] min-h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 flex"
-                                                onMouseEnter={() => setHoveredCategory(hoveredCategory)}
-                                                onMouseLeave={() => setHoveredCategory(null)}
-                                            >
-                                                {(() => {
-                                                    const activeCat = displayCategories.find(c => (c.slug || String(c.id)) === hoveredCategory);
-                                                    if (!activeCat) return null;
-                                                    return (
-                                                        <>
-                                                            <div className="flex-1 p-8 flex flex-col">
-                                                                <div className="flex items-center gap-4 mb-8 pb-4 border-b border-gray-100">
-                                                                    <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center text-primary-600">
-                                                                        {(() => {
-                                                                            const Icon = getCategoryIcon(activeCat.icon_name || activeCat.slug);
-                                                                            return <Icon size={32} />;
-                                                                        })()}
-                                                                    </div>
-                                                                    <div>
-                                                                        <h2 className="text-2xl font-bold text-gray-900">{getField(activeCat, 'name')}</h2>
-                                                                        <p className="text-sm text-primary-600 font-medium flex items-center gap-1 mt-0.5">
-                                                                            {t('landing.seeAll')} <ChevronRight size={14} />
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="grid grid-cols-2 gap-y-4 gap-x-6 content-start flex-1 overflow-y-auto pr-2">
-                                                                    {activeCat.subcategories?.map((sub, idx) => (
-                                                                             <button
-                                                                              key={sub.id || idx}
-                                                                              onClick={() => {
-                                                                                  navigate(`/category/${activeCat.slug || activeCat.id}?subcategory=${getField(sub, 'name')}`);
-                                                                                  setHoveredCategory(null);
-                                                                              }}
-                                                                              className="flex items-center gap-3 p-2 rounded-xl hover:border-primary-100 hover:bg-primary-50/50 transition-all text-left group"
-                                                                          >
-                                                                              <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
-                                                                                  <img src={sub.image_url || activeCat.image_url || ''} alt={getField(sub, 'name')} className="w-full h-full object-cover" />
-                                                                              </div>
-                                                                              <span className="text-sm font-semibold text-gray-700 group-hover:text-primary-700 line-clamp-2">
-                                                                                  {getField(sub, 'name').replace(/^\d+\s/, '')}
-                                                                              </span>
-                                                                          </button>
-                                                                    ))}
-                                                                </div>
-                                                                <div className="mt-8 pt-6 border-t border-gray-100">
-                                                                    <button
-                                                                        onClick={() => { navigate(`/category/${activeCat.slug || activeCat.id}`); setHoveredCategory(null); }}
-                                                                        className="flex items-center gap-2 text-primary-600 font-bold hover:gap-3 transition-all"
-                                                                    >
-                                                                        {t('landing.viewAll')} {getField(activeCat, 'name').split(' (')[0]}
-                                                                        <ChevronRight size={18} />
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                            <div className="w-64 bg-gray-50 relative overflow-hidden">
-                                                                <img src={activeCat.image_url || ''} alt={getField(activeCat, 'name')} className="absolute inset-0 w-full h-full object-cover" />
-                                                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                                                                <div className="absolute bottom-0 left-0 p-6 text-white">
-                                                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-1.5 opacity-80">{t('landing.sponsored')}</p>
-                                                                    <h4 className="text-lg font-bold">{getField(activeCat, 'name').split(' (')[0]}</h4>
-                                                                </div>
-                                                            </div>
-                                                        </>
-                                                    );
-                                                })()}
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
-                                {hoveredCategory && <div className="absolute inset-y-0 -right-4 w-4 bg-transparent z-40" />}
-                            </aside>
+                            {/* ── LEFT: Category Directory sidebar ── */}
+                            <div className="w-[300px] shrink-0">
+                                <CategoryDirectory categories={displayCategories} />
+                            </div>
 
-                            {/* Main feed */}
-                            <div className="flex-1 space-y-6">
+                            {/* ── RIGHT: Banners + Featured Ads ── */}
+                            <div className="flex-1 min-w-0 space-y-6 pl-6">
+
+                                {/* Action banners */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div
                                         onClick={() => navigate('/post-ad')}
-                                        className="bg-[#ebf9eb] border border-[#d3f0d3] p-4 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between min-h-[100px]"
+                                        className="bg-[#ebf9eb] border border-[#d3f0d3] p-5 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between min-h-[100px]"
                                     >
                                         <div>
-                                            <h4 className="font-bold text-[#2d3a2d] text-lg">{t('listing.postAd')}</h4>
-                                            <p className="text-sm text-[#5a705a]">{t('landing.sellBannerDesc')}</p>
+                                            <h4 className="font-bold text-[#2d3a2d] text-base">{t('listing.postAd')}</h4>
+                                            <p className="text-sm text-[#5a705a] mt-0.5">{t('landing.sellBannerDesc')}</p>
                                         </div>
-                                        <div className="w-14 h-14 bg-white rounded-xl shadow-sm flex items-center justify-center">
-                                            <ShoppingBag className="w-8 h-8 text-[var(--color-primary-500)]" />
+                                        <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center shrink-0">
+                                            <ShoppingBag className="w-6 h-6 text-[var(--color-primary-500)]" />
                                         </div>
                                     </div>
-                                    <div className="bg-[#f0f0ff] border border-[#e0e0ff] p-4 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between min-h-[100px]">
+                                    <div
+                                        onClick={() => navigate('/safety')}
+                                        className="bg-[#f0f0ff] border border-[#e0e0ff] p-5 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between min-h-[100px]"
+                                    >
                                         <div>
-                                            <h4 className="font-bold text-[#2e2e4e] text-lg">{t('footer.safetyTips')}</h4>
-                                            <p className="text-sm text-[#62628e]">{t('landing.learnToSell')}</p>
+                                            <h4 className="font-bold text-[#2e2e4e] text-base">{t('footer.safetyTips')}</h4>
+                                            <p className="text-sm text-[#62628e] mt-0.5">{t('landing.learnToSell')}</p>
                                         </div>
-                                        <div className="w-14 h-14 bg-white rounded-xl shadow-sm flex items-center justify-center">
-                                            <ShieldCheck className="w-8 h-8 text-[#5151d5]" />
+                                        <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center shrink-0">
+                                            <ShieldCheck className="w-6 h-6 text-[#5151d5]" />
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                                    <div className="flex items-center justify-between mb-6">
+                                {/* Featured Ads */}
+                                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                                    <div className="flex items-center justify-between mb-4">
                                         <div className="flex items-center gap-2">
                                             <TrendingUp className="h-5 w-5 text-primary-500" />
-                                            <h2 className="text-xl font-bold text-gray-900">{t('landing.featuredAds')}</h2>
+                                            <h2 className="text-lg font-bold text-gray-900">{t('landing.featuredAds')}</h2>
                                         </div>
                                         <Button variant="ghost" className="text-primary-600 text-sm" onClick={() => navigate('/search')}>{t('landing.seeAll')}</Button>
                                     </div>
@@ -522,7 +278,7 @@ const LandingPage: React.FC = () => {
                                             <Loader2 className="w-8 h-8 animate-spin text-primary-400" />
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+                                        <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
                                             {displayAds.map((ad, idx) => (
                                                 <ProductCard
                                                     key={ad.id}

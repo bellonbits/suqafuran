@@ -69,5 +69,19 @@ export const adminService = {
 
     async deleteSubCategory(id: number): Promise<void> {
         await api.delete(`/listings/subcategories/${id}`);
+    },
+
+    async createSubSubCategory(data: { name_en: string; name_so?: string; slug: string; subcategory_id: number; image_url?: string }): Promise<any> {
+        const response = await api.post('/listings/subsubcategories', data);
+        return response.data;
+    },
+
+    async updateSubSubCategory(id: number, data: Partial<{ name_en: string; name_so?: string; slug: string; image_url?: string }>): Promise<any> {
+        const response = await api.patch(`/listings/subsubcategories/${id}`, data);
+        return response.data;
+    },
+
+    async deleteSubSubCategory(id: number): Promise<void> {
+        await api.delete(`/listings/subsubcategories/${id}`);
     }
 };

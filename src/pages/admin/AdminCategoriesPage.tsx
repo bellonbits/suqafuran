@@ -17,8 +17,8 @@ const AdminCategoriesPage: React.FC = () => {
     const { t } = useTranslation();
     const queryClient = useQueryClient();
     const [expandedCategory, setExpandedCategory] = useState<number | null>(null);
-    const [isEditing, setIsEditing] = useState<{ type: 'category' | 'subcategory', data: any } | null>(null);
-    const [isAdding, setIsAdding] = useState<{ type: 'category' | 'subcategory', parentId?: number } | null>(null);
+    const [isEditing, setIsEditing] = useState<{ type: 'category' | 'subcategory' | 'subsubcategory', data: any } | null>(null);
+    const [isAdding, setIsAdding] = useState<{ type: 'category' | 'subcategory' | 'subsubcategory', parentId?: number } | null>(null);
     const { getField } = useLanguageField();
     const [activeTab, setActiveTab] = useState<'en' | 'so'>('en');
     const [formData, setFormData] = useState({ name_en: '', name_so: '', slug: '', icon_name: 'Folder', image_url: '' });
@@ -52,9 +52,23 @@ const AdminCategoriesPage: React.FC = () => {
         onError: (err: any) => setError(err.response?.data?.detail || t('admin.operationFailed'))
     });
 
+    const subSubCategoryMutation = useMutation({
+        mutationFn: (data: any) => isEditing
+            ? adminService.updateSubSubCategory(isEditing.data.id, data)
+            : adminService.createSubSubCategory({ ...data, subcategory_id: isAdding?.parentId! }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['categories'] });
+            closeModals();
+        },
+        onError: (err: any) => setError(err.response?.data?.detail || t('admin.operationFailed'))
+    });
+
     const deleteMutation = useMutation({
-        mutationFn: ({ type, id }: { type: 'category' | 'subcategory', id: number }) =>
-            type === 'category' ? adminService.deleteCategory(id) : adminService.deleteSubCategory(id),
+        mutationFn: ({ type, id }: { type: 'category' | 'subcategory' | 'subsubcategory', id: number }) => {
+            if (type === 'category') return adminService.deleteCategory(id);
+            if (type === 'subcategory') return adminService.deleteSubCategory(id);
+            return adminService.deleteSubSubCategory(id);
+        },
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
     });
 
@@ -82,7 +96,7 @@ const AdminCategoriesPage: React.FC = () => {
         setError('');
     };
 
-    const openEdit = (type: 'category' | 'subcategory', item: any) => {
+    const openEdit = (type: 'category' | 'subcategory' | 'subsubcategory', item: any) => {
         setIsEditing({ type, data: item });
         setFormData({
             name_en: item.name_en || item.name || '',
@@ -93,7 +107,7 @@ const AdminCategoriesPage: React.FC = () => {
         });
     };
 
-    const openAdd = (type: 'category' | 'subcategory', parentId?: number) => {
+    const openAdd = (type: 'category' | 'subcategory' | 'subsubcategory', parentId?: number) => {
         setIsAdding({ type, parentId });
         setFormData({ name_en: '', name_so: '', slug: '', icon_name: 'Folder', image_url: '' });
     };
@@ -108,8 +122,10 @@ const AdminCategoriesPage: React.FC = () => {
         const type = isEditing?.type || isAdding?.type;
         if (type === 'category') {
             categoryMutation.mutate(formData);
-        } else {
+        } else if (type === 'subcategory') {
             subCategoryMutation.mutate(formData);
+        } else {
+            subSubCategoryMutation.mutate(formData);
         }
     };
 
@@ -212,39 +228,69 @@ const AdminCategoriesPage: React.FC = () => {
                                     {cat.subcategories?.length === 0 ? (
                                         <p className="text-sm text-gray-400 italic py-4">{t('admin.noSubcategoriesYet')}</p>
                                     ) : (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
                                             {cat.subcategories?.map(sub => (
-                                                <div key={sub.id} className="bg-white p-3 rounded-xl border border-gray-200 flex items-center justify-between group shadow-sm transition-all hover:bg-gray-50">
-                                                    <div className="flex items-center gap-3 min-w-0">
-                                                        <div className="w-8 h-8 rounded-lg bg-gray-50 shrink-0 overflow-hidden">
-                                                            {sub.image_url ? (
-                                                                <img src={getImageUrl(sub.image_url)} alt="" className="w-full h-full object-cover" />
-                                                            ) : (
-                                                                <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                                                    <ImageIcon size={14} />
-                                                                </div>
-                                                            )}
+                                                <div key={sub.id} className="space-y-3">
+                                                    <div className="bg-white p-3 rounded-xl border border-gray-200 flex items-center justify-between group shadow-sm transition-all hover:border-primary-200">
+                                                        <div className="flex items-center gap-3 min-w-0">
+                                                            <div className="w-8 h-8 rounded-lg bg-gray-50 shrink-0 overflow-hidden">
+                                                                {sub.image_url ? (
+                                                                    <img src={getImageUrl(sub.image_url)} alt="" className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                                                        <ImageIcon size={14} />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <span className="text-sm font-bold text-gray-900 truncate block">{getField(sub, 'name')}</span>
+                                                                <span className="text-[10px] text-gray-400 font-mono">{sub.slug}</span>
+                                                            </div>
                                                         </div>
-                                                        <span className="text-sm font-medium text-gray-700 truncate">{getField(sub, 'name')}</span>
+                                                        <div className="flex items-center gap-1">
+                                                            <button
+                                                                onClick={() => openAdd('subsubcategory', sub.id)}
+                                                                className="p-1.5 text-primary-500 hover:bg-primary-50 rounded-lg flex items-center gap-1 text-[10px] font-bold"
+                                                            >
+                                                                <Plus size={12} /> {t('admin.add', 'Add Type')}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => openEdit('subcategory', sub)}
+                                                                className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg"
+                                                            >
+                                                                <Edit2 size={14} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (confirm(`${t('common.delete')} "${getField(sub, 'name')}"?`)) {
+                                                                        deleteMutation.mutate({ type: 'subcategory', id: sub.id });
+                                                                    }
+                                                                }}
+                                                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <button
-                                                            onClick={() => openEdit('subcategory', sub)}
-                                                            className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg"
-                                                        >
-                                                            <Edit2 size={14} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => {
-                                                                if (confirm(`${t('common.delete')} "${getField(sub, 'name')}"?`)) {
-                                                                    deleteMutation.mutate({ type: 'subcategory', id: sub.id });
-                                                                }
-                                                            }}
-                                                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg"
-                                                        >
-                                                            <Trash2 size={14} />
-                                                        </button>
-                                                    </div>
+
+                                                    {/* Level 3 items */}
+                                                    {sub.subsubcategories && sub.subsubcategories.length > 0 && (
+                                                        <div className="pl-8 md:pl-12 flex flex-wrap gap-2 py-1">
+                                                            {sub.subsubcategories.map((ss: any) => (
+                                                                <div key={ss.id} className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-semibold text-gray-600 border border-transparent hover:border-gray-300 hover:bg-white transition-all group/ss">
+                                                                    <span>{getField(ss, 'name')}</span>
+                                                                    <div className="flex items-center gap-1 ml-1 opacity-0 group-hover/ss:opacity-100 pointer-events-none group-hover/ss:pointer-events-auto transition-opacity">
+                                                                        <button onClick={() => openEdit('subsubcategory', ss)} className="text-gray-400 hover:text-primary-500"><Edit2 size={10} /></button>
+                                                                        <button onClick={() => {
+                                                                            if (confirm(`${t('common.delete')} "${getField(ss, 'name')}"?`)) {
+                                                                                deleteMutation.mutate({ type: 'subsubcategory', id: ss.id });
+                                                                            }
+                                                                        }} className="text-gray-400 hover:text-red-500"><Trash2 size={10} /></button>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>

@@ -1,0 +1,72 @@
+SUQAFURAN HOMEPAGE CONTENT FOR TRANSLATION (ENGLISH)
+===================================================
+
+[NAVIGATION & HEADER]
+Home
+Saved
+Sell
+Messages
+Profile
+Alerts
+Boost
+Sign In
+Search listings…
+Sell (Button)
+
+[HERO SECTION]
+Discover Great Deals Near You!
+Find the best deals in your area
+Search listings, categories...
+Search (Button)
+All (Categories)
+All Locations
+
+[SELL PROMO BANNER]
+100% Free
+Sell Anything, Reach Everyone
+List in 2 minutes · Buyers are waiting now
+Post Free Ad
+
+[FEATURED ADS SECTION]
+Featured Ads
+See All
+View All Listings
+Sponsored
+Popular
+Verified Seller
+Verified ID
+3+ Years
+
+[SAFETY & CTA SECTION]
+Stay safe when buying & selling
+Safety Tips
+Ready to sell something today?
+Thousands of buyers are searching right now. Start in under 2 minutes.
+Post an Ad Now
+Learn How to Sell
+
+[FOOTER & SITE DETAILS]
+About Suqafuran
+About Us
+Contact Us
+Terms & Conditions
+Support
+Help Center
+Safety Tips
+Privacy Policy
+Digital Address
+Get KH-PIN
+Landmark Directory
+Emergency Contacts
+Connect
+© 2026 Suqafuran. Buy. Sell. Connect.
+WhatsApp Support
+Pay With
+
+[ADMIN / OPERATION MESSAGES]
+Loading...
+Something went wrong
+Retry
+Operation failed
+No categories found
+===================================================

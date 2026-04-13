@@ -25,6 +25,7 @@ interface FormValues {
     title_so: string;
     categoryId: number | null;
     subcategoryId: number | null;
+    subsubcategoryId: number | null;
     location: string;
     images: string[];
     youtubeLink: string;
@@ -49,6 +50,7 @@ const PostAdPage: React.FC = () => {
         title_so: '',
         categoryId: null,
         subcategoryId: null,
+        subsubcategoryId: null,
         location: '',
         images: [],
         youtubeLink: '',
@@ -231,6 +233,7 @@ const PostAdPage: React.FC = () => {
                 location: form.location,
                 category_id: form.categoryId!,
                 subcategory_id: form.subcategoryId ?? undefined,
+                subsubcategory_id: form.subsubcategoryId ?? undefined,
                 images: form.images,
                 condition: form.condition,
                 attributes: form.attributes,
@@ -282,6 +285,7 @@ const PostAdPage: React.FC = () => {
             title_so: '',
             categoryId: null,
             subcategoryId: null,
+            subsubcategoryId: null,
             location: '',
             images: [],
             youtubeLink: '',
@@ -419,7 +423,7 @@ const PostAdPage: React.FC = () => {
                             <button
                                 key={cat.id}
                                 onClick={() => {
-                                    setForm(f => ({ ...f, categoryId: cat.id, subcategoryId: null, attributes: {} }));
+                                    setForm(f => ({ ...f, categoryId: cat.id, subcategoryId: null, subsubcategoryId: null, attributes: {} }));
                                     setErrors({});
                                     setShowCategoryPicker(false);
                                     setCategorySearch('');
@@ -694,9 +698,16 @@ const PostAdPage: React.FC = () => {
                     <div className="bg-white rounded-md shadow-sm border border-gray-200 p-5 mb-5">
                         {/* Subcategory */}
                         {selectedCategory?.subcategories && selectedCategory.subcategories.length > 0 && 
-                            renderFloatingSelect('subcategory', 'Subcategory', form.subcategoryId?.toString() || "", v => {
-                                setForm(f => ({ ...f, subcategoryId: Number(v), attributes: {} })); setErrors({});
-                            }, selectedCategory.subcategories.map((s:any) => ({value: s.id.toString(), label: getField(s, 'name') as string})), undefined)
+                            renderFloatingSelect('subcategory', 'Subcategory*', form.subcategoryId?.toString() || "", v => {
+                                setForm(f => ({ ...f, subcategoryId: Number(v), subsubcategoryId: null, attributes: {} })); setErrors({});
+                            }, selectedCategory.subcategories.map((s:any) => ({value: s.id.toString(), label: getField(s, 'name') as string})), errors.subcategoryId)
+                        }
+
+                        {/* Sub-subcategory */}
+                        {selectedSubcategory?.subsubcategories && selectedSubcategory.subsubcategories.length > 0 && 
+                            renderFloatingSelect('subsubcategory', 'Specific Type (Optional)', form.subsubcategoryId?.toString() || "", v => {
+                                setForm(f => ({ ...f, subsubcategoryId: Number(v) })); setErrors({});
+                            }, selectedSubcategory.subsubcategories.map((ss:any) => ({value: ss.id.toString(), label: getField(ss, 'name') as string})), undefined)
                         }
 
                         {/* Dynamic Schema Grid */}

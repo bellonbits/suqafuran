@@ -27,6 +27,7 @@ interface EditAdValues {
     lang_available: 'en' | 'so' | 'both';
     category?: number;
     subcategory?: number;
+    subsubcategory?: number;
     price: string;
     location: string;
     condition: string;
@@ -79,6 +80,7 @@ const EditAdPage: React.FC = () => {
         lang_available: (listing as any).lang_available || 'en',
         category: listing.category_id,
         subcategory: listing.subcategory_id,
+        subsubcategory: (listing as any).subsubcategory_id,
         price: listing.price.toString(),
         location: listing.location,
         condition: listing.condition,
@@ -194,6 +196,7 @@ const EditAdPage: React.FC = () => {
                                 location: values.location,
                                 category_id: values.category!,
                                 subcategory_id: values.subcategory,
+                                subsubcategory_id: values.subsubcategory,
                                 images: values.images,
                                 attributes: values.attributes,
                                 condition: values.condition,
@@ -332,6 +335,7 @@ const EditAdPage: React.FC = () => {
                                                             onClick={() => {
                                                                 setFieldValue('category', cat.id);
                                                                 setFieldValue('subcategory', undefined);
+                                                                setFieldValue('subsubcategory', undefined);
                                                             }}
                                                             className={cn(
                                                                 "flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all group",
@@ -371,7 +375,10 @@ const EditAdPage: React.FC = () => {
                                                         <button
                                                             key={sub.id}
                                                             type="button"
-                                                            onClick={() => setFieldValue('subcategory', sub.id)}
+                                                            onClick={() => {
+                                                                setFieldValue('subcategory', sub.id);
+                                                                setFieldValue('subsubcategory', undefined);
+                                                            }}
                                                             className={cn(
                                                                 "flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left",
                                                                 values.subcategory === sub.id
@@ -390,6 +397,38 @@ const EditAdPage: React.FC = () => {
                                                             </div>
                                                             <span className="text-sm font-semibold truncate">
                                                                 {getField(sub, 'name').replace(/^\d+\s/, '')}
+                                                            </span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {/* Sub-subcategory Selection */}
+                                    {(() => {
+                                        const selectedCat = categories?.find(c => c.id === values.category);
+                                        const selectedSub = selectedCat?.subcategories?.find(s => s.id === values.subcategory);
+                                        if (!selectedSub || !selectedSub.subsubcategories || selectedSub.subsubcategories.length === 0) return null;
+
+                                        return (
+                                            <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
+                                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Select Specific Type</h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                    {selectedSub.subsubcategories.map(ss => (
+                                                        <button
+                                                            key={ss.id}
+                                                            type="button"
+                                                            onClick={() => setFieldValue('subsubcategory', ss.id)}
+                                                            className={cn(
+                                                                "flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left",
+                                                                values.subsubcategory === ss.id
+                                                                    ? "border-primary-500 bg-primary-50 text-primary-900 shadow-sm"
+                                                                    : "border-gray-100 bg-white hover:border-primary-200 text-gray-700"
+                                                            )}
+                                                        >
+                                                            <span className="text-sm font-semibold truncate pl-2">
+                                                                {getField(ss, 'name')}
                                                             </span>
                                                         </button>
                                                     ))}
@@ -460,11 +499,13 @@ const EditAdPage: React.FC = () => {
                                     {(() => {
                                         const selectedCat = categories?.find(c => c.id === values.category);
                                         const selectedSub = selectedCat?.subcategories?.find(s => s.id === values.subcategory);
+                                        const selectedSubSub = selectedSub?.subsubcategories?.find(ss => ss.id === values.subsubcategory);
 
-                                        // Merge attributes from both category and subcategory if they exist
+                                        // Merge attributes from category, subcategory, and sub-subcategory
                                         const catAttrs = selectedCat?.attributes_schema?.fields || [];
                                         const subAttrs = selectedSub?.attributes_schema?.fields || [];
-                                        const attributes = [...catAttrs, ...subAttrs];
+                                        const subSubAttrs = (selectedSubSub as any)?.attributes_schema?.fields || [];
+                                        const attributes = [...catAttrs, ...subAttrs, ...subSubAttrs];
 
                                         if (attributes.length === 0) return null;
 

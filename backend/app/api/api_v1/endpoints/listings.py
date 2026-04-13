@@ -267,6 +267,76 @@ def delete_subcategory(
     return crud_listing.remove_subcategory(db, id=id)
 
 
+@router.post("/subsubcategories", response_model=Any)
+def create_subsubcategory(
+    *,
+    db: Session = Depends(deps.get_db),
+    subsubcategory_in: dict,
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Create a new sub-subcategory (Admin only).
+    """
+    # Check if slug exists
+    if db.exec(select(SubSubCategory).where(SubSubCategory.slug == subsubcategory_in["slug"])).first():
+        raise HTTPException(status_code=400, detail="Sub-subcategory slug already exists")
+    
+    subsubcat = SubSubCategory(
+        name_en=subsubcategory_in["name_en"],
+        name_so=subsubcategory_in.get("name_so"),
+        slug=subsubcategory_in["slug"],
+        image_url=subsubcategory_in.get("image_url"),
+        subcategory_id=subsubcategory_in["subcategory_id"]
+    )
+    db.add(subsubcat)
+    db.commit()
+    db.refresh(subsubcat)
+    return subsubcat
+
+
+@router.patch("/subsubcategories/{id}", response_model=Any)
+def update_subsubcategory(
+    *,
+    db: Session = Depends(deps.get_db),
+    id: int,
+    subsubcategory_in: dict,
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Update a sub-subcategory (Admin only).
+    """
+    subsubcat = db.get(SubSubCategory, id)
+    if not subsubcat:
+        raise HTTPException(status_code=404, detail="Sub-subcategory not found")
+    
+    for field, value in subsubcategory_in.items():
+        if hasattr(subsubcat, field):
+            setattr(subsubcat, field, value)
+    
+    db.add(subsubcat)
+    db.commit()
+    db.refresh(subsubcat)
+    return subsubcat
+
+
+@router.delete("/subsubcategories/{id}", response_model=Any)
+def delete_subsubcategory(
+    *,
+    db: Session = Depends(deps.get_db),
+    id: int,
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Delete a sub-subcategory (Admin only).
+    """
+    subsubcat = db.get(SubSubCategory, id)
+    if not subsubcat:
+        raise HTTPException(status_code=404, detail="Sub-subcategory not found")
+    db.delete(subsubcat)
+    db.commit()
+    return subsubcat
+
+
 @router.get("/categories/{slug}/attributes", response_model=dict)
 def read_category_attributes(
     *,

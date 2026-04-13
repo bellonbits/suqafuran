@@ -27,6 +27,8 @@ const AdminListingsPage: React.FC = () => {
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('');
+    const [subcategoryFilter, setSubcategoryFilter] = useState('');
+    const [subsubcategoryFilter, setSubsubcategoryFilter] = useState('');
     const [page, setPage] = useState(1);
     const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
     const limit = 20;
@@ -37,11 +39,13 @@ const AdminListingsPage: React.FC = () => {
     });
 
     const { data: listings = [], isLoading } = useQuery({
-        queryKey: ['admin-listings', search, statusFilter, categoryFilter, page],
+        queryKey: ['admin-listings', search, statusFilter, categoryFilter, subcategoryFilter, subsubcategoryFilter, page],
         queryFn: () => listingService.getListings({
             q: search || undefined,
             status: statusFilter || undefined,
             category_id: categoryFilter || undefined,
+            subcategory_id: subcategoryFilter || undefined,
+            subsubcategory_id: subsubcategoryFilter || undefined,
             limit,
             skip: (page - 1) * limit,
         }),
@@ -95,7 +99,12 @@ const AdminListingsPage: React.FC = () => {
                     <Filter className="h-4 w-4 text-gray-400" />
                     <select
                         value={categoryFilter}
-                        onChange={e => { setCategoryFilter(e.target.value); setPage(1); }}
+                        onChange={e => { 
+                            setCategoryFilter(e.target.value); 
+                            setSubcategoryFilter('');
+                            setSubsubcategoryFilter('');
+                            setPage(1); 
+                        }}
                         className="py-2 px-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
                     >
                         <option value="">{t('admin.allCategories')}</option>
@@ -105,6 +114,47 @@ const AdminListingsPage: React.FC = () => {
                             </option>
                         ))}
                     </select>
+
+                    {categoryFilter && (
+                        <select
+                            value={subcategoryFilter}
+                            onChange={e => { 
+                                setSubcategoryFilter(e.target.value); 
+                                setSubsubcategoryFilter('');
+                                setPage(1); 
+                            }}
+                            className="py-2 px-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ml-2 animate-in slide-in-from-left-1 duration-200"
+                        >
+                            <option value="">{t('admin.allSubcategories', 'All Subcategories')}</option>
+                            {categories.find(c => String(c.id) === categoryFilter)?.subcategories?.map((sub: any) => (
+                                <option key={sub.id} value={sub.id}>
+                                    {getField(sub, 'name')}
+                                </option>
+                            ))}
+                        </select>
+                    )}
+
+                    {subcategoryFilter && (
+                        <select
+                            value={subsubcategoryFilter}
+                            onChange={e => { 
+                                setSubsubcategoryFilter(e.target.value); 
+                                setPage(1); 
+                            }}
+                            className="py-2 px-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ml-2 animate-in slide-in-from-left-1 duration-200"
+                        >
+                            <option value="">{t('admin.allSubSubcategories', 'All Types')}</option>
+                            {categories
+                                .find(c => String(c.id) === categoryFilter)
+                                ?.subcategories?.find((s: any) => String(s.id) === subcategoryFilter)
+                                ?.subsubcategories?.map((ss: any) => (
+                                    <option key={ss.id} value={ss.id}>
+                                        {getField(ss, 'name')}
+                                    </option>
+                                ))
+                            }
+                        </select>
+                    )}
 
                     <select
                         value={statusFilter}

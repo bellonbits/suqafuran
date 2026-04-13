@@ -105,19 +105,54 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                             <div className="px-4 pb-3 space-y-1">
                                 {subcategories.map((sub: any) => {
                                     const subName = getField(sub, 'name');
+                                    const isSubActive = attributeFilters['subcategory'] === subName;
+                                    const subSubcategories = sub.subsubcategories || [];
+                                    
                                     return (
-                                        <button
-                                            key={sub.id}
-                                            onClick={() => updateFilter('subcategory', attributeFilters['subcategory'] === subName ? undefined : subName)}
-                                            className={cn(
-                                                'w-full text-left text-[13px] py-1 px-2 rounded-lg transition-colors',
-                                                attributeFilters['subcategory'] === subName
-                                                    ? 'text-primary-600 font-bold bg-primary-50'
-                                                    : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                                        <div key={sub.id} className="space-y-1">
+                                            <button
+                                                onClick={() => {
+                                                    const newValue = isSubActive ? undefined : subName;
+                                                    updateFilter('subcategory', newValue);
+                                                    updateFilter('subsubcategory', undefined); // clear sub-sub
+                                                }}
+                                                className={cn(
+                                                    'w-full text-left text-[13px] py-1.5 px-2 rounded-lg transition-all flex items-center justify-between group',
+                                                    isSubActive
+                                                        ? 'text-primary-600 font-extrabold bg-primary-50'
+                                                        : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                                                )}
+                                            >
+                                                <span>{subName}</span>
+                                                {subSubcategories.length > 0 && isSubActive && (
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-primary-500" />
+                                                )}
+                                            </button>
+                                            
+                                            {/* Sub-subcategories (only if parent is active) */}
+                                            {isSubActive && subSubcategories.length > 0 && (
+                                                <div className="pl-4 space-y-1 mt-1 border-l border-gray-100 ml-2 py-1">
+                                                    {subSubcategories.map((ss: any) => {
+                                                        const ssName = getField(ss, 'name');
+                                                        const isSsActive = attributeFilters['subsubcategory'] === ssName;
+                                                        return (
+                                                            <button
+                                                                key={ss.id}
+                                                                onClick={() => updateFilter('subsubcategory', isSsActive ? undefined : ssName)}
+                                                                className={cn(
+                                                                    'w-full text-left text-[12px] py-1 px-2 rounded-md transition-all',
+                                                                    isSsActive
+                                                                        ? 'text-secondary-600 font-bold bg-secondary-50'
+                                                                        : 'text-gray-500 hover:text-secondary-600 hover:bg-gray-50'
+                                                                )}
+                                                            >
+                                                                {ssName}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
                                             )}
-                                        >
-                                            {subName}
-                                        </button>
+                                        </div>
                                     );
                                 })}
                             </div>

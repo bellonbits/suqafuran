@@ -1,0 +1,36 @@
+SUQAFURAN ADMIN & AGENT CONTENT FOR TRANSLATION (ENGLISH)
+===================================================
+
+[ADMIN PANEL]
+Admin Panel
+Moderation and platform analytics.
+Export Data
+System Settings
+Total Users / Pending Ads / Active Listings
+Moderation Queue
+Review and approve seller verification requests
+Platform Categories
+Manage listing structure and visual branding.
+Add Root Category
+Subcategories Count
+Web Editor
+Manage all bilingual site content and translations
+
+[AGENT PORTAL]
+Agent Command Center
+Real-time payment verification & system activity tracking.
+Live Monitoring
+Payment Queue
+Pending Orders
+Incoming Payments
+Match Payment
+Confirm Match
+Promotion Management
+Review requests, generate codes, and apply promotions to listings.
+Generate Voucher Code
+Specify token amount, then send the code to the seller as their receipt.
+Promotion Code
+Set Promotion Level
+Approve & Generate
+Rejection reason...
+===================================================

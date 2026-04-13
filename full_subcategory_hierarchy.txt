@@ -1,0 +1,331 @@
+SUQAFURAN CATEGORY & SUBCATEGORY HIERARCHY (FOR TRANSLATION)
+===================================================
+
+[FOOD & GROCERIES]
+  > Vegetables
+    - Tomatoes
+    - Onions
+    - Potatoes
+    - Leafy Greens
+    - Peppers
+  > Fruits
+    - Mangoes
+    - Bananas
+    - Citrus Fruits
+    - Dates
+    - Avocados
+  > Meat
+    - Beef
+    - Goat
+    - Lamb
+    - Chicken
+    - Camel Meat
+  > Eggs
+    - Chicken Eggs
+    - Duck Eggs
+  > Seafood
+    - Fresh Fish
+    - Dried Fish
+    - Prawns
+    - Squid
+  > Beverages
+    - Soft Drinks
+    - Juice
+    - Tea
+    - Coffee
+    - Water
+  > Rice & Pasta
+    - Basmati Rice
+    - Spaghetti
+    - Macaroni
+    - Broken Rice
+  > Spices & Condiments
+    - Xawaash Mix
+    - Cumin
+    - Cardamom
+    - Chilli
+    - Salt
+  > Prepared Foods
+    - Canjeero
+    - Samosas
+    - Muufo
+    - Halwa
+    - Bur
+  > Milk & Dairy
+    - Fresh Milk
+    - Camel Milk
+    - Yoghurt
+    - Cheese
+    - Butter
+  > Bakery
+  > Snacks
+
+[CLOTHING & SHOES]
+  > Men's Clothing
+    - Shirts
+    - Trousers
+    - Suits
+    - Traditional Wear
+    - Sportswear
+  > Women's Clothing
+    - Dresses
+    - Abayas
+    - Blouses
+    - Skirts
+    - Traditional Wear
+  > Children's Clothing
+    - Boys Clothing
+    - Girls Clothing
+    - Baby Clothing
+    - School Uniforms
+  > Shoes
+    - Men's Shoes
+    - Women's Shoes
+    - Children's Shoes
+    - Sandals
+    - Sports Shoes
+  > Clothing Accessories
+    - Belts
+    - Bags
+    - Scarves
+    - Hats
+    - Sunglasses
+    - Jewellery
+  > Watches & Sunglasses
+
+[HOUSEHOLD ITEMS]
+  > Appliances
+    - Washing Machines
+    - Refrigerators
+    - Air Conditioners
+    - Water Dispensers
+    - Fans
+  > Furniture
+    - Sofas
+    - Dining Tables
+    - Beds
+    - Wardrobes
+    - Office Furniture
+  > Kitchenware
+    - Pots & Pans
+    - Plates & Bowls
+    - Cups & Glasses
+    - Cutlery
+    - Cooking Utensils
+  > Bedding
+    - Mattresses
+    - Pillows
+    - Bed Sheets
+    - Blankets
+    - Mosquito Nets
+  > Home Decor
+    - Curtains
+    - Rugs & Carpets
+    - Wall Art
+    - Mirrors
+    - Vases
+  > Cleaning Supplies
+    - Detergents
+    - Mops & Brooms
+    - Disinfectants
+    - Cleaning Cloths
+  > Garden Supplies
+    - Garden Tools
+    - Plant Pots
+    - Seeds
+    - Fertilizers
+    - Water Hoses
+
+[ELECTRONICS]
+  > Mobile Phones
+    - Samsung
+    - iPhone
+    - Tecno
+    - Infinix
+    - Huawei
+    - Nokia
+    - Other Brands
+  > Computers
+    - Laptops
+    - Desktop PCs
+    - Tablets
+    - Computer Accessories
+    - Monitors
+    - Printers
+  > TVs
+    - Smart TVs
+    - LED TVs
+    - OLED TVs
+    - TV Accessories
+  > Audio & Headphones
+    - Bluetooth Speakers
+    - Headphones
+    - Earphones
+    - Home Theatre
+    - Amplifiers
+  > Gaming
+    - Game Consoles
+    - Video Games
+    - Controllers
+    - Gaming Accessories
+  > Cameras
+    - DSLR Cameras
+    - Action Cameras
+    - CCTV Cameras
+    - Camera Accessories
+  > Networking
+    - Routers
+    - Modems
+    - Network Cables
+    - WiFi Extenders
+  > Other Electronics
+    - Power Banks
+    - Chargers
+    - Cables & Adapters
+    - Smart Watches
+    - Drones
+
+[VEHICLES]
+  > Cars
+    - Toyota
+    - Nissan
+    - Mazda
+    - Honda
+    - Mitsubishi
+    - Suzuki
+    - BMW
+    - Mercedes-Benz
+    - Other Brands
+  > Motorcycles
+    - Dirt Bikes
+    - Scooters
+    - Sports Bikes
+    - Delivery Bikes
+  > Tuk-tuks
+    - Passenger Tuk-tuks
+    - Cargo Tuk-tuks
+  > Trucks & Buses
+    - Trucks
+    - Buses
+    - Minibuses
+    - Pickups
+    - Trailers
+  > Vehicle Parts & Accessories
+    - Tyres & Rims
+    - Engines & Parts
+    - Car Batteries
+    - Car Lights
+    - Bumpers
+    - Car Covers
+    - Audio Systems
+  > Car Services
+    - Car Repair
+    - Car Wash
+    - Towing Services
+    - Car Rental
+
+[LIVESTOCK]
+  > Somali Goats
+    - Local Goats
+    - Dairy Goats
+    - Meat Goats
+    - Breeding Goats
+  > Somali Sheep
+    - Local Sheep
+    - Fat-tailed Sheep
+    - Breeding Sheep
+  > Somali Camels
+    - Dairy Camels
+    - Racing Camels
+    - Pack Camels
+  > Cattle
+    - Dairy Cows
+    - Beef Cattle
+    - Oxen
+    - Calves
+  > Poultry
+    - Chickens
+    - Ducks
+    - Turkeys
+    - Eggs for Hatching
+  > Wildlife
+    - Dogs
+    - Cats
+    - Birds
+    - Fish
+    - Pet Accessories
+
+[LAND & FARMS]
+  > Vacant Land
+    - Residential Plots
+    - Commercial Plots
+    - Industrial Land
+  > Farms
+    - Crop Farms
+    - Livestock Farms
+    - Mixed Farms
+  > Agricultural Land
+    - Irrigated Land
+    - Rain-fed Land
+    - Orchard Land
+  > Market Gardens
+    - Vegetable Gardens
+    - Herb Gardens
+    - Fruit Orchards
+
+[PROPERTY]
+  > Houses for Rent
+    - Apartments
+    - Villas
+    - Single Rooms
+    - Studio Flats
+    - Shared Housing
+  > Houses for Sale
+    - Apartments for Sale
+    - Villas for Sale
+    - Commercial Buildings
+  > Offices & Commercial
+    - Office Space
+    - Shops for Rent
+    - Warehouses
+    - Event Halls
+  > New Builds
+    - New Apartments
+    - New Villas
+    - Off-plan Properties
+  > Short Stay
+    - Daily Rental
+    - Weekly Rental
+    - Hotel Rooms
+
+[SERVICES]
+  > Building & Construction
+    - Painting
+    - Plumbing
+    - Electrical Work
+    - Tiling
+    - Roofing
+    - Carpentry
+  > Computer & IT
+    - Website Development
+    - Software
+    - Computer Repair
+    - Networking
+    - CCTV Installation
+  > Cleaning Services
+    - Home Cleaning
+    - Office Cleaning
+    - Carpet Cleaning
+    - Post-construction Cleaning
+  > Repair Services
+    - Phone Repair
+    - Appliance Repair
+    - Motorcycle Repair
+    - Furniture Repair
+  > Legal & Financial
+    - Legal Advice
+    - Accounting
+    - Tax Services
+    - Insurance
+
+===================================================

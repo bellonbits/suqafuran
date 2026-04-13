@@ -52,10 +52,11 @@ def get_listings(
 
     if attributes:
         attrs_copy = dict(attributes)
-        # Handle subcategory filter by name → subcategory_id
+        # Handle subcategory and subsubcategory filters by name → IDs
         subcategory_name = attrs_copy.pop("subcategory", None)
+        subsubcategory_name = attrs_copy.pop("subsubcategory", None)
+        
         if subcategory_name and category_id:
-            # We check both name_en and name_so for flexibility in filtering
             sc = db.exec(
                 select(SubCategory).where(
                     SubCategory.category_id == category_id,
@@ -64,6 +65,18 @@ def get_listings(
             ).first()
             if sc:
                 statement = statement.where(Listing.subcategory_id == sc.id)
+                
+                # If we also have a subsubcategory name, filter by it under the found subcategory
+                if subsubcategory_name:
+                    ssc = db.exec(
+                        select(SubSubCategory).where(
+                            SubSubCategory.subcategory_id == sc.id,
+                            (SubSubCategory.name_en == subsubcategory_name) | (SubSubCategory.name_so == subsubcategory_name),
+                        )
+                    ).first()
+                    if ssc:
+                        statement = statement.where(Listing.subsubcategory_id == ssc.id)
+        
         for key, value in attrs_copy.items():
             statement = statement.where(func.json_extract_path_text(Listing.attributes, key) == str(value))
     

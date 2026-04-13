@@ -12,6 +12,7 @@ export interface Listing {
     condition: string;
     category_id: number;
     subcategory_id?: number;
+    subsubcategory_id?: number;
     owner_id: number;
     status: string;
     images: string[];
@@ -42,6 +43,7 @@ export interface ListingCreate {
     condition: string;
     category_id: number;
     subcategory_id?: number;
+    subsubcategory_id?: number;
     images: string[];
     status?: string;
     attributes?: Record<string, any>;
@@ -68,4 +70,14 @@ export interface SubCategory {
     image_url?: string;
     category_id: number;
     attributes_schema?: any;
+    subsubcategories?: SubSubCategory[];
+}
+
+export interface SubSubCategory {
+    id: number;
+    name_en: string;
+    name_so?: string;
+    slug: string;
+    image_url?: string;
+    subcategory_id: number;
 }

@@ -43,10 +43,12 @@ const CategoryListingPage: React.FC = () => {
     const [showFilters, setShowFilters] = useState(false);
     const [searchParams, setSearchParams] = useSearchParams();
     const subcategoryParam = searchParams.get('subcategory');
+    const subsubcategoryParam = searchParams.get('subsubcategory');
 
     const [attributeFilters, setAttributeFilters] = useState<Record<string, any>>(() => {
         const filters: Record<string, any> = {};
         if (subcategoryParam) filters['subcategory'] = subcategoryParam;
+        if (subsubcategoryParam) filters['subsubcategory'] = subsubcategoryParam;
         return filters;
     });
 
@@ -56,9 +58,13 @@ const CategoryListingPage: React.FC = () => {
             const next = { ...prev };
             if (subcategoryParam) next['subcategory'] = subcategoryParam;
             else delete next['subcategory'];
+            
+            if (subsubcategoryParam) next['subsubcategory'] = subsubcategoryParam;
+            else delete next['subsubcategory'];
+            
             return next;
         });
-    }, [subcategoryParam]);
+    }, [subcategoryParam, subsubcategoryParam]);
 
     const [location, setLocation] = useState('');
     const [minPrice, setMinPrice] = useState('');
@@ -100,8 +106,22 @@ const CategoryListingPage: React.FC = () => {
     const selectSubcategory = useCallback((slug: string | null) => {
         setSearchParams(prev => {
             const next = new URLSearchParams(prev);
-            if (slug) next.set('subcategory', slug);
-            else next.delete('subcategory');
+            if (slug) {
+                next.set('subcategory', slug);
+                next.delete('subsubcategory'); // clear sub-sub when sub changes
+            } else {
+                next.delete('subcategory');
+                next.delete('subsubcategory');
+            }
+            return next;
+        });
+    }, [setSearchParams]);
+
+    const selectSubSubcategory = useCallback((slug: string | null) => {
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            if (slug) next.set('subsubcategory', slug);
+            else next.delete('subsubcategory');
             return next;
         });
     }, [setSearchParams]);
@@ -191,6 +211,39 @@ const CategoryListingPage: React.FC = () => {
                         })}
                     </div>
                 )}
+
+                {/* Sub-subcategory chips (if a subcategory is active) */}
+                {(() => {
+                    const activeSub = (category?.subcategories || []).find((s: any) => getField(s, 'name') === activeSubcategory);
+                    const subSubs = activeSub?.subsubcategories || [];
+                    if (subSubs.length === 0) return null;
+
+                    return (
+                        <div className="flex gap-2 overflow-x-auto pb-1 mt-2 hide-scrollbar animate-in fade-in slide-in-from-left-2 transition-all">
+                             <div className="shrink-0 flex items-center pr-2 border-r border-gray-200">
+                                 <div className="w-1.5 h-1.5 rounded-full bg-primary-400 mr-2" />
+                             </div>
+                             {subSubs.map((ss: any, idx: number) => {
+                                 const label = getField(ss, 'name');
+                                 const isActive = subsubcategoryParam === label;
+                                 return (
+                                     <button
+                                         key={ss.id ?? idx}
+                                         onClick={() => selectSubSubcategory(isActive ? null : label)}
+                                         className={cn(
+                                             'shrink-0 px-4 py-1.5 rounded-xl text-[13px] font-bold border transition-all whitespace-nowrap',
+                                             isActive
+                                                 ? 'bg-secondary-500 text-white border-secondary-500 shadow-sm'
+                                                 : 'bg-white text-gray-500 border-gray-100 hover:border-secondary-100 hover:text-secondary-600'
+                                         )}
+                                     >
+                                         {label}
+                                     </button>
+                                 );
+                             })}
+                        </div>
+                    );
+                })()}
 
                 <div className="flex flex-col lg:flex-row gap-6">
                     <FilterSidebar
