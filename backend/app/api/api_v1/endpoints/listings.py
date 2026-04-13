@@ -73,6 +73,11 @@ async def upload_multiple_images(
     return results
 
 
+# Simple in-memory cache for categories
+_categories_cache = {"data": None, "timestamp": 0}
+CACHE_TTL = 300  # 5 minutes
+
+
 @router.get("/categories", response_model=List[Any])
 def read_categories(
     db: Session = Depends(deps.get_db),
@@ -81,8 +86,16 @@ def read_categories(
     Retrieve categories with subcategories.
     """
     import json
+    import time
+    
+    # Return cached data if available and fresh
+    current_time = time.time()
+    if _categories_cache["data"] and (current_time - _categories_cache["timestamp"] < CACHE_TTL):
+        return _categories_cache["data"]
+
     categories = crud_listing.get_categories(db)
     result = []
+    
     for cat in categories:
         cat_attrs = cat.attributes_schema
         if isinstance(cat_attrs, str):
@@ -126,6 +139,10 @@ def read_categories(
             "subcategories": subcategories,
         }
         result.append(cat_dict)
+    
+    # Store in cache
+    _categories_cache["data"] = result
+    _categories_cache["timestamp"] = current_time
     return result
 
 

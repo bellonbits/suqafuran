@@ -5,6 +5,7 @@ import { cn } from '../utils/cn';
 import { useQuery } from '@tanstack/react-query';
 import { listingService } from '../services/listingService';
 import { useTranslation } from 'react-i18next';
+import { useLanguageField } from '../hooks/useLanguageField';
 
 interface FilterSidebarProps {
     showFilters: boolean;
@@ -63,12 +64,11 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
     });
 
     const { t } = useTranslation();
+    const { getField } = useLanguageField();
 
     const category = categories?.find(c => String(c.id) === String(categoryId) || c.slug === categoryId);
-    const subcategories: string[] = category?.subcategories?.map((s: any) => s.name || s) || [];
-    const categoryName = category?.name || '';
-    const translatedCategoryName = categoryName ? (t(`categories.${categoryName}`, categoryName as any) as string) : '';
-    const subNameMap = Object.fromEntries(subcategories.map(s => [s, t(`categories.${s}`, s as any) as string]));
+    const subcategories = category?.subcategories || [];
+    const categoryName = category ? getField(category, 'name') : '';
 
     const activePriceRange = PRICE_RANGES.find(r => r.min === (minPrice ?? '') && r.max === (maxPrice ?? ''));
 
@@ -96,30 +96,31 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
                         >
                             <span className="flex items-center gap-2">
                                 <ListFilter className="h-4 w-4 text-primary-500" />
-                                {translatedCategoryName || category?.name}
+                                {categoryName}
                             </span>
                             {expandedSections.categories
                                 ? <ChevronUp className="h-4 w-4 text-gray-400" />
                                 : <ChevronDown className="h-4 w-4 text-gray-400" />}
                         </button>
-                        {expandedSections.categories && (
                             <div className="px-4 pb-3 space-y-1">
-                                {subcategories.map((sub: string) => (
-                                    <button
-                                        key={sub}
-                                        onClick={() => updateFilter('subcategory', attributeFilters['subcategory'] === sub ? undefined : sub)}
-                                        className={cn(
-                                            'w-full text-left text-[13px] py-1 px-2 rounded-lg transition-colors',
-                                            attributeFilters['subcategory'] === sub
-                                                ? 'text-primary-600 font-bold bg-primary-50'
-                                                : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
-                                        )}
-                                    >
-                                        {subNameMap[sub] || sub}
-                                    </button>
-                                ))}
+                                {subcategories.map((sub: any) => {
+                                    const subName = getField(sub, 'name');
+                                    return (
+                                        <button
+                                            key={sub.id}
+                                            onClick={() => updateFilter('subcategory', attributeFilters['subcategory'] === subName ? undefined : subName)}
+                                            className={cn(
+                                                'w-full text-left text-[13px] py-1 px-2 rounded-lg transition-colors',
+                                                attributeFilters['subcategory'] === subName
+                                                    ? 'text-primary-600 font-bold bg-primary-50'
+                                                    : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                                            )}
+                                        >
+                                            {subName}
+                                        </button>
+                                    );
+                                })}
                             </div>
-                        )}
                     </div>
                 )}
 

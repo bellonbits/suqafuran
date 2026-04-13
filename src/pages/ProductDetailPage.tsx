@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Spin } from 'antd';
 import { PublicLayout } from '../layouts/PublicLayout';
@@ -30,7 +30,9 @@ const WA_ICON = (
 
 const ProductDetailPage: React.FC = () => {
     const { listingId } = useParams<{ listingId: string }>();
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
+    const navigate = useNavigate();
+    const { getField } = useLanguageField();
     const [showPhone, setShowPhone] = useState(false);
     const [activeImage, setActiveImage] = useState(0);
     const [showFullDesc, setShowFullDesc] = useState(false);
@@ -68,9 +70,8 @@ const ProductDetailPage: React.FC = () => {
     const displayRelatedAds = relatedAds || [];
     const { currency: targetCurrency } = useCurrencyStore();
 
-    const { getField } = useLanguageField();
-    const displayTitle = getField(ad, 'title');
-    const displayDesc = getField(ad, 'description');
+    const displayTitle = ad ? getField(ad, 'title') : '';
+    const displayDesc = ad ? getField(ad, 'description') : '';
 
     // Fetch done but listing doesn't exist
     if (!isLoading && isSuccess && !ad) {
@@ -151,7 +152,7 @@ const ProductDetailPage: React.FC = () => {
                     {/* Top nav overlay */}
                     <div className="absolute top-0 inset-x-0 flex items-center justify-between px-3 pt-10">
                         <button
-                            onClick={() => window.history.back()}
+                            onClick={() => navigate(-1)}
                             className="w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center"
                         >
                             <ChevronLeft className="h-5 w-5 text-white" />
@@ -355,7 +356,7 @@ const ProductDetailPage: React.FC = () => {
                 )}
 
                 {/* ── Description ── */}
-                {ad?.description && (
+                {displayDesc && (
                     <div className="bg-white mt-2 px-4 py-4 border-b border-gray-100">
                         <h3 className="text-[13px] font-bold text-gray-900 mb-2">{t('listing.description')}</h3>
                         <p className={cn('text-[13px] text-gray-600 leading-relaxed', !showFullDesc && 'line-clamp-4')}>
@@ -545,15 +546,12 @@ const ProductDetailPage: React.FC = () => {
 
                             {/* Title + Price + Meta */}
                             <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                                <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{displayTitle}</h1>
+                                <div className="flex items-center gap-2 text-xs text-gray-400 mt-3 mb-2">
                                     <MapPin className="h-3.5 w-3.5 text-primary-500" />
                                     {ad ? <span>{ad.location}</span> : S.line('w-28', 'h-3')}
                                     {postedDate && <><Clock className="h-3.5 w-3.5 ml-1" /><span>{postedDate}</span></>}
                                 </div>
-                                {ad
-                                    ? <h1 className="text-xl font-bold text-gray-900 mb-2 leading-snug">{displayTitle}</h1>
-                                    : <div className="space-y-2 mb-2">{S.line('w-2/3', 'h-6')}{S.line('w-1/2', 'h-5')}</div>
-                                }
                                 <div className="flex items-baseline gap-3 mb-4">
                                     {ad ? (
                                         <>
@@ -589,7 +587,10 @@ const ProductDetailPage: React.FC = () => {
                             {ad && attrEntries.length > 0 && (
                                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                                     <h3 className="font-bold text-sm text-gray-900 mb-3">{t('listing.details')}</h3>
-                                    <div className="grid grid-cols-2 gap-y-3 gap-x-6">
+                                    <div className="prose prose-primary max-w-none text-gray-600">
+                                        <p className="whitespace-pre-line leading-relaxed">{displayDesc}</p>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-y-3 gap-x-6 mt-4">
                                         {attrEntries.map(([key, value]) => (
                                             <div key={key} className="flex justify-between items-center border-b border-gray-50 pb-2">
                                                 <span className="text-xs text-gray-400 uppercase tracking-wider">{key.replace(/_/g, ' ')}</span>
@@ -601,7 +602,7 @@ const ProductDetailPage: React.FC = () => {
                             )}
 
                             {/* Description */}
-                            {ad?.description && (
+                            {displayDesc && (
                                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                                     <h3 className="font-bold text-sm text-gray-900 mb-3">{t('listing.description')}</h3>
                                     <p className={cn('text-gray-600 whitespace-pre-line leading-relaxed text-sm', !showFullDesc && 'line-clamp-5')}>

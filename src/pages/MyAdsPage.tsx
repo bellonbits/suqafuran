@@ -3,13 +3,13 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { listingService } from '../services/listingService';
+import { getImageUrl } from '../utils/imageUtils';
 import {
     AlertTriangle, X, PlusCircle,
     Eye, Loader2, ShoppingBag
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { cn } from '../utils/cn';
-import { formatConvertedPrice } from '../utils/currencyUtils';
 import { useLanguageField } from '../hooks/useLanguageField';
 import type { Listing } from '../types/listing';
 

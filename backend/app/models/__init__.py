@@ -12,6 +12,7 @@ from app.models.kh_models import AdminArea, Place, Landmark, KaalayHeedhePin, Em
 from app.models.delivery import Delivery
 from app.models.feedback import Feedback
 from app.models.follow import Follow
+from app.models.site_content import SiteContent
 
 __all__ = [
     "User",
@@ -37,4 +38,5 @@ __all__ = [
     "Delivery",
     "Feedback",
     "Follow",
+    "SiteContent",
 ]

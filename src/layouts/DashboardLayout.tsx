@@ -9,7 +9,7 @@ import {
     PlusCircle, Bell, HelpCircle, Shield, Wallet, Folder,
     Menu, X, TrendingUp, MessageSquare, Zap, Target,
 
-    MessageCircle, Users
+    MessageCircle, Users, Globe
 } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { getAvatarUrl } from '../utils/imageUtils';
@@ -242,6 +242,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             >
                                 <Shield className="h-5 w-5" />
                                 {t('dashboard.verifications', 'Verifications')}
+                            </Link>
+                            <Link
+                                to="/admin/editor"
+                                className={cn(
+                                    "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-indigo-600 hover:bg-indigo-50",
+                                    location.pathname === '/admin/editor' && "bg-indigo-50 shadow-sm"
+                                )}
+                            >
+                                <Globe className="h-5 w-5" />
+                                {t('dashboard.webEditor', 'Web Editor')}
                             </Link>
                         </div>
                     )}

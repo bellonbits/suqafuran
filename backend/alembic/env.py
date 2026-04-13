@@ -22,6 +22,7 @@ from app.models.wallet import Wallet, Transaction
 from app.models.promotion import Promotion, PromotionPlan, PromotionCode
 from app.models.mobile_money import MobileTransaction
 from app.models.audit import AuditLog
+from app.models.site_content import SiteContent
 
 # this is the Alembic Config object, which provides access to the values within the .ini file in use.
 config = context.config

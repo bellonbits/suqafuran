@@ -8,6 +8,7 @@ import { listingService } from '../services/listingService';
 import { getImageUrl } from '../utils/imageUtils';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { LocationPickerModal } from '../components/LocationPickerModal';
+import { useLanguageField } from '../hooks/useLanguageField';
 import { LipanaPaymentModal } from '../components/LipanaPaymentModal';
 import { useAuthStore } from '../store/useAuthStore';
 import { cn } from '../utils/cn';
@@ -73,6 +74,7 @@ const PostAdPage: React.FC = () => {
     const [uploading, setUploading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const { getField } = useLanguageField();
     const [createdListingId, setCreatedListingId] = useState<number | null>(null);
     const [showLipanaModal, setShowLipanaModal] = useState(false);
     const [createdListingTitle, setCreatedListingTitle] = useState('');
@@ -126,8 +128,8 @@ const PostAdPage: React.FC = () => {
 
     const filteredCategories = categorySearch.trim()
         ? categories.filter(c =>
-            c.name.toLowerCase().includes(categorySearch.toLowerCase()) ||
-            c.subcategories?.some((s: any) => s.name.toLowerCase().includes(categorySearch.toLowerCase()))
+            getField(c, 'name').toLowerCase().includes(categorySearch.toLowerCase()) ||
+            c.subcategories?.some((s: any) => getField(s, 'name').toLowerCase().includes(categorySearch.toLowerCase()))
         )
         : categories;
 
@@ -610,6 +612,8 @@ const PostAdPage: React.FC = () => {
                                 <span className={selectedCategory ? 'text-gray-900 font-medium' : 'text-transparent'}>
                                     {selectedCategory ? getField(selectedCategory, 'name') : ' '}
                                 </span>
+                                <ChevronRight className="h-4 w-4 text-gray-400" />
+                            </button>
                             <label className={`absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-[11px] pointer-events-none transition-all ${!selectedCategory ? 'top-[22px] -translate-y-1/2 text-[14px]' : 'font-medium'} ${errors.categoryId ? 'text-red-500' : 'text-gray-500'}`}>
                                 Category*
                             </label>

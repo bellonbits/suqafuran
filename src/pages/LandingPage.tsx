@@ -57,9 +57,11 @@ const LandingPage: React.FC = () => {
     const [isLocationOpen, setLocationOpen] = useState(false);
     const [selectedLocation, setSelectedLocation] = useState('');
 
-    const { data: categories } = useQuery({
+    const { data: categories, isLoading: catsLoading, isError: catsError } = useQuery({
         queryKey: ['categories'],
         queryFn: listingService.getCategories,
+        staleTime: 24 * 60 * 60 * 1000, // 24 hours
+        gcTime: 48 * 60 * 60 * 1000,   // 48 hours
     });
 
     const { data: featuredAds, isLoading: adsLoading } = useQuery({
@@ -69,16 +71,7 @@ const LandingPage: React.FC = () => {
 
     const displayCategories = categories || [];
     const displayAds = featuredAds || [];
-    const catNames = displayCategories.map(c => c.name);
-    const allSubNames = displayCategories.flatMap(c => c.subcategories?.map((s: any) => s.name || s) || []);
-    
-    // Create translation maps for categories and subcategories
-    const catNameMap = Object.fromEntries(
-        catNames.map(name => [name, t(`categories.${name}`, { defaultValue: name }) as string])
-    );
-    const subNameMap = Object.fromEntries(
-        allSubNames.map(name => [name, t(`categories.${name}`, { defaultValue: name }) as string])
-    );
+    const { getField } = useLanguageField();
 
     return (
         <PublicLayout>
@@ -164,7 +157,7 @@ const LandingPage: React.FC = () => {
                                     }`}>
                                         <img
                                             src={imgSrc}
-                                            alt={cat.name}
+                                            alt={getField(cat, 'name')}
                                             className="w-full h-full object-cover"
                                             loading="lazy"
                                             onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0'; }}
@@ -174,7 +167,7 @@ const LandingPage: React.FC = () => {
                                         className={`text-[10px] font-bold text-center ${isAct ? 'text-primary-600' : 'text-gray-500'}`}
                                         style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 56, display: 'block' }}
                                     >
-                                        {(catNameMap[cat.name] || cat.name).split(' ')[0]}
+                                        {getField(cat, 'name').split(' ')[0]}
                                     </span>
                                 </button>
                             );
@@ -185,7 +178,7 @@ const LandingPage: React.FC = () => {
                     <AnimatePresence>
                         {activeCategory && (() => {
                             const activeCat = displayCategories.find(c => String(c.id) === activeCategory);
-                            const subs: Array<{ id?: any; name: string; slug?: string }> = activeCat?.subcategories || [];
+                            const subs = activeCat?.subcategories || [];
                             if (!activeCat || subs.length === 0) return null;
                             return (
                                 <motion.div
@@ -202,14 +195,14 @@ const LandingPage: React.FC = () => {
                                             onClick={() => navigate(`/category/${activeCat.slug || activeCat.id}`)}
                                             className="shrink-0 px-3 py-1 rounded-full text-xs font-bold bg-primary-500 text-white"
                                         >
-                                            {t('landing.seeAll')} {(catNameMap[activeCat.name] || activeCat.name).split(' (')[0]}
+                                            {t('landing.seeAll')} {getField(activeCat, 'name').split(' (')[0]}
                                         </button>
                                         {subs.map((sub, idx) => {
-                                            const label = (subNameMap[sub.name] || sub.name).replace(/^\d+\s/, '');
+                                            const label = getField(sub, 'name').replace(/^\d+\s/, '');
                                             return (
                                                 <button
                                                     key={sub.id ?? idx}
-                                                    onClick={() => navigate(`/category/${activeCat.slug || activeCat.id}?subcategory=${sub.name}`)}
+                                                    onClick={() => navigate(`/category/${activeCat.slug || activeCat.id}?subcategory=${getField(sub, 'name')}`)}
                                                     className="shrink-0 px-3 py-1 rounded-full text-xs font-semibold bg-white border border-gray-200 text-gray-700 active:bg-primary-50 active:border-primary-300 active:text-primary-700"
                                                 >
                                                     {label}
@@ -370,30 +363,45 @@ const LandingPage: React.FC = () => {
                                             {t('listing.category')}
                                         </h3>
                                     </div>
-                                    <div className="divide-y divide-gray-50 max-h-[calc(100vh-200px)] overflow-y-auto">
-                                        {displayCategories.map((cat) => (
-                                            <div
-                                                key={cat.id}
-                                                onMouseEnter={() => setHoveredCategory(cat.slug || String(cat.id))}
-                                                className="group"
-                                            >
-                                                <button
-                                                    onClick={() => navigate(`/category/${cat.slug || cat.id}`)}
-                                                    className={`w-full flex items-center justify-between p-3.5 transition-colors text-left ${hoveredCategory === (cat.slug || String(cat.id)) ? 'bg-primary-50 text-primary-900' : 'hover:bg-gray-50'}`}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${hoveredCategory === (cat.slug || String(cat.id)) ? 'bg-primary-500 text-white' : 'bg-gray-50 text-gray-500'}`}>
-                                                            {(() => {
-                                                                const Icon = getCategoryIcon(cat.icon_name || cat.slug);
-                                                                return <Icon size={18} />;
-                                                            })()}
-                                                        </div>
-                                                        <p className="text-sm font-semibold text-gray-700">{catNameMap[cat.name] || cat.name}</p>
-                                                    </div>
-                                                    <ChevronRight className="w-4 h-4 text-gray-300" />
-                                                </button>
+                                    <div className="divide-y divide-gray-50 max-h-[calc(100vh-200px)] overflow-y-auto min-h-[300px]">
+                                        {catsLoading ? (
+                                            <div className="flex flex-col items-center justify-center py-20 gap-3">
+                                                <Loader2 className="w-8 h-8 animate-spin text-primary-400" />
+                                                <p className="text-xs text-gray-400 font-medium italic">{t('common.loading')}</p>
                                             </div>
-                                        ))}
+                                        ) : catsError ? (
+                                            <div className="p-8 text-center">
+                                                <p className="text-xs text-red-400">{t('admin.operationFailed')}</p>
+                                            </div>
+                                        ) : displayCategories.length === 0 ? (
+                                            <div className="p-8 text-center">
+                                                <p className="text-xs text-gray-400 italic">{t('admin.noCategoriesFound')}</p>
+                                            </div>
+                                        ) : (
+                                            displayCategories.map((cat) => (
+                                                <div
+                                                    key={cat.id}
+                                                    onMouseEnter={() => setHoveredCategory(cat.slug || String(cat.id))}
+                                                    className="group"
+                                                >
+                                                    <button
+                                                        onClick={() => navigate(`/category/${cat.slug || cat.id}`)}
+                                                        className={`w-full flex items-center justify-between p-3.5 transition-colors text-left ${hoveredCategory === (cat.slug || String(cat.id)) ? 'bg-primary-50 text-primary-900' : 'hover:bg-gray-50'}`}
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${hoveredCategory === (cat.slug || String(cat.id)) ? 'bg-primary-500 text-white' : 'bg-gray-50 text-gray-500'}`}>
+                                                                {(() => {
+                                                                    const Icon = getCategoryIcon(cat.icon_name || cat.slug);
+                                                                    return <Icon size={18} />;
+                                                                })()}
+                                                            </div>
+                                                            <p className="text-sm font-semibold text-gray-700">{getField(cat, 'name')}</p>
+                                                        </div>
+                                                        <ChevronRight className="w-4 h-4 text-gray-300" />
+                                                    </button>
+                                                </div>
+                                            ))
+                                        )}
                                     </div>
 
                                     {/* Mega menu */}
@@ -422,7 +430,7 @@ const LandingPage: React.FC = () => {
                                                                         })()}
                                                                     </div>
                                                                     <div>
-                                                                        <h2 className="text-2xl font-bold text-gray-900">{catNameMap[activeCat.name] || activeCat.name}</h2>
+                                                                        <h2 className="text-2xl font-bold text-gray-900">{getField(activeCat, 'name')}</h2>
                                                                         <p className="text-sm text-primary-600 font-medium flex items-center gap-1 mt-0.5">
                                                                             {t('landing.seeAll')} <ChevronRight size={14} />
                                                                         </p>
@@ -430,21 +438,21 @@ const LandingPage: React.FC = () => {
                                                                 </div>
                                                                 <div className="grid grid-cols-2 gap-y-4 gap-x-6 content-start flex-1 overflow-y-auto pr-2">
                                                                     {activeCat.subcategories?.map((sub, idx) => (
-                                                                        <button
-                                                                            key={sub.id || idx}
-                                                                            onClick={() => {
-                                                                                navigate(`/category/${activeCat.slug || activeCat.id}?subcategory=${sub.name}`);
-                                                                                setHoveredCategory(null);
-                                                                            }}
-                                                                            className="flex items-center gap-3 p-2 rounded-xl hover:border-primary-100 hover:bg-primary-50/50 transition-all text-left group"
-                                                                        >
-                                                                            <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
-                                                                                <img src={sub.image_url || activeCat.image_url || ''} alt={sub.name} className="w-full h-full object-cover" />
-                                                                            </div>
-                                                                            <span className="text-sm font-semibold text-gray-700 group-hover:text-primary-700 line-clamp-2">
-                                                                                {(subNameMap[sub.name] || sub.name).replace(/^\d+\s/, '')}
-                                                                            </span>
-                                                                        </button>
+                                                                             <button
+                                                                              key={sub.id || idx}
+                                                                              onClick={() => {
+                                                                                  navigate(`/category/${activeCat.slug || activeCat.id}?subcategory=${getField(sub, 'name')}`);
+                                                                                  setHoveredCategory(null);
+                                                                              }}
+                                                                              className="flex items-center gap-3 p-2 rounded-xl hover:border-primary-100 hover:bg-primary-50/50 transition-all text-left group"
+                                                                          >
+                                                                              <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
+                                                                                  <img src={sub.image_url || activeCat.image_url || ''} alt={getField(sub, 'name')} className="w-full h-full object-cover" />
+                                                                              </div>
+                                                                              <span className="text-sm font-semibold text-gray-700 group-hover:text-primary-700 line-clamp-2">
+                                                                                  {getField(sub, 'name').replace(/^\d+\s/, '')}
+                                                                              </span>
+                                                                          </button>
                                                                     ))}
                                                                 </div>
                                                                 <div className="mt-8 pt-6 border-t border-gray-100">
@@ -452,17 +460,17 @@ const LandingPage: React.FC = () => {
                                                                         onClick={() => { navigate(`/category/${activeCat.slug || activeCat.id}`); setHoveredCategory(null); }}
                                                                         className="flex items-center gap-2 text-primary-600 font-bold hover:gap-3 transition-all"
                                                                     >
-                                                                        {t('landing.viewAll')} {(catNameMap[activeCat.name] || activeCat.name).split(' (')[0]}
+                                                                        {t('landing.viewAll')} {getField(activeCat, 'name').split(' (')[0]}
                                                                         <ChevronRight size={18} />
                                                                     </button>
                                                                 </div>
                                                             </div>
                                                             <div className="w-64 bg-gray-50 relative overflow-hidden">
-                                                                <img src={activeCat.image_url || ''} alt={activeCat.name} className="absolute inset-0 w-full h-full object-cover" />
+                                                                <img src={activeCat.image_url || ''} alt={getField(activeCat, 'name')} className="absolute inset-0 w-full h-full object-cover" />
                                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                                                                 <div className="absolute bottom-0 left-0 p-6 text-white">
                                                                     <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-1.5 opacity-80">{t('landing.sponsored')}</p>
-                                                                    <h4 className="text-lg font-bold">{(catNameMap[activeCat.name] || activeCat.name).split(' (')[0]}</h4>
+                                                                    <h4 className="text-lg font-bold">{getField(activeCat, 'name').split(' (')[0]}</h4>
                                                                 </div>
                                                             </div>
                                                         </>

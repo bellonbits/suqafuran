@@ -64,6 +64,7 @@ const AdminPromotionsPage = lazy(() => import('./pages/admin/AdminPromotionsPage
 const AdminVouchersPage = lazy(() => import('./pages/admin/AdminVouchersPage'));
 const AdminListingsPage = lazy(() => import('./pages/admin/AdminListingsPage'));
 const AdminVerificationsPage = lazy(() => import('./pages/admin/AdminVerificationsPage'));
+const WebEditorPage = lazyNamed(() => import('./pages/admin/WebEditorPage'), 'WebEditorPage');
 const AgentDashboard = lazy(() => import('./pages/agent/AgentDashboard'));
 
 const queryClient = new QueryClient({
@@ -153,6 +154,7 @@ const App: React.FC = () => {
               <Route path="promotions" element={<AdminPromotionsPage />} />
               <Route path="vouchers" element={<AdminVouchersPage />} />
               <Route path="verifications" element={<AdminVerificationsPage />} />
+              <Route path="editor" element={<WebEditorPage />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

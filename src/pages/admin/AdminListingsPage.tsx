@@ -4,8 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useLanguageField } from '../../hooks/useLanguageField';
 import { listingService } from '../../services/listingService';
-import { Button } from '../../components/Button';
 import api from '../../services/api';
+import {
+    Search, Filter, Loader2, CheckCircle, XCircle,
+    Eye, Edit, Trash2, ChevronLeft, ChevronRight, AlertTriangle
+} from 'lucide-react';
 
 const STATUS_COLORS: Record<string, string> = {
     active:   'bg-green-100 text-green-700',
@@ -16,7 +19,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const AdminListingsPage: React.FC = () => {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     const { getField } = useLanguageField();

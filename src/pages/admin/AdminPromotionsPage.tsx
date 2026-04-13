@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { promotionService } from '../../services/promotionService';
 import { auditService } from '../../services/auditService';
+import { useLanguageField } from '../../hooks/useLanguageField';
+import { promotionService } from '../../services/promotionService';
 import type { Promotion, PromotionPlan } from '../../services/promotionService';
 import type { AuditLogEntry } from '../../services/auditService';
 import { Button } from '../../components/Button';
@@ -34,6 +35,7 @@ const PLAN_ICONS = [TrendingUp, ShieldCheck, DollarSign];
 const AdminPromotionsPage: React.FC = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const { getField } = useLanguageField();
     const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState<'pending' | 'generate' | 'apply'>('pending');
     const [selectedPromotion, setSelectedPromotion] = useState<Promotion | null>(null);
@@ -66,7 +68,7 @@ const AdminPromotionsPage: React.FC = () => {
     const approveMutation = useMutation({
         mutationFn: ({ promotionId, planId }: { promotionId: number; planId: number }) =>
             promotionService.approvePromotion(promotionId, planId),
-        onSuccess: (data) => {
+        onSuccess: (data: any) => {
             setGeneratedCode(data.promotion_code);
             queryClient.invalidateQueries({ queryKey: ['admin-promotions'] });
             queryClient.invalidateQueries({ queryKey: ['audit-logs-admin'] });
@@ -88,7 +90,7 @@ const AdminPromotionsPage: React.FC = () => {
 
     const generateCodeMutation = useMutation({
         mutationFn: (amount: number) => promotionService.generateCode(amount),
-        onSuccess: (data) => {
+        onSuccess: (data: any) => {
             setGeneratedCode(data.code);
             setManualCode(data.code);
             setStatusMessage({ type: 'success', text: `Code ${data.code} generated — send to seller.` });
@@ -98,7 +100,7 @@ const AdminPromotionsPage: React.FC = () => {
     const applyCodeMutation = useMutation({
         mutationFn: (payload: { code: string; listing_id: number; plan_id: number }) =>
             promotionService.applyCode(payload),
-        onSuccess: (data) => {
+        onSuccess: (data: any) => {
             setStatusMessage({ type: 'success', text: data.message });
             setManualCode('');
             setManualListingId('');
@@ -225,9 +227,9 @@ const AdminPromotionsPage: React.FC = () => {
                                                     <ShoppingBag size={18} />
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <div className="font-bold text-gray-900 truncate">{promo.listing_title || `Listing #${promo.listing_id}`}</div>
+                                                    <div className="font-bold text-gray-900 truncate">{getField(promo, 'listing_title') || `Listing #${promo.listing_id}`}</div>
                                                     <div className="text-xs text-gray-500">
-                                                        {promo.plan_name} • ${(promo as any).amount || '—'}
+                                                        {getField(promo, 'plan_name')} • ${(promo as any).amount || '—'}
                                                         {promo.payment_proof && (
                                                             <span className="ml-2 text-green-600 font-bold">✓ Proof</span>
                                                         )}
@@ -362,10 +364,9 @@ const AdminPromotionsPage: React.FC = () => {
                                         }}
                                         value={manualListingId && selectedPlan ? `${manualListingId}:${selectedPlan}` : ''}
                                     >
-                                        <option value="">{t('agent.selectListing')}</option>
                                         {promotions?.map((p) => (
                                             <option key={p.id} value={`${p.listing_id}:${p.plan_id}`}>
-                                                {p.listing_title || `Listing #${p.listing_id}`}
+                                                {getField(p, 'listing_title') || `Listing #${p.listing_id}`}
                                             </option>
                                         ))}
                                     </select>
@@ -409,7 +410,7 @@ const AdminPromotionsPage: React.FC = () => {
                                                             <PlanIcon size={18} />
                                                         </div>
                                                         <div>
-                                                            <p className="font-black text-gray-900 text-sm">{plan.name}</p>
+                                                            <p className="font-black text-gray-900 text-sm">{getField(plan, 'name')}</p>
                                                             <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">{plan.duration_days} {t('agent.days')}</p>
                                                         </div>
                                                     </div>
@@ -462,7 +463,7 @@ const AdminPromotionsPage: React.FC = () => {
                                 </h3>
                                 <div className="bg-primary-300/20 p-4 rounded-2xl border border-primary-300/20 mb-4">
                                     <div className="text-[10px] font-bold opacity-60 uppercase mb-1">{t('agent.listing')}</div>
-                                    <div className="font-bold">{selectedPromotion.listing_title || `#${selectedPromotion.listing_id}`}</div>
+                                    <div className="font-bold">{getField(selectedPromotion, 'listing_title') || `#${selectedPromotion.listing_id}`}</div>
                                     {selectedPromotion.payment_proof && (
                                         <div className="text-xs font-mono opacity-70 mt-1 truncate">{selectedPromotion.payment_proof}</div>
                                     )}
@@ -481,7 +482,7 @@ const AdminPromotionsPage: React.FC = () => {
                                             )}
                                         >
                                             <div>
-                                                <p className="font-bold text-sm">{plan.name}</p>
+                                                <p className="font-bold text-sm">{getField(plan, 'name')}</p>
                                                 <p className="text-[10px] opacity-60">{plan.duration_days} {t('agent.days')}</p>
                                             </div>
                                             <p className="font-black text-sm">${plan.price_usd}</p>
@@ -522,7 +523,7 @@ const AdminPromotionsPage: React.FC = () => {
                                     {t('agent.rejectPromotion', { id: selectedPromotion.id })}
                                 </h3>
                                 <div className="text-xs opacity-70 mb-3 font-bold">
-                                    {selectedPromotion.listing_title || `Listing #${selectedPromotion.listing_id}`}
+                                    {getField(selectedPromotion, 'listing_title') || `Listing #${selectedPromotion.listing_id}`}
                                 </div>
                                 <textarea
                                     value={rejectReason}

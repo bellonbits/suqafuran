@@ -15,6 +15,7 @@ import { cn } from '../utils/cn';
 import { getImageUrl } from '../utils/imageUtils';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { LocationPickerModal } from '../components/LocationPickerModal';
+import { useLanguageField } from '../hooks/useLanguageField';
 import { MapPin } from 'lucide-react';
 
 const steps = ['Basic Info', 'Category & Details', 'Pricing', 'Photos'];
@@ -39,6 +40,8 @@ const EditAdPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'en' | 'so'>('en');
     const [submitted, setSubmitted] = useState(false);
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+    const [currentStep, setCurrentStep] = useState(0);
+    const { getField } = useLanguageField();
 
     const { data: listing, isLoading: loadingListing } = useQuery({
         queryKey: ['listing', id],
@@ -347,7 +350,7 @@ const EditAdPage: React.FC = () => {
                                                                     <Icon className="h-6 w-6" />
                                                                 )}
                                                             </div>
-                                                            <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-center">{cat.name}</span>
+                                                            <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-center">{getField(cat, 'name')}</span>
                                                         </button>
                                                     );
                                                 })
@@ -386,7 +389,7 @@ const EditAdPage: React.FC = () => {
                                                                 )}
                                                             </div>
                                                             <span className="text-sm font-semibold truncate">
-                                                                {sub.name.replace(/^\d+\s/, '')}
+                                                                {getField(sub, 'name').replace(/^\d+\s/, '')}
                                                             </span>
                                                         </button>
                                                     ))}

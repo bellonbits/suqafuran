@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useLanguageField } from '../hooks/useLanguageField';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { ProductCard } from '../components/ProductCard';
 import { listingService } from '../services/listingService';
@@ -38,6 +39,7 @@ const CategoryListingPage: React.FC = () => {
     const { categoryId } = useParams<{ categoryId: string }>();
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const { getField } = useLanguageField();
     const [showFilters, setShowFilters] = useState(false);
     const [searchParams, setSearchParams] = useSearchParams();
     const subcategoryParam = searchParams.get('subcategory');
@@ -80,15 +82,18 @@ const CategoryListingPage: React.FC = () => {
         staleTime: 10 * 60_000, // categories change rarely — cache 10 min
     });
 
-    const displayCategories = useMemo(() => categories || [], [categories]);
     const category = useMemo(
-        () => displayCategories.find(c => String(c.id) === String(categoryId) || c.slug === categoryId),
-        [displayCategories, categoryId]
+        () => categories?.find(c => String(c.id) === String(categoryId) || c.slug === categoryId),
+        [categories, categoryId]
     );
-    const categoryName = category?.name || '';
-    const translatedCategoryName = categoryName ? (t(`categories.${categoryName}`, categoryName as any) as string) : '';
-    const subcategories: Array<{ id?: any; name: string; slug?: string; image_url?: string }> =
-        category?.subcategories || [];
+    const categoryName = category ? getField(category, 'name') : '';
+
+    const subcategories = (category?.subcategories || []).map((s: any) => ({
+        id: s.id,
+        name: getField(s, 'name'),
+        slug: s.slug,
+        image_url: s.image_url
+    }));
 
     const activeSubcategory = subcategoryParam || attributeFilters['subcategory'] || null;
 
@@ -129,10 +134,10 @@ const CategoryListingPage: React.FC = () => {
                             <span className="mx-2">/</span>
                             <Link to="/dashboard" className="hover:text-primary-400">{t('category.categories')}</Link>
                             <span className="mx-2">/</span>
-                            <span className="text-gray-900 font-medium">{translatedCategoryName || category?.name}</span>
+                            <span className="text-gray-900 font-medium">{categoryName}</span>
                         </nav>
-                        <h1 className="text-2xl font-bold text-gray-900">
-                            {translatedCategoryName || category?.name || 'Products'}{' '}
+                        <h1 className="text-2xl font-black text-gray-900">
+                            {categoryName || 'Products'}{' '}
                             <span className="text-gray-400 font-normal text-lg">{t('listing.inAfrica')}</span>
                         </h1>
                     </div>

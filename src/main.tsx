@@ -2,7 +2,11 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import './i18n'
+import { loadOverrides } from './i18n'
 import App from './App.tsx'
+
+// Load dynamic site content overrides from backend
+loadOverrides();
 
 import { registerSW } from 'virtual:pwa-register'
 import { Capacitor } from '@capacitor/core'

@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, Zap } from 'lucide-react';
 import { Button } from './Button';
+import { useLanguageField } from '../hooks/useLanguageField';
 import type { PromotionPlan } from '../services/promotionService';
 
 interface BoostPricingGridProps {
@@ -17,6 +18,7 @@ export const BoostPricingGrid: React.FC<BoostPricingGridProps> = ({
     selectedPlanId,
 }) => {
     const { t } = useTranslation();
+    const { getField } = useLanguageField();
 
     return (
         <div className="space-y-10">
@@ -30,21 +32,21 @@ export const BoostPricingGrid: React.FC<BoostPricingGridProps> = ({
                             }`}
                         onClick={() => onSelect?.(plan)}
                     >
-                        {plan.name === 'Diamond' && (
+                        {getField(plan, 'name') === 'Diamond' && (
                             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-secondary-500 text-white text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-[0.2em] shadow-lg">
                                 {t('boost.bestResults')}
                             </div>
                         )}
 
                         <div className="mb-6 flex items-center gap-4">
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner ${plan.name === 'Diamond'
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner ${getField(plan, 'name') === 'Diamond'
                                 ? 'bg-secondary-100 text-secondary-600'
                                 : 'bg-primary-100 text-primary-600'
                                 }`}>
-                                <Zap className={plan.name === 'Diamond' ? 'w-7 h-7 fill-secondary-500' : 'w-7 h-7 fill-primary-500'} />
+                                <Zap className={getField(plan, 'name') === 'Diamond' ? 'w-7 h-7 fill-secondary-500' : 'w-7 h-7 fill-primary-500'} />
                             </div>
                             <div>
-                                <h3 className="font-black text-gray-900 text-lg">{plan.name}</h3>
+                                <h3 className="font-black text-gray-900 text-lg">{getField(plan, 'name')}</h3>
                                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none mt-0.5">{t('boost.adBoost')}</p>
                             </div>
                         </div>
@@ -61,7 +63,7 @@ export const BoostPricingGrid: React.FC<BoostPricingGridProps> = ({
                                 t('boost.showAtTop'),
                                 t('boost.showOnLanding'),
                                 t('boost.priorityBadge'),
-                                plan.name === 'Diamond' ? t('boost.tenXReach') : t('boost.increaseVisibility'),
+                                getField(plan, 'name') === 'Diamond' ? t('boost.tenXReach') : t('boost.increaseVisibility'),
                             ].map((feature, i) => (
                                 <li key={i} className="flex items-start gap-3 text-sm font-medium text-gray-600">
                                     <div className="mt-0.5 w-5 h-5 rounded-full bg-green-50 flex items-center justify-center shrink-0">
