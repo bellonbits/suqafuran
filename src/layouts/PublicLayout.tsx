@@ -34,7 +34,7 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
 
             {/* ── MOBILE HEADER ── */}
             <header
-                className="md:hidden sticky top-0 z-50 bg-white border-b border-gray-100"
+                className="md:hidden sticky top-0 z-50 bg-primary-500 border-b border-primary-600/10"
                 style={{
                     paddingTop: 'env(safe-area-inset-top, 0px)',
                     boxShadow: '0 1px 12px rgba(0,0,0,0.06)',
@@ -46,15 +46,15 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                     </Link>
                     <Link
                         to="/search"
-                        className="flex-1 min-w-0 flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-2xl px-2 h-9"
+                        className="flex-1 min-w-0 flex items-center gap-2 bg-white/50 border border-primary-600/10 rounded-2xl px-2 h-9"
                     >
-                        <Search className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-                        <span className="text-[12px] text-gray-400 truncate">{t('nav.search')}</span>
+                        <Search className="h-3.5 w-3.5 text-primary-700 shrink-0" />
+                        <span className="text-[12px] text-primary-700/80 truncate">{t('nav.search')}</span>
                     </Link>
                     <div className="shrink-0">
                         <LanguageSwitcher compact light />
                     </div>
-                    <Link to="/notifications" className="relative p-2 shrink-0 text-gray-500">
+                    <Link to="/notifications" className="relative p-2 shrink-0 text-primary-800">
                         <Bell className="h-5 w-5" />
                     </Link>
                     {isAuthenticated ? (
@@ -70,7 +70,7 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                     ) : (
                         <Link
                             to="/login"
-                            className="shrink-0 px-3 h-8 rounded-full bg-primary-500 text-white text-xs font-bold flex items-center"
+                            className="shrink-0 px-3 h-8 rounded-full bg-primary-500 text-white text-xs font-bold flex items-center shadow-sm"
                         >
                             {t('nav.signIn')}
                         </Link>
@@ -80,7 +80,7 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
 
             {/* ── DESKTOP HEADER ── */}
             <header className="hidden md:block sticky top-0 z-50">
-                <div className="bg-primary-400 border-b border-primary-500 shadow-sm">
+                <div className="bg-primary-500 border-b border-primary-600/10 shadow-sm">
                     <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-4">
                         <Link to="/" className="shrink-0 mr-2">
                             <Logo size="md" />
@@ -183,8 +183,8 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                             <div
                                 className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center"
                                 style={{
-                                    background: 'linear-gradient(145deg, var(--color-primary-500) 0%, #5bb3ea 100%)',
-                                    boxShadow: '0 6px 20px rgba(144,213,255,0.5), 0 2px 6px rgba(0,0,0,0.1)',
+                                    background: 'linear-gradient(160deg, var(--color-primary-400) 0%, var(--color-primary-500) 60%, var(--color-primary-200) 100%)',
+                                    boxShadow: '0 6px 20px rgba(var(--color-primary-rgb), 0.5), 0 2px 6px rgba(0,0,0,0.1)',
                                 }}
                             >
                                 <Plus className="h-6 w-6 text-white" strokeWidth={2.8} />

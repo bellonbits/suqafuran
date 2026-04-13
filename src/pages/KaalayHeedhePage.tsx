@@ -79,8 +79,8 @@ const KaalayHeedhePage: React.FC = () => {
                 {/* Features Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-10">
                     {[
-                        { icon: MapIcon, color: "blue", title: "Landmark Directory", desc: "Search for mosques, malls, hospitals, and schools across Mogadishu & major cities. All major landmarks integrated.", action: () => scrollToWidget(false) },
-                        { icon: Share2, color: "green", title: "Instant Sharing", desc: "Share your exact location PIN via WhatsApp, SMS, or Link. Perfect for delivery and visitors.", action: () => scrollToWidget(false) },
+                        { icon: MapIcon, color: "primary", title: "Landmark Directory", desc: "Search for mosques, malls, hospitals, and schools across Mogadishu & major cities. All major landmarks integrated.", action: () => scrollToWidget(false) },
+                        { icon: Share2, color: "green", title: "Instant Sharing", desc: "Share your exact location PIN via WhatsApp, SMS, or Link. Perfect for friends and visitors.", action: () => scrollToWidget(false) },
                         { icon: Shield, color: "red", title: "Emergency Mode", desc: "One-tap access to Police (888) and Fire (555) services based on your current district.", action: () => scrollToWidget(true) }
                     ].map((feature, i) => (
                         <motion.div
@@ -94,7 +94,7 @@ const KaalayHeedhePage: React.FC = () => {
                         >
                             <div className={cn(
                                 "w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-300",
-                                feature.color === "blue" ? "bg-primary-50 text-primary-500" :
+                                feature.color === "primary" ? "bg-primary-50 text-primary-500" :
                                     feature.color === "green" ? "bg-green-50 text-green-500" : "bg-red-50 text-red-500"
                             )}>
                                 <feature.icon className="h-7 w-7" />

@@ -11,6 +11,8 @@ from app.models.mobile_money import MobileTransaction
 from app.models.promotion import Promotion, PromotionStatus
 from app.services.payment_service import payment_service
 from app.services.cache_service import cache
+from app.services import lipana as lipana_service
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +24,38 @@ class PaymentWebhookPayload(BaseModel):
     currency: Optional[str] = "USD"
     phone: str
     timestamp: Optional[datetime] = None
+
+class StkPushRequest(BaseModel):
+    phone: str
+    amount: float
+
+@router.post("/stk-push")
+def initiate_stk_push(
+    payload: StkPushRequest,
+    current_user = Depends(deps.get_current_user),
+) -> Any:
+    """
+    Initiate an M-Pesa STK Push for wallet top-up.
+    """
+    try:
+        # Convert USD to KES for Lipana (assuming prices are in USD)
+        # Note: If prices are already in KES, we can skip conversion.
+        # But backend promotions.py uses USD and conversion.
+        amount_kes = round(payload.amount * settings.KES_CONVERSION_RATE)
+        
+        logging.warning(f"!!! INITIATING WALLET STK PUSH: Phone={payload.phone}, USD={payload.amount}, KES={amount_kes}")
+        
+        result = lipana_service.initiate_stk_push(
+            phone=payload.phone,
+            amount=amount_kes,
+            reference=f"Wallet {current_user.id}",
+            description=f"Top-up User #{current_user.id}"
+        )
+        
+        return result
+    except Exception as exc:
+        logging.error(f"STK push failed: {exc}")
+        raise HTTPException(status_code=400, detail=str(exc))
 
 @router.post("/webhook")
 def receive_payment_webhook(

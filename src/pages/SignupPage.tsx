@@ -151,7 +151,7 @@ const SignupPage: React.FC = () => {
 
                 <Button
                     type="submit"
-                    className="w-full h-12 rounded-xl bg-primary-300 hover:bg-primary-400 text-white font-bold transition-all shadow-lg shadow-primary-300/30 mt-6"
+                    className="w-full h-12 rounded-xl bg-primary-500 hover:bg-primary-600 text-white font-black transition-all shadow-lg shadow-primary-500/20 border border-primary-600/10 mt-6 active:scale-95"
                     disabled={isLoading}
                 >
                     {isLoading ? (

@@ -26,18 +26,18 @@ html, body {
 }
 
 @theme {
-  /* ── Primary: var(--color-primary-500) ── */
-  --color-primary-50:  #F0F9FF;
-  --color-primary-100: #E0F2FE;
-  --color-primary-200: #BADFFF;
-  --color-primary-300: var(--color-primary-500);
-  --color-primary-400: #60C5FF;
-  --color-primary-500: var(--color-primary-500); /* Keeping requested as base 500 */
-  --color-primary-600: #5BB3EA;
-  --color-primary-700: #3C93CC;
-  --color-primary-800: #2B77A9;
-  --color-primary-900: #26638B;
-  --color-primary-950: #1A4160;
+  /* ── Primary: Sky Blue ≈ #87CEEB  oklch(79% 0.12 212) ── */
+  --color-primary-50:  oklch(97% 0.02 212);
+  --color-primary-100: oklch(93% 0.05 212);
+  --color-primary-200: oklch(88% 0.08 212);
+  --color-primary-300: oklch(85% 0.10 212);
+  --color-primary-400: oklch(82% 0.11 212);
+  --color-primary-500: oklch(79% 0.12 212);   /* exact target — #87CEEB sky blue */
+  --color-primary-600: oklch(68% 0.14 212);
+  --color-primary-700: oklch(55% 0.15 212);
+  --color-primary-800: oklch(43% 0.14 212);
+  --color-primary-900: oklch(32% 0.12 212);
+  --color-primary-950: oklch(20% 0.08 212);
 
   /* ── Secondary: Warm Orange ── */
   --color-secondary-50:  #fef8ee;
@@ -134,7 +134,7 @@ body {
 
 /* ── Gradient text ── */
 .gradient-text {
-  background: linear-gradient(135deg, #5bb3ea, var(--color-primary-500));
+  background: linear-gradient(160deg, var(--color-primary-400) 0%, var(--color-primary-500) 60%, var(--color-primary-200) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

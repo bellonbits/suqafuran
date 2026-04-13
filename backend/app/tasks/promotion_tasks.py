@@ -40,7 +40,7 @@ def retry_failed_stk_pushes():
     """
     from sqlmodel import Session, select
     from app.db.session import engine
-    from app.models.promotion import Promotion, PromotionStatus
+    from app.models.promotion import Promotion, PromotionStatus, PromotionPlan
     from app.services import lipana as lipana_service
     from app.models.listing import Listing
 
@@ -55,7 +55,7 @@ def retry_failed_stk_pushes():
         ).all()
 
         for promo in promos:
-            plan = db.get_one(type(promo).__class__, promo.plan_id) if hasattr(promo, "plan_id") else None
+            plan = db.get(PromotionPlan, promo.plan_id) if getattr(promo, "plan_id", None) else None
             listing = db.get(Listing, promo.listing_id)
             try:
                 result = lipana_service.initiate_stk_push(

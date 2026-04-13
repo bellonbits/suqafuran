@@ -50,6 +50,14 @@ export const walletService = {
         return response.data;
     },
 
+    initiateStkPush: async (amount: number, phone: string) => {
+        const response = await api.post('/mobile-money/stk-push', {
+            amount,
+            phone
+        });
+        return response.data;
+    },
+
     getBoostPrices: async () => {
         const response = await api.get<Record<number, { name: string; price: number; days: number }>>('/boosts/prices');
         return response.data;

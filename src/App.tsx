@@ -51,7 +51,6 @@ const KaalayHeedhePage = lazy(() => import('./pages/KaalayHeedhePage'));
 const PrivacyPolicyPage = lazyNamed(() => import('./pages/PrivacyPolicyPage'), 'PrivacyPolicyPage');
 const DeleteAccountPage = lazyNamed(() => import('./pages/DeleteAccountPage'), 'DeleteAccountPage');
 const SocialAuthCallback = lazyNamed(() => import('./pages/SocialAuthCallback'), 'SocialAuthCallback');
-const DeliveryPage = lazyNamed(() => import('./pages/DeliveryPage'), 'DeliveryPage');
 const FeedbackPage = lazyNamed(() => import('./pages/FeedbackPage'), 'FeedbackPage');
 const FollowersPage = lazyNamed(() => import('./pages/FollowersPage'), 'FollowersPage');
 const PerformancePage = lazyNamed(() => import('./pages/PerformancePage'), 'PerformancePage');
@@ -122,7 +121,6 @@ const App: React.FC = () => {
               <Route path="/edit-ad/:id" element={<EditAdPage />} />
               <Route path="/promote/:adId" element={<PromotionPage />} />
               <Route path="/dashboard/verify" element={<VerificationPage />} />
-              <Route path="/delivery" element={<DeliveryPage />} />
               <Route path="/feedback" element={<FeedbackPage />} />
               <Route path="/performance" element={<PerformancePage />} />
               <Route path="/pro-sales" element={<ProSalesPage />} />

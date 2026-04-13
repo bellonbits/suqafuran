@@ -7,7 +7,8 @@ import {
     ShoppingBag,
     Heart, Settings, LogOut,
     PlusCircle, Bell, HelpCircle, Shield, Wallet, Folder,
-    Menu, X, TrendingUp, MessageSquare, Zap, Target, Package,
+    Menu, X, TrendingUp, MessageSquare, Zap, Target,
+
     MessageCircle, Users
 } from 'lucide-react';
 import { cn } from '../utils/cn';
@@ -43,7 +44,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const menuItems = [
         { labelKey: 'dashboard.myAdverts', label: 'My adverts', icon: ShoppingBag, path: '/my-ads' },
         { labelKey: 'dashboard.savedAds', label: 'Saved ads', icon: Heart, path: '/favorites' },
-        { labelKey: 'dashboard.delivery', label: 'Suqafuran Delivery', icon: Package, path: '/delivery', isNew: true },
         { labelKey: 'dashboard.feedback', label: 'Feedback', icon: MessageCircle, path: '/feedback' },
         { labelKey: 'dashboard.performance', label: 'Performance', icon: Target, path: '/performance' },
     ];
@@ -58,7 +58,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row relative">
+        <div className="h-screen max-h-screen w-full bg-gray-50 flex flex-col md:flex-row overflow-hidden relative">
             {/* Mobile Header */}
             <div className="md:hidden bg-white border-b border-gray-100 p-4 flex items-center justify-between sticky top-0 z-20">
                 <Link to="/">
@@ -82,7 +82,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
             {/* Sidebar */}
             <aside className={cn(
-                "fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-100 flex flex-col shrink-0 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:sticky md:inset-auto md:flex md:h-screen md:top-0 overflow-hidden",
+                "fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-100 flex flex-col shrink-0 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-auto md:flex md:h-full md:top-auto overflow-hidden",
                 isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
             )}>
                 <div className="p-6 border-b border-gray-50 flex justify-center md:justify-start hidden md:flex">
@@ -130,24 +130,24 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 </div>
 
                 <nav className="flex-1 p-4 pt-1 space-y-1 overflow-y-auto custom-scrollbar min-h-0">
-                    {menuItems.map((item) => (
-                        <Link
-                            key={item.path}
-                            to={item.path}
-                            className={cn(
-                                "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all",
-                                location.pathname === item.path
-                                    ? "bg-gray-100 text-gray-900"
-                                    : "text-gray-700 hover:bg-gray-50"
-                            )}
-                        >
-                            <item.icon className="h-5 w-5 text-gray-400" />
-                            <span className="flex-1">{item.label}</span>
-                            {item.isNew && (
-                                <span className="text-[10px] font-bold bg-red-500 text-white px-1.5 py-0.5 rounded uppercase">New</span>
-                            )}
-                        </Link>
-                    ))}
+                    {menuItems.map((item) => {
+                        const isActive = location.pathname === item.path;
+                        return (
+                            <Link
+                                key={item.path}
+                                to={item.path}
+                                className={cn(
+                                    "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all",
+                                    isActive
+                                        ? "bg-primary-50 text-gray-900"
+                                        : "text-gray-700 hover:bg-gray-50"
+                                )}
+                            >
+                                <item.icon className={cn("h-[18px] w-[18px]", isActive ? "text-primary-600" : "text-gray-400")} />
+                                <span className="font-bold flex-1 text-left">{t(item.labelKey, item.label)}</span>
+                            </Link>
+                        );
+                    })}
 
                     <div className="pt-4 mt-4 border-t border-gray-100">
                         {secondaryItems.map((item) => (
@@ -268,8 +268,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 flex flex-col min-w-0 bg-gray-50 min-h-screen">
-                <header className="sticky top-0 z-20 bg-primary-400 border-b border-primary-500 p-2 md:px-8 flex items-center justify-between shadow-sm">
+            <main className="flex-1 flex flex-col min-w-0 bg-gray-50 h-full overflow-y-auto custom-scrollbar">
+                <header className="sticky top-0 z-20 bg-primary-500 border-b border-primary-600/10 p-2 md:px-8 flex items-center justify-between shadow-sm">
                     <div className="flex-1 max-w-xl hidden md:flex">
                         <div className="relative w-full">
                             <input

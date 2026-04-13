@@ -2,15 +2,17 @@ import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { ChevronRight, ChevronLeft, Plus, X, Shield, ShieldAlert, Clock, CheckCircle2, Loader2, Truck } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Plus, X, Shield, ShieldAlert, Clock, CheckCircle2, Loader2, Zap } from 'lucide-react';
 
 import { listingService } from '../services/listingService';
 import { getImageUrl } from '../utils/imageUtils';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { LocationPickerModal } from '../components/LocationPickerModal';
+import { LipanaPaymentModal } from '../components/LipanaPaymentModal';
 import { useAuthStore } from '../store/useAuthStore';
 import { cn } from '../utils/cn';
-import api from '../services/api';
+
+const KES_RATE = 130;
 
 
 const TITLE_MAX = 70;
@@ -64,6 +66,9 @@ const PostAdPage: React.FC = () => {
     const [uploading, setUploading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [createdListingId, setCreatedListingId] = useState<number | null>(null);
+    const [showLipanaModal, setShowLipanaModal] = useState(false);
+    const [createdListingTitle, setCreatedListingTitle] = useState('');
 
     const { data: verificationStatus } = useQuery({
         queryKey: ['verification-status'],
@@ -74,6 +79,11 @@ const PostAdPage: React.FC = () => {
     const { data: categories = [], isLoading: catsLoading } = useQuery({
         queryKey: ['categories'],
         queryFn: listingService.getCategories,
+    });
+
+    const { data: promotionPlans = [] } = useQuery({
+        queryKey: ['promotionPlans'],
+        queryFn: listingService.getPromotionPlans,
     });
 
     const set = <K extends keyof FormValues>(key: K, value: FormValues[K]) => {
@@ -172,7 +182,6 @@ const PostAdPage: React.FC = () => {
         const errs = validate();
         if (Object.keys(errs).length) {
             setErrors(errs);
-            // scroll to first error
             const firstErr = document.querySelector('[data-error="true"]');
             firstErr?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
@@ -191,28 +200,44 @@ const PostAdPage: React.FC = () => {
                 condition: form.condition,
                 attributes: form.attributes,
             });
-            
-            if (promoPlanId > 0 && result.id) {
-                try {
-                    await api.post('/promotions/', {
-                        listing_id: result.id,
-                        plan_id: promoPlanId,
-                        payment_phone: form.phone
-                    });
-                    setSubmitting(false);
-                    alert("M-Pesa payment prompt sent! Please check your phone (" + form.phone + ") to complete the transaction.");
-                } catch (e: any) {
-                    console.error(e);
-                    alert("Ad posted, but failed to trigger M-Pesa prompt. " + (e.response?.data?.detail || ''));
-                }
-            }
 
-            setSubmitted(true);
+            if (promoPlanId > 0 && result.id) {
+                // Save the listing info and open Lipana modal for payment
+                setCreatedListingId(result.id);
+                setCreatedListingTitle(form.title);
+                setSubmitting(false);
+                setShowLipanaModal(true);
+            } else {
+                setSubmitted(true);
+            }
         } catch (err: any) {
             setErrors({ title: err.response?.data?.detail || 'Failed to post ad' });
         } finally {
             setSubmitting(false);
         }
+    };
+
+    const handleLipanaConfirm = async (phone: string): Promise<{ promoId?: number; error?: string }> => {
+        if (!createdListingId || !promoPlanId) return { error: 'Missing listing or plan' };
+        try {
+            const result = await listingService.createPromotionOrder({
+                listing_id: createdListingId,
+                plan_id: promoPlanId,
+                payment_phone: phone,
+            });
+            return { promoId: result.id };
+        } catch (e: any) {
+            return { error: e?.response?.data?.detail || 'Payment initiation failed. Please try again.' };
+        }
+    };
+
+    const handleLipanaPollStatus = async (promoId: number) => {
+        return listingService.checkPromotionStatus(promoId);
+    };
+
+    const handleLipanaClose = () => {
+        setShowLipanaModal(false);
+        setSubmitted(true);
     };
 
     const handleClear = () => {
@@ -692,24 +717,15 @@ const PostAdPage: React.FC = () => {
 
                     </div>
 
-                    {/* CARD 2: Delivery placeholder */}
-                    <div className="bg-white rounded-md shadow-sm border border-gray-200 p-5 mb-5 flex flex-col items-center">
-                        <h3 className="font-bold text-[15px] mb-3 flex items-center gap-2 text-gray-900 w-full sm:w-2/3 px-1">
-                            <Truck size={18} className="text-gray-800" /> Delivery
-                        </h3>
-                        <div className="w-full sm:w-2/3 border border-gray-300 rounded-md p-3 text-sm text-primary-500 flex justify-between items-center cursor-pointer hover:bg-primary-50 transition-colors">
-                            <span className="font-medium">Add delivery options</span>
-                            <ChevronRight size={18} className="text-gray-400" />
-                        </div>
-                    </div>
 
                     {/* CARD 3: Promote */}
                     <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6 mb-5 flex flex-col items-center">
                         <div className="w-full sm:w-4/5 flex flex-col">
                             <h3 className="font-bold text-[19px] mb-1 text-gray-900">Promote your ad</h3>
-                            <p className="text-[13px] text-primary-500 mb-6 font-medium">Choose a promotion type for your ad to post it</p>
+                            <p className="text-[13px] text-primary-500 mb-6 font-medium">Boost with M-Pesa (Lipana) — instant activation after payment</p>
 
-                            <label className={`border border-gray-200 rounded-md p-4 mb-4 flex justify-between items-center cursor-pointer transition-colors ${promoPlanId === 0 ? 'bg-primary-50/40 border-primary-500 shadow-sm' : 'hover:bg-gray-50'}`}>
+                            {/* No promo option */}
+                            <label className={`border border-gray-200 rounded-md p-4 mb-3 flex justify-between items-center cursor-pointer transition-colors ${promoPlanId === 0 ? 'bg-primary-50/40 border-primary-500 shadow-sm' : 'hover:bg-gray-50'}`}>
                                 <div className="flex items-center gap-3">
                                     <input type="radio" name="promo" checked={promoPlanId === 0} onChange={() => setPromoPlanId(0)} className="w-4 h-4 text-primary-500 focus:ring-primary-500 accent-primary-500" />
                                     <span className="font-bold text-[15px] text-gray-900">No promo</span>
@@ -717,40 +733,41 @@ const PostAdPage: React.FC = () => {
                                 <span className="text-gray-400 text-sm font-medium">free</span>
                             </label>
 
-                            <label className={`border border-gray-200 rounded-md p-4 mb-4 flex justify-between items-center cursor-pointer transition-colors ${promoPlanId === 1 ? 'bg-primary-50/40 border-primary-500 shadow-sm' : 'hover:bg-gray-50'}`}>
-                                <div className="flex items-center gap-3">
-                                    <input type="radio" name="promo" checked={promoPlanId === 1} onChange={() => setPromoPlanId(1)} className="w-4 h-4 text-primary-500 focus:ring-primary-500 accent-primary-500" />
-                                    <div>
-                                        <span className="font-bold text-[15px] block mb-2 text-gray-900">TOP promo</span>
-                                        <div className="flex gap-2">
-                                            <span className="bg-[#eef8ff] text-primary-500 px-3 py-1 rounded-full text-[11px] font-bold">7 days</span>
-                                            <span className="bg-white border border-primary-300 text-primary-500 px-3 py-1 rounded-full text-[11px] font-bold shadow-sm">30 days</span>
+                            {/* Dynamic plans from API */}
+                            {promotionPlans.map((plan: any) => (
+                                <label
+                                    key={plan.id}
+                                    className={`border border-gray-200 rounded-md p-4 mb-3 flex justify-between items-center cursor-pointer transition-colors ${promoPlanId === plan.id ? 'bg-primary-50/40 border-primary-500 shadow-sm' : 'hover:bg-gray-50'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="radio"
+                                            name="promo"
+                                            checked={promoPlanId === plan.id}
+                                            onChange={() => setPromoPlanId(plan.id)}
+                                            className="w-4 h-4 text-primary-500 focus:ring-primary-500 accent-primary-500"
+                                        />
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <Zap size={13} className="text-primary-500 fill-primary-500" />
+                                                <span className="font-bold text-[15px] text-gray-900">{plan.name}</span>
+                                            </div>
+                                            <span className="bg-[#eef8ff] text-primary-500 px-3 py-0.5 rounded-full text-[11px] font-bold">{plan.duration_days} days</span>
                                         </div>
                                     </div>
-                                </div>
-                                <span className="font-bold text-gray-900">KSh 455</span>
-                            </label>
-
-                            <label className={`border border-gray-200 rounded-md p-4 mb-6 flex justify-between items-center cursor-pointer transition-colors ${promoPlanId === 2 ? 'bg-primary-50/40 border-primary-500 shadow-sm' : 'hover:bg-gray-50'}`}>
-                                <div className="flex items-center gap-3">
-                                    <input type="radio" name="promo" checked={promoPlanId === 2} onChange={() => setPromoPlanId(2)} className="w-4 h-4 text-primary-500 focus:ring-primary-500 accent-primary-500" />
-                                    <div>
-                                        <span className="font-bold text-[15px] block mb-2 text-gray-900">Boost Premium promo</span>
-                                        <span className="bg-[#eef8ff] text-primary-500 px-3 py-1 rounded-full text-[11px] font-bold">1 month</span>
-                                    </div>
-                                </div>
-                                <span className="font-bold text-gray-900">KSh 2,449</span>
-                            </label>
+                                    <span className="font-bold text-gray-900">KSh {Math.round(plan.price_usd * KES_RATE).toLocaleString()}</span>
+                                </label>
+                            ))}
 
                             <button
                                 type="submit"
                                 disabled={submitting}
-                                className="w-full bg-primary-500 hover:bg-primary-600 active:scale-[0.98] text-white font-bold text-[17px] py-3.5 rounded-md transition-all flex items-center justify-center gap-2 shadow-sm"
+                                className="w-full bg-primary-500 hover:bg-primary-600 active:scale-[0.98] text-white font-bold text-[17px] py-3.5 rounded-md transition-all flex items-center justify-center gap-2 shadow-sm mt-3"
                             >
                                 {submitting && <Loader2 size={20} className="animate-spin" />}
-                                Post ad
+                                {promoPlanId > 0 ? 'Post & Boost with M-Pesa' : 'Post ad'}
                             </button>
-                            
+
                             <p className="text-[10px] text-gray-500 mt-5 leading-relaxed text-center px-4">
                                 By clicking on Post Ad, you accept the <a href="#" className="text-primary-500 hover:underline">Terms of Use</a>, confirm that you will abide by the Safety Tips, and declare that this posting does not include any Prohibited Items.
                             </p>
@@ -764,6 +781,17 @@ const PostAdPage: React.FC = () => {
                 onClose={() => setIsLocationOpen(false)}
                 onSelect={loc => { set('location', loc); setIsLocationOpen(false); }}
                 title={t('listing.selectListingLocation')}
+            />
+
+            {/* Lipana M-Pesa Payment Modal (after ad created) */}
+            <LipanaPaymentModal
+                isOpen={showLipanaModal}
+                onClose={handleLipanaClose}
+                onConfirm={handleLipanaConfirm}
+                onPollStatus={handleLipanaPollStatus}
+                amount={promoPlanId > 0 ? Math.round((promotionPlans.find((p: any) => p.id === promoPlanId)?.price_usd || 0) * KES_RATE) : 0}
+                planName={promotionPlans.find((p: any) => p.id === promoPlanId)?.name || ''}
+                listingTitle={createdListingTitle}
             />
         </div>
     );

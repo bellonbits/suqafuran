@@ -3,20 +3,20 @@ import { useNavigate } from 'react-router-dom';
 
 const SLIDES = [
   {
-    gradient: 'linear-gradient(160deg, var(--color-primary-500) 0%, #4aafc8 60%, #2d8fab 100%)',
-    pattern: '#5ab8d6',
+    gradient: 'linear-gradient(160deg, var(--color-primary-500) 0%, var(--color-primary-400) 60%, var(--color-primary-300) 100%)',
+    pattern: 'var(--color-primary-400)',
     title: 'Discover Great\nDeals Near You',
     subtitle: 'Browse thousands of listings — electronics, fashion, cars, furniture, and more.',
   },
   {
     gradient: 'linear-gradient(160deg, #1e3a4a 0%, #2d5a70 60%, var(--color-primary-500) 100%)',
-    pattern: '#2d5a70',
+    pattern: 'var(--color-primary-600)',
     title: 'Sell Anything\nIn Minutes',
     subtitle: 'Post an ad in under 2 minutes. Upload photos, set your price, get buyers.',
   },
   {
     gradient: 'linear-gradient(160deg, #0f2027 0%, #1a3a4a 50%, #2d6a7a 100%)',
-    pattern: '#1a3a4a',
+    pattern: 'var(--color-primary-800)',
     title: 'Safe, Verified\n& Trusted',
     subtitle: 'Verified sellers, trusted ratings and buyer protection — so you can deal with confidence.',
   },

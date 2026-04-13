@@ -171,7 +171,7 @@ const LoginPage: React.FC = () => {
 
                 <Button
                     type="submit"
-                    className="w-full h-12 text-sm font-semibold rounded-xl bg-primary-300 hover:bg-primary-400 border-none shadow-lg shadow-primary-300/30 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full h-12 text-sm font-black rounded-xl bg-primary-500 hover:bg-primary-600 border border-primary-600/10 shadow-lg shadow-primary-500/20 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
                     disabled={isLoading || isLocked}
                 >
                     {isLoading ? (
