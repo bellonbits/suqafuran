@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     # LIPANA M-PESA
     LIPANA_SECRET_KEY: str = ""
     LIPANA_WEBHOOK_SECRET: str = ""
-    KES_CONVERSION_RATE: float = 1.0  # Treating DB prices as native KES
+    KES_CONVERSION_RATE: float = 130.0  # Used to convert USD to KES for Lipana
     
     # CLOUDINARY
     CLOUDINARY_CLOUD_NAME: Optional[str] = None
