@@ -33,7 +33,7 @@ def read_content_overrides(
 @router.get("/all", response_model=List[SiteContentRead])
 def read_all_content(
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_admin),
+    current_user: User = Depends(deps.get_current_admin_user),
 ) -> Any:
     """
     Retrieve all site content (Admin only).
@@ -47,7 +47,7 @@ def update_content(
     db: Session = Depends(deps.get_db),
     key: str,
     content_in: SiteContentUpdate,
-    current_user: User = Depends(deps.get_current_active_admin),
+    current_user: User = Depends(deps.get_current_admin_user),
 ) -> Any:
     """
     Update site content by key (Admin only).
@@ -64,7 +64,7 @@ def sync_content(
     db: Session = Depends(deps.get_db),
     content_map: Dict[str, Dict[str, str]], # { "key": { "en": "...", "so": "..." } }
     page_group: str = "general",
-    current_user: User = Depends(deps.get_current_active_admin),
+    current_user: User = Depends(deps.get_current_admin_user),
 ) -> Any:
     """
     Bulk import/sync content keys from a map (Admin only).
