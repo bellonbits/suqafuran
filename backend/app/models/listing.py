@@ -29,6 +29,8 @@ class ListingBase(SQLModel):
     attributes: dict = Field(default={}, sa_column=Column(JSON))
     views: int = Field(default=0)
     leads: int = Field(default=0)
+    rejection_reason: Optional[str] = Field(default=None)
+    admin_notes: dict = Field(default={}, sa_column=Column(JSON))
 
 
 class Listing(ListingBase, table=True):

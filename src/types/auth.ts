@@ -13,6 +13,12 @@ export interface User {
     email_notifications: boolean;
     sms_notifications: boolean;
     profile_views?: number;
+    wallet?: {
+        id: number;
+        balance: number;
+        currency: string;
+        updated_at: string;
+    };
 }
 
 export interface LoginCredentials {

@@ -20,7 +20,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onDone }) => {
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
-        background: 'linear-gradient(160deg, #5bb3ea 0%, #90D5FF 60%, #c1ebff 100%)',
+        background: 'linear-gradient(160deg, #5bb3ea 0%, var(--color-primary-500) 60%, #c1ebff 100%)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',

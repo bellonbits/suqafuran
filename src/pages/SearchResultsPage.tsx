@@ -73,7 +73,7 @@ const SearchResultsPage: React.FC = () => {
                     <div className="flex-1 min-w-0">
                         {isLoading ? (
                             <div className="flex justify-center py-20">
-                                <Loader2 className="w-12 h-12 animate-spin text-blue-400" />
+                                <Loader2 className="w-12 h-12 animate-spin text-primary-400" />
                             </div>
                         ) : results.length > 0 ? (
                             <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
@@ -100,7 +100,7 @@ const SearchResultsPage: React.FC = () => {
                                     We couldn't find anything matching your search. Try adjusting your filters or keywords.
                                 </p>
                                 <Button
-                                    className="mt-6 rounded-full px-8 bg-blue-300 hover:bg-blue-400 text-white"
+                                    className="mt-6 rounded-full px-8 bg-primary-300 hover:bg-primary-400 text-white"
                                     onClick={() => {
                                         setLocation('');
                                         setMinPrice('');

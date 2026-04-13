@@ -29,7 +29,7 @@ const NotificationsPage: React.FC = () => {
 
     const getIcon = (type: string) => {
         switch (type) {
-            case 'message': return <MessageCircle className="h-5 w-5 text-blue-500" />;
+            case 'message': return <MessageCircle className="h-5 w-5 text-primary-500" />;
             case 'ad_approved': return <CheckCircle className="h-5 w-5 text-green-500" />;
             case 'price_drop': return <TrendingDown className="h-5 w-5 text-orange-500" />;
             default: return <Info className="h-5 w-5 text-primary-500" />;
@@ -100,7 +100,7 @@ const NotificationsPage: React.FC = () => {
                             </div>
 
                             {!notif.is_read && (
-                                <div className="w-2 h-2 bg-blue-300 rounded-full mt-2 shrink-0"></div>
+                                <div className="w-2 h-2 bg-primary-300 rounded-full mt-2 shrink-0"></div>
                             )}
                         </div>
                     ))

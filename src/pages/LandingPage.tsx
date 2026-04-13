@@ -89,7 +89,7 @@ const LandingPage: React.FC = () => {
                 {/* ── Hero banner ── */}
                 <div
                     className="relative overflow-hidden px-4 pt-6 pb-6"
-                    style={{ background: 'linear-gradient(160deg, #5bb3ea 0%, #90D5FF 80%, #c1ebff 100%)' }}
+                    style={{ background: 'linear-gradient(160deg, #5bb3ea 0%, var(--color-primary-500) 80%, #c1ebff 100%)' }}
                 >
                     {/* decorative circles */}
                     <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
@@ -227,7 +227,7 @@ const LandingPage: React.FC = () => {
                     <div
                         onClick={() => navigate('/post-ad')}
                         className="relative overflow-hidden rounded-3xl p-5 active:scale-[0.98] transition-transform cursor-pointer"
-                        style={{ background: 'linear-gradient(135deg, #5bb3ea 0%, #90D5FF 60%, #c1ebff 100%)' }}
+                        style={{ background: 'linear-gradient(135deg, #5bb3ea 0%, var(--color-primary-500) 60%, #c1ebff 100%)' }}
                     >
                         <div className="relative z-10">
                             <span className="inline-flex items-center gap-1 bg-white/30 text-white text-[10px] font-bold px-2.5 py-1 rounded-full mb-2.5 uppercase tracking-widest backdrop-blur-sm">
@@ -298,7 +298,7 @@ const LandingPage: React.FC = () => {
                             <p className="text-xs text-gray-400 mt-0.5">{t('landing.sellBannerDesc')}</p>
                         </div>
                         <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
-                            style={{ background: 'linear-gradient(135deg, #5bb3ea, #90D5FF)' }}>
+                            style={{ background: 'linear-gradient(135deg, #5bb3ea, var(--color-primary-500))' }}>
                             <ShoppingBag className="h-5 w-5 text-white" />
                         </div>
                     </div>
@@ -486,7 +486,7 @@ const LandingPage: React.FC = () => {
                                             <p className="text-sm text-[#5a705a]">{t('landing.sellBannerDesc')}</p>
                                         </div>
                                         <div className="w-14 h-14 bg-white rounded-xl shadow-sm flex items-center justify-center">
-                                            <ShoppingBag className="w-8 h-8 text-[#28a745]" />
+                                            <ShoppingBag className="w-8 h-8 text-[var(--color-primary-500)]" />
                                         </div>
                                     </div>
                                     <div className="bg-[#f0f0ff] border border-[#e0e0ff] p-4 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between min-h-[100px]">

@@ -26,18 +26,18 @@ html, body {
 }
 
 @theme {
-  /* ── Primary: #90D5FF ── */
-  --color-primary-50:  #f4fbff;
-  --color-primary-100: #e3f5ff;
-  --color-primary-200: #c1ebff;
-  --color-primary-300: #a0dfff;
-  --color-primary-400: #9cdbfa;
-  --color-primary-500: #90D5FF;
-  --color-primary-600: #5bb3ea;
-  --color-primary-700: #3c93cc;
-  --color-primary-800: #2b77a9;
-  --color-primary-900: #26638b;
-  --color-primary-950: #1a4160;
+  /* ── Primary: var(--color-primary-500) ── */
+  --color-primary-50:  #F0F9FF;
+  --color-primary-100: #E0F2FE;
+  --color-primary-200: #BADFFF;
+  --color-primary-300: var(--color-primary-500);
+  --color-primary-400: #60C5FF;
+  --color-primary-500: var(--color-primary-500); /* Keeping requested as base 500 */
+  --color-primary-600: #5BB3EA;
+  --color-primary-700: #3C93CC;
+  --color-primary-800: #2B77A9;
+  --color-primary-900: #26638B;
+  --color-primary-950: #1A4160;
 
   /* ── Secondary: Warm Orange ── */
   --color-secondary-50:  #fef8ee;
@@ -134,7 +134,7 @@ body {
 
 /* ── Gradient text ── */
 .gradient-text {
-  background: linear-gradient(135deg, #5bb3ea, #90D5FF);
+  background: linear-gradient(135deg, #5bb3ea, var(--color-primary-500));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

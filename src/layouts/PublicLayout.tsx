@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import {
     Search, Plus, Heart, Home, MessageSquare, User, Bell,
     Facebook, Twitter, Instagram, Youtube, ChevronDown, Zap,
-    Phone
+    Phone, ShoppingBag
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { getAvatarUrl } from '../utils/imageUtils';
@@ -79,8 +79,8 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
             </header>
 
             {/* ── DESKTOP HEADER ── */}
-            <header className="hidden md:block sticky top-0 z-50 shadow-md">
-                <div className="bg-primary-500">
+            <header className="hidden md:block sticky top-0 z-50">
+                <div className="bg-primary-400 border-b border-primary-500 shadow-sm">
                     <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-4">
                         <Link to="/" className="shrink-0 mr-2">
                             <Logo size="md" />
@@ -89,22 +89,25 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                         <div className="flex items-center gap-1 ml-auto shrink-0">
                             <LanguageSwitcher compact />
 
-                            <Link to="/favorites" className="flex items-center justify-center w-9 h-9 rounded-full bg-white text-gray-700 hover:bg-gray-100 transition-colors shadow-sm" title={t('nav.saved')}>
-                                <Heart className="h-4 w-4" strokeWidth={2.5} />
+                            <Link to="/favorites" className="p-2 text-white/90 hover:text-white hover:bg-white/10 rounded-full transition-all" title={t('nav.saved')}>
+                                <Heart className="h-5 w-5" />
                             </Link>
-                            <Link to="/messages" className="flex items-center justify-center w-9 h-9 rounded-full bg-white text-gray-700 hover:bg-gray-100 transition-colors shadow-sm" title={t('nav.messages')}>
-                                <MessageSquare className="h-4 w-4" strokeWidth={2.5} />
+                            <Link to="/messages" className="p-2 text-white/90 hover:text-white hover:bg-white/10 rounded-full transition-all" title={t('nav.messages')}>
+                                <MessageSquare className="h-5 w-5" />
                             </Link>
-                            <Link to="/notifications" className="flex items-center justify-center w-9 h-9 rounded-full bg-white text-gray-700 hover:bg-gray-100 transition-colors shadow-sm" title={t('nav.alerts')}>
-                                <Bell className="h-4 w-4" strokeWidth={2.5} />
+                            <Link to="/notifications" className="p-2 text-white/90 hover:text-white hover:bg-white/10 rounded-full transition-all" title={t('nav.alerts')}>
+                                <Bell className="h-5 w-5" />
                             </Link>
-                            <Link to="/boost" className="flex items-center justify-center w-9 h-9 rounded-full bg-white text-gray-700 hover:bg-gray-100 transition-colors shadow-sm" title={t('nav.boost')}>
-                                <Zap className="h-4 w-4" strokeWidth={2.5} />
+                            <Link to="/performance" className="p-2 text-white/90 hover:text-white hover:bg-white/10 rounded-full transition-all" title="Promotion">
+                                <Zap className="h-5 w-5" />
+                            </Link>
+                            <Link to="/my-ads" className="p-2 text-white/90 hover:text-white hover:bg-white/10 rounded-full transition-all" title="My adverts">
+                                <ShoppingBag className="h-5 w-5" />
                             </Link>
 
                             {isAuthenticated ? (
-                                <Link to="/dashboard" className="flex items-center justify-center w-9 h-9 rounded-full bg-white text-primary-600 hover:bg-gray-100 transition-colors shadow-sm border border-white" title={t('nav.profile')}>
-                                    <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center font-bold text-xs">
+                                <Link to="/dashboard" className="p-0.5 rounded-full border-2 border-white/50 hover:border-white transition-all ml-1 overflow-hidden" title={t('nav.profile')}>
+                                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-primary-600 font-bold text-xs">
                                         {getAvatarUrl(user?.avatar_url) ? (
                                             <img src={getAvatarUrl(user?.avatar_url)!} alt={user?.full_name || 'U'} className="w-full h-full object-cover" />
                                         ) : (
@@ -180,7 +183,7 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                             <div
                                 className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center"
                                 style={{
-                                    background: 'linear-gradient(145deg, #90D5FF 0%, #5bb3ea 100%)',
+                                    background: 'linear-gradient(145deg, var(--color-primary-500) 0%, #5bb3ea 100%)',
                                     boxShadow: '0 6px 20px rgba(144,213,255,0.5), 0 2px 6px rgba(0,0,0,0.1)',
                                 }}
                             >

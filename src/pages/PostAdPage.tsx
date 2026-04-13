@@ -88,7 +88,24 @@ const PostAdPage: React.FC = () => {
 
     const selectedCategory = categories.find(c => c.id === form.categoryId);
     const selectedSubcategory = form.subcategoryId ? selectedCategory?.subcategories?.find(s => s.id === form.subcategoryId) : null;
-    const dynamicSchema: any[] = selectedSubcategory?.attributes_schema || selectedCategory?.attributes_schema || [];
+    
+    // Defensive parsing for dynamicSchema
+    let dynamicSchema: any[] = [];
+    const rawSchema = selectedSubcategory?.attributes_schema || selectedCategory?.attributes_schema;
+    if (rawSchema) {
+        if (Array.isArray(rawSchema)) {
+            dynamicSchema = rawSchema;
+        } else if (typeof rawSchema === 'string') {
+            try {
+                const parsed = JSON.parse(rawSchema);
+                dynamicSchema = Array.isArray(parsed) ? parsed : (parsed.fields || []);
+            } catch (e) {
+                console.error("Failed to parse dynamicSchema", e);
+            }
+        } else if (rawSchema.fields && Array.isArray(rawSchema.fields)) {
+            dynamicSchema = rawSchema.fields;
+        }
+    }
 
     const filteredCategories = categorySearch.trim()
         ? categories.filter(c =>
@@ -230,7 +247,7 @@ const PostAdPage: React.FC = () => {
                     margin: '0 auto 24px',
                 }}>
                     {isPending
-                        ? <Clock size={36} color="#90D5FF" />
+                        ? <Clock size={36} color="var(--color-primary-500)" />
                         : <ShieldAlert size={36} color="#f59e0b" />
                     }
                 </div>
@@ -245,7 +262,7 @@ const PostAdPage: React.FC = () => {
                 {!isPending && (
                     <Link to="/dashboard/verify" style={{
                         display: 'inline-flex', alignItems: 'center', gap: 8,
-                        background: '#90D5FF', color: '#fff', padding: '12px 28px',
+                        background: 'var(--color-primary-500)', color: '#fff', padding: '12px 28px',
                         borderRadius: 12, fontWeight: 600, textDecoration: 'none',
                     }}>
                         <Shield size={18} /> Verify My Account
@@ -264,7 +281,7 @@ const PostAdPage: React.FC = () => {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     margin: '0 auto 24px',
                 }}>
-                    <CheckCircle2 size={36} color="#90D5FF" />
+                    <CheckCircle2 size={36} color="var(--color-primary-500)" />
                 </div>
                 <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>Ad Posted Successfully!</h2>
                 <p style={{ color: '#6b7280', marginBottom: 28, lineHeight: 1.6 }}>
@@ -280,7 +297,7 @@ const PostAdPage: React.FC = () => {
                     <button
                         onClick={() => { setSubmitted(false); handleClear(); }}
                         style={{
-                            padding: '11px 24px', background: '#90D5FF', color: '#fff',
+                            padding: '11px 24px', background: 'var(--color-primary-500)', color: '#fff',
                             border: 'none', borderRadius: 10, fontWeight: 600, cursor: 'pointer',
                         }}
                     >
@@ -303,7 +320,7 @@ const PostAdPage: React.FC = () => {
                 }}>
                     <button
                         onClick={() => setShowCategoryPicker(false)}
-                        style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#90D5FF', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-primary-500)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
                     >
                         <ChevronLeft size={18} /> Back
                     </button>
@@ -330,7 +347,7 @@ const PostAdPage: React.FC = () => {
                 <div style={{ background: '#fff' }}>
                     {catsLoading ? (
                         <div style={{ padding: 40, textAlign: 'center' }}>
-                            <Loader2 size={28} style={{ animation: 'spin 1s linear infinite', color: '#90D5FF' }} />
+                            <Loader2 size={28} style={{ animation: 'spin 1s linear infinite', color: 'var(--color-primary-500)' }} />
                         </div>
                     ) : filteredCategories.map(cat => {
                         const Icon = getCategoryIcon(cat.icon_name || cat.slug);
@@ -382,9 +399,9 @@ const PostAdPage: React.FC = () => {
                 onChange={e => onChange(e.target.value)}
                 maxLength={opts?.maxLength}
                 placeholder=" "
-                className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm text-gray-900 focus:outline-none ${error ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-[#90D5FF]'}`}
+                className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm text-gray-900 focus:outline-none ${error ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-primary-500'}`}
             />
-            <label htmlFor={id} className={`absolute left-2 top-0 -translate-y-1/2 bg-white px-1 text-[11px] transition-all pointer-events-none peer-placeholder-shown:top-[14px] peer-placeholder-shown:-translate-y-0 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-[11px] ${error ? 'text-red-500 peer-focus:text-red-500' : 'text-gray-500 peer-focus:text-[#90D5FF]'}`}>
+            <label htmlFor={id} className={`absolute left-2 top-0 -translate-y-1/2 bg-white px-1 text-[11px] transition-all pointer-events-none peer-placeholder-shown:top-[14px] peer-placeholder-shown:-translate-y-0 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-[11px] ${error ? 'text-red-500 peer-focus:text-red-500' : 'text-gray-500 peer-focus:text-primary-500'}`}>
                 {label}
             </label>
             {error && <p className="text-[11px] text-red-500 mt-1">{error}</p>}
@@ -398,12 +415,12 @@ const PostAdPage: React.FC = () => {
                 value={value || ""}
                 onChange={e => onChange(e.target.value)}
                 required
-                className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm focus:outline-none appearance-none ${error ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-[#90D5FF]'} ${!value ? 'text-transparent' : 'text-gray-900'}`}
+                className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm focus:outline-none appearance-none ${error ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-primary-500'} ${!value ? 'text-transparent' : 'text-gray-900'}`}
             >
                 <option value="" disabled hidden> </option>
                 {options.map(opt => <option key={opt.value} value={opt.value} className="text-gray-900">{opt.label}</option>)}
             </select>
-            <label htmlFor={id} className={`absolute left-2 top-0 -translate-y-1/2 bg-white px-1 text-[11px] transition-all pointer-events-none peer-valid:top-0 peer-valid:-translate-y-1/2 peer-valid:text-[11px] peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-[11px] ${!value ? 'top-[14px] -translate-y-0 text-sm' : ''} ${error ? 'text-red-500 peer-focus:text-red-500' : 'text-gray-500 peer-focus:text-[#90D5FF]'}`}>
+            <label htmlFor={id} className={`absolute left-2 top-0 -translate-y-1/2 bg-white px-1 text-[11px] transition-all pointer-events-none peer-valid:top-0 peer-valid:-translate-y-1/2 peer-valid:text-[11px] peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-[11px] ${!value ? 'top-[14px] -translate-y-0 text-sm' : ''} ${error ? 'text-red-500 peer-focus:text-red-500' : 'text-gray-500 peer-focus:text-primary-500'}`}>
                 {label}
             </label>
             <ChevronRight className="absolute right-3 top-[14px] h-4 w-4 text-gray-400 pointer-events-none" />
@@ -417,7 +434,7 @@ const PostAdPage: React.FC = () => {
             <div className="bg-white rounded-md shadow-sm p-4 mb-4 max-w-2xl mx-auto relative flex flex-col items-center border-b-[1.5px] border-gray-200/60">
                 <div className="w-full flex items-center justify-between mb-2">
                     {step === 2 ? (
-                        <button type="button" onClick={() => { setStep(1); window.scrollTo(0,0); }} className="text-[#90D5FF] font-bold flex items-center text-[13px] gap-1 hover:bg-sky-50 px-2 py-1.5 rounded-md transition-colors">
+                        <button type="button" onClick={() => { setStep(1); window.scrollTo(0,0); }} className="text-primary-500 font-bold flex items-center text-[13px] gap-1 hover:bg-primary-50 px-2 py-1.5 rounded-md transition-colors">
                             <ChevronLeft size={16} /> Back
                         </button>
                     ) : (
@@ -436,17 +453,17 @@ const PostAdPage: React.FC = () => {
                     <div className="flex items-center gap-2">
                         <div className={cn(
                             "w-6 h-6 rounded-full flex items-center justify-center text-[12px] font-bold border-2 transition-all",
-                            step === 1 ? "bg-white border-[#90D5FF] text-[#90D5FF] shadow-sm" : "bg-gray-100 border-gray-100 text-gray-400"
+                            step === 1 ? "bg-white border-primary-500 text-primary-500 shadow-sm" : "bg-gray-100 border-gray-100 text-gray-400"
                         )}>1</div>
                         <span className={cn("text-[12px] font-bold transition-colors", step === 1 ? "text-gray-900" : "text-gray-400")}>Basic info</span>
                     </div>
                     <div className="w-8 h-[2px] bg-gray-100">
-                        <div className={cn("h-full bg-[#90D5FF] transition-all duration-500", step === 2 ? "w-full" : "w-0")} />
+                        <div className={cn("h-full bg-primary-500 transition-all duration-500", step === 2 ? "w-full" : "w-0")} />
                     </div>
                     <div className="flex items-center gap-2">
                         <div className={cn(
                             "w-6 h-6 rounded-full flex items-center justify-center text-[12px] font-bold border-2 transition-all",
-                            step === 2 ? "bg-white border-[#90D5FF] text-[#90D5FF] shadow-sm" : "bg-gray-100 border-gray-100 text-gray-400"
+                            step === 2 ? "bg-white border-primary-500 text-primary-500 shadow-sm" : "bg-gray-100 border-gray-100 text-gray-400"
                         )}>2</div>
                         <span className={cn("text-[12px] font-bold transition-colors", step === 2 ? "text-gray-900" : "text-gray-400")}>Description & Price</span>
                     </div>
@@ -497,16 +514,16 @@ const PostAdPage: React.FC = () => {
                         <div className="mt-8 mb-6">
                             <h3 className="font-bold text-gray-900 text-[15px] mb-2">Add at least 2 photos</h3>
                             <p className="text-[13px] leading-snug mb-4 pl-0.5">
-                                <span className="text-[#90D5FF] font-bold">First picture is the title picture.</span> <span className="text-gray-500 font-medium">You can change the order of photos: just grab your photos and drag</span>
+                                <span className="text-primary-500 font-bold">First picture is the title picture.</span> <span className="text-gray-500 font-medium">You can change the order of photos: just grab your photos and drag</span>
                             </p>
                             <div className="flex flex-wrap gap-2 mb-2">
                                 <button
                                     type="button"
                                     onClick={() => fileInputRef.current?.click()}
                                     disabled={uploading}
-                                    className="w-[72px] h-[72px] rounded-md bg-[#eef8ff] flex items-center justify-center cursor-pointer transition-colors hover:bg-sky-100 flex-shrink-0"
+                                    className="w-[72px] h-[72px] rounded-md bg-[#eef8ff] flex items-center justify-center cursor-pointer transition-colors hover:bg-primary-100 flex-shrink-0"
                                 >
-                                    {uploading ? <Loader2 className="w-6 h-6 text-[#90D5FF] animate-spin" /> : <Plus strokeWidth={2.5} className="w-6 h-6 text-[#90D5FF]" />}
+                                    {uploading ? <Loader2 className="w-6 h-6 text-primary-500 animate-spin" /> : <Plus strokeWidth={2.5} className="w-6 h-6 text-primary-500" />}
                                 </button>
                                 <input ref={fileInputRef} type="file" accept="image/jpeg,image/png" multiple className="hidden" onChange={e => handleImageUpload(e.target.files)} />
                                 
@@ -534,11 +551,11 @@ const PostAdPage: React.FC = () => {
                                 value={form.youtubeLink}
                                 onChange={e => set('youtubeLink', e.target.value)}
                                 placeholder="Link to Youtube or Facebook video"
-                                className="block w-full rounded-md border border-gray-300 bg-transparent px-4 py-[13px] text-[15px] font-medium text-gray-900 focus:outline-none focus:border-[#90D5FF] placeholder:text-gray-500 placeholder:font-normal"
+                                className="block w-full rounded-md border border-gray-300 bg-transparent px-4 py-[13px] text-[15px] font-medium text-gray-900 focus:outline-none focus:border-primary-500 placeholder:text-gray-500 placeholder:font-normal"
                             />
                         </div>
 
-                        <button type="button" onClick={handleNext} className="mt-2 w-full bg-[#90D5FF] hover:bg-sky-600 active:scale-[0.98] text-white font-bold text-[15px] py-3.5 rounded-md transition-all flex items-center justify-center shadow-sm">
+                        <button type="button" onClick={handleNext} className="mt-2 w-full bg-primary-500 hover:bg-primary-600 active:scale-[0.98] text-white font-bold text-[15px] py-3.5 rounded-md transition-all flex items-center justify-center shadow-sm">
                             Next
                         </button>
                     </div>
@@ -553,7 +570,7 @@ const PostAdPage: React.FC = () => {
                         {selectedCategory?.subcategories && selectedCategory.subcategories.length > 0 && 
                             renderFloatingSelect('subcategory', 'Subcategory', form.subcategoryId?.toString() || "", v => {
                                 setForm(f => ({ ...f, subcategoryId: Number(v), attributes: {} })); setErrors({});
-                            }, selectedCategory.subcategories.map((s:any) => ({value: s.id.toString(), label: t(`categories.${s.name}`, s.name)})), undefined)
+                            }, selectedCategory.subcategories.map((s:any) => ({value: s.id.toString(), label: t(`categories.${s.name}`, s.name) as string})), undefined)
                         }
 
                         {/* Dynamic Schema Grid */}
@@ -584,9 +601,9 @@ const PostAdPage: React.FC = () => {
                                 maxLength={850}
                                 rows={4}
                                 placeholder=" "
-                                className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm text-gray-900 focus:outline-none resize-y ${errors.description ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-[#90D5FF]'}`}
+                                className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm text-gray-900 focus:outline-none resize-y ${errors.description ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-primary-500'}`}
                             />
-                            <label htmlFor="description" className={`absolute left-2 top-0 -translate-y-1/2 bg-white px-1 text-[11px] transition-all pointer-events-none peer-placeholder-shown:top-[14px] peer-placeholder-shown:-translate-y-0 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-[11px] font-medium ${errors.description ? 'text-red-500 peer-focus:text-red-500' : 'text-gray-500 peer-focus:text-[#90D5FF]'}`}>
+                            <label htmlFor="description" className={`absolute left-2 top-0 -translate-y-1/2 bg-white px-1 text-[11px] transition-all pointer-events-none peer-placeholder-shown:top-[14px] peer-placeholder-shown:-translate-y-0 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-[11px] font-medium ${errors.description ? 'text-red-500 peer-focus:text-red-500' : 'text-gray-500 peer-focus:text-primary-500'}`}>
                                 Description*
                             </label>
                             <div className="flex justify-end mt-1">
@@ -598,7 +615,7 @@ const PostAdPage: React.FC = () => {
                         {/* Price Input */}
                         <div className="flex justify-center mb-4">
                             <div className="w-full sm:w-2/3">
-                                <div className={`relative flex border rounded-md overflow-visible bg-white transition-colors outline-none focus-within:border-[#90D5FF] ${errors.price ? 'border-red-500' : 'border-gray-300'}`}>
+                                <div className={`relative flex border rounded-md overflow-visible bg-white transition-colors outline-none focus-within:border-primary-500 ${errors.price ? 'border-red-500' : 'border-gray-300'}`}>
                                     <div className="absolute left-2 top-0 -translate-y-1/2 bg-white px-1 text-[11px] text-gray-500 font-medium pointer-events-none z-10 hidden sm:block">
                                         Price*
                                     </div>
@@ -634,7 +651,7 @@ const PostAdPage: React.FC = () => {
                                                 {renderFloatingInput('bulk_quantity', 'Minimum Quantity', form.attributes.bulk_quantity || '', v => setAttribute('bulk_quantity', v), undefined, {type: 'number'})}
                                             </div>
                                             <div className="flex-1">
-                                                <div className="relative mb-4 flex border rounded-md overflow-hidden bg-white focus-within:border-[#90D5FF] border-gray-300">
+                                                <div className="relative mb-4 flex border rounded-md overflow-hidden bg-white focus-within:border-primary-500 border-gray-300">
                                                     <span className="bg-gray-50 border-r border-gray-300 px-3 py-3 text-sm text-gray-700 font-bold">KSh</span>
                                                     <input type="number" placeholder="Bulk Price" value={form.attributes.bulk_price || ''} onChange={e => setAttribute('bulk_price', e.target.value)} className="w-full px-3 py-3 text-sm bg-transparent outline-none text-gray-900" />
                                                 </div>
@@ -658,7 +675,7 @@ const PostAdPage: React.FC = () => {
                                                 value={val}
                                                 checked={form.negotiable === val}
                                                 onChange={() => set('negotiable', val)}
-                                                className="w-4 h-4 text-[#90D5FF] focus:ring-[#90D5FF] border-gray-300 accent-[#90D5FF]"
+                                                className="w-4 h-4 text-primary-500 focus:ring-primary-500 border-gray-300 accent-primary-500"
                                             />
                                             {val === 'yes' ? 'Yes' : val === 'no' ? 'No' : 'Not sure'}
                                         </label>
@@ -680,7 +697,7 @@ const PostAdPage: React.FC = () => {
                         <h3 className="font-bold text-[15px] mb-3 flex items-center gap-2 text-gray-900 w-full sm:w-2/3 px-1">
                             <Truck size={18} className="text-gray-800" /> Delivery
                         </h3>
-                        <div className="w-full sm:w-2/3 border border-gray-300 rounded-md p-3 text-sm text-[#90D5FF] flex justify-between items-center cursor-pointer hover:bg-sky-50 transition-colors">
+                        <div className="w-full sm:w-2/3 border border-gray-300 rounded-md p-3 text-sm text-primary-500 flex justify-between items-center cursor-pointer hover:bg-primary-50 transition-colors">
                             <span className="font-medium">Add delivery options</span>
                             <ChevronRight size={18} className="text-gray-400" />
                         </div>
@@ -690,36 +707,36 @@ const PostAdPage: React.FC = () => {
                     <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6 mb-5 flex flex-col items-center">
                         <div className="w-full sm:w-4/5 flex flex-col">
                             <h3 className="font-bold text-[19px] mb-1 text-gray-900">Promote your ad</h3>
-                            <p className="text-[13px] text-[#90D5FF] mb-6 font-medium">Choose a promotion type for your ad to post it</p>
+                            <p className="text-[13px] text-primary-500 mb-6 font-medium">Choose a promotion type for your ad to post it</p>
 
-                            <label className={`border border-gray-200 rounded-md p-4 mb-4 flex justify-between items-center cursor-pointer transition-colors ${promoPlanId === 0 ? 'bg-sky-50/40 border-[#90D5FF] shadow-sm' : 'hover:bg-gray-50'}`}>
+                            <label className={`border border-gray-200 rounded-md p-4 mb-4 flex justify-between items-center cursor-pointer transition-colors ${promoPlanId === 0 ? 'bg-primary-50/40 border-primary-500 shadow-sm' : 'hover:bg-gray-50'}`}>
                                 <div className="flex items-center gap-3">
-                                    <input type="radio" name="promo" checked={promoPlanId === 0} onChange={() => setPromoPlanId(0)} className="w-4 h-4 text-[#90D5FF] focus:ring-[#90D5FF] accent-[#90D5FF]" />
+                                    <input type="radio" name="promo" checked={promoPlanId === 0} onChange={() => setPromoPlanId(0)} className="w-4 h-4 text-primary-500 focus:ring-primary-500 accent-primary-500" />
                                     <span className="font-bold text-[15px] text-gray-900">No promo</span>
                                 </div>
                                 <span className="text-gray-400 text-sm font-medium">free</span>
                             </label>
 
-                            <label className={`border border-gray-200 rounded-md p-4 mb-4 flex justify-between items-center cursor-pointer transition-colors ${promoPlanId === 1 ? 'bg-sky-50/40 border-[#90D5FF] shadow-sm' : 'hover:bg-gray-50'}`}>
+                            <label className={`border border-gray-200 rounded-md p-4 mb-4 flex justify-between items-center cursor-pointer transition-colors ${promoPlanId === 1 ? 'bg-primary-50/40 border-primary-500 shadow-sm' : 'hover:bg-gray-50'}`}>
                                 <div className="flex items-center gap-3">
-                                    <input type="radio" name="promo" checked={promoPlanId === 1} onChange={() => setPromoPlanId(1)} className="w-4 h-4 text-[#90D5FF] focus:ring-[#90D5FF] accent-[#90D5FF]" />
+                                    <input type="radio" name="promo" checked={promoPlanId === 1} onChange={() => setPromoPlanId(1)} className="w-4 h-4 text-primary-500 focus:ring-primary-500 accent-primary-500" />
                                     <div>
                                         <span className="font-bold text-[15px] block mb-2 text-gray-900">TOP promo</span>
                                         <div className="flex gap-2">
-                                            <span className="bg-[#eef8ff] text-[#90D5FF] px-3 py-1 rounded-full text-[11px] font-bold">7 days</span>
-                                            <span className="bg-white border border-sky-300 text-[#90D5FF] px-3 py-1 rounded-full text-[11px] font-bold shadow-sm">30 days</span>
+                                            <span className="bg-[#eef8ff] text-primary-500 px-3 py-1 rounded-full text-[11px] font-bold">7 days</span>
+                                            <span className="bg-white border border-primary-300 text-primary-500 px-3 py-1 rounded-full text-[11px] font-bold shadow-sm">30 days</span>
                                         </div>
                                     </div>
                                 </div>
                                 <span className="font-bold text-gray-900">KSh 455</span>
                             </label>
 
-                            <label className={`border border-gray-200 rounded-md p-4 mb-6 flex justify-between items-center cursor-pointer transition-colors ${promoPlanId === 2 ? 'bg-sky-50/40 border-[#90D5FF] shadow-sm' : 'hover:bg-gray-50'}`}>
+                            <label className={`border border-gray-200 rounded-md p-4 mb-6 flex justify-between items-center cursor-pointer transition-colors ${promoPlanId === 2 ? 'bg-primary-50/40 border-primary-500 shadow-sm' : 'hover:bg-gray-50'}`}>
                                 <div className="flex items-center gap-3">
-                                    <input type="radio" name="promo" checked={promoPlanId === 2} onChange={() => setPromoPlanId(2)} className="w-4 h-4 text-[#90D5FF] focus:ring-[#90D5FF] accent-[#90D5FF]" />
+                                    <input type="radio" name="promo" checked={promoPlanId === 2} onChange={() => setPromoPlanId(2)} className="w-4 h-4 text-primary-500 focus:ring-primary-500 accent-primary-500" />
                                     <div>
                                         <span className="font-bold text-[15px] block mb-2 text-gray-900">Boost Premium promo</span>
-                                        <span className="bg-[#eef8ff] text-[#90D5FF] px-3 py-1 rounded-full text-[11px] font-bold">1 month</span>
+                                        <span className="bg-[#eef8ff] text-primary-500 px-3 py-1 rounded-full text-[11px] font-bold">1 month</span>
                                     </div>
                                 </div>
                                 <span className="font-bold text-gray-900">KSh 2,449</span>
@@ -728,14 +745,14 @@ const PostAdPage: React.FC = () => {
                             <button
                                 type="submit"
                                 disabled={submitting}
-                                className="w-full bg-[#90D5FF] hover:bg-sky-600 active:scale-[0.98] text-white font-bold text-[17px] py-3.5 rounded-md transition-all flex items-center justify-center gap-2 shadow-sm"
+                                className="w-full bg-primary-500 hover:bg-primary-600 active:scale-[0.98] text-white font-bold text-[17px] py-3.5 rounded-md transition-all flex items-center justify-center gap-2 shadow-sm"
                             >
                                 {submitting && <Loader2 size={20} className="animate-spin" />}
                                 Post ad
                             </button>
                             
                             <p className="text-[10px] text-gray-500 mt-5 leading-relaxed text-center px-4">
-                                By clicking on Post Ad, you accept the <a href="#" className="text-[#90D5FF] hover:underline">Terms of Use</a>, confirm that you will abide by the Safety Tips, and declare that this posting does not include any Prohibited Items.
+                                By clicking on Post Ad, you accept the <a href="#" className="text-primary-500 hover:underline">Terms of Use</a>, confirm that you will abide by the Safety Tips, and declare that this posting does not include any Prohibited Items.
                             </p>
                         </div>
                     </div>

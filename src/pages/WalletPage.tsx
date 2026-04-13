@@ -91,7 +91,7 @@ export const WalletPage: React.FC = () => {
         <div className="space-y-8">
             {/* Header Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-gradient-to-br from-blue-300 to-blue-400 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+                <div className="bg-gradient-to-br from-primary-300 to-primary-400 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
                     <div className="relative z-10">
                         <p className="text-white/90 text-sm font-medium mb-1">{t('wallet.availableBalance')}</p>
                         <h3 className="text-4xl font-bold mb-6">
@@ -100,7 +100,7 @@ export const WalletPage: React.FC = () => {
                         <div className="flex flex-wrap gap-2">
                             <Button
                                 onClick={() => setIsDepositModalOpen(true)}
-                                className="bg-white text-blue-500 hover:bg-white/90 rounded-xl gap-2 font-bold border-none"
+                                className="bg-white text-primary-500 hover:bg-white/90 rounded-xl gap-2 font-bold border-none"
                             >
                                 <Plus className="h-5 w-5" />
                                 {t('wallet.addFunds')}

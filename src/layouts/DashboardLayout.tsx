@@ -4,17 +4,17 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { notificationService } from '../services/notificationService';
 import {
-    LayoutDashboard, ShoppingBag,
+    ShoppingBag,
     Heart, Settings, LogOut,
     PlusCircle, Bell, HelpCircle, Shield, Wallet, Folder,
-    Menu, X
+    Menu, X, TrendingUp, MessageSquare, Zap, Target, Package,
+    MessageCircle, Users
 } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { getAvatarUrl } from '../utils/imageUtils';
-import { Button } from '../components/Button';
 import { Logo } from '../components/Logo';
 import { useAuthStore } from '../store/useAuthStore';
-import { CurrencySwitcher } from '../components/CurrencySwitcher';
+import { Button } from '../components/Button';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
 interface DashboardLayoutProps {
@@ -41,14 +41,20 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     }, [location.pathname]);
 
     const menuItems = [
-        { labelKey: 'dashboard.overview', icon: LayoutDashboard, path: '/dashboard' },
-        { labelKey: 'dashboard.myWallet', icon: Wallet, path: '/wallet' },
-        { labelKey: 'dashboard.myAds', icon: ShoppingBag, path: '/my-ads' },
-        { labelKey: 'dashboard.savedAds', icon: Heart, path: '/favorites' },
-        { labelKey: 'dashboard.notifications', icon: Bell, path: '/notifications' },
-        { labelKey: 'dashboard.helpCenter', icon: HelpCircle, path: '/help' },
-        { labelKey: 'dashboard.accountSettings', icon: Settings, path: '/settings' },
-        { labelKey: 'dashboard.verification', icon: Shield, path: '/dashboard/verify', badge: !user?.is_verified },
+        { labelKey: 'dashboard.myAdverts', label: 'My adverts', icon: ShoppingBag, path: '/my-ads' },
+        { labelKey: 'dashboard.savedAds', label: 'Saved ads', icon: Heart, path: '/favorites' },
+        { labelKey: 'dashboard.delivery', label: 'Suqafuran Delivery', icon: Package, path: '/delivery', isNew: true },
+        { labelKey: 'dashboard.feedback', label: 'Feedback', icon: MessageCircle, path: '/feedback' },
+        { labelKey: 'dashboard.performance', label: 'Performance', icon: Target, path: '/performance' },
+    ];
+
+    const secondaryItems = [
+        { label: 'Pro Sales', icon: TrendingUp, path: '/pro-sales' },
+        { label: 'Premium Services', icon: Shield, path: '/premium' },
+        { label: 'My Balance', icon: Wallet, path: '/wallet', detail: user?.wallet?.balance ? `KSh ${user.wallet.balance.toLocaleString()}` : 'KSh 0' },
+        { label: 'Followers', icon: Users, path: '/followers' },
+        { label: 'Request help', icon: HelpCircle, path: '/help' },
+        { label: 'FAQ', icon: HelpCircle, path: '/help' },
     ];
 
     return (
@@ -92,8 +98,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     </button>
                 </div>
 
-                <div className="p-6 flex items-center gap-3 border-b border-gray-50">
-                    <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 font-bold border border-primary-100 overflow-hidden">
+                <div className="p-6 flex flex-col items-center gap-3 border-b border-gray-50 bg-white">
+                    <div className="w-20 h-20 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 font-bold border-2 border-primary-100 overflow-hidden shadow-sm">
                         {getAvatarUrl(user?.avatar_url) ? (
                             <img
                                 src={getAvatarUrl(user?.avatar_url)!}
@@ -101,103 +107,136 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                                 className="w-full h-full object-cover"
                             />
                         ) : (
-                            user?.full_name?.[0] || 'U'
+                            <div className="text-2xl">{user?.full_name?.[0] || 'U'}</div>
                         )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-gray-900 truncate">{user?.full_name || 'User'}</p>
-                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                    <div className="text-center w-full min-w-0">
+                        <p className="text-base font-bold text-gray-900 truncate">{user?.full_name || 'User'}</p>
+                        <p className="text-xs text-primary-600 font-medium mt-0.5">{user?.phone || 'Add phone number'}</p>
+                    </div>
+                    <Link to="/settings" className="absolute top-4 right-4 text-gray-400 hover:text-primary-600 transition-colors">
+                        <Settings className="h-5 w-5" />
+                    </Link>
+                </div>
+
+                <div className="px-4 py-2">
+                    <div className="bg-orange-500 rounded-lg p-3 text-white flex items-center justify-between shadow-sm cursor-pointer hover:bg-orange-600 transition-colors">
+                        <div className="flex items-center gap-3">
+                            <Bell className="h-5 w-5" />
+                            <span className="text-sm font-bold">Alerts</span>
+                        </div>
+                        <span className="text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded">hide 1</span>
                     </div>
                 </div>
 
-                <nav className="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar min-h-0">
+                <nav className="flex-1 p-4 pt-1 space-y-1 overflow-y-auto custom-scrollbar min-h-0">
                     {menuItems.map((item) => (
                         <Link
                             key={item.path}
                             to={item.path}
                             className={cn(
-                                "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
+                                "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all",
                                 location.pathname === item.path
-                                    ? "bg-primary-50 text-primary-600 shadow-sm shadow-primary-100"
-                                    : "text-gray-600 hover:bg-gray-50 hover:text-primary-600"
+                                    ? "bg-gray-100 text-gray-900"
+                                    : "text-gray-700 hover:bg-gray-50"
                             )}
                         >
-                            <item.icon className="h-5 w-5" />
-                            <span className="flex-1">{t(item.labelKey)}</span>
-                            {item.badge && (
-                                <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                            <item.icon className="h-5 w-5 text-gray-400" />
+                            <span className="flex-1">{item.label}</span>
+                            {item.isNew && (
+                                <span className="text-[10px] font-bold bg-red-500 text-white px-1.5 py-0.5 rounded uppercase">New</span>
                             )}
                         </Link>
                     ))}
 
+                    <div className="pt-4 mt-4 border-t border-gray-100">
+                        {secondaryItems.map((item) => (
+                            <Link
+                                key={item.label}
+                                to={item.path}
+                                className={cn(
+                                    "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-gray-700 hover:bg-gray-50"
+                                )}
+                            >
+                                <item.icon className="h-5 w-5 text-gray-400" />
+                                <div className="flex-1 flex items-center justify-between">
+                                    <span>{item.label}</span>
+                                    {item.detail && (
+                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-tight">{item.detail}</span>
+                                    )}
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+
                     {(user?.is_admin || user?.is_agent) && (
-                        <div className="pt-4 mt-4 border-t border-gray-50">
-                            <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('dashboard.agentTools')}</p>
+                        <div className="pt-4 mt-4 border-t border-gray-100">
+                            <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('dashboard.agentTools', 'Agent Tools')}</p>
                             <Link
                                 to="/agent-dashboard"
                                 className={cn(
-                                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
-                                    location.pathname === '/agent-dashboard' && "bg-primary-50 shadow-sm shadow-primary-100"
+                                    "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
+                                    location.pathname === '/agent-dashboard' && "bg-primary-50 shadow-sm"
                                 )}
                             >
                                 <Shield className="h-5 w-5" />
-                                {t('dashboard.agentPortal')}
+                                {t('dashboard.agentPortal', 'Agent Portal')}
                             </Link>
                         </div>
                     )}
 
                     {user?.is_admin && (
-                        <div className="pt-4 mt-4 border-t border-gray-50">
-                            <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">{ t('dashboard.adminTools') }</p>
+                        <div className="pt-4 mt-4 border-t border-gray-100">
+                            <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('dashboard.adminTools', 'Admin Tools')}</p>
                             <Link
                                 to="/admin"
                                 className={cn(
-                                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-secondary-600 hover:bg-secondary-50",
-                                    location.pathname === '/admin' && "bg-secondary-50 shadow-sm shadow-secondary-100"
+                                    "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-secondary-600 hover:bg-secondary-50",
+                                    location.pathname === '/admin' && "bg-secondary-50 shadow-sm"
                                 )}
                             >
                                 <Shield className="h-5 w-5" />
-                                {t('dashboard.adminPanel')}
+                                {t('dashboard.adminPanel', 'Admin Panel')}
                             </Link>
                             <Link
                                 to="/admin/listings"
                                 className={cn(
-                                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
-                                    location.pathname === '/admin/listings' && "bg-primary-50 shadow-sm shadow-primary-100"
+                                    "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
+                                    location.pathname === '/admin/listings' && "bg-primary-50 shadow-sm"
                                 )}
                             >
                                 <ShoppingBag className="h-5 w-5" />
-                                {t('dashboard.allListings')}
+                                {t('dashboard.allListings', 'All Listings')}
                             </Link>
                             <Link
                                 to="/admin/promotions"
                                 className={cn(
-                                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
-                                    location.pathname === '/admin/promotions' && "bg-primary-50 shadow-sm shadow-primary-100"
+                                    "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
+                                    location.pathname === '/admin/promotions' && "bg-primary-50 shadow-sm"
                                 )}
                             >
                                 <Folder className="h-5 w-5" />
-                                {t('dashboard.promotions')}
+                                {t('dashboard.promotions', 'Promotions')}
                             </Link>
                             <Link
                                 to="/admin/categories"
                                 className={cn(
-                                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-secondary-600 hover:bg-secondary-50",
-                                    location.pathname === '/admin/categories' && "bg-secondary-50 shadow-sm shadow-secondary-100"
+                                    "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-secondary-600 hover:bg-secondary-50",
+                                    location.pathname === '/admin/categories' && "bg-secondary-50 shadow-sm"
                                 )}
                             >
                                 <Folder className="h-5 w-5" />
-                                {t('dashboard.categories')}
+                                {t('dashboard.categories', 'Categories')}
                             </Link>
                             <Link
                                 to="/admin/verifications"
                                 className={cn(
-                                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-amber-600 hover:bg-amber-50",
+                                    "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-amber-600 hover:bg-amber-50",
                                     location.pathname === '/admin/verifications' && "bg-amber-50 shadow-sm"
                                 )}
                             >
                                 <Shield className="h-5 w-5" />
-                                {t('dashboard.verifications')}
+                                {t('dashboard.verifications', 'Verifications')}
                             </Link>
                         </div>
                     )}
@@ -230,34 +269,54 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
             {/* Main Content Area */}
             <main className="flex-1 flex flex-col min-w-0 bg-gray-50 min-h-screen">
-                <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-100 p-4 md:px-8 flex items-center justify-between">
-                    <div className="md:hidden"></div>
-                    <div className="flex items-center gap-4 ml-auto">
-                        <LanguageSwitcher />
-                        <CurrencySwitcher />
-                        <Link to="/notifications" className="p-2 text-gray-400 hover:text-primary-600 relative">
-                            <Bell className="h-6 w-6" />
-                            {unreadCount > 0 && (
-                                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-                            )}
-                        </Link>
-                        <Link to="/settings" className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
-                            {getAvatarUrl(user?.avatar_url) ? (
-                                <img
-                                    src={getAvatarUrl(user?.avatar_url)!}
-                                    alt={user?.full_name || 'User'}
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <div className="w-full h-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">
-                                    {user?.full_name?.[0]}
-                                </div>
-                            )}
+                <header className="sticky top-0 z-20 bg-primary-400 border-b border-primary-500 p-2 md:px-8 flex items-center justify-between shadow-sm">
+                    <div className="flex-1 max-w-xl hidden md:flex">
+                        <div className="relative w-full">
+                            <input
+                                type="text"
+                                placeholder="Search..."
+                                className="w-full bg-gray-100 border-none rounded-lg py-2 px-10 text-sm focus:ring-2 focus:ring-primary-500"
+                            />
+                            <Menu className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 md:gap-4 ml-auto">
+                        <div className="flex items-center gap-1 md:gap-2">
+                            <Link to="/favorites" className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all" title="Saved ads">
+                                <Heart className="h-5 w-5" />
+                            </Link>
+                            <Link to="/messages" className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all relative" title="Messages">
+                                <MessageSquare className="h-5 w-5" />
+                            </Link>
+                            <Link to="/notifications" className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all relative" title="Notifications">
+                                <Bell className="h-5 w-5" />
+                                {unreadCount > 0 && (
+                                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                                )}
+                            </Link>
+                            <Link to="/performance" className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all" title="Promotion">
+                                <Zap className="h-5 w-5" />
+                            </Link>
+                            <Link to="/my-ads" className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all relative" title="My adverts">
+                                <ShoppingBag className="h-5 w-5" />
+                            </Link>
+                            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-primary-600 text-xs font-bold border-2 border-primary-200 shadow-sm overflow-hidden ml-2">
+                                {getAvatarUrl(user?.avatar_url) ? (
+                                    <img src={getAvatarUrl(user?.avatar_url)!} className="w-full h-full object-cover" />
+                                ) : user?.full_name?.[0]}
+                            </div>
+                        </div>
+
+                        <Link to="/post-ad">
+                            <Button className="bg-orange-500 hover:bg-orange-600 text-white rounded-lg px-6 h-9 font-bold text-sm uppercase tracking-wide border-none shadow-sm">
+                                Sell
+                            </Button>
                         </Link>
                     </div>
                 </header>
 
-                <div className="p-4 md:p-8 w-full max-w-7xl overflow-x-hidden">
+                <div className="p-4 md:p-8 w-full max-w-7xl mx-auto overflow-x-hidden">
                     {children || <Outlet />}
                 </div>
             </main>

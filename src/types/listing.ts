@@ -26,6 +26,8 @@ export interface Listing {
     attributes?: Record<string, any>;
     views?: number;
     leads?: number;
+    rejection_reason?: string;
+    admin_notes?: Record<string, any>;
 }
 
 export interface ListingCreate {

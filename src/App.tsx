@@ -51,6 +51,12 @@ const KaalayHeedhePage = lazy(() => import('./pages/KaalayHeedhePage'));
 const PrivacyPolicyPage = lazyNamed(() => import('./pages/PrivacyPolicyPage'), 'PrivacyPolicyPage');
 const DeleteAccountPage = lazyNamed(() => import('./pages/DeleteAccountPage'), 'DeleteAccountPage');
 const SocialAuthCallback = lazyNamed(() => import('./pages/SocialAuthCallback'), 'SocialAuthCallback');
+const DeliveryPage = lazyNamed(() => import('./pages/DeliveryPage'), 'DeliveryPage');
+const FeedbackPage = lazyNamed(() => import('./pages/FeedbackPage'), 'FeedbackPage');
+const FollowersPage = lazyNamed(() => import('./pages/FollowersPage'), 'FollowersPage');
+const PerformancePage = lazyNamed(() => import('./pages/PerformancePage'), 'PerformancePage');
+const ProSalesPage = lazyNamed(() => import('./pages/ProSalesPage'), 'ProSalesPage');
+const PremiumPage = lazyNamed(() => import('./pages/PremiumPage'), 'PremiumPage');
 
 // Lazy load pages - Default Exports (Admin/Agent Pages)
 const AdminCategoriesPage = lazy(() => import('./pages/admin/AdminCategoriesPage'));
@@ -116,6 +122,12 @@ const App: React.FC = () => {
               <Route path="/edit-ad/:id" element={<EditAdPage />} />
               <Route path="/promote/:adId" element={<PromotionPage />} />
               <Route path="/dashboard/verify" element={<VerificationPage />} />
+              <Route path="/delivery" element={<DeliveryPage />} />
+              <Route path="/feedback" element={<FeedbackPage />} />
+              <Route path="/performance" element={<PerformancePage />} />
+              <Route path="/pro-sales" element={<ProSalesPage />} />
+              <Route path="/premium" element={<PremiumPage />} />
+              <Route path="/followers" element={<FollowersPage />} />
               <Route path="/agent-dashboard" element={<AgentDashboard />} />
             </Route>
 

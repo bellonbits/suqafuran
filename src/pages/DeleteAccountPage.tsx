@@ -96,7 +96,7 @@ export const DeleteAccountPage: React.FC = () => {
                         padding: '32px 24px',
                         textAlign: 'center',
                     }}>
-                        <LogIn size={40} color="#90D5FF" style={{ marginBottom: 16 }} />
+                        <LogIn size={40} color="var(--color-primary-500)" style={{ marginBottom: 16 }} />
                         <h3 style={{ fontSize: 17, fontWeight: 700, color: '#1d4ed8', margin: '0 0 8px' }}>
                             {t('settings.deleteAccountSignInRequired')}
                         </h3>
@@ -107,7 +107,7 @@ export const DeleteAccountPage: React.FC = () => {
                             onClick={() => navigate('/login')}
                             style={{
                                 padding: '10px 24px',
-                                background: '#90D5FF',
+                                background: 'var(--color-primary-500)',
                                 color: 'white',
                                 fontWeight: 600,
                                 fontSize: 14,

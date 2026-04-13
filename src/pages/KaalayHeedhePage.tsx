@@ -19,7 +19,7 @@ const KaalayHeedhePage: React.FC = () => {
             {/* Background Decorative Elements */}
             <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-primary-50 to-transparent -z-10 pointer-events-none" />
             <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary-100/50 rounded-full blur-3xl -z-10 pointer-events-none" />
-            <div className="absolute top-1/2 -left-24 w-72 h-72 bg-blue-100/30 rounded-full blur-3xl -z-10 pointer-events-none" />
+            <div className="absolute top-1/2 -left-24 w-72 h-72 bg-primary-100/30 rounded-full blur-3xl -z-10 pointer-events-none" />
 
             {/* Back Navigation */}
             <div className="max-w-4xl mx-auto mb-8">
@@ -94,7 +94,7 @@ const KaalayHeedhePage: React.FC = () => {
                         >
                             <div className={cn(
                                 "w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-300",
-                                feature.color === "blue" ? "bg-blue-50 text-blue-500" :
+                                feature.color === "blue" ? "bg-primary-50 text-primary-500" :
                                     feature.color === "green" ? "bg-green-50 text-green-500" : "bg-red-50 text-red-500"
                             )}>
                                 <feature.icon className="h-7 w-7" />

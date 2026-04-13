@@ -125,9 +125,9 @@ const CategoryListingPage: React.FC = () => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <nav className="text-sm text-gray-500 mb-1">
-                            <span className="hover:text-blue-400 cursor-pointer" onClick={() => navigate('/dashboard')}>{t('category.dashboard')}</span>
+                            <span className="hover:text-primary-400 cursor-pointer" onClick={() => navigate('/dashboard')}>{t('category.dashboard')}</span>
                             <span className="mx-2">/</span>
-                            <Link to="/dashboard" className="hover:text-blue-400">{t('category.categories')}</Link>
+                            <Link to="/dashboard" className="hover:text-primary-400">{t('category.categories')}</Link>
                             <span className="mx-2">/</span>
                             <span className="text-gray-900 font-medium">{translatedCategoryName || category?.name}</span>
                         </nav>

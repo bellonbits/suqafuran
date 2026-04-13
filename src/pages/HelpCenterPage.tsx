@@ -180,13 +180,13 @@ const HelpCenterPage: React.FC = () => {
                     {/* Support Cards */}
                     <div className="grid md:grid-cols-2 gap-6">
                         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-4">
-                            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 shrink-0">
+                            <div className="w-12 h-12 bg-primary-50 rounded-xl flex items-center justify-center text-primary-600 shrink-0">
                                 <MessageCircle className="h-6 w-6" />
                             </div>
                             <div>
                                 <h3 className="font-bold text-gray-900 mb-1">{t('help.liveChat')}</h3>
                                 <p className="text-sm text-gray-500 mb-3">{t('help.liveChatHours')}</p>
-                                <button className="text-sm font-bold text-blue-600 hover:text-blue-700 hover:underline">{t('help.startChat')}</button>
+                                <button className="text-sm font-bold text-primary-600 hover:text-primary-700 hover:underline">{t('help.startChat')}</button>
                             </div>
                         </div>
 

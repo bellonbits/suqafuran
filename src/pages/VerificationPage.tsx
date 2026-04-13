@@ -110,7 +110,7 @@ const VerificationPage: React.FC = () => {
                 <div className={cn(
                     "mb-8 p-5 rounded-2xl border-2 flex items-center gap-4",
                     status.status === 'approved' ? "bg-green-50 border-green-200" :
-                        status.status === 'pending' ? "bg-blue-50 border-blue-200" :
+                        status.status === 'pending' ? "bg-primary-50 border-primary-200" :
                             "bg-red-50 border-red-200"
                 )}>
                     {status.status === 'approved' ? (
@@ -126,12 +126,12 @@ const VerificationPage: React.FC = () => {
                         </>
                     ) : status.status === 'pending' ? (
                         <>
-                            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                                <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+                            <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
+                                <Loader2 className="w-6 h-6 text-primary-600 animate-spin" />
                             </div>
                             <div>
-                                <h3 className="font-bold text-blue-900">{t('verify.underReview')}</h3>
-                                <p className="text-sm text-blue-700">{t('verify.underReviewDesc')}</p>
+                                <h3 className="font-bold text-primary-900">{t('verify.underReview')}</h3>
+                                <p className="text-sm text-primary-700">{t('verify.underReviewDesc')}</p>
                             </div>
                         </>
                     ) : (
@@ -150,13 +150,13 @@ const VerificationPage: React.FC = () => {
 
             {/* Success state after submit */}
             {submitMutation.isSuccess && (
-                <div className="mb-8 p-5 rounded-2xl bg-blue-50 border-2 border-blue-200 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                        <CheckCircle className="w-6 h-6 text-blue-600" />
+                <div className="mb-8 p-5 rounded-2xl bg-primary-50 border-2 border-primary-200 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
+                        <CheckCircle className="w-6 h-6 text-primary-600" />
                     </div>
                     <div>
-                        <h3 className="font-bold text-blue-900">{t('verify.submitted')}</h3>
-                        <p className="text-sm text-blue-700">{t('verify.submittedDesc')}</p>
+                        <h3 className="font-bold text-primary-900">{t('verify.submitted')}</h3>
+                        <p className="text-sm text-primary-700">{t('verify.submittedDesc')}</p>
                     </div>
                 </div>
             )}
@@ -335,9 +335,9 @@ const VerificationPage: React.FC = () => {
             )}
 
             {/* Info */}
-            <div className="mt-8 bg-blue-50 rounded-2xl p-5 border border-blue-100">
-                <h4 className="font-bold text-blue-900 mb-3">{t('verify.whyVerify')}</h4>
-                <ul className="space-y-2 text-sm text-blue-800">
+            <div className="mt-8 bg-primary-50 rounded-2xl p-5 border border-primary-100">
+                <h4 className="font-bold text-primary-900 mb-3">{t('verify.whyVerify')}</h4>
+                <ul className="space-y-2 text-sm text-primary-800">
                     {[
                         t('verify.reason1'),
                         t('verify.reason2'),

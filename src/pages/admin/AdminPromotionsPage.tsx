@@ -20,9 +20,9 @@ import {
 // ── Action meta map (matches AgentDashboard) ─────────────────────────────────
 const ACTION_META: Record<string, { icon: React.ElementType; color: string; bg: string; tKey: string }> = {
     USER_SIGNUP: { icon: User, color: 'text-green-400', bg: 'bg-green-500/10', tKey: 'agent.newSignup' },
-    USER_LOGIN: { icon: User, color: 'text-blue-400', bg: 'bg-blue-500/10', tKey: 'agent.loginAction' },
+    USER_LOGIN: { icon: User, color: 'text-primary-400', bg: 'bg-primary-500/10', tKey: 'agent.loginAction' },
     CREATE_LISTING: { icon: ShoppingBag, color: 'text-orange-400', bg: 'bg-orange-500/10', tKey: 'agent.newAd' },
-    MATCH_PAYMENT: { icon: CreditCard, color: 'text-cyan-400', bg: 'bg-cyan-500/10', tKey: 'agent.paymentMatched' },
+    MATCH_PAYMENT: { icon: CreditCard, color: 'text-primary-400', bg: 'bg-primary-500/10', tKey: 'agent.paymentMatched' },
     ACTIVATE_PROMOTION: { icon: Zap, color: 'text-yellow-400', bg: 'bg-yellow-500/10', tKey: 'agent.promoActivated' },
     REJECT_TRANSACTION: { icon: AlertTriangle, color: 'text-red-400', bg: 'bg-red-500/10', tKey: 'agent.txRejected' },
     WALLET_DEPOSIT: { icon: Wallet, color: 'text-emerald-400', bg: 'bg-emerald-500/10', tKey: 'agent.deposit' },
@@ -460,7 +460,7 @@ const AdminPromotionsPage: React.FC = () => {
                                     <CheckCircle size={18} />
                                     {t('agent.approvePromotion', { id: selectedPromotion.id })}
                                 </h3>
-                                <div className="bg-blue-300/20 p-4 rounded-2xl border border-blue-300/20 mb-4">
+                                <div className="bg-primary-300/20 p-4 rounded-2xl border border-primary-300/20 mb-4">
                                     <div className="text-[10px] font-bold opacity-60 uppercase mb-1">{t('agent.listing')}</div>
                                     <div className="font-bold">{selectedPromotion.listing_title || `#${selectedPromotion.listing_id}`}</div>
                                     {selectedPromotion.payment_proof && (
@@ -477,7 +477,7 @@ const AdminPromotionsPage: React.FC = () => {
                                                 'w-full text-left px-4 py-3 rounded-2xl border-2 transition-all flex items-center justify-between',
                                                 selectedPlan === plan.id
                                                     ? 'border-white bg-white/10'
-                                                    : 'border-blue-300/20 hover:border-blue-300/40'
+                                                    : 'border-primary-300/20 hover:border-primary-300/40'
                                             )}
                                         >
                                             <div>
@@ -503,7 +503,7 @@ const AdminPromotionsPage: React.FC = () => {
                                     </Button>
                                     <button
                                         onClick={() => { setSelectedPromotion(null); setSelectedPlan(null); }}
-                                        className="w-11 h-11 rounded-xl bg-blue-300/20 flex items-center justify-center hover:bg-blue-300/40 transition-colors"
+                                        className="w-11 h-11 rounded-xl bg-primary-300/20 flex items-center justify-center hover:bg-primary-300/40 transition-colors"
                                     >
                                         <X size={18} />
                                     </button>

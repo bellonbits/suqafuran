@@ -20,7 +20,7 @@ const OverviewDashboard: React.FC = () => {
 
     const stats = [
         { label: t('overview.myListings'), value: realStats?.listings?.toString() || '0', icon: ShoppingBag, color: 'text-primary-600', bg: 'bg-primary-50' },
-        { label: t('overview.activeMessages'), value: realStats?.messages?.toString() || '0', icon: MessageCircle, color: 'text-green-600', bg: 'bg-green-50' },
+        { label: t('overview.activeMessages'), value: realStats?.messages?.toString() || '0', icon: MessageCircle, color: 'text-primary-600', bg: 'bg-primary-100' },
         { label: t('overview.savedAds'), value: realStats?.favorites?.toString() || '0', icon: Heart, color: 'text-red-600', bg: 'bg-red-50' },
         { label: t('overview.profileViews'), value: realStats?.views || '0', icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-50' },
     ];
@@ -76,12 +76,12 @@ const OverviewDashboard: React.FC = () => {
                         <p className="text-gray-600 mb-8 leading-relaxed">{t('overview.becomeVerifiedDesc')}</p>
                     </div>
                     {user?.is_verified ? (
-                        <div className="bg-green-50 text-green-700 px-6 py-3 rounded-xl border border-green-100 flex items-center justify-center gap-2 font-bold transition-all hover:bg-green-100 cursor-default">
+                        <div className="bg-primary-50 text-primary-700 px-6 py-3 rounded-xl border border-primary-200 flex items-center justify-center gap-2 font-bold transition-all hover:bg-primary-100 cursor-default shadow-sm">
                             <ShieldCheck className="h-5 w-5" />
                             {t('overview.verificationActive')}
                         </div>
                     ) : (
-                        <Link to="/verification">
+                        <Link to="/dashboard/verify">
                             <Button variant="outline" className="w-fit rounded-xl border-2 font-bold px-8">{t('overview.startVerification')}</Button>
                         </Link>
                     )}

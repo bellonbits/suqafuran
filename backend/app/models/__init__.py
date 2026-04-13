@@ -9,6 +9,9 @@ from app.models.meeting_deal import Meeting, Deal
 from app.models.trust import Rating, Report
 from app.models.promotion import Promotion, PromotionPlan
 from app.models.kh_models import AdminArea, Place, Landmark, KaalayHeedhePin, EmergencyContact
+from app.models.delivery import Delivery
+from app.models.feedback import Feedback
+from app.models.follow import Follow
 
 __all__ = [
     "User",
@@ -31,4 +34,7 @@ __all__ = [
     "Landmark",
     "KaalayHeedhePin",
     "EmergencyContact",
+    "Delivery",
+    "Feedback",
+    "Follow",
 ]

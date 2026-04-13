@@ -80,35 +80,47 @@ def read_categories(
     """
     Retrieve categories with subcategories.
     """
+    import json
     categories = crud_listing.get_categories(db)
     result = []
     for cat in categories:
+        cat_attrs = cat.attributes_schema
+        if isinstance(cat_attrs, str):
+            try: cat_attrs = json.loads(cat_attrs)
+            except: cat_attrs = {}
+
+        subcategories = []
+        for sub in (cat.subcategories or []):
+            sub_attrs = sub.attributes_schema
+            if isinstance(sub_attrs, str):
+                try: sub_attrs = json.loads(sub_attrs)
+                except: sub_attrs = []
+            
+            subcategories.append({
+                "id": sub.id,
+                "name": sub.name,
+                "slug": sub.slug,
+                "image_url": sub.image_url,
+                "attributes_schema": sub_attrs,
+                "subsubcategories": [
+                    {
+                        "id": ssub.id,
+                        "name": ssub.name,
+                        "slug": ssub.slug,
+                        "image_url": ssub.image_url,
+                    }
+                    for ssub in (sub.subsubcategories or [])
+                ],
+            })
+
         cat_dict = {
             "id": cat.id,
             "name": cat.name,
             "slug": cat.slug,
             "icon_name": cat.icon_name,
             "image_url": cat.image_url,
-            "attributes_schema": cat.attributes_schema,
-            "subcategories": [
-                {
-                    "id": sub.id,
-                    "name": sub.name,
-                    "slug": sub.slug,
-                    "image_url": sub.image_url,
-                    "attributes_schema": sub.attributes_schema,
-                    "subsubcategories": [
-                        {
-                            "id": ssub.id,
-                            "name": ssub.name,
-                            "slug": ssub.slug,
-                            "image_url": ssub.image_url,
-                        }
-                        for ssub in (sub.subsubcategories or [])
-                    ],
-                }
-                for sub in (cat.subcategories or [])
-            ],
+            "attributes_schema": cat_attrs,
+            "subcategories": subcategories,
         }
         result.append(cat_dict)
     return result

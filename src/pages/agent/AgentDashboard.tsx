@@ -28,9 +28,9 @@ import { format, formatDistanceToNow } from 'date-fns';
 // Map action types to icons and colors
 const ACTION_META: Record<string, { icon: React.ElementType; color: string; bg: string; tKey: string }> = {
     USER_SIGNUP: { icon: User, color: 'text-green-400', bg: 'bg-green-500/10', tKey: 'agent.newSignup' },
-    USER_LOGIN: { icon: User, color: 'text-blue-400', bg: 'bg-blue-500/10', tKey: 'agent.loginAction' },
+    USER_LOGIN: { icon: User, color: 'text-primary-400', bg: 'bg-primary-500/10', tKey: 'agent.loginAction' },
     CREATE_LISTING: { icon: ShoppingBag, color: 'text-orange-400', bg: 'bg-orange-500/10', tKey: 'agent.newAd' },
-    MATCH_PAYMENT: { icon: CreditCard, color: 'text-cyan-400', bg: 'bg-cyan-500/10', tKey: 'agent.paymentMatched' },
+    MATCH_PAYMENT: { icon: CreditCard, color: 'text-primary-400', bg: 'bg-primary-500/10', tKey: 'agent.paymentMatched' },
     ACTIVATE_PROMOTION: { icon: Zap, color: 'text-yellow-400', bg: 'bg-yellow-500/10', tKey: 'agent.promoActivated' },
     REJECT_TRANSACTION: { icon: AlertTriangle, color: 'text-red-400', bg: 'bg-red-500/10', tKey: 'agent.txRejected' },
     WALLET_DEPOSIT: { icon: Wallet, color: 'text-emerald-400', bg: 'bg-emerald-500/10', tKey: 'agent.deposit' },
@@ -307,7 +307,7 @@ const AgentDashboard: React.FC = () => {
                                     {t('agent.matchPayment')}
                                 </h3>
                                 <div className="space-y-4 mb-6">
-                                    <div className="bg-blue-300/30 p-4 rounded-2xl border border-blue-300/30">
+                                    <div className="bg-primary-300/30 p-4 rounded-2xl border border-primary-300/30">
                                         <div className="text-[10px] uppercase font-bold opacity-60 mb-1">{t('agent.incomingPayment')}</div>
                                         <div className="text-xl font-black">${selectedOrder.amount}</div>
                                         <div className="text-xs opacity-80">{selectedOrder.phone}</div>
@@ -339,7 +339,7 @@ const AgentDashboard: React.FC = () => {
                                     </Button>
                                     <button
                                         onClick={() => setSelectedOrder(null)}
-                                        className="w-11 h-11 rounded-xl bg-blue-300/30 flex items-center justify-center hover:bg-blue-300/50 transition-colors"
+                                        className="w-11 h-11 rounded-xl bg-primary-300/30 flex items-center justify-center hover:bg-primary-300/50 transition-colors"
                                     >
                                         <X size={20} />
                                     </button>

@@ -126,7 +126,7 @@ const SettingsPage: React.FC = () => {
     return (
         <>
             {/* Hero Banner */}
-            <div className="relative rounded-3xl overflow-hidden mb-8 h-36 bg-gradient-to-r from-primary-600 via-primary-500 to-sky-400">
+            <div className="relative rounded-3xl overflow-hidden mb-8 h-36 bg-gradient-to-r from-primary-600 via-primary-500 to-primary-400">
                 <div className="absolute inset-0 opacity-20"
                     style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
                 <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/10 to-transparent" />
