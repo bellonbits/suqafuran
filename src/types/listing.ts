@@ -2,9 +2,9 @@ import type { User } from './auth';
 
 export interface Listing {
     id: number;
-    title: string;
+    title_en: string;
     title_so?: string;
-    description: string;
+    description_en: string;
     description_so?: string;
     price: number;
     currency: string;
@@ -19,6 +19,7 @@ export interface Listing {
     boost_expires_at?: string;
     created_at: string;
     updated_at: string;
+    lang_available: string; // en, so, both
     owner?: User & {
         response_time?: string;
         is_verified?: boolean;
@@ -31,8 +32,10 @@ export interface Listing {
 }
 
 export interface ListingCreate {
-    title: string;
-    description: string;
+    title_en?: string;
+    title_so?: string;
+    description_en?: string;
+    description_so?: string;
     price: number;
     currency: string;
     location: string;
@@ -42,11 +45,12 @@ export interface ListingCreate {
     images: string[];
     status?: string;
     attributes?: Record<string, any>;
+    lang_available: string;
 }
 
 export interface Category {
     id: number;
-    name: string;
+    name_en: string;
     name_so?: string;
     slug: string;
     icon_name: string;
@@ -58,7 +62,7 @@ export interface Category {
 
 export interface SubCategory {
     id: number;
-    name: string;
+    name_en: string;
     name_so?: string;
     slug: string;
     image_url?: string;

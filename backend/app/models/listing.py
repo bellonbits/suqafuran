@@ -11,9 +11,9 @@ if TYPE_CHECKING:
 
 
 class ListingBase(SQLModel):
-    title: str = Field(index=True)
+    title_en: str = Field(index=True)
     title_so: Optional[str] = Field(default=None)
-    description: str
+    description_en: str
     description_so: Optional[str] = Field(default=None)
     price: float
     location: str
@@ -29,6 +29,7 @@ class ListingBase(SQLModel):
     attributes: dict = Field(default={}, sa_column=Column(JSON))
     views: int = Field(default=0)
     leads: int = Field(default=0)
+    lang_available: str = Field(default="en") # en, so, both
     rejection_reason: Optional[str] = Field(default=None)
     admin_notes: Optional[dict] = Field(default={}, sa_column=Column(JSON))
 
@@ -52,7 +53,8 @@ class ListingRead(ListingBase):
 
 class Category(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    name: str = Field(unique=True, index=True)
+    name_en: str = Field(index=True)
+    name_so: Optional[str] = Field(default=None)
     slug: str = Field(unique=True)
     icon_name: str
     image_url: Optional[str] = None
@@ -63,7 +65,8 @@ class Category(SQLModel, table=True):
 
 class SubCategory(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    name: str = Field(index=True)
+    name_en: str = Field(index=True)
+    name_so: Optional[str] = Field(default=None)
     slug: str = Field(index=True)
     image_url: Optional[str] = None
     category_id: int = Field(foreign_key="category.id")
@@ -77,7 +80,8 @@ class SubSubCategory(SQLModel, table=True):
     __tablename__ = "subsubcategory"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    name: str = Field(index=True)
+    name_en: str = Field(index=True)
+    name_so: Optional[str] = Field(default=None)
     slug: str = Field(index=True)
     image_url: Optional[str] = None
     subcategory_id: int = Field(foreign_key="subcategory.id")

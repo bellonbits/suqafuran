@@ -20,10 +20,12 @@ class PromotionCodeStatus(str, enum.Enum):
 
 class PromotionPlan(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    name: str # e.g., "Basic Boost", "VIP", "Diamond"
+    name_en: str # e.g., "Basic Boost"
+    name_so: Optional[str] = None
     price_usd: float
     duration_days: int
-    description: Optional[str] = None
+    description_en: Optional[str] = None
+    description_so: Optional[str] = None
 
 class Promotion(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

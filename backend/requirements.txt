@@ -49,9 +49,6 @@ jinja2
 # Image processing
 Pillow>=10.0.0
 
-# Translation
-deep-translator
-
 # Misc
-async-timeout
+async_timeout
 cffi

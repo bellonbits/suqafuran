@@ -26,18 +26,18 @@ html, body {
 }
 
 @theme {
-  /* ── Primary: Sky Blue ≈ #87CEEB  oklch(79% 0.12 212) ── */
-  --color-primary-50:  oklch(97% 0.02 212);
-  --color-primary-100: oklch(93% 0.05 212);
-  --color-primary-200: oklch(88% 0.08 212);
-  --color-primary-300: oklch(85% 0.10 212);
-  --color-primary-400: oklch(82% 0.11 212);
-  --color-primary-500: oklch(79% 0.12 212);   /* exact target — #87CEEB sky blue */
-  --color-primary-600: oklch(68% 0.14 212);
-  --color-primary-700: oklch(55% 0.15 212);
-  --color-primary-800: oklch(43% 0.14 212);
-  --color-primary-900: oklch(32% 0.12 212);
-  --color-primary-950: oklch(20% 0.08 212);
+  /* ── Primary: Somali Flag Azure ≈ #41adff  oklch(78% 0.14 245) ── */
+  --color-primary-50:  oklch(96% 0.02 245);
+  --color-primary-100: oklch(92% 0.05 245);
+  --color-primary-200: oklch(88% 0.08 245);
+  --color-primary-300: oklch(84% 0.11 245);
+  --color-primary-400: oklch(80% 0.13 245);
+  --color-primary-500: oklch(76% 0.16 245);   /* exact target - Somali Azure */
+  --color-primary-600: oklch(65% 0.18 245);
+  --color-primary-700: oklch(54% 0.17 245);
+  --color-primary-800: oklch(44% 0.15 245);
+  --color-primary-900: oklch(34% 0.12 245);
+  --color-primary-950: oklch(22% 0.08 245);
 
   /* ── Secondary: Warm Orange ── */
   --color-secondary-50:  #fef8ee;

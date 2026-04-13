@@ -10,10 +10,12 @@ import {
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { getImageUrl } from '../utils/imageUtils';
+import { useLanguageField } from '../hooks/useLanguageField';
 import type { Listing } from '../types/listing';
 
 const FavoritesPage: React.FC = () => {
     const { t } = useTranslation();
+    const { getField } = useLanguageField();
     const queryClient = useQueryClient();
     const { data: favorites, isLoading } = useQuery<Listing[]>({
         queryKey: ['favorites'],
@@ -55,7 +57,7 @@ const FavoritesPage: React.FC = () => {
                                 <div className="relative aspect-video overflow-hidden">
                                     <img
                                         src={getImageUrl(ad.images?.[0])}
-                                        alt={ad.title}
+                                        alt={getField(ad, 'title')}
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                     />
                                     <button
@@ -75,8 +77,8 @@ const FavoritesPage: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    <h3 className="font-bold text-gray-900 truncate mb-1 group-hover:text-primary-600 transition-colors">{ad.title}</h3>
-                                    <p className="text-lg font-black text-primary-600 mb-4">$ {ad.price.toLocaleString()}</p>
+                                    <h3 className="font-bold text-gray-900 truncate mb-1 group-hover:text-primary-600 transition-colors">{getField(ad, 'title')}</h3>
+                                    <p className="text-lg font-black text-primary-600 mb-4">{ad.currency} {ad.price.toLocaleString()}</p>
 
                                     <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
                                         <Link to={`/listing/${ad.id}`}>

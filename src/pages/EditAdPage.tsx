@@ -19,8 +19,11 @@ import { MapPin } from 'lucide-react';
 
 const steps = ['Basic Info', 'Category & Details', 'Pricing', 'Photos'];
 interface EditAdValues {
-    title: string;
-    description: string;
+    title_en: string;
+    title_so: string;
+    description_en: string;
+    description_so: string;
+    lang_available: 'en' | 'so' | 'both';
     category?: number;
     subcategory?: number;
     price: string;
@@ -33,7 +36,7 @@ interface EditAdValues {
 const EditAdPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const [currentStep, setCurrentStep] = useState(0);
+    const [activeTab, setActiveTab] = useState<'en' | 'so'>('en');
     const [submitted, setSubmitted] = useState(false);
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
@@ -66,8 +69,11 @@ const EditAdPage: React.FC = () => {
     if (!listing) return null;
 
     const initialValues: EditAdValues = {
-        title: listing.title,
-        description: listing.description,
+        title_en: listing.title_en || '',
+        title_so: listing.title_so || '',
+        description_en: listing.description_en || '',
+        description_so: listing.description_so || '',
+        lang_available: (listing as any).lang_available || 'en',
         category: listing.category_id,
         subcategory: listing.subcategory_id,
         price: listing.price.toString(),
@@ -79,12 +85,31 @@ const EditAdPage: React.FC = () => {
 
     const validationSchema = [
         Yup.object({
-            title: Yup.string().min(10, 'Title must be at least 10 characters').required('Required'),
+            lang_available: Yup.string().oneOf(['en', 'so', 'both']).required('Required'),
+            title_en: Yup.string().when('lang_available', {
+                is: (val: string) => val === 'en' || val === 'both',
+                then: (schema) => schema.min(10, 'Title must be at least 10 characters').required('Required for English'),
+                otherwise: (schema) => schema.notRequired()
+            }),
+            title_so: Yup.string().when('lang_available', {
+                is: (val: string) => val === 'so' || val === 'both',
+                then: (schema) => schema.min(10, 'Title must be at least 10 characters').required('Required for Somali'),
+                otherwise: (schema) => schema.notRequired()
+            }),
             location: Yup.string().required('Required'),
         }),
         Yup.object({
             category: Yup.number().required('Please select a category'),
-            description: Yup.string().min(20, 'Provide a detailed description').required('Required'),
+            description_en: Yup.string().when('lang_available', {
+                is: (val: string) => val === 'en' || val === 'both',
+                then: (schema) => schema.min(20, 'Provide a detailed description').required('Required for English'),
+                otherwise: (schema) => schema.notRequired()
+            }),
+            description_so: Yup.string().when('lang_available', {
+                is: (val: string) => val === 'so' || val === 'both',
+                then: (schema) => schema.min(20, 'Provide a detailed description').required('Required for Somali'),
+                otherwise: (schema) => schema.notRequired()
+            }),
         }),
         Yup.object({
             price: Yup.number().positive('Must be positive').required('Required'),
@@ -157,8 +182,11 @@ const EditAdPage: React.FC = () => {
                             setSubmitting(false);
                         } else {
                             updateMutation.mutate({
-                                title: values.title,
-                                description: values.description,
+                                title_en: values.title_en,
+                                title_so: values.title_so,
+                                description_en: values.description_en,
+                                description_so: values.description_so,
+                                lang_available: values.lang_available,
                                 price: Number(values.price),
                                 location: values.location,
                                 category_id: values.category!,
@@ -176,15 +204,87 @@ const EditAdPage: React.FC = () => {
                         <Form className="p-6 md:p-10">
                             {currentStep === 0 && (
                                 <div className="space-y-6">
-                                    <h3 className="text-xl font-bold flex items-center gap-2">Listing Title & Location</h3>
-                                    <Input
-                                        label="What are you selling?"
-                                        name="title"
-                                        placeholder="e.g. iPhone 15 Pro Max 256GB - Clean"
-                                        value={values.title}
-                                        onChange={(e) => setFieldValue('title', e.target.value)}
-                                        error={touched.title ? errors.title : undefined}
-                                    />
+                                    <h3 className="text-xl font-bold flex items-center gap-2 text-gray-900">Step 1: Basic Info & Language</h3>
+
+                                    {/* Language Availability Selector */}
+                                    <div className="p-4 bg-primary-50/50 rounded-2xl border border-primary-100 mb-6">
+                                        <label className="text-sm font-bold text-primary-900 mb-3 block uppercase tracking-wider">In which languages is this ad available?</label>
+                                        <div className="grid grid-cols-3 gap-3">
+                                            {[
+                                                { id: 'en', label: 'English Only' },
+                                                { id: 'so', label: 'Somali Only' },
+                                                { id: 'both', label: 'Bilingual (Both)' }
+                                            ].map((lang) => (
+                                                <button
+                                                    key={lang.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setFieldValue('lang_available', lang.id);
+                                                        if (lang.id === 'en') setActiveTab('en');
+                                                        if (lang.id === 'so') setActiveTab('so');
+                                                    }}
+                                                    className={cn(
+                                                        "py-3 px-2 rounded-xl border-2 font-bold text-xs transition-all",
+                                                        values.lang_available === lang.id
+                                                            ? "bg-primary-600 border-primary-600 text-white shadow-md shadow-primary-200"
+                                                            : "bg-white border-gray-100 text-gray-400 hover:border-primary-200 hover:text-primary-600"
+                                                    )}
+                                                >
+                                                    {lang.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Tabbed Title Entry */}
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-sm font-bold text-gray-700 uppercase tracking-wider">What are you selling?</label>
+                                            <div className="flex bg-gray-100 p-1 rounded-lg">
+                                                {(values.lang_available === 'en' || values.lang_available === 'both') && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setActiveTab('en')}
+                                                        className={cn("px-3 py-1 rounded-md text-[10px] font-bold uppercase transition-all", activeTab === 'en' ? "bg-white text-primary-600 shadow-sm" : "text-gray-400")}
+                                                    >
+                                                        English
+                                                    </button>
+                                                )}
+                                                {(values.lang_available === 'so' || values.lang_available === 'both') && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setActiveTab('so')}
+                                                        className={cn("px-3 py-1 rounded-md text-[10px] font-bold uppercase transition-all", activeTab === 'so' ? "bg-white text-primary-600 shadow-sm" : "text-gray-400")}
+                                                    >
+                                                        Somali
+                                                    </button>
+                                                )}
+                                                {values.lang_available === 'both' && (activeTab === 'en' ? values.title_en : values.title_so).length > 0 && (
+                                                    <div className="ml-2 flex items-center pr-1 scale-75 origin-right">
+                                                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {activeTab === 'en' ? (
+                                            <Input
+                                                name="title_en"
+                                                placeholder="e.g. iPhone 15 Pro Max 256GB - Clean"
+                                                value={values.title_en}
+                                                onChange={(e) => setFieldValue('title_en', e.target.value)}
+                                                error={touched.title_en ? errors.title_en : undefined}
+                                            />
+                                        ) : (
+                                            <Input
+                                                name="title_so"
+                                                placeholder="m.sh. iPhone 15 Pro Max 256GB - Aad u fiican"
+                                                value={values.title_so}
+                                                onChange={(e) => setFieldValue('title_so', e.target.value)}
+                                                error={touched.title_so ? errors.title_so : undefined}
+                                            />
+                                        )}
+                                    </div>
                                     <div className="relative group">
                                         <label className="text-sm font-medium text-gray-700 mb-2 block">Location</label>
                                         <button
@@ -299,16 +399,58 @@ const EditAdPage: React.FC = () => {
                                         <p className="text-xs text-red-500 font-medium">{errors.category as string}</p>
                                     )}
 
-                                    <div className="space-y-2 mt-4">
-                                        <label className="text-sm font-medium text-gray-700">Detailed Description</label>
-                                        <textarea
-                                            className="w-full min-h-[150px] p-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-                                            value={values.description}
-                                            onChange={(e) => setFieldValue('description', e.target.value)}
-                                        ></textarea>
-                                        {touched.description && errors.description && (
-                                            <p className="text-xs text-red-500 font-medium">{errors.description as string}</p>
+                                    <div className="space-y-4 mt-6">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-sm font-bold text-gray-700 uppercase tracking-wider">Detailed Description</label>
+                                            <div className="flex bg-gray-100 p-1 rounded-lg">
+                                                {(values.lang_available === 'en' || values.lang_available === 'both') && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setActiveTab('en')}
+                                                        className={cn("px-3 py-1 rounded-md text-[10px] font-bold uppercase transition-all", activeTab === 'en' ? "bg-white text-primary-600 shadow-sm" : "text-gray-400")}
+                                                    >
+                                                        English
+                                                    </button>
+                                                )}
+                                                {(values.lang_available === 'so' || values.lang_available === 'both') && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setActiveTab('so')}
+                                                        className={cn("px-3 py-1 rounded-md text-[10px] font-bold uppercase transition-all", activeTab === 'so' ? "bg-white text-primary-600 shadow-sm" : "text-gray-400")}
+                                                    >
+                                                        Somali
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {activeTab === 'en' ? (
+                                            <textarea
+                                                className={cn(
+                                                    "w-full min-h-[150px] p-4 rounded-xl border focus:ring-2 focus:ring-primary-500 outline-none transition-all",
+                                                    touched.description_en && errors.description_en ? "border-red-500 bg-red-50" : "border-gray-300 bg-white"
+                                                )}
+                                                placeholder="Provide all details about your item in English..."
+                                                value={values.description_en}
+                                                onChange={(e) => setFieldValue('description_en', e.target.value)}
+                                            ></textarea>
+                                        ) : (
+                                            <textarea
+                                                className={cn(
+                                                    "w-full min-h-[150px] p-4 rounded-xl border focus:ring-2 focus:ring-primary-500 outline-none transition-all",
+                                                    touched.description_so && errors.description_so ? "border-red-500 bg-red-50" : "border-gray-300 bg-white"
+                                                )}
+                                                placeholder="Ka bixi faahfaahin buuxda alaabtaada af Somali..."
+                                                value={values.description_so}
+                                                onChange={(e) => setFieldValue('description_so', e.target.value)}
+                                            ></textarea>
                                         )}
+                                        {((activeTab === 'en' && touched.description_en && errors.description_en) ||
+                                            (activeTab === 'so' && touched.description_so && errors.description_so)) && (
+                                                <p className="text-xs text-red-500 font-medium">
+                                                    {(activeTab === 'en' ? errors.description_en : errors.description_so) as string}
+                                                </p>
+                                            )}
                                     </div>
 
                                     {/* Dynamic Attributes (From API Schema) */}

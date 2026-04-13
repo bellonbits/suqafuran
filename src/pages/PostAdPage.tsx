@@ -20,41 +20,48 @@ const TITLE_MAX = 70;
 type Negotiable = 'yes' | 'no' | 'not_sure';
 
 interface FormValues {
-    title: string;
+    title_en: string;
+    title_so: string;
     categoryId: number | null;
     subcategoryId: number | null;
     location: string;
     images: string[];
     youtubeLink: string;
-    description: string;
+    description_en: string;
+    description_so: string;
     price: string;
     condition: string;
     negotiable: Negotiable;
     phone: string;
     name: string;
     attributes: Record<string, any>;
+    lang_available: 'en' | 'so' | 'both';
 }
 
 const PostAdPage: React.FC = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { user } = useAuthStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [form, setForm] = useState<FormValues>({
-        title: '',
+        title_en: '',
+        title_so: '',
         categoryId: null,
         subcategoryId: null,
         location: '',
         images: [],
         youtubeLink: '',
-        description: '',
+        description_en: '',
+        description_so: '',
         price: '',
         condition: 'Used',
         negotiable: 'not_sure',
         phone: user?.phone || '',
         name: user?.full_name || '',
         attributes: {},
+        lang_available: (i18n.language as any) === 'so' ? 'so' : 'en',
     });
+    const [formTab, setFormTab] = useState<'en' | 'so'>((i18n.language as any) === 'so' ? 'so' : 'en');
 
     const [step, setStep] = useState<1 | 2>(1);
     const [showBulkPrice, setShowBulkPrice] = useState(false);
@@ -144,10 +151,18 @@ const PostAdPage: React.FC = () => {
 
     const validateStep1 = () => {
         const e: Record<string, string> = {};
-        if (!form.title || form.title.length < 10) e.title = 'Length should be greater than 10';
+        
+        // Validate required title based on availability
+        if (form.lang_available === 'en' || form.lang_available === 'both') {
+            if (!form.title_en || form.title_en.length < 5) e.title_en = 'English title is required (min 5 chars)';
+        }
+        if (form.lang_available === 'so' || form.lang_available === 'both') {
+            if (!form.title_so || form.title_so.length < 5) e.title_so = 'Magaca Somali-ga waa lagama maarmaan (ugu yaraan 5 xaraf)';
+        }
+
         if (!form.categoryId) e.categoryId = 'Please select a category';
         if (!form.location) e.location = 'Please select a location';
-        if (form.images.length < 2) e.images = 'Please upload at least 2 photos';
+        if (form.images.length < 1) e.images = 'Please upload at least 1 photo';
         return e;
     };
 
@@ -155,6 +170,9 @@ const PostAdPage: React.FC = () => {
         const errs = validateStep1();
         if (Object.keys(errs).length) {
             setErrors(errs);
+            // If error is in another tab, switch to it
+            if (errs.title_en && formTab === 'so') setFormTab('en');
+            else if (errs.title_so && formTab === 'en') setFormTab('so');
             return;
         }
         setErrors({});
@@ -164,7 +182,15 @@ const PostAdPage: React.FC = () => {
 
     const validate = () => {
         const e: Record<string, string> = validateStep1();
-        if (!form.description || form.description.length < 20) e.description = 'Provide at least 20 characters';
+        
+        // Description validation
+        if (form.lang_available === 'en' || form.lang_available === 'both') {
+            if (!form.description_en || form.description_en.length < 10) e.description_en = 'English description is required (min 10 chars)';
+        }
+        if (form.lang_available === 'so' || form.lang_available === 'both') {
+            if (!form.description_so || form.description_so.length < 10) e.description_so = 'Faahfaahinta Somali-ga waa lagama maarmaan';
+        }
+
         if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0) e.price = 'Enter a valid price';
         
         // Validate dynamic fields
@@ -182,6 +208,11 @@ const PostAdPage: React.FC = () => {
         const errs = validate();
         if (Object.keys(errs).length) {
             setErrors(errs);
+            
+            // Auto-switch tab if error is in hidden tab
+            if ((errs.title_en || errs.description_en) && formTab === 'so') setFormTab('en');
+            else if ((errs.title_so || errs.description_so) && formTab === 'en') setFormTab('so');
+
             const firstErr = document.querySelector('[data-error="true"]');
             firstErr?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
@@ -189,8 +220,10 @@ const PostAdPage: React.FC = () => {
         setSubmitting(true);
         try {
             const result = await listingService.createListing({
-                title: form.title,
-                description: form.description,
+                title_en: form.title_en,
+                title_so: form.title_so,
+                description_en: form.description_en,
+                description_so: form.description_so,
                 price: Number(form.price),
                 currency: 'USD',
                 location: form.location,
@@ -199,12 +232,13 @@ const PostAdPage: React.FC = () => {
                 images: form.images,
                 condition: form.condition,
                 attributes: form.attributes,
+                lang_available: form.lang_available,
             });
 
             if (promoPlanId > 0 && result.id) {
                 // Save the listing info and open Lipana modal for payment
                 setCreatedListingId(result.id);
-                setCreatedListingTitle(form.title);
+                setCreatedListingTitle(form.title_en || form.title_so);
                 setSubmitting(false);
                 setShowLipanaModal(true);
             } else {
@@ -242,19 +276,22 @@ const PostAdPage: React.FC = () => {
 
     const handleClear = () => {
         setForm({
-            title: '',
+            title_en: '',
+            title_so: '',
             categoryId: null,
             subcategoryId: null,
             location: '',
             images: [],
             youtubeLink: '',
-            description: '',
+            description_en: '',
+            description_so: '',
             price: '',
             condition: 'Used',
             negotiable: 'not_sure',
             phone: user?.phone || '',
             name: user?.full_name || '',
             attributes: {},
+            lang_available: (i18n.language as any) === 'so' ? 'so' : 'en',
         });
         setErrors({});
         setStep(1);
@@ -402,7 +439,7 @@ const PostAdPage: React.FC = () => {
                                         }
                                     </div>
                                     <span style={{ fontSize: 15, fontWeight: 500, color: '#111827' }}>
-                                        {t(`categories.${cat.name}`, cat.name)}
+                                        {getField(cat, 'name')}
                                     </span>
                                 </div>
                                 <ChevronRight size={18} color="#9ca3af" />
@@ -501,7 +538,67 @@ const PostAdPage: React.FC = () => {
                 <div style={{ display: step === 1 ? 'block' : 'none' }}>
                     <div className="bg-white rounded-md shadow-sm border-[1.5px] border-gray-200/60 p-5 mb-5">
                         
-                        {renderFloatingInput('title', 'Title*', form.title, v => set('title', v), errors.title, { maxLength: TITLE_MAX })}
+                        {/* Language Selection */}
+                        <div className="mb-8">
+                            <label className="block text-[13px] font-bold text-gray-500 uppercase tracking-wider mb-3 pl-0.5">
+                                Select Language for your ad
+                            </label>
+                            <div className="flex gap-2 p-1.5 bg-gray-50 rounded-xl border border-gray-100">
+                                {(['en', 'so', 'both'] as const).map(lang => (
+                                    <button
+                                        key={lang}
+                                        type="button"
+                                        onClick={() => set('lang_available', lang)}
+                                        className={cn(
+                                            "flex-1 py-3 px-2 rounded-lg text-sm font-bold transition-all flex flex-col items-center gap-1",
+                                            form.lang_available === lang 
+                                                ? "bg-white text-primary-600 shadow-md ring-1 ring-black/5" 
+                                                : "text-gray-400 hover:text-gray-600 hover:bg-white/50"
+                                        )}
+                                    >
+                                        <span className="uppercase">{lang === 'both' ? 'Both' : lang}</span>
+                                        <span className="text-[10px] font-medium opacity-60">
+                                            {lang === 'en' ? 'English' : lang === 'so' ? 'Somali' : 'EN + SO'}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Title Bilingual Tabs */}
+                        <div className="mb-6">
+                             <div className="flex items-center justify-between mb-2">
+                                <label className="block text-[13px] font-bold text-gray-900 pl-0.5">Title*</label>
+                                <div className="flex bg-gray-100 rounded-lg p-0.5">
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setFormTab('en')}
+                                        className={cn(
+                                            "px-3 py-1 text-[11px] font-bold rounded-md transition-all",
+                                            formTab === 'en' ? "bg-white text-primary-600 shadow-sm" : "text-gray-400"
+                                        )}
+                                    >
+                                        EN {errors.title_en && "●"}
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setFormTab('so')}
+                                        className={cn(
+                                            "px-3 py-1 text-[11px] font-bold rounded-md transition-all",
+                                            formTab === 'so' ? "bg-white text-primary-600 shadow-sm" : "text-gray-400"
+                                        )}
+                                    >
+                                        SO {errors.title_so && "●"}
+                                    </button>
+                                </div>
+                             </div>
+
+                             {formTab === 'en' ? (
+                                renderFloatingInput('title_en', 'English Title (Required if EN selected)', form.title_en, v => set('title_en', v), errors.title_en, { maxLength: TITLE_MAX })
+                             ) : (
+                                renderFloatingInput('title_so', 'Gali Magaca (Somali)', form.title_so, v => set('title_so', v), errors.title_so, { maxLength: TITLE_MAX })
+                             )}
+                        </div>
 
                         {/* Category Chooser */}
                         <div className="relative mb-4">
@@ -510,9 +607,9 @@ const PostAdPage: React.FC = () => {
                                 onClick={() => setShowCategoryPicker(true)}
                                 className={`flex w-full items-center justify-between rounded-md border bg-transparent px-3 py-[13px] text-sm focus:outline-none appearance-none transition-colors ${errors.categoryId ? 'border-red-500' : 'border-gray-300 hover:border-gray-400'}`}
                             >
-                                <span className={selectedCategory ? 'text-gray-900 font-medium' : 'text-transparent'}>{selectedCategory ? t(`categories.${selectedCategory.name}`, selectedCategory.name) : ' '}</span>
-                                <ChevronRight className="h-4 w-4 text-gray-400" />
-                            </button>
+                                <span className={selectedCategory ? 'text-gray-900 font-medium' : 'text-transparent'}>
+                                    {selectedCategory ? getField(selectedCategory, 'name') : ' '}
+                                </span>
                             <label className={`absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-[11px] pointer-events-none transition-all ${!selectedCategory ? 'top-[22px] -translate-y-1/2 text-[14px]' : 'font-medium'} ${errors.categoryId ? 'text-red-500' : 'text-gray-500'}`}>
                                 Category*
                             </label>
@@ -595,7 +692,7 @@ const PostAdPage: React.FC = () => {
                         {selectedCategory?.subcategories && selectedCategory.subcategories.length > 0 && 
                             renderFloatingSelect('subcategory', 'Subcategory', form.subcategoryId?.toString() || "", v => {
                                 setForm(f => ({ ...f, subcategoryId: Number(v), attributes: {} })); setErrors({});
-                            }, selectedCategory.subcategories.map((s:any) => ({value: s.id.toString(), label: t(`categories.${s.name}`, s.name) as string})), undefined)
+                            }, selectedCategory.subcategories.map((s:any) => ({value: s.id.toString(), label: getField(s, 'name') as string})), undefined)
                         }
 
                         {/* Dynamic Schema Grid */}
@@ -619,22 +716,60 @@ const PostAdPage: React.FC = () => {
 
                         {/* Description Textarea */}
                         <div className="relative mb-6 mt-4">
-                            <textarea 
-                                id="description"
-                                value={form.description}
-                                onChange={e => set('description', e.target.value)}
-                                maxLength={850}
-                                rows={4}
-                                placeholder=" "
-                                className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm text-gray-900 focus:outline-none resize-y ${errors.description ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-primary-500'}`}
-                            />
-                            <label htmlFor="description" className={`absolute left-2 top-0 -translate-y-1/2 bg-white px-1 text-[11px] transition-all pointer-events-none peer-placeholder-shown:top-[14px] peer-placeholder-shown:-translate-y-0 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-[11px] font-medium ${errors.description ? 'text-red-500 peer-focus:text-red-500' : 'text-gray-500 peer-focus:text-primary-500'}`}>
-                                Description*
-                            </label>
+                             <div className="flex items-center justify-between mb-2">
+                                <label className="block text-[13px] font-bold text-gray-900 pl-0.5">Description*</label>
+                                <div className="flex bg-gray-100 rounded-lg p-0.5">
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setFormTab('en')}
+                                        className={cn(
+                                            "px-3 py-1 text-[11px] font-bold rounded-md transition-all",
+                                            formTab === 'en' ? "bg-white text-primary-600 shadow-sm" : "text-gray-400"
+                                        )}
+                                    >
+                                        EN {errors.description_en && "●"}
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setFormTab('so')}
+                                        className={cn(
+                                            "px-3 py-1 text-[11px] font-bold rounded-md transition-all",
+                                            formTab === 'so' ? "bg-white text-primary-600 shadow-sm" : "text-gray-400"
+                                        )}
+                                    >
+                                        SO {errors.description_so && "●"}
+                                    </button>
+                                </div>
+                             </div>
+
+                            {formTab === 'en' ? (
+                                <textarea 
+                                    id="description_en"
+                                    value={form.description_en}
+                                    onChange={e => set('description_en', e.target.value)}
+                                    maxLength={2000}
+                                    rows={4}
+                                    placeholder="Describe your item in English..."
+                                    className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm text-gray-900 focus:outline-none resize-y ${errors.description_en ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-primary-500'}`}
+                                />
+                            ) : (
+                                <textarea 
+                                    id="description_so"
+                                    value={form.description_so}
+                                    onChange={e => set('description_so', e.target.value)}
+                                    maxLength={2000}
+                                    rows={4}
+                                    placeholder="Sharaxaad ka bixi alaabtaada (Somali)..."
+                                    className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm text-gray-900 focus:outline-none resize-y ${errors.description_so ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-primary-500'}`}
+                                />
+                            )}
                             <div className="flex justify-end mt-1">
-                                <span className="text-[10px] text-gray-400">{form.description.length} / 850</span>
+                                <span className="text-[10px] text-gray-400">
+                                    {formTab === 'en' ? form.description_en.length : form.description_so.length} / 2000
+                                </span>
                             </div>
-                            {errors.description && <p className="text-[11px] text-red-500 -mt-3">{errors.description}</p>}
+                            {errors.description_en && formTab === 'en' && <p className="text-[11px] text-red-500 -mt-1">{errors.description_en}</p>}
+                            {errors.description_so && formTab === 'so' && <p className="text-[11px] text-red-500 -mt-1">{errors.description_so}</p>}
                         </div>
 
                         {/* Price Input */}

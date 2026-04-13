@@ -36,7 +36,10 @@ def get_listings(
     if search:
         search_filter = f"%{search}%"
         statement = statement.where(
-            (Listing.title.ilike(search_filter)) | (Listing.description.ilike(search_filter))
+            (Listing.title_en.ilike(search_filter)) | 
+            (Listing.title_so.ilike(search_filter)) | 
+            (Listing.description_en.ilike(search_filter)) |
+            (Listing.description_so.ilike(search_filter))
         )
     if location:
         statement = statement.where(Listing.location.ilike(f"%{location}%"))
@@ -52,10 +55,11 @@ def get_listings(
         # Handle subcategory filter by name → subcategory_id
         subcategory_name = attrs_copy.pop("subcategory", None)
         if subcategory_name and category_id:
+            # We check both name_en and name_so for flexibility in filtering
             sc = db.exec(
                 select(SubCategory).where(
                     SubCategory.category_id == category_id,
-                    SubCategory.name == subcategory_name,
+                    (SubCategory.name_en == subcategory_name) | (SubCategory.name_so == subcategory_name),
                 )
             ).first()
             if sc:
@@ -69,17 +73,6 @@ def get_listings(
 def create_listing(
     db: Session, *, listing_in: ListingBase, owner_id: int
 ) -> Listing:
-    try:
-        from deep_translator import GoogleTranslator
-        translator = GoogleTranslator(source="en", target="so")
-        if getattr(listing_in, "title_so", None) is None and listing_in.title:
-            listing_in.title_so = translator.translate(listing_in.title)
-        if getattr(listing_in, "description_so", None) is None and listing_in.description:
-            listing_in.description_so = translator.translate(listing_in.description[:5000])
-    except Exception as e:
-        import logging
-        logging.getLogger(__name__).warning(f"Listing auto-translation failed: {e}")
-
     db_obj = Listing.model_validate(
         listing_in, update={"owner_id": owner_id}
     )
@@ -92,17 +85,6 @@ def create_listing(
 def update_listing(
     db: Session, *, db_obj: Listing, listing_in: ListingBase
 ) -> Listing:
-    try:
-        from deep_translator import GoogleTranslator
-        translator = GoogleTranslator(source="en", target="so")
-        if getattr(listing_in, "title_so", None) is None and listing_in.title:
-            listing_in.title_so = translator.translate(listing_in.title)
-        if getattr(listing_in, "description_so", None) is None and listing_in.description:
-            listing_in.description_so = translator.translate(listing_in.description[:5000])
-    except Exception as e:
-        import logging
-        logging.getLogger(__name__).warning(f"Listing auto-translation failed: {e}")
-
     update_data = listing_in.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(db_obj, field, value)

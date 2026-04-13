@@ -9,7 +9,8 @@ import {
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { cn } from '../utils/cn';
-import { getImageUrl } from '../utils/imageUtils';
+import { formatConvertedPrice } from '../utils/currencyUtils';
+import { useLanguageField } from '../hooks/useLanguageField';
 import type { Listing } from '../types/listing';
 
 
@@ -19,6 +20,7 @@ const MyAdsPage: React.FC = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { t } = useTranslation();
+    const { getField } = useLanguageField();
     const [deletingId, setDeletingId] = React.useState<number | null>(null);
 
     const { data: myAds, isLoading } = useQuery<Listing[]>({
@@ -164,10 +166,10 @@ const MyAdsPage: React.FC = () => {
                                             <div className="flex flex-col h-full">
                                                 <div className="mb-1">
                                                     <p className="text-lg font-bold text-gray-900 leading-tight">
-                                                        KSh {ad.price.toLocaleString()}
+                                                        {ad.currency} {ad.price.toLocaleString()}
                                                     </p>
                                                     <h3 className="text-sm text-gray-800 font-medium truncate group-hover:text-primary-600 transition-colors">
-                                                        {ad.title}
+                                                        {getField(ad, 'title')}
                                                     </h3>
                                                 </div>
 

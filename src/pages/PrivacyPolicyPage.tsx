@@ -75,8 +75,7 @@ export const PrivacyPolicyPage: React.FC = () => {
     return (
         <PublicLayout>
             {/* Hero */}
-            <div style={{
-                background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
+            <div className="bg-primary-500" style={{
                 padding: '56px 24px 48px',
                 textAlign: 'center',
             }}>
@@ -123,13 +122,12 @@ export const PrivacyPolicyPage: React.FC = () => {
                 {SECTIONS.map(({ icon: Icon, title, content }, i) => (
                     <div key={i} style={{ marginBottom: 36 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                            <div style={{
+                            <div className="bg-primary-50" style={{
                                 width: 40, height: 40, borderRadius: 10,
-                                background: '#e0f2fe',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 flexShrink: 0,
                             }}>
-                                <Icon size={18} color="#0284c7" />
+                                <Icon size={18} className="text-primary-600" />
                             </div>
                             <h2 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: 0 }}>
                                 {title}
@@ -138,9 +136,9 @@ export const PrivacyPolicyPage: React.FC = () => {
                         <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
                             {content.map((item, j) => (
                                 <li key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 14, color: '#374151', lineHeight: 1.65 }}>
-                                    <span style={{
+                                    <span className="bg-primary-500" style={{
                                         width: 6, height: 6, borderRadius: '50%',
-                                        background: '#0ea5e9', flexShrink: 0, marginTop: 7,
+                                        flexShrink: 0, marginTop: 7,
                                     }} />
                                     {item}
                                 </li>
@@ -188,8 +186,7 @@ export const PrivacyPolicyPage: React.FC = () => {
                 </div>
 
                 {/* Contact */}
-                <div style={{
-                    background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
+                <div className="bg-primary-500" style={{
                     borderRadius: 16,
                     padding: '28px 28px',
                     textAlign: 'center',
@@ -205,10 +202,9 @@ export const PrivacyPolicyPage: React.FC = () => {
                     </p>
                     <a
                         href="mailto:privacy@suqafuran.com"
+                        className="text-primary-700 bg-white"
                         style={{
                             display: 'inline-block',
-                            background: 'white',
-                            color: '#0284c7',
                             fontWeight: 700,
                             fontSize: 14,
                             padding: '10px 24px',

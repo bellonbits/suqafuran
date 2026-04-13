@@ -98,14 +98,16 @@ def read_categories(
             
             subcategories.append({
                 "id": sub.id,
-                "name": sub.name,
+                "name_en": sub.name_en,
+                "name_so": sub.name_so,
                 "slug": sub.slug,
                 "image_url": sub.image_url,
                 "attributes_schema": sub_attrs,
                 "subsubcategories": [
                     {
                         "id": ssub.id,
-                        "name": ssub.name,
+                        "name_en": ssub.name_en,
+                        "name_so": ssub.name_so,
                         "slug": ssub.slug,
                         "image_url": ssub.image_url,
                     }
@@ -115,7 +117,8 @@ def read_categories(
 
         cat_dict = {
             "id": cat.id,
-            "name": cat.name,
+            "name_en": cat.name_en,
+            "name_so": cat.name_so,
             "slug": cat.slug,
             "icon_name": cat.icon_name,
             "image_url": cat.image_url,
@@ -141,7 +144,8 @@ def create_category(
         raise HTTPException(status_code=400, detail="Category slug already exists")
     
     cat = Category(
-        name=category_in["name"],
+        name_en=category_in["name_en"],
+        name_so=category_in.get("name_so"),
         slug=category_in["slug"],
         icon_name=category_in["icon_name"],
         image_url=category_in.get("image_url"),
@@ -204,7 +208,8 @@ def create_subcategory(
         raise HTTPException(status_code=400, detail="Subcategory slug already exists")
     
     subcat = SubCategory(
-        name=subcategory_in["name"],
+        name_en=subcategory_in["name_en"],
+        name_so=subcategory_in.get("name_so"),
         slug=subcategory_in["slug"],
         image_url=subcategory_in.get("image_url"),
         category_id=subcategory_in["category_id"],
@@ -354,7 +359,7 @@ def create_listing(
         action="CREATE_LISTING",
         resource_type="listing",
         resource_id=listing.id,
-        details=f"User created listing '{listing.title}' in category {listing.category_id}"
+        details=f"User created listing '{listing.title_en}' in category {listing.category_id}"
     )
     db.add(log)
     db.commit()
@@ -484,7 +489,7 @@ def apply_listing_boost(
         raise HTTPException(status_code=400, detail="Insufficient funds")
     
     boost_config = BOOST_PRICES[boost_level]
-    crud_wallet.deduct_funds(db, wallet=wallet, amount=boost_config["price"], description=f"Boost: {listing.title}")
+    crud_wallet.deduct_funds(db, wallet=wallet, amount=boost_config["price"], description=f"Boost: {listing.title_en}")
     
     listing.boost_level = boost_level
     listing.boost_expires_at = datetime.utcnow() + timedelta(days=boost_config["days"])

@@ -11,7 +11,7 @@ import { listingService } from '../services/listingService';
 
 interface ProductCardProps {
     id: string;
-    title: string;
+    title_en: string;
     title_so?: string;
     price: number;
     currency: string;
@@ -27,7 +27,7 @@ interface ProductCardProps {
 
 const ProductCard = React.memo(function ProductCard({
     id,
-    title,
+    title_en,
     title_so,
     price,
     currency: originalCurrency,
@@ -45,8 +45,8 @@ const ProductCard = React.memo(function ProductCard({
     const queryClient = useQueryClient();
     const [liked, setLiked] = useState(false);
     
-    // Fallback to title if title_so is not available yet (for older listings)
-    const displayTitle = i18n.language === 'so' ? (title_so || title) : title;
+    // Prioritize Somali if language is set to 'so'
+    const displayTitle = i18n.language === 'so' ? (title_so || title_en) : title_en;
 
     const prefetch = () => {
         queryClient.prefetchQuery({

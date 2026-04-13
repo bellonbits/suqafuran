@@ -49,6 +49,7 @@ const PromotionPage = lazyNamed(() => import('./pages/PromotionPage'), 'Promotio
 const MessagesPage = lazyNamed(() => import('./pages/MessagesPage'), 'MessagesPage');
 const KaalayHeedhePage = lazy(() => import('./pages/KaalayHeedhePage'));
 const PrivacyPolicyPage = lazyNamed(() => import('./pages/PrivacyPolicyPage'), 'PrivacyPolicyPage');
+const TermsPage = lazyNamed(() => import('./pages/TermsPage'), 'TermsPage');
 const DeleteAccountPage = lazyNamed(() => import('./pages/DeleteAccountPage'), 'DeleteAccountPage');
 const SocialAuthCallback = lazyNamed(() => import('./pages/SocialAuthCallback'), 'SocialAuthCallback');
 const FeedbackPage = lazyNamed(() => import('./pages/FeedbackPage'), 'FeedbackPage');
@@ -140,6 +141,7 @@ const App: React.FC = () => {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/safety" element={<SafetyTipsPage />} />
             <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
             <Route path="/delete-account" element={<DeleteAccountPage />} />
             <Route path="/kh" element={<KaalayHeedhePage />} />
 

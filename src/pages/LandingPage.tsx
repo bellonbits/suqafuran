@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { ProductCard } from '../components/ProductCard';
 import { listingService } from '../services/listingService';
+import { useLanguageField } from '../hooks/useLanguageField';
 import {
     Search, MapPin, TrendingUp, ShieldCheck, Loader2,
     ChevronRight, ShoppingBag, ArrowRight, Zap
@@ -271,7 +272,7 @@ const LandingPage: React.FC = () => {
                             <ProductCard
                                 key={ad.id}
                                 id={String(ad.id)}
-                                title={ad.title || ''}
+                                title_en={ad.title_en || ''}
                                 title_so={ad.title_so}
                                 price={ad.price || 0}
                                 currency={ad.currency || 'USD'}
@@ -518,7 +519,7 @@ const LandingPage: React.FC = () => {
                                                 <ProductCard
                                                     key={ad.id}
                                                     id={String(ad.id)}
-                                                    title={ad.title || ''}
+                                                    title_en={ad.title_en || ''}
                                                     title_so={ad.title_so}
                                                     price={ad.price || 0}
                                                     currency={ad.currency || 'USD'}

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { getImageUrl } from '../../utils/imageUtils';
+import { useLanguageField } from '../../hooks/useLanguageField';
 
 const AdminCategoriesPage: React.FC = () => {
     const { t } = useTranslation();
@@ -17,7 +18,9 @@ const AdminCategoriesPage: React.FC = () => {
     const [expandedCategory, setExpandedCategory] = useState<number | null>(null);
     const [isEditing, setIsEditing] = useState<{ type: 'category' | 'subcategory', data: any } | null>(null);
     const [isAdding, setIsAdding] = useState<{ type: 'category' | 'subcategory', parentId?: number } | null>(null);
-    const [formData, setFormData] = useState({ name: '', slug: '', icon_name: 'Folder', image_url: '' });
+    const { getField } = useLanguageField();
+    const [activeTab, setActiveTab] = useState<'en' | 'so'>('en');
+    const [formData, setFormData] = useState({ name_en: '', name_so: '', slug: '', icon_name: 'Folder', image_url: '' });
     const [error, setError] = useState('');
     const [isUploading, setIsUploading] = useState(false);
 
@@ -73,14 +76,16 @@ const AdminCategoriesPage: React.FC = () => {
     const closeModals = () => {
         setIsEditing(null);
         setIsAdding(null);
-        setFormData({ name: '', slug: '', icon_name: 'Folder', image_url: '' });
+        setFormData({ name_en: '', name_so: '', slug: '', icon_name: 'Folder', image_url: '' });
+        setActiveTab('en');
         setError('');
     };
 
     const openEdit = (type: 'category' | 'subcategory', item: any) => {
         setIsEditing({ type, data: item });
         setFormData({
-            name: item.name,
+            name_en: item.name_en || item.name || '',
+            name_so: item.name_so || '',
             slug: item.slug,
             icon_name: item.icon_name || 'Folder',
             image_url: item.image_url || ''
@@ -89,12 +94,12 @@ const AdminCategoriesPage: React.FC = () => {
 
     const openAdd = (type: 'category' | 'subcategory', parentId?: number) => {
         setIsAdding({ type, parentId });
-        setFormData({ name: '', slug: '', icon_name: 'Folder', image_url: '' });
+        setFormData({ name_en: '', name_so: '', slug: '', icon_name: 'Folder', image_url: '' });
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formData.name || !formData.slug) {
+        if (!formData.name_en || !formData.slug) {
             setError(t('admin.nameSlugRequired'));
             return;
         }
@@ -149,7 +154,10 @@ const AdminCategoriesPage: React.FC = () => {
                             </div>
 
                             <div className="flex-1 min-w-0">
-                                <h3 className="font-bold text-gray-900 truncate">{cat.name}</h3>
+                                <h3 className="font-bold text-gray-900 truncate">
+                                    {getField(cat, 'name')}
+                                    {cat.name_so && <span className="ml-2 text-xs font-normal text-gray-400">({cat.name_so})</span>}
+                                </h3>
                                 <div className="flex items-center gap-3 text-xs text-gray-500 font-mono mt-0.5">
                                     <span className="bg-gray-50 px-2 py-0.5 rounded">{cat.slug}</span>
                                     <span>•</span>
@@ -179,7 +187,7 @@ const AdminCategoriesPage: React.FC = () => {
                                     variant="ghost"
                                     className="h-9 w-9 p-0 text-red-500 hover:bg-red-50"
                                     onClick={() => {
-                                        if (confirm(t('admin.deleteListing') + ` "${cat.name}"?`)) {
+                                        if (confirm(`${t('admin.deleteListing')} "${getField(cat, 'name')}"?`)) {
                                             deleteMutation.mutate({ type: 'category', id: cat.id });
                                         }
                                     }}
@@ -216,7 +224,7 @@ const AdminCategoriesPage: React.FC = () => {
                                                                 </div>
                                                             )}
                                                         </div>
-                                                        <span className="text-sm font-medium text-gray-700 truncate">{sub.name}</span>
+                                                        <span className="text-sm font-medium text-gray-700 truncate">{getField(sub, 'name')}</span>
                                                     </div>
                                                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <button
@@ -227,7 +235,7 @@ const AdminCategoriesPage: React.FC = () => {
                                                         </button>
                                                         <button
                                                             onClick={() => {
-                                                                if (confirm(t('common.delete') + ` "${sub.name}"?`)) {
+                                                                if (confirm(`${t('common.delete')} "${getField(sub, 'name')}"?`)) {
                                                                     deleteMutation.mutate({ type: 'subcategory', id: sub.id });
                                                                 }
                                                             }}
@@ -271,6 +279,30 @@ const AdminCategoriesPage: React.FC = () => {
 
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 <div className="space-y-4">
+                                    {/* Language Tabs */}
+                                    <div className="flex p-1 bg-gray-100 rounded-xl">
+                                        <button
+                                            type="button"
+                                            onClick={() => setActiveTab('en')}
+                                            className={cn(
+                                                "flex-1 py-2 text-sm font-bold rounded-lg transition-all",
+                                                activeTab === 'en' ? "bg-white text-primary-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                                            )}
+                                        >
+                                            English
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setActiveTab('so')}
+                                            className={cn(
+                                                "flex-1 py-2 text-sm font-bold rounded-lg transition-all",
+                                                activeTab === 'so' ? "bg-white text-primary-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                                            )}
+                                        >
+                                            Somali (Soomaali)
+                                        </button>
+                                    </div>
+
                                     {/* Image — Upload file OR paste URL */}
                                     <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
                                         <p className="text-sm font-bold text-gray-900">{t('admin.categoryImage')}</p>
@@ -310,27 +342,30 @@ const AdminCategoriesPage: React.FC = () => {
                                             value={formData.image_url}
                                             onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                                         />
-                                        {formData.image_url && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setFormData({ ...formData, image_url: '' })}
-                                                className="text-xs text-red-500 hover:underline flex items-center gap-1"
-                                            >
-                                                <X size={12} /> {t('admin.removeImage')}
-                                            </button>
-                                        )}
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="col-span-full">
-                                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">{t('admin.displayName')}</label>
-                                            <input
-                                                type="text"
-                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 outline-none transition-all font-medium"
-                                                placeholder="e.g. Mobile Phones"
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                            />
+                                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">
+                                                {t('admin.displayName')} ({activeTab === 'en' ? 'EN' : 'SO'})
+                                            </label>
+                                            {activeTab === 'en' ? (
+                                                <input
+                                                    type="text"
+                                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 outline-none transition-all font-medium"
+                                                    placeholder="e.g. Mobile Phones"
+                                                    value={formData.name_en}
+                                                    onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
+                                                />
+                                            ) : (
+                                                <input
+                                                    type="text"
+                                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 outline-none transition-all font-medium"
+                                                    placeholder="t.sh. Taleefannada Gacanta"
+                                                    value={formData.name_so}
+                                                    onChange={(e) => setFormData({ ...formData, name_so: e.target.value })}
+                                                />
+                                            )}
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">{t('admin.slugUrlId')}</label>

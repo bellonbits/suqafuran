@@ -43,12 +43,12 @@ export const adminService = {
         return response.data;
     },
 
-    async createCategory(data: { name: string; slug: string; icon_name: string; image_url?: string }): Promise<any> {
+    async createCategory(data: { name_en: string; name_so?: string; slug: string; icon_name: string; image_url?: string }): Promise<any> {
         const response = await api.post('/listings/categories', data);
         return response.data;
     },
 
-    async updateCategory(id: number, data: Partial<{ name: string; slug: string; icon_name: string; image_url?: string }>): Promise<any> {
+    async updateCategory(id: number, data: Partial<{ name_en: string; name_so?: string; slug: string; icon_name: string; image_url?: string }>): Promise<any> {
         const response = await api.patch(`/listings/categories/${id}`, data);
         return response.data;
     },
@@ -57,12 +57,12 @@ export const adminService = {
         await api.delete(`/listings/categories/${id}`);
     },
 
-    async createSubCategory(data: { name: string; slug: string; category_id: number; image_url?: string }): Promise<any> {
+    async createSubCategory(data: { name_en: string; name_so?: string; slug: string; category_id: number; image_url?: string }): Promise<any> {
         const response = await api.post('/listings/subcategories', data);
         return response.data;
     },
 
-    async updateSubCategory(id: number, data: Partial<{ name: string; slug: string; image_url?: string }>): Promise<any> {
+    async updateSubCategory(id: number, data: Partial<{ name_en: string; name_so?: string; slug: string; image_url?: string }>): Promise<any> {
         const response = await api.patch(`/listings/subcategories/${id}`, data);
         return response.data;
     },
