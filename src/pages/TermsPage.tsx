@@ -1,11 +1,15 @@
 import React from 'react';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { FileText, ShieldCheck, UserCheck, AlertCircle, Scale, CreditCard } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
-const SECTIONS = [
+export const TermsPage: React.FC = () => {
+    const { t } = useTranslation();
+
+    const SECTIONS = [
     {
         icon: UserCheck,
-        title: 'Account Registration',
+        title: t('terms.accountRegistration', 'Account Registration'),
         content: [
             'You must be at least 18 years old to create an account and post advertisements on Suqafuran.',
             'You agree to provide accurate, current, and complete information during the registration process.',
@@ -15,7 +19,7 @@ const SECTIONS = [
     },
     {
         icon: FileText,
-        title: 'Listing Rules & Guidelines',
+        title: t('terms.listingRules', 'Listing Rules & Guidelines'),
         content: [
             'All listings must accurately describe the item or service being offered.',
             'Items listed must be legally available for sale in the jurisdiction they are posted.',
@@ -26,7 +30,7 @@ const SECTIONS = [
     },
     {
         icon: AlertCircle,
-        title: 'Buyer & Seller Responsibilities',
+        title: t('terms.buyerSeller', 'Buyer & Seller Responsibilities'),
         content: [
             'Suqafuran acts as a venue to connect buyers and sellers and is not a party to the actual transaction.',
             'Buyers are responsible for inspecting items before making payments.',
@@ -37,7 +41,7 @@ const SECTIONS = [
     },
     {
         icon: CreditCard,
-        title: 'Fees & Paid Promotions',
+        title: t('terms.fees', 'Fees & Paid Promotions'),
         content: [
             'Basic listings on Suqafuran are free of charge.',
             'We offer optional paid promotion services (Top, Premium, VIP) to increase the visibility of your listings.',
@@ -47,7 +51,7 @@ const SECTIONS = [
     },
     {
         icon: ShieldCheck,
-        title: 'Intellectual Property',
+        title: t('terms.intellectualProperty', 'Intellectual Property'),
         content: [
             'The Suqafuran platform, including its code, design, and original content, is protected by copyright and intellectual property laws.',
             'By posting content (images, text) to Suqafuran, you grant us a non-exclusive license to use, display, and reproduce that content in connection with our services.',
@@ -56,16 +60,15 @@ const SECTIONS = [
     },
     {
         icon: Scale,
-        title: 'Limitation of Liability',
+        title: t('terms.liability', 'Limitation of Liability'),
         content: [
             'Suqafuran is provided "as is" without any warranties, express or implied.',
             'We do not guarantee the quality, safety, or legality of items advertised, the truth or accuracy of listings, or the ability of sellers to sell and buyers to pay.',
             'Suqafuran shall not be liable for any indirect, incidental, or consequential damages arising from the use of our platform.',
         ],
     },
-];
+    ];
 
-export const TermsPage: React.FC = () => {
     return (
         <PublicLayout>
             {/* Hero */}
@@ -81,11 +84,10 @@ export const TermsPage: React.FC = () => {
                     <Scale size={32} color="white" />
                 </div>
                 <h1 style={{ color: 'white', fontSize: 28, fontWeight: 800, margin: 0 }}>
-                    Terms & Conditions
+                    {t('terms.title', 'Terms & Conditions')}
                 </h1>
                 <p style={{ color: 'rgba(255,255,255,0.8)', marginTop: 10, fontSize: 15, maxWidth: 540, margin: '10px auto 0' }}>
-                    Please read these terms carefully before using Suqafuran.
-                    By accessing or using our platform, you agree to be bound by these conditions.
+                    {t('terms.subtitle', 'Please read these terms carefully before using Suqafuran. By accessing or using our platform, you agree to be bound by these conditions.')}
                 </p>
                 <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13, marginTop: 16 }}>
                     Last updated: April 2026
@@ -148,7 +150,7 @@ export const TermsPage: React.FC = () => {
                     border: '1px solid',
                 }}>
                     <h2 style={{ fontSize: 17, fontWeight: 700, color: '#0f172a', marginTop: 0, marginBottom: 10 }}>
-                        Changes to Terms
+                        {t('terms.changesToTerms', 'Changes to Terms')}
                     </h2>
                     <p style={{ fontSize: 14, color: '#374151', margin: 0, lineHeight: 1.65 }}>
                         We reserve the right to modify these terms at any time. We will notify you of any changes by posting the new Terms & Conditions on this page. You are advised to review these terms periodically for any changes.
@@ -164,10 +166,10 @@ export const TermsPage: React.FC = () => {
                 }}>
                     <FileText size={28} style={{ marginBottom: 12, opacity: 0.9 }} />
                     <h3 style={{ fontSize: 17, fontWeight: 700, margin: '0 0 8px' }}>
-                        Questions about our terms?
+                        {t('terms.questionsTitle', 'Questions about our terms?')}
                     </h3>
                     <p style={{ fontSize: 14, opacity: 0.85, margin: '0 0 16px', lineHeight: 1.6 }}>
-                        If you have any questions or require clarification about these terms, please contact our support team.
+                        {t('terms.questionsDesc', 'If you have any questions or require clarification about these terms, please contact our support team.')}
                     </p>
                     <a
                         href="mailto:support@suqafuran.com"

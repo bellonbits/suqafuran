@@ -5,8 +5,10 @@ import { Button } from '../components/Button';
 import { AuthInput } from '../components/AuthInput';
 import { AuthLayout } from '../components/AuthLayout';
 import { authService } from '../services/authService';
+import { useTranslation } from 'react-i18next';
 
 const PhoneVerificationPage: React.FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const phone = searchParams.get('phone') || '';
@@ -59,9 +61,9 @@ const PhoneVerificationPage: React.FC = () => {
 
     return (
         <AuthLayout
-            title="Verify your phone"
-            subtitle={`We've sent a 6-digit verification code to ${phone}`}
-            imageCaption="Secure your marketplace account."
+            title={t('auth.verifyPhone', 'Verify your phone')}
+            subtitle={t('auth.verifyPhoneSubtitle', "We've sent a 6-digit verification code to {{phone}}", { phone })}
+            imageCaption={t('auth.secureAccount', 'Secure your marketplace account.')}
         >
             <form className="space-y-6" onSubmit={handleVerifyOTP}>
                 {error && (
@@ -73,8 +75,8 @@ const PhoneVerificationPage: React.FC = () => {
                 <AuthInput
                     id="otp"
                     type="text"
-                    label="Verification Code"
-                    placeholder="Enter 6-digit code"
+                    label={t('auth.verificationCode', 'Verification Code')}
+                    placeholder={t('auth.enter6Digit', 'Enter 6-digit code')}
                     icon={<Key className="w-5 h-5" />}
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
@@ -92,21 +94,21 @@ const PhoneVerificationPage: React.FC = () => {
                         ) : (
                             <div className="flex items-center justify-center gap-2">
                                 <CheckCircle className="w-5 h-5" />
-                                <span>Verify Account</span>
+                                <span>{t('auth.verifyAccount', 'Verify Account')}</span>
                             </div>
                         )}
                     </Button>
 
                     <div className="text-center">
                         <p className="text-sm text-gray-600">
-                            Didn't receive code?{' '}
+                            {t('auth.didntReceiveCode', "Didn't receive code?")}{' '}
                             <button
                                 type="button"
                                 onClick={handleResendOTP}
                                 className="font-bold text-primary-600 hover:text-primary-700 hover:underline"
                                 disabled={isLoading}
                             >
-                                Resend
+                                {t('auth.resend', 'Resend')}
                             </button>
                         </p>
                     </div>
@@ -116,7 +118,7 @@ const PhoneVerificationPage: React.FC = () => {
                         onClick={() => navigate('/signup')}
                         className="w-full text-sm text-gray-500 hover:text-gray-700 transition-colors mt-4"
                     >
-                        Change phone number
+                        {t('auth.changePhone', 'Change phone number')}
                     </button>
                 </div>
             </form>

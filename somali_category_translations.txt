@@ -1,0 +1,476 @@
+SUQAFURAN - TURJUMAADA QEYBAHA, QAYBAHA HOOSTOODA, IYO NOOCYADA
+=================================================================
+(Af Ingiriis > Af Soomaali)
+FORMAT: Af Ingiriis = Af Soomaali
+
+
+══════════════════════════════════════════════════════════════════
+[FOOD & GROCERIES] = [RAASHINKA & BADEECADAHA]
+══════════════════════════════════════════════════════════════════
+
+-- Vegetables = Khudaarta
+     Tomatoes = Yaanyo
+     Onions = Basal
+     Potatoes = Baradho
+     Leafy Greens = Cagaarka Caleenta ah
+     Peppers = Filfisha
+
+-- Fruits = Mirooyinka
+     Mangoes = Cambe
+     Bananas = Moos
+     Citrus Fruits = Liinta & Cambuulada
+     Dates = Tamar
+     Avocados = Afokadho
+
+-- Meat = Hilib
+     Beef = Hilib Lo'
+     Goat = Hilib Ari
+     Lamb = Hilib Wiyil
+     Chicken = Hilib Digaag
+     Camel Meat = Hilib Geel
+
+-- Eggs = Ukunta
+     Chicken Eggs = Ukunta Digaag
+     Duck Eggs = Ukunta Bato
+
+-- Seafood = Cuntada Badda
+     Fresh Fish = Kalluun Daadir ah
+     Dried Fish = Kalluun Engegan
+     Prawns = Garnaalada
+     Squid = Xoolaha Badda Kale
+
+-- Beverages = Cabitaanaha
+     Soft Drinks = Khanyarada
+     Juice = Casiirta
+     Tea = Shaah
+     Coffee = Qaxwo
+     Water = Biyo
+
+-- Rice & Pasta = Bariis & Baasto
+     Basmati Rice = Bariis Basmati
+     Spaghetti = Isbaaketi
+     Macaroni = Makarooni
+     Broken Rice = Bariis Jabsan
+
+-- Spices & Condiments = Xawaashka & Kaydka
+     Xawaash Mix = Xawaash
+     Cumin = Kamuun
+     Cardamom = Hayl (Xawaash)
+     Chilli = Filfil Geel
+     Salt = Cusbo
+
+-- Prepared Foods = Cunto Diyaar ah
+     Canjeero = Canjeero
+     Samosas = Sambuse
+     Muufo = Muufo
+     Halwa = Xalwo
+     Bur = Bur
+
+-- Milk & Dairy = Caanaha & Alaabtoodda
+     Fresh Milk = Caano Daadir ah
+     Camel Milk = Caano Geel
+     Yoghurt = Yogurt (Caano La Qaniinay)
+     Cheese = Buuro
+     Butter = Subag
+
+-- Bakery = Rooti & Quraacda
+-- Snacks = Cuntooyinka Yaryar
+
+
+══════════════════════════════════════════════════════════════════
+[CLOTHING & SHOES] = [DHARKA & KABAHA]
+══════════════════════════════════════════════════════════════════
+
+-- Men's Clothing = Dharka Ragga
+     Shirts = Shaadh
+     Trousers = Surwaal
+     Suits = Suud
+     Traditional Wear = Dharka Dhaqanka
+     Sportswear = Dharka Ciyaaraha
+
+-- Women's Clothing = Dharka Dumarka
+     Dresses = Qoomiyadaha
+     Abayas = Abaayadaha
+     Blouses = Buluusada
+     Skirts = Tiro
+     Traditional Wear = Dharka Dhaqanka Dumareed
+
+-- Children's Clothing = Dharka Caruurta
+     Boys Clothing = Dharka Wiilasha
+     Girls Clothing = Dharka Gabdhaha
+     Baby Clothing = Dharka Ilmaha Yaryar
+     School Uniforms = Uniifoornka Dugsiga
+
+-- Shoes = Kabaha
+     Men's Shoes = Kabo Rag
+     Women's Shoes = Kabo Dumar
+     Children's Shoes = Kabo Caruur
+     Sandals = Kabo Furan
+     Sports Shoes = Kabo Ciyaareed
+
+-- Clothing Accessories = Qalabka Dharka
+     Belts = Suunaha
+     Bags = Baqashada
+     Scarves = Shaashada
+     Hats = Koofiyadaha
+     Sunglasses = Muraayadda Qoraxda
+
+-- Jewellery = Dahab & Xidho
+-- Watches & Sunglasses = Saacadaha & Muraayadda Qoraxda
+
+
+══════════════════════════════════════════════════════════════════
+[HOUSEHOLD ITEMS] = [ALAABTA GURIGA]
+══════════════════════════════════════════════════════════════════
+
+-- Appliances = Mishiimaha Guriga
+     Washing Machines = Mishiinta Dharka
+     Refrigerators = Qaboojiyeyaasha
+     Air Conditioners = Qaboojiyaha Hawada
+     Water Dispensers = Mishiimaha Biyaha
+     Fans = Marwaxadaha
+
+-- Furniture = Alaabta Guriga (Xaraasha)
+     Sofas = Kursi Fid ah
+     Dining Tables = Miiska Cuntada
+     Beds = Sariirta
+     Wardrobes = Kaabadaha Dharka
+     Office Furniture = Alaabta Xafiiska
+
+-- Kitchenware = Qalabka Jikada
+     Pots & Pans = Digsiyo & Xaarooyinka
+     Plates & Bowls = Saxaano & Weelasha
+     Cups & Glasses = Koobab & Dhalooyinka
+     Cutlery = Qalab Cunno
+     Cooking Utensils = Qalabka Karinta
+
+-- Bedding = Alaabta Sariirta
+     Mattresses = Jiindada Sariirta
+     Pillows = Barku
+     Bed Sheets = Xeedhooyinka Sariirta
+     Blankets = Dhar Kulul
+     Mosquito Nets = Keheddooyinka
+
+-- Home Decor = Qurxinta Guriga
+     Curtains = Daahanka Albaabka
+     Rugs & Carpets = Jaamalada & Kaarpadaha
+     Wall Art = Sawirrada Darbiga
+     Mirrors = Muraayad
+     Vases = Weelasha Ubaxa
+
+-- Cleaning Supplies = Qalabka Nadiifinta
+     Detergents = Saboonka Dharka
+     Mops & Brooms = Qalabka Barida
+     Disinfectants = Daawooyinka Nadiifinta
+     Cleaning Cloths = Maro Nadiifinta
+
+-- Garden Supplies = Qalabka Beerta
+     Garden Tools = Qalab Beer
+     Plant Pots = Weelasha Dhirta
+     Seeds = Abuuraha
+     Fertilizers = Bacriminta
+     Water Hoses = Tuubada Biyaha
+
+
+══════════════════════════════════════════════════════════════════
+[ELECTRONICS] = [KORONTADA & ELEKTAROONIK]
+══════════════════════════════════════════════════════════════════
+
+-- Mobile Phones = Taleefammada Gacanta
+     Samsung = Samsung
+     iPhone = iPhone
+     Tecno = Tecno
+     Infinix = Infinix
+     Huawei = Huawei
+     Nokia = Nokia
+     Other Brands = Summadaha Kale
+
+-- Computers = Kombiyuutarrada
+     Laptops = Laab-Toob
+     Desktop PCs = Kombiyuutarka Miiska
+     Tablets = Tableedyada
+     Computer Accessories = Qalabka Kombiyuutarka
+     Monitors = Shaashaddaha
+     Printers = Printeraska
+
+-- TVs = Televizhinada
+     Smart TVs = TV Casri ah
+     LED TVs = TV LED
+     OLED TVs = TV OLED
+     TV Accessories = Qalabka TV
+
+-- Audio & Headphones = Codka & Dhegaha
+     Bluetooth Speakers = Cajalad Bluetooth
+     Headphones = Dhegaha Weyn
+     Earphones = Dhegaha Yaryar
+     Home Theatre = Masraxa Guriga
+     Amplifiers = Kordhiyaha Codka
+
+-- Gaming = Ciyaaraha Elektaroonik
+     Game Consoles = Mishiimaha Ciyaaraha
+     Video Games = Ciyaaraha Fiidiyoowga
+     Controllers = Qabashada Ciyaaraha
+     Gaming Accessories = Qalabka Ciyaaraha
+
+-- Cameras = Kamaradaha
+     DSLR Cameras = Kamarad DSLR
+     Action Cameras = Kamaradaha Ficilka
+     CCTV Cameras = Kamaradaha Amniga
+     Camera Accessories = Qalabka Kamaradaha
+
+-- Networking = Shabakadaha
+     Routers = Routerrada
+     Modems = Modeemada
+     Network Cables = Wayrarka Shabakadda
+     WiFi Extenders = Kordhiska WiFi
+
+-- Other Electronics = Korontada Kale
+     Power Banks = Baatariyaha Gacanta
+     Chargers = Shaajiyeyaasha
+     Cables & Adapters = Wayrarka & Adaptedarrada
+     Smart Watches = Saacadaha Casriga ah
+     Drones = Diyaaradaha Yaryar (Drone)
+
+
+══════════════════════════════════════════════════════════════════
+[VEHICLES] = [GAADIDKA]
+══════════════════════════════════════════════════════════════════
+
+-- Cars = Baabuurta
+     Toyota = Toyota
+     Nissan = Nissan
+     Mazda = Mazda
+     Honda = Honda
+     Mitsubishi = Mitsubishi
+     Suzuki = Suzuki
+     BMW = BMW
+     Mercedes-Benz = Mercedes-Benz
+     Other Brands = Summadaha Kale
+
+-- Motorcycles = Mootoorada
+     Dirt Bikes = Baaskiil Ciidda
+     Scooters = Skuuterrada
+     Sports Bikes = Motooyinka Ciyaaraha
+     Delivery Bikes = Mooto Gaadhsiinta
+
+-- Tuk-tuks = Tuktukada
+     Passenger Tuk-tuks = Tuktuk Rakaabka
+     Cargo Tuk-tuks = Tuktuk Xamuulka
+
+-- Trucks & Buses = Gaadidka Weyn
+     Trucks = Gaadiga Xamuulka
+     Buses = Basaska
+     Minibuses = Bas-yarida (Coaster)
+     Pickups = Biigabka
+     Trailers = Treelarka
+
+-- Vehicle Parts & Accessories = Qaybaha & Qalabka Baabuurta
+     Tyres & Rims = Tayrarka & Rinta
+     Engines & Parts = Matoorada & Qaybihiisa
+     Car Batteries = Baatariyada Baabuurta
+     Car Lights = Nalka Baabuurta
+     Bumpers = Bumperka
+     Car Covers = Daboolka Baabuurta
+     Audio Systems = Nidaamka Codka Baabuurta
+
+-- Car Services = Adeegyada Baabuurta
+     Car Repair = Dayactirka Baabuurta
+     Car Wash = Maydhka Baabuurta
+     Towing Services = Adeegga Jiidista
+     Car Rental = Kirid Baabuur
+
+
+══════════════════════════════════════════════════════════════════
+[LIVESTOCK] = [XOOLAHA]
+══════════════════════════════════════════════════════════════════
+
+-- Somali Goats = Riyo Soomaaliyeed
+     Local Goats = Riyo Maxalliga ah
+     Dairy Goats = Riyo Caanaha
+     Meat Goats = Riyo Hilibka
+     Breeding Goats = Riyo Taranka
+
+-- Somali Sheep = Ido Soomaaliyeed
+     Local Sheep = Ido Maxalliga ah
+     Fat-tailed Sheep = Ido Baraska
+     Breeding Sheep = Ido Taranka
+
+-- Somali Camels = Geel Soomaaliyeed
+     Dairy Camels = Geel Caanaha
+     Racing Camels = Geel Tartanka
+     Pack Camels = Geel Xamuulka
+
+-- Cattle = Lo'da
+     Dairy Cows = Lo' Caanaha
+     Beef Cattle = Lo' Hilibka
+     Oxen = Dibi
+     Calves = Weylaha
+
+-- Poultry = Shimbiraha Guriga
+     Chickens = Digaagga
+     Ducks = Batada
+     Turkeys = Turkeeyada
+     Eggs for Hatching = Ukunta Qarqarka
+
+-- Wildlife / Pets = Xayawaanka Guriga
+     Dogs = Eey
+     Cats = Muqudi
+     Birds = Shimbir
+     Fish = Kalluun
+     Pet Accessories = Qalabka Xayawaanka
+
+
+══════════════════════════════════════════════════════════════════
+[LAND & FARMS] = [DHULKA & BEERAHA]
+══════════════════════════════════════════════════════════════════
+
+-- Vacant Land = Dhul Banaan
+     Residential Plots = Dhul Guryo
+     Commercial Plots = Dhul Ganacsi
+     Industrial Land = Dhul Warshadeed
+
+-- Farms = Beeraha
+     Crop Farms = Beer Beernaansha
+     Livestock Farms = Beeraha Xoolaha
+     Mixed Farms = Beer Isku Dhafan
+
+-- Agricultural Land = Dhul Beeraansha
+     Irrigated Land = Dhul La Waraabiyay
+     Rain-fed Land = Dhul Roobka ku Xidhan
+     Orchard Land = Dhul Beeraha Miraha
+
+-- Market Gardens = Beerta Suuqa
+     Vegetable Gardens = Beerta Khudaarta
+     Herb Gardens = Beerta Dhirta Daawada
+     Fruit Orchards = Beeraha Miraha
+
+
+══════════════════════════════════════════════════════════════════
+[PROPERTY] = [GURYO & HANTI DHISME]
+══════════════════════════════════════════════════════════════════
+
+-- Houses for Rent = Guri Kiro
+     Apartments = Falaat Kiro
+     Villas = Villa Kiro
+     Single Rooms = Qol Keliya
+     Studio Flats = Suudyo
+     Shared Housing = Guri Wadaag
+
+-- Houses for Sale = Guri Iibka
+     Apartments for Sale = Falaat Iibka
+     Villas for Sale = Villa Iibka
+     Commercial Buildings = Dhismaha Ganacsiga
+
+-- Offices & Commercial = Xafiisyada & Ganacsiga
+     Office Space = Meel Xafiis
+     Shops for Rent = Dukaan Kiro
+     Warehouses = Goleelayaasha
+     Event Halls = Daawashada Munaasabadaha
+
+-- New Builds = Dhismo Cusub
+     New Apartments = Falaat Cusub
+     New Villas = Villa Cusub
+     Off-plan Properties = Hanti Qorshe ah
+
+-- Short Stay = Joogsi Gaaban
+     Daily Rental = Kiro Maalinleh
+     Weekly Rental = Kiro Usbuucleh
+     Hotel Rooms = Qolka Huteelka
+
+
+══════════════════════════════════════════════════════════════════
+[SERVICES] = [ADEEGYADA]
+══════════════════════════════════════════════════════════════════
+
+-- Building & Construction = Dhismo & Dhisnaansha
+     Painting = Rinjiyaynta
+     Plumbing = Gellid Tuubo
+     Electrical Work = Shaqada Korontada
+     Tiling = Dhigista Marmarka
+     Roofing = Saqafka
+     Carpentry = Shaqada Khashab
+
+-- Computer & IT = Kombiyuutar & IT
+     Website Development = Horumarinta Websaydka
+     Software = Barnaamijyada
+     Computer Repair = Dayactirka Kombiyuutarka
+     Networking = Shabakadaha
+     CCTV Installation = Rakibidda Kamaradaha Amniga
+
+-- Cleaning Services = Adeegyada Nadiifinta
+     Home Cleaning = Nadiifinta Guriga
+     Office Cleaning = Nadiifinta Xafiiska
+     Carpet Cleaning = Nadiifinta Kaarpadaha
+     Post-construction Cleaning = Nadiifinta Dhismaha ka Dib
+
+-- Repair Services = Adeegyada Dayactirka
+     Phone Repair = Dayactirka Taleefanka
+     Appliance Repair = Dayactirka Mishiimaha
+     Motorcycle Repair = Dayactirka Mootorka
+     Furniture Repair = Dayactirka Alaabta Guriga
+
+-- Legal & Financial = Sharciga & Maaliyadda
+     Legal Advice = Tallo Sharci
+     Accounting = Xisaabinta
+     Tax Services = Adeegyada Canshuurta
+     Insurance = Caymiska
+
+
+══════════════════════════════════════════════════════════════════
+[JOBS] = [SHAQOOYINKA]
+══════════════════════════════════════════════════════════════════
+
+-- Full Time Jobs = Shaqo Wakhti Buuxa
+-- Part Time Jobs = Shaqo Wakhti Xad
+-- Freelance = Shaqo Xor ah
+-- Internships = Tababarka Shaqada
+-- Government Jobs = Shaqooyinka Dowladda
+-- NGO & Charity = Hay'adaha Gargaarka
+
+
+══════════════════════════════════════════════════════════════════
+[HEALTH & BEAUTY] = [CAAFIMAADKA & QURUXDA]
+══════════════════════════════════════════════════════════════════
+
+-- Health Products = Alaabta Caafimaadka
+     Medicines = Daawooyin
+     Medical Equipment = Qalabka Caafimaadka
+     Vitamins & Supplements = Vitamiinnada
+
+-- Beauty Products = Alaabta Quruxda
+     Skin Care = Daryeelka Maqaarka
+     Hair Care = Daryeelka Timaha
+     Makeup = Qurxinta Wejiiga
+     Perfumes = Cadar & Uur Macaan
+
+-- Salon & Spa = Saloonka & Sixirka Quruxda
+     Hair Salon = Saloon Timo
+     Barber Shop = Xallaalaha Ragga
+     Nail Care = Daryeelka Cidiyaha
+     Spa & Massage = Masaajka & Nasashada
+
+
+══════════════════════════════════════════════════════════════════
+[SPORTS & HOBBIES] = [CIYAARAHA & XIISAHA]
+══════════════════════════════════════════════════════════════════
+
+-- Sports Equipment = Qalabka Ciyaaraha
+     Football = Kubbadda Cagta
+     Basketball = Kubbadda Kubada
+     Gym Equipment = Qalabka Jimicsiga
+     Boxing = Karate & Koonto
+
+-- Outdoor & Adventure = Hawlaha Dibadda
+     Camping Gear = Qalabka Meeshaha Duurka
+     Fishing = Sayda Kalluunka
+     Hiking = Socoda Buuraha
+
+-- Hobbies & Collectibles = Xiisaha & Ururinada
+     Books = Buugaagta
+     Musical Instruments = Qalabka Muusigga
+     Art Supplies = Qalabka Fanka
+
+
+══════════════════════════════════════════════════════════════════
+END OF TRANSLATION FILE
+=================================================================

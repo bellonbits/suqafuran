@@ -67,7 +67,15 @@
       "Read(//tmp/**)",
       "Bash(git checkout:*)",
       "Bash(grep -E \"\\\\.\\(py|yml\\)$\")",
-      "Bash(xargs cat:*)"
+      "Bash(xargs cat:*)",
+      "Bash(ls /Users/mac/suqafuran/*.txt /Users/mac/suqafuran/*.json)",
+      "Bash(docker exec:*)",
+      "Bash(docker -H unix:///Users/mac/.colima/default/docker.sock exec suqafuran_api python3 -c ':*)",
+      "Read(//private/tmp/**)",
+      "Bash(docker context:*)",
+      "Bash(docker --context desktop-linux exec suqafuran_api python3 -c ':*)",
+      "Bash(grep -E '>[A-Za-z][^<{]{2,}<|placeholder=\"|Button>')",
+      "Bash(grep -rL \"useTranslation\" /Users/mac/suqafuran/src/pages/*.tsx)"
     ],
     "additionalDirectories": [
       "C:\\Users\\learn\\Desktop\\suqafuran\\src",

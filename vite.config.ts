@@ -13,12 +13,31 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    outDir: 'dist',
+    // Content-hash every chunk and asset file — guarantees browsers fetch
+    // fresh files after each deploy (no manual cache busting needed)
+    rollupOptions: {
+      output: {
+        entryFileNames:  'assets/[name]-[hash].js',
+        chunkFileNames:  'assets/[name]-[hash].js',
+        assetFileNames:  'assets/[name]-[hash][extname]',
+      },
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt' — shows users a "New version available, refresh?" banner
+      // instead of silently serving old cached assets
+      registerType: 'prompt',
       includeAssets: ['suqafuran.svg'],
+      workbox: {
+        // Don't let the service worker cache index.html
+        navigateFallbackDenylist: [],
+        runtimeCaching: [],
+      },
       manifest: {
         name: 'Suqafuran',
         short_name: 'Suqafuran',

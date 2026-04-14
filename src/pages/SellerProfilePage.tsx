@@ -12,8 +12,10 @@ import {
     Share2, Flag, Loader2, ChevronLeft
 } from 'lucide-react';
 import type { Listing } from '../types/listing';
+import { useTranslation } from 'react-i18next';
 
 const SellerProfilePage: React.FC = () => {
+    const { t } = useTranslation();
     const { sellerId } = useParams<{ sellerId: string }>();
 
     const { data: seller, isLoading: isSellerLoading } = useQuery({
@@ -50,10 +52,10 @@ const SellerProfilePage: React.FC = () => {
         return (
             <PublicLayout>
                 <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Seller Not Found</h2>
-                    <p className="text-gray-500 mb-6">The user profile you are looking for does not exist.</p>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('sellerProfile.notFound', 'Seller Not Found')}</h2>
+                    <p className="text-gray-500 mb-6">{t('sellerProfile.notFoundDesc', 'The user profile you are looking for does not exist.')}</p>
                     <Link to="/">
-                        <Button>Back to Marketplace</Button>
+                        <Button>{t('sellerProfile.backToMarketplace', 'Back to Marketplace')}</Button>
                     </Link>
                 </div>
             </PublicLayout>
@@ -67,7 +69,7 @@ const SellerProfilePage: React.FC = () => {
                 <div className="container mx-auto px-4 py-4">
                     <Link to="/" className="flex items-center text-sm text-gray-600 hover:text-primary-600 w-fit">
                         <ChevronLeft className="h-4 w-4 mr-1" />
-                        Back to Search
+                        {t('sellerProfile.backToSearch', 'Back to Search')}
                     </Link>
                 </div>
             </div>
@@ -93,17 +95,17 @@ const SellerProfilePage: React.FC = () => {
 
                                 <div className="flex items-center gap-1.5 text-primary-600 mb-4">
                                     <ShieldCheck className="h-4 w-4 fill-primary-50" />
-                                    <span className="text-xs font-bold uppercase tracking-wider">Verified Seller</span>
+                                    <span className="text-xs font-bold uppercase tracking-wider">{t('sellerProfile.verifiedSeller', 'Verified Seller')}</span>
                                 </div>
 
                                 <div className="w-full space-y-3 pt-4 border-t border-gray-50">
                                     <div className="flex items-center gap-2 text-sm text-gray-500">
                                         <Clock className="h-4 w-4" />
-                                        <span>Member since 2024</span>
+                                        <span>{t('sellerProfile.memberSince', 'Member since {{year}}', { year: 2024 })}</span>
                                     </div>
                                     <div className="flex items-center gap-2 text-sm text-gray-500 text-left">
                                         <ShieldCheck className="h-4 w-4 text-green-500" />
-                                        <span>Phone Verified</span>
+                                        <span>{t('sellerProfile.phoneVerified', 'Phone Verified')}</span>
                                     </div>
                                     <div className="flex items-center gap-2 text-sm text-gray-500">
                                         <MapPin className="h-4 w-4" />
@@ -114,17 +116,17 @@ const SellerProfilePage: React.FC = () => {
                                 <div className="w-full mt-6 space-y-3">
                                     <Button className="w-full gap-2">
                                         <Phone className="h-4 w-4" />
-                                        Call Seller
+                                        {t('sellerProfile.callSeller', 'Call Seller')}
                                     </Button>
                                     <Button variant="secondary" className="w-full gap-2">
                                         <Share2 className="h-4 w-4" />
-                                        Share Profile
+                                        {t('sellerProfile.shareProfile', 'Share Profile')}
                                     </Button>
                                 </div>
 
                                 <button className="mt-6 text-xs text-red-500 flex items-center gap-1 hover:underline">
                                     <Flag className="h-3 w-3" />
-                                    Report User
+                                    {t('sellerProfile.reportUser', 'Report User')}
                                 </button>
                             </div>
                         </div>
@@ -134,7 +136,7 @@ const SellerProfilePage: React.FC = () => {
                     <div className="lg:col-span-3">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-bold text-gray-900">
-                                Active Listings
+                                {t('sellerProfile.activeListings', 'Active Listings')}
                                 <span className="ml-2 text-sm font-normal text-gray-500">({listings?.length || 0})</span>
                             </h2>
                         </div>
@@ -160,8 +162,8 @@ const SellerProfilePage: React.FC = () => {
                             </div>
                         ) : (
                             <div className="bg-gray-50 rounded-2xl p-12 text-center border-2 border-dashed border-gray-200">
-                                <h3 className="text-lg font-bold text-gray-900 mb-2">No active listings</h3>
-                                <p className="text-gray-500">This seller hasn't posted any ads yet.</p>
+                                <h3 className="text-lg font-bold text-gray-900 mb-2">{t('sellerProfile.noListings', 'No active listings')}</h3>
+                                <p className="text-gray-500">{t('sellerProfile.noListingsDesc', "This seller hasn't posted any ads yet.")}</p>
                             </div>
                         )}
                     </div>

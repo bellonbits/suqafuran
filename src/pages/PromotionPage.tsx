@@ -6,8 +6,10 @@ import { listingService } from '../services/listingService';
 import { Button } from '../components/Button';
 import { Check, Loader2, Phone, Smartphone } from 'lucide-react';
 import { BoostPricingGrid } from '../components/BoostPricingGrid';
+import { useTranslation } from 'react-i18next';
 
 const PromotionPage: React.FC = () => {
+    const { t } = useTranslation();
     const { adId } = useParams<{ adId: string }>();
     const navigate = useNavigate();
     const [selectedPlan, setSelectedPlan] = useState<any>(null);
@@ -93,8 +95,8 @@ const PromotionPage: React.FC = () => {
     return (
         <div className="max-w-4xl mx-auto px-4 py-12">
             <div className="mb-10 text-center">
-                <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Promote Your Ad</h1>
-                <p className="text-gray-500">Reach more buyers and sell faster with automated boosts.</p>
+                <h1 className="text-3xl font-extrabold text-gray-900 mb-2">{t('promotion.title', 'Promote Your Ad')}</h1>
+                <p className="text-gray-500">{t('promotion.subtitle', 'Reach more buyers and sell faster with automated boosts.')}</p>
             </div>
 
             {step === 'plan' ? (
@@ -112,10 +114,10 @@ const PromotionPage: React.FC = () => {
                             animate={{ opacity: 1, y: 0 }}
                             className="max-w-md mx-auto p-6 bg-white rounded-3xl shadow-lg border border-primary-100"
                         >
-                            <h3 className="text-lg font-bold text-gray-900 mb-4">Payment Details</h3>
+                            <h3 className="text-lg font-bold text-gray-900 mb-4">{t('promotion.paymentDetails', 'Payment Details')}</h3>
 
                             <div className="mb-6">
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Select Region</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">{t('promotion.selectRegion', 'Select Region')}</label>
                                 <div className="flex bg-gray-100 p-1 rounded-xl">
                                     <button
                                         onClick={() => setPaymentRegion('kenya')}
@@ -134,7 +136,7 @@ const PromotionPage: React.FC = () => {
 
                             {paymentRegion === 'kenya' ? (
                                 <div className="space-y-4">
-                                    <label className="block text-sm font-bold text-gray-700">M-Pesa Phone Number</label>
+                                    <label className="block text-sm font-bold text-gray-700">{t('promotion.mpesaPhone', 'M-Pesa Phone Number')}</label>
                                     <div className="relative">
                                         <Phone className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
                                         <input
@@ -146,7 +148,7 @@ const PromotionPage: React.FC = () => {
                                         />
                                     </div>
                                     <p className="text-xs text-gray-400">
-                                        Enter the number you will pay from. Our system automatically detects the payment via STK Push.
+                                        {t('promotion.mpesaHint', 'Enter the number you will pay from. Our system automatically detects the payment via STK Push.')}
                                     </p>
 
                                     <Button
@@ -155,7 +157,7 @@ const PromotionPage: React.FC = () => {
                                         disabled={!paymentPhone || createOrderMutation.isPending}
                                         isLoading={createOrderMutation.isPending}
                                     >
-                                        Proceed to Automated Payment
+                                        {t('promotion.proceedPayment', 'Proceed to Automated Payment')}
                                     </Button>
                                 </div>
                             ) : (
@@ -163,9 +165,9 @@ const PromotionPage: React.FC = () => {
                                     <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
                                         <Phone className="w-8 h-8 text-primary-500" />
                                     </div>
-                                    <h4 className="font-bold text-primary-900 text-lg mb-2">Manual Payment Required</h4>
+                                    <h4 className="font-bold text-primary-900 text-lg mb-2">{t('promotion.manualPayment', 'Manual Payment Required')}</h4>
                                     <p className="text-sm text-primary-700 mb-6 font-medium">
-                                        To promote your ad in Mogadishu & major cities, please call and send your payment to the number below:
+                                        {t('promotion.manualPaymentDesc', 'To promote your ad in Mogadishu & major cities, please call and send your payment to the number below:')}
                                     </p>
                                     <div className="bg-white py-4 px-6 rounded-2xl border-2 border-primary-200 shadow-sm inline-block">
                                         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Call & Pay</p>
@@ -196,9 +198,9 @@ const PromotionPage: React.FC = () => {
                         >
                             <Smartphone className="w-8 h-8 text-white" />
                         </motion.div>
-                        <h2 className="text-2xl font-bold mb-1 relative z-10">Check your phone 📱</h2>
+                        <h2 className="text-2xl font-bold mb-1 relative z-10">{t('promotion.checkPhone', 'Check your phone 📱')}</h2>
                         <p className="text-primary-100 text-sm relative z-10">
-                            An M-Pesa prompt has been sent to
+                            {t('promotion.mpesaPromptSent', 'An M-Pesa prompt has been sent to')}
                         </p>
                         <p className="text-white font-bold text-lg relative z-10">{paymentPhone}</p>
                     </div>
@@ -206,7 +208,7 @@ const PromotionPage: React.FC = () => {
                     <div className="p-8 space-y-5">
                         {/* Amount */}
                         <div className="text-center">
-                            <p className="text-gray-400 text-xs uppercase tracking-widest font-bold mb-1">Amount to Pay</p>
+                            <p className="text-gray-400 text-xs uppercase tracking-widest font-bold mb-1">{t('promotion.amountToPay', 'Amount to Pay')}</p>
                             <h3 className="text-4xl font-black text-gray-900">
                                 $ {selectedPlan?.price_usd || 0}
                             </h3>
@@ -214,11 +216,11 @@ const PromotionPage: React.FC = () => {
 
                         {/* Steps */}
                         <div className="bg-primary-50 rounded-2xl p-5 border border-primary-100 space-y-3">
-                            <p className="text-xs font-bold text-primary-700 uppercase tracking-widest mb-2">How to complete payment</p>
+                            <p className="text-xs font-bold text-primary-700 uppercase tracking-widest mb-2">{t('promotion.howToComplete', 'How to complete payment')}</p>
                             {[
-                                'A payment prompt appeared on your phone',
-                                'Enter your M-Pesa PIN to confirm',
-                                'This screen updates automatically 🎉'
+                                t('promotion.step1', 'A payment prompt appeared on your phone'),
+                                t('promotion.step2', 'Enter your M-Pesa PIN to confirm'),
+                                t('promotion.step3', 'This screen updates automatically 🎉')
                             ].map((step, i) => (
                                 <div key={i} className="flex items-start gap-3">
                                     <div className="w-5 h-5 rounded-full bg-primary-500 text-white text-xs flex items-center justify-center shrink-0 font-bold mt-0.5">
@@ -232,7 +234,7 @@ const PromotionPage: React.FC = () => {
                         {/* Polling indicator */}
                         <div className="flex items-center justify-center gap-3 p-4 bg-primary-50 rounded-xl text-primary-700 text-xs border border-primary-100">
                             <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-                            <p>Waiting for your payment confirmation…</p>
+                            <p>{t('promotion.waitingConfirmation', 'Waiting for your payment confirmation…')}</p>
                         </div>
 
                         {/* Back */}
@@ -240,7 +242,7 @@ const PromotionPage: React.FC = () => {
                             onClick={() => setStep('plan')}
                             className="w-full text-center text-sm text-gray-400 hover:text-gray-600 font-medium transition-colors"
                         >
-                            ← Back to Plans
+                            ← {t('promotion.backToPlans', 'Back to Plans')}
                         </button>
                     </div>
                 </div>
@@ -254,13 +256,13 @@ const PromotionPage: React.FC = () => {
                     >
                         <Check className="w-12 h-12" />
                     </motion.div>
-                    <h2 className="text-3xl font-black text-gray-900 mb-2">Payment Received!</h2>
-                    <p className="text-gray-500 mb-8">Your ad has been successfully promoted. Enjoy the extra visibility!</p>
+                    <h2 className="text-3xl font-black text-gray-900 mb-2">{t('promotion.paymentReceived', 'Payment Received!')}</h2>
+                    <p className="text-gray-500 mb-8">{t('promotion.paymentSuccess', 'Your ad has been successfully promoted. Enjoy the extra visibility!')}</p>
                     <Button
                         className="w-full h-12 rounded-xl bg-primary-600 font-bold text-lg"
                         onClick={() => navigate('/dashboard')}
                     >
-                        Go to Dashboard
+                        {t('promotion.goToDashboard', 'Go to Dashboard')}
                     </Button>
                 </div>
             )}

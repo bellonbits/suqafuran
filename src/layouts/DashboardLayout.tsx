@@ -49,12 +49,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     ];
 
     const secondaryItems = [
-        { label: 'Pro Sales', icon: TrendingUp, path: '/pro-sales' },
-        { label: 'Premium Services', icon: Shield, path: '/premium' },
-        { label: 'My Balance', icon: Wallet, path: '/wallet', detail: user?.wallet?.balance ? `KSh ${user.wallet.balance.toLocaleString()}` : 'KSh 0' },
-        { label: 'Followers', icon: Users, path: '/followers' },
-        { label: 'Request help', icon: HelpCircle, path: '/help' },
-        { label: 'FAQ', icon: HelpCircle, path: '/help' },
+        { labelKey: 'dashboard.proSales', label: 'Pro Sales', icon: TrendingUp, path: '/pro-sales' },
+        { labelKey: 'dashboard.premiumServices', label: 'Premium Services', icon: Shield, path: '/premium' },
+        { labelKey: 'dashboard.myBalance', label: 'My Balance', icon: Wallet, path: '/wallet', detail: user?.wallet?.balance ? `KSh ${user.wallet.balance.toLocaleString()}` : 'KSh 0' },
+        { labelKey: 'dashboard.followers', label: 'Followers', icon: Users, path: '/followers' },
+        { labelKey: 'dashboard.requestHelp', label: 'Request help', icon: HelpCircle, path: '/help' },
+        { labelKey: 'dashboard.faq', label: 'FAQ', icon: HelpCircle, path: '/help' },
     ];
 
     return (
@@ -165,7 +165,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             >
                                 <item.icon className="h-5 w-5 text-gray-400" />
                                 <div className="flex-1 flex items-center justify-between">
-                                    <span>{item.label}</span>
+                                    <span>{t(item.labelKey, item.label)}</span>
                                     {item.detail && (
                                         <span className="text-xs font-bold text-gray-400 uppercase tracking-tight">{item.detail}</span>
                                     )}

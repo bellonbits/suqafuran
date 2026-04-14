@@ -13,6 +13,7 @@ import { listingService } from '../services/listingService';
 import { ListingSelectorModal } from '../components/ListingSelectorModal';
 import { LipanaPaymentModal } from '../components/LipanaPaymentModal';
 import type { Listing } from '../types/listing';
+import { useTranslation } from 'react-i18next';
 
 interface PromotionPlan {
     id: number;
@@ -34,6 +35,7 @@ export const PremiumPage: React.FC = () => {
     const [showListingModal, setShowListingModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const { getField } = useLanguageField();
+    const { t } = useTranslation();
 
     const { data: plans = [], isLoading } = useQuery<PromotionPlan[]>({
         queryKey: ['promotionPlans'],
@@ -80,23 +82,22 @@ export const PremiumPage: React.FC = () => {
                 <div className="relative z-10 max-w-2xl">
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-primary-300 text-xs font-black uppercase tracking-widest mb-6">
                         <Sparkles className="h-3.5 w-3.5" />
-                        Premium Solutions
+                        {t('premium.premiumSolutions', 'Premium Solutions')}
                     </div>
                     <h1 className="text-4xl md:text-6xl font-black mb-6 leading-[1.1] tracking-tight">
-                        Reach Millions of <span className="text-primary-400">Ready Buyers</span>
+                        {t('premium.heroTitle', 'Reach Millions of')} <span className="text-primary-400">{t('premium.heroTitleHighlight', 'Ready Buyers')}</span>
                     </h1>
                     <p className="text-lg text-gray-400 mb-10 leading-relaxed font-medium">
-                        Suqafuran premium services give your ads the visibility they deserve.
-                        Professional sellers use our boosting plans to sell up to 100x faster.
+                        {t('premium.heroDesc', 'Suqafuran premium services give your ads the visibility they deserve. Professional sellers use our boosting plans to sell up to 100x faster.')}
                     </p>
                     <div className="flex flex-wrap gap-4">
                         <div className="flex items-center gap-2 text-sm font-bold border-r border-white/10 pr-6 mr-2">
                             <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-                            <span>100k+ Boosted Ads</span>
+                            <span>{t('premium.boostedAds', '100k+ Boosted Ads')}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm font-bold">
                             <TrendingUp className="h-5 w-5 text-green-500" />
-                            <span>24/7 Priority Support</span>
+                            <span>{t('premium.prioritySupport', '24/7 Priority Support')}</span>
                         </div>
                     </div>
                 </div>
@@ -105,14 +106,14 @@ export const PremiumPage: React.FC = () => {
             {/* Pricing Grid */}
             <div className="space-y-8">
                 <div className="text-center space-y-2">
-                    <h2 className="text-3xl font-black text-gray-900">Choose Your Boost Plan</h2>
-                    <p className="text-gray-500 font-medium">Pay with M-Pesa (Lipana) — Instant activation after payment.</p>
+                    <h2 className="text-3xl font-black text-gray-900">{t('premium.chooseBoostPlan', 'Choose Your Boost Plan')}</h2>
+                    <p className="text-gray-500 font-medium">{t('premium.payWithMpesa', 'Pay with M-Pesa (Lipana) — Instant activation after payment.')}</p>
                 </div>
 
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center py-20 space-y-4">
                         <Loader2 className="w-10 h-10 text-primary-500 animate-spin" />
-                        <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Loading Plans...</p>
+                        <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">{t('premium.loadingPlans', 'Loading Plans...')}</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -140,7 +141,7 @@ export const PremiumPage: React.FC = () => {
                                 >
                                     {isPopular && (
                                         <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary-600 text-white px-6 py-1.5 rounded-full text-xs font-black uppercase tracking-widest shadow-lg">
-                                            Most Popular
+                                            {t('premium.mostPopular', 'Most Popular')}
                                         </div>
                                     )}
 
@@ -181,7 +182,7 @@ export const PremiumPage: React.FC = () => {
                                         )}
                                         onClick={() => handleSelectPlan(plan)}
                                     >
-                                        Boost with M-Pesa
+                                        {t('premium.boostWithMpesa', 'Boost with M-Pesa')}
                                         <ArrowRight className="h-4 w-4" />
                                     </Button>
                                 </div>
@@ -195,11 +196,10 @@ export const PremiumPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-12">
                 <div className="space-y-6">
                     <h2 className="text-3xl font-black text-gray-900 leading-tight">
-                        Why Boost on <br /><span className="text-primary-600">Suqafuran?</span>
+                        {t('premium.whyBoost', 'Why Boost on')} <br /><span className="text-primary-600">Suqafuran?</span>
                     </h2>
                     <p className="text-gray-600 font-medium leading-relaxed">
-                        With millions of users across the Horn of Africa, your listings can get lost
-                        among the thousands of ads posted every hour. Boosting puts you in the spotlight.
+                        {t('premium.whyBoostDesc', 'With millions of users across the Horn of Africa, your listings can get lost among the thousands of ads posted every hour. Boosting puts you in the spotlight.')}
                     </p>
                     <div className="space-y-4">
                         <div className="flex gap-4 p-4 rounded-2xl border border-gray-100 bg-white hover:border-primary-200 transition-colors cursor-pointer group">
@@ -207,8 +207,8 @@ export const PremiumPage: React.FC = () => {
                                 <Zap className="h-6 w-6 text-orange-600" />
                             </div>
                             <div>
-                                <h4 className="font-bold text-gray-900">Instant Activation</h4>
-                                <p className="text-sm text-gray-500">Your boost goes live immediately after M-Pesa payment confirmation.</p>
+                                <h4 className="font-bold text-gray-900">{t('premium.instantActivation', 'Instant Activation')}</h4>
+                                <p className="text-sm text-gray-500">{t('premium.instantActivationDesc', 'Your boost goes live immediately after M-Pesa payment confirmation.')}</p>
                             </div>
                         </div>
                         <div className="flex gap-4 p-4 rounded-2xl border border-gray-100 bg-white hover:border-primary-200 transition-colors cursor-pointer group">
@@ -216,8 +216,8 @@ export const PremiumPage: React.FC = () => {
                                 <TrendingUp className="h-6 w-6 text-green-600" />
                             </div>
                             <div>
-                                <h4 className="font-bold text-gray-900">Performance Tracking</h4>
-                                <p className="text-sm text-gray-500">See exactly how many more views and clicks your boost generates.</p>
+                                <h4 className="font-bold text-gray-900">{t('premium.performanceTracking', 'Performance Tracking')}</h4>
+                                <p className="text-sm text-gray-500">{t('premium.performanceTrackingDesc', 'See exactly how many more views and clicks your boost generates.')}</p>
                             </div>
                         </div>
                     </div>
@@ -230,9 +230,9 @@ export const PremiumPage: React.FC = () => {
                     <div>
                         <div className="flex items-center gap-2 text-primary-600 font-bold mb-2">
                             <Clock className="h-4 w-4" />
-                            Real-time Analytics
+                            {t('premium.realtimeAnalytics', 'Real-time Analytics')}
                         </div>
-                        <h3 className="text-2xl font-black text-gray-900 mb-4">Average Boost Results</h3>
+                        <h3 className="text-2xl font-black text-gray-900 mb-4">{t('premium.averageBoostResults', 'Average Boost Results')}</h3>
                         <div className="space-y-6">
                             {[
                                 { label: 'Views Increase', value: '450%', width: 'w-full', color: 'bg-primary-500' },

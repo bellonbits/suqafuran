@@ -17,8 +17,7 @@ import { getCategoryIcon } from '../utils/categoryIcons';
 import { LocationPickerModal } from '../components/LocationPickerModal';
 import { useLanguageField } from '../hooks/useLanguageField';
 import { MapPin } from 'lucide-react';
-
-const steps = ['Basic Info', 'Category & Details', 'Pricing', 'Photos'];
+import { useTranslation } from 'react-i18next';
 interface EditAdValues {
     title_en: string;
     title_so: string;
@@ -38,11 +37,19 @@ interface EditAdValues {
 const EditAdPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<'en' | 'so'>('en');
     const [submitted, setSubmitted] = useState(false);
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
     const { getField } = useLanguageField();
+
+    const steps = [
+        t('listing.basicInfo', 'Basic Info'),
+        t('listing.categoryDetails', 'Category & Details'),
+        t('listing.pricing', 'Pricing'),
+        t('listing.photos', 'Photos'),
+    ];
 
     const { data: listing, isLoading: loadingListing } = useQuery({
         queryKey: ['listing', id],
@@ -131,13 +138,13 @@ const EditAdPage: React.FC = () => {
                 <div className="w-20 h-20 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-6">
                     <CheckCircle2 className="h-10 w-10 text-primary-600" />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Ad Updated Successfully!</h2>
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('editAd.successTitle', 'Ad Updated Successfully!')}</h2>
                 <p className="text-gray-600 mb-8">
-                    Your changes have been saved and are now live.
+                    {t('editAd.successDesc', 'Your changes have been saved and are now live.')}
                 </p>
                 <div className="flex gap-4 justify-center">
-                    <Button variant="outline" className="rounded-xl" onClick={() => navigate('/my-ads')}>Back to My Ads</Button>
-                    <Button className="rounded-xl" onClick={() => navigate('/dashboard')}>Go to Dashboard</Button>
+                    <Button variant="outline" className="rounded-xl" onClick={() => navigate('/my-ads')}>{t('editAd.backToMyAds', 'Back to My Ads')}</Button>
+                    <Button className="rounded-xl" onClick={() => navigate('/dashboard')}>{t('promotion.goToDashboard', 'Go to Dashboard')}</Button>
                 </div>
             </div>
         );
@@ -210,16 +217,16 @@ const EditAdPage: React.FC = () => {
                         <Form className="p-6 md:p-10">
                             {currentStep === 0 && (
                                 <div className="space-y-6">
-                                    <h3 className="text-xl font-bold flex items-center gap-2 text-gray-900">Step 1: Basic Info & Language</h3>
+                                    <h3 className="text-xl font-bold flex items-center gap-2 text-gray-900">{t('editAd.step1Title', 'Step 1: Basic Info & Language')}</h3>
 
                                     {/* Language Availability Selector */}
                                     <div className="p-4 bg-primary-50/50 rounded-2xl border border-primary-100 mb-6">
-                                        <label className="text-sm font-bold text-primary-900 mb-3 block uppercase tracking-wider">In which languages is this ad available?</label>
+                                        <label className="text-sm font-bold text-primary-900 mb-3 block uppercase tracking-wider">{t('editAd.langAvailableLabel', 'In which languages is this ad available?')}</label>
                                         <div className="grid grid-cols-3 gap-3">
                                             {[
-                                                { id: 'en', label: 'English Only' },
-                                                { id: 'so', label: 'Somali Only' },
-                                                { id: 'both', label: 'Bilingual (Both)' }
+                                                { id: 'en', label: t('editAd.englishOnly', 'English Only') },
+                                                { id: 'so', label: t('editAd.somaliOnly', 'Somali Only') },
+                                                { id: 'both', label: t('editAd.bilingual', 'Bilingual (Both)') }
                                             ].map((lang) => (
                                                 <button
                                                     key={lang.id}
@@ -245,7 +252,7 @@ const EditAdPage: React.FC = () => {
                                     {/* Tabbed Title Entry */}
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between">
-                                            <label className="text-sm font-bold text-gray-700 uppercase tracking-wider">What are you selling?</label>
+                                            <label className="text-sm font-bold text-gray-700 uppercase tracking-wider">{t('editAd.whatSellingLabel', 'What are you selling?')}</label>
                                             <div className="flex bg-gray-100 p-1 rounded-lg">
                                                 {(values.lang_available === 'en' || values.lang_available === 'both') && (
                                                     <button
@@ -292,7 +299,7 @@ const EditAdPage: React.FC = () => {
                                         )}
                                     </div>
                                     <div className="relative group">
-                                        <label className="text-sm font-medium text-gray-700 mb-2 block">Location</label>
+                                        <label className="text-sm font-medium text-gray-700 mb-2 block">{t('listing.location', 'Location')}</label>
                                         <button
                                             type="button"
                                             onClick={() => setIsLocationModalOpen(true)}
@@ -304,7 +311,7 @@ const EditAdPage: React.FC = () => {
                                             <div className="flex items-center gap-3">
                                                 <MapPin className={cn("h-5 w-5", values.location ? "text-primary-600" : "text-gray-400")} />
                                                 <span className={cn("text-sm", !values.location && "text-gray-400")}>
-                                                    {values.location || "Select location (State > Region > Town)"}
+                                                    {values.location || t('listing.selectLocation', 'Select location (State › Region › Town)')}
                                                 </span>
                                             </div>
                                             <ChevronRight className="h-4 w-4 text-gray-400" />
@@ -319,7 +326,7 @@ const EditAdPage: React.FC = () => {
                             {currentStep === 1 && (
                                 <div className="space-y-8">
                                     <div className="space-y-4">
-                                        <h3 className="text-xl font-bold">Select Category</h3>
+                                        <h3 className="text-xl font-bold">{t('editAd.selectCategory', 'Select Category')}</h3>
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                             {catsLoading ? (
                                                 <div className="col-span-full flex justify-center py-12">
@@ -369,7 +376,7 @@ const EditAdPage: React.FC = () => {
 
                                         return (
                                             <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
-                                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Select Subcategory</h3>
+                                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">{t('editAd.selectSubcategory', 'Select Subcategory')}</h3>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                                     {selectedCat.subcategories.map(sub => (
                                                         <button
@@ -413,7 +420,7 @@ const EditAdPage: React.FC = () => {
 
                                         return (
                                             <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
-                                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Select Specific Type</h3>
+                                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">{t('editAd.selectSpecificType', 'Select Specific Type')}</h3>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                                     {selectedSub.subsubcategories.map(ss => (
                                                         <button
@@ -443,7 +450,7 @@ const EditAdPage: React.FC = () => {
 
                                     <div className="space-y-4 mt-6">
                                         <div className="flex items-center justify-between">
-                                            <label className="text-sm font-bold text-gray-700 uppercase tracking-wider">Detailed Description</label>
+                                            <label className="text-sm font-bold text-gray-700 uppercase tracking-wider">{t('editAd.detailedDescription', 'Detailed Description')}</label>
                                             <div className="flex bg-gray-100 p-1 rounded-lg">
                                                 {(values.lang_available === 'en' || values.lang_available === 'both') && (
                                                     <button
@@ -511,7 +518,7 @@ const EditAdPage: React.FC = () => {
 
                                         return (
                                             <div className="pt-6 border-t border-gray-100 space-y-6">
-                                                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Specific Details</h4>
+                                                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-widest">{t('editAd.specificDetails', 'Specific Details')}</h4>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                     {attributes.map(attr => (
                                                         <div key={attr.name}>
@@ -547,9 +554,9 @@ const EditAdPage: React.FC = () => {
 
                             {currentStep === 2 && (
                                 <div className="space-y-6">
-                                    <h3 className="text-xl font-bold flex items-center gap-2">Pricing & Condition</h3>
+                                    <h3 className="text-xl font-bold flex items-center gap-2">{t('editAd.pricingCondition', 'Pricing & Condition')}</h3>
                                     <Input
-                                        label="Price (USD)"
+                                        label={t('listing.price', 'Price') + ' (USD)'}
                                         name="price"
                                         type="number"
                                         value={values.price}
@@ -557,19 +564,23 @@ const EditAdPage: React.FC = () => {
                                         error={touched.price ? errors.price : undefined}
                                     />
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700 mb-2 block">Item Condition</label>
+                                        <label className="text-sm font-medium text-gray-700 mb-2 block">{t('listing.condition', 'Condition')}</label>
                                         <div className="flex gap-4">
-                                            {['New', 'Used', 'Refurbished'].map(cond => (
-                                                <label key={cond} className="flex items-center gap-2 p-3 border rounded-xl cursor-pointer hover:bg-gray-50 flex-1 justify-center">
+                                            {([
+                                                { value: 'New', label: t('postAd.condNew', 'New') },
+                                                { value: 'Used', label: t('postAd.condUsed', 'Used') },
+                                                { value: 'Refurbished', label: t('postAd.condRefurbished', 'Refurbished') },
+                                            ]).map((cond) => (
+                                                <label key={cond.value} className="flex items-center gap-2 p-3 border rounded-xl cursor-pointer hover:bg-gray-50 flex-1 justify-center">
                                                     <input
                                                         type="radio"
                                                         name="condition"
-                                                        value={cond}
-                                                        checked={values.condition === cond}
-                                                        onChange={() => setFieldValue('condition', cond)}
+                                                        value={cond.value}
+                                                        checked={values.condition === cond.value}
+                                                        onChange={() => setFieldValue('condition', cond.value)}
                                                         className="text-primary-600 focus:ring-primary-500"
                                                     />
-                                                    <span className="text-sm font-medium">{cond}</span>
+                                                    <span className="text-sm font-medium">{cond.label}</span>
                                                 </label>
                                             ))}
                                         </div>
@@ -579,11 +590,11 @@ const EditAdPage: React.FC = () => {
 
                             {currentStep === 3 && (
                                 <div className="space-y-6">
-                                    <h3 className="text-xl font-bold flex items-center gap-2">Add Photos</h3>
+                                    <h3 className="text-xl font-bold flex items-center gap-2">{t('listing.addPhotos', 'Add Photos')}</h3>
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                         <label className="aspect-square rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center p-4 hover:border-primary-500 hover:bg-primary-50 transition-all cursor-pointer group">
                                             <Upload className="h-8 w-8 text-gray-300 group-hover:text-primary-500 mb-2" />
-                                            <span className="text-[10px] text-gray-400 font-medium text-center">Click to upload photos</span>
+                                            <span className="text-[10px] text-gray-400 font-medium text-center">{t('listing.clickToUpload', 'Click to upload photos')}</span>
                                             <input
                                                 type="file" multiple className="hidden"
                                                 onChange={async (e) => {
@@ -621,13 +632,13 @@ const EditAdPage: React.FC = () => {
                                     type="button" variant="outline" onClick={handleBack}
                                     disabled={currentStep === 0 || isSubmitting} className="rounded-xl px-8"
                                 >
-                                    <ChevronLeft className="h-5 w-5 mr-2" /> Back
+                                    <ChevronLeft className="h-5 w-5 mr-2" /> {t('listing.back', 'Back')}
                                 </Button>
                                 <Button
                                     type="submit" className="rounded-xl px-12"
                                     isLoading={isSubmitting || updateMutation.isPending}
                                 >
-                                    {currentStep === steps.length - 1 ? 'Save Changes' : 'Continue'}
+                                    {currentStep === steps.length - 1 ? t('listing.saveChanges', 'Save Changes') : t('listing.next', 'Next')}
                                     <ChevronRight className="h-5 w-5 ml-2" />
                                 </Button>
                             </div>

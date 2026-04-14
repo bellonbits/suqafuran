@@ -1,11 +1,15 @@
 import React from 'react';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { Shield, Eye, Lock, Users, Trash2, Mail } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
-const SECTIONS = [
+export const PrivacyPolicyPage: React.FC = () => {
+    const { t } = useTranslation();
+
+    const SECTIONS = [
     {
         icon: Eye,
-        title: 'Information We Collect',
+        title: t('privacy.dataCollection', 'Information We Collect'),
         content: [
             'Account information: name, email address, phone number, and profile photo when you register.',
             'Listing data: titles, descriptions, prices, images, and location you provide when posting ads.',
@@ -16,7 +20,7 @@ const SECTIONS = [
     },
     {
         icon: Lock,
-        title: 'How We Use Your Information',
+        title: t('privacy.howWeUse', 'How We Use Your Information'),
         content: [
             'To create and manage your account, authenticate logins, and keep your account secure.',
             'To display your listings to potential buyers across Somalia and Africa.',
@@ -28,7 +32,7 @@ const SECTIONS = [
     },
     {
         icon: Users,
-        title: 'Information We Share',
+        title: t('privacy.sharing', 'Information We Share'),
         content: [
             'Your public listing details (title, price, location, images) are visible to all users.',
             'Your display name and general location are shown on your seller profile.',
@@ -39,7 +43,7 @@ const SECTIONS = [
     },
     {
         icon: Shield,
-        title: 'Data Security',
+        title: t('privacy.security', 'Data Security'),
         content: [
             'All data is transmitted over HTTPS with TLS encryption.',
             'Passwords are hashed using industry-standard algorithms and never stored in plain text.',
@@ -50,7 +54,7 @@ const SECTIONS = [
     },
     {
         icon: Trash2,
-        title: 'Your Rights & Choices',
+        title: t('privacy.yourRights', 'Your Rights & Choices'),
         content: [
             'Access: You may request a copy of the personal data we hold about you at any time.',
             'Correction: You can update your profile information directly from your account settings.',
@@ -61,7 +65,7 @@ const SECTIONS = [
     },
     {
         icon: Mail,
-        title: 'Cookies & Tracking',
+        title: t('privacy.cookies', 'Cookies & Tracking'),
         content: [
             'We use essential cookies to keep you logged in and maintain your session.',
             'Analytics cookies help us understand how users navigate the platform (aggregated, anonymised data).',
@@ -69,9 +73,8 @@ const SECTIONS = [
             'You can disable non-essential cookies in your browser settings at any time.',
         ],
     },
-];
+    ];
 
-export const PrivacyPolicyPage: React.FC = () => {
     return (
         <PublicLayout>
             {/* Hero */}
@@ -88,11 +91,10 @@ export const PrivacyPolicyPage: React.FC = () => {
                     <Shield size={32} color="white" />
                 </div>
                 <h1 style={{ color: 'white', fontSize: 28, fontWeight: 800, margin: 0 }}>
-                    Privacy Policy
+                    {t('privacy.title', 'Privacy Policy')}
                 </h1>
                 <p style={{ color: 'rgba(255,255,255,0.8)', marginTop: 10, fontSize: 15, maxWidth: 540, margin: '10px auto 0' }}>
-                    We respect your privacy and are committed to protecting your personal data.
-                    This policy explains how Suqafuran collects, uses, and safeguards your information.
+                    {t('privacy.subtitle', 'We respect your privacy and are committed to protecting your personal data. This policy explains how Suqafuran collects, uses, and safeguards your information.')}
                 </p>
                 <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13, marginTop: 16 }}>
                     Last updated: March 2026
@@ -159,7 +161,7 @@ export const PrivacyPolicyPage: React.FC = () => {
                     border: '1px solid #e2e8f0',
                 }}>
                     <h2 style={{ fontSize: 17, fontWeight: 700, color: '#0f172a', marginTop: 0, marginBottom: 10 }}>
-                        Children's Privacy
+                        {t('privacy.childrenPrivacy', "Children's Privacy")}
                     </h2>
                     <p style={{ fontSize: 14, color: '#374151', margin: 0, lineHeight: 1.65 }}>
                         Suqafuran is not intended for children under the age of 13. We do not knowingly collect
@@ -176,7 +178,7 @@ export const PrivacyPolicyPage: React.FC = () => {
                     border: '1px solid #e2e8f0',
                 }}>
                     <h2 style={{ fontSize: 17, fontWeight: 700, color: '#0f172a', marginTop: 0, marginBottom: 10 }}>
-                        Changes to This Policy
+                        {t('privacy.changesToPolicy', 'Changes to This Policy')}
                     </h2>
                     <p style={{ fontSize: 14, color: '#374151', margin: 0, lineHeight: 1.65 }}>
                         We may update this Privacy Policy from time to time. We will notify you of significant changes
@@ -194,11 +196,10 @@ export const PrivacyPolicyPage: React.FC = () => {
                 }}>
                     <Mail size={28} style={{ marginBottom: 12, opacity: 0.9 }} />
                     <h3 style={{ fontSize: 17, fontWeight: 700, margin: '0 0 8px' }}>
-                        Questions about your data?
+                        {t('privacy.questionsTitle', 'Questions about your data?')}
                     </h3>
                     <p style={{ fontSize: 14, opacity: 0.85, margin: '0 0 16px', lineHeight: 1.6 }}>
-                        If you have any questions, requests, or concerns about this Privacy Policy or how
-                        we handle your personal data, please reach out to us.
+                        {t('privacy.questionsDesc', 'If you have any questions, requests, or concerns about this Privacy Policy or how we handle your personal data, please reach out to us.')}
                     </p>
                     <a
                         href="mailto:privacy@suqafuran.com"

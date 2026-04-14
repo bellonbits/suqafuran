@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useLanguageField } from '../hooks/useLanguageField';
@@ -19,6 +19,11 @@ export const CategoryDirectory: React.FC<CategoryDirectoryProps> = ({ categories
     const [activeIdx, setActiveIdx] = useState<number | null>(null);
     // Level 2: hovered subcategory index (null = hidden)
     const [activeSubIdx, setActiveSubIdx] = useState<number | null>(null);
+
+    // Track flyout Y position so panels appear next to the hovered item
+    const [flyoutY, setFlyoutY] = useState(0);
+    const [subFlyoutY, setSubFlyoutY] = useState(0);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     if (!categories || categories.length === 0) return null;
 
@@ -46,6 +51,7 @@ export const CategoryDirectory: React.FC<CategoryDirectoryProps> = ({ categories
         <>
             {/* ── Desktop: multi-level flyout ── */}
             <div
+                ref={containerRef}
                 className="hidden md:block relative"
                 onMouseLeave={handleMouseLeave}
             >
@@ -65,9 +71,14 @@ export const CategoryDirectory: React.FC<CategoryDirectoryProps> = ({ categories
                         return (
                             <button
                                 key={cat.id}
-                                onMouseEnter={() => {
+                                onMouseEnter={(e) => {
                                     setActiveIdx(hasSubcats ? idx : null);
                                     setActiveSubIdx(null);
+                                    if (containerRef.current) {
+                                        const containerRect = containerRef.current.getBoundingClientRect();
+                                        const btnRect = e.currentTarget.getBoundingClientRect();
+                                        setFlyoutY(btnRect.top - containerRect.top);
+                                    }
                                 }}
                                 onClick={() => goToCategory(cat.slug || cat.id)}
                                 className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all relative ${
@@ -99,7 +110,8 @@ export const CategoryDirectory: React.FC<CategoryDirectoryProps> = ({ categories
                 {/* Level 2 — subcategory flyout */}
                 {activeCategory && subcategories.length > 0 && (
                     <div
-                        className="absolute left-[300px] top-0 z-30 w-[280px] bg-white border border-gray-200 rounded-2xl shadow-xl overflow-y-auto max-h-[520px]"
+                        className="absolute left-[300px] z-30 w-[280px] bg-white border border-gray-200 rounded-2xl shadow-xl overflow-y-auto max-h-[520px]"
+                        style={{ top: flyoutY }}
                         onMouseEnter={() => {/* keep open */}}
                     >
                         <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-100 rounded-t-2xl">
@@ -120,7 +132,14 @@ export const CategoryDirectory: React.FC<CategoryDirectoryProps> = ({ categories
                                 return (
                                     <button
                                         key={sub.id || subIdx}
-                                        onMouseEnter={() => setActiveSubIdx(hasSubSubs ? subIdx : null)}
+                                        onMouseEnter={(e) => {
+                                            setActiveSubIdx(hasSubSubs ? subIdx : null);
+                                            if (containerRef.current) {
+                                                const containerRect = containerRef.current.getBoundingClientRect();
+                                                const btnRect = e.currentTarget.getBoundingClientRect();
+                                                setSubFlyoutY(btnRect.top - containerRect.top);
+                                            }
+                                        }}
                                         onClick={() => goToSubcategory(activeCategory.slug || activeCategory.id, getField(sub, 'name'))}
                                         className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all ${
                                             isSubActive ? 'bg-primary-50' : 'hover:bg-gray-50'
@@ -149,7 +168,8 @@ export const CategoryDirectory: React.FC<CategoryDirectoryProps> = ({ categories
                 {/* Level 3 — sub-subcategory flyout */}
                 {activeSubcategory && subsubcategories.length > 0 && (
                     <div
-                        className="absolute left-[580px] top-0 z-40 w-[260px] bg-white border border-gray-200 rounded-2xl shadow-xl overflow-y-auto max-h-[520px]"
+                        className="absolute left-[580px] z-40 w-[260px] bg-white border border-gray-200 rounded-2xl shadow-xl overflow-y-auto max-h-[520px]"
+                        style={{ top: subFlyoutY }}
                     >
                         <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-100 rounded-t-2xl">
                             <p className="text-[11px] font-extrabold text-gray-500 uppercase tracking-widest truncate">
