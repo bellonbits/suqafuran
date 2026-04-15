@@ -94,14 +94,20 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     </Link>
                 </div>
 
-                <div className="p-6 border-b border-gray-50 flex justify-between items-center md:hidden">
+                <div className="p-5 border-b border-gray-50 flex justify-center md:hidden">
                     <Logo size="md" />
-                    <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-400">
-                        <X className="h-5 w-5" />
-                    </button>
                 </div>
 
-                <div className="p-6 flex flex-col items-center gap-3 border-b border-gray-50 bg-white">
+                <div className="p-5 flex flex-col items-center gap-2 border-b border-gray-50 bg-white">
+                    {/* Close button — mobile only, top-right of sidebar */}
+                    <button
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="md:hidden absolute top-3 right-3 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 flex items-center justify-center text-gray-600 transition-colors z-10"
+                        aria-label="Close menu"
+                    >
+                        <X className="h-4 w-4 stroke-[2.5]" />
+                    </button>
+
                     <div className="w-20 h-20 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 font-bold border-2 border-primary-100 overflow-hidden shadow-sm">
                         {getAvatarUrl(user?.avatar_url) ? (
                             <img
@@ -115,10 +121,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     </div>
                     <div className="text-center w-full min-w-0">
                         <p className="text-base font-bold text-gray-900 truncate">{user?.full_name || 'User'}</p>
-                        <p className="text-xs text-primary-600 font-medium mt-0.5">{user?.phone || 'Add phone number'}</p>
+                        <p className="text-xs text-primary-600 font-medium mt-0.5">{user?.phone || t('auth.addPhone', 'Add phone number')}</p>
                     </div>
-                    <Link to="/settings" className="absolute top-4 right-4 text-gray-400 hover:text-primary-600 transition-colors">
-                        <Settings className="h-5 w-5" />
+                    {/* Settings — below profile info */}
+                    <Link
+                        to="/settings"
+                        className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-primary-600 bg-gray-50 hover:bg-primary-50 rounded-full px-3 py-1.5 transition-colors mt-1"
+                    >
+                        <Settings className="h-3.5 w-3.5" />
+                        {t('nav.settings', 'Settings')}
                     </Link>
                 </div>
 

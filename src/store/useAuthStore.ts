@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { nativeStorage } from './nativeStorage';
 import type { User } from '../types/auth';
 export type { User };
 
@@ -29,6 +30,9 @@ export const useAuthStore = create<AuthState>()(
         }),
         {
             name: 'suqafuran-auth',
+            // Use native NSUserDefaults/SharedPreferences on device,
+            // localStorage on web — so the session survives app restarts.
+            storage: createJSONStorage(() => nativeStorage),
         }
     )
 );

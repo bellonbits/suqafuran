@@ -29,13 +29,19 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      // 'prompt' — shows users a "New version available, refresh?" banner
-      // instead of silently serving old cached assets
-      registerType: 'prompt',
+      // 'autoUpdate' — new service worker installs and takes over immediately
+      // on next navigation after a deploy, without requiring a user prompt.
+      registerType: 'autoUpdate',
       includeAssets: ['suqafuran.svg'],
       workbox: {
-        // Don't let the service worker cache index.html
-        navigateFallbackDenylist: [],
+        // Activate new SW as soon as it installs — don't wait for old tabs to close
+        skipWaiting: true,
+        clientsClaim: true,
+        // Don't cache index.html inside the service worker — the .htaccess
+        // already prevents the browser from caching it, and the SW should
+        // always fetch a fresh copy from the network.
+        navigateFallback: null,
+        navigateFallbackDenylist: [/./],
         runtimeCaching: [],
       },
       manifest: {

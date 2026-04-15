@@ -6,17 +6,23 @@ import { PublicLayout } from '../layouts/PublicLayout';
 import { ProductCard } from '../components/ProductCard';
 import { listingService } from '../services/listingService';
 import {
-    Search, MapPin, TrendingUp, ShieldCheck, Loader2,
-    ChevronRight, ShoppingBag, ArrowRight, Zap
+    MapPin, TrendingUp, ShieldCheck, Loader2,
+    ChevronRight, ShoppingBag, ArrowRight, Zap, ChevronDown
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { LocationPickerModal } from '../components/LocationPickerModal';
 import { CategoryDirectory } from '../components/CategoryDirectory';
+import { SearchBar } from '../components/SearchBar';
+import { getCategoryIcon } from '../utils/categoryIcons';
+import { getImageUrl } from '../utils/imageUtils';
+import { useLanguageField } from '../hooks/useLanguageField';
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const { getField } = useLanguageField();
     const [isLocationOpen, setLocationOpen] = useState(false);
+    const [showAllCats, setShowAllCats] = useState(false);
     const [selectedLocation, setSelectedLocation] = useState('');
 
     const { data: categories } = useQuery({
@@ -66,26 +72,61 @@ const LandingPage: React.FC = () => {
                             </span>
                             <ChevronRight className="h-3 w-3 text-gray-400 rotate-90 shrink-0" />
                         </button>
-                        <button
-                            onClick={() => navigate('/search')}
-                            className="flex-1 min-w-[120px] flex items-center gap-2 bg-white/95 rounded-2xl px-4 h-11 shadow-md text-gray-400 active:scale-98 transition-transform"
-                        >
-                            <Search className="h-4 w-4 shrink-0 text-primary-400" />
-                            <span className="text-sm truncate">{t('nav.search')}</span>
-                        </button>
+                        <SearchBar variant="mobile" className="flex-1 min-w-[120px]" />
                     </div>
                 </div>
 
-                {/* Category Directory — Now visible as a grid */}
-                <div className="bg-white py-4 border-b border-gray-100">
-                    <div className="px-4 mb-4">
+                {/* Category chips — horizontal scrollable icon + name */}
+                <div className="bg-white pt-4 pb-2 border-b border-gray-100">
+                    <div className="px-4 mb-3 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                             <div className="w-1 h-5 rounded-full bg-primary-500" />
-                             <h2 className="text-[15px] font-extrabold text-gray-900">{t('listing.category')}</h2>
+                            <div className="w-1 h-5 rounded-full bg-primary-500" />
+                            <h2 className="text-[15px] font-extrabold text-gray-900">{t('listing.category')}</h2>
                         </div>
                     </div>
-                    <div className="px-4">
-                         <CategoryDirectory categories={displayCategories} />
+
+                    {/* Horizontal scroll row */}
+                    <div className="overflow-x-auto pb-2 scrollbar-none">
+                        <div className="flex gap-3 px-4" style={{ width: 'max-content' }}>
+                            {(showAllCats ? displayCategories : displayCategories.slice(0, 10)).map((cat) => {
+                                const Icon = getCategoryIcon(cat.icon_name || cat.slug);
+                                return (
+                                    <button
+                                        key={cat.id}
+                                        onClick={() => navigate(`/category/${cat.slug || cat.id}`)}
+                                        className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
+                                        style={{ minWidth: 64 }}
+                                    >
+                                        <div className="w-14 h-14 rounded-2xl bg-primary-50 border border-primary-100 flex items-center justify-center overflow-hidden shadow-sm">
+                                            {cat.image_url ? (
+                                                <img src={getImageUrl(cat.image_url)} alt="" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <Icon size={26} className="text-primary-500" />
+                                            )}
+                                        </div>
+                                        <span className="text-[10px] font-bold text-gray-700 text-center leading-tight max-w-[64px] truncate">
+                                            {getField(cat, 'name')}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+
+                            {/* "More" chip if > 10 categories */}
+                            {!showAllCats && displayCategories.length > 10 && (
+                                <button
+                                    onClick={() => setShowAllCats(true)}
+                                    className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
+                                    style={{ minWidth: 64 }}
+                                >
+                                    <div className="w-14 h-14 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center shadow-sm">
+                                        <ChevronDown size={22} className="text-gray-500" />
+                                    </div>
+                                    <span className="text-[10px] font-bold text-gray-500 text-center leading-tight">
+                                        {t('landing.more', 'More')}
+                                    </span>
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -200,7 +241,7 @@ const LandingPage: React.FC = () => {
                             {t('landing.heroTitle')}
                         </h1>
                         <div className="max-w-4xl w-full flex shadow-2xl rounded-2xl overflow-hidden border border-white/10">
-                            <div className="relative bg-white w-1/3 border-r border-gray-100">
+                            <div className="relative bg-white w-1/3 border-r border-gray-100 rounded-l-2xl overflow-hidden shrink-0">
                                 <button
                                     onClick={() => setLocationOpen(true)}
                                     className="w-full h-14 pl-4 pr-10 text-gray-700 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
@@ -209,16 +250,7 @@ const LandingPage: React.FC = () => {
                                     <MapPin className="ml-2 w-4 h-4 text-primary-500" />
                                 </button>
                             </div>
-                            <div className="flex-1 relative bg-white">
-                                <input
-                                    type="text"
-                                    placeholder={t('landing.searchPlaceholder')}
-                                    className="w-full h-14 pl-4 pr-14 text-gray-900 focus:outline-none placeholder:text-gray-400 font-medium"
-                                />
-                                <div className="absolute right-0 top-0 h-14 w-14 flex items-center justify-center text-gray-400">
-                                    <Search className="h-6 w-6" />
-                                </div>
-                            </div>
+                            <SearchBar variant="desktop" className="flex-1 min-w-0" />
                         </div>
                     </div>
                 </section>
