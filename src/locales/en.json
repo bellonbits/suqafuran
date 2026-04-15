@@ -1052,5 +1052,18 @@
     "Clothing": "Clothing",
     "Household": "Household",
     "Vehicle": "Vehicle"
+  },
+  "onboarding": {
+    "skip": "Skip",
+    "continue": "Continue",
+    "getStarted": "Get Started",
+    "noAccount": "Don't have an account?",
+    "register": "Register",
+    "slide1Title": "Discover Great\nDeals Near You",
+    "slide1Subtitle": "Browse thousands of listings — electronics, fashion, cars, furniture, and more.",
+    "slide2Title": "Sell Anything\nIn Minutes",
+    "slide2Subtitle": "Post an ad in under 2 minutes. Upload photos, set your price, get buyers.",
+    "slide3Title": "Safe, Verified\n& Trusted",
+    "slide3Subtitle": "Verified sellers, trusted ratings and buyer protection — so you can deal with confidence."
   }
 }

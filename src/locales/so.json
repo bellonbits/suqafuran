@@ -1081,5 +1081,18 @@
     "Clothing": "Dhar",
     "Household": "Alaabta Guriga",
     "Vehicle": "Gaari"
+  },
+  "onboarding": {
+    "skip": "Ka bood",
+    "continue": "Sii wad",
+    "getStarted": "Bilow",
+    "noAccount": "Akoon ma lihid?",
+    "register": "Is diiwaan geli",
+    "slide1Title": "Hel Xeryaale\nKuu Dhow",
+    "slide1Subtitle": "Dhawr kun oo xayeysiis ka raadi — korontada, moodada, baabuurta, alaabta guriga, iyo wax badan.",
+    "slide2Title": "Wax kasta\nDaqiiqado Ku Iib",
+    "slide2Subtitle": "Xayeysiis ku soo gali laba daqiiqo gudahood. Sawirro soo rar, qiime u dhig, iib samee.",
+    "slide3Title": "Ammaan, Xaqiijin\n& Aaminaad",
+    "slide3Subtitle": "Iibiyayaasha xaqiijsan, xigmadaha la aaminsan iyo ilaalinta iibsadaha — si aad xariir ku samaysid kalsooni."
   }
 }
