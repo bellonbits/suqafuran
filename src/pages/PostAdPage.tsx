@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -42,7 +42,7 @@ interface FormValues {
 
 const PostAdPage: React.FC = () => {
     const { t, i18n } = useTranslation();
-    const { user } = useAuthStore();
+    const { user, updateUser } = useAuthStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [form, setForm] = useState<FormValues>({
@@ -85,7 +85,20 @@ const PostAdPage: React.FC = () => {
         queryKey: ['verification-status'],
         queryFn: () => import('../services/api').then(m => m.default.get('/verifications/me').then(r => r.data)),
         enabled: !!user && !user.is_verified,
+        // Poll every 30s while pending so the gate lifts automatically when admin approves
+        refetchInterval: (query) => {
+            const status = query.state.data?.status;
+            return status === 'pending' ? 30_000 : false;
+        },
     });
+
+    // When the backend marks the verification approved, sync the auth store immediately
+    // so the user can post without needing to log out and back in
+    useEffect(() => {
+        if (verificationStatus?.status === 'approved' && user && !user.is_verified) {
+            updateUser({ is_verified: true });
+        }
+    }, [verificationStatus?.status]);
 
     const { data: categories = [], isLoading: catsLoading } = useQuery({
         queryKey: ['categories'],

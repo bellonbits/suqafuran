@@ -42,12 +42,12 @@ CATEGORIES = [
                 ("Fresh Fish", "Kalluun Daadir ah"),
                 ("Dried Fish", "Kalluun Engegan"),
                 ("Prawns", "Garnaalada"),
-                ("Squid", "Xoolaha Badda Kale"),
+                ("Squid", "Suqaarta Badda"),
             ]},
             {"name": "Milk & Dairy", "name_so": "Caanaha & Alaabtoodda", "subs": [
                 ("Fresh Milk", "Caano Daadir ah"),
                 ("Camel Milk", "Caano Geel"),
-                ("Yoghurt", "Yogurt (Caano La Qaniinay)"),
+                ("Yoghurt", "Caano Ciseysan"),
                 ("Cheese", "Buuro"),
                 ("Butter", "Subag"),
             ]},
@@ -62,11 +62,11 @@ CATEGORIES = [
                 ("Halwa", "Xalwo"),
                 ("Bur", "Bur"),
             ]},
-            {"name": "Spices & Condiments", "name_so": "Xawaashka & Kaydka", "subs": [
+            {"name": "Spices & Condiments", "name_so": "Xawaashka & Dhadhamiyeyaasha", "subs": [
                 ("Xawaash Mix", "Xawaash"),
                 ("Cumin", "Kamuun"),
                 ("Cardamom", "Hayl (Xawaash)"),
-                ("Chilli", "Filfil Geel"),
+                ("Chilli", "Basbaas"),
                 ("Salt", "Cusbo"),
             ]},
             {"name": "Beverages", "name_so": "Cabitaanaha", "subs": [
@@ -142,7 +142,7 @@ CATEGORIES = [
                 ("Mosquito Nets", "Keheddooyinka"),
             ]},
             {"name": "Home Decor", "name_so": "Qurxinta Guriga", "subs": [
-                ("Curtains", "Daahanka Albaabka"),
+                ("Curtains", "Daahanka Daaqadda"),
                 ("Rugs & Carpets", "Jaamalada & Kaarpadaha"),
                 ("Wall Art", "Sawirrada Darbiga"),
                 ("Mirrors", "Muraayad"),
@@ -206,7 +206,7 @@ CATEGORIES = [
                 ("OLED TVs", "TV OLED"),
                 ("TV Accessories", "Qalabka TV"),
             ]},
-            {"name": "Audio & Headphones", "name_so": "Codka & Dhegaha", "subs": [
+            {"name": "Audio & Headphones", "name_so": "Codka & Dhagahaynta", "subs": [
                 ("Bluetooth Speakers", "Cajalad Bluetooth"),
                 ("Headphones", "Dhegaha Weyn"),
                 ("Earphones", "Dhegaha Yaryar"),
@@ -258,7 +258,7 @@ CATEGORIES = [
                 ("Other Brands", "Summadaha Kale"),
             ]},
             {"name": "Motorcycles", "name_so": "Mootoorada", "subs": [
-                ("Dirt Bikes", "Baaskiil Ciidda"),
+                ("Dirt Bikes", "Mootoorada Ciidda"),
                 ("Scooters", "Skuuterrada"),
                 ("Sports Bikes", "Motooyinka Ciyaaraha"),
                 ("Delivery Bikes", "Mooto Gaadhsiinta"),
@@ -384,7 +384,7 @@ CATEGORIES = [
                 ("Office Space", "Meel Xafiis"),
                 ("Shops for Rent", "Dukaan Kiro"),
                 ("Warehouses", "Goleelayaasha"),
-                ("Event Halls", "Daawashada Munaasabadaha"),
+                ("Event Halls", "Xarumaha Munaasabadaha"),
             ]},
             {"name": "New Builds", "name_so": "Dhismo Cusub", "subs": [
                 ("New Apartments", "Falaat Cusub"),
@@ -472,7 +472,7 @@ CATEGORIES = [
                 ("Doctor Consultations", "La-talinta Dhakhtarka"),
                 ("Pharmacy", "Daawada"),
                 ("Dental Services", "Adeegyada Ilkaha"),
-                ("Physiotherapy", "Nadiifinta Jirka"),
+                ("Physiotherapy", "Daawaynta Jirka"),
                 ("Home Nursing", "Kalkaalinta Guriga"),
             ]},
             {"name": "Other Services", "name_so": "Adeegyada Kale", "subs": [
@@ -507,7 +507,7 @@ CATEGORIES = [
                 ("Doctors", "Dhakhtarada"),
                 ("Nurses", "Kalkaalisada"),
                 ("Pharmacists", "Khabiirrada Daawada"),
-                ("Lab Technicians", "Farsamaynta Shaybaadhka"),
+                ("Lab Technicians", "Farsamaynaha Shaybaadhka"),
                 ("Community Health Workers", "Shaqaalaha Caafimaadka Bulshada"),
             ]},
             {"name": "Sales & Marketing", "name_so": "Iibka & Suuqgeynta", "subs": [
@@ -521,13 +521,13 @@ CATEGORIES = [
                 ("Secretary", "Xoghaye"),
                 ("Office Manager", "Maamulaha Xafiiska"),
                 ("HR Officer", "Saraakiisha Shaqaalaha"),
-                ("Data Entry Clerk", "Gooni-u-gelinaha Xogta"),
+                ("Data Entry Clerk", "Gelinaha Xogta"),
             ]},
             {"name": "Construction & Trade", "name_so": "Dhismo & Ganacsiga", "subs": [
                 ("Electrician", "Takhniishiyaha Korontada"),
-                ("Plumber", "Farsamaynta Tuubooyinka"),
-                ("Mason", "Dhismaynta Dhagaxda"),
-                ("Carpenter", "Shaqada Khashab"),
+                ("Plumber", "Farsamayaha Tuubooyinka"),
+                ("Mason", "Dhismayaha Dhagaxda"),
+                ("Carpenter", "Nijaaraha"),
                 ("Painter", "Rinjiyaaha"),
             ]},
             {"name": "Driver & Transport", "name_so": "Darawalka & Gaadiidka", "subs": [
@@ -629,7 +629,7 @@ CATEGORIES = [
     },
     {
         "name": "Babies & Kids",
-        "name_so": "Carruurta & Ilmaha",
+        "name_so": "Dhallaanka & Carruurta",
         "slug": "babies-kids",
         "icon_name": "baby",
         "subcategories": [
@@ -677,8 +677,8 @@ CATEGORIES = [
         "subcategories": [
             {"name": "Sports Equipment", "name_so": "Qalabka Ciyaaraha", "subs": [
                 ("Football", "Kubbadda Cagta"),
-                ("Basketball", "Kubbadda Kubada"),
-                ("Volleyball", "Foolbaal"),
+                ("Basketball", "Basketbool"),
+                ("Volleyball", "Kubbadda Shabakada"),
                 ("Running Gear", "Qalabka Orodka"),
                 ("Gym Equipment", "Qalabka Jimicsiga"),
                 ("Swimming", "Dabaasha"),
@@ -699,7 +699,7 @@ CATEGORIES = [
             ]},
             {"name": "Art & Collectibles", "name_so": "Fanka & Ururinada", "subs": [
                 ("Paintings", "Sawirrada"),
-                ("Sculptures", "Muruqyada"),
+                ("Sculptures", "Sanamyada"),
                 ("Antiques", "Qadiimka"),
                 ("Handcrafts", "Gacmaha Shaqada"),
                 ("Photography", "Sawir Qaadis"),
@@ -709,7 +709,7 @@ CATEGORIES = [
                 ("Fishing", "Kalluun Dhacsiga"),
                 ("Collecting", "Ururinada"),
                 ("Travel Accessories", "Qalabka Socdaalka"),
-                ("Puzzle & Strategy", "Qaabka & Istiraatiijiyadda"),
+                ("Puzzle & Strategy", "Macaabyada & Xeelaha"),
             ]},
         ],
     },
@@ -749,7 +749,7 @@ CATEGORIES = [
             ]},
             {"name": "Other Commercial", "name_so": "Ganacsiga Kale", "subs": [
                 ("POS Systems", "Nidaamyada Lacag-bixinta"),
-                ("Barcode Scanners", "Iskankada Barkoodka"),
+                ("Barcode Scanners", "Qaadista Barkoodka"),
                 ("Cash Registers", "Reejistarka Lacagta"),
                 ("Display Shelves", "Rafoofka Muuqaalka"),
             ]},

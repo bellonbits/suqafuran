@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Webcam from 'react-webcam';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -9,6 +9,7 @@ import {
 import api from '../services/api';
 import { Button } from '../components/Button';
 import { cn } from '../utils/cn';
+import { useAuthStore } from '../store/useAuthStore';
 
 const DOCUMENT_TYPE_KEYS = [
     { value: 'national_id', tKey: 'verify.nationalId' },
@@ -20,6 +21,7 @@ const DOCUMENT_TYPE_KEYS = [
 const VerificationPage: React.FC = () => {
     const { t } = useTranslation();
     const queryClient = useQueryClient();
+    const { user, updateUser } = useAuthStore();
     const [selfieMode, setSelfieMode] = useState<'webcam' | 'upload'>('upload');
     const [selfieCapture, setSelfieCapture] = useState<string | null>(null);
     const [selfieFile, setSelfieFile] = useState<File | null>(null);
@@ -31,7 +33,19 @@ const VerificationPage: React.FC = () => {
     const { data: status, isLoading } = useQuery({
         queryKey: ['verification-status'],
         queryFn: () => api.get('/verifications/me').then((res: any) => res.data),
+        // Poll every 30s while pending so the page auto-updates when admin approves
+        refetchInterval: (query) => {
+            const s = query.state.data?.status;
+            return s === 'pending' ? 30_000 : false;
+        },
     });
+
+    // Sync auth store the moment backend marks the user approved
+    useEffect(() => {
+        if (status?.status === 'approved' && user && !user.is_verified) {
+            updateUser({ is_verified: true });
+        }
+    }, [status?.status]);
 
     const submitMutation = useMutation({
         mutationFn: async () => {
