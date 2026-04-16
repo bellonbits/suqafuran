@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-    Search, Plus, Heart, Home, MessageSquare, User, Bell,
+    Plus, Heart, Home, MessageSquare, User, Bell,
     Facebook, Twitter, Instagram, Youtube, ChevronDown, Zap,
     Phone, ShoppingBag, X
 } from 'lucide-react';
@@ -45,13 +45,7 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                     <Link to="/" className="shrink-0">
                         <Logo size="sm" />
                     </Link>
-                    <Link
-                        to="/search"
-                        className="flex-1 min-w-0 flex items-center gap-2 bg-white/50 border border-primary-600/10 rounded-2xl px-2 h-9"
-                    >
-                        <Search className="h-3.5 w-3.5 text-primary-700 shrink-0" />
-                        <span className="text-[12px] text-primary-700/80 truncate">{t('nav.search')}</span>
-                    </Link>
+                    <div className="flex-1" />
                     <div className="shrink-0">
                         <LanguageSwitcher compact light />
                     </div>
