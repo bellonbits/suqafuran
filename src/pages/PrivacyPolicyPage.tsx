@@ -67,10 +67,12 @@ export const PrivacyPolicyPage: React.FC = () => {
         icon: Mail,
         title: t('privacy.cookies', 'Cookies & Tracking'),
         content: [
-            'We use essential cookies to keep you logged in and maintain your session.',
-            'Analytics cookies help us understand how users navigate the platform (aggregated, anonymised data).',
-            'Google Translate uses its own cookies to remember your language preference.',
-            'You can disable non-essential cookies in your browser settings at any time.',
+            'We use cookies — small text files stored on your device — to make Suqafuran work and improve your experience.',
+            'Essential cookies: required for login sessions, security tokens, and core platform functionality. These cannot be turned off.',
+            'Preference cookies: remember your language choice (English or Somali) and display settings.',
+            'Analytics cookies: help us understand how users navigate the platform using aggregated, anonymised data. No personally identifiable information is shared with analytics providers.',
+            'When you first visit Suqafuran, a cookie notice will appear. Clicking "Accept" records your consent in your browser. You can clear this at any time by clearing your browser storage.',
+            'You can disable non-essential cookies in your browser or device settings at any time, though some features may not work as expected.',
         ],
     },
     ];

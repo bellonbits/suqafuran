@@ -28,6 +28,11 @@
     "whatsappSupport": "Caawimada WhatsApp",
     "payWith": "Ku Bixi"
   },
+  "cookie": {
+    "message": "Waxaan isticmaalnaa kuugiyaha (cookies) si aan u hagaajino khibradaada, u shaxayno waxyaabaha aad aragto oo aan u falanqayno sida aad u isticmaasho goobta.",
+    "learnMore": "Wax dheeraad ah",
+    "accept": "Aqbal"
+  },
   "landing": {
     "heroTitle": "Hel Heshiisyo Fiican Oo Kuu Dhow!",
     "heroSubtitle": "Hel heshiisyada ugu fiican deegaankaaga",
@@ -150,7 +155,27 @@
     "step1Title": "Tallaabada 1: Macluumaadka Aasaasiga & Luuqadda",
     "successTitle": "Xayeysiiska Si Guul ah Ayaa Loo Cusboonaysiiyay!",
     "successDesc": "Isbedeladaadu waa la keydsaday oo hadda waa firfircoon yihiin.",
-    "backToMyAds": "Xayeysiisyadayda ku Laabo"
+    "backToMyAds": "Xayeysiisyadayda ku Laabo",
+    "loading": "Xayeysiiska la keenayaa…",
+    "copyLink": "Xiriirka Koobiyee",
+    "seller": "Gadeeyaha",
+    "reportModalTitle": "Xayeysiiskan Soo Gudbi",
+    "reportModalDesc": "Noo sheeg waxa khaldan xayeysiiskan.",
+    "reportReasonLabel": "Sababta",
+    "reportReasonPlaceholder": "Sabab dooro…",
+    "reportDescLabel": "Faahfaahin dheeraad ah (ikhtiyaari)",
+    "reportDescPlaceholder": "Dhibaatada sharax…",
+    "reportSubmit": "Soo gudbi",
+    "reportCancel": "Jooji",
+    "reportSuccess": "Warbixintii la gudbiyey. Mahadsanid!",
+    "reportReasonSpam": "Spam ama been abuur",
+    "reportReasonFraud": "Khiyaano ama doob",
+    "reportReasonInappropriate": "Waxyaabaha aan habboonayn",
+    "reportReasonWrongCategory": "Qaybta khaldan",
+    "reportReasonAlreadySold": "Hore ayaa la iibiyey",
+    "reportReasonOther": "Kale",
+    "unavailable": "Lama heli karo",
+    "markUnavailableConfirm": "Ma rabtaa inaad xayeysiiskan ka dhigto mid aan la heli karin?"
   },
   "auth": {
     "login": "Gal",

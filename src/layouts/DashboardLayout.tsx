@@ -306,7 +306,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                         <div className="hidden md:block mr-2">
                             <LanguageSwitcher variant="pill" light={false} />
                         </div>
-                        <div className="flex items-center gap-1 md:gap-2">
+                        <div className="hidden md:flex items-center gap-1 md:gap-2">
                             <Link to="/favorites" className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-all" title="Saved ads">
                                 <Heart className="h-5 w-5" />
                             </Link>
@@ -332,7 +332,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             </div>
                         </div>
 
-                        <Link to="/post-ad">
+                        <Link to="/post-ad" className="hidden md:block">
                             <Button className="bg-orange-500 hover:bg-orange-600 text-white rounded-lg px-6 h-9 font-bold text-sm uppercase tracking-wide border-none shadow-sm">
                                 Sell
                             </Button>

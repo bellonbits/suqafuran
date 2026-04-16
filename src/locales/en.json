@@ -28,6 +28,11 @@
     "whatsappSupport": "WhatsApp Support",
     "payWith": "Pay With"
   },
+  "cookie": {
+    "message": "We use cookies to improve your experience, personalise content and analyse traffic.",
+    "learnMore": "Learn more",
+    "accept": "Accept"
+  },
   "landing": {
     "heroTitle": "Discover Great Deals Near You!",
     "heroSubtitle": "Find the best deals in your area",
@@ -145,7 +150,27 @@
     "step1Title": "Step 1: Basic Info & Language",
     "successTitle": "Ad Updated Successfully!",
     "successDesc": "Your changes have been saved and are now live.",
-    "backToMyAds": "Back to My Ads"
+    "backToMyAds": "Back to My Ads",
+    "loading": "Loading listing…",
+    "copyLink": "Copy link",
+    "seller": "Seller",
+    "reportModalTitle": "Report this ad",
+    "reportModalDesc": "Help us understand what's wrong with this ad.",
+    "reportReasonLabel": "Reason",
+    "reportReasonPlaceholder": "Select a reason…",
+    "reportDescLabel": "Additional details (optional)",
+    "reportDescPlaceholder": "Describe the issue…",
+    "reportSubmit": "Submit report",
+    "reportCancel": "Cancel",
+    "reportSuccess": "Report submitted. Thank you!",
+    "reportReasonSpam": "Spam or misleading",
+    "reportReasonFraud": "Fraudulent or scam",
+    "reportReasonInappropriate": "Inappropriate content",
+    "reportReasonWrongCategory": "Wrong category",
+    "reportReasonAlreadySold": "Already sold",
+    "reportReasonOther": "Other",
+    "unavailable": "Unavailable",
+    "markUnavailableConfirm": "Mark this listing as unavailable?"
   },
   "auth": {
     "login": "Login",

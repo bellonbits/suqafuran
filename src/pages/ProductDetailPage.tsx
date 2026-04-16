@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import api from '../services/api';
+import { useAuthStore } from '../store/useAuthStore';
 import { Spin } from 'antd';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { listingService } from '../services/listingService';
@@ -33,10 +35,33 @@ const ProductDetailPage: React.FC = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { getField } = useLanguageField();
+    const { user } = useAuthStore();
     const [showPhone, setShowPhone] = useState(false);
     const [activeImage, setActiveImage] = useState(0);
     const [showFullDesc, setShowFullDesc] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [reportReason, setReportReason] = useState('');
+    const [reportDesc, setReportDesc] = useState('');
+    const [markedUnavailable, setMarkedUnavailable] = useState(false);
     const queryClient = useQueryClient();
+
+    const markUnavailableMutation = useMutation({
+        mutationFn: (id: number) => api.patch(`/listings/${id}`, { is_active: false }),
+        onSuccess: () => {
+            setMarkedUnavailable(true);
+            queryClient.invalidateQueries({ queryKey: ['listing', listingId] });
+        },
+    });
+
+    const reportMutation = useMutation({
+        mutationFn: ({ listing_id, reason, description }: { listing_id: number; reason: string; description: string }) =>
+            api.post('/trust_ops/reports', { listing_id, reason, description }),
+        onSuccess: () => {
+            setShowReportModal(false);
+            setReportReason('');
+            setReportDesc('');
+        },
+    });
 
     // Use cached listing from the home/search page as instant placeholder
     const id = Number(listingId);
@@ -106,7 +131,7 @@ const ProductDetailPage: React.FC = () => {
                 }}>
                     <Spin size="large" />
                     <p style={{ color: '#94a3b8', fontSize: 14, fontWeight: 500, letterSpacing: 0.3 }}>
-                        Loading listing…
+                        {t('listing.loading')}
                     </p>
                 </div>
             </PublicLayout>
@@ -320,9 +345,9 @@ const ProductDetailPage: React.FC = () => {
                 {/* ── Chat with seller ── */}
                 {ad && (
                     <div className="bg-white mt-2 px-4 py-4 border-b border-gray-100">
-                        <h3 className="text-[13px] font-bold text-gray-900 mb-3">Chat with the seller</h3>
+                        <h3 className="text-[13px] font-bold text-gray-900 mb-3">{t('listing.chatWithSeller')}</h3>
                         <div className="flex flex-wrap gap-2 mb-3">
-                            {['Make an offer', 'Is this available?', 'Last price?'].map(msg => (
+                            {[t('listing.makeOfferMsg'), t('listing.isAvailable'), t('listing.lastPrice')].map(msg => (
                                 <Link
                                     key={msg}
                                     to={`/messages?user=${ad.owner_id}&listing=${ad.id}&msg=${encodeURIComponent(msg)}`}
@@ -404,7 +429,7 @@ const ProductDetailPage: React.FC = () => {
                                     : ad.owner?.full_name?.charAt(0) || 'S'}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="font-bold text-gray-900 text-sm truncate">{ad.owner?.full_name || 'Seller'}</p>
+                                <p className="font-bold text-gray-900 text-sm truncate">{ad.owner?.full_name || t('listing.seller')}</p>
                                 {ad.owner?.is_verified && (
                                     <div className="flex items-center gap-1 text-primary-600 mt-0.5">
                                         <ShieldCheck className="h-3 w-3" />
@@ -425,7 +450,10 @@ const ProductDetailPage: React.FC = () => {
                 {/* ── Report ── */}
                 {ad && (
                 <div className="bg-white mt-2 px-4 py-3 border-b border-gray-100">
-                    <button className="flex items-center gap-2 text-sm text-gray-400 hover:text-red-500 transition-colors">
+                    <button
+                        onClick={() => setShowReportModal(true)}
+                        className="flex items-center gap-2 text-sm text-gray-400 hover:text-red-500 transition-colors"
+                    >
                         <Flag className="h-4 w-4" />
                         {t('listing.reportAd')}
                     </button>
@@ -566,7 +594,7 @@ const ProductDetailPage: React.FC = () => {
                                 {/* Share row */}
                                 {ad && (
                                     <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
-                                        <span className="text-xs text-gray-400 font-semibold flex items-center gap-1"><Share2 className="h-3.5 w-3.5" /> Share:</span>
+                                        <span className="text-xs text-gray-400 font-semibold flex items-center gap-1"><Share2 className="h-3.5 w-3.5" /> {t('listing.share')}:</span>
                                         <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noopener noreferrer"
                                             className="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center hover:opacity-80 transition-opacity text-xs font-bold">f</a>
                                         <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(displayTitle || '')}`} target="_blank" rel="noopener noreferrer"
@@ -577,7 +605,7 @@ const ProductDetailPage: React.FC = () => {
                                         </a>
                                         <button onClick={() => navigator.clipboard?.writeText(window.location.href)}
                                             className="ml-auto text-xs text-gray-400 hover:text-primary-500 flex items-center gap-1 transition-colors">
-                                            <Share2 className="h-3.5 w-3.5" /> Copy link
+                                            <Share2 className="h-3.5 w-3.5" /> {t('listing.copyLink')}
                                         </button>
                                     </div>
                                 )}
@@ -617,9 +645,9 @@ const ProductDetailPage: React.FC = () => {
                                     {/* Make an offer */}
                                     {ad && (
                                         <div className="mt-4 pt-4 border-t border-gray-100">
-                                            <Link to={`/messages?user=${ad.owner_id}&listing=${ad.id}&msg=${encodeURIComponent('I would like to make an offer')}`}
+                                            <Link to={`/messages?user=${ad.owner_id}&listing=${ad.id}&msg=${encodeURIComponent(t('listing.makeOfferMsg'))}`}
                                                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-primary-400 text-primary-600 font-bold text-sm hover:bg-primary-50 transition-colors">
-                                                <MessageCircle className="h-4 w-4" /> Make an offer
+                                                <MessageCircle className="h-4 w-4" /> {t('listing.makeOfferMsg')}
                                             </Link>
                                         </div>
                                     )}
@@ -674,7 +702,7 @@ const ProductDetailPage: React.FC = () => {
                                                         : ad.owner?.full_name?.charAt(0) || 'S'}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="font-bold text-sm text-gray-900 group-hover:text-primary-600 transition-colors truncate">{ad.owner?.full_name || 'Seller'}</p>
+                                                    <p className="font-bold text-sm text-gray-900 group-hover:text-primary-600 transition-colors truncate">{ad.owner?.full_name || t('listing.seller')}</p>
                                                     {ad.owner?.is_verified ? (
                                                         <div className="flex items-center gap-1 mt-0.5 text-primary-600">
                                                             <ShieldCheck className="h-3.5 w-3.5" />
@@ -720,11 +748,12 @@ const ProductDetailPage: React.FC = () => {
                                                 </a>
 
                                                 {/* Request call back */}
-                                                <button
+                                                <a
+                                                    href={ad.owner?.phone ? `tel:${ad.owner.phone}` : undefined}
                                                     onClick={async () => { try { await interactionService.logInteraction(ad.id, InteractionType.CALL); } catch {} }}
                                                     className="w-full h-10 rounded-xl border border-gray-200 text-gray-500 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors">
                                                     <PhoneCall className="h-4 w-4" /> {t('listing.requestCallBack')}
-                                                </button>
+                                                </a>
                                             </>
                                         )}
                                     </div>
@@ -732,10 +761,24 @@ const ProductDetailPage: React.FC = () => {
                                     {/* Mark unavailable + Report */}
                                     {ad && (
                                         <div className="px-4 pb-4 flex gap-2">
-                                            <button className="flex-1 h-9 rounded-lg border border-gray-200 text-gray-400 hover:text-gray-600 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-gray-50 transition-colors">
-                                                <XCircle className="h-3.5 w-3.5" /> {t('listing.markUnavailable')}
-                                            </button>
-                                            <button className="flex-1 h-9 rounded-lg border border-gray-200 text-gray-400 hover:text-red-500 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-red-50 transition-colors">
+                                            {user?.id === ad.owner_id && (
+                                                <button
+                                                    onClick={() => {
+                                                        if (!markedUnavailable && window.confirm(t('listing.markUnavailableConfirm', 'Mark this listing as unavailable?'))) {
+                                                            markUnavailableMutation.mutate(ad.id);
+                                                        }
+                                                    }}
+                                                    disabled={markedUnavailable || markUnavailableMutation.isPending}
+                                                    className="flex-1 h-9 rounded-lg border border-gray-200 text-gray-400 hover:text-gray-600 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                                                >
+                                                    <XCircle className="h-3.5 w-3.5" />
+                                                    {markedUnavailable ? t('listing.unavailable', 'Unavailable') : t('listing.markUnavailable')}
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => setShowReportModal(true)}
+                                                className="flex-1 h-9 rounded-lg border border-gray-200 text-gray-400 hover:text-red-500 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-red-50 transition-colors"
+                                            >
                                                 <Flag className="h-3.5 w-3.5" /> {t('listing.reportAbuse')}
                                             </button>
                                         </div>
@@ -794,6 +837,97 @@ const ProductDetailPage: React.FC = () => {
                     )}
                 </div>
             </div>
+
+            {/* ══════════════════════════════════════════
+                REPORT MODAL
+            ══════════════════════════════════════════ */}
+            {showReportModal && (
+                <div
+                    className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+                    style={{ background: 'rgba(0,0,0,0.5)' }}
+                    onClick={(e) => { if (e.target === e.currentTarget) setShowReportModal(false); }}
+                >
+                    <div className="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl overflow-hidden shadow-2xl">
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                            <div className="flex items-center gap-2">
+                                <Flag className="h-5 w-5 text-red-500" />
+                                <h3 className="font-bold text-gray-900 text-base">{t('listing.reportModalTitle')}</h3>
+                            </div>
+                            <button
+                                onClick={() => setShowReportModal(false)}
+                                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                            >
+                                <XCircle className="h-4 w-4 text-gray-500" />
+                            </button>
+                        </div>
+
+                        {/* Body */}
+                        <div className="px-5 py-4 space-y-4">
+                            <p className="text-sm text-gray-500">{t('listing.reportModalDesc')}</p>
+
+                            {/* Reason select */}
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                                    {t('listing.reportReasonLabel')} <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    value={reportReason}
+                                    onChange={e => setReportReason(e.target.value)}
+                                    className="w-full h-10 px-3 border border-gray-200 rounded-xl text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-400"
+                                >
+                                    <option value="">{t('listing.reportReasonPlaceholder')}</option>
+                                    <option value="spam">{t('listing.reportReasonSpam')}</option>
+                                    <option value="fraud">{t('listing.reportReasonFraud')}</option>
+                                    <option value="inappropriate">{t('listing.reportReasonInappropriate')}</option>
+                                    <option value="wrong_category">{t('listing.reportReasonWrongCategory')}</option>
+                                    <option value="already_sold">{t('listing.reportReasonAlreadySold')}</option>
+                                    <option value="other">{t('listing.reportReasonOther')}</option>
+                                </select>
+                            </div>
+
+                            {/* Description */}
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                                    {t('listing.reportDescLabel')}
+                                </label>
+                                <textarea
+                                    value={reportDesc}
+                                    onChange={e => setReportDesc(e.target.value)}
+                                    placeholder={t('listing.reportDescPlaceholder')}
+                                    rows={3}
+                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-800 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-400"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="px-5 py-4 border-t border-gray-100 flex gap-2">
+                            <button
+                                onClick={() => setShowReportModal(false)}
+                                className="flex-1 h-11 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 transition-colors"
+                            >
+                                {t('listing.reportCancel')}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (!reportReason || !ad) return;
+                                    reportMutation.mutate({
+                                        listing_id: ad.id,
+                                        reason: reportReason,
+                                        description: reportDesc,
+                                    });
+                                }}
+                                disabled={!reportReason || reportMutation.isPending}
+                                className="flex-1 h-11 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                            >
+                                <Flag className="h-4 w-4" />
+                                {reportMutation.isPending ? '…' : t('listing.reportSubmit')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </PublicLayout>
     );
 };

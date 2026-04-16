@@ -12,6 +12,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SplashScreen } from './components/SplashScreen';
 import { OnboardingScreen } from './components/OnboardingScreen';
+import { CookieBanner } from './components/CookieBanner';
 import { Capacitor } from '@capacitor/core';
 
 const isNativePlatform = Capacitor.isNativePlatform();
@@ -99,6 +100,7 @@ const App: React.FC = () => {
         {phase === 'splash' && <SplashScreen onDone={handleSplashDone} />}
         {phase === 'onboarding' && <OnboardingScreen onDone={handleOnboardingDone} />}
         <ScrollToTop />
+        <CookieBanner />
         <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
