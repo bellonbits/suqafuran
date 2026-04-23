@@ -11,8 +11,6 @@ loadOverrides();
 import { registerSW } from 'virtual:pwa-register'
 import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style } from '@capacitor/status-bar'
-import { SplashScreen } from '@capacitor/splash-screen'
-
 registerSW({ immediate: true })
 
 if (Capacitor.isNativePlatform()) {
@@ -21,19 +19,8 @@ if (Capacitor.isNativePlatform()) {
   StatusBar.setBackgroundColor({ color: '#ffffff' })
 }
 
-const root = createRoot(document.getElementById('root')!)
-root.render(
+createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
   </StrictMode>,
 )
-
-if (Capacitor.isNativePlatform()) {
-  // Hide splash after React paints; 500ms fallback ensures it never gets stuck
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      SplashScreen.hide({ fadeOutDuration: 300 })
-    })
-  })
-  setTimeout(() => SplashScreen.hide({ fadeOutDuration: 300 }), 500)
-}

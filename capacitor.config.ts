@@ -19,11 +19,11 @@ const config: CapacitorConfig = {
       backgroundColor: '#7dcce9',
     },
     SplashScreen: {
-      launchShowDuration: 0,
-      launchAutoHide: false,
+      launchShowDuration: 1500,
+      launchAutoHide: true,
       backgroundColor: '#0ea5e9',
       showSpinner: false,
-      fadeOutDuration: 200,
+      fadeOutDuration: 300,
     },
   },
 };
