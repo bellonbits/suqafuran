@@ -76,8 +76,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onDone }) => {
       >
         {/* Logo on a frosted circle */}
         <div style={{
-          width: 96,
-          height: 96,
+          width: 120,
+          height: 120,
           borderRadius: '50%',
           background: 'rgba(255,255,255,0.22)',
           backdropFilter: 'blur(8px)',
@@ -88,9 +88,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onDone }) => {
           boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
         }}>
           <img
-            src="/suqafuran.svg"
+            src="/icon1.png"
             alt="Suqafuran"
-            style={{ height: 52, width: 'auto', filter: 'brightness(0) invert(1)' }}
+            style={{ height: 72, width: 'auto' }}
           />
         </div>
 

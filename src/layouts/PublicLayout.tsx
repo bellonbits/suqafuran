@@ -41,9 +41,9 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                     boxShadow: '0 1px 12px rgba(0,0,0,0.06)',
                 }}
             >
-                <div className="px-3 h-14 flex items-center justify-between gap-1.5 w-full">
+                <div className="px-3 h-16 flex items-center justify-between gap-1.5 w-full">
                     <Link to="/" className="shrink-0">
-                        <Logo size="sm" />
+                        <Logo size="md" />
                     </Link>
                     <div className="flex-1" />
                     <div className="shrink-0">
