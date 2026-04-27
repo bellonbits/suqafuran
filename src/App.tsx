@@ -13,9 +13,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SplashScreen } from './components/SplashScreen';
 import { OnboardingScreen } from './components/OnboardingScreen';
 import { CookieBanner } from './components/CookieBanner';
-import { Capacitor } from '@capacitor/core';
-
-const isNativePlatform = Capacitor.isNativePlatform();
 
 // Helper for named exports
 const lazyNamed = (importFn: () => Promise<any>, name: string) =>
@@ -83,8 +80,8 @@ type AppPhase = 'splash' | 'onboarding' | 'app';
 
 const App: React.FC = () => {
   const onboardingSeen = localStorage.getItem('suqafuran-onboarding-seen') === '1';
-  // Splash + onboarding only on Android/iOS — skip entirely on web browser
-  const [phase, setPhase] = useState<AppPhase>(isNativePlatform ? 'splash' : 'app');
+  // Show splash on all platforms (web + native)
+  const [phase, setPhase] = useState<AppPhase>('splash');
 
   const handleSplashDone = useCallback(() => {
     setPhase(onboardingSeen ? 'app' : 'onboarding');

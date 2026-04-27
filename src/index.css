@@ -7,7 +7,6 @@ html, body, #root {
   overflow-x: hidden;
   position: relative;
   width: 100%;
-  background-color: #0ea5e9;
 }
 
 .safe-top {
