@@ -29,9 +29,10 @@
     "payWith": "Pay With"
   },
   "cookie": {
+    "title": "We use cookies",
     "message": "We use cookies to improve your experience, personalise content and analyse traffic.",
     "learnMore": "Learn more",
-    "accept": "Accept"
+    "accept": "Accept & Continue"
   },
   "landing": {
     "heroTitle": "Discover Great Deals Near You!",

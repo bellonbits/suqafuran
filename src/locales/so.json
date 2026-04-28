@@ -29,9 +29,10 @@
     "payWith": "Ku Bixi"
   },
   "cookie": {
+    "title": "Waxaan isticmaalnaa kuugiyaha",
     "message": "Waxaan isticmaalnaa kuugiyaha (cookies) si aan u hagaajino khibradaada, u shaxayno waxyaabaha aad aragto oo aan u falanqayno sida aad u isticmaasho goobta.",
     "learnMore": "Wax dheeraad ah",
-    "accept": "Aqbal"
+    "accept": "Aqbal & Sii Wad"
   },
   "landing": {
     "heroTitle": "Hel Heshiisyo Fiican Oo Kuu Dhow!",

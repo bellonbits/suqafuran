@@ -13,6 +13,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SplashScreen } from './components/SplashScreen';
 import { OnboardingScreen } from './components/OnboardingScreen';
 import { CookieBanner } from './components/CookieBanner';
+import { Capacitor } from '@capacitor/core';
+import { useCurrencyStore } from './store/useCurrencyStore';
+import { detectCurrencyFromIP } from './utils/detectCurrency';
+
+const isNative = Capacitor.isNativePlatform();
 
 // Helper for named exports
 const lazyNamed = (importFn: () => Promise<any>, name: string) =>
@@ -80,11 +85,23 @@ type AppPhase = 'splash' | 'onboarding' | 'app';
 
 const App: React.FC = () => {
   const onboardingSeen = localStorage.getItem('suqafuran-onboarding-seen') === '1';
-  // Show splash on all platforms (web + native)
   const [phase, setPhase] = useState<AppPhase>('splash');
+  const { autoDetected, setAutoDetected, setCurrency } = useCurrencyStore();
+
+  useEffect(() => {
+    if (autoDetected) return;
+    detectCurrencyFromIP().then(currency => {
+      setCurrency(currency);
+      setAutoDetected(true);
+    });
+  }, []);
 
   const handleSplashDone = useCallback(() => {
-    setPhase(onboardingSeen ? 'app' : 'onboarding');
+    if (isNative && !onboardingSeen) {
+      setPhase('onboarding');
+    } else {
+      setPhase('app');
+    }
   }, [onboardingSeen]);
 
   const handleOnboardingDone = useCallback(() => {

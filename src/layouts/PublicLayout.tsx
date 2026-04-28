@@ -240,7 +240,7 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                                 <li><Link to="/safety" className="hover:opacity-70">{t('footer.safetyTips')}</Link></li>
                                 <li><Link to="/privacy" className="hover:opacity-70">{t('footer.privacy')}</Link></li>
                                 <li>
-                                    <a href="https://wa.me/252615000000" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:opacity-70">
+                                    <a href="https://wa.me/252612958679" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:opacity-70">
                                         <Phone className="h-3.5 w-3.5" />
                                         {t('footer.whatsappSupport')}
                                     </a>
@@ -296,7 +296,7 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                         <X className="h-3 w-3 stroke-[3]" />
                     </button>
                     <a
-                        href="https://wa.me/252615000000"
+                        href="https://wa.me/252612958679"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="block w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 active:scale-95"

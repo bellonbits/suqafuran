@@ -51,7 +51,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const secondaryItems = [
         { labelKey: 'dashboard.proSales', label: 'Pro Sales', icon: TrendingUp, path: '/pro-sales' },
         { labelKey: 'dashboard.premiumServices', label: 'Premium Services', icon: Shield, path: '/premium' },
-        { labelKey: 'dashboard.myBalance', label: 'My Balance', icon: Wallet, path: '/wallet', detail: user?.wallet?.balance ? `KSh ${user.wallet.balance.toLocaleString()}` : 'KSh 0' },
+        { labelKey: 'dashboard.myBalance', label: 'My Balance', icon: Wallet, path: '/wallet', detail: user?.wallet?.balance ? `${user.wallet.balance.toLocaleString()} tokens` : '0 tokens' },
         { labelKey: 'dashboard.followers', label: 'Followers', icon: Users, path: '/followers' },
         { labelKey: 'dashboard.requestHelp', label: 'Request help', icon: HelpCircle, path: '/help' },
         { labelKey: 'dashboard.faq', label: 'FAQ', icon: HelpCircle, path: '/help' },

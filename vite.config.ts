@@ -32,7 +32,7 @@ export default defineConfig({
       // 'autoUpdate' — new service worker installs and takes over immediately
       // on next navigation after a deploy, without requiring a user prompt.
       registerType: 'autoUpdate',
-      includeAssets: ['suqafuran.svg'],
+      includeAssets: ['logo.png', 'pwa-icon-192.png', 'pwa-icon-512.png'],
       workbox: {
         // Activate new SW as soon as it installs — don't wait for old tabs to close
         skipWaiting: true,
@@ -53,9 +53,15 @@ export default defineConfig({
         display: 'standalone',
         icons: [
           {
-            src: '/suqafuran.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
+            src: '/pwa-icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any maskable'
+          },
+          {
+            src: '/pwa-icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
             purpose: 'any maskable'
           }
         ]

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Heart, MapPin, ShieldCheck, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import { getImageUrl } from '../utils/imageUtils';
 import { useCurrencyStore } from '../store/useCurrencyStore';
 import { formatConvertedPrice } from '../utils/currencyUtils';
 import { listingService } from '../services/listingService';
+import { translateSingle } from '../services/translateService';
 
 interface ProductCardProps {
     id: string;
@@ -44,9 +45,21 @@ const ProductCard = React.memo(function ProductCard({
     const { t, i18n } = useTranslation();
     const queryClient = useQueryClient();
     const [liked, setLiked] = useState(false);
-    
-    // Prioritize Somali if language is set to 'so'
-    const displayTitle = i18n.language === 'so' ? (title_so || title_en) : title_en;
+    const [autoTitle, setAutoTitle] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (i18n.language !== 'so' || title_so) {
+            setAutoTitle(null);
+            return;
+        }
+        let cancelled = false;
+        translateSingle(title_en, 'so')
+            .then(result => { if (!cancelled) setAutoTitle(result); })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [i18n.language, title_en, title_so]);
+
+    const displayTitle = autoTitle ?? (i18n.language === 'so' ? (title_so || title_en) : title_en);
 
     const prefetch = () => {
         queryClient.prefetchQuery({

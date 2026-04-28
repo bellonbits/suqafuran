@@ -1,22 +1,27 @@
 import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { authService } from '../services/authService';
 import { getImageUrl } from '../utils/imageUtils';
 import { listingService } from '../services/listingService';
+import { followsService } from '../services/followsService';
 import { ProductCard } from '../components/ProductCard';
 import { Button } from '../components/Button';
 import {
     ShieldCheck, MapPin, Clock, Phone,
-    Share2, Flag, Loader2, ChevronLeft
+    Share2, Flag, Loader2, ChevronLeft,
+    UserPlus, UserCheck, Users
 } from 'lucide-react';
 import type { Listing } from '../types/listing';
 import { useTranslation } from 'react-i18next';
+import { useAuthStore } from '../store/useAuthStore';
 
 const SellerProfilePage: React.FC = () => {
     const { t } = useTranslation();
     const { sellerId } = useParams<{ sellerId: string }>();
+    const { user: me } = useAuthStore();
+    const queryClient = useQueryClient();
 
     const { data: seller, isLoading: isSellerLoading } = useQuery({
         queryKey: ['seller', sellerId],
@@ -30,13 +35,38 @@ const SellerProfilePage: React.FC = () => {
         enabled: !!sellerId,
     });
 
+    const { data: followStats, isLoading: isStatsLoading } = useQuery({
+        queryKey: ['follow-stats', sellerId],
+        queryFn: () => followsService.getFollowStats(Number(sellerId)),
+        enabled: !!sellerId && !!me,
+    });
+
+    const followMutation = useMutation({
+        mutationFn: () => followsService.followUser(Number(sellerId)),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['follow-stats', sellerId] }),
+    });
+
+    const unfollowMutation = useMutation({
+        mutationFn: () => followsService.unfollowUser(Number(sellerId)),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['follow-stats', sellerId] }),
+    });
+
     useEffect(() => {
         if (sellerId) {
-            authService.trackProfileView(Number(sellerId)).catch(err => {
-                console.error('Failed to track profile view', err);
-            });
+            authService.trackProfileView(Number(sellerId)).catch(() => {});
         }
     }, [sellerId]);
+
+    const isOwnProfile = me?.id === Number(sellerId);
+    const isFollowing = followStats?.is_following ?? false;
+
+    const handleFollowToggle = () => {
+        if (isFollowing) {
+            unfollowMutation.mutate();
+        } else {
+            followMutation.mutate();
+        }
+    };
 
     if (isSellerLoading || isListingsLoading) {
         return (
@@ -93,12 +123,32 @@ const SellerProfilePage: React.FC = () => {
                                 </div>
                                 <h1 className="text-xl font-bold text-gray-900 mb-1">{seller.full_name}</h1>
 
-                                <div className="flex items-center gap-1.5 text-primary-600 mb-4">
+                                <div className="flex items-center gap-1.5 text-primary-600 mb-3">
                                     <ShieldCheck className="h-4 w-4 fill-primary-50" />
                                     <span className="text-xs font-bold uppercase tracking-wider">{t('sellerProfile.verifiedSeller', 'Verified Seller')}</span>
                                 </div>
 
-                                <div className="w-full space-y-3 pt-4 border-t border-gray-50">
+                                {/* Follower stats */}
+                                {!isStatsLoading && followStats && (
+                                    <div className="flex items-center gap-4 py-3 mb-3 border-y border-gray-100 w-full justify-center">
+                                        <div className="text-center">
+                                            <p className="text-lg font-bold text-gray-900">{followStats.followers_count}</p>
+                                            <p className="text-[10px] text-gray-500 uppercase tracking-wider">{t('sellerProfile.followers', 'Followers')}</p>
+                                        </div>
+                                        <div className="w-px h-8 bg-gray-100" />
+                                        <div className="text-center">
+                                            <p className="text-lg font-bold text-gray-900">{followStats.following_count}</p>
+                                            <p className="text-[10px] text-gray-500 uppercase tracking-wider">{t('sellerProfile.following', 'Following')}</p>
+                                        </div>
+                                        <div className="w-px h-8 bg-gray-100" />
+                                        <div className="text-center">
+                                            <p className="text-lg font-bold text-gray-900">{listings?.length ?? 0}</p>
+                                            <p className="text-[10px] text-gray-500 uppercase tracking-wider">{t('sellerProfile.ads', 'Ads')}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="w-full space-y-3 pt-2 border-t border-gray-50">
                                     <div className="flex items-center gap-2 text-sm text-gray-500">
                                         <Clock className="h-4 w-4" />
                                         <span>{t('sellerProfile.memberSince', 'Member since {{year}}', { year: 2024 })}</span>
@@ -114,7 +164,22 @@ const SellerProfilePage: React.FC = () => {
                                 </div>
 
                                 <div className="w-full mt-6 space-y-3">
-                                    <Button className="w-full gap-2">
+                                    {/* Follow / Unfollow button — only for logged-in non-own profiles */}
+                                    {me && !isOwnProfile && (
+                                        <Button
+                                            className="w-full gap-2"
+                                            variant={isFollowing ? 'secondary' : 'primary'}
+                                            onClick={handleFollowToggle}
+                                            disabled={followMutation.isPending || unfollowMutation.isPending}
+                                        >
+                                            {isFollowing ? (
+                                                <><UserCheck className="h-4 w-4" />{t('sellerProfile.following', 'Following')}</>
+                                            ) : (
+                                                <><UserPlus className="h-4 w-4" />{t('sellerProfile.follow', 'Follow')}</>
+                                            )}
+                                        </Button>
+                                    )}
+                                    <Button className="w-full gap-2" variant={me && !isOwnProfile ? 'secondary' : 'primary'}>
                                         <Phone className="h-4 w-4" />
                                         {t('sellerProfile.callSeller', 'Call Seller')}
                                     </Button>
@@ -162,6 +227,7 @@ const SellerProfilePage: React.FC = () => {
                             </div>
                         ) : (
                             <div className="bg-gray-50 rounded-2xl p-12 text-center border-2 border-dashed border-gray-200">
+                                <Users className="h-16 w-16 text-gray-200 mx-auto mb-4" />
                                 <h3 className="text-lg font-bold text-gray-900 mb-2">{t('sellerProfile.noListings', 'No active listings')}</h3>
                                 <p className="text-gray-500">{t('sellerProfile.noListingsDesc', "This seller hasn't posted any ads yet.")}</p>
                             </div>
