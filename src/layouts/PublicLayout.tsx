@@ -43,7 +43,7 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
             >
                 <div className="px-3 h-16 flex items-center justify-between gap-1.5 w-full">
                     <Link to="/" className="shrink-0">
-                        <Logo size="md" />
+                        <Logo size="xs" />
                     </Link>
                     <div className="flex-1" />
                     <div className="shrink-0">

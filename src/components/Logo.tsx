@@ -3,12 +3,13 @@ import { cn } from '../utils/cn';
 
 interface LogoProps {
     className?: string;
-    size?: 'sm' | 'md' | 'lg';
+    size?: 'xs' | 'sm' | 'md' | 'lg';
     variant?: 'default' | 'white';
 }
 
 const Logo: React.FC<LogoProps> = ({ className, size = 'md', variant = 'default' }) => {
     const dimensions = {
+        xs: 'h-7',
         sm: 'h-8',
         md: 'h-11',
         lg: 'h-14',

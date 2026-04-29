@@ -9,7 +9,7 @@ import {
     PlusCircle, Bell, HelpCircle, Shield, Wallet, Folder,
     Menu, X, TrendingUp, MessageSquare, Zap, Target,
 
-    MessageCircle, Users, Globe
+    MessageCircle, Users, Globe, House
 } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { getAvatarUrl } from '../utils/imageUtils';
@@ -146,6 +146,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 </div>
 
                 <nav className="flex-1 p-4 pt-1 space-y-1 overflow-y-auto custom-scrollbar min-h-0">
+                    <Link to="/" className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all active:scale-95 mb-1">
+                        <House className="h-5 w-5 text-gray-400" />
+                        {t('nav.backToHome', 'Back to Home')}
+                    </Link>
                     {menuItems.map((item) => {
                         const isActive = location.pathname === item.path;
                         return (

@@ -32,7 +32,7 @@ export default defineConfig({
       // 'autoUpdate' — new service worker installs and takes over immediately
       // on next navigation after a deploy, without requiring a user prompt.
       registerType: 'autoUpdate',
-      includeAssets: ['logo.png', 'pwa-icon-192.png', 'pwa-icon-512.png'],
+      includeAssets: ['logo.png', 'favicon.ico', 'favicon.png', 'favicon-192.png', 'pwa-icon-192.png', 'pwa-icon-512.png'],
       workbox: {
         // Activate new SW as soon as it installs — don't wait for old tabs to close
         skipWaiting: true,
