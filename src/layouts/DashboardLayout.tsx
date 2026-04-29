@@ -62,7 +62,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             {/* Mobile Header */}
             <div className="md:hidden bg-white border-b border-gray-100 p-4 flex items-center justify-between sticky top-0 z-20">
                 <Link to="/">
-                    <Logo size="sm" />
+                    <Logo size="sm" className="brightness-0" />
                 </Link>
                 <div className="flex items-center gap-3">
                     <LanguageSwitcher variant="pill" light={false} />
@@ -90,12 +90,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             )}>
                 <div className="p-6 border-b border-gray-50 flex justify-center md:justify-start hidden md:flex">
                     <Link to="/">
-                        <Logo size="md" />
+                        <Logo size="md" className="brightness-0" />
                     </Link>
                 </div>
 
                 <div className="p-5 border-b border-gray-50 flex justify-center md:hidden">
-                    <Logo size="md" />
+                    <Logo size="md" className="brightness-0" />
                 </div>
 
                 <div className="p-5 flex flex-col items-center gap-2 border-b border-gray-50 bg-white">

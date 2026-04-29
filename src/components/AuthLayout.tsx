@@ -73,8 +73,8 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
                             <ArrowLeft className="h-4 w-4" />
                             {t('auth.backBtn')}
                         </Link>
-                        <Logo size="sm" />
-                        <div className="w-16" /> {/* spacer */}
+                        <Logo size="md" className="brightness-0" />
+                        <div className="w-16" />
                     </div>
                     <div className="space-y-3 text-center lg:text-left">
                         <h1 className="text-2xl font-bold tracking-tight text-gray-900">
