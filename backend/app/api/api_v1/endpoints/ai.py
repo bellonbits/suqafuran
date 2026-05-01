@@ -1,5 +1,6 @@
 from typing import Any
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, HTTPException
+from sqlalchemy.orm import Session
 from app.api import deps
 from app.models.user import User
 from app.services.ai_service import ai_service
