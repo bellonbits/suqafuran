@@ -2,9 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { ChevronRight, ChevronLeft, Plus, X, Shield, ShieldAlert, Clock, CheckCircle2, Loader2, Zap } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Plus, X, Shield, ShieldAlert, Clock, CheckCircle2, Loader2, Zap, Sparkles, Languages } from 'lucide-react';
 
 import { listingService } from '../services/listingService';
+import { aiService } from '../services/aiService';
 import { getImageUrl } from '../utils/imageUtils';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { LocationPickerModal } from '../components/LocationPickerModal';
@@ -38,6 +39,7 @@ interface FormValues {
     name: string;
     attributes: Record<string, any>;
     lang_available: 'en' | 'so' | 'both';
+    currency: 'USD' | 'KES' | 'SOS';
 }
 
 const PostAdPage: React.FC = () => {
@@ -63,6 +65,7 @@ const PostAdPage: React.FC = () => {
         name: user?.full_name || '',
         attributes: {},
         lang_available: (i18n.language as any) === 'so' ? 'so' : 'en',
+        currency: 'USD',
     });
     const [formTab, setFormTab] = useState<'en' | 'so'>((i18n.language as any) === 'so' ? 'so' : 'en');
 
@@ -77,28 +80,6 @@ const PostAdPage: React.FC = () => {
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const { getField } = useLanguageField();
-    const [createdListingId, setCreatedListingId] = useState<number | null>(null);
-    const [showLipanaModal, setShowLipanaModal] = useState(false);
-    const [createdListingTitle, setCreatedListingTitle] = useState('');
-
-    const { data: verificationStatus } = useQuery({
-        queryKey: ['verification-status'],
-        queryFn: () => import('../services/api').then(m => m.default.get('/verifications/me').then(r => r.data)),
-        enabled: !!user && !user.is_verified,
-        // Poll every 30s while pending so the gate lifts automatically when admin approves
-        refetchInterval: (query) => {
-            const status = query.state.data?.status;
-            return status === 'pending' ? 30_000 : false;
-        },
-    });
-
-    // When the backend marks the verification approved, sync the auth store immediately
-    // so the user can post without needing to log out and back in
-    useEffect(() => {
-        if (verificationStatus?.status === 'approved' && user && !user.is_verified) {
-            updateUser({ is_verified: true });
-        }
-    }, [verificationStatus?.status]);
 
     const { data: categories = [], isLoading: catsLoading } = useQuery({
         queryKey: ['categories'],
@@ -140,6 +121,139 @@ const PostAdPage: React.FC = () => {
             dynamicSchema = rawSchema.fields;
         }
     }
+
+    const [createdListingId, setCreatedListingId] = useState<number | null>(null);
+
+    const [showLipanaModal, setShowLipanaModal] = useState(false);
+    const [createdListingTitle, setCreatedListingTitle] = useState('');
+    const [aiLoading, setAiLoading] = useState<string | null>(null);
+    const [safetyReport, setSafetyReport] = useState<{risk: string, reasons: string[], recommendation: string} | null>(null);
+    const [priceRec, setPriceRec] = useState<{recommended_price: number, min_range: number, max_range: number, market_demand: string} | null>(null);
+
+    // Auto-categorization when title changes
+    useEffect(() => {
+        const title = form.title_en || form.title_so;
+        if (title.length < 5 || form.categoryId) return;
+
+        const timer = setTimeout(async () => {
+            try {
+                const res = await aiService.predictCategory(title);
+                if (res.category_slug && res.confidence > 0.6) {
+                    const matched = categories.find(c => c.slug === res.category_slug);
+                    if (matched) set('categoryId', matched.id);
+                }
+            } catch (e) {
+                console.error("Auto-cat failed", e);
+            }
+        }, 1500);
+
+        return () => clearTimeout(timer);
+    }, [form.title_en, form.title_so, categories]);
+
+    // Price recommendation when title or category changes
+    useEffect(() => {
+        const title = form.title_en || form.title_so;
+        if (title.length < 5 || !form.categoryId) return;
+
+        const timer = setTimeout(async () => {
+            try {
+                const res = await aiService.getPriceRecommendation({
+                    title_en: form.title_en,
+                    title_so: form.title_so,
+                    category: selectedCategory ? getField(selectedCategory, 'name') : 'General',
+                    condition: form.condition,
+                    currency: 'USD'
+                });
+                if (res.recommended_price) setPriceRec(res);
+            } catch (e) {
+                console.error("Price rec failed", e);
+            }
+        }, 2000);
+
+        return () => clearTimeout(timer);
+    }, [form.title_en, form.title_so, form.categoryId, form.condition]);
+
+    const checkSafety = async () => {
+        setAiLoading('safety');
+        try {
+            const report = await aiService.checkModeration({
+                title_en: form.title_en,
+                title_so: form.title_so,
+                description_en: form.description_en,
+                description_so: form.description_so,
+                price: form.price,
+                category: selectedCategory ? getField(selectedCategory, 'name') : 'General',
+                attributes: form.attributes
+            });
+            setSafetyReport(report);
+            return report;
+        } catch (err) {
+            console.error("Safety check failed", err);
+            return null;
+        } finally {
+            setAiLoading(null);
+        }
+    };
+
+    const handleAIAssist = async (type: 'title' | 'description' | 'translate', field: 'en' | 'so') => {
+        let input = '';
+        
+        if (type === 'translate') {
+            // If translating to EN, take SO as input. If translating to SO, take EN as input.
+            input = field === 'en' ? form.description_so : form.description_en;
+            if (!input) return;
+        } else {
+            input = field === 'en' 
+                ? (type === 'title' ? form.title_en : form.description_en)
+                : (type === 'title' ? form.title_so : form.description_so);
+            
+            if (!input && type !== 'description') return;
+        }
+
+        setAiLoading(`${type}_${field}`);
+        try {
+            const res = await aiService.generate({
+                type,
+                input: input || (type === 'description' ? `Generate description for ${form.title_en || form.title_so}` : ''),
+                target_language: field,
+                category: selectedCategory ? getField(selectedCategory, 'name') : undefined,
+                attributes: form.attributes
+            });
+            
+            if (res.output) {
+                if (type === 'title') {
+                    set(field === 'en' ? 'title_en' : 'title_so', res.output);
+                } else if (type === 'description' || type === 'translate') {
+                    set(field === 'en' ? 'description_en' : 'description_so', res.output);
+                }
+            }
+        } catch (err) {
+            console.error("AI Assist failed", err);
+        } finally {
+            setAiLoading(null);
+        }
+    };
+
+    const { data: verificationStatus } = useQuery({
+        queryKey: ['verification-status'],
+        queryFn: () => import('../services/api').then(m => m.default.get('/verifications/me').then(r => r.data)),
+        enabled: !!user && !user.is_verified,
+        // Poll every 30s while pending so the gate lifts automatically when admin approves
+        refetchInterval: (query) => {
+            const status = query.state.data?.status;
+            return status === 'pending' ? 30_000 : false;
+        },
+    });
+
+    // When the backend marks the verification approved, sync the auth store immediately
+    // so the user can post without needing to log out and back in
+    useEffect(() => {
+        if (verificationStatus?.status === 'approved' && user && !user.is_verified) {
+            updateUser({ is_verified: true });
+        }
+    }, [verificationStatus?.status]);
+
+
 
     const filteredCategories = categorySearch.trim()
         ? categories.filter(c =>
@@ -236,13 +350,24 @@ const PostAdPage: React.FC = () => {
         }
         setSubmitting(true);
         try {
+            // Optional: Run safety check automatically if risk is unknown or just before posting
+            if (!safetyReport || safetyReport.risk === 'low') {
+                const report = await checkSafety();
+                if (report && (report.risk === 'medium' || report.risk === 'high')) {
+                    setSubmitting(false);
+                    const el = document.getElementById('safety-warning');
+                    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return; // Stop and show warning
+                }
+            }
+
             const result = await listingService.createListing({
                 title_en: form.title_en,
                 title_so: form.title_so,
                 description_en: form.description_en,
                 description_so: form.description_so,
                 price: Number(form.price),
-                currency: 'USD',
+                currency: form.currency,
                 location: form.location,
                 category_id: form.categoryId!,
                 subcategory_id: form.subcategoryId ?? undefined,
@@ -317,41 +442,38 @@ const PostAdPage: React.FC = () => {
     };
 
     // ── Verification gate ──────────────────────────────────────────────────────
-    if (!user?.is_verified) {
+    const renderVerificationBanner = () => {
+        if (user?.is_verified) return null;
         const isPending = verificationStatus?.status === 'pending';
         return (
-            <div style={{ maxWidth: 480, margin: '60px auto', padding: '0 16px', textAlign: 'center' }}>
-                <div style={{
-                    width: 80, height: 80, borderRadius: '50%',
-                    background: isPending ? '#f4fbff' : '#fffbeb',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    margin: '0 auto 24px',
-                }}>
-                    {isPending
-                        ? <Clock size={36} color="var(--color-primary-500)" />
-                        : <ShieldAlert size={36} color="#f59e0b" />
-                    }
+            <div className={cn(
+                "mb-8 p-4 rounded-2xl flex items-center gap-4 border",
+                isPending ? "bg-blue-50 border-blue-100" : "bg-amber-50 border-amber-100"
+            )}>
+                <div className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
+                    isPending ? "bg-blue-100 text-blue-600" : "bg-amber-100 text-amber-600"
+                )}>
+                    {isPending ? <Clock size={20} /> : <ShieldAlert size={20} />}
                 </div>
-                <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>
-                    {isPending ? 'Verification Pending' : 'Verify Your Account First'}
-                </h2>
-                <p style={{ color: '#6b7280', marginBottom: 28, lineHeight: 1.6 }}>
-                    {isPending
-                        ? 'Your documents are under review (24-48 hours). You\'ll be able to post once approved.'
-                        : 'To keep Suqafuran safe, all sellers must verify their identity before posting ads.'}
-                </p>
+                <div className="flex-1">
+                    <h4 className={cn("text-sm font-bold", isPending ? "text-blue-900" : "text-amber-900")}>
+                        {isPending ? 'Verification in Progress' : 'Boost Your Trust Score'}
+                    </h4>
+                    <p className={cn("text-xs mt-0.5", isPending ? "text-blue-700" : "text-amber-700")}>
+                        {isPending 
+                            ? "Your account will have the 'Verified' badge once approved." 
+                            : "Unverified listings are seen as higher risk. Verify your identity for 10x more views."}
+                    </p>
+                </div>
                 {!isPending && (
-                    <Link to="/dashboard/verify" style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 8,
-                        background: 'var(--color-primary-500)', color: '#fff', padding: '12px 28px',
-                        borderRadius: 12, fontWeight: 600, textDecoration: 'none',
-                    }}>
-                        <Shield size={18} /> Verify My Account
+                    <Link to="/dashboard/verify" className="px-4 py-2 bg-amber-600 text-white text-xs font-bold rounded-xl whitespace-nowrap shadow-sm">
+                        Verify Now
                     </Link>
                 )}
             </div>
         );
-    }
+    };
 
     // ── Success state ──────────────────────────────────────────────────────────
     if (submitted) {
@@ -552,10 +674,58 @@ const PostAdPage: React.FC = () => {
             </div>
 
             <form onSubmit={step === 1 ? (e => e.preventDefault()) : handleSubmit} noValidate className="max-w-2xl mx-auto">
+                {renderVerificationBanner()}
                 
                 {/* ── STEP 1: Basic Information ────────────────────────── */}
                 <div style={{ display: step === 1 ? 'block' : 'none' }}>
                     <div className="bg-white rounded-md shadow-sm border-[1.5px] border-gray-200/60 p-5 mb-5">
+                        
+                        {/* AI Quick Fill */}
+                        <div className="bg-primary-50 rounded-2xl p-5 border border-primary-100 mb-8 shadow-sm">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2">
+                                    <Sparkles className="h-5 w-5 text-primary-500" />
+                                    <h3 className="text-sm font-bold text-primary-900 tracking-tight uppercase">Smart Shop Quick Listing</h3>
+                                </div>
+                                <span className="text-[10px] bg-primary-100 text-primary-700 px-2 py-0.5 rounded font-bold">BETA</span>
+                            </div>
+                            <div className="flex flex-col gap-3">
+                                <textarea 
+                                    placeholder="Type anything, e.g.: Selling a red Toyota Vitz 2015, clean, 850k KES, in Hargeisa..."
+                                    className="w-full p-4 text-sm bg-white border border-primary-200 rounded-xl outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 resize-none h-20 transition-all shadow-inner"
+                                    id="quickFillInput"
+                                />
+                                <button 
+                                    type="button"
+                                    onClick={async () => {
+                                        const input = (document.getElementById('quickFillInput') as HTMLTextAreaElement).value;
+                                        if (!input) return;
+                                        setUploading(true);
+                                        try {
+                                            const data = await aiService.parseListing(input);
+                                            if (data.title) set('title_en', data.title);
+                                            if (data.price) set('price', String(data.price));
+                                            if (data.currency) set('currency', data.currency as any);
+                                            if (data.location) set('location', data.location);
+                                            if (data.condition) set('condition', data.condition);
+                                            if (data.category_slug) {
+                                                const cat = categories.find(c => c.slug === data.category_slug);
+                                                if (cat) set('categoryId', cat.id);
+                                            }
+                                            // Show success toast or scroll
+                                        } finally {
+                                            setUploading(false);
+                                        }
+                                    }}
+                                    disabled={uploading}
+                                    className="w-full py-3 bg-primary-500 text-white rounded-xl font-bold text-sm hover:bg-primary-600 transition-all active:scale-[0.98] shadow-md shadow-primary-200 flex items-center justify-center gap-2"
+                                >
+                                    {uploading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                                    Auto-Fill Form
+                                </button>
+                            </div>
+                            <p className="text-[10px] text-primary-400 mt-3 font-medium text-center">Save time! Let our Smart Shop write your ad for you based on your description.</p>
+                        </div>
                         
                         {/* Language Selection */}
                         <div className="mb-8">
@@ -613,9 +783,35 @@ const PostAdPage: React.FC = () => {
                              </div>
 
                              {formTab === 'en' ? (
-                                renderFloatingInput('title_en', 'English Title (Required if EN selected)', form.title_en, v => set('title_en', v), errors.title_en, { maxLength: TITLE_MAX })
+                                <div className="space-y-2">
+                                    {renderFloatingInput('title_en', 'English Title (Required if EN selected)', form.title_en, v => set('title_en', v), errors.title_en, { maxLength: TITLE_MAX })}
+                                    <div className="flex justify-end">
+                                        <button 
+                                            type="button"
+                                            onClick={() => handleAIAssist('title', 'en')}
+                                            disabled={!!aiLoading}
+                                            className="text-[11px] flex items-center gap-1.5 text-primary-600 font-bold hover:bg-primary-50 px-2 py-1 rounded-md transition-all border border-primary-100"
+                                        >
+                                            {aiLoading === 'title_en' ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                                            {t('✨ Improve Title')}
+                                        </button>
+                                    </div>
+                                </div>
                              ) : (
-                                renderFloatingInput('title_so', 'Gali Magaca (Somali)', form.title_so, v => set('title_so', v), errors.title_so, { maxLength: TITLE_MAX })
+                                <div className="space-y-2">
+                                    {renderFloatingInput('title_so', 'Gali Magaca (Somali)', form.title_so, v => set('title_so', v), errors.title_so, { maxLength: TITLE_MAX })}
+                                    <div className="flex justify-end">
+                                        <button 
+                                            type="button"
+                                            onClick={() => handleAIAssist('title', 'so')}
+                                            disabled={!!aiLoading}
+                                            className="text-[11px] flex items-center gap-1.5 text-primary-600 font-bold hover:bg-primary-50 px-2 py-1 rounded-md transition-all border border-primary-100"
+                                        >
+                                            {aiLoading === 'title_so' ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                                            {t('✨ Improve Title')}
+                                        </button>
+                                    </div>
+                                </div>
                              )}
                         </div>
 
@@ -671,15 +867,26 @@ const PostAdPage: React.FC = () => {
                                 <input ref={fileInputRef} type="file" accept="image/jpeg,image/png" multiple className="hidden" onChange={e => handleImageUpload(e.target.files)} />
                                 
                                 {form.images.map((url, i) => (
-                                    <div key={i} className="relative w-[72px] h-[72px] flex-shrink-0">
+                                    <div key={i} className="relative w-[72px] h-[72px] flex-shrink-0 group">
                                         <img src={getImageUrl(url)} alt="" className="w-full h-full object-cover rounded-md border border-gray-200" />
                                         <button
                                             type="button"
                                             onClick={() => removeImage(i)}
-                                            className="absolute -top-1.5 -right-1.5 bg-red-500 w-5 h-5 rounded-full flex items-center justify-center shadow-md pb-[1px]"
+                                            className="absolute -top-1.5 -right-1.5 bg-red-500 w-5 h-5 rounded-full flex items-center justify-center shadow-md pb-[1px] z-10"
                                         >
                                             <X size={12} fill="white" color="white" />
                                         </button>
+                                        
+                                        {/* AI Info Badge */}
+                                        <div className="absolute inset-0 bg-primary-600/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+                                            <div className="bg-white/90 backdrop-blur-sm border border-primary-200 rounded px-1 py-0.5 flex flex-col items-center gap-0.5 shadow-lg scale-75">
+                                                <div className="flex items-center gap-1">
+                                                    <Sparkles size={8} className="text-primary-500" />
+                                                    <span className="text-[7px] font-bold text-primary-700 uppercase">Smart Verified</span>
+                                                </div>
+                                                <span className="text-[10px] font-black text-gray-900">92%</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -709,6 +916,34 @@ const PostAdPage: React.FC = () => {
                     
                     {/* CARD 1: Core Details */}
                     <div className="bg-white rounded-md shadow-sm border border-gray-200 p-5 mb-5">
+                        {/* Safety Warning Banner */}
+                        {safetyReport && (safetyReport.risk === 'medium' || safetyReport.risk === 'high') && (
+                            <div id="safety-warning" className={cn(
+                                "mb-6 p-4 rounded-lg border-2 flex gap-3",
+                                safetyReport.risk === 'high' ? "bg-red-50 border-red-200 text-red-900" : "bg-amber-50 border-amber-200 text-amber-900"
+                            )}>
+                                <ShieldAlert className={safetyReport.risk === 'high' ? "text-red-500" : "text-amber-500"} size={24} />
+                                <div>
+                                    <h4 className="font-bold text-sm mb-1">
+                                        {safetyReport.risk === 'high' ? "High Risk Detected" : "Safety Warning"}
+                                    </h4>
+                                    <ul className="text-[12px] list-disc pl-4 mb-2">
+                                        {safetyReport.reasons.map((r, i) => <li key={i}>{r}</li>)}
+                                    </ul>
+                                    <p className="text-[12px] font-medium italic opacity-80">
+                                        Recommendation: {safetyReport.recommendation}
+                                    </p>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setSafetyReport(null)}
+                                        className="mt-2 text-[11px] font-bold underline"
+                                    >
+                                        I understand, proceed anyway
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Subcategory */}
                         {selectedCategory?.subcategories && selectedCategory.subcategories.length > 0 && 
                             renderFloatingSelect('subcategory', 'Subcategory*', form.subcategoryId?.toString() || "", v => {
@@ -791,34 +1026,36 @@ const PostAdPage: React.FC = () => {
                                     className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm text-gray-900 focus:outline-none resize-y ${errors.description_so ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-primary-500'}`}
                                 />
                             )}
-                            <div className="flex justify-end mt-1">
-                                <span className="text-[10px] text-gray-400">
+                            <div className="flex justify-between items-center mt-2">
+                                <div className="flex gap-2">
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleAIAssist('description', formTab)}
+                                        disabled={!!aiLoading}
+                                        className="text-[11px] flex items-center gap-1.5 text-primary-600 font-bold hover:bg-primary-50 px-2 py-1 rounded-md transition-all border border-primary-100"
+                                    >
+                                        {aiLoading?.startsWith('description') ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                                        {t('✨ Improve Description')}
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleAIAssist('translate', formTab)}
+                                        disabled={!!aiLoading || (formTab === 'en' ? !form.description_so : !form.description_en)}
+                                        className="text-[11px] flex items-center gap-1.5 text-gray-600 font-bold hover:bg-gray-50 px-2 py-1 rounded-md transition-all border border-gray-200"
+                                    >
+                                        {aiLoading?.startsWith('translate') ? <Loader2 size={12} className="animate-spin" /> : <Languages size={12} />}
+                                        {t('🌍 Translate')}
+                                    </button>
+                                </div>
+                                <span className="text-[10px] text-gray-400 font-medium">
                                     {formTab === 'en' ? form.description_en.length : form.description_so.length} / 2000
                                 </span>
                             </div>
-                            {errors.description_en && formTab === 'en' && <p className="text-[11px] text-red-500 -mt-1">{errors.description_en}</p>}
-                            {errors.description_so && formTab === 'so' && <p className="text-[11px] text-red-500 -mt-1">{errors.description_so}</p>}
+                            {errors.description_en && formTab === 'en' && <p className="text-[11px] text-red-500 mt-1">{errors.description_en}</p>}
+                            {errors.description_so && formTab === 'so' && <p className="text-[11px] text-red-500 mt-1">{errors.description_so}</p>}
                         </div>
 
-                        {/* Price Input */}
-                        <div className="flex justify-center mb-4">
-                            <div className="w-full sm:w-2/3">
-                                <div className={`relative flex border rounded-md overflow-visible bg-white transition-colors outline-none focus-within:border-primary-500 ${errors.price ? 'border-red-500' : 'border-gray-300'}`}>
-                                    <div className="absolute left-2 top-0 -translate-y-1/2 bg-white px-1 text-[11px] text-gray-500 font-medium pointer-events-none z-10 hidden sm:block">
-                                        Price*
-                                    </div>
-                                    <span className="bg-gray-50 border-r border-gray-300 px-4 py-3 text-sm text-gray-700 font-bold whitespace-nowrap rounded-l-md">KSh</span>
-                                    <input
-                                        type="number"
-                                        value={form.price}
-                                        onChange={e => set('price', e.target.value)}
-                                        placeholder="Price*"
-                                        className="flex-1 w-full px-3 py-3 text-sm bg-transparent outline-none text-gray-900 font-medium peer sm:placeholder-transparent"
-                                    />
-                                </div>
-                                {errors.price && <p className="text-[11px] text-red-500 mt-1 pl-1">{errors.price}</p>}
-                            </div>
-                        </div>
+
 
                         {/* Bulk Price */}
                         <div className="flex justify-center mb-6">
@@ -870,6 +1107,63 @@ const PostAdPage: React.FC = () => {
                                     ))}
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Price & Currency Input */}
+                        <div className="mb-4">
+                             <div className="relative mb-4 flex gap-2">
+                                <div className="w-24 shrink-0 relative">
+                                    <select
+                                        id="currency"
+                                        value={form.currency}
+                                        onChange={e => set('currency', e.target.value as any)}
+                                        className="peer block w-full rounded-md border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 focus:outline-none focus:border-primary-500 appearance-none cursor-pointer"
+                                    >
+                                        <option value="USD">USD ($)</option>
+                                        <option value="KES">KES (KSh)</option>
+                                        <option value="SOS">SOS (Sh)</option>
+                                    </select>
+                                    <label htmlFor="currency" className="absolute left-2 top-0 -translate-y-1/2 bg-white px-1 text-[11px] text-gray-500 font-medium pointer-events-none transition-all peer-focus:text-primary-500">
+                                        Currency
+                                    </label>
+                                    <ChevronRight className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 rotate-90 pointer-events-none" />
+                                </div>
+                                
+                                <div className="flex-1 relative">
+                                    <input 
+                                        id="price"
+                                        type="number"
+                                        value={form.price}
+                                        onChange={e => set('price', e.target.value)}
+                                        placeholder=" "
+                                        className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm text-gray-900 focus:outline-none ${errors.price ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-primary-500'}`}
+                                    />
+                                    <label htmlFor="price" className={`absolute left-2 top-0 -translate-y-1/2 bg-white px-1 text-[11px] transition-all pointer-events-none peer-placeholder-shown:top-[14px] peer-placeholder-shown:-translate-y-0 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-[11px] ${errors.price ? 'text-red-500 peer-focus:text-red-500' : 'text-gray-500 peer-focus:text-primary-500'}`}>
+                                        Price ({form.currency})*
+                                    </label>
+                                </div>
+                             </div>
+                             {errors.price && <p className="text-[11px] text-red-500 mt-[-10px] mb-4">{errors.price}</p>}
+
+                             
+                             {/* AI Price Recommendation */}
+                             {priceRec && (
+                                <div className="mt-[-12px] mb-4 px-2 flex items-center justify-between">
+                                    <div className="flex items-center gap-1.5">
+                                        <Sparkles size={12} className="text-primary-500" />
+                                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-tight">
+                                            Smart Shop Recommended: <span className="text-gray-900">${priceRec.min_range} - ${priceRec.max_range}</span>
+                                        </span>
+                                    </div>
+                                    <div className={cn(
+                                        "px-2 py-0.5 rounded text-[10px] font-bold uppercase",
+                                        priceRec.market_demand === 'high' ? "bg-green-50 text-green-600" : 
+                                        priceRec.market_demand === 'medium' ? "bg-blue-50 text-blue-600" : "bg-gray-50 text-gray-500"
+                                    )}>
+                                        {priceRec.market_demand} Demand
+                                    </div>
+                                </div>
+                             )}
                         </div>
 
                         {/* Personal Details */}

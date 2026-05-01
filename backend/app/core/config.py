@@ -116,6 +116,10 @@ class Settings(BaseSettings):
     CLOUDINARY_API_KEY: str = ""
     CLOUDINARY_API_SECRET: str = ""
 
+    # GROQ (AI ASSISTANT)
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+
     @field_validator("ALLOWED_EXTENSIONS", mode="before")
     @classmethod
     def assemble_allowed_extensions(cls, v: Any) -> List[str]:

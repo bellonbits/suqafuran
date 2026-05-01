@@ -11,11 +11,12 @@ import { Button } from '../components/Button';
 import {
     ShieldCheck, MapPin, Clock, Phone,
     Share2, Flag, Loader2, ChevronLeft,
-    UserPlus, UserCheck, Users
+    UserPlus, UserCheck, Users, Sparkles, Award
 } from 'lucide-react';
 import type { Listing } from '../types/listing';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/useAuthStore';
+import { aiService } from '../services/aiService';
 
 const SellerProfilePage: React.FC = () => {
     const { t } = useTranslation();
@@ -39,6 +40,13 @@ const SellerProfilePage: React.FC = () => {
         queryKey: ['follow-stats', sellerId],
         queryFn: () => followsService.getFollowStats(Number(sellerId)),
         enabled: !!sellerId && !!me,
+    });
+
+    const { data: sellerScore } = useQuery({
+        queryKey: ['ai-seller-score', sellerId],
+        queryFn: () => aiService.getSellerScore(Number(sellerId)),
+        enabled: !!sellerId,
+        staleTime: 300_000,
     });
 
     const followMutation = useMutation({
@@ -128,6 +136,33 @@ const SellerProfilePage: React.FC = () => {
                                     <span className="text-xs font-bold uppercase tracking-wider">{t('sellerProfile.verifiedSeller', 'Verified Seller')}</span>
                                 </div>
 
+                                {/* Smart Shop Trust Score Card */}
+                                {sellerScore && (
+                                    <div className="bg-gradient-to-br from-primary-50 to-white border border-primary-100 rounded-3xl p-5 mb-4 shadow-sm">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-2">
+                                                <Sparkles className="h-4 w-4 text-primary-500" />
+                                                <span className="text-[10px] font-bold text-primary-700 uppercase tracking-tight">Smart Trust Score</span>
+                                            </div>
+                                            <span className="text-sm font-bold text-primary-600">{sellerScore.score}%</span>
+                                        </div>
+                                        <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden mb-2">
+                                            <div 
+                                                className="h-full bg-primary-500 rounded-full transition-all duration-1000" 
+                                                style={{ width: `${sellerScore.score}%` }}
+                                            />
+                                        </div>
+                                        <div className="flex gap-1 overflow-x-auto no-scrollbar">
+                                            {sellerScore.badges.map((badge: string, i: number) => (
+                                                <div key={i} className="flex items-center gap-1 px-1.5 py-0.5 bg-white border border-primary-100 rounded text-[9px] text-primary-600 font-medium whitespace-nowrap">
+                                                    <Award size={8} />
+                                                    {badge}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Follower stats */}
                                 {!isStatsLoading && followStats && (
                                     <div className="flex items-center gap-4 py-3 mb-3 border-y border-gray-100 w-full justify-center">
@@ -199,17 +234,6 @@ const SellerProfilePage: React.FC = () => {
 
                     {/* Listings Content */}
                     <div className="lg:col-span-3">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold text-gray-900">
-                                {t('sellerProfile.activeListings', 'Active Listings')}
-                                <span className="ml-2 text-sm font-normal text-gray-500">({listings?.length || 0})</span>
-                            </h2>
-                        </div>
-
-                        {listings && listings.length > 0 ? (
-                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-                                {listings.map((ad, idx) => (
-                                    <ProductCard
                                         key={ad.id}
                                         id={ad.id.toString()}
                                         title_en={ad.title_en}

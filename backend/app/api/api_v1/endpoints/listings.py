@@ -37,7 +37,16 @@ async def upload_image(
     
     try:
         url = await storage_service.upload_file(contents, filename)
-        return {"filename": filename, "url": url}
+        
+        # AI Image Intelligence
+        from app.services.ai_service import ai_service
+        analysis = ai_service.analyze_image(url)
+        
+        return {
+            "filename": filename, 
+            "url": url,
+            "analysis": analysis
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")
 
@@ -433,11 +442,6 @@ def create_listing(
     """
     Create new listing.
     """
-    if not current_user.is_verified:
-        raise HTTPException(
-            status_code=403,
-            detail="Your account must be verified before posting. Please submit your ID for verification."
-        )
     listing = crud_listing.create_listing(
         db=db, listing_in=listing_in, owner_id=current_user.id
     )

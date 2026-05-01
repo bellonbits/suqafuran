@@ -1,7 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/useAuthStore';
-import { PlusCircle, ShoppingBag, MessageCircle, Heart, TrendingUp, ShieldCheck } from 'lucide-react';
+import { PlusCircle, ShoppingBag, MessageCircle, Heart, TrendingUp, ShieldCheck, Sparkles } from 'lucide-react';
+import { aiService } from '../services/aiService';
 import { Button } from '../components/Button';
 import { Link } from 'react-router-dom';
 import { cn } from '../utils/cn';
@@ -16,6 +17,12 @@ const OverviewDashboard: React.FC = () => {
     const { data: realStats } = useQuery({
         queryKey: ['dashboard-stats'],
         queryFn: dashboardService.getStats,
+    });
+
+    const { data: demandData } = useQuery({
+        queryKey: ['ai-demand-insights'],
+        queryFn: () => aiService.getDemandInsights('Mogadishu', 'General'),
+        staleTime: 3600_000,
     });
 
     const stats = [
@@ -62,6 +69,46 @@ const OverviewDashboard: React.FC = () => {
                         <p className="text-xs font-bold uppercase tracking-widest text-gray-400">{stat.label}</p>
                     </div>
                 ))}
+            </div>
+
+            {/* AI Demand Insights */}
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-primary-50/50 to-white flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <Sparkles className="h-5 w-5 text-primary-500" />
+                        <h3 className="text-lg font-bold text-gray-900 tracking-tight">AI Demand Insights</h3>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-white border border-primary-100 rounded-full shadow-sm text-[10px] font-bold text-primary-600 uppercase tracking-wider">
+                        {demandData?.growth || '0%'} {t('overview.demandGrowth', 'Weekly Growth')}
+                    </div>
+                </div>
+                <div className="p-8 grid md:grid-cols-2 gap-10">
+                    <div className="space-y-6">
+                        <p className="text-sm text-gray-500 leading-relaxed italic">&ldquo;{demandData?.advice || 'Loading smart market insights...'}&rdquo;</p>
+                        <div className="flex items-center gap-6">
+                            <div className="text-center">
+                                <p className="text-3xl font-black text-primary-600">{demandData?.demand_score || 0}</p>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Demand Score</p>
+                            </div>
+                            <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                                <div 
+                                    className="h-full bg-gradient-to-r from-primary-400 to-primary-600 rounded-full transition-all duration-1000 shadow-lg" 
+                                    style={{ width: `${demandData?.demand_score || 0}%` }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Trending Keywords</p>
+                        <div className="flex flex-wrap gap-2">
+                            {demandData?.trending_keywords?.map((kw: string, i: number) => (
+                                <span key={i} className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-700 hover:bg-primary-50 hover:border-primary-100 hover:text-primary-600 transition-all cursor-default shadow-sm">
+                                    #{kw}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Action Center */}

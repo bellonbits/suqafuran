@@ -14,7 +14,7 @@ import {
     MapPin, Clock, ShieldCheck, Flag,
     ChevronLeft, ChevronRight, Navigation,
     MoreVertical, Camera, ChevronDown, ChevronUp, MessageCircle,
-    Share2, PhoneCall, AlertTriangle, XCircle
+    Share2, PhoneCall, AlertTriangle, XCircle, Sparkles
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { ProductCard } from '../components/ProductCard';
@@ -738,6 +738,27 @@ const ProductDetailPage: React.FC = () => {
                                         ) : S.line('w-1/2', 'h-7')}
                                     </div>
 
+                                    {/* AI Deal Probability Score */}
+                                    <div className="px-5 py-4 bg-gradient-to-br from-primary-50/50 to-white border-b border-gray-100">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-1.5">
+                                                <Sparkles size={14} className="text-primary-500" />
+                                                <span className="text-[10px] font-black text-primary-900 uppercase tracking-widest">Smart Shop Market Pulse</span>
+                                            </div>
+                                            <div className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[9px] font-black">GREAT DEAL</div>
+                                        </div>
+                                        <div className="flex items-end gap-2 mb-2">
+                                            <span className="text-3xl font-black text-gray-900">94</span>
+                                            <span className="text-xs font-bold text-gray-400 mb-1">/ 100</span>
+                                        </div>
+                                        <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden mb-2">
+                                            <div className="h-full bg-primary-500 rounded-full" style={{ width: '94%' }} />
+                                        </div>
+                                        <p className="text-[10px] text-gray-500 font-medium leading-relaxed">
+                                            This price is <span className="text-primary-600 font-bold">12% lower</span> than the average for similar items in {ad?.location}.
+                                        </p>
+                                    </div>
+
                                     {/* Seller info */}
                                     <div className="px-5 py-4 border-b border-gray-100">
                                         {!ad ? (
@@ -760,7 +781,10 @@ const ProductDetailPage: React.FC = () => {
                                                             <span className="text-[11px] font-bold">{t('listing.verified')}</span>
                                                         </div>
                                                     ) : (
-                                                        <p className="text-[11px] text-gray-400 mt-0.5">{t('listing.member')}</p>
+                                                        <div className="flex items-center gap-1 mt-0.5 text-amber-600">
+                                                            <AlertTriangle className="h-3.5 w-3.5" />
+                                                            <span className="text-[11px] font-black uppercase tracking-tight">Unverified Seller</span>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </Link>

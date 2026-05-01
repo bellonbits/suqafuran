@@ -139,10 +139,14 @@ const ProductCard = React.memo(function ProductCard({
                         {rating && (
                             <span className="text-[9px] font-bold text-amber-500">★ {rating.toFixed(1)}</span>
                         )}
-                        {isVerified && (
+                        {isVerified ? (
                             <span className="inline-flex items-center gap-0.5 bg-primary-50 text-primary-600 text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-primary-100">
                                 <ShieldCheck className="w-2 h-2" />
                                 {t('common.verifiedId')}
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-0.5 bg-gray-50 text-gray-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-gray-100">
+                                {t('common.unverified')}
                             </span>
                         )}
                     </div>

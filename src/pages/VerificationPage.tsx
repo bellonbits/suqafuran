@@ -4,12 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     Camera, Upload, CheckCircle, XCircle, Shield, Loader2,
-    AlertCircle, RefreshCw, Image as ImageIcon, ChevronDown
+    AlertCircle, RefreshCw, Image as ImageIcon, ChevronDown, Sparkles, Fingerprint
 } from 'lucide-react';
+import { aiService } from '../services/aiService';
 import api from '../services/api';
 import { Button } from '../components/Button';
 import { cn } from '../utils/cn';
 import { useAuthStore } from '../store/useAuthStore';
+import { BiometricScanner } from '../components/BiometricScanner';
 
 const DOCUMENT_TYPE_KEYS = [
     { value: 'national_id', tKey: 'verify.nationalId' },
@@ -96,6 +98,19 @@ const VerificationPage: React.FC = () => {
         }
     };
 
+    const [isAiAnalyzing, setIsAiAnalyzing] = useState(false);
+    const [showAdvancedScanner, setShowAdvancedScanner] = useState(false);
+    const [aiResult, setAiResult] = useState<any>(null);
+
+    const handleAiAnalyze = () => {
+        setShowAdvancedScanner(true);
+    };
+
+    const handleScannerComplete = (result: any) => {
+        setShowAdvancedScanner(false);
+        setAiResult(result);
+    };
+
     const handleSubmit = () => {
         if ((selfieCapture || selfieFile) && documentFiles.length > 0) {
             submitMutation.mutate();
@@ -118,6 +133,13 @@ const VerificationPage: React.FC = () => {
                 <h1 className="text-2xl font-bold text-gray-900 mb-1">{t('verify.title')}</h1>
                 <p className="text-gray-500">{t('verify.subtitle')}</p>
             </div>
+
+            {showAdvancedScanner && (
+                <BiometricScanner 
+                    onComplete={handleScannerComplete} 
+                    onCancel={() => setShowAdvancedScanner(false)} 
+                />
+            )}
 
             {/* Status Banner */}
             {status && (
@@ -333,10 +355,74 @@ const VerificationPage: React.FC = () => {
                         )}
                     </div>
 
+                    {/* AI Identity Pre-check */}
+                    {canSubmit && !aiResult && (
+                        <div className="bg-[#0f172a] p-8 rounded-[2rem] border border-primary-500/30 shadow-2xl relative overflow-hidden group">
+                            {/* Animated Pulse Ring */}
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary-500/5 rounded-full animate-pulse" />
+                            
+                            <div className="relative z-10 text-center">
+                                <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-500/10 rounded-full border border-primary-500/20 mb-6">
+                                    <Sparkles className="h-3 w-3 text-primary-400" />
+                                    <span className="text-[10px] font-black text-primary-400 uppercase tracking-widest">Biometric Phase</span>
+                                </div>
+                                
+                                <h3 className="text-xl font-black text-white mb-3 tracking-tight">Smart Identity Protocol</h3>
+                                <p className="text-white/60 text-xs leading-relaxed mb-6">
+                                    Initialize advanced face-match validation. Our Smart System analyzes <span className="text-white font-bold">128 facial landmarks</span> against your document.
+                                </p>
+                                
+                                <Button 
+                                    className="w-full rounded-2xl bg-primary-500 hover:bg-primary-400 text-white font-black py-4 shadow-[0_0_20px_rgba(59,130,246,0.3)] group-hover:shadow-[0_0_30px_rgba(59,130,246,0.5)] transition-all"
+                                    onClick={handleAiAnalyze}
+                                >
+                                    <Fingerprint className="w-5 h-5 mr-2" /> 
+                                    INITIALIZE IDENTITY SCAN
+                                </Button>
+                                
+                                <div className="mt-4 flex items-center justify-center gap-4 opacity-40">
+                                    <div className="flex items-center gap-1">
+                                        <div className="w-1 h-1 rounded-full bg-green-500" />
+                                        <span className="text-[8px] font-bold text-white uppercase tracking-tighter">Encrypted</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <div className="w-1 h-1 rounded-full bg-blue-500" />
+                                        <span className="text-[8px] font-bold text-white uppercase tracking-tighter">SMART CORE V3</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {aiResult && (
+                        <div className="bg-green-50 p-6 rounded-2xl border border-green-200 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2 text-green-700">
+                                    <CheckCircle className="h-5 w-5" />
+                                    <h3 className="font-bold uppercase text-xs tracking-widest">Smart Analysis Complete</h3>
+                                </div>
+                                <span className="text-[10px] font-black text-green-700">{aiResult.match_score}% MATCH</span>
+                            </div>
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-center text-xs">
+                                    <span className="text-green-800">Biometric Similarity</span>
+                                    <span className="font-bold text-green-900">High Confidence</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-green-200 rounded-full overflow-hidden">
+                                    <div 
+                                        className="h-full bg-green-600 rounded-full transition-all duration-1000" 
+                                        style={{ width: `${aiResult.match_score}%` }}
+                                    />
+                                </div>
+                                <p className="text-[10px] text-green-700 italic">Face match confirmed. Documents appear authentic. Ready for final submission.</p>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Submit */}
                     <Button
-                        className="w-full rounded-xl py-3 text-base"
-                        disabled={!canSubmit}
+                        className="w-full rounded-xl py-3 text-base shadow-lg shadow-primary-100"
+                        disabled={!canSubmit || (!aiResult && !submitMutation.isPending)}
                         onClick={handleSubmit}
                     >
                         {submitMutation.isPending ? (

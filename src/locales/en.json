@@ -791,6 +791,7 @@
     "enterprise": "Enterprise",
     "popular": "Popular",
     "verifiedId": "Verified ID",
+    "unverified": "Unverified",
     "yearsPlus": "3+ Years"
   },
   "followers": {

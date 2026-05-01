@@ -8,7 +8,9 @@ import type { Conversation, Message } from '../services/messageService';
 import { useAuthStore } from '../store/useAuthStore';
 import { getImageUrl } from '../utils/imageUtils';
 import { cn } from '../utils/cn';
-import { Send, ArrowLeft, Loader2, User, Search, MessageSquare } from 'lucide-react';
+import { Send, ArrowLeft, Loader2, User, Search, MessageSquare, Sparkles, Languages, Globe } from 'lucide-react';
+import { translateSingle } from '../services/translateService';
+import { aiService } from '../services/aiService';
 
 /* ── helpers ── */
 const formatTime = (iso: string | null) => {
@@ -50,6 +52,68 @@ const EmptyIllustration = () => (
         <polygon points="108,106 122,106 116,118" fill="#cce0ee" />
     </svg>
 );
+
+const MessageBubbleContent: React.FC<{ content: string; isMine: boolean }> = ({ content, isMine }) => {
+    const { i18n } = useTranslation();
+    const [translated, setTranslated] = useState<string | null>(null);
+    const [isTranslating, setIsTranslating] = useState(false);
+
+    const handleTranslate = async () => {
+        if (translated) {
+            setTranslated(null);
+            return;
+        }
+        setIsTranslating(true);
+        try {
+            const target = i18n.language === 'so' ? 'en' : 'so';
+            const result = await translateSingle(content, target, i18n.language === 'so' ? 'so' : 'en');
+            setTranslated(result);
+        } catch (err) {
+            console.error("Translation failed", err);
+        } finally {
+            setIsTranslating(false);
+        }
+    };
+
+    return (
+        <div className="relative">
+            <p className="whitespace-pre-wrap break-words leading-relaxed">
+                {translated || content}
+            </p>
+            {!isMine && (
+                <button
+                    onClick={handleTranslate}
+                    disabled={isTranslating}
+                    className="absolute -right-2 -top-2 p-1 bg-white rounded-full shadow-md border border-gray-100 text-gray-400 hover:text-primary-500 transition-all opacity-0 group-hover:opacity-100"
+                    title="Translate"
+                >
+                    {isTranslating ? <Loader2 size={10} className="animate-spin" /> : <Languages size={10} />}
+                </button>
+            )}
+            {translated && (
+                <p className="text-[9px] mt-1 italic text-primary-400 flex items-center gap-1">
+                    <Sparkles size={8} /> Translated via Smart Shop
+                </p>
+            )}
+            {/* Negotiation Assistant Trigger */}
+            {!isMine && (content.includes('$') || content.toLowerCase().includes('kes') || content.toLowerCase().includes('sos')) && (
+                <div className="mt-2 pt-2 border-t border-primary-100/50">
+                    <button
+                        onClick={() => {
+                            // In a real app, this would call AI to suggest a counter-offer
+                            const price = content.match(/\d+/)?.[0] || "100";
+                            const counter = Math.floor(Number(price) * 0.9);
+                            alert(`Smart Suggestion: "Would you take ${counter} instead?"`);
+                        }}
+                        className="flex items-center gap-1.5 px-2 py-1 bg-primary-50 rounded text-[9px] font-bold text-primary-600 hover:bg-primary-100 transition-all border border-primary-100"
+                    >
+                        <Zap size={8} /> Suggest Counter-Offer
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+};
 
 /* ── Conversation sidebar ── */
 type TabFilter = 'all' | 'unread' | 'spam';
@@ -166,6 +230,8 @@ const ChatView: React.FC<{
     const { t } = useTranslation();
     const qc = useQueryClient();
     const [text, setText] = useState('');
+    const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [loadingSuggestions, setLoadingSuggestions] = useState(false);
     const bottomRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -174,6 +240,29 @@ const ChatView: React.FC<{
         queryFn: () => messageService.getMessages(conversation.other_user_id, conversation.listing_id ?? undefined),
         refetchInterval: 4000,
     });
+
+    // Fetch AI suggestions when messages change
+    useEffect(() => {
+        if (messages.length === 0 || messages[messages.length - 1].sender_id === currentUserId) {
+            setSuggestions([]);
+            return;
+        }
+
+        const fetchSuggestions = async () => {
+            setLoadingSuggestions(true);
+            try {
+                const res = await aiService.getChatSuggestions(messages, 'seller'); // Assuming role for now
+                setSuggestions(res.suggestions || []);
+            } catch (err) {
+                console.error("Failed to fetch suggestions", err);
+            } finally {
+                setLoadingSuggestions(false);
+            }
+        };
+
+        const timer = setTimeout(fetchSuggestions, 1000);
+        return () => clearTimeout(timer);
+    }, [messages, currentUserId]);
 
     const sendMutation = useMutation({
         mutationFn: (content: string) =>
@@ -186,6 +275,7 @@ const ChatView: React.FC<{
             );
             qc.invalidateQueries({ queryKey: ['conversations'] });
             setText('');
+            setSuggestions([]);
             inputRef.current?.focus();
         },
     });
@@ -194,8 +284,8 @@ const ChatView: React.FC<{
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    const handleSend = () => {
-        const trimmed = text.trim();
+    const handleSend = (overrideText?: string) => {
+        const trimmed = overrideText || text.trim();
         if (!trimmed || sendMutation.isPending) return;
         sendMutation.mutate(trimmed);
     };
@@ -218,6 +308,21 @@ const ChatView: React.FC<{
 
             {/* Messages area */}
             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2 bg-gray-50">
+                {/* Smart Suggestions Section */}
+                {!isLoading && messages.length > 0 && suggestions.length > 0 && (
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-4 sticky top-0 z-10">
+                        {suggestions.map((text, i) => (
+                            <button
+                                key={i}
+                                onClick={() => handleSend(text)}
+                                className="shrink-0 px-4 py-1.5 bg-white border border-primary-100 rounded-full text-xs font-bold text-primary-600 hover:bg-primary-50 transition-all shadow-sm flex items-center gap-1.5"
+                            >
+                                <Sparkles size={10} className="text-primary-400" />
+                                {text}
+                            </button>
+                        ))}
+                    </div>
+                )}
                 {isLoading && (
                     <div className="flex justify-center pt-10">
                         <Loader2 className="w-6 h-6 animate-spin text-primary-400" />
@@ -248,16 +353,18 @@ const ChatView: React.FC<{
                                 {!isMine && (
                                     <Avatar name={conversation.other_user_name} avatarUrl={conversation.other_user_avatar} size="sm" />
                                 )}
-                                <div className={cn(
-                                    'max-w-[70%] px-4 py-2.5 rounded-2xl text-sm shadow-sm',
-                                    isMine
-                                        ? 'bg-primary-500 text-white rounded-br-sm'
-                                        : 'bg-white text-gray-800 rounded-bl-sm border border-gray-100'
-                                )}>
-                                    <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.content}</p>
-                                    <p className={cn('text-[10px] mt-1 text-right', isMine ? 'text-primary-100' : 'text-gray-400')}>
-                                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </p>
+                                <div className="flex flex-col gap-1 max-w-[75%] group">
+                                    <div className={cn(
+                                        'px-4 py-2.5 rounded-2xl text-sm shadow-sm relative',
+                                        isMine
+                                            ? 'bg-primary-500 text-white rounded-br-sm'
+                                            : 'bg-white text-gray-800 rounded-bl-sm border border-gray-100'
+                                    )}>
+                                        <MessageBubbleContent content={msg.content} isMine={isMine} />
+                                        <p className={cn('text-[10px] mt-1 text-right opacity-60', isMine ? 'text-white' : 'text-gray-400')}>
+                                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </React.Fragment>
@@ -265,6 +372,21 @@ const ChatView: React.FC<{
                 })}
                 <div ref={bottomRef} />
             </div>
+
+            {/* Suggestions Chips */}
+            {suggestions.length > 0 && (
+                <div className="px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar bg-gray-50 border-t border-gray-100">
+                    {suggestions.map((s, i) => (
+                        <button
+                            key={i}
+                            onClick={() => handleSend(s)}
+                            className="whitespace-nowrap px-3 py-1.5 bg-white border border-primary-100 rounded-full text-[12px] font-medium text-primary-600 shadow-sm hover:bg-primary-50 active:scale-95 transition-all"
+                        >
+                            {s}
+                        </button>
+                    ))}
+                </div>
+            )}
 
             {/* Input */}
             <div
