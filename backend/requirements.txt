@@ -52,3 +52,4 @@ Pillow>=10.0.0
 # Misc
 async_timeout
 cffi
+groq

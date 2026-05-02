@@ -60,6 +60,7 @@ const FollowersPage = lazyNamed(() => import('./pages/FollowersPage'), 'Follower
 const PerformancePage = lazyNamed(() => import('./pages/PerformancePage'), 'PerformancePage');
 const ProSalesPage = lazyNamed(() => import('./pages/ProSalesPage'), 'ProSalesPage');
 const PremiumPage = lazyNamed(() => import('./pages/PremiumPage'), 'PremiumPage');
+const DiscoveryFeedPage = lazy(() => import('./pages/DiscoveryFeedPage'));
 
 // Lazy load pages - Default Exports (Admin/Agent Pages)
 const AdminCategoriesPage = lazy(() => import('./pages/admin/AdminCategoriesPage'));
@@ -162,6 +163,7 @@ const App: React.FC = () => {
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/delete-account" element={<DeleteAccountPage />} />
             <Route path="/kh" element={<KaalayHeedhePage />} />
+            <Route path="/discovery" element={<DiscoveryFeedPage />} />
 
             {/* Admin Routes */}
             <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminLayout /></ProtectedRoute>}>

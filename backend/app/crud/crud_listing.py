@@ -22,9 +22,15 @@ def get_listings(
     max_price: Optional[float] = None,
     status: Optional[str] = None,
 ) -> List[Listing]:
+    from app.models.user import User
     statement = (
         select(Listing)
-        .order_by(Listing.boost_level.desc(), Listing.created_at.desc())
+        .join(User, Listing.owner_id == User.id)
+        .order_by(
+            Listing.boost_level.desc(), 
+            User.is_verified.desc(),
+            Listing.created_at.desc()
+        )
         .offset(skip)
         .limit(limit)
         .options(selectinload(Listing.owner))

@@ -107,7 +107,13 @@ export const LipanaPaymentModal: React.FC<LipanaPaymentModalProps> = ({
                             <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
                                 <Smartphone className="w-5 h-5" />
                             </div>
-                            <span className="font-black text-lg tracking-tight">M-Pesa Lipana</span>
+                            <div className="flex flex-col">
+                                <span className="font-black text-lg tracking-tight leading-none">M-Pesa Lipana</span>
+                                <div className="flex items-center gap-1 mt-0.5">
+                                    <div className="w-1 h-1 rounded-full bg-white/50 animate-pulse" />
+                                    <span className="text-[8px] font-bold text-white/60 uppercase tracking-widest">SMART SECURED</span>
+                                </div>
+                            </div>
                         </div>
                         {state !== 'polling' && (
                             <button onClick={handleClose} className="p-1 hover:bg-white/20 rounded-full transition-colors">

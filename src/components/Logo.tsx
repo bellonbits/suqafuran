@@ -18,7 +18,7 @@ const Logo: React.FC<LogoProps> = ({ className, size = 'md', variant = 'default'
     return (
         <div className={cn("inline-flex items-center select-none", className)}>
             <img
-                src="/logo.png"
+                src="/suuq-removebg-preview.png"
                 alt="Suqafuran"
                 className={cn(
                     "w-auto object-contain",

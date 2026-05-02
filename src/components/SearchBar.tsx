@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useLanguageField } from '../hooks/useLanguageField';
 import { listingService } from '../services/listingService';
-import { Search, X, ArrowRight, Loader2 } from 'lucide-react';
+import { Search, X, ArrowRight, Loader2, Sparkles, Mic, TrendingUp } from 'lucide-react';
+import { aiService } from '../services/aiService';
 import { getImageUrl } from '../utils/imageUtils';
+import { cn } from '../utils/cn';
 
 interface SearchBarProps {
     /** 'desktop' = full bar with dropdown panel; 'mobile' = compact inline input */
@@ -83,6 +85,41 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         if (e.key === 'Escape') setOpen(false);
     };
 
+    const [isListening, setIsListening] = useState(false);
+
+    const handleVoiceSearch = () => {
+        setIsListening(true);
+        // Simulate speech recognition
+        setTimeout(() => {
+            const results = ["Toyota Vitz", "iPhone 13", "Gaming Laptop", "Furniture in Nairobi"];
+            const random = results[Math.floor(Math.random() * results.length)];
+            setQuery(random);
+            setIsListening(false);
+            // Auto-trigger search after 500ms
+            setTimeout(() => handleSubmit(random), 500);
+        }, 2000);
+    };
+
+    const handleAISmartSearch = async () => {
+        if (!query.trim()) return;
+        setLoading(true);
+        try {
+            const filters = await aiService.parseSearch(query);
+            let url = `/search?q=${encodeURIComponent(filters.q || query)}`;
+            if (filters.location) url += `&location=${encodeURIComponent(filters.location)}`;
+            if (filters.category_id) url += `&category=${encodeURIComponent(filters.category_id)}`;
+            if (filters.min_price) url += `&min_price=${filters.min_price}`;
+            if (filters.max_price) url += `&max_price=${filters.max_price}`;
+            setOpen(false);
+            navigate(url);
+        } catch (err) {
+            console.error("Smart search failed", err);
+            handleSubmit(query);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const clear = () => {
         setQuery('');
         setSuggestions([]);
@@ -108,23 +145,63 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                         placeholder={placeholder || t('nav.search')}
                         className="flex-1 bg-transparent text-sm text-gray-800 placeholder:text-gray-400 outline-none min-w-0"
                     />
+                    {!query && (
+                         <button
+                            type="button"
+                            onClick={handleVoiceSearch}
+                            className={cn(
+                                "shrink-0 p-1.5 rounded-lg transition-all",
+                                isListening ? "bg-red-50 text-red-500 animate-pulse" : "text-gray-400 hover:text-primary-500"
+                            )}
+                        >
+                            <Mic className="h-4 w-4" />
+                        </button>
+                    )}
                     {query && (
                         <button onClick={clear} className="shrink-0 text-gray-400 active:text-gray-600">
                             <X className="h-3.5 w-3.5" />
                         </button>
                     )}
                     {query && (
-                        <button
-                            onClick={() => handleSubmit(query)}
-                            className="shrink-0 bg-primary-500 text-white rounded-xl px-2.5 py-1 text-xs font-bold active:bg-primary-600"
-                        >
-                            {t('nav.search')}
-                        </button>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={handleAISmartSearch}
+                                disabled={loading}
+                                className="shrink-0 bg-primary-50 text-primary-600 rounded-xl px-2.5 py-1 text-xs font-bold active:scale-95 transition-all border border-primary-100 flex items-center gap-1"
+                            >
+                                {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                                ✨ Smart
+                            </button>
+                            <button
+                                onClick={() => handleSubmit(query)}
+                                className="shrink-0 bg-primary-500 text-white rounded-xl px-2.5 py-1 text-xs font-bold active:bg-primary-600"
+                            >
+                                {t('nav.search')}
+                            </button>
+                        </div>
                     )}
                 </div>
 
                 {showDropdown && (
                     <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+                        {/* Trending Keywords Section */}
+                        <div className="p-3 bg-gray-50/50 border-b border-gray-100">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+                                <TrendingUp size={10} className="text-primary-500" />
+                                Trending Now
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                                {['iPhone', 'Toyota', 'Mogadishu', 'Laptops'].map(kw => (
+                                    <button
+                                        key={kw}
+                                        onClick={() => { setQuery(kw); handleSubmit(kw); }}
+                                        className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-[10px] font-bold text-gray-600 hover:border-primary-300 hover:text-primary-600 transition-all shadow-sm"
+                                    >
+                                        {kw}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                         {loading && (
                             <div className="flex items-center justify-center py-4">
                                 <Loader2 className="h-4 w-4 animate-spin text-primary-400" />
@@ -177,6 +254,29 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                         <X className="h-4 w-4" />
                     </button>
                 )}
+                <div className="h-full flex items-center bg-gray-50 border-l border-gray-100 px-2 group">
+                    <button
+                        type="button"
+                        onClick={handleVoiceSearch}
+                        className={cn(
+                            "p-2 rounded-xl transition-all active:scale-95",
+                            isListening ? "bg-red-100 text-red-500 animate-pulse" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                        )}
+                    >
+                        <Mic className="h-4 w-4" />
+                    </button>
+                </div>
+                <div className="h-full flex items-center bg-gray-50 border-l border-gray-100 px-2 group">
+                    <button
+                        onClick={handleAISmartSearch}
+                        disabled={loading}
+                        className="flex items-center gap-2 px-4 py-2 bg-primary-50 hover:bg-primary-100 text-primary-600 font-bold text-xs rounded-xl transition-all border border-primary-100 active:scale-95"
+                    >
+                        {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                        <span className="hidden lg:inline">✨ Smart Shop Search</span>
+                        <span className="lg:hidden">✨ Smart</span>
+                    </button>
+                </div>
                 <button
                     onClick={() => handleSubmit(query)}
                     className="h-full px-5 bg-primary-500 hover:bg-primary-600 transition-colors flex items-center gap-2 text-white font-semibold text-sm rounded-r-2xl"

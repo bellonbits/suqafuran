@@ -1,658 +1,501 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Formik, Form } from 'formik';
-import * as Yup from 'yup';
+import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { ChevronRight, ChevronLeft, Plus, X, CheckCircle2, Loader2, Sparkles, Languages } from 'lucide-react';
 
-import { Button } from '../components/Button';
-import { Input } from '../components/Input';
 import { listingService } from '../services/listingService';
-import {
-    Image as ImageIcon, Upload, CheckCircle2,
-    ChevronRight, ChevronLeft, Loader2, X
-} from 'lucide-react';
-import { cn } from '../utils/cn';
+import { aiService } from '../services/aiService';
 import { getImageUrl } from '../utils/imageUtils';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { LocationPickerModal } from '../components/LocationPickerModal';
 import { useLanguageField } from '../hooks/useLanguageField';
-import { MapPin } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-interface EditAdValues {
+import { useAuthStore } from '../store/useAuthStore';
+import { cn } from '../utils/cn';
+
+const TITLE_MAX = 70;
+
+type Negotiable = 'yes' | 'no' | 'not_sure';
+
+interface FormValues {
     title_en: string;
     title_so: string;
+    categoryId: number | null;
+    subcategoryId: number | null;
+    subsubcategoryId: number | null;
+    location: string;
+    images: string[];
+    youtubeLink: string;
     description_en: string;
     description_so: string;
-    lang_available: 'en' | 'so' | 'both';
-    category?: number;
-    subcategory?: number;
-    subsubcategory?: number;
     price: string;
-    location: string;
     condition: string;
-    images: string[];
+    negotiable: Negotiable;
+    phone: string;
+    name: string;
     attributes: Record<string, any>;
+    lang_available: 'en' | 'so' | 'both';
+    currency: 'USD' | 'KES' | 'SOS';
 }
 
 const EditAdPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { t } = useTranslation();
-    const [activeTab, setActiveTab] = useState<'en' | 'so'>('en');
+    const { t, i18n } = useTranslation();
+    const { user } = useAuthStore();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const [form, setForm] = useState<FormValues>({
+        title_en: '',
+        title_so: '',
+        categoryId: null,
+        subcategoryId: null,
+        subsubcategoryId: null,
+        location: '',
+        images: [],
+        youtubeLink: '',
+        description_en: '',
+        description_so: '',
+        price: '',
+        condition: 'Used',
+        negotiable: 'not_sure',
+        phone: user?.phone || '',
+        name: user?.full_name || '',
+        attributes: {},
+        lang_available: (i18n.language as any) === 'so' ? 'so' : 'en',
+        currency: 'USD',
+    });
+
+    const [formTab, setFormTab] = useState<'en' | 'so'>((i18n.language as any) === 'so' ? 'so' : 'en');
+    const [step, setStep] = useState<1 | 2>(1);
+    const [errors, setErrors] = useState<Record<string, string | undefined>>({});
+    const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+    const [categorySearch, setCategorySearch] = useState('');
+    const [isLocationOpen, setIsLocationOpen] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
-    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
-    const [currentStep, setCurrentStep] = useState(0);
     const { getField } = useLanguageField();
 
-    const steps = [
-        t('listing.basicInfo', 'Basic Info'),
-        t('listing.categoryDetails', 'Category & Details'),
-        t('listing.pricing', 'Pricing'),
-        t('listing.photos', 'Photos'),
-    ];
+    const [aiLoading, setAiLoading] = useState<string | null>(null);
+    const [priceRec, setPriceRec] = useState<{recommended_price: number, min_range: number, max_range: number, market_demand: string} | null>(null);
 
+    // Fetch existing listing
     const { data: listing, isLoading: loadingListing } = useQuery({
         queryKey: ['listing', id],
         queryFn: () => listingService.getListing(Number(id)),
         enabled: !!id
     });
 
-    const { data: categories, isLoading: catsLoading } = useQuery({
+    const { data: categories = [], isLoading: catsLoading } = useQuery({
         queryKey: ['categories'],
         queryFn: listingService.getCategories,
     });
 
-    const updateMutation = useMutation({
-        mutationFn: (data: any) => listingService.updateListing(Number(id), data),
-        onSuccess: () => {
-            setSubmitted(true);
-        },
-    });
+    // Sync listing to form
+    useEffect(() => {
+        if (listing) {
+            setForm({
+                title_en: listing.title_en || '',
+                title_so: listing.title_so || '',
+                categoryId: listing.category_id,
+                subcategoryId: listing.subcategory_id || null,
+                subsubcategoryId: listing.subsubcategory_id || null,
+                location: listing.location,
+                images: listing.images || [],
+                youtubeLink: '', // Not in DB yet
+                description_en: listing.description_en || '',
+                description_so: listing.description_so || '',
+                price: listing.price.toString(),
+                condition: listing.condition,
+                negotiable: (listing as any).negotiable || 'not_sure',
+                phone: user?.phone || listing.owner?.phone || '',
+                name: user?.full_name || listing.owner?.full_name || '',
+                attributes: listing.attributes || {},
+                lang_available: (listing.lang_available as any) || 'en',
+                currency: (listing.currency as any) || 'USD',
+            });
+            if (listing.lang_available === 'so') setFormTab('so');
+        }
+    }, [listing, user]);
 
-    if (loadingListing) {
+    const set = <K extends keyof FormValues>(key: K, value: FormValues[K]) => {
+        setForm(f => ({ ...f, [key]: value }));
+        if (errors[key]) setErrors(e => ({ ...e, [key]: undefined }));
+    };
+
+    const setAttribute = (key: string, value: any) => {
+        setForm(f => ({ ...f, attributes: { ...f.attributes, [key]: value } }));
+        if (errors[`attr_${key}` as any]) setErrors(e => ({ ...e, [`attr_${key}`]: undefined }));
+    };
+
+    const selectedCategory = categories.find(c => c.id === form.categoryId);
+    const selectedSubcategory = form.subcategoryId ? selectedCategory?.subcategories?.find(s => s.id === form.subcategoryId) : null;
+    
+    // Defensive parsing for dynamicSchema
+    let dynamicSchema: any[] = [];
+    const rawSchema = selectedSubcategory?.attributes_schema || selectedCategory?.attributes_schema;
+    if (rawSchema) {
+        if (Array.isArray(rawSchema)) {
+            dynamicSchema = rawSchema;
+        } else if (typeof rawSchema === 'string') {
+            try {
+                const parsed = JSON.parse(rawSchema);
+                dynamicSchema = Array.isArray(parsed) ? parsed : (parsed.fields || []);
+            } catch (e) {
+                console.error("Failed to parse dynamicSchema", e);
+            }
+        } else if (rawSchema.fields && Array.isArray(rawSchema.fields)) {
+            dynamicSchema = rawSchema.fields;
+        }
+    }
+
+    const handleAIAssist = async (type: 'title' | 'description' | 'translate', field: 'en' | 'so') => {
+        let input = '';
+        if (type === 'translate') {
+            input = field === 'en' ? form.description_so : form.description_en;
+            if (!input) return;
+        } else {
+            input = field === 'en' 
+                ? (type === 'title' ? form.title_en : form.description_en)
+                : (type === 'title' ? form.title_so : form.description_so);
+            if (!input && type !== 'description') return;
+        }
+
+        setAiLoading(`${type}_${field}`);
+        try {
+            const res = await aiService.generate({
+                type,
+                input: input || (type === 'description' ? `Generate description for ${form.title_en || form.title_so}` : ''),
+                target_language: field,
+                category: selectedCategory ? getField(selectedCategory, 'name') : undefined,
+                attributes: form.attributes
+            });
+            
+            if (res.output) {
+                if (type === 'title') {
+                    set(field === 'en' ? 'title_en' : 'title_so', res.output);
+                } else if (type === 'description' || type === 'translate') {
+                    set(field === 'en' ? 'description_en' : 'description_so', res.output);
+                }
+            }
+        } catch (err) {
+            console.error("AI Assist failed", err);
+        } finally {
+            setAiLoading(null);
+        }
+    };
+
+    const handleImageUpload = async (files: FileList | null) => {
+        if (!files) return;
+        setUploading(true);
+        for (const file of Array.from(files)) {
+            try {
+                const result = await listingService.uploadImage(file);
+                setForm(f => ({ ...f, images: [...f.images, result.url] }));
+            } catch { /* skip */ }
+        }
+        setUploading(false);
+    };
+
+    const removeImage = (idx: number) => {
+        setForm(f => ({ ...f, images: f.images.filter((_, i) => i !== idx) }));
+    };
+
+    const validateStep1 = () => {
+        const e: Record<string, string> = {};
+        if (form.lang_available === 'en' || form.lang_available === 'both') {
+            if (!form.title_en || form.title_en.length < 5) e.title_en = 'English title is required (min 5 chars)';
+        }
+        if (form.lang_available === 'so' || form.lang_available === 'both') {
+            if (!form.title_so || form.title_so.length < 5) e.title_so = 'Magaca Somali-ga waa lagama maarmaan (ugu yaraan 5 xaraf)';
+        }
+        if (!form.categoryId) e.categoryId = 'Please select a category';
+        if (!form.location) e.location = 'Please select a location';
+        if (form.images.length < 1) e.images = 'Please upload at least 1 photo';
+        return e;
+    };
+
+    const handleNext = () => {
+        const errs = validateStep1();
+        if (Object.keys(errs).length) {
+            setErrors(errs);
+            if (errs.title_en && formTab === 'so') setFormTab('en');
+            else if (errs.title_so && formTab === 'en') setFormTab('so');
+            return;
+        }
+        setErrors({});
+        setStep(2);
+        window.scrollTo(0, 0);
+    };
+
+    const validate = () => {
+        const e: Record<string, string> = validateStep1();
+        if (form.lang_available === 'en' || form.lang_available === 'both') {
+            if (!form.description_en || form.description_en.length < 10) e.description_en = 'English description is required (min 10 chars)';
+        }
+        if (form.lang_available === 'so' || form.lang_available === 'both') {
+            if (!form.description_so || form.description_so.length < 10) e.description_so = 'Faahfaahinta Somali-ga waa lagama maarmaan';
+        }
+        if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0) e.price = 'Enter a valid price';
+        dynamicSchema.forEach(field => {
+            if (field.required && !form.attributes[field.name]) {
+                e[`attr_${field.name}` as any] = `${field.label || field.name} is required`;
+            }
+        });
+        return e;
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const errs = validate();
+        if (Object.keys(errs).length) {
+            setErrors(errs);
+            if ((errs.title_en || errs.description_en) && formTab === 'so') setFormTab('en');
+            else if ((errs.title_so || errs.description_so) && formTab === 'en') setFormTab('so');
+            return;
+        }
+        setSubmitting(true);
+        try {
+            await listingService.updateListing(Number(id), {
+                title_en: form.title_en,
+                title_so: form.title_so,
+                description_en: form.description_en,
+                description_so: form.description_so,
+                price: Number(form.price),
+                currency: form.currency,
+                location: form.location,
+                category_id: form.categoryId!,
+                subcategory_id: form.subcategoryId ?? undefined,
+                subsubcategory_id: form.subsubcategoryId ?? undefined,
+                images: form.images,
+                condition: form.condition,
+                attributes: form.attributes,
+                lang_available: form.lang_available,
+            });
+            setSubmitted(true);
+        } catch (err: any) {
+            setErrors({ title: err.response?.data?.detail || 'Failed to update ad' });
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const renderFloatingInput = (id: string, label: string, value: any, onChange: (v: string) => void, error?: string, opts?: { type?: string, maxLength?: number }) => (
+        <div className="relative mb-4">
+            <input 
+                id={id}
+                type={opts?.type || 'text'}
+                value={value}
+                onChange={e => onChange(e.target.value)}
+                maxLength={opts?.maxLength}
+                placeholder=" "
+                className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm text-gray-900 focus:outline-none ${error ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-primary-500'}`}
+            />
+            <label htmlFor={id} className={`absolute left-2 top-0 -translate-y-1/2 bg-white px-1 text-[11px] transition-all pointer-events-none peer-placeholder-shown:top-[14px] peer-placeholder-shown:-translate-y-0 peer-placeholder-shown:text-sm peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-[11px] ${error ? 'text-red-500 peer-focus:text-red-500' : 'text-gray-500 peer-focus:text-primary-500'}`}>
+                {label}
+            </label>
+            {error && <p className="text-[11px] text-red-500 mt-1">{error}</p>}
+        </div>
+    );
+
+    const filteredCategories = categorySearch.trim()
+        ? categories.filter(c =>
+            getField(c, 'name').toLowerCase().includes(categorySearch.toLowerCase()) ||
+            c.subcategories?.some((s: any) => getField(s, 'name').toLowerCase().includes(categorySearch.toLowerCase()))
+        )
+        : categories;
+
+    if (loadingListing || catsLoading) {
+        return <div className="flex items-center justify-center min-h-screen"><Loader2 className="animate-spin text-primary-500" size={40} /></div>;
+    }
+
+    if (!listing) return <div className="p-20 text-center">Ad not found</div>;
+
+    if (submitted) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="h-10 w-10 animate-spin text-primary-600" />
+            <div className="max-w-md mx-auto py-20 text-center">
+                <div className="w-20 h-20 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle2 size={36} className="text-primary-500" />
+                </div>
+                <h2 className="text-2xl font-bold mb-3">Changes Saved!</h2>
+                <p className="text-gray-500 mb-8">Your ad has been updated successfully.</p>
+                <div className="flex gap-4 justify-center">
+                    <Link to="/my-ads" className="px-6 py-3 border border-gray-300 rounded-xl font-bold text-gray-700">My Ads</Link>
+                    <Link to="/" className="px-6 py-3 bg-primary-500 text-white rounded-xl font-bold">Go Home</Link>
+                </div>
             </div>
         );
     }
 
-    if (!listing) return null;
-
-    const initialValues: EditAdValues = {
-        title_en: listing.title_en || '',
-        title_so: listing.title_so || '',
-        description_en: listing.description_en || '',
-        description_so: listing.description_so || '',
-        lang_available: (listing as any).lang_available || 'en',
-        category: listing.category_id,
-        subcategory: listing.subcategory_id,
-        subsubcategory: (listing as any).subsubcategory_id,
-        price: listing.price.toString(),
-        location: listing.location,
-        condition: listing.condition,
-        images: listing.images || [],
-        attributes: listing.attributes || {},
-    };
-
-    const validationSchema = [
-        Yup.object({
-            lang_available: Yup.string().oneOf(['en', 'so', 'both']).required('Required'),
-            title_en: Yup.string().when('lang_available', {
-                is: (val: string) => val === 'en' || val === 'both',
-                then: (schema) => schema.min(10, 'Title must be at least 10 characters').required('Required for English'),
-                otherwise: (schema) => schema.notRequired()
-            }),
-            title_so: Yup.string().when('lang_available', {
-                is: (val: string) => val === 'so' || val === 'both',
-                then: (schema) => schema.min(10, 'Title must be at least 10 characters').required('Required for Somali'),
-                otherwise: (schema) => schema.notRequired()
-            }),
-            location: Yup.string().required('Required'),
-        }),
-        Yup.object({
-            category: Yup.number().required('Please select a category'),
-            description_en: Yup.string().when('lang_available', {
-                is: (val: string) => val === 'en' || val === 'both',
-                then: (schema) => schema.min(20, 'Provide a detailed description').required('Required for English'),
-                otherwise: (schema) => schema.notRequired()
-            }),
-            description_so: Yup.string().when('lang_available', {
-                is: (val: string) => val === 'so' || val === 'both',
-                then: (schema) => schema.min(20, 'Provide a detailed description').required('Required for Somali'),
-                otherwise: (schema) => schema.notRequired()
-            }),
-        }),
-        Yup.object({
-            price: Yup.number().positive('Must be positive').required('Required'),
-        }),
-        Yup.object({}),
-    ];
-
-    const handleNext = () => setCurrentStep(prev => prev + 1);
-    const handleBack = () => setCurrentStep(prev => prev - 1);
-
-    if (submitted) {
+    if (showCategoryPicker) {
         return (
-            <div className="max-w-xl mx-auto py-20 text-center">
-                <div className="w-20 h-20 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <CheckCircle2 className="h-10 w-10 text-primary-600" />
+            <div className="max-w-2xl mx-auto pb-40">
+                <div className="flex items-center justify-between p-4 bg-white border-b border-gray-200">
+                    <button onClick={() => setShowCategoryPicker(false)} className="flex items-center gap-1 font-bold text-primary-500"><ChevronLeft size={18} /> Back</button>
+                    <span className="font-bold">Select Category</span>
+                    <div className="w-10" />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('editAd.successTitle', 'Ad Updated Successfully!')}</h2>
-                <p className="text-gray-600 mb-8">
-                    {t('editAd.successDesc', 'Your changes have been saved and are now live.')}
-                </p>
-                <div className="flex gap-4 justify-center">
-                    <Button variant="outline" className="rounded-xl" onClick={() => navigate('/my-ads')}>{t('editAd.backToMyAds', 'Back to My Ads')}</Button>
-                    <Button className="rounded-xl" onClick={() => navigate('/dashboard')}>{t('promotion.goToDashboard', 'Go to Dashboard')}</Button>
+                <div className="p-4 bg-white border-b border-gray-200">
+                    <input autoFocus placeholder="Search..." value={categorySearch} onChange={e => setCategorySearch(e.target.value)} className="w-full p-3 border border-gray-200 rounded-xl outline-none" />
+                </div>
+                <div className="bg-white">
+                    {filteredCategories.map(cat => {
+                        const Icon = getCategoryIcon(cat.icon_name || cat.slug);
+                        return (
+                            <button key={cat.id} onClick={() => { setForm(f => ({ ...f, categoryId: cat.id, subcategoryId: null, subsubcategoryId: null, attributes: {} })); setShowCategoryPicker(false); }} className="w-full flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                                        {cat.image_url ? <img src={getImageUrl(cat.image_url)} alt="" className="w-full h-full object-cover" /> : <Icon size={20} className="text-gray-400" />}
+                                    </div>
+                                    <span className="font-medium">{getField(cat, 'name')}</span>
+                                </div>
+                                <ChevronRight size={18} className="text-gray-300" />
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="max-w-4xl mx-auto">
-            {/* Stepper */}
-            <div className="mb-10 px-4 md:px-0">
-                <div className="flex items-center justify-between">
-                    {steps.map((label, i) => (
-                        <React.Fragment key={label}>
-                            <div className="flex flex-col items-center gap-2">
-                                <div className={cn(
-                                    "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all",
-                                    currentStep === i
-                                        ? "bg-primary-600 border-primary-600 text-white shadow-lg shadow-primary-100"
-                                        : currentStep > i
-                                            ? "bg-primary-50 border-primary-200 text-primary-600"
-                                            : "bg-white border-gray-200 text-gray-400"
-                                )}>
-                                    {currentStep > i ? <CheckCircle2 className="h-5 w-5" /> : i + 1}
-                                </div>
-                                <span className={cn(
-                                    "text-[10px] md:text-xs font-bold uppercase tracking-wider",
-                                    currentStep === i ? "text-primary-600" : "text-gray-400"
-                                )}>{label}</span>
-                            </div>
-                            {i < steps.length - 1 && (
-                                <div className={cn(
-                                    "flex-1 h-0.5 mx-2 bg-gray-100",
-                                    currentStep > i && "bg-primary-200"
-                                )} />
-                            )}
-                        </React.Fragment>
-                    ))}
+        <div className="min-h-screen bg-[#f4f6f8] pb-12 pt-4 px-3 w-full">
+            <div className="bg-white rounded-md shadow-sm p-4 mb-4 max-w-2xl mx-auto flex flex-col items-center border-b border-gray-200">
+                <div className="w-full flex items-center justify-between mb-2">
+                    {step === 2 ? <button onClick={() => setStep(1)} className="text-primary-500 font-bold flex items-center text-[13px]"><ChevronLeft size={16} /> Back</button> : <div className="w-16" />}
+                    <span className="font-bold text-gray-900">Edit ad</span>
+                    <button onClick={() => navigate('/my-ads')} className="text-gray-400 font-bold text-[13px]">Cancel</button>
+                </div>
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                        <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[12px] font-bold border-2 transition-all", step === 1 ? "border-primary-500 text-primary-500" : "bg-gray-100 border-gray-100 text-gray-400")}>1</div>
+                        <span className={cn("text-[12px] font-bold", step === 1 ? "text-gray-900" : "text-gray-400")}>Basic info</span>
+                    </div>
+                    <div className="w-8 h-[2px] bg-gray-100" />
+                    <div className="flex items-center gap-2">
+                        <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[12px] font-bold border-2 transition-all", step === 2 ? "border-primary-500 text-primary-500" : "bg-gray-100 border-gray-100 text-gray-400")}>2</div>
+                        <span className={cn("text-[12px] font-bold", step === 2 ? "text-gray-900" : "text-gray-400")}>Description & Price</span>
+                    </div>
                 </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <Formik<EditAdValues>
-                    initialValues={initialValues}
-                    validationSchema={validationSchema[currentStep]}
-                    onSubmit={async (values, { setSubmitting }) => {
-                        if (currentStep < steps.length - 1) {
-                            handleNext();
-                            setSubmitting(false);
-                        } else {
-                            updateMutation.mutate({
-                                title_en: values.title_en,
-                                title_so: values.title_so,
-                                description_en: values.description_en,
-                                description_so: values.description_so,
-                                lang_available: values.lang_available,
-                                price: Number(values.price),
-                                location: values.location,
-                                category_id: values.category!,
-                                subcategory_id: values.subcategory,
-                                subsubcategory_id: values.subsubcategory,
-                                images: values.images,
-                                attributes: values.attributes,
-                                condition: values.condition,
-                                status: listing.status
-                            });
-                            setSubmitting(false);
-                        }
-                    }}
-                >
-                    {({ values, errors, touched, isSubmitting, setFieldValue }) => (
-                        <Form className="p-6 md:p-10">
-                            {currentStep === 0 && (
-                                <div className="space-y-6">
-                                    <h3 className="text-xl font-bold flex items-center gap-2 text-gray-900">{t('editAd.step1Title', 'Step 1: Basic Info & Language')}</h3>
-
-                                    {/* Language Availability Selector */}
-                                    <div className="p-4 bg-primary-50/50 rounded-2xl border border-primary-100 mb-6">
-                                        <label className="text-sm font-bold text-primary-900 mb-3 block uppercase tracking-wider">{t('editAd.langAvailableLabel', 'In which languages is this ad available?')}</label>
-                                        <div className="grid grid-cols-3 gap-3">
-                                            {[
-                                                { id: 'en', label: t('editAd.englishOnly', 'English Only') },
-                                                { id: 'so', label: t('editAd.somaliOnly', 'Somali Only') },
-                                                { id: 'both', label: t('editAd.bilingual', 'Bilingual (Both)') }
-                                            ].map((lang) => (
-                                                <button
-                                                    key={lang.id}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setFieldValue('lang_available', lang.id);
-                                                        if (lang.id === 'en') setActiveTab('en');
-                                                        if (lang.id === 'so') setActiveTab('so');
-                                                    }}
-                                                    className={cn(
-                                                        "py-3 px-2 rounded-xl border-2 font-bold text-xs transition-all",
-                                                        values.lang_available === lang.id
-                                                            ? "bg-primary-600 border-primary-600 text-white shadow-md shadow-primary-200"
-                                                            : "bg-white border-gray-100 text-gray-400 hover:border-primary-200 hover:text-primary-600"
-                                                    )}
-                                                >
-                                                    {lang.label}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Tabbed Title Entry */}
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-sm font-bold text-gray-700 uppercase tracking-wider">{t('editAd.whatSellingLabel', 'What are you selling?')}</label>
-                                            <div className="flex bg-gray-100 p-1 rounded-lg">
-                                                {(values.lang_available === 'en' || values.lang_available === 'both') && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setActiveTab('en')}
-                                                        className={cn("px-3 py-1 rounded-md text-[10px] font-bold uppercase transition-all", activeTab === 'en' ? "bg-white text-primary-600 shadow-sm" : "text-gray-400")}
-                                                    >
-                                                        English
-                                                    </button>
-                                                )}
-                                                {(values.lang_available === 'so' || values.lang_available === 'both') && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setActiveTab('so')}
-                                                        className={cn("px-3 py-1 rounded-md text-[10px] font-bold uppercase transition-all", activeTab === 'so' ? "bg-white text-primary-600 shadow-sm" : "text-gray-400")}
-                                                    >
-                                                        Somali
-                                                    </button>
-                                                )}
-                                                {values.lang_available === 'both' && (activeTab === 'en' ? values.title_en : values.title_so).length > 0 && (
-                                                    <div className="ml-2 flex items-center pr-1 scale-75 origin-right">
-                                                        <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {activeTab === 'en' ? (
-                                            <Input
-                                                name="title_en"
-                                                placeholder="e.g. iPhone 15 Pro Max 256GB - Clean"
-                                                value={values.title_en}
-                                                onChange={(e) => setFieldValue('title_en', e.target.value)}
-                                                error={touched.title_en ? errors.title_en : undefined}
-                                            />
-                                        ) : (
-                                            <Input
-                                                name="title_so"
-                                                placeholder="m.sh. iPhone 15 Pro Max 256GB - Aad u fiican"
-                                                value={values.title_so}
-                                                onChange={(e) => setFieldValue('title_so', e.target.value)}
-                                                error={touched.title_so ? errors.title_so : undefined}
-                                            />
-                                        )}
-                                    </div>
-                                    <div className="relative group">
-                                        <label className="text-sm font-medium text-gray-700 mb-2 block">{t('listing.location', 'Location')}</label>
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsLocationModalOpen(true)}
-                                            className={cn(
-                                                "w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all text-left",
-                                                touched.location && errors.location ? "border-red-500 bg-red-50" : "border-gray-300 bg-white hover:border-primary-500"
-                                            )}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <MapPin className={cn("h-5 w-5", values.location ? "text-primary-600" : "text-gray-400")} />
-                                                <span className={cn("text-sm", !values.location && "text-gray-400")}>
-                                                    {values.location || t('listing.selectLocation', 'Select location (State › Region › Town)')}
-                                                </span>
-                                            </div>
-                                            <ChevronRight className="h-4 w-4 text-gray-400" />
-                                        </button>
-                                        {touched.location && errors.location && (
-                                            <p className="text-xs text-red-500 mt-1 font-medium">{errors.location}</p>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-
-                            {currentStep === 1 && (
-                                <div className="space-y-8">
-                                    <div className="space-y-4">
-                                        <h3 className="text-xl font-bold">{t('editAd.selectCategory', 'Select Category')}</h3>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                            {catsLoading ? (
-                                                <div className="col-span-full flex justify-center py-12">
-                                                    <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-                                                </div>
-                                            ) : (
-                                                categories?.map(cat => {
-                                                    const Icon = getCategoryIcon(cat.icon_name || cat.slug);
-                                                    return (
-                                                        <button
-                                                            key={cat.id}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setFieldValue('category', cat.id);
-                                                                setFieldValue('subcategory', undefined);
-                                                                setFieldValue('subsubcategory', undefined);
-                                                            }}
-                                                            className={cn(
-                                                                "flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all group",
-                                                                values.category === cat.id
-                                                                    ? "border-primary-600 bg-primary-50 text-primary-700 shadow-md ring-4 ring-primary-100/50"
-                                                                    : "border-gray-50 bg-white hover:bg-primary-50/30 hover:border-primary-200 text-gray-600"
-                                                            )}
-                                                        >
-                                                            <div className={cn(
-                                                                "w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center transition-all",
-                                                                values.category === cat.id ? "bg-primary-600 text-white shadow-lg" : "bg-gray-50 text-gray-400 group-hover:bg-white group-hover:text-primary-600"
-                                                            )}>
-                                                                {cat.image_url ? (
-                                                                    <img src={getImageUrl(cat.image_url)} alt="" className="w-full h-full object-cover" />
-                                                                ) : (
-                                                                    <Icon className="h-6 w-6" />
-                                                                )}
-                                                            </div>
-                                                            <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-center">{getField(cat, 'name')}</span>
-                                                        </button>
-                                                    );
-                                                })
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Subcategory Selection */}
-                                    {(() => {
-                                        const selectedCat = categories?.find(c => c.id === values.category);
-                                        if (!selectedCat || !selectedCat.subcategories || selectedCat.subcategories.length === 0) return null;
-
-                                        return (
-                                            <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
-                                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">{t('editAd.selectSubcategory', 'Select Subcategory')}</h3>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                                    {selectedCat.subcategories.map(sub => (
-                                                        <button
-                                                            key={sub.id}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setFieldValue('subcategory', sub.id);
-                                                                setFieldValue('subsubcategory', undefined);
-                                                            }}
-                                                            className={cn(
-                                                                "flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left",
-                                                                values.subcategory === sub.id
-                                                                    ? "border-secondary-500 bg-secondary-50 text-secondary-900 shadow-sm"
-                                                                    : "border-gray-100 bg-white hover:border-secondary-200 text-gray-700"
-                                                            )}
-                                                        >
-                                                            <div className="w-10 h-10 rounded-lg bg-gray-50 shrink-0 overflow-hidden">
-                                                                {sub.image_url ? (
-                                                                    <img src={getImageUrl(sub.image_url)} alt="" className="w-full h-full object-cover" />
-                                                                ) : (
-                                                                    <div className="w-full h-full flex items-center justify-center text-gray-200">
-                                                                        <ImageIcon size={16} />
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                            <span className="text-sm font-semibold truncate">
-                                                                {getField(sub, 'name').replace(/^\d+\s/, '')}
-                                                            </span>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        );
-                                    })()}
-
-                                    {/* Sub-subcategory Selection */}
-                                    {(() => {
-                                        const selectedCat = categories?.find(c => c.id === values.category);
-                                        const selectedSub = selectedCat?.subcategories?.find(s => s.id === values.subcategory);
-                                        if (!selectedSub || !selectedSub.subsubcategories || selectedSub.subsubcategories.length === 0) return null;
-
-                                        return (
-                                            <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
-                                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">{t('editAd.selectSpecificType', 'Select Specific Type')}</h3>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                                    {selectedSub.subsubcategories.map(ss => (
-                                                        <button
-                                                            key={ss.id}
-                                                            type="button"
-                                                            onClick={() => setFieldValue('subsubcategory', ss.id)}
-                                                            className={cn(
-                                                                "flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left",
-                                                                values.subsubcategory === ss.id
-                                                                    ? "border-primary-500 bg-primary-50 text-primary-900 shadow-sm"
-                                                                    : "border-gray-100 bg-white hover:border-primary-200 text-gray-700"
-                                                            )}
-                                                        >
-                                                            <span className="text-sm font-semibold truncate pl-2">
-                                                                {getField(ss, 'name')}
-                                                            </span>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        );
-                                    })()}
-
-                                    {touched.category && errors.category && (
-                                        <p className="text-xs text-red-500 font-medium">{errors.category as string}</p>
-                                    )}
-
-                                    <div className="space-y-4 mt-6">
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-sm font-bold text-gray-700 uppercase tracking-wider">{t('editAd.detailedDescription', 'Detailed Description')}</label>
-                                            <div className="flex bg-gray-100 p-1 rounded-lg">
-                                                {(values.lang_available === 'en' || values.lang_available === 'both') && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setActiveTab('en')}
-                                                        className={cn("px-3 py-1 rounded-md text-[10px] font-bold uppercase transition-all", activeTab === 'en' ? "bg-white text-primary-600 shadow-sm" : "text-gray-400")}
-                                                    >
-                                                        English
-                                                    </button>
-                                                )}
-                                                {(values.lang_available === 'so' || values.lang_available === 'both') && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setActiveTab('so')}
-                                                        className={cn("px-3 py-1 rounded-md text-[10px] font-bold uppercase transition-all", activeTab === 'so' ? "bg-white text-primary-600 shadow-sm" : "text-gray-400")}
-                                                    >
-                                                        Somali
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {activeTab === 'en' ? (
-                                            <textarea
-                                                className={cn(
-                                                    "w-full min-h-[150px] p-4 rounded-xl border focus:ring-2 focus:ring-primary-500 outline-none transition-all",
-                                                    touched.description_en && errors.description_en ? "border-red-500 bg-red-50" : "border-gray-300 bg-white"
-                                                )}
-                                                placeholder="Provide all details about your item in English..."
-                                                value={values.description_en}
-                                                onChange={(e) => setFieldValue('description_en', e.target.value)}
-                                            ></textarea>
-                                        ) : (
-                                            <textarea
-                                                className={cn(
-                                                    "w-full min-h-[150px] p-4 rounded-xl border focus:ring-2 focus:ring-primary-500 outline-none transition-all",
-                                                    touched.description_so && errors.description_so ? "border-red-500 bg-red-50" : "border-gray-300 bg-white"
-                                                )}
-                                                placeholder="Ka bixi faahfaahin buuxda alaabtaada af Somali..."
-                                                value={values.description_so}
-                                                onChange={(e) => setFieldValue('description_so', e.target.value)}
-                                            ></textarea>
-                                        )}
-                                        {((activeTab === 'en' && touched.description_en && errors.description_en) ||
-                                            (activeTab === 'so' && touched.description_so && errors.description_so)) && (
-                                                <p className="text-xs text-red-500 font-medium">
-                                                    {(activeTab === 'en' ? errors.description_en : errors.description_so) as string}
-                                                </p>
-                                            )}
-                                    </div>
-
-                                    {/* Dynamic Attributes (From API Schema) */}
-                                    {(() => {
-                                        const selectedCat = categories?.find(c => c.id === values.category);
-                                        const selectedSub = selectedCat?.subcategories?.find(s => s.id === values.subcategory);
-                                        const selectedSubSub = selectedSub?.subsubcategories?.find(ss => ss.id === values.subsubcategory);
-
-                                        // Merge attributes from category, subcategory, and sub-subcategory
-                                        const catAttrs = selectedCat?.attributes_schema?.fields || [];
-                                        const subAttrs = selectedSub?.attributes_schema?.fields || [];
-                                        const subSubAttrs = (selectedSubSub as any)?.attributes_schema?.fields || [];
-                                        const attributes = [...catAttrs, ...subAttrs, ...subSubAttrs];
-
-                                        if (attributes.length === 0) return null;
-
-                                        return (
-                                            <div className="pt-6 border-t border-gray-100 space-y-6">
-                                                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-widest">{t('editAd.specificDetails', 'Specific Details')}</h4>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                    {attributes.map(attr => (
-                                                        <div key={attr.name}>
-                                                            <label className="text-sm font-medium text-gray-700 mb-2 block">{attr.label} {attr.required && '*'}</label>
-                                                            {attr.type === 'select' ? (
-                                                                <select
-                                                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none transition-all bg-white"
-                                                                    value={values.attributes[attr.name] || ''}
-                                                                    onChange={(e) => setFieldValue(`attributes.${attr.name}`, e.target.value)}
-                                                                >
-                                                                    <option value="">Select {attr.label}</option>
-                                                                    {attr.options?.map((opt: string) => (
-                                                                        <option key={opt} value={opt}>{opt}</option>
-                                                                    ))}
-                                                                </select>
-                                                            ) : (
-                                                                <input
-                                                                    type={attr.type}
-                                                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-                                                                    placeholder={attr.placeholder}
-                                                                    value={values.attributes[attr.name] || ''}
-                                                                    onChange={(e) => setFieldValue(`attributes.${attr.name}`, attr.type === 'number' ? Number(e.target.value) : e.target.value)}
-                                                                />
-                                                            )}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        );
-                                    })()}
-                                </div>
-                            )}
-
-                            {currentStep === 2 && (
-                                <div className="space-y-6">
-                                    <h3 className="text-xl font-bold flex items-center gap-2">{t('editAd.pricingCondition', 'Pricing & Condition')}</h3>
-                                    <Input
-                                        label={t('listing.price', 'Price') + ' (USD)'}
-                                        name="price"
-                                        type="number"
-                                        value={values.price}
-                                        onChange={(e) => setFieldValue('price', e.target.value)}
-                                        error={touched.price ? errors.price : undefined}
-                                    />
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-700 mb-2 block">{t('listing.condition', 'Condition')}</label>
-                                        <div className="flex gap-4">
-                                            {([
-                                                { value: 'New', label: t('postAd.condNew', 'New') },
-                                                { value: 'Used', label: t('postAd.condUsed', 'Used') },
-                                                { value: 'Refurbished', label: t('postAd.condRefurbished', 'Refurbished') },
-                                            ]).map((cond) => (
-                                                <label key={cond.value} className="flex items-center gap-2 p-3 border rounded-xl cursor-pointer hover:bg-gray-50 flex-1 justify-center">
-                                                    <input
-                                                        type="radio"
-                                                        name="condition"
-                                                        value={cond.value}
-                                                        checked={values.condition === cond.value}
-                                                        onChange={() => setFieldValue('condition', cond.value)}
-                                                        className="text-primary-600 focus:ring-primary-500"
-                                                    />
-                                                    <span className="text-sm font-medium">{cond.label}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {currentStep === 3 && (
-                                <div className="space-y-6">
-                                    <h3 className="text-xl font-bold flex items-center gap-2">{t('listing.addPhotos', 'Add Photos')}</h3>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        <label className="aspect-square rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center p-4 hover:border-primary-500 hover:bg-primary-50 transition-all cursor-pointer group">
-                                            <Upload className="h-8 w-8 text-gray-300 group-hover:text-primary-500 mb-2" />
-                                            <span className="text-[10px] text-gray-400 font-medium text-center">{t('listing.clickToUpload', 'Click to upload photos')}</span>
-                                            <input
-                                                type="file" multiple className="hidden"
-                                                onChange={async (e) => {
-                                                    const files = Array.from(e.target.files || []);
-                                                    for (const file of files) {
-                                                        const result = await listingService.uploadImage(file);
-                                                        setFieldValue('images', [...values.images, result.url]);
-                                                    }
-                                                }}
-                                            />
-                                        </label>
-                                        {values.images.map((url, i) => (
-                                            <div key={i} className="aspect-square rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center relative overflow-hidden group">
-                                                <img src={getImageUrl(url)} alt="" className="w-full h-full object-cover" />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setFieldValue('images', values.images.filter((_, idx) => idx !== i))}
-                                                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                                >
-                                                    <X className="h-4 w-4" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                        {Array.from({ length: Math.max(0, 3 - values.images.length) }).map((_, i) => (
-                                            <div key={i} className="aspect-square rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center">
-                                                <ImageIcon className="h-10 w-10 text-gray-100" />
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="mt-12 flex justify-between gap-4 border-t border-gray-100 pt-8">
-                                <Button
-                                    type="button" variant="outline" onClick={handleBack}
-                                    disabled={currentStep === 0 || isSubmitting} className="rounded-xl px-8"
-                                >
-                                    <ChevronLeft className="h-5 w-5 mr-2" /> {t('listing.back', 'Back')}
-                                </Button>
-                                <Button
-                                    type="submit" className="rounded-xl px-12"
-                                    isLoading={isSubmitting || updateMutation.isPending}
-                                >
-                                    {currentStep === steps.length - 1 ? t('listing.saveChanges', 'Save Changes') : t('listing.next', 'Next')}
-                                    <ChevronRight className="h-5 w-5 ml-2" />
-                                </Button>
+            <form onSubmit={step === 1 ? e => e.preventDefault() : handleSubmit} className="max-w-2xl mx-auto">
+                {step === 1 && (
+                    <div className="bg-white rounded-md shadow-sm border border-gray-200 p-5 mb-5 space-y-6">
+                        <div>
+                            <label className="block text-[13px] font-bold text-gray-500 uppercase tracking-wider mb-3">Language</label>
+                            <div className="flex gap-2 p-1 bg-gray-50 rounded-xl border border-gray-100">
+                                {(['en', 'so', 'both'] as const).map(lang => (
+                                    <button key={lang} type="button" onClick={() => set('lang_available', lang)} className={cn("flex-1 py-2 px-1 rounded-lg text-sm font-bold transition-all", form.lang_available === lang ? "bg-white text-primary-600 shadow-sm" : "text-gray-400")}>{lang === 'both' ? 'Both' : lang.toUpperCase()}</button>
+                                ))}
                             </div>
+                        </div>
 
-                            <LocationPickerModal
-                                isOpen={isLocationModalOpen}
-                                onClose={() => setIsLocationModalOpen(false)}
-                                onSelect={(loc) => setFieldValue('location', loc)}
-                                title="Update Listing Location"
-                            />
-                        </Form>
-                    )}
-                </Formik>
-            </div>
+                        <div className="mb-6">
+                             <div className="flex items-center justify-between mb-2">
+                                <label className="block text-[13px] font-bold text-gray-900">Title*</label>
+                                <div className="flex bg-gray-100 rounded-lg p-0.5">
+                                    <button type="button" onClick={() => setFormTab('en')} className={cn("px-3 py-1 text-[11px] font-bold rounded-md transition-all", formTab === 'en' ? "bg-white text-primary-600 shadow-sm" : "text-gray-400")}>EN</button>
+                                    <button type="button" onClick={() => setFormTab('so')} className={cn("px-3 py-1 text-[11px] font-bold rounded-md transition-all", formTab === 'so' ? "bg-white text-primary-600 shadow-sm" : "text-gray-400")}>SO</button>
+                                </div>
+                             </div>
+                             {formTab === 'en' ? (
+                                <div className="space-y-2">
+                                    {renderFloatingInput('title_en', 'English Title*', form.title_en, v => set('title_en', v), errors.title_en, { maxLength: TITLE_MAX })}
+                                    <button type="button" onClick={() => handleAIAssist('title', 'en')} disabled={!!aiLoading} className="text-[11px] flex items-center gap-1 text-primary-600 font-bold ml-auto"><Sparkles size={12}/> ✨ AI Improve</button>
+                                </div>
+                             ) : (
+                                <div className="space-y-2">
+                                    {renderFloatingInput('title_so', 'Gali Magaca (Somali)*', form.title_so, v => set('title_so', v), errors.title_so, { maxLength: TITLE_MAX })}
+                                    <button type="button" onClick={() => handleAIAssist('title', 'so')} disabled={!!aiLoading} className="text-[11px] flex items-center gap-1 text-primary-600 font-bold ml-auto"><Sparkles size={12}/> ✨ AI Improve</button>
+                                </div>
+                             )}
+                        </div>
+
+                        <div className="relative mb-4">
+                            <button type="button" onClick={() => setShowCategoryPicker(true)} className="flex w-full items-center justify-between rounded-md border border-gray-300 px-3 py-3 text-sm">{selectedCategory ? getField(selectedCategory, 'name') : 'Select Category'}<ChevronRight size={16} /></button>
+                            {errors.categoryId && <p className="text-[11px] text-red-500 mt-1">{errors.categoryId}</p>}
+                        </div>
+
+                        <div className="relative mb-4">
+                            <button type="button" onClick={() => setIsLocationOpen(true)} className="flex w-full items-center justify-between rounded-md border border-gray-300 px-3 py-3 text-sm">{form.location || 'Select Location'}<ChevronRight size={16} /></button>
+                            {errors.location && <p className="text-[11px] text-red-500 mt-1">{errors.location}</p>}
+                        </div>
+
+                        <div>
+                            <p className="text-[13px] font-bold text-gray-900 mb-2">Photos*</p>
+                            <div className="grid grid-cols-4 gap-2">
+                                <button type="button" onClick={() => fileInputRef.current?.click()} className="aspect-square border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center hover:bg-primary-50 hover:border-primary-300 transition-all">
+                                    <Plus className="text-gray-400" />
+                                    <span className="text-[10px] text-gray-400">Add Photo</span>
+                                </button>
+                                {form.images.map((img, i) => (
+                                    <div key={i} className="aspect-square rounded-lg bg-gray-50 relative group overflow-hidden">
+                                        <img src={getImageUrl(img)} alt="" className="w-full h-full object-cover" />
+                                        <button onClick={() => removeImage(i)} className="absolute top-1 right-1 bg-red-500 text-white p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><X size={12} /></button>
+                                    </div>
+                                ))}
+                            </div>
+                            <input ref={fileInputRef} type="file" multiple className="hidden" onChange={e => handleImageUpload(e.target.files)} />
+                        </div>
+
+                        <button type="button" onClick={handleNext} className="w-full bg-primary-500 text-white py-4 rounded-md font-bold text-sm mt-8">Next: Details & Price</button>
+                    </div>
+                )}
+
+                {step === 2 && (
+                    <div className="bg-white rounded-md shadow-sm border border-gray-200 p-5 mb-5 space-y-6">
+                        <div>
+                             <div className="flex items-center justify-between mb-2">
+                                <label className="block text-[13px] font-bold text-gray-900">Description*</label>
+                                <div className="flex bg-gray-100 rounded-lg p-0.5">
+                                    <button type="button" onClick={() => setFormTab('en')} className={cn("px-3 py-1 text-[11px] font-bold rounded-md transition-all", formTab === 'en' ? "bg-white text-primary-600 shadow-sm" : "text-gray-400")}>EN</button>
+                                    <button type="button" onClick={() => setFormTab('so')} className={cn("px-3 py-1 text-[11px] font-bold rounded-md transition-all", formTab === 'so' ? "bg-white text-primary-600 shadow-sm" : "text-gray-400")}>SO</button>
+                                </div>
+                             </div>
+                             {formTab === 'en' ? (
+                                <textarea value={form.description_en} onChange={e => set('description_en', e.target.value)} rows={5} placeholder="English description..." className="w-full p-3 border border-gray-300 rounded-md outline-none focus:border-primary-500 text-sm" />
+                             ) : (
+                                <textarea value={form.description_so} onChange={e => set('description_so', e.target.value)} rows={5} placeholder="Faahfaahinta Somali..." className="w-full p-3 border border-gray-300 rounded-md outline-none focus:border-primary-500 text-sm" />
+                             )}
+                             <div className="flex gap-2 mt-2">
+                                <button type="button" onClick={() => handleAIAssist('description', formTab)} disabled={!!aiLoading} className="text-[11px] flex items-center gap-1 text-primary-600 font-bold border border-primary-100 px-2 py-1 rounded-md hover:bg-primary-50 transition-all"><Sparkles size={12}/> AI Improve</button>
+                                <button type="button" onClick={() => handleAIAssist('translate', formTab)} disabled={!!aiLoading} className="text-[11px] flex items-center gap-1 text-gray-600 font-bold border border-gray-100 px-2 py-1 rounded-md hover:bg-gray-50 transition-all"><Languages size={12}/> Translate</button>
+                             </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                            <div className="w-24 shrink-0 relative">
+                                <select value={form.currency} onChange={e => set('currency', e.target.value as any)} className="w-full border border-gray-300 rounded-md p-3 text-sm appearance-none outline-none focus:border-primary-500">
+                                    <option value="USD">USD ($)</option>
+                                    <option value="KES">KES (KSh)</option>
+                                    <option value="SOS">SOS (Sh)</option>
+                                </select>
+                                <ChevronRight className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 rotate-90" />
+                            </div>
+                            <div className="flex-1">
+                                {renderFloatingInput('price', `Price (${form.currency})*`, form.price, v => set('price', v), errors.price, { type: 'number' })}
+                            </div>
+                        </div>
+
+                        <div>
+                            <p className="text-[13px] font-bold text-gray-900 mb-2">Condition*</p>
+                            <div className="flex gap-3">
+                                {(['New', 'Used', 'Refurbished'] as const).map(c => (
+                                    <button key={c} type="button" onClick={() => set('condition', c)} className={cn("flex-1 py-3 border rounded-md text-sm font-bold transition-all", form.condition === c ? "border-primary-500 text-primary-600 bg-primary-50" : "border-gray-100 text-gray-400 hover:border-gray-200")}>{c}</button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <button type="submit" disabled={submitting} className="w-full bg-primary-500 text-white py-4 rounded-md font-bold text-sm mt-8 shadow-lg shadow-primary-100 flex items-center justify-center gap-2">
+                            {submitting ? <Loader2 size={18} className="animate-spin" /> : 'Save Changes'}
+                        </button>
+                    </div>
+                )}
+            </form>
+
+            <LocationPickerModal isOpen={isLocationOpen} onClose={() => setIsLocationOpen(false)} onSelect={loc => set('location', loc)} />
         </div>
     );
 };
