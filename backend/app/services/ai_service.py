@@ -329,29 +329,47 @@ Return a JSON object:
             raise HTTPException(status_code=503, detail="AI Service is not configured")
 
         system_prompt = """
-        You are an assistant that converts unstructured marketplace descriptions into JSON.
-        Extract: title, price, currency (USD, KES, or SOS), category_slug, location, and condition.
+        You are a world-class bilingual marketplace assistant (English and Somali). 
+        Your goal is to take a brief user input and expand it into a professional, high-quality listing in BOTH languages simultaneously.
+        
+        Extract and Generate:
+        1. title: Clean, catchy English title (max 70 chars).
+        2. title_so: Natural, catchy Somali title.
+        3. suggestions: 3 alternative English title suggestions.
+        4. price: The numeric price.
+        5. currency: USD, KES, or SOS.
+        6. category_slug: One of [electronics, vehicles, property, phones, laptops, home, fashion, health, services, jobs, pets, food, kids, sports, hobby, agriculture, other].
+        7. location: The city or region.
+        8. condition: New, Used, or Refurbished.
+        9. description: Professional, detailed 2-3 sentence description in English.
+        10. description_so: Professional, natural, high-quality description in Somali. Do not use direct robotic translation.
+        11. negotiable: "yes" or "no".
         """
         user_prompt = f"""
         Input: "{input_text}"
         
-        Return a JSON object:
+        Return a JSON object with these keys:
         {{
           "title": "string",
+          "title_so": "string",
+          "suggestions": ["suggestion 1", "suggestion 2", "suggestion 3"],
           "price": number,
           "currency": "USD | KES | SOS",
           "category_slug": "slug",
           "location": "string",
-          "condition": "New | Used | Refurbished"
+          "condition": "New | Used | Refurbished",
+          "description": "string",
+          "description_so": "string",
+          "negotiable": "yes | no"
         }}
-        Do not include other text.
+        Do not include other text. Ensure descriptions are persuasive and localized for the East African market.
         """
         import json
         response_text = self._call_ai(system_prompt, user_prompt)
         try:
             return json.loads(response_text)
         except:
-            return {"title": input_text}
+            return {"title": input_text, "suggestions": [input_text]}
 
     def get_recommended_listings(self, user_history: list) -> dict:
         """

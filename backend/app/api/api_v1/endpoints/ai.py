@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends
+from sqlmodel import Session
 from pydantic import BaseModel
 from typing import Optional, List, Any
+from app.api import deps
 from app.services.ai_service import ai_service
 from app.api.deps import get_current_user
 from app.models.user import User
@@ -133,24 +135,40 @@ def demand_insights(body: DemandInsightsRequest):
 
 
 @router.post("/listings/parse")
-def parse_listing(body: ParseListingRequest):
+def parse_listing(
+    body: ParseListingRequest,
+    db: Session = Depends(deps.get_db),
+):
     """
     10-Second Listing: convert raw text (e.g. 'iPhone 12 50k Nairobi')
     into a structured listing object ready to prefill the form.
     """
+    from sqlmodel import select
+    from app.models.listing import Category
+    
     result = ai_service.parse_listing(body.text)
-    # Normalize fields to match frontend expectations
+    
+    # Resolve category slug to ID
+    category_id = None
+    if result.get("category_slug"):
+        cat = db.exec(select(Category).where(Category.slug == result.get("category_slug"))).first()
+        if cat:
+            category_id = cat.id
+            
     title = result.get("title", body.text)
+    
     return {
         "title_en": title,
-        "title_so": title,
-        "description_en": f"Selling: {title}. {result.get('condition', 'Used')} condition. Contact me for more details.",
-        "description_so": f"Waan iibinayaa: {title}. Xaalad: {result.get('condition', 'La isticmaalay')}. Ila soo xiriir.",
+        "title_so": result.get("title_so", title),
+        "suggestions": result.get("suggestions", [title]),
+        "description_en": result.get("description", f"Selling: {title}. Contact me for more details."),
+        "description_so": result.get("description_so", f"Waan iibinayaa: {title}. Ila soo xiriir."),
         "price": result.get("price"),
         "currency": result.get("currency", "USD"),
         "condition": result.get("condition", "Used"),
         "location": result.get("location"),
-        "category_slug": result.get("category_slug"),
+        "category_id": category_id,
+        "is_negotiable": result.get("negotiable") == "yes"
     }
 
 

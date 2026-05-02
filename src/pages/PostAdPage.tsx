@@ -88,6 +88,7 @@ const PostAdPage: React.FC = () => {
     const [createdListingId, setCreatedListingId] = useState<number | null>(null);
     const [showLipanaModal, setShowLipanaModal] = useState(false);
     const [createdListingTitle, setCreatedListingTitle] = useState('');
+    const [titleSuggestions, setTitleSuggestions] = useState<string[]>([]);
 
     const { data: verificationStatus } = useQuery({
         queryKey: ['verification-status'],
@@ -682,6 +683,9 @@ const PostAdPage: React.FC = () => {
                                         if (res.price) set('price', String(res.price));
                                         if (res.category_id) set('categoryId', res.category_id);
                                         if (res.condition) set('condition', res.condition);
+                                        if (res.is_negotiable !== undefined) set('negotiable', res.is_negotiable ? 'yes' : 'no');
+                                        if (res.suggestions) setTitleSuggestions(res.suggestions);
+                                        set('lang_available', 'both');
                                         
                                         (document.getElementById('ai-quick-post') as HTMLInputElement).value = '';
                                     } catch (e: any) {
@@ -706,6 +710,33 @@ const PostAdPage: React.FC = () => {
                                 )}
                             </button>
                         </div>
+
+                        {titleSuggestions.length > 0 && (
+                            <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                                <p className="text-[11px] font-bold text-primary-600 uppercase tracking-widest mb-2 px-1">AI Title Suggestions:</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {titleSuggestions.map((suggestion, i) => (
+                                        <button
+                                            key={i}
+                                            type="button"
+                                            onClick={() => {
+                                                set('title_en', suggestion);
+                                            }}
+                                            className="bg-primary-50 text-primary-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-primary-100 hover:bg-primary-100 transition-colors active:scale-95"
+                                        >
+                                            {suggestion}
+                                        </button>
+                                    ))}
+                                    <button 
+                                        type="button"
+                                        onClick={() => setTitleSuggestions([])}
+                                        className="text-gray-400 hover:text-gray-600 p-1"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="bg-white rounded-md shadow-sm border-[1.5px] border-gray-200/60 p-5 mb-5">
