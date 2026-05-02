@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { promotionService } from '../services/promotionService';
 import { listingService } from '../services/listingService';
 import { Button } from '../components/Button';
 import { Check, Loader2, Phone, Smartphone } from 'lucide-react';
@@ -29,17 +30,17 @@ const PromotionPage: React.FC = () => {
     // Fetch Plans
     const { data: plans, isLoading: plansLoading } = useQuery({
         queryKey: ['promotion-plans'],
-        queryFn: listingService.getPromotionPlans,
+        queryFn: promotionService.getPlans,
     });
 
     // Create Order Mutation
     const createOrderMutation = useMutation({
         mutationFn: (data: { planWithId: number, phone: string }) =>
-            listingService.createPromotionOrder({
-                listing_id: Number(adId),
-                plan_id: data.planWithId,
-                payment_phone: data.phone
-            }),
+            promotionService.createPromotion(
+                Number(adId),
+                data.planWithId,
+                data.phone
+            ),
         onSuccess: (data) => {
             setActiveOrderId(data.id);
             setStep('payment');
@@ -57,7 +58,7 @@ const PromotionPage: React.FC = () => {
         if (step === 'payment' && activeOrderId) {
             interval = setInterval(async () => {
                 try {
-                    const res = await listingService.checkPromotionStatus(activeOrderId);
+                    const res = await promotionService.checkPayment(activeOrderId);
                     // Check for PAID status or APPROVED
                     if (res.status === 'paid' || res.status === 'approved' || res.status === 'APPROVED' || res.status === 'PAID') {
                         setStep('success');

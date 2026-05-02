@@ -47,31 +47,79 @@ export const listingService = {
         return response.data;
     },
 
+    async uploadMultipleImages(files: File[]): Promise<{ filename: string; url: string }[]> {
+        const formData = new FormData();
+        files.forEach(file => formData.append('files', file));
+        const response = await api.post('/listings/upload-multiple', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    },
+
+    async patchListing(id: number, data: any): Promise<Listing> {
+        const response = await api.patch(`/listings/${id}`, data);
+        return response.data;
+    },
+
+    async applyListingBoost(id: number, boostType: string) {
+        const response = await api.post(`/listings/${id}/boost`, { boost_type: boostType });
+        return response.data;
+    },
+
+    async getCategoryAttributes(slug: string) {
+        const response = await api.get(`/listings/categories/${slug}/attributes`);
+        return response.data;
+    },
+
+    // Category CRUD
+    async createCategory(data: any) {
+        const response = await api.post('/listings/categories', data);
+        return response.data;
+    },
+
+    async updateCategory(id: number, data: any) {
+        const response = await api.patch(`/listings/categories/${id}`, data);
+        return response.data;
+    },
+
+    async deleteCategory(id: number) {
+        await api.delete(`/listings/categories/${id}`);
+    },
+
+    // Subcategory CRUD
+    async createSubcategory(data: any) {
+        const response = await api.post('/listings/subcategories', data);
+        return response.data;
+    },
+
+    async updateSubcategory(id: number, data: any) {
+        const response = await api.patch(`/listings/subcategories/${id}`, data);
+        return response.data;
+    },
+
+    async deleteSubcategory(id: number) {
+        await api.delete(`/listings/subcategories/${id}`);
+    },
+
+    // Subsubcategory CRUD
+    async createSubsubcategory(data: any) {
+        const response = await api.post('/listings/subsubcategories', data);
+        return response.data;
+    },
+
+    async updateSubsubcategory(id: number, data: any) {
+        const response = await api.patch(`/listings/subsubcategories/${id}`, data);
+        return response.data;
+    },
+
+    async deleteSubsubcategory(id: number) {
+        await api.delete(`/listings/subsubcategories/${id}`);
+    },
+
     async getTrendingListings(): Promise<Listing[]> {
-        // For now, fetch recent listings. In real backend, this would be /listings/trending
         const response = await api.get('/listings/', { params: { sort: 'trending', limit: 6 } });
         return response.data;
     },
-
-    // Promotion Methods
-    async getPromotionPlans() {
-        const response = await api.get('/promotions/plans');
-        return response.data;
-    },
-
-    async createPromotionOrder(data: { listing_id: number; plan_id: number; payment_phone: string }) {
-        const response = await api.post('/promotions/', data);
-        return response.data;
-    },
-
-    async checkPromotionStatus(promoId: number) {
-        // This endpoint checks if payment is detected
-        const response = await api.post(`/promotions/${promoId}/check-payment`);
-        return response.data;
-    },
-
-    async simulatePayment(data: { phone: string; amount: number; reference?: string }) {
-        const response = await api.post('/mobile-money/simulate', data);
-        return response.data;
-    }
 };

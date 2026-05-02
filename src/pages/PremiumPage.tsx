@@ -9,7 +9,7 @@ import {
 import { Button } from '../components/Button';
 import { cn } from '../utils/cn';
 import { useLanguageField } from '../hooks/useLanguageField';
-import { listingService } from '../services/listingService';
+import { promotionService } from '../services/promotionService';
 import { ListingSelectorModal } from '../components/ListingSelectorModal';
 import { LipanaPaymentModal } from '../components/LipanaPaymentModal';
 import type { Listing } from '../types/listing';
@@ -39,7 +39,7 @@ export const PremiumPage: React.FC = () => {
 
     const { data: plans = [], isLoading } = useQuery<PromotionPlan[]>({
         queryKey: ['promotionPlans'],
-        queryFn: listingService.getPromotionPlans,
+        queryFn: promotionService.getPlans,
     });
 
     const handleSelectPlan = (plan: PromotionPlan) => {
@@ -56,11 +56,11 @@ export const PremiumPage: React.FC = () => {
     const handlePaymentConfirm = async (phone: string): Promise<{ promoId?: number; error?: string }> => {
         if (!selectedPlan || !selectedListing) return { error: 'Missing plan or listing' };
         try {
-            const result = await listingService.createPromotionOrder({
-                listing_id: selectedListing.id,
-                plan_id: selectedPlan.id,
-                payment_phone: phone,
-            });
+            const result = await promotionService.createPromotion(
+                selectedListing.id,
+                selectedPlan.id,
+                phone
+            );
             return { promoId: result.id };
         } catch (e: any) {
             return { error: e?.response?.data?.detail || 'Payment initiation failed. Please try again.' };
@@ -68,7 +68,7 @@ export const PremiumPage: React.FC = () => {
     };
 
     const handlePollStatus = async (promoId: number) => {
-        const result = await listingService.checkPromotionStatus(promoId);
+        const result = await promotionService.checkPayment(promoId);
         return result;
     };
 

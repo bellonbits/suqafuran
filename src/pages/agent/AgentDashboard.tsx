@@ -21,6 +21,7 @@ import {
     Wallet,
     Zap,
     AlertTriangle,
+    Terminal
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -100,6 +101,15 @@ const AgentDashboard: React.FC = () => {
             queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
         }
     });
+
+    const handleDiag = async (promoId: number) => {
+        try {
+            const data = await promotionService.getDebugPayment(promoId);
+            alert(JSON.stringify(data, null, 2));
+        } catch (e) {
+            alert("Failed to fetch diagnostics");
+        }
+    };
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-8">
@@ -247,8 +257,17 @@ const AgentDashboard: React.FC = () => {
                                                         {t('agent.activateNow')}
                                                     </Button>
                                                 ) : (
-                                                    <div className="px-3 py-1 bg-gray-100 text-gray-400 text-[10px] font-bold rounded-full uppercase tracking-widest">
-                                                        {t('agent.waiting')}
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            variant="outline"
+                                                            className="h-9 px-3 rounded-lg border-gray-200 text-gray-400 hover:text-primary-600 hover:border-primary-200"
+                                                            onClick={() => handleDiag(order.id)}
+                                                        >
+                                                            <Terminal size={14} />
+                                                        </Button>
+                                                        <div className="px-3 py-2 bg-gray-100 text-gray-400 text-[10px] font-bold rounded-full uppercase tracking-widest flex items-center">
+                                                            {t('agent.waiting')}
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>

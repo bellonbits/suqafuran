@@ -9,12 +9,14 @@ import { Spin } from 'antd';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { listingService } from '../services/listingService';
 import { interactionService, InteractionType } from '../services/interactionService';
+import { followsService } from '../services/followsService';
+import { feedbackService } from '../services/feedbackService';
 import {
     Phone, Heart,
     MapPin, Clock, ShieldCheck, Flag,
     ChevronLeft, ChevronRight, Navigation,
     MoreVertical, Camera, ChevronDown, ChevronUp, MessageCircle,
-    Share2, PhoneCall, AlertTriangle, XCircle
+    Share2, PhoneCall, AlertTriangle, XCircle, UserPlus, UserCheck, Star, User
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { ProductCard } from '../components/ProductCard';
@@ -96,6 +98,32 @@ const ProductDetailPage: React.FC = () => {
         queryKey: ['related-listings'],
         queryFn: () => listingService.getListings({ limit: 6 }),
     });
+
+    const { data: followStats } = useQuery({
+        queryKey: ['follow-stats', ad?.owner_id],
+        queryFn: () => followsService.getFollowStats(ad!.owner_id),
+        enabled: !!ad?.owner_id && !!user,
+    });
+
+    const { data: feedback } = useQuery({
+        queryKey: ['seller-feedback', ad?.owner_id],
+        queryFn: () => feedbackService.getUserFeedback(ad!.owner_id),
+        enabled: !!ad?.owner_id,
+    });
+
+    const followMutation = useMutation({
+        mutationFn: () => followsService.followUser(ad!.owner_id),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['follow-stats', ad?.owner_id] }),
+    });
+
+    const unfollowMutation = useMutation({
+        mutationFn: () => followsService.unfollowUser(ad!.owner_id),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['follow-stats', ad?.owner_id] }),
+    });
+
+    const avgRating = feedback?.length 
+        ? (feedback.reduce((acc, f) => acc + f.rating, 0) / feedback.length).toFixed(1) 
+        : null;
 
     const displayRelatedAds = relatedAds || [];
     const { currency: targetCurrency } = useCurrencyStore();
@@ -319,18 +347,45 @@ const ProductDetailPage: React.FC = () => {
 
                 {/* ── Title ── */}
                 <div className="bg-white px-4 pb-1">
-                    {ad
-                        ? <h1 className="text-[17px] font-bold text-gray-900 leading-snug">
-                            {isTranslating ? <span className="opacity-50">{effectiveTitle}</span> : effectiveTitle}
-                          </h1>
-                        : <div className="space-y-2 py-1">{S.line('w-3/4', 'h-5')}{S.line('w-1/2', 'h-5')}</div>
-                    }
-                    {isTranslated && (
-                        <span className="mt-1.5 mb-1 inline-flex items-center gap-1 text-[10px] text-gray-400 font-medium">
-                            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 8l6 6M4 14l6-6 2-2M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/></svg>
-                            Turjumaad Google
-                        </span>
-                    )}
+                    <div className="flex items-start justify-between gap-2">
+                        {ad
+                            ? <h1 className="text-[17px] font-bold text-gray-900 leading-snug">
+                                {isTranslating ? <span className="opacity-50">{effectiveTitle}</span> : effectiveTitle}
+                              </h1>
+                            : <div className="space-y-2 py-1">{S.line('w-3/4', 'h-5')}{S.line('w-1/2', 'h-5')}</div>
+                        }
+                        
+                        {ad && (
+                            <button
+                                onClick={() => {
+                                    if (isTranslated) {
+                                        // Revert to original
+                                        setTranslatedTitle(null);
+                                        setTranslatedDesc(null);
+                                        setIsTranslated(false);
+                                    } else {
+                                        // Force translation to target language (or opposite if already in target)
+                                        const targetLang = i18n.language === 'so' ? 'en' : 'so';
+                                        setIsTranslating(true);
+                                        const texts: string[] = [ad.title_en || ad.title_so || ''];
+                                        if (ad.description_en || ad.description_so) texts.push(ad.description_en || ad.description_so || '');
+                                        translateTexts(texts, targetLang)
+                                            .then(results => {
+                                                setTranslatedTitle(results[0] ?? null);
+                                                if (texts[1] && results[1]) setTranslatedDesc(results[1]);
+                                                setIsTranslated(true);
+                                            })
+                                            .catch(() => {})
+                                            .finally(() => setIsTranslating(false));
+                                    }
+                                }}
+                                disabled={isTranslating}
+                                className="shrink-0 mt-0.5 inline-flex items-center gap-1 bg-primary-50 text-primary-600 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-primary-100 hover:bg-primary-100 transition-colors active:scale-95"
+                            >
+                                <span className="text-[12px] leading-none">🌍</span> {isTranslated ? 'Original' : 'Translate'}
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {/* ── Price ── */}
@@ -479,13 +534,32 @@ const ProductDetailPage: React.FC = () => {
                                         <span className="text-[10px] font-bold">{t('listing.verifiedSeller')}</span>
                                     </div>
                                 )}
+                                {avgRating && (
+                                    <div className="flex items-center gap-1 text-yellow-500 mt-0.5">
+                                        <Star className="h-3 w-3 fill-yellow-500" />
+                                        <span className="text-[10px] font-bold">{avgRating} ({feedback?.length})</span>
+                                    </div>
+                                )}
                             </div>
-                            <Link
-                                to={`/seller/${ad.owner_id}`}
-                                className="text-xs font-bold text-primary-600 border border-primary-200 bg-primary-50 px-3 py-1.5 rounded-full shrink-0"
-                            >
-                                {t('listing.viewProfile')}
-                            </Link>
+                            <div className="flex items-center gap-2">
+                                {user && user.id !== ad.owner_id && (
+                                    <button
+                                        onClick={() => followStats?.is_following ? unfollowMutation.mutate() : followMutation.mutate()}
+                                        className={cn(
+                                            "w-9 h-9 rounded-full flex items-center justify-center transition-all",
+                                            followStats?.is_following ? "bg-primary-100 text-primary-600" : "bg-gray-100 text-gray-500"
+                                        )}
+                                    >
+                                        {followStats?.is_following ? <UserCheck size={18} /> : <UserPlus size={18} />}
+                                    </button>
+                                )}
+                                <Link
+                                    to={`/seller/${ad.owner_id}`}
+                                    className="text-xs font-bold text-primary-600 border border-primary-200 bg-primary-50 px-3 py-1.5 rounded-full shrink-0"
+                                >
+                                    {t('listing.viewProfile')}
+                                </Link>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -617,9 +691,39 @@ const ProductDetailPage: React.FC = () => {
 
                             {/* Title + Price + Meta */}
                             <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                                <h1 className={`text-2xl md:text-3xl font-bold text-gray-900 ${isTranslating ? 'opacity-50' : ''}`}>
-                                    {effectiveTitle}
-                                </h1>
+                                <div className="flex items-start justify-between gap-4">
+                                    <h1 className={`text-2xl md:text-3xl font-bold text-gray-900 ${isTranslating ? 'opacity-50' : ''}`}>
+                                        {effectiveTitle}
+                                    </h1>
+                                    {ad && (
+                                        <button
+                                            onClick={() => {
+                                                if (isTranslated) {
+                                                    setTranslatedTitle(null);
+                                                    setTranslatedDesc(null);
+                                                    setIsTranslated(false);
+                                                } else {
+                                                    const targetLang = i18n.language === 'so' ? 'en' : 'so';
+                                                    setIsTranslating(true);
+                                                    const texts: string[] = [ad.title_en || ad.title_so || ''];
+                                                    if (ad.description_en || ad.description_so) texts.push(ad.description_en || ad.description_so || '');
+                                                    translateTexts(texts, targetLang)
+                                                        .then(results => {
+                                                            setTranslatedTitle(results[0] ?? null);
+                                                            if (texts[1] && results[1]) setTranslatedDesc(results[1]);
+                                                            setIsTranslated(true);
+                                                        })
+                                                        .catch(() => {})
+                                                        .finally(() => setIsTranslating(false));
+                                                }
+                                            }}
+                                            disabled={isTranslating}
+                                            className="shrink-0 inline-flex items-center gap-1 bg-primary-50 text-primary-600 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-primary-100 hover:bg-primary-100 transition-colors active:scale-95"
+                                        >
+                                            <span className="text-[12px] leading-none">🌍</span> {isTranslated ? 'Original' : 'Translate'}
+                                        </button>
+                                    )}
+                                </div>
                                 {isTranslated && (
                                     <span className="mt-2 inline-flex items-center gap-1 text-[10px] text-gray-400 font-medium">
                                         <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 8l6 6M4 14l6-6 2-2M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/></svg>
@@ -754,14 +858,20 @@ const ProductDetailPage: React.FC = () => {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="font-bold text-sm text-gray-900 group-hover:text-primary-600 transition-colors truncate">{ad.owner?.full_name || t('listing.seller')}</p>
-                                                    {ad.owner?.is_verified ? (
-                                                        <div className="flex items-center gap-1 mt-0.5 text-primary-600">
-                                                            <ShieldCheck className="h-3.5 w-3.5" />
-                                                            <span className="text-[11px] font-bold">{t('listing.verified')}</span>
-                                                        </div>
-                                                    ) : (
-                                                        <p className="text-[11px] text-gray-400 mt-0.5">{t('listing.member')}</p>
-                                                    )}
+                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                        {ad.owner?.is_verified && (
+                                                            <div className="flex items-center gap-1 text-primary-600">
+                                                                <ShieldCheck className="h-3.5 w-3.5" />
+                                                                <span className="text-[11px] font-bold">{t('listing.verified')}</span>
+                                                            </div>
+                                                        )}
+                                                        {avgRating && (
+                                                            <div className="flex items-center gap-1 text-yellow-500">
+                                                                <Star className="h-3 w-3 fill-yellow-500" />
+                                                                <span className="text-[11px] font-bold">{avgRating}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </Link>
                                         )}
@@ -783,6 +893,23 @@ const ProductDetailPage: React.FC = () => {
                                                     <Phone className="h-4 w-4" />
                                                     {showPhone ? (ad.owner?.phone || 'N/A') : t('listing.showContact')}
                                                 </button>
+
+                                                {/* Follow button */}
+                                                {user && user.id !== ad.owner_id && (
+                                                    <button
+                                                        onClick={() => followStats?.is_following ? unfollowMutation.mutate() : followMutation.mutate()}
+                                                        disabled={followMutation.isPending || unfollowMutation.isPending}
+                                                        className={cn(
+                                                            "w-full h-11 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98]",
+                                                            followStats?.is_following 
+                                                                ? "bg-gray-100 text-gray-600 hover:bg-gray-200" 
+                                                                : "bg-secondary-50 text-secondary-600 border border-secondary-100 hover:bg-secondary-100"
+                                                        )}
+                                                    >
+                                                        {followStats?.is_following ? <UserCheck size={18} /> : <UserPlus size={18} />}
+                                                        {followStats?.is_following ? t('sellerProfile.following', 'Following') : t('sellerProfile.follow', 'Follow Seller')}
+                                                    </button>
+                                                )}
 
                                                 {/* Start chat */}
                                                 <Link
@@ -863,6 +990,47 @@ const ProductDetailPage: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* Reviews Section */}
+                    {feedback && feedback.length > 0 && (
+                        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm mt-8">
+                            <h3 className="font-bold text-lg text-gray-900 mb-6 flex items-center justify-between">
+                                <span>{t('feedback.sellerReviews', 'Seller Reviews')} ({feedback.length})</span>
+                                {avgRating && (
+                                    <div className="flex items-center gap-1.5 px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-sm font-black border border-yellow-100">
+                                        <Star size={14} className="fill-yellow-600" />
+                                        {avgRating}
+                                    </div>
+                                )}
+                            </h3>
+                            <div className="space-y-6">
+                                {feedback.slice(0, 3).map((f) => (
+                                    <div key={f.id} className="flex gap-4 pb-6 border-b border-gray-50 last:border-0 last:pb-0">
+                                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                                            <User size={20} className="text-gray-400" />
+                                        </div>
+                                        <div className="flex-1 space-y-1">
+                                            <div className="flex items-center justify-between">
+                                                <p className="font-bold text-gray-900 text-sm">Anonymous</p>
+                                                <div className="flex items-center gap-0.5">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <Star key={i} className={cn("h-3 w-3", i < f.rating ? "text-yellow-500 fill-yellow-500" : "text-gray-200")} />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <p className="text-sm text-gray-600 leading-relaxed">{f.comment}</p>
+                                            <p className="text-[10px] text-gray-400 pt-1 uppercase font-bold tracking-widest">{new Date(f.created_at).toLocaleDateString()}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                                {feedback.length > 3 && (
+                                    <Link to={`/seller/${ad?.owner_id}`} className="block text-center text-primary-600 font-bold text-sm hover:underline py-2">
+                                        {t('feedback.viewAllReviews', 'View all reviews')} →
+                                    </Link>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Related */}
                     {displayRelatedAds.length > 0 && (
                         <section className="mt-16">
@@ -872,6 +1040,7 @@ const ProductDetailPage: React.FC = () => {
                                     <ProductCard
                                         key={item.id}
                                         id={item.id.toString()}
+                                        ownerId={item.owner_id}
                                         title_en={item.title_en}
                                         title_so={item.title_so}
                                         price={item.price}

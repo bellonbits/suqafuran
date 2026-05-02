@@ -131,6 +131,16 @@ export const promotionService = {
         const response = await api.post(`/promotions/agent/transactions/${transactionId}/reject`);
         return response.data;
     },
+
+    getDebugPayment: async (promotionId: number): Promise<any> => {
+        const response = await api.get(`/promotions/${promotionId}/diag`);
+        return response.data;
+    },
+
+    simulatePayment: async (data: { phone: string; amount: number; reference?: string }): Promise<any> => {
+        const response = await api.post('/promotions/simulate-payment', data);
+        return response.data;
+    }
 };
 
 export default promotionService;

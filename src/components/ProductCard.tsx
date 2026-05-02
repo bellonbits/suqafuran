@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, MapPin, ShieldCheck, Zap } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Heart, MapPin, ShieldCheck, Zap, MessageCircle, BadgeCheck } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '../utils/cn';
@@ -12,6 +12,7 @@ import { translateSingle } from '../services/translateService';
 
 interface ProductCardProps {
     id: string;
+    ownerId?: string | number;
     title_en: string;
     title_so?: string;
     price: number;
@@ -28,6 +29,7 @@ interface ProductCardProps {
 
 const ProductCard = React.memo(function ProductCard({
     id,
+    ownerId,
     title_en,
     title_so,
     price,
@@ -44,6 +46,7 @@ const ProductCard = React.memo(function ProductCard({
     const { currency: targetCurrency } = useCurrencyStore();
     const { t, i18n } = useTranslation();
     const queryClient = useQueryClient();
+    const navigate = useNavigate();
     const [liked, setLiked] = useState(false);
     const [autoTitle, setAutoTitle] = useState<string | null>(null);
 
@@ -140,9 +143,8 @@ const ProductCard = React.memo(function ProductCard({
                             <span className="text-[9px] font-bold text-amber-500">★ {rating.toFixed(1)}</span>
                         )}
                         {isVerified && (
-                            <span className="inline-flex items-center gap-0.5 bg-primary-50 text-primary-600 text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-primary-100">
-                                <ShieldCheck className="w-2 h-2" />
-                                {t('common.verifiedId')}
+                            <span className="inline-flex items-center justify-center bg-green-50 rounded-full border border-green-200 shadow-sm p-0.5" title="Verified Seller">
+                                <BadgeCheck className="w-3.5 h-3.5 fill-green-500 text-white" />
                             </span>
                         )}
                     </div>
@@ -153,6 +155,21 @@ const ProductCard = React.memo(function ProductCard({
                         <ShieldCheck className="w-2 h-2 text-primary-400 shrink-0" />
                         {registrationAge}
                     </div>
+                )}
+                
+                {/* Chat Seller Button */}
+                {ownerId && (
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            navigate(`/messages?user=${ownerId}&listing=${id}&msg=${encodeURIComponent('Is this still available?')}`);
+                        }}
+                        className="mt-1.5 w-full bg-primary-50 hover:bg-primary-100 text-primary-600 font-bold text-[11px] py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-colors border border-primary-100 shadow-sm active:scale-95"
+                    >
+                        <MessageCircle size={14} className="fill-primary-100" />
+                        Chat Seller
+                    </button>
                 )}
             </div>
         </Link>

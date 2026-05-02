@@ -5,8 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationService } from '../services/notificationService';
 import type { Notification } from '../services/notificationService';
 import {
-    Bell, MessageCircle,
-    CheckCircle, Info, Loader2, Clock
+    Bell, MessageCircle, CheckCircle, Info, Loader2, Clock, TrendingDown, Trash2
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { cn } from '../utils/cn';
@@ -22,6 +21,20 @@ const NotificationsPage: React.FC = () => {
 
     const readMutation = useMutation({
         mutationFn: (id: number) => notificationService.markAsRead(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        },
+    });
+
+    const markAllReadMutation = useMutation({
+        mutationFn: notificationService.markAllAsRead,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => notificationService.deleteNotification(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['notifications'] });
         },
@@ -43,8 +56,15 @@ const NotificationsPage: React.FC = () => {
                     <h1 className="text-2xl font-bold text-gray-900">{t('notifications.title')}</h1>
                     <p className="text-sm text-gray-500 mt-1">{t('notifications.subtitle')}</p>
                 </div>
-                <Button variant="ghost" size="sm" className="text-primary-600 font-bold hover:bg-primary-50 rounded-xl">
-                    {t('notifications.markAllRead')}
+                <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-primary-600 font-bold hover:bg-primary-50 rounded-xl"
+                    onClick={() => markAllReadMutation.mutate()}
+                    isLoading={markAllReadMutation.isPending}
+                    disabled={!notifications || notifications.every(n => n.is_read)}
+                >
+                    {t('notifications.markAllRead', 'Mark all as read')}
                 </Button>
             </div>
 
@@ -102,6 +122,16 @@ const NotificationsPage: React.FC = () => {
                             {!notif.is_read && (
                                 <div className="w-2 h-2 bg-primary-300 rounded-full mt-2 shrink-0"></div>
                             )}
+
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteMutation.mutate(notif.id);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 transition-all"
+                            >
+                                <Trash2 size={16} />
+                            </button>
                         </div>
                     ))
                 )}
@@ -109,10 +139,5 @@ const NotificationsPage: React.FC = () => {
         </div>
     );
 };
-
-// Helper for price drop icon since TrendingDown wasn't imported
-const TrendingDown = ({ className }: { className?: string }) => (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></svg>
-);
 
 export { NotificationsPage };

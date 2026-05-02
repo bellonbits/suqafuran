@@ -291,6 +291,7 @@ const CategoryListingPage: React.FC = () => {
                                         <ProductCard
                                             key={ad.id}
                                             id={String(ad.id)}
+                                            ownerId={ad.owner_id}
                                             title_en={ad.title_en}
                                             title_so={ad.title_so}
                                             price={ad.price}

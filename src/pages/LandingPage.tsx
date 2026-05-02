@@ -7,7 +7,7 @@ import { ProductCard } from '../components/ProductCard';
 import { listingService } from '../services/listingService';
 import {
     MapPin, TrendingUp, ShieldCheck, Loader2,
-    ChevronRight, ShoppingBag, ArrowRight, Zap, ChevronDown
+    ChevronRight, ShoppingBag, ArrowRight, Zap, ChevronDown, Flame
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { LocationPickerModal } from '../components/LocationPickerModal';
@@ -16,6 +16,7 @@ import { SearchBar } from '../components/SearchBar';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { getImageUrl } from '../utils/imageUtils';
 import { useLanguageField } from '../hooks/useLanguageField';
+import { aiService } from '../services/aiService';
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
@@ -37,6 +38,12 @@ const LandingPage: React.FC = () => {
         queryFn: () => listingService.getListings({ limit: 12 }),
     });
 
+    const { data: recommendations } = useQuery({
+        queryKey: ['ai-recommendations'],
+        queryFn: () => aiService.getRecommendations({ limit: 6 }),
+        enabled: true, // Should ideally depend on user history, but we'll show generic AI picks if not logged in
+    });
+
     const displayCategories = categories || [];
     const displayAds = featuredAds || [];
 
@@ -49,8 +56,7 @@ const LandingPage: React.FC = () => {
 
                 {/* ── Hero banner ── */}
                 <div
-                    className="relative overflow-hidden px-4 pt-6 pb-6"
-                    style={{ background: 'linear-gradient(160deg, var(--color-primary-400) 0%, var(--color-primary-500) 80%, var(--color-primary-200) 100%)' }}
+                    className="relative overflow-hidden px-4 pt-6 pb-6 bg-primary-500"
                 >
                     {/* decorative circles */}
                     <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
@@ -154,6 +160,72 @@ const LandingPage: React.FC = () => {
                     </div>
                 </div>
 
+                {/* AI Recommendations — horizontal scroll */}
+                {recommendations && recommendations.length > 0 && (
+                    <div className="bg-[#fff9f0] pt-4 pb-5 border-b border-orange-100/50 relative overflow-hidden mb-4">
+                        <div className="absolute top-0 right-0 p-2 pointer-events-none opacity-20">
+                            <Zap size={60} className="text-secondary-500 fill-secondary-500" />
+                        </div>
+                        <div className="px-4 mb-3 flex items-center justify-between relative z-10">
+                            <div className="flex items-center gap-2">
+                                <Zap className="h-4 w-4 text-secondary-500 fill-secondary-500" />
+                                <h2 className="text-[14px] font-extrabold text-gray-900">{t('landing.recommendedForYou', 'AI Picks for You')}</h2>
+                            </div>
+                        </div>
+                        <div className="overflow-x-auto pb-1 scrollbar-none relative z-10">
+                            <div className="flex gap-3 px-4" style={{ width: 'max-content' }}>
+                                {recommendations.map((ad: any) => (
+                                    <div key={ad.id} className="w-[160px]">
+                                        <ProductCard
+                                            id={String(ad.id)}
+                                            ownerId={ad.owner_id}
+                                            title_en={ad.title_en || ''}
+                                            title_so={ad.title_so}
+                                            price={ad.price || 0}
+                                            currency={ad.currency || 'USD'}
+                                            location={ad.location || ''}
+                                            imageUrl={ad.images?.[0] || ''}
+                                            isVerified={ad.owner?.is_verified}
+                                            isPromoted={(ad.boost_level ?? 0) > 0}
+                                            className="h-full"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Section header — Hot Deals */}
+                <div className="px-4 flex items-center justify-between mb-3 mt-2">
+                    <div className="flex items-center gap-1.5">
+                        <Flame className="w-5 h-5 text-secondary-500 fill-secondary-500" />
+                        <h2 className="text-[15px] font-extrabold text-gray-900">Hot Deals Near You</h2>
+                    </div>
+                </div>
+
+                {/* Hot Deals Grid */}
+                {!adsLoading && displayAds.length > 0 && (
+                    <div className="grid grid-cols-2 gap-3 px-4 pb-6 border-b border-gray-100 mb-6">
+                        {displayAds.slice(0, 4).map((ad, idx) => (
+                            <ProductCard
+                                key={`hot-${ad.id}`}
+                                id={String(ad.id)}
+                                ownerId={ad.owner_id}
+                                title_en={ad.title_en || ''}
+                                title_so={ad.title_so}
+                                price={ad.price || 0}
+                                currency={ad.currency || 'USD'}
+                                location={ad.location || ''}
+                                imageUrl={ad.images?.[0] || ''}
+                                isVerified={ad.owner?.is_verified}
+                                isPopular={true}
+                                rating={4.9}
+                            />
+                        ))}
+                    </div>
+                )}
+
                 {/* Section header — Featured */}
                 <div className="px-4 flex items-center justify-between mb-3">
                     <div className="flex items-center gap-1.5">
@@ -179,6 +251,7 @@ const LandingPage: React.FC = () => {
                             <ProductCard
                                 key={ad.id}
                                 id={String(ad.id)}
+                                ownerId={ad.owner_id}
                                 title_en={ad.title_en || ''}
                                 title_so={ad.title_so}
                                 price={ad.price || 0}
@@ -295,6 +368,35 @@ const LandingPage: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* AI Recommendations Desktop */}
+                                {recommendations && recommendations.length > 0 && (
+                                    <div className="bg-[#fff9f0] p-5 rounded-2xl border border-orange-100 relative overflow-hidden">
+                                        <div className="absolute top-4 right-4 pointer-events-none opacity-10">
+                                            <Zap size={100} className="text-secondary-500 fill-secondary-500" />
+                                        </div>
+                                        <div className="flex items-center gap-2 mb-4 relative z-10">
+                                            <Zap className="h-5 w-5 text-secondary-500 fill-secondary-500" />
+                                            <h2 className="text-lg font-bold text-gray-900">{t('landing.recommendedForYou', 'AI Recommended')}</h2>
+                                        </div>
+                                        <div className="grid grid-cols-2 xl:grid-cols-3 gap-4 relative z-10">
+                                            {recommendations.map((ad: any) => (
+                                                <ProductCard
+                                                    key={ad.id}
+                                                    id={String(ad.id)}
+                                                    title_en={ad.title_en || ''}
+                                                    title_so={ad.title_so}
+                                                    price={ad.price || 0}
+                                                    currency={ad.currency || 'USD'}
+                                                    location={ad.location || ''}
+                                                    imageUrl={ad.images?.[0] || ''}
+                                                    isVerified={ad.owner?.is_verified}
+                                                    isPromoted={(ad.boost_level ?? 0) > 0}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Featured Ads */}
                                 <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">

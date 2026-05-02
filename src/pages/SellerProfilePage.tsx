@@ -212,6 +212,7 @@ const SellerProfilePage: React.FC = () => {
                                     <ProductCard
                                         key={ad.id}
                                         id={ad.id.toString()}
+                                        ownerId={ad.owner_id}
                                         title_en={ad.title_en}
                                         title_so={ad.title_so}
                                         price={ad.price}

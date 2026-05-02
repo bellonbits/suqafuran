@@ -19,5 +19,10 @@ export const feedbackService = {
     submitFeedback: async (data: Partial<Feedback>): Promise<Feedback> => {
         const response = await api.post('/feedback/feedback', data);
         return response.data;
+    },
+
+    getListingFeedback: async (listingId: number): Promise<Feedback[]> => {
+        const response = await api.get(`/feedback/listing/${listingId}`);
+        return response.data;
     }
 };

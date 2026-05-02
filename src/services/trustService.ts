@@ -28,5 +28,15 @@ export const trustService = {
     getPendingActions: async () => {
         const res = await api.get('/trust_ops/pending');
         return res.data;
+    },
+
+    createRating: async (data: { target_user_id: number; rating: number; comment?: string; listing_id?: number }) => {
+        const res = await api.post('/trust_ops/ratings', data);
+        return res.data;
+    },
+
+    createReport: async (data: { target_user_id?: number; listing_id?: number; reason: string; description?: string }) => {
+        const res = await api.post('/trust_ops/reports', data);
+        return res.data;
     }
 };

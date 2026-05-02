@@ -26,18 +26,18 @@ html, body, #root {
 }
 
 @theme {
-  /* ── Primary: oklch(82.8% 0.111 230.318) ── */
-  --color-primary-50:  oklch(97%   0.015 230.318);
-  --color-primary-100: oklch(94%   0.035 230.318);
-  --color-primary-200: oklch(91%   0.055 230.318);
-  --color-primary-300: oklch(88%   0.075 230.318);
-  --color-primary-400: oklch(85.5% 0.095 230.318);
-  --color-primary-500: oklch(82.8% 0.111 230.318);  /* exact target */
-  --color-primary-600: oklch(70%   0.130 230.318);
-  --color-primary-700: oklch(57%   0.140 230.318);
-  --color-primary-800: oklch(45%   0.125 230.318);
-  --color-primary-900: oklch(33%   0.100 230.318);
-  --color-primary-950: oklch(21%   0.065 230.318);
+  /* ── Primary: Soft Sky Blue ── */
+  --color-primary-50:  #eaf8ff;
+  --color-primary-100: #d0f0ff;
+  --color-primary-200: #aae3ff;
+  --color-primary-300: #7dd3ff;
+  --color-primary-400: #4ec0ff;
+  --color-primary-500: #6cd4ff; /* exact target */
+  --color-primary-600: #1ca6ff;
+  --color-primary-700: #0087eb;
+  --color-primary-800: #006ebf;
+  --color-primary-900: #005a9c;
+  --color-primary-950: #003666;
 
   /* ── Secondary: Warm Orange ── */
   --color-secondary-50:  #fef8ee;

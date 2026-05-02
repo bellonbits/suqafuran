@@ -1,3 +1,5 @@
+import api from './api';
+
 const GOOGLE_TRANSLATE_KEY = 'AIzaSyCgEFAnc3BNyIrzXYql7yzMf8ME7xT7PQ8';
 const cache = new Map<string, string>();
 
@@ -6,6 +8,14 @@ export async function translateTexts(
     target: string,
     source = 'en'
 ): Promise<string[]> {
+    // Try internal API first
+    try {
+        const res = await api.post('/translate', { q: texts, source, target });
+        return res.data.translations.map((t: any) => t.translatedText);
+    } catch (e) {
+        console.warn('Internal translate API failed, falling back to Google:', e);
+    }
+
     const results: (string | null)[] = texts.map(() => null);
     const toFetch: string[] = [];
     const toFetchIdx: number[] = [];

@@ -19,4 +19,14 @@ export const notificationService = {
         const response = await api.post(`/notifications/${notificationId}/read`);
         return response.data;
     },
+
+    async markAllAsRead(): Promise<{ message: string }> {
+        const response = await api.post('/notifications/read-all');
+        return response.data;
+    },
+
+    async deleteNotification(notificationId: number): Promise<{ message: string }> {
+        const response = await api.delete(`/notifications/${notificationId}`);
+        return response.data;
+    },
 };

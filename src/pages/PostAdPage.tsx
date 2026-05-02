@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, Plus, X, Shield, ShieldAlert, Clock, CheckCircle2, Loader2, Zap } from 'lucide-react';
 
 import { listingService } from '../services/listingService';
@@ -12,6 +12,9 @@ import { useLanguageField } from '../hooks/useLanguageField';
 import { LipanaPaymentModal } from '../components/LipanaPaymentModal';
 import { useAuthStore } from '../store/useAuthStore';
 import { cn } from '../utils/cn';
+import { aiService } from '../services/aiService';
+import { promotionService } from '../services/promotionService';
+import { Sparkles } from 'lucide-react';
 
 const KES_RATE = 130;
 
@@ -44,6 +47,9 @@ const PostAdPage: React.FC = () => {
     const { t, i18n } = useTranslation();
     const { user, updateUser } = useAuthStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { id } = useParams();
+    const isEditMode = !!id;
+    const navigate = useNavigate();
 
     const [form, setForm] = useState<FormValues>({
         title_en: '',
@@ -74,6 +80,7 @@ const PostAdPage: React.FC = () => {
     const [categorySearch, setCategorySearch] = useState('');
     const [isLocationOpen, setIsLocationOpen] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [aiLoading, setAiLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const { getField } = useLanguageField();
@@ -100,6 +107,34 @@ const PostAdPage: React.FC = () => {
         }
     }, [verificationStatus?.status]);
 
+    useEffect(() => {
+        if (isEditMode && id) {
+            listingService.getListing(Number(id))
+                .then(listing => {
+                    setForm({
+                        title_en: listing.title_en || '',
+                        title_so: listing.title_so || '',
+                        categoryId: listing.category_id || null,
+                        subcategoryId: listing.subcategory_id || null,
+                        subsubcategoryId: listing.subsubcategory_id || null,
+                        location: listing.location || '',
+                        images: listing.images || [],
+                        youtubeLink: listing.youtube_link || '',
+                        description_en: listing.description_en || '',
+                        description_so: listing.description_so || '',
+                        price: listing.price ? String(listing.price) : '',
+                        condition: listing.condition || 'Used',
+                        negotiable: listing.is_negotiable ? 'yes' : 'no',
+                        phone: user?.phone || '',
+                        name: user?.full_name || '',
+                        attributes: listing.attributes || {},
+                        lang_available: (listing.title_en && listing.title_so) ? 'both' : (listing.title_so ? 'so' : 'en'),
+                    });
+                })
+                .catch(e => console.error("Failed to load listing for editing", e));
+        }
+    }, [id, isEditMode, user]);
+
     const { data: categories = [], isLoading: catsLoading } = useQuery({
         queryKey: ['categories'],
         queryFn: listingService.getCategories,
@@ -107,7 +142,7 @@ const PostAdPage: React.FC = () => {
 
     const { data: promotionPlans = [] } = useQuery({
         queryKey: ['promotionPlans'],
-        queryFn: listingService.getPromotionPlans,
+        queryFn: promotionService.getPlans,
     });
 
     const set = <K extends keyof FormValues>(key: K, value: FormValues[K]) => {
@@ -148,9 +183,22 @@ const PostAdPage: React.FC = () => {
         )
         : categories;
 
+    const [imageWarning, setImageWarning] = useState<string | null>(null);
+
     const handleImageUpload = async (files: FileList | null) => {
         if (!files) return;
         setUploading(true);
+        setImageWarning(null);
+        
+        // Simulate Smart Upload check
+        if (files.length > 0) {
+            const firstFile = files[0];
+            if (firstFile.size < 50000) {
+                // Heuristic: very small file might be blurry/low quality
+                setImageWarning("Warning: One or more images seem blurry or low resolution.");
+            }
+        }
+
         for (const file of Array.from(files)) {
             try {
                 const result = await listingService.uploadImage(file);
@@ -236,22 +284,37 @@ const PostAdPage: React.FC = () => {
         }
         setSubmitting(true);
         try {
-            const result = await listingService.createListing({
+            const payload = {
                 title_en: form.title_en,
                 title_so: form.title_so,
                 description_en: form.description_en,
                 description_so: form.description_so,
                 price: Number(form.price),
                 currency: 'USD',
-                location: form.location,
                 category_id: form.categoryId!,
                 subcategory_id: form.subcategoryId ?? undefined,
                 subsubcategory_id: form.subsubcategoryId ?? undefined,
+                location: form.location,
                 images: form.images,
+                youtube_link: form.youtubeLink,
                 condition: form.condition,
+                is_negotiable: form.negotiable === 'yes',
                 attributes: form.attributes,
                 lang_available: form.lang_available,
-            });
+            };
+            
+            let result;
+            if (isEditMode && id) {
+                result = await listingService.updateListing(Number(id), payload);
+                setCreatedListingId(result.id);
+                setCreatedListingTitle(result.title_en || result.title_so || '');
+                setSubmitted(true);
+            } else {
+                result = await listingService.createListing(payload);
+                setCreatedListingId(result.id);
+                setCreatedListingTitle(result.title_en || result.title_so || '');
+                setSubmitted(true);
+            }
 
             if (promoPlanId > 0 && result.id) {
                 // Save the listing info and open Lipana modal for payment
@@ -272,11 +335,11 @@ const PostAdPage: React.FC = () => {
     const handleLipanaConfirm = async (phone: string): Promise<{ promoId?: number; error?: string }> => {
         if (!createdListingId || !promoPlanId) return { error: 'Missing listing or plan' };
         try {
-            const result = await listingService.createPromotionOrder({
-                listing_id: createdListingId,
-                plan_id: promoPlanId,
-                payment_phone: phone,
-            });
+            const result = await promotionService.createPromotion(
+                createdListingId,
+                promoPlanId,
+                phone
+            );
             return { promoId: result.id };
         } catch (e: any) {
             return { error: e?.response?.data?.detail || 'Payment initiation failed. Please try again.' };
@@ -284,7 +347,7 @@ const PostAdPage: React.FC = () => {
     };
 
     const handleLipanaPollStatus = async (promoId: number) => {
-        return listingService.checkPromotionStatus(promoId);
+        return promotionService.checkPayment(promoId);
     };
 
     const handleLipanaClose = () => {
@@ -555,6 +618,66 @@ const PostAdPage: React.FC = () => {
                 
                 {/* ── STEP 1: Basic Information ────────────────────────── */}
                 <div style={{ display: step === 1 ? 'block' : 'none' }}>
+                    {/* 10-Second Listing: AI Quick Post */}
+                    <div className="bg-gradient-to-br from-[#00BFFF]/10 to-white rounded-2xl shadow-sm border-[1.5px] border-[#00BFFF]/30 p-6 mb-6 relative overflow-hidden group">
+                        <div className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <Sparkles size={120} className="text-primary-500 fill-primary-500" />
+                        </div>
+                        <div className="flex items-center gap-2 mb-3">
+                            <Sparkles className="h-5 w-5 text-primary-500 fill-primary-500" />
+                            <h3 className="text-[16px] font-extrabold text-gray-900 tracking-tight">10-Second Listing</h3>
+                        </div>
+                        <p className="text-sm text-gray-500 mb-4 font-medium">Type a simple sentence like <span className="text-gray-900 font-bold">"iPhone 11 25k Nairobi"</span> and let AI fill the rest.</p>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <input
+                                type="text"
+                                placeholder="What are you selling? (e.g. iPhone 11 25k Nairobi)"
+                                className="w-full sm:flex-1 rounded-xl border border-primary-200 bg-white p-3.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none transition-all placeholder-gray-400 font-medium"
+                                id="ai-quick-post"
+                                disabled={aiLoading}
+                            />
+                            <button
+                                type="button"
+                                disabled={aiLoading}
+                                onClick={async () => {
+                                    const text = (document.getElementById('ai-quick-post') as HTMLInputElement)?.value;
+                                    if (!text) return;
+                                    setAiLoading(true);
+                                    try {
+                                        const res = await aiService.parseListing(text);
+                                        if (res.title_en) set('title_en', res.title_en);
+                                        if (res.title_so) set('title_so', res.title_so);
+                                        if (res.description_en) set('description_en', res.description_en);
+                                        if (res.description_so) set('description_so', res.description_so);
+                                        if (res.price) set('price', String(res.price));
+                                        if (res.category_id) set('categoryId', res.category_id);
+                                        if (res.condition) set('condition', res.condition);
+                                        
+                                        (document.getElementById('ai-quick-post') as HTMLInputElement).value = '';
+                                    } catch (e: any) {
+                                        console.error("AI Parsing Error:", e?.response?.data || e.message || e);
+                                        alert("AI processing failed. Please ensure the backend server is running and updated.");
+                                    } finally {
+                                        setAiLoading(false);
+                                    }
+                                }}
+                                className="w-full sm:w-auto bg-primary-500 text-white px-5 py-3.5 rounded-xl text-sm font-extrabold shadow-md hover:bg-primary-600 active:scale-95 transition-all flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-70"
+                            >
+                                {aiLoading ? (
+                                    <>
+                                        <Loader2 size={16} className="animate-spin" />
+                                        Thinking...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Zap size={16} className="fill-white" />
+                                        ✨ Auto-fill
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+
                     <div className="bg-white rounded-md shadow-sm border-[1.5px] border-gray-200/60 p-5 mb-5">
                         
                         {/* Language Selection */}
@@ -613,7 +736,28 @@ const PostAdPage: React.FC = () => {
                              </div>
 
                              {formTab === 'en' ? (
-                                renderFloatingInput('title_en', 'English Title (Required if EN selected)', form.title_en, v => set('title_en', v), errors.title_en, { maxLength: TITLE_MAX })
+                                <div className="flex gap-2 items-start">
+                                    <div className="flex-1">
+                                        {renderFloatingInput('title_en', 'English Title (Required if EN selected)', form.title_en, v => set('title_en', v), errors.title_en, { maxLength: TITLE_MAX })}
+                                    </div>
+                                    <button 
+                                        type="button"
+                                        onClick={async () => {
+                                            if (form.title_en.length < 5) return;
+                                            try {
+                                                const res = await aiService.predictCategory(form.title_en);
+                                                if (res.category_id) {
+                                                    set('categoryId', res.category_id);
+                                                    set('subcategoryId', res.subcategory_id || null);
+                                                }
+                                            } catch (e) {}
+                                        }}
+                                        className="h-11 px-2.5 rounded-md bg-secondary-50 text-secondary-600 border border-secondary-100 flex items-center justify-center hover:bg-secondary-100 transition-colors"
+                                        title="Predict Category"
+                                    >
+                                        <Zap size={16} />
+                                    </button>
+                                </div>
                              ) : (
                                 renderFloatingInput('title_so', 'Gali Magaca (Somali)', form.title_so, v => set('title_so', v), errors.title_so, { maxLength: TITLE_MAX })
                              )}
@@ -684,6 +828,7 @@ const PostAdPage: React.FC = () => {
                                 ))}
                             </div>
                             <span className="text-[13px] text-gray-500 font-medium tracking-tight mt-1 inline-block pl-0.5">Supported formats are *.jpg and *.png</span>
+                            {imageWarning && <p className="text-[12px] text-amber-500 mt-2 font-bold bg-amber-50 p-2 rounded-md border border-amber-100">{imageWarning}</p>}
                             {errors.images && <p className="text-[11px] text-red-500 mt-1 font-medium">{errors.images}</p>}
                         </div>
 
@@ -771,25 +916,57 @@ const PostAdPage: React.FC = () => {
                              </div>
 
                             {formTab === 'en' ? (
-                                <textarea 
-                                    id="description_en"
-                                    value={form.description_en}
-                                    onChange={e => set('description_en', e.target.value)}
-                                    maxLength={2000}
-                                    rows={4}
-                                    placeholder="Describe your item in English..."
-                                    className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm text-gray-900 focus:outline-none resize-y ${errors.description_en ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-primary-500'}`}
-                                />
+                                <div className="relative">
+                                    <textarea 
+                                        id="description_en"
+                                        value={form.description_en}
+                                        onChange={e => set('description_en', e.target.value)}
+                                        maxLength={2000}
+                                        rows={4}
+                                        placeholder="Describe your item in English..."
+                                        className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm text-gray-900 focus:outline-none resize-y ${errors.description_en ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-primary-500'}`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            if (!form.title_en) return;
+                                            try {
+                                                const res = await aiService.generateListingText({ title: form.title_en, category: selectedCategory?.slug });
+                                                set('description_en', res.description_en || res.text || '');
+                                            } catch (e) {}
+                                        }}
+                                        className="absolute top-2 right-2 p-1.5 rounded-md bg-secondary-500 text-white shadow-lg hover:scale-105 transition-transform"
+                                        title="AI Generate"
+                                    >
+                                        <Zap size={14} className="fill-white" />
+                                    </button>
+                                </div>
                             ) : (
-                                <textarea 
-                                    id="description_so"
-                                    value={form.description_so}
-                                    onChange={e => set('description_so', e.target.value)}
-                                    maxLength={2000}
-                                    rows={4}
-                                    placeholder="Sharaxaad ka bixi alaabtaada (Somali)..."
-                                    className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm text-gray-900 focus:outline-none resize-y ${errors.description_so ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-primary-500'}`}
-                                />
+                                <div className="relative">
+                                    <textarea 
+                                        id="description_so"
+                                        value={form.description_so}
+                                        onChange={e => set('description_so', e.target.value)}
+                                        maxLength={2000}
+                                        rows={4}
+                                        placeholder="Sharaxaad ka bixi alaabtaada (Somali)..."
+                                        className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm text-gray-900 focus:outline-none resize-y ${errors.description_so ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-primary-500'}`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            if (!form.title_so) return;
+                                            try {
+                                                const res = await aiService.generateListingText({ title: form.title_so, category: selectedCategory?.slug });
+                                                set('description_so', res.description_so || res.text || '');
+                                            } catch (e) {}
+                                        }}
+                                        className="absolute top-2 right-2 p-1.5 rounded-md bg-secondary-500 text-white shadow-lg hover:scale-105 transition-transform"
+                                        title="AI Generate"
+                                    >
+                                        <Zap size={14} className="fill-white" />
+                                    </button>
+                                </div>
                             )}
                             <div className="flex justify-end mt-1">
                                 <span className="text-[10px] text-gray-400">
@@ -815,7 +992,26 @@ const PostAdPage: React.FC = () => {
                                         placeholder="Price*"
                                         className="flex-1 w-full px-3 py-3 text-sm bg-transparent outline-none text-gray-900 font-medium peer sm:placeholder-transparent"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            if (!form.title_en || !form.categoryId) return;
+                                            try {
+                                                const res = await aiService.getPriceRecommendation({
+                                                    title: form.title_en,
+                                                    category_id: form.categoryId,
+                                                    condition: form.condition
+                                                });
+                                                if (res.recommended_price) set('price', String(res.recommended_price));
+                                            } catch (e) {}
+                                        }}
+                                        className="px-3 flex items-center justify-center text-primary-500 hover:text-primary-600 transition-colors"
+                                        title="Price Recommendation"
+                                    >
+                                        <Zap size={16} />
+                                    </button>
                                 </div>
+                                <p className="text-[11px] text-gray-500 mt-1.5 pl-1 font-medium">✨ Suggested price: Use the lightning bolt to get an AI suggestion.</p>
                                 {errors.price && <p className="text-[11px] text-red-500 mt-1 pl-1">{errors.price}</p>}
                             </div>
                         </div>
@@ -953,7 +1149,7 @@ const PostAdPage: React.FC = () => {
                 onConfirm={handleLipanaConfirm}
                 onPollStatus={handleLipanaPollStatus}
                 amount={promoPlanId > 0 ? Math.round((promotionPlans.find((p: any) => p.id === promoPlanId)?.price_usd || 0) * KES_RATE) : 0}
-                planName={promotionPlans.find((p: any) => p.id === promoPlanId)?.name || ''}
+                planName={promoPlanId > 0 ? getField(promotionPlans.find((p: any) => p.id === promoPlanId) || {}, 'name') : ''}
                 listingTitle={createdListingTitle}
             />
         </div>
