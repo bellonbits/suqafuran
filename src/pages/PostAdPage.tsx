@@ -16,7 +16,7 @@ import { aiService } from '../services/aiService';
 import { promotionService } from '../services/promotionService';
 import { Sparkles } from 'lucide-react';
 
-const KES_RATE = 130;
+const KES_RATE = 130; // 1 USD = 130 KES
 
 
 const TITLE_MAX = 70;
@@ -73,6 +73,7 @@ const PostAdPage: React.FC = () => {
     const [formTab, setFormTab] = useState<'en' | 'so'>((i18n.language as any) === 'so' ? 'so' : 'en');
 
     const [step, setStep] = useState<1 | 2>(1);
+    const [currency, setCurrency] = useState<'USD' | 'KES'>('USD');
     const [showBulkPrice, setShowBulkPrice] = useState(false);
     const [promoPlanId, setPromoPlanId] = useState<number>(0);
     const [errors, setErrors] = useState<Record<string, string | undefined>>({});
@@ -290,7 +291,7 @@ const PostAdPage: React.FC = () => {
                 description_en: form.description_en,
                 description_so: form.description_so,
                 price: Number(form.price),
-                currency: 'USD',
+                currency: currency,
                 category_id: form.categoryId!,
                 subcategory_id: form.subcategoryId ?? undefined,
                 subsubcategory_id: form.subsubcategoryId ?? undefined,
@@ -298,8 +299,12 @@ const PostAdPage: React.FC = () => {
                 images: form.images,
                 youtube_link: form.youtubeLink,
                 condition: form.condition,
-                is_negotiable: form.negotiable === 'yes',
-                attributes: form.attributes,
+                is_negotiable: form.negotiable === 'yes',   // boolean DB column
+                attributes: {
+                    ...form.attributes,
+                    negotiable: form.negotiable,            // 'yes' | 'no' | 'not_sure' for display
+                    bulk_currency: currency,
+                },
                 lang_available: form.lang_available,
             };
             
@@ -418,20 +423,45 @@ const PostAdPage: React.FC = () => {
 
     // ── Success state ──────────────────────────────────────────────────────────
     if (submitted) {
+        const isVerified = user?.is_verified;
         return (
             <div style={{ maxWidth: 480, margin: '60px auto', padding: '0 16px', textAlign: 'center' }}>
                 <div style={{
-                    width: 80, height: 80, borderRadius: '50%', background: '#f4fbff',
+                    width: 80, height: 80, borderRadius: '50%',
+                    background: isVerified ? '#f0fdf4' : '#f4fbff',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     margin: '0 auto 24px',
                 }}>
-                    <CheckCircle2 size={36} color="var(--color-primary-500)" />
+                    <CheckCircle2 size={36} color={isVerified ? '#16a34a' : 'var(--color-primary-500)'} />
                 </div>
-                <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>Ad Posted Successfully!</h2>
-                <p style={{ color: '#6b7280', marginBottom: 28, lineHeight: 1.6 }}>
-                    Your ad is being reviewed by our team. It will be live shortly.
+                <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>
+                    {isVerified ? '🎉 Your Ad is Now Live!' : 'Ad Posted Successfully!'}
+                </h2>
+                <p style={{ color: '#6b7280', marginBottom: 8, lineHeight: 1.6 }}>
+                    {isVerified
+                        ? 'Your listing is published and visible to buyers right now.'
+                        : 'Your ad is being reviewed by our team. It will be live shortly.'
+                    }
                 </p>
+                {isVerified && (
+                    <p style={{ color: '#16a34a', fontSize: 13, fontWeight: 600, marginBottom: 24 }}>
+                        ✓ Verified seller — instant publishing enabled
+                    </p>
+                )}
+                {!isVerified && (
+                    <p style={{ color: '#9ca3af', fontSize: 13, marginBottom: 24 }}>
+                        Get verified to have your future ads go live instantly.
+                    </p>
+                )}
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+                    {isVerified && createdListingId && (
+                        <Link to={`/listing/${createdListingId}`} style={{
+                            padding: '11px 24px', background: '#16a34a', color: '#fff',
+                            borderRadius: 10, fontWeight: 600, textDecoration: 'none',
+                        }}>
+                            View Live Ad
+                        </Link>
+                    )}
                     <Link to="/my-ads" style={{
                         padding: '11px 24px', border: '1.5px solid #d1d5db', borderRadius: 10,
                         fontWeight: 600, color: '#374151', textDecoration: 'none',
@@ -977,41 +1007,57 @@ const PostAdPage: React.FC = () => {
                             {errors.description_so && formTab === 'so' && <p className="text-[11px] text-red-500 -mt-1">{errors.description_so}</p>}
                         </div>
 
-                        {/* Price Input */}
+                        {/* Price Input with Currency Toggle */}
                         <div className="flex justify-center mb-4">
                             <div className="w-full sm:w-2/3">
                                 <div className={`relative flex border rounded-md overflow-visible bg-white transition-colors outline-none focus-within:border-primary-500 ${errors.price ? 'border-red-500' : 'border-gray-300'}`}>
                                     <div className="absolute left-2 top-0 -translate-y-1/2 bg-white px-1 text-[11px] text-gray-500 font-medium pointer-events-none z-10 hidden sm:block">
                                         Price*
                                     </div>
-                                    <span className="bg-gray-50 border-r border-gray-300 px-4 py-3 text-sm text-gray-700 font-bold whitespace-nowrap rounded-l-md">KSh</span>
+                                    {/* Currency Toggle */}
+                                    <div className="flex border-r border-gray-200 shrink-0">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (currency === 'KES') {
+                                                    // Convert KES → USD
+                                                    const usd = form.price ? Math.round((Number(form.price) / KES_RATE) * 100) / 100 : '';
+                                                    set('price', String(usd));
+                                                    setCurrency('USD');
+                                                } else {
+                                                    // Convert USD → KES
+                                                    const kes = form.price ? Math.round(Number(form.price) * KES_RATE) : '';
+                                                    set('price', String(kes));
+                                                    setCurrency('KES');
+                                                }
+                                            }}
+                                            className="flex items-center gap-1 px-3 py-3 bg-gray-50 hover:bg-gray-100 transition-colors rounded-l-md"
+                                            title="Switch currency"
+                                        >
+                                            <span className="text-sm font-bold text-gray-700">
+                                                {currency === 'USD' ? '$ USD' : 'KSh'}
+                                            </span>
+                                            <svg className="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                     <input
                                         type="number"
                                         value={form.price}
                                         onChange={e => set('price', e.target.value)}
-                                        placeholder="Price*"
-                                        className="flex-1 w-full px-3 py-3 text-sm bg-transparent outline-none text-gray-900 font-medium peer sm:placeholder-transparent"
+                                        placeholder={currency === 'USD' ? '0.00' : '0'}
+                                        className="flex-1 w-full px-3 py-3 text-sm bg-transparent outline-none text-gray-900 font-medium"
+                                        min="0"
+                                        step={currency === 'USD' ? '0.01' : '1'}
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={async () => {
-                                            if (!form.title_en || !form.categoryId) return;
-                                            try {
-                                                const res = await aiService.getPriceRecommendation({
-                                                    title: form.title_en,
-                                                    category_id: form.categoryId,
-                                                    condition: form.condition
-                                                });
-                                                if (res.recommended_price) set('price', String(res.recommended_price));
-                                            } catch (e) {}
-                                        }}
-                                        className="px-3 flex items-center justify-center text-primary-500 hover:text-primary-600 transition-colors"
-                                        title="Price Recommendation"
-                                    >
-                                        <Zap size={16} />
-                                    </button>
                                 </div>
-                                <p className="text-[11px] text-gray-500 mt-1.5 pl-1 font-medium">✨ Suggested price: Use the lightning bolt to get an AI suggestion.</p>
+                                <p className="text-[11px] text-gray-400 mt-1.5 pl-1">
+                                    {currency === 'USD'
+                                        ? form.price ? `≈ KSh ${Math.round(Number(form.price) * KES_RATE).toLocaleString()}` : 'Tap currency label to switch to KSh'
+                                        : form.price ? `≈ $${(Number(form.price) / KES_RATE).toFixed(2)} USD` : 'Tap currency label to switch to USD'
+                                    }
+                                </p>
                                 {errors.price && <p className="text-[11px] text-red-500 mt-1 pl-1">{errors.price}</p>}
                             </div>
                         </div>
@@ -1020,51 +1066,115 @@ const PostAdPage: React.FC = () => {
                         <div className="flex justify-center mb-6">
                             <div className="w-full sm:w-2/3">
                                 {!showBulkPrice ? (
-                                    <button type="button" onClick={() => setShowBulkPrice(true)} className="w-full border border-gray-200 rounded-md p-3 flex justify-between items-center bg-gray-50 opacity-60 hover:opacity-100 transition-opacity">
-                                        <span className="text-sm text-gray-500 font-medium">Add bulk price</span>
-                                        <ChevronRight size={16} className="text-gray-400" />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowBulkPrice(true)}
+                                        className="w-full border border-dashed border-gray-300 rounded-md p-3 flex justify-between items-center hover:border-primary-400 hover:bg-primary-50 transition-all group"
+                                    >
+                                        <span className="text-sm text-gray-500 font-medium group-hover:text-primary-600">+ Add bulk / wholesale price</span>
+                                        <ChevronRight size={16} className="text-gray-400 group-hover:text-primary-500" />
                                     </button>
                                 ) : (
-                                    <div className="bg-gray-50 border border-gray-200 rounded-md p-4 transition-all pb-0">
-                                        <div className="flex justify-between items-center mb-3">
-                                            <span className="text-[14px] font-bold text-gray-900">Bulk Pricing</span>
-                                            <button type="button" onClick={() => { setShowBulkPrice(false); setAttribute('bulk_quantity', undefined); setAttribute('bulk_price', undefined); }} className="text-gray-400 hover:text-red-500 transition-colors"><X size={18} /></button>
-                                        </div>
-                                        <div className="flex flex-col sm:flex-row gap-4 mb-2">
-                                            <div className="flex-1">
-                                                {renderFloatingInput('bulk_quantity', 'Minimum Quantity', form.attributes.bulk_quantity || '', v => setAttribute('bulk_quantity', v), undefined, {type: 'number'})}
+                                    <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <div>
+                                                <span className="text-[14px] font-bold text-gray-900">Bulk Pricing</span>
+                                                <p className="text-[11px] text-gray-400 mt-0.5">Set a discounted price for large orders</p>
                                             </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => { setShowBulkPrice(false); setAttribute('bulk_quantity', undefined); setAttribute('bulk_price', undefined); }}
+                                                className="text-gray-400 hover:text-red-500 transition-colors"
+                                            >
+                                                <X size={18} />
+                                            </button>
+                                        </div>
+                                        <div className="flex flex-col sm:flex-row gap-3">
+                                            {/* Min Quantity */}
                                             <div className="flex-1">
-                                                <div className="relative mb-4 flex border rounded-md overflow-hidden bg-white focus-within:border-primary-500 border-gray-300">
-                                                    <span className="bg-gray-50 border-r border-gray-300 px-3 py-3 text-sm text-gray-700 font-bold">KSh</span>
-                                                    <input type="number" placeholder="Bulk Price" value={form.attributes.bulk_price || ''} onChange={e => setAttribute('bulk_price', e.target.value)} className="w-full px-3 py-3 text-sm bg-transparent outline-none text-gray-900" />
+                                                <label className="block text-[11px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Min. Quantity</label>
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    placeholder="e.g. 10"
+                                                    value={form.attributes.bulk_quantity || ''}
+                                                    onChange={e => setAttribute('bulk_quantity', e.target.value)}
+                                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm outline-none focus:border-primary-500 bg-white text-gray-900"
+                                                />
+                                            </div>
+                                            {/* Bulk Price with currency */}
+                                            <div className="flex-1">
+                                                <label className="block text-[11px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Price per unit</label>
+                                                <div className="flex border border-gray-300 rounded-md overflow-hidden focus-within:border-primary-500 bg-white">
+                                                    <span className="bg-gray-50 border-r border-gray-200 px-3 py-2.5 text-sm font-bold text-gray-700 whitespace-nowrap">
+                                                        {currency === 'USD' ? '$ USD' : 'KSh'}
+                                                    </span>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        step={currency === 'USD' ? '0.01' : '1'}
+                                                        placeholder={currency === 'USD' ? '0.00' : '0'}
+                                                        value={form.attributes.bulk_price || ''}
+                                                        onChange={e => setAttribute('bulk_price', e.target.value)}
+                                                        className="flex-1 px-3 py-2.5 text-sm bg-transparent outline-none text-gray-900"
+                                                    />
                                                 </div>
+                                                {form.attributes.bulk_price && (
+                                                    <p className="text-[11px] text-gray-400 mt-1">
+                                                        {currency === 'USD'
+                                                            ? `≈ KSh ${Math.round(Number(form.attributes.bulk_price) * KES_RATE).toLocaleString()}`
+                                                            : `≈ $${(Number(form.attributes.bulk_price) / KES_RATE).toFixed(2)} USD`
+                                                        }
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
+                                        {form.attributes.bulk_quantity && form.attributes.bulk_price && (
+                                            <div className="mt-3 p-2.5 bg-primary-50 rounded-md border border-primary-100">
+                                                <p className="text-[12px] text-primary-700 font-semibold">
+                                                    ✓ Buy {form.attributes.bulk_quantity}+ units at {currency === 'USD' ? `$${form.attributes.bulk_price}` : `KSh ${Number(form.attributes.bulk_price).toLocaleString()}`} each
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
                         </div>
 
-                        {/* Negotiable Options */}
+                        {/* Negotiation Options */}
                         <div className="mb-6 flex justify-center">
                             <div className="w-full sm:w-2/3">
-                                <p className="text-[13px] font-bold text-gray-900 mb-2">Are you open to negotiation?</p>
-                                <div className="flex gap-6">
-                                    {(['yes', 'no', 'not_sure'] as const).map(val => (
-                                        <label key={val} className="flex items-center gap-2 cursor-pointer text-sm text-gray-800">
-                                            <input
-                                                type="radio"
-                                                name="negotiable"
-                                                value={val}
-                                                checked={form.negotiable === val}
-                                                onChange={() => set('negotiable', val)}
-                                                className="w-4 h-4 text-primary-500 focus:ring-primary-500 border-gray-300 accent-primary-500"
-                                            />
-                                            {val === 'yes' ? 'Yes' : val === 'no' ? 'No' : 'Not sure'}
-                                        </label>
-                                    ))}
+                                <p className="text-[13px] font-bold text-gray-900 mb-3">Are you open to negotiation?</p>
+                                <div className="flex gap-2">
+                                    {(['yes', 'no', 'not_sure'] as const).map(val => {
+                                        const label = val === 'yes' ? 'Yes' : val === 'no' ? 'No' : 'Not sure';
+                                        const isSelected = form.negotiable === val;
+                                        return (
+                                            <button
+                                                key={val}
+                                                type="button"
+                                                onClick={() => set('negotiable', val)}
+                                                className={cn(
+                                                    'flex-1 py-2.5 px-3 rounded-lg border-2 text-[13px] font-semibold transition-all active:scale-95',
+                                                    isSelected
+                                                        ? val === 'yes'
+                                                            ? 'border-green-500 bg-green-50 text-green-700'
+                                                            : val === 'no'
+                                                            ? 'border-red-400 bg-red-50 text-red-700'
+                                                            : 'border-primary-400 bg-primary-50 text-primary-700'
+                                                        : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                                                )}
+                                            >
+                                                {label}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
+                                <p className="text-[11px] text-gray-400 mt-2">
+                                    {form.negotiable === 'yes' && '✓ Buyers can send you offers'}
+                                    {form.negotiable === 'no' && 'Price is fixed — no offers accepted'}
+                                    {form.negotiable === 'not_sure' && "You'll decide when contacted"}
+                                </p>
                             </div>
                         </div>
 

@@ -3,7 +3,7 @@ import type { Currency } from '../store/useCurrencyStore';
 // USD-denominated rates: 1 USD = X local units
 export const CURRENCY_INFO: Record<Currency, { symbol: string; rate: number; decimals: number }> = {
     USD: { symbol: '$',   rate: 1,    decimals: 2 },
-    KES: { symbol: 'KSh', rate: 129,  decimals: 0 },  // $1 = KSh 129
+    KES: { symbol: 'KSh', rate: 130,  decimals: 0 },  // $1 = KSh 130
     UGX: { symbol: 'USh', rate: 3720, decimals: 0 },  // $1 = USh 3,720
     TZS: { symbol: 'TSh', rate: 2640, decimals: 0 },  // $1 = TSh 2,640
     ETB: { symbol: 'Br',  rate: 57,   decimals: 0 },  // $1 = Br 57
@@ -14,7 +14,7 @@ export const CURRENCY_INFO: Record<Currency, { symbol: string; rate: number; dec
 // Rates from known source currencies to USD (all listings stored in USD or these)
 const SOURCE_TO_USD: Record<string, number> = {
     USD: 1,
-    KES: 1 / 129,
+    KES: 1 / 130,
     UGX: 1 / 3720,
     TZS: 1 / 2640,
     ETB: 1 / 57,

@@ -122,6 +122,8 @@ const SearchResultsPage: React.FC = () => {
                                         location={ad.location}
                                         imageUrl={ad.images?.[0] || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=400'}
                                         isVerified={ad.owner?.is_verified}
+                                        isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
+                                        hasBulkPrice={!!ad.attributes?.bulk_price}
                                     />
                                 ))}
                             </div>

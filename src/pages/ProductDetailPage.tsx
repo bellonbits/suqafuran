@@ -205,7 +205,10 @@ const ProductDetailPage: React.FC = () => {
         ? ad.images
         : ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800'];
 
-    const isNegotiable = ad?.attributes?.negotiable === true || ad?.attributes?.negotiable === 'true';
+    const isNegotiable = ad?.is_negotiable || ad?.attributes?.negotiable === 'yes' || ad?.attributes?.negotiable === true;
+    const negotiationStatus = ad?.attributes?.negotiable; // 'yes', 'no', 'not_sure'
+    const bulkPrice = ad?.attributes?.bulk_price;
+    const bulkQty = ad?.attributes?.bulk_quantity;
     const isBoosted = (ad?.boost_level ?? 0) > 0;
     const postedDate = ad?.created_at
         ? new Date(ad.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -388,19 +391,43 @@ const ProductDetailPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* ── Price ── */}
-                <div className="bg-white px-4 pb-4 flex items-baseline gap-2">
-                    {ad ? (
-                        <>
-                            <span className="text-2xl font-bold text-primary-600">
-                                {formatConvertedPrice(ad.price, ad.currency, targetCurrency)}
-                            </span>
                             {isNegotiable && (
-                                <span className="text-sm text-gray-400 font-medium">{t('common.negotiable')}</span>
+                                <span className="text-[11px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100 uppercase tracking-wide">
+                                    {t('common.negotiable')}
+                                </span>
+                            )}
+                            {negotiationStatus === 'not_sure' && !ad?.is_negotiable && (
+                                <span className="text-[11px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full border border-primary-100 uppercase tracking-wide">
+                                    {t('listing.negotiableMaybe')}
+                                </span>
                             )}
                         </>
                     ) : S.line('w-1/3', 'h-7')}
                 </div>
+
+                {/* ── Bulk Pricing Section ── */}
+                {ad && bulkPrice && bulkQty && (
+                    <div className="bg-white px-4 pb-4">
+                        <div className="p-3.5 bg-secondary-50 border border-secondary-100 rounded-xl">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Zap className="h-4 w-4 text-secondary-500 fill-secondary-500" />
+                                <span className="text-[13px] font-bold text-secondary-700">{t('listing.wholesalePriceAvailable')}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-bold text-secondary-400 uppercase tracking-wider">{t('listing.minOrder')}</span>
+                                    <span className="text-sm font-bold text-gray-900">{bulkQty} {t('common.units')}</span>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-[10px] font-bold text-secondary-400 uppercase tracking-wider">{t('listing.pricePerUnit')}</span>
+                                    <div className="text-lg font-black text-secondary-600">
+                                        {formatConvertedPrice(Number(bulkPrice), ad.currency, targetCurrency)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* ── Action buttons ── */}
                 <div className="bg-white px-4 pb-5 flex gap-2 border-b border-gray-100">
@@ -1050,6 +1077,8 @@ const ProductDetailPage: React.FC = () => {
                                         isVerified={item.owner?.is_verified}
                                         isPromoted={false}
                                         isPopular={idx < 2}
+                                        isNegotiable={item.is_negotiable || item.attributes?.negotiable === 'yes'}
+                                        hasBulkPrice={!!item.attributes?.bulk_price}
                                     />
                                 ))}
                             </div>

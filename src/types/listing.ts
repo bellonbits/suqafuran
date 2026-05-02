@@ -26,6 +26,7 @@ export interface Listing {
         is_verified?: boolean;
     };
     attributes?: Record<string, any>;
+    is_negotiable?: boolean;
     views?: number;
     leads?: number;
     rejection_reason?: string;
@@ -47,6 +48,7 @@ export interface ListingCreate {
     images: string[];
     status?: string;
     attributes?: Record<string, any>;
+    is_negotiable?: boolean;
     lang_available: string;
 }
 

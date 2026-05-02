@@ -441,20 +441,35 @@ def create_listing(
 ) -> Any:
     """
     Create new listing.
+    Verified sellers: listing goes live immediately (status='active').
+    Unverified sellers: listing requires admin approval (status='pending').
     """
     listing = crud_listing.create_listing(
         db=db, listing_in=listing_in, owner_id=current_user.id
     )
+
+    # Auto-publish for verified sellers; unverified stays 'pending' for admin review
+    if current_user.is_verified:
+        listing.status = "active"
+        db.add(listing)
+        db.commit()
+        db.refresh(listing)
+
     log = AuditLog(
         user_id=current_user.id,
         action="CREATE_LISTING",
         resource_type="listing",
         resource_id=listing.id,
-        details=f"User created listing '{listing.title_en}' in category {listing.category_id}"
+        details=(
+            f"Verified seller created listing '{listing.title_en}' → auto-published (active)"
+            if current_user.is_verified
+            else f"Unverified user created listing '{listing.title_en}' → pending review"
+        )
     )
     db.add(log)
     db.commit()
     return listing
+
 
 
 @router.get("/{id}", response_model=ListingRead)

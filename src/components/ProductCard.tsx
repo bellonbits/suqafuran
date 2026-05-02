@@ -24,6 +24,8 @@ interface ProductCardProps {
     registrationAge?: string;
     rating?: number;
     isPopular?: boolean;
+    isNegotiable?: boolean;
+    hasBulkPrice?: boolean;
     className?: string;
 }
 
@@ -41,6 +43,8 @@ const ProductCard = React.memo(function ProductCard({
     registrationAge,
     rating,
     isPopular = false,
+    isNegotiable = false,
+    hasBulkPrice = false,
     className,
 }: ProductCardProps) {
     const { currency: targetCurrency } = useCurrencyStore();
@@ -127,10 +131,20 @@ const ProductCard = React.memo(function ProductCard({
                     {displayTitle}
                 </p>
 
-                {/* Price */}
-                <span className="text-secondary-500 font-extrabold text-[14px] leading-none">
-                    {formatConvertedPrice(price, originalCurrency, targetCurrency)}
-                </span>
+                {/* Price + Badges */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-secondary-500 font-extrabold text-[14px] leading-none">
+                        {formatConvertedPrice(price, originalCurrency, targetCurrency)}
+                    </span>
+                    {isNegotiable && (
+                        <span className="text-[9px] font-bold text-green-600 bg-green-50 px-1 py-0.5 rounded uppercase tracking-tighter border border-green-100">
+                            {t('common.negotiable')}
+                        </span>
+                    )}
+                    {hasBulkPrice && (
+                        <Zap className="w-2.5 h-2.5 text-secondary-500 fill-secondary-500" />
+                    )}
+                </div>
 
                 {/* Location + verified row */}
                 <div className="flex items-center justify-between gap-1">

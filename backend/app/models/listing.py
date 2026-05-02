@@ -32,6 +32,7 @@ class ListingBase(SQLModel):
     lang_available: str = Field(default="en") # en, so, both
     rejection_reason: Optional[str] = Field(default=None)
     admin_notes: Optional[dict] = Field(default={}, sa_column=Column(JSON))
+    is_negotiable: bool = Field(default=False)
 
 
 class Listing(ListingBase, table=True):

@@ -187,6 +187,8 @@ const LandingPage: React.FC = () => {
                                             imageUrl={ad.images?.[0] || ''}
                                             isVerified={ad.owner?.is_verified}
                                             isPromoted={(ad.boost_level ?? 0) > 0}
+                                            isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
+                                            hasBulkPrice={!!ad.attributes?.bulk_price}
                                             className="h-full"
                                         />
                                     </div>
@@ -221,6 +223,8 @@ const LandingPage: React.FC = () => {
                                 isVerified={ad.owner?.is_verified}
                                 isPopular={true}
                                 rating={4.9}
+                                isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
+                                hasBulkPrice={!!ad.attributes?.bulk_price}
                             />
                         ))}
                     </div>
@@ -263,6 +267,8 @@ const LandingPage: React.FC = () => {
                                 isPopular={idx < 2}
                                 rating={4.8 + (idx / 10)}
                                 registrationAge={idx % 2 === 0 ? t('common.yearsPlus') : t('common.verifiedId')}
+                                isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
+                                hasBulkPrice={!!ad.attributes?.bulk_price}
                             />
                         ))}
                     </div>
@@ -392,6 +398,8 @@ const LandingPage: React.FC = () => {
                                                     imageUrl={ad.images?.[0] || ''}
                                                     isVerified={ad.owner?.is_verified}
                                                     isPromoted={(ad.boost_level ?? 0) > 0}
+                                                    isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
+                                                    hasBulkPrice={!!ad.attributes?.bulk_price}
                                                 />
                                             ))}
                                         </div>
@@ -428,6 +436,8 @@ const LandingPage: React.FC = () => {
                                                     isPopular={idx < 2}
                                                     rating={4.8 + (idx / 10)}
                                                     registrationAge={idx % 2 === 0 ? t('common.yearsPlus') : t('common.verifiedId')}
+                                                    isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
+                                                    hasBulkPrice={!!ad.attributes?.bulk_price}
                                                 />
                                             ))}
                                         </div>

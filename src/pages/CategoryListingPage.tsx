@@ -299,6 +299,8 @@ const CategoryListingPage: React.FC = () => {
                                             location={ad.location}
                                             imageUrl={ad.images?.[0] || ''}
                                             isVerified={ad.owner?.is_verified}
+                                            isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
+                                            hasBulkPrice={!!ad.attributes?.bulk_price}
                                         />
                                     ))
                                 )}

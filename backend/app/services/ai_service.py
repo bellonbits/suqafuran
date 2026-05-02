@@ -425,8 +425,15 @@ Return a JSON object:
             return output_text
 
         except Exception as e:
-            logger.error(f"Error calling Groq API: {str(e)}")
-            raise HTTPException(status_code=500, detail="AI processing failed")
+            logger.error(f"❌ GROQ API ERROR: {str(e)}", exc_info=True)
+            # Check for specific known errors if possible
+            error_msg = str(e).lower()
+            if "rate limit" in error_msg:
+                raise HTTPException(status_code=429, detail="AI Service is currently busy. Please try again in a moment.")
+            if "authentication" in error_msg or "api key" in error_msg:
+                raise HTTPException(status_code=503, detail="AI Service configuration error.")
+            
+            raise HTTPException(status_code=500, detail=f"AI processing failed: {str(e)}")
 
 # Singleton instance
 ai_service = AIService()
