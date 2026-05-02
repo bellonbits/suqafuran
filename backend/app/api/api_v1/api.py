@@ -28,3 +28,4 @@ api_router.include_router(feedback.router, prefix="/feedback", tags=["feedback"]
 api_router.include_router(follows.router, prefix="/follows", tags=["follows"])
 api_router.include_router(translate.router, tags=["translate"])
 api_router.include_router(content.router, prefix="/content", tags=["content"])
+api_router.include_router(ai.router, prefix="/ai", tags=["ai"])
