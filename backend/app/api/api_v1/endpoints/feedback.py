@@ -38,3 +38,15 @@ def create_feedback(
     db.commit()
     db.refresh(feedback)
     return feedback
+
+
+@router.get("/listing/{listing_id}", response_model=List[Feedback])
+def get_listing_feedback(
+    listing_id: int,
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Get all feedback for a specific listing.
+    """
+    feedback = db.exec(select(Feedback).where(Feedback.listing_id == listing_id)).all()
+    return feedback

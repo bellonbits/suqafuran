@@ -36,7 +36,7 @@ api.interceptors.response.use(
         // 403 (Forbidden) means the token is valid but the user lacks permission —
         // do NOT log them out for that.
         if (status === 401 && !isValidatingSession) {
-            const { token, logout } = useAuthStore.getState();
+            const { token } = useAuthStore.getState();
 
             if (!token) return Promise.reject(error);
 

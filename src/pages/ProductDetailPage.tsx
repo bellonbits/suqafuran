@@ -16,7 +16,7 @@ import {
     MapPin, Clock, ShieldCheck, Flag,
     ChevronLeft, ChevronRight, Navigation,
     MoreVertical, Camera, ChevronDown, ChevronUp, MessageCircle,
-    Share2, PhoneCall, AlertTriangle, XCircle, UserPlus, UserCheck, Star, User, Zap, Trash2
+    Share2, PhoneCall, AlertTriangle, XCircle, UserPlus, UserCheck, Star, User, Zap, Trash2, Loader2
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { ProductCard } from '../components/ProductCard';
