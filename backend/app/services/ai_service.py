@@ -1,9 +1,59 @@
 import logging
+import re
 from groq import Groq
 from fastapi import HTTPException
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
+
+# ── Hybrid dictionary override ───────────────────────────────────────────────
+# These critical marketplace terms are enforced AFTER AI translation to ensure
+# accuracy on high-frequency Somali words that LLMs commonly mistranslate.
+SOMALI_DICTIONARY: dict[str, str] = {
+    # Animals / Livestock
+    "camel":     "geel",
+    "camels":    "geel",
+    "goat":      "ari",
+    "goats":     "ari",
+    "sheep":     "idhi",
+    "cow":       "lo'",
+    "cows":      "lo'",
+    "bull":      "dibi",
+    "donkey":    "dameer",
+    "horse":     "faras",
+    "chicken":   "digaag",
+    "chickens":  "digaag",
+    # Vehicles
+    "car":       "gaari",
+    "cars":      "gaari",
+    "truck":     "baabuur",
+    "bus":       "bas",
+    "motorcycle":"baaskiil",
+    "bike":      "baaskiil",
+    # Property
+    "house":     "guri",
+    "apartment": "flet",
+    "room":      "qol",
+    "land":      "dhul",
+    "shop":      "dukaan",
+    "warehouse": "kaydka",
+    # Common marketplace verbs/phrases
+    "for sale":  "iib ah",
+    "selling":   "la iibinayo",
+    "wanted":    "la raadinayo",
+    "for rent":  "kiro ah",
+    "cheap":     "jaban",
+    "urgent":    "deg deg",
+    "negotiable":"waa la xoojin karaa",
+    "new":       "cusub",
+    "used":      "la isticmaalay",
+}
+
+def apply_somali_dictionary(text: str) -> str:
+    """Case-insensitive whole-word replacement using the Somali dictionary."""
+    for en, so in SOMALI_DICTIONARY.items():
+        text = re.sub(rf'\b{re.escape(en)}\b', so, text, flags=re.IGNORECASE)
+    return text
 
 class AIService:
     def __init__(self):
@@ -72,26 +122,79 @@ Make it:
 """
 
         elif type == "translate":
-            # For Somali/Swahili, add specific context
-            lang_name = "Somali" if target_language.lower() in ["so", "somali"] else "Swahili" if target_language.lower() in ["sw", "swahili"] else target_language
-            lang_context = f"{lang_name} spoken in East Africa (natural, conversational). Avoid robotic or direct word-for-word translation."
-            
-            user_prompt = f"""
-Translate the following text into {lang_context}.
+            is_somali = target_language.lower() in ["so", "somali"]
+            is_swahili = target_language.lower() in ["sw", "swahili"]
+            lang_name = "Somali" if is_somali else "Swahili" if is_swahili else target_language
 
-Text:
+            system_prompt = """
+You are an advanced multilingual AI assistant for an African marketplace.
+
+Your job is NOT just to translate — you LOCALIZE content intelligently for real traders.
+
+Core Rules:
+- Understand the meaning, context, and product type before translating
+- Use correct marketplace vocabulary used in East Africa
+- Prefer natural Somali/Swahili expressions used by real traders
+- NEVER do literal word-for-word translation if it sounds unnatural
+
+Product Intelligence — always use these correct terms:
+- Camel → Geel
+- Goat → Ari
+- Cow → Lo'
+- Car → Gaari
+- House → Guri
+- House for rent → Guri kiro ah
+- Room → Qol
+- Land → Dhul
+- Shop → Dukaan
+- For sale → Iib ah
+- Cheap → Jaban
+- Urgent → Deg deg
+- New → Cusub
+- Used → La isticmaalay
+- Negotiable → Waa la xoojin karaa
+
+Few-shot Examples (English → Somali):
+- "Camel for sale" → "Geel iib ah"
+- "iPhone 12 for sale in Nairobi" → "iPhone 12 iib ah Nairobi"
+- "3 bedroom house for rent" → "Guri 3 qol ah oo kiro ah"
+- "Toyota Prado 2018 used" → "Toyota Prado 2018 la isticmaalay"
+- "Selling 2 goats cheap in Garissa" → "2 ari oo jaban oo lagu iibinayo Garissa"
+- "Toyota Hilux 2015 good condition" → "Toyota Hilux 2015 xaalad fiican leh"
+- "Fresh vegetables daily" → "Khudaar cusub maalin kasta"
+- "Samsung TV 55 inch brand new" → "Samsung TV 55 inch oo cusub"
+
+Output Style:
+- Short, clean, natural — sounds like a real seller wrote it
+- No explanations, no filler text, no quotes
+"""
+
+            user_prompt = f"""
+Category: {category or "general"}
+
+Translate and LOCALIZE this marketplace listing into natural {lang_name}:
+
 {input_text}
 
-Rules:
-- Keep meaning accurate
-- Use natural, local phrasing (include common regional terms if applicable)
-- Do not add any conversational filler.
+Instructions:
+- Detect the product/item and translate it correctly using marketplace vocabulary
+- Use real seller language (Jiji/marketplace style)
+- Keep it short and natural
+- Preserve the meaning exactly — do NOT add or remove information
+- Return ONLY the final translated text, nothing else
 """
 
         else:
             raise HTTPException(status_code=400, detail="Invalid generation type. Must be 'title', 'description', or 'translate'")
 
-        return self._call_ai(system_prompt, user_prompt)
+        result = self._call_ai(system_prompt, user_prompt)
+
+        # Apply dictionary override for Somali translations to fix any residual
+        # literal translations the model missed
+        if type == "translate" and target_language.lower() in ["so", "somali"]:
+            result = apply_somali_dictionary(result)
+
+        return result
 
     def check_moderation(self, listing_data: dict) -> dict:
         """
@@ -329,12 +432,23 @@ Return a JSON object:
             raise HTTPException(status_code=503, detail="AI Service is not configured")
 
         system_prompt = """
-        You are a world-class bilingual marketplace assistant (English and Somali). 
-        Your goal is to take a brief user input and expand it into a professional, high-quality listing in BOTH languages simultaneously.
-        
+        You are a world-class bilingual marketplace assistant (English and Somali).
+        Your goal is to take a brief user input and expand it into a professional listing in BOTH languages.
+
+        Somali Localization Rules — always use these correct marketplace terms:
+        - Camel → Geel | Goat → Ari | Cow → Lo' | Sheep → Idhi
+        - Car → Gaari | Truck → Baabuur | House → Guri | Room → Qol | Land → Dhul
+        - For sale → Iib ah | Cheap → Jaban | New → Cusub | Used → La isticmaalay
+        - For rent → Kiro ah | Urgent → Deg deg | Negotiable → Waa la xoojin karaa
+
+        Examples of natural Somali titles:
+        - "Camel for sale" → "Geel iib ah"
+        - "3 bedroom house for rent" → "Guri 3 qol ah oo kiro ah"
+        - "Toyota Hilux 2015 used" → "Toyota Hilux 2015 la isticmaalay"
+
         Extract and Generate:
         1. title: Clean, catchy English title (max 70 chars).
-        2. title_so: Natural, catchy Somali title.
+        2. title_so: Natural Somali title using correct marketplace vocabulary above.
         3. suggestions: 3 alternative English title suggestions.
         4. price: The numeric price.
         5. currency: USD, KES, or SOS.
@@ -342,7 +456,7 @@ Return a JSON object:
         7. location: The city or region.
         8. condition: New, Used, or Refurbished.
         9. description: Professional, detailed 2-3 sentence description in English.
-        10. description_so: Professional, natural, high-quality description in Somali. Do not use direct robotic translation.
+        10. description_so: Natural Somali description — written like a real East African seller, NOT a word-for-word translation.
         11. negotiable: "yes" or "no".
         """
         user_prompt = f"""

@@ -9,35 +9,23 @@ export default defineConfig({
       '/api': {
         target: process.env.VITE_PROXY_TARGET || 'https://api.suqafuran.com',
         changeOrigin: true,
-        secure: false, // Set to false to allow local/VM certs or mismatched hostnames
+        secure: false,
       },
     },
   },
   build: {
     outDir: 'dist',
-    // Content-hash every chunk and asset file — guarantees browsers fetch
-    // fresh files after each deploy (no manual cache busting needed)
     rollupOptions: {
       output: {
-        entryFileNames:  'assets/[name]-[hash].js',
-        chunkFileNames:  'assets/[name]-[hash].js',
-        assetFileNames:  'assets/[name]-[hash][extname]',
-        // Split heavy dependencies into separate cached chunks
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash][extname]',
+        // Everything in node_modules goes into a single vendor chunk.
+        // This guarantees only one copy of React exists in the bundle —
+        // splitting node_modules is only safe when you can prove no chunk
+        // imports React, and that's hard to guarantee as dependencies evolve.
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            // Core React runtime — almost never changes, cache it forever
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-              return 'vendor-react';
-            }
-            // Tanstack Query — separate chunk so UI updates don't bust it
-            if (id.includes('@tanstack')) {
-              return 'vendor-query';
-            }
-            // i18n — language files, rarely change
-            if (id.includes('i18next') || id.includes('react-i18next')) {
-              return 'vendor-i18n';
-            }
-            // Everything else from node_modules
             return 'vendor';
           }
         },
@@ -48,22 +36,15 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      // 'autoUpdate' — new service worker installs and takes over immediately
-      // on next navigation after a deploy, without requiring a user prompt.
       registerType: 'autoUpdate',
       includeAssets: ['logo.png', 'favicon.ico', 'favicon.png', 'favicon-192.png', 'pwa-icon-192.png', 'pwa-icon-512.png'],
       workbox: {
-        // Activate new SW as soon as it installs — don't wait for old tabs to close
         skipWaiting: true,
         clientsClaim: true,
-        // Don't cache index.html inside the service worker — the .htaccess
-        // already prevents the browser from caching it, and the SW should
-        // always fetch a fresh copy from the network.
         navigateFallback: null,
         navigateFallbackDenylist: [/./],
         runtimeCaching: [
           {
-            // ── Cloudinary images: cache 7 days, show stale while fetching new ──
             urlPattern: /res\.cloudinary\.com/,
             handler: 'StaleWhileRevalidate',
             options: {
@@ -73,7 +54,6 @@ export default defineConfig({
             },
           },
           {
-            // ── Local backend images: cache 3 days ──
             urlPattern: /\/api\/v1\/listings\/images\//,
             handler: 'StaleWhileRevalidate',
             options: {
@@ -83,7 +63,6 @@ export default defineConfig({
             },
           },
           {
-            // ── Product listing API: serve stale data instantly, refresh in bg ──
             urlPattern: /\/api\/v1\/listings/,
             handler: 'StaleWhileRevalidate',
             options: {
@@ -93,7 +72,6 @@ export default defineConfig({
             },
           },
           {
-            // ── Google Fonts: cache-first forever ──
             urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com/,
             handler: 'CacheFirst',
             options: {
