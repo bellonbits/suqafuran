@@ -6,7 +6,6 @@ import {
     Camera, Upload, CheckCircle, XCircle, Shield, Loader2,
     AlertCircle, RefreshCw, Image as ImageIcon, ChevronDown, Sparkles, Fingerprint
 } from 'lucide-react';
-import { aiService } from '../services/aiService';
 import api from '../services/api';
 import { Button } from '../components/Button';
 import { cn } from '../utils/cn';
@@ -98,7 +97,6 @@ const VerificationPage: React.FC = () => {
         }
     };
 
-    const [isAiAnalyzing, setIsAiAnalyzing] = useState(false);
     const [showAdvancedScanner, setShowAdvancedScanner] = useState(false);
     const [aiResult, setAiResult] = useState<any>(null);
 

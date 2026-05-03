@@ -89,7 +89,7 @@ const ProductCard = React.memo(function ProductCard({
             {/* Image — shorter aspect ratio */}
             <div className="relative aspect-[16/9] overflow-hidden bg-gray-100">
                 <img
-                    src={getImageUrl(imageUrl)}
+                    src={getImageUrl(imageUrl, { width: 400, quality: 'eco' })}
                     alt={displayTitle}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"

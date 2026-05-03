@@ -31,6 +31,7 @@ export interface Listing {
     leads?: number;
     rejection_reason?: string;
     admin_notes?: Record<string, any>;
+    youtube_link?: string;
 }
 
 export interface ListingCreate {

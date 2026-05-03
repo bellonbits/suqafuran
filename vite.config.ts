@@ -7,9 +7,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://api.suqafuran.com',
+        target: process.env.VITE_PROXY_TARGET || 'https://api.suqafuran.com',
         changeOrigin: true,
-        secure: true,
+        secure: false, // Set to false to allow local/VM certs or mismatched hostnames
       },
     },
   },
@@ -22,6 +22,25 @@ export default defineConfig({
         entryFileNames:  'assets/[name]-[hash].js',
         chunkFileNames:  'assets/[name]-[hash].js',
         assetFileNames:  'assets/[name]-[hash][extname]',
+        // Split heavy dependencies into separate cached chunks
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            // Core React runtime — almost never changes, cache it forever
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'vendor-react';
+            }
+            // Tanstack Query — separate chunk so UI updates don't bust it
+            if (id.includes('@tanstack')) {
+              return 'vendor-query';
+            }
+            // i18n — language files, rarely change
+            if (id.includes('i18next') || id.includes('react-i18next')) {
+              return 'vendor-i18n';
+            }
+            // Everything else from node_modules
+            return 'vendor';
+          }
+        },
       },
     },
   },
@@ -42,7 +61,48 @@ export default defineConfig({
         // always fetch a fresh copy from the network.
         navigateFallback: null,
         navigateFallbackDenylist: [/./],
-        runtimeCaching: [],
+        runtimeCaching: [
+          {
+            // ── Cloudinary images: cache 7 days, show stale while fetching new ──
+            urlPattern: /res\.cloudinary\.com/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'cloudinary-images',
+              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // ── Local backend images: cache 3 days ──
+            urlPattern: /\/api\/v1\/listings\/images\//,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'local-listing-images',
+              expiration: { maxEntries: 150, maxAgeSeconds: 60 * 60 * 24 * 3 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // ── Product listing API: serve stale data instantly, refresh in bg ──
+            urlPattern: /\/api\/v1\/listings/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'api-listings',
+              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 5 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // ── Google Fonts: cache-first forever ──
+            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts',
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
       manifest: {
         name: 'Suqafuran',

@@ -236,9 +236,9 @@ const AdminListingsPage: React.FC = () => {
                                             {listing.created_at ? new Date(listing.created_at).toLocaleDateString() : '—'}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <div className="flex items-center justify-end gap-1">
+                                            <div className="flex items-center justify-end gap-2">
                                                 {listing.status === 'pending' && (
-                                                    <>
+                                                    <div className="flex items-center gap-1 border-r border-gray-100 pr-2 mr-1">
                                                         <button
                                                             onClick={() => moderateMutation.mutate({ id: listing.id, approve: true })}
                                                             title={t('admin.approve')}
@@ -253,7 +253,7 @@ const AdminListingsPage: React.FC = () => {
                                                         >
                                                             <XCircle className="h-4 w-4" />
                                                         </button>
-                                                    </>
+                                                    </div>
                                                 )}
                                                 <button
                                                     onClick={() => navigate(`/listing/${listing.id}`)}
@@ -271,10 +271,10 @@ const AdminListingsPage: React.FC = () => {
                                                 </button>
                                                 <button
                                                     onClick={() => setDeleteTarget(listing.id)}
-                                                    title={t('common.delete')}
-                                                    className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
+                                                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-all font-bold text-xs shadow-sm border border-red-100"
                                                 >
-                                                    <Trash2 className="h-4 w-4" />
+                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                    <span>{t('common.delete')}</span>
                                                 </button>
                                             </div>
                                         </td>

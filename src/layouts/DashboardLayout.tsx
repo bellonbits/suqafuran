@@ -111,7 +111,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     <div className="w-20 h-20 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 font-bold border-2 border-primary-100 overflow-hidden shadow-sm">
                         {getAvatarUrl(user?.avatar_url) ? (
                             <img
-                                src={getAvatarUrl(user?.avatar_url)!}
+                                src={getAvatarUrl(user?.avatar_url, { width: 100, quality: 'eco' })!}
                                 alt={user?.full_name || 'User'}
                                 className="w-full h-full object-cover"
                             />
@@ -331,7 +331,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             </Link>
                             <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-primary-600 text-xs font-bold border-2 border-primary-200 shadow-sm overflow-hidden ml-2">
                                 {getAvatarUrl(user?.avatar_url) ? (
-                                    <img src={getAvatarUrl(user?.avatar_url)!} className="w-full h-full object-cover" />
+                                    <img src={getAvatarUrl(user?.avatar_url, { width: 100, quality: 'eco' })!} className="w-full h-full object-cover" alt="" />
                                 ) : user?.full_name?.[0]}
                             </div>
                         </div>

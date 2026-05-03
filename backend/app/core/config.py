@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     # JWT AUTH
     SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 180 # 6 months
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
     # OAUTH

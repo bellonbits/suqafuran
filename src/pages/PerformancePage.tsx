@@ -1,6 +1,9 @@
-import { TrendingUp, Eye, MousePointer2, BarChart3, Calendar, Sparkles, Zap } from 'lucide-react';
+import React from 'react';
+import { TrendingUp, Eye, MousePointer2, BarChart3, Calendar, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import { aiService } from '../services/aiService';
+import { dashboardService } from '../services/dashboardService';
 
 export const PerformancePage: React.FC = () => {
     const { t } = useTranslation();
@@ -9,9 +12,9 @@ export const PerformancePage: React.FC = () => {
         queryFn: dashboardService.getStats
     });
 
-    const { data: insights, isLoading: isInsightsLoading } = useQuery({
+    const { data: insights } = useQuery({
         queryKey: ['ai-demand-insights'],
-        queryFn: () => aiService.getDemandInsights('Nairobi', 'Electronics'), // Default for demo
+        queryFn: () => aiService.getDemandInsights({ location: 'Mogadishu' }), // Pass object as expected
         staleTime: 600_000,
     });
 

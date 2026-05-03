@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Mail, Lock, ArrowRight, Loader2, ShieldAlert } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader2, ShieldAlert, Fingerprint } from 'lucide-react';
 import { z } from 'zod';
 import { Button } from '../components/Button';
 import { AuthInput } from '../components/AuthInput';
 import { AuthLayout } from '../components/AuthLayout';
 import { useAuthStore } from '../store/useAuthStore';
 import { authService } from '../services/authService';
+import { Capacitor } from '@capacitor/core';
+import { Preferences } from '@capacitor/preferences';
+import { BiometricScanner } from '../components/BiometricScanner';
 
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_SECONDS = 5 * 60; // 5 minutes
@@ -38,12 +41,21 @@ const LoginPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [countdown, setCountdown] = useState(0);
+    const [showScanner, setShowScanner] = useState(false);
+    const [hasBiometrics, setHasBiometrics] = useState(false);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
         const { lockedUntil } = getLockout();
         const remaining = Math.ceil((lockedUntil - Date.now()) / 1000);
         if (remaining > 0) startCountdown(remaining);
+        
+        if (Capacitor.isNativePlatform()) {
+            Preferences.get({ key: 'suqa_biometric_creds' }).then(({ value }) => {
+                if (value) setHasBiometrics(true);
+            });
+        }
+        
         return () => { if (timerRef.current) clearInterval(timerRef.current); };
     }, []);
 
@@ -83,6 +95,14 @@ const LoginPage: React.FC = () => {
             const response = await authService.login({ email, password });
             saveLockout({ attempts: 0, lockedUntil: 0 });
             useAuthStore.setState({ token: response.access_token });
+            
+            if (Capacitor.isNativePlatform()) {
+                await Preferences.set({
+                    key: 'suqa_biometric_creds',
+                    value: JSON.stringify({ email, password })
+                });
+                setHasBiometrics(true);
+            }
             const user = await authService.getMe();
             login(user, response.access_token);
             navigate('/');
@@ -105,6 +125,27 @@ const LoginPage: React.FC = () => {
                 const remaining = MAX_ATTEMPTS - newAttempts;
                 setError(`${message}. ${t('auth.attemptsRemaining', { count: remaining })}`);
             }
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleBiometricSuccess = async () => {
+        setShowScanner(false);
+        try {
+            const { value } = await Preferences.get({ key: 'suqa_biometric_creds' });
+            if (!value) return;
+            const creds = JSON.parse(value);
+            
+            setIsLoading(true);
+            const response = await authService.login({ email: creds.email, password: creds.password });
+            saveLockout({ attempts: 0, lockedUntil: 0 });
+            useAuthStore.setState({ token: response.access_token });
+            const user = await authService.getMe();
+            login(user, response.access_token);
+            navigate('/');
+        } catch (err) {
+            setError(t('auth.invalidCredentials', 'Biometric login failed. Please sign in manually.'));
         } finally {
             setIsLoading(false);
         }
@@ -186,6 +227,19 @@ const LoginPage: React.FC = () => {
                     )}
                 </Button>
 
+                {hasBiometrics && (
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowScanner(true)}
+                        className="w-full h-12 text-sm font-bold rounded-xl border-gray-200 text-gray-700 hover:bg-gray-50 flex items-center justify-center gap-2"
+                        disabled={isLoading || isLocked}
+                    >
+                        <Fingerprint className="w-5 h-5 text-primary-500" />
+                        Sign in with Biometrics
+                    </Button>
+                )}
+
                 <div className="text-center">
                     <p className="text-sm text-gray-600">
                         {t('auth.noAccount')}{' '}
@@ -200,6 +254,13 @@ const LoginPage: React.FC = () => {
                 </div>
 
             </form>
+
+            {showScanner && (
+                <BiometricScanner
+                    onComplete={handleBiometricSuccess}
+                    onCancel={() => setShowScanner(false)}
+                />
+            )}
         </AuthLayout>
     );
 };

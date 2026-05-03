@@ -1,10 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
     Heart, MessageCircle, Share2, ShoppingBag, 
-    ChevronDown, ChevronUp, Sparkles, X, MapPin, ShieldCheck,
-    Volume2, VolumeX, MoreHorizontal, AlertTriangle
+    Sparkles, X, MapPin, ShieldCheck,
+    Volume2, VolumeX, MoreHorizontal, ChevronUp
 } from 'lucide-react';
 import { listingService } from '../services/listingService';
 import { getImageUrl } from '../utils/imageUtils';
@@ -12,11 +12,8 @@ import { useLanguageField } from '../hooks/useLanguageField';
 import { useCurrencyStore } from '../store/useCurrencyStore';
 import { formatConvertedPrice } from '../utils/currencyUtils';
 import { Link, useNavigate } from 'react-router-dom';
-import { cn } from '../utils/cn';
-import { useTranslation } from 'react-i18next';
 
 const DiscoveryFeedPage: React.FC = () => {
-    const { t } = useTranslation();
     const [activeIndex, setActiveIndex] = useState(0);
     const [muted, setMuted] = useState(true);
     const { getField } = useLanguageField();
@@ -142,7 +139,7 @@ const DiscoveryFeedPage: React.FC = () => {
                                     <div className="relative">
                                         <div className="w-11 h-11 rounded-full border-2 border-white/20 p-0.5 overflow-hidden bg-black/20 backdrop-blur-md shrink-0">
                                             <img 
-                                                src={getImageUrl(listing.owner?.avatar_url)} 
+                                                src={getImageUrl(listing.owner?.avatar_url || undefined)} 
                                                 className="w-full h-full object-cover rounded-full" 
                                                 alt=""
                                             />

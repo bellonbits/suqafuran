@@ -16,7 +16,7 @@ import {
     MapPin, Clock, ShieldCheck, Flag,
     ChevronLeft, ChevronRight, Navigation,
     MoreVertical, Camera, ChevronDown, ChevronUp, MessageCircle,
-    Share2, PhoneCall, AlertTriangle, XCircle, UserPlus, UserCheck, Star, User
+    Share2, PhoneCall, AlertTriangle, XCircle, UserPlus, UserCheck, Star, User, Zap, Trash2
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { ProductCard } from '../components/ProductCard';
@@ -42,6 +42,7 @@ const ProductDetailPage: React.FC = () => {
     const [showPhone, setShowPhone] = useState(false);
     const [activeImage, setActiveImage] = useState(0);
     const [showFullDesc, setShowFullDesc] = useState(false);
+    const [showFullImage, setShowFullImage] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportReason, setReportReason] = useState('');
     const [reportDesc, setReportDesc] = useState('');
@@ -69,6 +70,21 @@ const ProductDetailPage: React.FC = () => {
             setReportDesc('');
         },
     });
+
+    const submitFeedbackMutation = useMutation({
+        mutationFn: ({ target_user_id, listing_id, rating, comment }: any) =>
+            feedbackService.submitFeedback({ target_user_id, listing_id, rating, comment }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['seller-feedback', ad?.owner_id] });
+            setShowFeedbackModal(false);
+            setFeedbackRating(0);
+            setFeedbackComment('');
+        },
+    });
+
+    const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+    const [feedbackRating, setFeedbackRating] = useState(0);
+    const [feedbackComment, setFeedbackComment] = useState('');
 
     // Use cached listing from the home/search page as instant placeholder
     const id = Number(listingId);
@@ -124,6 +140,17 @@ const ProductDetailPage: React.FC = () => {
     const avgRating = feedback?.length 
         ? (feedback.reduce((acc, f) => acc + f.rating, 0) / feedback.length).toFixed(1) 
         : null;
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => listingService.deleteListing(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['listings'] });
+            queryClient.invalidateQueries({ queryKey: ['featured-ads'] });
+            navigate('/', { replace: true });
+        },
+    });
+
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const displayRelatedAds = relatedAds || [];
     const { currency: targetCurrency } = useCurrencyStore();
@@ -233,11 +260,12 @@ const ProductDetailPage: React.FC = () => {
                 {/* ── Full-width hero image ── */}
                 <div className="relative w-full bg-black" style={{ aspectRatio: '4/3' }}>
                     <img
-                        src={getImageUrl(images[activeImage])}
+                        src={getImageUrl(images[activeImage], { width: 800, quality: 'auto' })}
                         alt={effectiveTitle ?? ''}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover cursor-pointer"
                         loading="eager"
                         fetchPriority="high"
+                        onClick={() => setShowFullImage(true)}
                     />
 
                     {/* Top nav overlay */}
@@ -390,7 +418,13 @@ const ProductDetailPage: React.FC = () => {
                         )}
                     </div>
                 </div>
-
+                {/* ── Price & Negotiation ── */}
+                <div className="bg-white px-4 pb-2">
+                    {ad ? (
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[22px] font-black text-secondary-500">
+                                {formatConvertedPrice(ad.price, ad.currency, targetCurrency)}
+                            </span>
                             {isNegotiable && (
                                 <span className="text-[11px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100 uppercase tracking-wide">
                                     {t('common.negotiable')}
@@ -401,7 +435,7 @@ const ProductDetailPage: React.FC = () => {
                                     {t('listing.negotiableMaybe')}
                                 </span>
                             )}
-                        </>
+                        </div>
                     ) : S.line('w-1/3', 'h-7')}
                 </div>
 
@@ -539,6 +573,23 @@ const ProductDetailPage: React.FC = () => {
                     </div>
                 )}
 
+                {/* ── Admin Controls ── */}
+                {user?.is_admin && ad && (
+                    <div className="bg-red-50 border-y border-red-100 px-4 py-4 flex items-center justify-between mt-2">
+                        <div className="flex items-center gap-2 text-red-700">
+                            <ShieldCheck className="h-4 w-4" />
+                            <span className="text-xs font-bold uppercase tracking-wider">{t('admin.title', 'Admin Controls')}</span>
+                        </div>
+                        <button
+                            onClick={() => setShowDeleteConfirm(true)}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-black shadow-lg shadow-red-600/20 hover:bg-red-700 transition-all active:scale-95"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                            {t('common.delete')}
+                        </button>
+                    </div>
+                )}
+
                 {/* ── Seller card ── */}
                 <div className="bg-white mt-2 px-4 py-4 border-b border-gray-100">
                     {!ad ? (
@@ -566,6 +617,14 @@ const ProductDetailPage: React.FC = () => {
                                         <Star className="h-3 w-3 fill-yellow-500" />
                                         <span className="text-[10px] font-bold">{avgRating} ({feedback?.length})</span>
                                     </div>
+                                )}
+                                {user && user.id !== ad.owner_id && (
+                                    <button 
+                                        onClick={() => setShowFeedbackModal(true)}
+                                        className="text-[10px] font-bold text-primary-500 hover:text-primary-600 mt-1 uppercase tracking-wider block"
+                                    >
+                                        {t('listing.writeReview', 'Write Review')}
+                                    </button>
                                 )}
                             </div>
                             <div className="flex items-center gap-2">
@@ -629,12 +688,16 @@ const ProductDetailPage: React.FC = () => {
             </div>
 
             {/* Mobile sticky bottom CTA */}
-            <div
+            <div 
                 className="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 z-40 flex gap-2 px-4 pt-3"
                 style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}
             >
                 {!ad ? (
-                    <>{S.box('flex-1 h-11')}{S.box('flex-1 h-11')}{S.box('flex-1 h-11')}</>
+                    <div className="flex-1 flex gap-2">
+                        {S.box('flex-1 h-11')}
+                        {S.box('flex-1 h-11')}
+                        {S.box('flex-1 h-11')}
+                    </div>
                 ) : (
                     <>
                         <a
@@ -681,8 +744,13 @@ const ProductDetailPage: React.FC = () => {
 
                             {/* Gallery */}
                             <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
-                                <div className="relative bg-gray-100" style={{ aspectRatio: '16/9' }}>
-                                    <img src={getImageUrl(images[activeImage])} alt={effectiveTitle ?? ''} className="w-full h-full object-contain" />
+                                <div className="relative bg-gray-100 group" style={{ aspectRatio: '16/9' }}>
+                                    <img 
+                                        src={getImageUrl(images[activeImage], { width: 800, quality: 'auto' })} 
+                                        alt={effectiveTitle ?? ''} 
+                                        className="w-full h-full object-contain cursor-zoom-in" 
+                                        onClick={() => setShowFullImage(true)}
+                                    />
                                     {images.length > 1 && (
                                         <>
                                             <button onClick={prevImage} className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 flex items-center justify-center hover:bg-black/60 transition-colors">
@@ -709,7 +777,7 @@ const ProductDetailPage: React.FC = () => {
                                             <button key={i} onClick={() => setActiveImage(i)}
                                                 className={cn('w-16 h-16 rounded-lg overflow-hidden border-2 transition-all shrink-0',
                                                     activeImage === i ? 'border-primary-500 shadow-md' : 'border-transparent opacity-60 hover:opacity-100')}>
-                                                <img src={getImageUrl(img)} alt="" className="w-full h-full object-cover" />
+                                                <img src={getImageUrl(img, { width: 100, quality: 'eco' })} alt="" className="w-full h-full object-cover" />
                                             </button>
                                         ))}
                                     </div>
@@ -1175,6 +1243,135 @@ const ProductDetailPage: React.FC = () => {
                             </button>
                         </div>
                     </div>
+                </div>
+            )}
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirm && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[10001] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200">
+                        <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mb-4">
+                            <AlertTriangle className="h-7 w-7 text-red-600" />
+                        </div>
+                        <h3 className="text-xl font-black text-gray-900 mb-2">{t('admin.deleteListing')}</h3>
+                        <p className="text-sm text-gray-500 mb-6">{t('admin.cannotUndo')}</p>
+                        
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowDeleteConfirm(false)}
+                                className="flex-1 py-3 rounded-2xl border border-gray-200 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                                {t('common.cancel')}
+                            </button>
+                            <button
+                                onClick={() => deleteMutation.mutate(ad!.id)}
+                                disabled={deleteMutation.isPending}
+                                className="flex-1 py-3 rounded-2xl bg-red-600 text-white text-sm font-black shadow-lg shadow-red-600/20 hover:bg-red-700 transition-all active:scale-95 disabled:opacity-50"
+                            >
+                                {deleteMutation.isPending ? t('common.deleting') : t('common.delete')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Feedback Modal ── */}
+            {showFeedbackModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowFeedbackModal(false)} />
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-6">
+                            <h2 className="text-xl font-bold text-gray-900 mb-4">{t('listing.writeReview', 'Write Review')}</h2>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{t('listing.rating', 'Rating')}</label>
+                                    <div className="flex gap-2">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <button
+                                                key={star}
+                                                type="button"
+                                                onClick={() => setFeedbackRating(star)}
+                                                className="focus:outline-none"
+                                            >
+                                                <Star className={cn("h-8 w-8", feedbackRating >= star ? "fill-yellow-400 text-yellow-400" : "text-gray-300")} />
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">{t('listing.comment', 'Comment')}</label>
+                                    <textarea
+                                        value={feedbackComment}
+                                        onChange={e => setFeedbackComment(e.target.value)}
+                                        rows={3}
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 outline-none text-sm resize-none"
+                                        placeholder={t('listing.feedbackPlaceholder', 'Share your experience...')}
+                                    />
+                                </div>
+                                <div className="flex gap-2 pt-2">
+                                    <Button type="button" variant="outline" className="flex-1 rounded-xl" onClick={() => setShowFeedbackModal(false)}>
+                                        {t('common.cancel')}
+                                    </Button>
+                                    <Button
+                                        onClick={() => submitFeedbackMutation.mutate({ target_user_id: ad?.owner_id, listing_id: ad?.id, rating: feedbackRating, comment: feedbackComment })}
+                                        disabled={feedbackRating === 0 || submitFeedbackMutation.isPending}
+                                        className="flex-1 rounded-xl bg-primary-500 hover:bg-primary-600 text-white shadow-md shadow-primary-500/20"
+                                    >
+                                        {submitFeedbackMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : t('listing.submitReview', 'Submit')}
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Full Image Zoom Modal ── */}
+            {showFullImage && (
+                <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between p-4 absolute top-0 inset-x-0 z-10 bg-gradient-to-b from-black/60 to-transparent pointer-events-none">
+                        <span className="text-white text-sm font-semibold tracking-wider pointer-events-auto">
+                            {activeImage + 1} / {images.length}
+                        </span>
+                        <button 
+                            onClick={() => setShowFullImage(false)}
+                            className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-colors pointer-events-auto shadow-sm"
+                        >
+                            <XCircle className="w-7 h-7" />
+                        </button>
+                    </div>
+                    
+                    <div 
+                        className="flex-1 w-full h-full overflow-auto flex items-center justify-center touch-pan-x touch-pan-y"
+                        onClick={() => setShowFullImage(false)}
+                    >
+                        <img 
+                            src={getImageUrl(images[activeImage])} 
+                            alt={effectiveTitle ?? 'Full image'}
+                            className="max-w-none max-h-none md:max-w-full md:max-h-full object-contain cursor-zoom-out min-w-full min-h-full"
+                            style={{ objectFit: 'contain' }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowFullImage(false);
+                            }}
+                        />
+                    </div>
+
+                    {images.length > 1 && (
+                        <div className="absolute bottom-10 inset-x-0 flex justify-center gap-6 pointer-events-none">
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                                className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center text-white pointer-events-auto hover:bg-white/20 active:scale-95 transition-all border border-white/10 shadow-xl"
+                            >
+                                <ChevronLeft className="w-6 h-6" />
+                            </button>
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                                className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center text-white pointer-events-auto hover:bg-white/20 active:scale-95 transition-all border border-white/10 shadow-xl"
+                            >
+                                <ChevronRight className="w-6 h-6" />
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
         </PublicLayout>

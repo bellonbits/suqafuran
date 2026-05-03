@@ -86,7 +86,7 @@ type AppPhase = 'splash' | 'onboarding' | 'app';
 
 const App: React.FC = () => {
   const onboardingSeen = localStorage.getItem('suqafuran-onboarding-seen') === '1';
-  const [phase, setPhase] = useState<AppPhase>('splash');
+  const [phase, setPhase] = useState<AppPhase>(!isNative ? (onboardingSeen ? 'app' : 'onboarding') : 'splash');
   const { autoDetected, setAutoDetected, setCurrency } = useCurrencyStore();
 
   useEffect(() => {

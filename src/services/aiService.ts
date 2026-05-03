@@ -1,7 +1,13 @@
 import api from './api';
 
 export const aiService = {
-    async generateListingText(data: { title: string; category?: string; attributes?: any }) {
+    async generateListingText(data: { 
+        title: string; 
+        category?: string; 
+        attributes?: any; 
+        target_language?: string; 
+        type?: string; 
+    }) {
         const response = await api.post('/ai/listings/generate', data);
         return response.data;
     },

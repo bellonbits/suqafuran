@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapPin, XCircle, ChevronRight, ChevronLeft, Globe } from 'lucide-react';
+import { Search, MapPin, XCircle, ChevronRight, ChevronLeft, Globe, Navigation } from 'lucide-react';
 import type { State, Region } from '../utils/somaliRegions';
 import { SOMALI_STATES } from '../utils/somaliRegions';
 
@@ -53,14 +53,17 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [googleReady, setGoogleReady] = useState(false);
     const [loadingGoogle, setLoadingGoogle] = useState(false);
+    const [detecting, setDetecting] = useState(false);
     const autocompleteService = useRef<any>(null);
     const sessionToken = useRef<any>(null);
+    const geocoder = useRef<any>(null);
 
     useEffect(() => {
         if (!isOpen) return;
         setLoadingGoogle(true);
         loadGoogleMapsScript().then(() => {
             autocompleteService.current = new window.google.maps.places.AutocompleteService();
+            geocoder.current = new window.google.maps.Geocoder();
             sessionToken.current = new window.google.maps.places.AutocompleteSessionToken();
             setGoogleReady(true);
             setLoadingGoogle(false);
@@ -126,6 +129,48 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         setSelectedRegion(null);
     };
 
+    const handleGetCurrentLocation = () => {
+        if (!navigator.geolocation) {
+            alert('Geolocation is not supported by your browser');
+            return;
+        }
+
+        setDetecting(true);
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const { latitude, longitude } = position.coords;
+                
+                if (!geocoder.current) {
+                    await loadGoogleMapsScript();
+                    geocoder.current = new window.google.maps.Geocoder();
+                }
+
+                geocoder.current.geocode(
+                    { location: { lat: latitude, lng: longitude } },
+                    (results: any[], status: string) => {
+                        setDetecting(false);
+                        if (status === 'OK' && results[0]) {
+                            const result = results[0];
+                            const city = result.address_components.find((c: any) => c.types.includes('locality'))?.long_name;
+                            const region = result.address_components.find((c: any) => c.types.includes('administrative_area_level_1'))?.long_name;
+                            
+                            const displayName = city && region ? `${city}, ${region}` : result.formatted_address;
+                            onSelect(displayName);
+                            onClose();
+                        } else {
+                            alert('Could not determine your location');
+                        }
+                    }
+                );
+            },
+            (error) => {
+                setDetecting(false);
+                alert(`Error getting location: ${error.message}`);
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    };
+
     return (
         <AnimatePresence onExitComplete={resetModal}>
             {isOpen && (
@@ -179,6 +224,18 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                                     <MapPin className="w-4 h-4" /> Somalia
                                 </button>
                             </div>
+                        </div>
+
+                        {/* Current Location Button */}
+                        <div className="px-5 pb-2">
+                            <button
+                                onClick={handleGetCurrentLocation}
+                                disabled={detecting}
+                                className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-primary-50 text-primary-600 font-bold text-sm hover:bg-primary-100 transition-all active:scale-98 disabled:opacity-50"
+                            >
+                                <Navigation className={`w-4 h-4 ${detecting ? 'animate-pulse' : ''}`} />
+                                {detecting ? 'Detecting Location...' : 'Use Current Location'}
+                            </button>
                         </div>
 
                         {/* Search input */}
@@ -291,7 +348,6 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                                         </div>
                                     )}
 
-                                    {/* Progress dots */}
                                     <div className="flex items-center gap-2 pt-4 justify-center">
                                         {['state', 'region', 'town'].map((l, i) => (
                                             <React.Fragment key={l}>

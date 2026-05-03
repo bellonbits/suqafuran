@@ -89,7 +89,7 @@ export const CategoryDirectory: React.FC<CategoryDirectoryProps> = ({ categories
                             >
                                 <div className="w-9 h-9 rounded-lg bg-gray-100 shrink-0 overflow-hidden flex items-center justify-center">
                                     {cat.image_url ? (
-                                        <img src={getImageUrl(cat.image_url)} alt="" className="w-full h-full object-cover" />
+                                        <img src={getImageUrl(cat.image_url, { width: 100, quality: 'eco' })} alt="" className="w-full h-full object-cover" />
                                     ) : (
                                         <Icon size={20} className={isActive ? 'text-primary-500' : 'text-gray-400'} />
                                     )}
@@ -147,7 +147,7 @@ export const CategoryDirectory: React.FC<CategoryDirectoryProps> = ({ categories
                                     >
                                         <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 shrink-0 overflow-hidden flex items-center justify-center">
                                             {sub.image_url ? (
-                                                <img src={getImageUrl(sub.image_url)} alt="" className="w-full h-full object-cover" />
+                                                <img src={getImageUrl(sub.image_url, { width: 100, quality: 'eco' })} alt="" className="w-full h-full object-cover" />
                                             ) : (
                                                 <div className={`w-2 h-2 rounded-full ${isSubActive ? 'bg-primary-400' : 'bg-gray-300'}`} />
                                             )}
@@ -210,7 +210,7 @@ export const CategoryDirectory: React.FC<CategoryDirectoryProps> = ({ categories
                         >
                             <div className="w-10 h-10 rounded-lg bg-gray-50 shrink-0 overflow-hidden flex items-center justify-center">
                                 {cat.image_url ? (
-                                    <img src={getImageUrl(cat.image_url)} alt="" className="w-full h-full object-cover" />
+                                    <img src={getImageUrl(cat.image_url, { width: 100, quality: 'eco' })} alt="" className="w-full h-full object-cover" />
                                 ) : (
                                     <Icon size={20} className="text-primary-500" />
                                 )}

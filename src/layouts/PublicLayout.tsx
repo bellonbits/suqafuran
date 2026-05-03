@@ -56,7 +56,7 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                         <Link to="/dashboard" className="shrink-0">
                             <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center text-primary-700 font-bold text-sm overflow-hidden border-2 border-primary-200">
                                 {getAvatarUrl(user?.avatar_url) ? (
-                                    <img src={getAvatarUrl(user?.avatar_url)!} alt={user?.full_name || 'U'} className="w-full h-full object-cover" />
+                                    <img src={getAvatarUrl(user?.avatar_url, { width: 100, quality: 'eco' })!} alt={user?.full_name || 'U'} className="w-full h-full object-cover" />
                                 ) : (
                                     <span>{user?.full_name?.[0]?.toUpperCase() || 'U'}</span>
                                 )}
@@ -104,7 +104,7 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                                 <Link to="/dashboard" className="p-0.5 rounded-full border-2 border-white/50 hover:border-white transition-all ml-1 overflow-hidden" title={t('nav.profile')}>
                                     <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-primary-600 font-bold text-xs">
                                         {getAvatarUrl(user?.avatar_url) ? (
-                                            <img src={getAvatarUrl(user?.avatar_url)!} alt={user?.full_name || 'U'} className="w-full h-full object-cover" />
+                                            <img src={getAvatarUrl(user?.avatar_url, { width: 100, quality: 'eco' })!} alt={user?.full_name || 'U'} className="w-full h-full object-cover" />
                                         ) : (
                                             <span>{user?.full_name?.[0]?.toUpperCase() || 'U'}</span>
                                         )}

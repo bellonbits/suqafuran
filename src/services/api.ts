@@ -38,26 +38,24 @@ api.interceptors.response.use(
         if (status === 401 && !isValidatingSession) {
             const { token, logout } = useAuthStore.getState();
 
-            if (!token) {
-                // No token stored — nothing to do, just reject.
-                return Promise.reject(error);
-            }
+            if (!token) return Promise.reject(error);
 
-            // Silently verify the token is genuinely expired by calling /users/me.
-            // If that also 401s, the session is truly dead and we log out.
-            // This prevents a single mis-configured endpoint from booting the user.
             isValidatingSession = true;
             try {
-                await api.get('/users/me');
-                // /users/me succeeded — the original 401 was endpoint-specific,
-                // not a token expiry. Keep the session alive.
+                // Background check to see if the session is truly dead
+                await axios.get(`${API_BASE_URL}/users/me`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                // If it succeeds, the original 401 was a fluke or endpoint-specific
             } catch (verifyError: any) {
                 if (verifyError.response?.status === 401) {
-                    // Token is genuinely invalid — log out cleanly.
-                    logout();
+                    // Only log out if it's a genuine, confirmed 401 on /users/me
+                    // and we are NOT on a native platform where we want to be stickier
+                    const isNative = typeof (window as any).Capacitor !== 'undefined';
+                    if (!isNative) {
+                        // logout(); // Disabled per user request: "no refreshing of the app and logs you out"
+                    }
                 }
-                // Any other error (network, 5xx) → leave session intact,
-                // the user is still logged in.
             } finally {
                 isValidatingSession = false;
             }

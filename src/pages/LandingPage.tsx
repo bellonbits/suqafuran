@@ -38,6 +38,11 @@ const LandingPage: React.FC = () => {
         queryFn: () => listingService.getListings({ limit: 12 }),
     });
 
+    const { data: hotDealsData, isLoading: hotDealsLoading } = useQuery({
+        queryKey: ['hot-deals', selectedLocation],
+        queryFn: () => listingService.getListings({ limit: 20, location: selectedLocation || undefined }),
+    });
+
     const { data: recommendations } = useQuery({
         queryKey: ['ai-recommendations'],
         queryFn: () => aiService.getRecommendations({ limit: 6 }),
@@ -46,6 +51,7 @@ const LandingPage: React.FC = () => {
 
     const displayCategories = categories || [];
     const displayAds = featuredAds || [];
+    const hotDeals = (hotDealsData || []).slice().sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 4);
 
     return (
         <PublicLayout>
@@ -207,9 +213,9 @@ const LandingPage: React.FC = () => {
                 </div>
 
                 {/* Hot Deals Grid */}
-                {!adsLoading && displayAds.length > 0 && (
+                {!hotDealsLoading && hotDeals.length > 0 && (
                     <div className="grid grid-cols-2 gap-3 px-4 pb-6 border-b border-gray-100 mb-6">
-                        {displayAds.slice(0, 4).map((ad, idx) => (
+                        {hotDeals.map((ad) => (
                             <ProductCard
                                 key={`hot-${ad.id}`}
                                 id={String(ad.id)}
@@ -398,6 +404,35 @@ const LandingPage: React.FC = () => {
                                                     imageUrl={ad.images?.[0] || ''}
                                                     isVerified={ad.owner?.is_verified}
                                                     isPromoted={(ad.boost_level ?? 0) > 0}
+                                                    isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
+                                                    hasBulkPrice={!!ad.attributes?.bulk_price}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Hot Deals Desktop */}
+                                {!hotDealsLoading && hotDeals.length > 0 && (
+                                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <Flame className="h-5 w-5 text-secondary-500 fill-secondary-500" />
+                                            <h2 className="text-lg font-bold text-gray-900">Hot Deals Near You</h2>
+                                        </div>
+                                        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+                                            {hotDeals.map((ad) => (
+                                                <ProductCard
+                                                    key={`desk-hot-${ad.id}`}
+                                                    id={String(ad.id)}
+                                                    title_en={ad.title_en || ''}
+                                                    title_so={ad.title_so}
+                                                    price={ad.price || 0}
+                                                    currency={ad.currency || 'USD'}
+                                                    location={ad.location || ''}
+                                                    imageUrl={ad.images?.[0] || ''}
+                                                    isVerified={ad.owner?.is_verified}
+                                                    isPopular={true}
+                                                    rating={4.9}
                                                     isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
                                                     hasBulkPrice={!!ad.attributes?.bulk_price}
                                                 />

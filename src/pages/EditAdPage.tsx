@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, Plus, X, CheckCircle2, Loader2, Sparkles, Languages } from 'lucide-react';
 
@@ -41,7 +41,7 @@ interface FormValues {
 const EditAdPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { t, i18n } = useTranslation();
+    const { i18n } = useTranslation();
     const { user } = useAuthStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -72,13 +72,11 @@ const EditAdPage: React.FC = () => {
     const [showCategoryPicker, setShowCategoryPicker] = useState(false);
     const [categorySearch, setCategorySearch] = useState('');
     const [isLocationOpen, setIsLocationOpen] = useState(false);
-    const [uploading, setUploading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const { getField } = useLanguageField();
 
     const [aiLoading, setAiLoading] = useState<string | null>(null);
-    const [priceRec, setPriceRec] = useState<{recommended_price: number, min_range: number, max_range: number, market_demand: string} | null>(null);
 
     // Fetch existing listing
     const { data: listing, isLoading: loadingListing } = useQuery({
@@ -124,11 +122,6 @@ const EditAdPage: React.FC = () => {
         if (errors[key]) setErrors(e => ({ ...e, [key]: undefined }));
     };
 
-    const setAttribute = (key: string, value: any) => {
-        setForm(f => ({ ...f, attributes: { ...f.attributes, [key]: value } }));
-        if (errors[`attr_${key}` as any]) setErrors(e => ({ ...e, [`attr_${key}`]: undefined }));
-    };
-
     const selectedCategory = categories.find(c => c.id === form.categoryId);
     const selectedSubcategory = form.subcategoryId ? selectedCategory?.subcategories?.find(s => s.id === form.subcategoryId) : null;
     
@@ -164,19 +157,19 @@ const EditAdPage: React.FC = () => {
 
         setAiLoading(`${type}_${field}`);
         try {
-            const res = await aiService.generate({
+            const res = await aiService.generateListingText({
                 type,
-                input: input || (type === 'description' ? `Generate description for ${form.title_en || form.title_so}` : ''),
+                title: input || (type === 'description' ? `Generate description for ${form.title_en || form.title_so}` : ''),
                 target_language: field,
                 category: selectedCategory ? getField(selectedCategory, 'name') : undefined,
                 attributes: form.attributes
             });
             
-            if (res.output) {
+            if (res.result) {
                 if (type === 'title') {
-                    set(field === 'en' ? 'title_en' : 'title_so', res.output);
+                    set(field === 'en' ? 'title_en' : 'title_so', res.result);
                 } else if (type === 'description' || type === 'translate') {
-                    set(field === 'en' ? 'description_en' : 'description_so', res.output);
+                    set(field === 'en' ? 'description_en' : 'description_so', res.result);
                 }
             }
         } catch (err) {
@@ -188,14 +181,12 @@ const EditAdPage: React.FC = () => {
 
     const handleImageUpload = async (files: FileList | null) => {
         if (!files) return;
-        setUploading(true);
         for (const file of Array.from(files)) {
             try {
                 const result = await listingService.uploadImage(file);
                 setForm(f => ({ ...f, images: [...f.images, result.url] }));
             } catch { /* skip */ }
         }
-        setUploading(false);
     };
 
     const removeImage = (idx: number) => {

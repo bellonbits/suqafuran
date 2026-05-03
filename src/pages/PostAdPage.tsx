@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, Plus, X, Shield, ShieldAlert, Clock, CheckCircle2, Loader2, Zap } from 'lucide-react';
 
 import { listingService } from '../services/listingService';
@@ -49,7 +49,6 @@ const PostAdPage: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { id } = useParams();
     const isEditMode = !!id;
-    const navigate = useNavigate();
 
     const [form, setForm] = useState<FormValues>({
         title_en: '',

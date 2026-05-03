@@ -234,6 +234,17 @@ const SellerProfilePage: React.FC = () => {
 
                     {/* Listings Content */}
                     <div className="lg:col-span-3">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-black text-gray-900 tracking-tight">{t('sellerProfile.activeListings', 'Active Ads')}</h2>
+                            <span className="bg-primary-50 text-primary-700 px-3 py-1 rounded-full text-xs font-bold border border-primary-100">
+                                {(listings || []).length} {t('common.ads', 'Ads')}
+                            </span>
+                        </div>
+
+                        {listings && listings.length > 0 ? (
+                            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {listings.map((ad, idx) => (
+                                    <ProductCard
                                         key={ad.id}
                                         id={ad.id.toString()}
                                         ownerId={ad.owner_id}
@@ -247,6 +258,8 @@ const SellerProfilePage: React.FC = () => {
                                         isPromoted={(ad.boost_level ?? 0) > 1}
                                         isPopular={idx < 1}
                                         registrationAge="Verified User"
+                                        isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
+                                        hasBulkPrice={!!ad.attributes?.bulk_price}
                                     />
                                 ))}
                             </div>
