@@ -57,15 +57,15 @@ def apply_somali_dictionary(text: str) -> str:
 
 class AIService:
     def __init__(self):
-        # Initialize Groq client only if the API key is present
         api_key = settings.GROQ_API_KEY
         if not api_key:
             logger.warning("GROQ_API_KEY is not set. AI features will not work.")
             self.client = None
         else:
             self.client = Groq(api_key=api_key)
-        
+
         self.model = settings.GROQ_MODEL
+        self.translate_model = settings.GROQ_TRANSLATE_MODEL
 
     def generate_listing_text(self, type: str, input_text: str, target_language: str = "en", category: str = None, attributes: dict = None) -> str:
         if not self.client:
@@ -187,12 +187,12 @@ Instructions:
         else:
             raise HTTPException(status_code=400, detail="Invalid generation type. Must be 'title', 'description', or 'translate'")
 
-        result = self._call_ai(system_prompt, user_prompt)
-
-        # Apply dictionary override for Somali translations to fix any residual
-        # literal translations the model missed
-        if type == "translate" and target_language.lower() in ["so", "somali"]:
-            result = apply_somali_dictionary(result)
+        if type == "translate":
+            result = self._call_ai(system_prompt, user_prompt, model=self.translate_model)
+            if target_language.lower() in ["so", "somali"]:
+                result = apply_somali_dictionary(result)
+        else:
+            result = self._call_ai(system_prompt, user_prompt)
 
         return result
 
@@ -535,10 +535,10 @@ Return a JSON object:
             "description": "Automatically analyzed by Suqafuran AI"
         }
 
-    def _call_ai(self, system_prompt: str, user_prompt: str) -> str:
+    def _call_ai(self, system_prompt: str, user_prompt: str, model: str = None) -> str:
         try:
             response = self.client.chat.completions.create(
-                model=self.model,
+                model=model or self.model,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},

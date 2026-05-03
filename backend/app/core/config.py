@@ -118,7 +118,8 @@ class Settings(BaseSettings):
 
     # GROQ (AI ASSISTANT)
     GROQ_API_KEY: str = ""
-    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    GROQ_MODEL: str = "meta-llama/llama-4-scout-17b-16e-instruct"   # multimodal, best Somali translation
+    GROQ_TRANSLATE_MODEL: str = "meta-llama/llama-4-scout-17b-16e-instruct"  # dedicated translation model
 
     @field_validator("ALLOWED_EXTENSIONS", mode="before")
     @classmethod
