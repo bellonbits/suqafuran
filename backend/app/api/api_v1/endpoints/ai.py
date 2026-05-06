@@ -115,13 +115,22 @@ def chat_suggestions(body: ChatSuggestionsRequest):
 
 
 @router.get("/seller/score/{user_id}")
-def seller_score(user_id: int):
+def seller_score(user_id: int, db: Session = Depends(deps.get_db)):
     """Calculate and return a trust/seller score for a user."""
-    result = ai_service.calculate_seller_score(
-        user_data={"id": user_id},
-        history=[],
-    )
-    return result
+    from sqlmodel import select
+    from app.models.user import User as UserModel
+    try:
+        user_row = db.exec(select(UserModel).where(UserModel.id == user_id)).first()
+        user_data = {
+            "id": user_id,
+            "full_name": user_row.full_name if user_row else "Unknown",
+            "created_at": str(user_row.created_at) if user_row and user_row.created_at else "Unknown",
+            "is_verified": user_row.is_verified if user_row else False,
+        }
+        result = ai_service.calculate_seller_score(user_data=user_data, history=[])
+        return result
+    except Exception:
+        return {"score": 50, "level": "New", "badges": [], "summary": "Score unavailable"}
 
 
 @router.post("/insights/demand")

@@ -1,11 +1,12 @@
 from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
-from sqlmodel import Session
+from sqlmodel import Session, select
 from app.api import deps
 from app.crud import crud_listing
 from app.models.listing import Listing, ListingBase, ListingRead, Category, SubCategory, SubSubCategory
 from app.models.user import User
 from app.models.audit import AuditLog
+from app.models.marketing_code import MarketingCode
 from app.core.config import settings
 import uuid
 import os
@@ -467,6 +468,16 @@ def create_listing(
         )
     )
     db.add(log)
+
+    # Track first-ad conversion for marketing referral codes
+    if current_user.referral_code and not current_user.referral_listing_counted:
+        mc = db.exec(select(MarketingCode).where(MarketingCode.code == current_user.referral_code)).first()
+        if mc:
+            mc.ads_posted_count += 1
+            db.add(mc)
+        current_user.referral_listing_counted = True
+        db.add(current_user)
+
     db.commit()
     return listing
 

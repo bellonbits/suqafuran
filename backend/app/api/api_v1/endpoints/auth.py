@@ -9,6 +9,7 @@ from app.core.config import settings
 from app.crud import crud_user
 from app.models.user import User, UserVerifiedLevel
 from app.models.audit import AuditLog
+from app.models.marketing_code import MarketingCode
 from app.services.email_service import email_service
 from pydantic import BaseModel
 
@@ -30,6 +31,7 @@ class SignupIn(BaseModel):
     email: str
     password: str
     phone: Optional[str] = None
+    promo_code: Optional[str] = None
 
 class AuthOut(BaseModel):
     access_token: str
@@ -68,7 +70,7 @@ def signup(
         if existing_phone:
             raise HTTPException(status_code=400, detail="An account with this phone number already exists.")
 
-    signup_data = {"full_name": payload.full_name, "email": payload.email, "password": payload.password, "phone": payload.phone}
+    signup_data = {"full_name": payload.full_name, "email": payload.email, "password": payload.password, "phone": payload.phone, "promo_code": payload.promo_code}
     stored = email_service.store_pending_signup(payload.email, signup_data)
     if not stored:
         raise HTTPException(status_code=500, detail="Failed to store signup data. Please try again.")
@@ -108,10 +110,22 @@ def verify_otp(
             user.email_verified = True
             user.phone_verified = True
             user.verified_level = UserVerifiedLevel.phone
+
+            # Apply marketing promo code if present and valid
+            promo_code_val = signup_data.get("promo_code")
+            if promo_code_val:
+                code_upper = promo_code_val.strip().upper()
+                mc = db.exec(select(MarketingCode).where(MarketingCode.code == code_upper)).first()
+                if mc and mc.is_active and (mc.max_uses is None or mc.uses_count < mc.max_uses):
+                    user.referral_code = code_upper
+                    mc.uses_count += 1
+                    db.add(mc)
+
             db.add(user)
             db.add(AuditLog(
                 user_id=user.id, action="USER_SIGNUP", resource_type="user",
-                resource_id=user.id, details=f"New user: {user.full_name} ({user.email})"
+                resource_id=user.id,
+                details=f"New user: {user.full_name} ({user.email})" + (f" via promo: {user.referral_code}" if user.referral_code else "")
             ))
             db.commit()
             db.refresh(user)

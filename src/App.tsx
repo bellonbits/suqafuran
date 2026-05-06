@@ -68,15 +68,21 @@ const AdminPromotionsPage = lazy(() => import('./pages/admin/AdminPromotionsPage
 const AdminVouchersPage = lazy(() => import('./pages/admin/AdminVouchersPage'));
 const AdminListingsPage = lazy(() => import('./pages/admin/AdminListingsPage'));
 const AdminVerificationsPage = lazy(() => import('./pages/admin/AdminVerificationsPage'));
+const AdminMarketingPage = lazy(() => import('./pages/admin/AdminMarketingPage'));
 const WebEditorPage = lazyNamed(() => import('./pages/admin/WebEditorPage'), 'WebEditorPage');
 const AgentDashboard = lazy(() => import('./pages/agent/AgentDashboard'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60_000,        // data stays fresh 60s — no refetch on every mount
-      gcTime: 5 * 60_000,       // keep unused data in cache 5 min
-      retry: 1,                 // fail fast on mobile networks
+      staleTime: 60_000,
+      gcTime: 5 * 60_000,
+      // Never retry on 401/403/404 — retrying auth failures just floods the console
+      retry: (failureCount, error: any) => {
+        const status = error?.response?.status;
+        if (status === 401 || status === 403 || status === 404) return false;
+        return failureCount < 1;
+      },
       refetchOnWindowFocus: false,
     },
   },
@@ -173,6 +179,7 @@ const App: React.FC = () => {
               <Route path="promotions" element={<AdminPromotionsPage />} />
               <Route path="vouchers" element={<AdminVouchersPage />} />
               <Route path="verifications" element={<AdminVerificationsPage />} />
+              <Route path="marketing" element={<AdminMarketingPage />} />
               <Route path="editor" element={<WebEditorPage />} />
             </Route>
 

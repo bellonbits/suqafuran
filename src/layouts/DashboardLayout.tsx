@@ -9,7 +9,7 @@ import {
     PlusCircle, Bell, HelpCircle, Shield, Wallet, Folder,
     Menu, X, TrendingUp, MessageSquare, Zap, Target,
 
-    MessageCircle, Users, Globe, House
+    MessageCircle, Users, Globe, House, Megaphone
 } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { getAvatarUrl } from '../utils/imageUtils';
@@ -257,6 +257,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             >
                                 <Shield className="h-5 w-5" />
                                 {t('dashboard.verifications', 'Verifications')}
+                            </Link>
+                            <Link
+                                to="/admin/marketing"
+                                className={cn(
+                                    "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
+                                    location.pathname === '/admin/marketing' && "bg-primary-50 shadow-sm"
+                                )}
+                            >
+                                <Megaphone className="h-5 w-5" />
+                                Marketing Codes
                             </Link>
                             <Link
                                 to="/admin/editor"

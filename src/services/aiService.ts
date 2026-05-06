@@ -22,7 +22,7 @@ export const aiService = {
         return response.data;
     },
 
-    async getPriceRecommendation(data: { title: string; category_id: number; condition: string }) {
+    async getPriceRecommendation(data: { title: string; category_id: number; condition: string; currency?: string }) {
         const response = await api.post('/ai/listings/price-recommendation', data);
         return response.data;
     },

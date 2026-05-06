@@ -23,6 +23,8 @@ const OverviewDashboard: React.FC = () => {
         queryKey: ['ai-seller-score', user?.id],
         queryFn: () => aiService.getSellerScore(user!.id),
         enabled: !!user?.id,
+        staleTime: 300_000,   // score is stable — don't re-fetch on every dashboard visit
+        retry: false,
     });
 
     const stats = [

@@ -88,6 +88,11 @@ const PostAdPage: React.FC = () => {
     const [showLipanaModal, setShowLipanaModal] = useState(false);
     const [createdListingTitle, setCreatedListingTitle] = useState('');
     const [titleSuggestions, setTitleSuggestions] = useState<string[]>([]);
+    const [priceHint, setPriceHint] = useState<{ min: number; max: number; demand: string } | null>(null);
+    const [priceHintLoading, setPriceHintLoading] = useState(false);
+    const [moderationWarning, setModerationWarning] = useState<{ risk: string; reasons: string[]; recommendation: string } | null>(null);
+    const [bypassModeration, setBypassModeration] = useState(false);
+    const [isDragOver, setIsDragOver] = useState(false);
 
     const { data: verificationStatus } = useQuery({
         queryKey: ['verification-status'],
@@ -107,6 +112,27 @@ const PostAdPage: React.FC = () => {
             updateUser({ is_verified: true });
         }
     }, [verificationStatus?.status]);
+
+    // Auto price suggestion: debounced, triggers when title + category are set
+    useEffect(() => {
+        if (!form.title_en || form.title_en.length < 5) { setPriceHint(null); return; }
+        const timer = setTimeout(async () => {
+            setPriceHintLoading(true);
+            try {
+                const res = await aiService.getPriceRecommendation({
+                    title: form.title_en,
+                    category_id: form.categoryId || 0,
+                    condition: form.condition,
+                    currency,
+                });
+                if (res.min_range && res.max_range) {
+                    setPriceHint({ min: res.min_range, max: res.max_range, demand: res.market_demand || 'medium' });
+                }
+            } catch {}
+            finally { setPriceHintLoading(false); }
+        }, 2000);
+        return () => clearTimeout(timer);
+    }, [form.title_en, form.categoryId, form.condition, currency]);
 
     useEffect(() => {
         if (isEditMode && id) {
@@ -140,6 +166,21 @@ const PostAdPage: React.FC = () => {
         queryKey: ['categories'],
         queryFn: listingService.getCategories,
     });
+
+    // Auto-categorize: triggers when title_en is typed and no category is chosen yet
+    useEffect(() => {
+        if (!form.title_en || form.title_en.length < 10 || form.categoryId) return;
+        const timer = setTimeout(async () => {
+            try {
+                const res = await aiService.predictCategory(form.title_en);
+                if (res.category_slug && res.confidence > 0.5) {
+                    const matchedCat = categories.find((c: any) => c.slug === res.category_slug);
+                    if (matchedCat) set('categoryId', matchedCat.id);
+                }
+            } catch {}
+        }, 1500);
+        return () => clearTimeout(timer);
+    }, [form.title_en, categories]);
 
     const { data: promotionPlans = [] } = useQuery({
         queryKey: ['promotionPlans'],
@@ -186,19 +227,31 @@ const PostAdPage: React.FC = () => {
 
     const [imageWarning, setImageWarning] = useState<string | null>(null);
 
+    const checkImageQuality = (file: File): Promise<string | null> =>
+        new Promise(resolve => {
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+            img.onload = () => {
+                URL.revokeObjectURL(url);
+                if (file.size < 50_000) return resolve(`"${file.name}" is very small — may appear blurry.`);
+                if (img.width < 300 || img.height < 300) return resolve(`"${file.name}" is low resolution (${img.width}×${img.height}px). Use a clearer photo.`);
+                resolve(null);
+            };
+            img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+            img.src = url;
+        });
+
     const handleImageUpload = async (files: FileList | null) => {
-        if (!files) return;
+        if (!files || files.length === 0) return;
         setUploading(true);
         setImageWarning(null);
-        
-        // Simulate Smart Upload check
-        if (files.length > 0) {
-            const firstFile = files[0];
-            if (firstFile.size < 50000) {
-                // Heuristic: very small file might be blurry/low quality
-                setImageWarning("Warning: One or more images seem blurry or low resolution.");
-            }
+
+        const warnings: string[] = [];
+        for (const file of Array.from(files)) {
+            const w = await checkImageQuality(file);
+            if (w) warnings.push(w);
         }
+        if (warnings.length) setImageWarning(warnings.join(' '));
 
         for (const file of Array.from(files)) {
             try {
@@ -269,20 +322,7 @@ const PostAdPage: React.FC = () => {
         return e;
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const errs = validate();
-        if (Object.keys(errs).length) {
-            setErrors(errs);
-            
-            // Auto-switch tab if error is in hidden tab
-            if ((errs.title_en || errs.description_en) && formTab === 'so') setFormTab('en');
-            else if ((errs.title_so || errs.description_so) && formTab === 'en') setFormTab('so');
-
-            const firstErr = document.querySelector('[data-error="true"]');
-            firstErr?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            return;
-        }
+    const doCreateListing = async () => {
         setSubmitting(true);
         try {
             const payload = {
@@ -299,15 +339,14 @@ const PostAdPage: React.FC = () => {
                 images: form.images,
                 youtube_link: form.youtubeLink,
                 condition: form.condition,
-                is_negotiable: form.negotiable === 'yes',   // boolean DB column
+                is_negotiable: form.negotiable === 'yes',
                 attributes: {
                     ...form.attributes,
-                    negotiable: form.negotiable,            // 'yes' | 'no' | 'not_sure' for display
+                    negotiable: form.negotiable,
                     bulk_currency: currency,
                 },
                 lang_available: form.lang_available,
             };
-            
             let result;
             if (isEditMode && id) {
                 result = await listingService.updateListing(Number(id), payload);
@@ -320,9 +359,7 @@ const PostAdPage: React.FC = () => {
                 setCreatedListingTitle(result.title_en || result.title_so || '');
                 setSubmitted(true);
             }
-
             if (promoPlanId > 0 && result.id) {
-                // Save the listing info and open Lipana modal for payment
                 setCreatedListingId(result.id);
                 setCreatedListingTitle(form.title_en || form.title_so);
                 setSubmitting(false);
@@ -335,6 +372,38 @@ const PostAdPage: React.FC = () => {
         } finally {
             setSubmitting(false);
         }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const errs = validate();
+        if (Object.keys(errs).length) {
+            setErrors(errs);
+            if ((errs.title_en || errs.description_en) && formTab === 'so') setFormTab('en');
+            else if ((errs.title_so || errs.description_so) && formTab === 'en') setFormTab('so');
+            const firstErr = document.querySelector('[data-error="true"]');
+            firstErr?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
+        // AI moderation check — skip if user already acknowledged warning
+        if (!bypassModeration) {
+            const checkText = `${form.title_en || form.title_so} ${form.description_en || form.description_so}`.trim();
+            if (checkText.length > 10) {
+                setSubmitting(true);
+                try {
+                    const modResult = await aiService.checkModeration({ text: checkText, image_urls: form.images });
+                    if (modResult.risk === 'high' || modResult.risk === 'medium') {
+                        setModerationWarning(modResult);
+                        setSubmitting(false);
+                        return;
+                    }
+                } catch {} // never block submission on moderation API error
+                setSubmitting(false);
+            }
+        }
+        setBypassModeration(false);
+        await doCreateListing();
     };
 
     const handleLipanaConfirm = async (phone: string): Promise<{ promoId?: number; error?: string }> => {
@@ -857,38 +926,67 @@ const PostAdPage: React.FC = () => {
                             {errors.location && <p className="text-[11px] text-red-500 mt-1 pl-1">{errors.location}</p>}
                         </div>
 
-                        {/* Photos section */}
+                        {/* Photos section — drag & drop */}
                         <div className="mt-8 mb-6">
-                            <h3 className="font-bold text-gray-900 text-[15px] mb-2">Add at least 2 photos</h3>
-                            <p className="text-[13px] leading-snug mb-4 pl-0.5">
-                                <span className="text-primary-500 font-bold">First picture is the title picture.</span> <span className="text-gray-500 font-medium">You can change the order of photos: just grab your photos and drag</span>
-                            </p>
-                            <div className="flex flex-wrap gap-2 mb-2">
-                                <button
-                                    type="button"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    disabled={uploading}
-                                    className="w-[72px] h-[72px] rounded-md bg-[#eef8ff] flex items-center justify-center cursor-pointer transition-colors hover:bg-primary-100 flex-shrink-0"
-                                >
-                                    {uploading ? <Loader2 className="w-6 h-6 text-primary-500 animate-spin" /> : <Plus strokeWidth={2.5} className="w-6 h-6 text-primary-500" />}
-                                </button>
-                                <input ref={fileInputRef} type="file" accept="image/jpeg,image/png" multiple className="hidden" onChange={e => handleImageUpload(e.target.files)} />
-                                
-                                {form.images.map((url, i) => (
-                                    <div key={i} className="relative w-[72px] h-[72px] flex-shrink-0">
-                                        <img src={getImageUrl(url)} alt="" className="w-full h-full object-cover rounded-md border border-gray-200" />
-                                        <button
-                                            type="button"
-                                            onClick={() => removeImage(i)}
-                                            className="absolute -top-1.5 -right-1.5 bg-red-500 w-5 h-5 rounded-full flex items-center justify-center shadow-md pb-[1px]"
-                                        >
-                                            <X size={12} fill="white" color="white" />
-                                        </button>
-                                    </div>
-                                ))}
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="font-bold text-gray-900 text-[15px]">Add photos</h3>
+                                <span className="text-[11px] text-gray-400 font-medium">{form.images.length}/10 photos</span>
                             </div>
-                            <span className="text-[13px] text-gray-500 font-medium tracking-tight mt-1 inline-block pl-0.5">Supported formats are *.jpg and *.png</span>
-                            {imageWarning && <p className="text-[12px] text-amber-500 mt-2 font-bold bg-amber-50 p-2 rounded-md border border-amber-100">{imageWarning}</p>}
+                            <p className="text-[12px] text-gray-500 mb-3 pl-0.5">
+                                <span className="text-primary-500 font-bold">First photo is the cover.</span> Min 1 required.
+                            </p>
+
+                            {/* Drag-drop zone */}
+                            <div
+                                onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
+                                onDragLeave={() => setIsDragOver(false)}
+                                onDrop={e => { e.preventDefault(); setIsDragOver(false); handleImageUpload(e.dataTransfer.files); }}
+                                onClick={() => fileInputRef.current?.click()}
+                                className={cn(
+                                    "border-2 border-dashed rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer transition-all mb-3 select-none",
+                                    isDragOver ? "border-primary-500 bg-primary-50 scale-[1.01]" : "border-gray-200 hover:border-primary-300 hover:bg-gray-50",
+                                    uploading && "opacity-60 pointer-events-none"
+                                )}
+                            >
+                                {uploading ? (
+                                    <Loader2 className="w-7 h-7 text-primary-500 animate-spin mb-2" />
+                                ) : (
+                                    <Plus strokeWidth={2} className="w-7 h-7 text-primary-400 mb-2" />
+                                )}
+                                <p className="text-sm font-bold text-gray-600">
+                                    {isDragOver ? "Drop images here" : "Drag & drop or tap to upload"}
+                                </p>
+                                <p className="text-[11px] text-gray-400 mt-0.5">JPG, PNG — up to 10 photos</p>
+                            </div>
+                            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png" multiple className="hidden" onChange={e => handleImageUpload(e.target.files)} />
+
+                            {/* Image grid preview */}
+                            {form.images.length > 0 && (
+                                <div className="grid grid-cols-4 gap-2 mt-2">
+                                    {form.images.map((url, i) => (
+                                        <div key={i} className="relative aspect-square">
+                                            <img src={getImageUrl(url)} alt="" className="w-full h-full object-cover rounded-lg border border-gray-200" />
+                                            {i === 0 && (
+                                                <span className="absolute bottom-1 left-1 bg-primary-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">Cover</span>
+                                            )}
+                                            <button
+                                                type="button"
+                                                onClick={() => removeImage(i)}
+                                                className="absolute -top-1.5 -right-1.5 bg-red-500 w-5 h-5 rounded-full flex items-center justify-center shadow-md"
+                                            >
+                                                <X size={10} color="white" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {imageWarning && (
+                                <div className="mt-2 flex items-start gap-2 bg-amber-50 border border-amber-100 rounded-lg p-2.5">
+                                    <ShieldAlert className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                                    <p className="text-[11px] text-amber-700 font-medium">{imageWarning}</p>
+                                </div>
+                            )}
                             {errors.images && <p className="text-[11px] text-red-500 mt-1 font-medium">{errors.images}</p>}
                         </div>
 
@@ -911,7 +1009,45 @@ const PostAdPage: React.FC = () => {
 
                 {/* ── STEP 2: Extended Details ──────────────────────────── */}
                 <div style={{ display: step === 2 ? 'block' : 'none' }}>
-                    
+
+                    {/* AI Moderation Warning */}
+                    {moderationWarning && (
+                        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 animate-in slide-in-from-top-2 duration-300">
+                            <div className="flex items-start gap-3">
+                                <ShieldAlert className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-bold text-red-800">AI flagged your listing</p>
+                                    <p className="text-xs text-red-600 mt-1">{moderationWarning.recommendation}</p>
+                                    {moderationWarning.reasons.length > 0 && (
+                                        <ul className="text-xs text-red-500 mt-2 space-y-0.5 list-disc list-inside">
+                                            {moderationWarning.reasons.map((r, i) => <li key={i}>{r}</li>)}
+                                        </ul>
+                                    )}
+                                    <div className="flex gap-2 mt-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setModerationWarning(null)}
+                                            className="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-bold hover:bg-red-200 transition-colors"
+                                        >
+                                            Edit Listing
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setModerationWarning(null);
+                                                setBypassModeration(true);
+                                                doCreateListing();
+                                            }}
+                                            className="px-3 py-1.5 bg-white text-gray-600 border border-gray-200 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors"
+                                        >
+                                            Post Anyway
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* CARD 1: Core Details */}
                     <div className="bg-white rounded-md shadow-sm border border-gray-200 p-5 mb-5">
                         {/* Subcategory */}
@@ -1089,6 +1225,29 @@ const PostAdPage: React.FC = () => {
                                     }
                                 </p>
                                 {errors.price && <p className="text-[11px] text-red-500 mt-1 pl-1">{errors.price}</p>}
+                                {priceHintLoading && <p className="text-[11px] text-gray-400 mt-1.5 pl-1 animate-pulse">✨ Getting price suggestion...</p>}
+                                {priceHint && !priceHintLoading && (
+                                    <div className="flex items-center gap-2 mt-1.5 pl-1 flex-wrap">
+                                        <span className="text-[11px] font-bold text-emerald-600">
+                                            💡 Suggested: {currency} {priceHint.min.toLocaleString()} – {priceHint.max.toLocaleString()}
+                                        </span>
+                                        <span className={cn(
+                                            "text-[9px] font-bold px-1.5 py-0.5 rounded-full",
+                                            priceHint.demand === 'high' ? "bg-red-100 text-red-600" :
+                                            priceHint.demand === 'medium' ? "bg-amber-100 text-amber-700" :
+                                            "bg-gray-100 text-gray-500"
+                                        )}>
+                                            {priceHint.demand} demand
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => set('price', String(priceHint.min))}
+                                            className="text-[10px] text-primary-500 font-bold underline underline-offset-2"
+                                        >
+                                            Use min
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
 

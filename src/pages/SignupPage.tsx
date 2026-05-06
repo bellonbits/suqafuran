@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { User, Mail, Lock, Phone, ArrowRight, Loader2 } from 'lucide-react';
+import { User, Mail, Lock, Phone, ArrowRight, Loader2, Tag, CheckCircle2, XCircle } from 'lucide-react';
 import { z } from 'zod';
 import { Button } from '../components/Button';
 import { AuthInput } from '../components/AuthInput';
 import { AuthLayout } from '../components/AuthLayout';
 import { authService } from '../services/authService';
+import { marketingService } from '../services/marketingService';
 
 const SignupPage: React.FC = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const signupSchema = z.object({
         full_name: z.string().min(2, t('auth.nameTooShort')).max(100).regex(/^[a-zA-Z\s'-]+$/, t('auth.nameInvalid')),
         email: z.string().email(t('auth.invalidEmail')).max(254),
@@ -27,8 +29,38 @@ const SignupPage: React.FC = () => {
         password: '',
         confirm_password: ''
     });
+    const [promoCode, setPromoCode] = useState('');
+    const [promoStatus, setPromoStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
+    const [promoMessage, setPromoMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Pre-fill promo code from URL ?promo= param
+    useEffect(() => {
+        const urlPromo = searchParams.get('promo');
+        if (urlPromo) setPromoCode(urlPromo.toUpperCase());
+    }, [searchParams]);
+
+    // Validate promo code with debounce
+    useEffect(() => {
+        if (!promoCode || promoCode.length < 3) { setPromoStatus('idle'); setPromoMessage(''); return; }
+        setPromoStatus('checking');
+        const timer = setTimeout(async () => {
+            try {
+                const res = await marketingService.validateCode(promoCode);
+                if (res.valid) {
+                    setPromoStatus('valid');
+                    setPromoMessage(res.description || 'Valid promo code applied!');
+                } else {
+                    setPromoStatus('invalid');
+                    setPromoMessage(res.reason || 'Invalid code');
+                }
+            } catch {
+                setPromoStatus('idle');
+            }
+        }, 600);
+        return () => clearTimeout(timer);
+    }, [promoCode]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -47,8 +79,9 @@ const SignupPage: React.FC = () => {
                 full_name: formData.full_name,
                 email: formData.email,
                 phone: formData.phone || undefined,
-                password: formData.password
-            });
+                password: formData.password,
+                promo_code: promoStatus === 'valid' ? promoCode : undefined,
+            } as any);
             navigate(`/email-verification?email=${encodeURIComponent(formData.email)}`);
         } catch (err: any) {
             console.error('Signup Error Debug:', JSON.stringify({
@@ -147,6 +180,37 @@ const SignupPage: React.FC = () => {
                         onChange={(e) => setFormData({ ...formData, confirm_password: e.target.value })}
                         required
                     />
+                </div>
+
+                {/* Optional promo code */}
+                <div className="relative">
+                    <div className={`flex items-center border rounded-xl px-3 gap-2 transition-colors ${
+                        promoStatus === 'valid' ? 'border-green-400 bg-green-50' :
+                        promoStatus === 'invalid' ? 'border-red-300 bg-red-50' :
+                        'border-gray-200 bg-white'
+                    }`}>
+                        <Tag className={`h-4 w-4 shrink-0 ${
+                            promoStatus === 'valid' ? 'text-green-500' :
+                            promoStatus === 'invalid' ? 'text-red-400' :
+                            'text-gray-400'
+                        }`} />
+                        <input
+                            type="text"
+                            placeholder="Promo code (optional)"
+                            value={promoCode}
+                            onChange={e => setPromoCode(e.target.value.toUpperCase())}
+                            className="flex-1 py-3 text-sm bg-transparent outline-none font-mono tracking-widest placeholder:font-sans placeholder:tracking-normal text-gray-900"
+                            maxLength={50}
+                        />
+                        {promoStatus === 'checking' && <Loader2 className="h-4 w-4 animate-spin text-gray-400 shrink-0" />}
+                        {promoStatus === 'valid' && <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />}
+                        {promoStatus === 'invalid' && <XCircle className="h-4 w-4 text-red-400 shrink-0" />}
+                    </div>
+                    {promoMessage && (
+                        <p className={`text-xs mt-1 pl-1 font-medium ${promoStatus === 'valid' ? 'text-green-600' : 'text-red-500'}`}>
+                            {promoMessage}
+                        </p>
+                    )}
                 </div>
 
                 <Button

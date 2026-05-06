@@ -32,6 +32,8 @@ class UserBase(SQLModel):
     sms_notifications: bool = False
     is_agent: bool = Field(default=False)
     profile_views: int = Field(default=0)
+    referral_code: Optional[str] = Field(default=None, index=True)       # marketing promo code used at signup
+    referral_listing_counted: bool = Field(default=False)                 # True after first ad posted
 
 
 class User(UserBase, table=True):
