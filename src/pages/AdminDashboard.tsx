@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useLanguageField } from '../hooks/useLanguageField';
+import api from '../services/api';
 
 import { adminService, type AdminStats } from '../services/adminService';
 import {
     Check, X, AlertOctagon, Users,
-    BarChart3, ShieldCheck, Loader2, Banknote
+    BarChart3, ShieldCheck, Loader2, Banknote,
+    UserCog, Plus, Trash2, Mail
 } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { Button } from '../components/Button';
@@ -16,6 +18,8 @@ const AdminDashboard: React.FC = () => {
     const { t } = useTranslation();
     const queryClient = useQueryClient();
     const { getField } = useLanguageField();
+    const [agentEmail, setAgentEmail] = useState('');
+    const [agentError, setAgentError] = useState<string | null>(null);
 
     const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
         queryKey: ['admin-stats'],
@@ -53,6 +57,28 @@ const AdminDashboard: React.FC = () => {
             queryClient.invalidateQueries({ queryKey: ['admin-queue'] });
             queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
         }
+    });
+
+    const { data: agents = [], isLoading: agentsLoading } = useQuery<any[]>({
+        queryKey: ['admin-agents'],
+        queryFn: () => api.get('/admin/agents').then(r => r.data),
+    });
+
+    const addAgentMutation = useMutation({
+        mutationFn: (email: string) => api.post('/admin/agents/add', { email }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-agents'] });
+            setAgentEmail('');
+            setAgentError(null);
+        },
+        onError: (err: any) => {
+            setAgentError(err.response?.data?.detail || 'Failed to add agent');
+        },
+    });
+
+    const removeAgentMutation = useMutation({
+        mutationFn: (email: string) => api.post('/admin/agents/remove', { email }),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-agents'] }),
     });
 
     return (
@@ -292,6 +318,91 @@ const AdminDashboard: React.FC = () => {
                             </tbody>
                         </table>
                     )}
+                </div>
+            </section>
+
+            {/* Agent Management */}
+            <section className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="px-8 py-5 border-b border-gray-50 flex items-center gap-3">
+                    <div className="p-2 bg-primary-50 rounded-xl">
+                        <UserCog className="h-4 w-4 text-primary-600" />
+                    </div>
+                    <div>
+                        <h3 className="text-base font-bold text-gray-900">Agent Management</h3>
+                        <p className="text-xs text-gray-400">Grant or revoke agent access by email</p>
+                    </div>
+                </div>
+
+                <div className="p-8 grid md:grid-cols-2 gap-8">
+                    {/* Add agent form */}
+                    <div>
+                        <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Add Agent by Email</label>
+                        <div className="flex gap-2">
+                            <div className="flex items-center gap-2 flex-1 border border-gray-200 rounded-xl px-3 py-2 focus-within:border-primary-400 transition-colors">
+                                <Mail className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                <input
+                                    type="email"
+                                    value={agentEmail}
+                                    onChange={e => { setAgentEmail(e.target.value); setAgentError(null); }}
+                                    placeholder="user@example.com"
+                                    className="bg-transparent text-sm outline-none w-full text-gray-700 placeholder-gray-400"
+                                    onKeyDown={e => e.key === 'Enter' && agentEmail && addAgentMutation.mutate(agentEmail)}
+                                />
+                            </div>
+                            <Button
+                                className="rounded-xl px-4 gap-1.5 flex-shrink-0"
+                                disabled={!agentEmail || addAgentMutation.isPending}
+                                onClick={() => addAgentMutation.mutate(agentEmail)}
+                            >
+                                {addAgentMutation.isPending
+                                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                                    : <Plus className="h-4 w-4" />
+                                }
+                                Add
+                            </Button>
+                        </div>
+                        {agentError && (
+                            <p className="text-xs text-red-500 font-medium mt-2">{agentError}</p>
+                        )}
+                        {addAgentMutation.isSuccess && (
+                            <p className="text-xs text-green-600 font-medium mt-2">Agent added successfully.</p>
+                        )}
+                    </div>
+
+                    {/* Current agents list */}
+                    <div>
+                        <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
+                            Current Agents ({agents.length})
+                        </label>
+                        {agentsLoading ? (
+                            <div className="flex justify-center py-4"><Loader2 className="h-5 w-5 animate-spin text-primary-400" /></div>
+                        ) : agents.length === 0 ? (
+                            <p className="text-sm text-gray-400 italic py-3">No agents yet.</p>
+                        ) : (
+                            <div className="space-y-2 max-h-64 overflow-y-auto">
+                                {agents.map((agent: any) => (
+                                    <div key={agent.id} className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-8 h-8 rounded-xl bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                                                {(agent.full_name || 'A')[0].toUpperCase()}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-bold text-gray-900 truncate">{agent.full_name || '—'}</p>
+                                                <p className="text-xs text-gray-400 truncate">{agent.email}</p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => { if (window.confirm(`Remove agent access for ${agent.email}?`)) removeAgentMutation.mutate(agent.email); }}
+                                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                                            title="Remove agent"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </section>
 

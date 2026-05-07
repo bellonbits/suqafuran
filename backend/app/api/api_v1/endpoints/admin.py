@@ -1,6 +1,7 @@
 from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select, func
+from pydantic import BaseModel
 from app.api import deps
 from app.models.listing import Listing, Category, ListingRead
 from app.models.user import User
@@ -82,3 +83,44 @@ def read_users_admin(
     statement = select(User).order_by(User.created_at.desc()).offset(skip).limit(limit)
     users = db.exec(statement).all()
     return users
+
+class AgentEmailIn(BaseModel):
+    email: str
+
+@router.get("/agents", response_model=List[dict])
+def list_agents(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    agents = db.exec(select(User).where(User.is_agent == True).order_by(User.created_at.desc())).all()
+    return [{"id": u.id, "full_name": u.full_name, "email": u.email, "phone": u.phone, "created_at": u.created_at.isoformat()} for u in agents]
+
+@router.post("/agents/add")
+def add_agent(
+    payload: AgentEmailIn,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    user = db.exec(select(User).where(User.email == payload.email)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="No account found with that email.")
+    if user.is_agent:
+        raise HTTPException(status_code=400, detail="This user is already an agent.")
+    user.is_agent = True
+    db.add(user)
+    db.commit()
+    return {"success": True, "name": user.full_name, "email": user.email}
+
+@router.post("/agents/remove")
+def remove_agent(
+    payload: AgentEmailIn,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    user = db.exec(select(User).where(User.email == payload.email)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="No account found with that email.")
+    user.is_agent = False
+    db.add(user)
+    db.commit()
+    return {"success": True}
