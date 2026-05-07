@@ -10,14 +10,11 @@ import { DashboardLayout } from './layouts/DashboardLayout';
 import { AdminLayout } from './layouts/AdminLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { SplashScreen } from './components/SplashScreen';
 import { OnboardingScreen } from './components/OnboardingScreen';
 import { CookieBanner } from './components/CookieBanner';
-import { Capacitor } from '@capacitor/core';
 import { useCurrencyStore } from './store/useCurrencyStore';
 import { detectCurrencyFromIP } from './utils/detectCurrency';
-
-const isNative = Capacitor.isNativePlatform();
+import { useLocationStore } from './store/useLocationStore';
 
 // Helper for named exports
 const lazyNamed = (importFn: () => Promise<any>, name: string) =>
@@ -69,6 +66,7 @@ const AdminVouchersPage = lazy(() => import('./pages/admin/AdminVouchersPage'));
 const AdminListingsPage = lazy(() => import('./pages/admin/AdminListingsPage'));
 const AdminVerificationsPage = lazy(() => import('./pages/admin/AdminVerificationsPage'));
 const AdminMarketingPage = lazy(() => import('./pages/admin/AdminMarketingPage'));
+const AdminReportsPage = lazy(() => import('./pages/admin/AdminReportsPage'));
 const WebEditorPage = lazyNamed(() => import('./pages/admin/WebEditorPage'), 'WebEditorPage');
 const AgentDashboard = lazy(() => import('./pages/agent/AgentDashboard'));
 
@@ -88,12 +86,13 @@ const queryClient = new QueryClient({
   },
 });
 
-type AppPhase = 'splash' | 'onboarding' | 'app';
+type AppPhase = 'onboarding' | 'app';
 
 const App: React.FC = () => {
   const onboardingSeen = localStorage.getItem('suqafuran-onboarding-seen') === '1';
-  const [phase, setPhase] = useState<AppPhase>(!isNative ? (onboardingSeen ? 'app' : 'onboarding') : 'splash');
+  const [phase, setPhase] = useState<AppPhase>(onboardingSeen ? 'app' : 'onboarding');
   const { autoDetected, setAutoDetected, setCurrency } = useCurrencyStore();
+  const { permissionAsked, setPermissionAsked, setLocation } = useLocationStore();
 
   useEffect(() => {
     if (autoDetected) return;
@@ -103,13 +102,33 @@ const App: React.FC = () => {
     });
   }, []);
 
-  const handleSplashDone = useCallback(() => {
-    if (isNative && !onboardingSeen) {
-      setPhase('onboarding');
-    } else {
-      setPhase('app');
-    }
-  }, [onboardingSeen]);
+  useEffect(() => {
+    if (permissionAsked || !navigator.geolocation) return;
+    setPermissionAsked(true);
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        const { latitude: lat, longitude: lng } = coords;
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+            { headers: { 'Accept-Language': 'en' } }
+          );
+          const data = await res.json();
+          const city =
+            data.address?.city ||
+            data.address?.town ||
+            data.address?.village ||
+            data.address?.county ||
+            null;
+          setLocation(city, lat, lng);
+        } catch {
+          setLocation(null, lat, lng);
+        }
+      },
+      () => { /* user denied — do nothing */ },
+      { timeout: 8000 }
+    );
+  }, []);
 
   const handleOnboardingDone = useCallback(() => {
     setPhase('app');
@@ -118,7 +137,6 @@ const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        {phase === 'splash' && <SplashScreen onDone={handleSplashDone} />}
         {phase === 'onboarding' && <OnboardingScreen onDone={handleOnboardingDone} />}
         <ScrollToTop />
         <CookieBanner />
@@ -180,6 +198,7 @@ const App: React.FC = () => {
               <Route path="vouchers" element={<AdminVouchersPage />} />
               <Route path="verifications" element={<AdminVerificationsPage />} />
               <Route path="marketing" element={<AdminMarketingPage />} />
+              <Route path="reports" element={<AdminReportsPage />} />
               <Route path="editor" element={<WebEditorPage />} />
             </Route>
 

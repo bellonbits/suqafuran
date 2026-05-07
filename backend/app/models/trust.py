@@ -14,8 +14,12 @@ class Rating(SQLModel, table=True):
 class Report(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     listing_id: Optional[int] = Field(default=None, foreign_key="listing.id")
+    reported_user_id: Optional[int] = Field(default=None, foreign_key="user.id")
     reporter_id: int = Field(foreign_key="user.id")
     reason: str
     description: Optional[str] = None
-    status: str = Field(default="pending") # pending, resolved, dismissed
+    status: str = Field(default="pending")  # pending, warned, suspended, removed, dismissed
+    admin_note: Optional[str] = None
+    admin_action: Optional[str] = None  # warn, suspend, remove_listing, dismiss
+    resolved_at: Optional[datetime] = Field(default=None)
     created_at: datetime = Field(default_factory=datetime.utcnow)

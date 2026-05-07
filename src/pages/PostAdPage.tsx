@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
-import { ChevronRight, ChevronLeft, Plus, X, Shield, ShieldAlert, Clock, CheckCircle2, Loader2, Zap } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Plus, X, Shield, ShieldAlert, Clock, CheckCircle2, Loader2, Zap, Sparkles } from 'lucide-react';
 
 import { listingService } from '../services/listingService';
 import { getImageUrl } from '../utils/imageUtils';
@@ -14,7 +14,6 @@ import { useAuthStore } from '../store/useAuthStore';
 import { cn } from '../utils/cn';
 import { aiService } from '../services/aiService';
 import { promotionService } from '../services/promotionService';
-import { Sparkles } from 'lucide-react';
 
 const KES_RATE = 130; // 1 USD = 130 KES
 
@@ -80,13 +79,13 @@ const PostAdPage: React.FC = () => {
     const [categorySearch, setCategorySearch] = useState('');
     const [isLocationOpen, setIsLocationOpen] = useState(false);
     const [uploading, setUploading] = useState(false);
-    const [aiLoading, setAiLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const { getField } = useLanguageField();
     const [createdListingId, setCreatedListingId] = useState<number | null>(null);
     const [showLipanaModal, setShowLipanaModal] = useState(false);
     const [createdListingTitle, setCreatedListingTitle] = useState('');
+    const [aiLoading, setAiLoading] = useState(false);
     const [titleSuggestions, setTitleSuggestions] = useState<string[]>([]);
     const [priceHint, setPriceHint] = useState<{ min: number; max: number; demand: string } | null>(null);
     const [priceHintLoading, setPriceHintLoading] = useState(false);
@@ -754,7 +753,6 @@ const PostAdPage: React.FC = () => {
                                         if (res.is_negotiable !== undefined) set('negotiable', res.is_negotiable ? 'yes' : 'no');
                                         if (res.suggestions) setTitleSuggestions(res.suggestions);
                                         set('lang_available', 'both');
-                                        
                                         (document.getElementById('ai-quick-post') as HTMLInputElement).value = '';
                                     } catch (e: any) {
                                         console.error("AI Parsing Error:", e?.response?.data || e.message || e);
@@ -787,15 +785,13 @@ const PostAdPage: React.FC = () => {
                                         <button
                                             key={i}
                                             type="button"
-                                            onClick={() => {
-                                                set('title_en', suggestion);
-                                            }}
+                                            onClick={() => set('title_en', suggestion)}
                                             className="bg-primary-50 text-primary-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-primary-100 hover:bg-primary-100 transition-colors active:scale-95"
                                         >
                                             {suggestion}
                                         </button>
                                     ))}
-                                    <button 
+                                    <button
                                         type="button"
                                         onClick={() => setTitleSuggestions([])}
                                         className="text-gray-400 hover:text-gray-600 p-1"

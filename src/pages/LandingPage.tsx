@@ -17,14 +17,16 @@ import { getCategoryIcon } from '../utils/categoryIcons';
 import { getImageUrl } from '../utils/imageUtils';
 import { useLanguageField } from '../hooks/useLanguageField';
 import { aiService } from '../services/aiService';
+import { useLocationStore } from '../store/useLocationStore';
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const { getField } = useLanguageField();
+    const { city: detectedCity } = useLocationStore();
     const [isLocationOpen, setLocationOpen] = useState(false);
     const [showAllCats, setShowAllCats] = useState(false);
-    const [selectedLocation, setSelectedLocation] = useState('');
+    const [selectedLocation, setSelectedLocation] = useState(detectedCity || '');
 
     const { data: categories } = useQuery({
         queryKey: ['categories'],

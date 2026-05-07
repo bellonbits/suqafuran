@@ -8,6 +8,7 @@ from app.models.trust import Rating, Report
 from app.models.meeting_deal import Meeting, Deal
 from app.models.interaction import Interaction
 from app.models.listing import Listing
+from app.models.user import User
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -175,3 +176,113 @@ def create_report(
     db.commit()
     db.refresh(report)
     return report
+
+
+# ── Admin report endpoints ─────────────────────────────────────────────────
+
+@router.get("/admin/reports")
+def list_reports(
+    status: Optional[str] = None,
+    db: Session = Depends(deps.get_db),
+    current_user = Depends(deps.get_current_user)
+) -> Any:
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin only")
+
+    query = select(Report)
+    if status:
+        query = query.where(Report.status == status)
+    query = query.order_by(Report.created_at.desc())
+    reports = db.exec(query).all()
+
+    result = []
+    for r in reports:
+        reporter = db.get(User, r.reporter_id)
+        reported_user = db.get(User, r.reported_user_id) if r.reported_user_id else None
+        listing = db.get(Listing, r.listing_id) if r.listing_id else None
+
+        result.append({
+            "id": r.id,
+            "reason": r.reason,
+            "description": r.description,
+            "status": r.status,
+            "admin_note": r.admin_note,
+            "admin_action": r.admin_action,
+            "created_at": r.created_at.isoformat(),
+            "resolved_at": r.resolved_at.isoformat() if r.resolved_at else None,
+            "reporter": {
+                "id": reporter.id,
+                "name": reporter.full_name,
+                "email": reporter.email,
+            } if reporter else None,
+            "reported_user": {
+                "id": reported_user.id,
+                "name": reported_user.full_name,
+                "email": reported_user.email,
+                "is_active": reported_user.is_active,
+            } if reported_user else None,
+            "listing": {
+                "id": listing.id,
+                "title": listing.title_en or listing.title_so,
+                "is_active": listing.is_active,
+            } if listing else None,
+        })
+    return result
+
+
+class ReportActionIn(BaseModel):
+    action: str  # warn | suspend | remove_listing | dismiss
+    admin_note: Optional[str] = None
+
+
+@router.post("/admin/reports/{report_id}/action")
+def take_report_action(
+    report_id: int,
+    payload: ReportActionIn,
+    db: Session = Depends(deps.get_db),
+    current_user = Depends(deps.get_current_user)
+) -> Any:
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin only")
+
+    report = db.get(Report, report_id)
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    action = payload.action
+
+    if action == "warn":
+        report.status = "warned"
+    elif action == "suspend":
+        report.status = "suspended"
+        if report.reported_user_id:
+            user = db.get(User, report.reported_user_id)
+            if user:
+                user.is_active = False
+                db.add(user)
+        elif report.listing_id:
+            listing = db.get(Listing, report.listing_id)
+            if listing:
+                owner = db.get(User, listing.owner_id)
+                if owner:
+                    owner.is_active = False
+                    db.add(owner)
+    elif action == "remove_listing":
+        report.status = "removed"
+        if report.listing_id:
+            listing = db.get(Listing, report.listing_id)
+            if listing:
+                listing.is_active = False
+                db.add(listing)
+    elif action == "dismiss":
+        report.status = "dismissed"
+    else:
+        raise HTTPException(status_code=400, detail="Invalid action")
+
+    report.admin_action = action
+    report.admin_note = payload.admin_note
+    report.resolved_at = datetime.utcnow()
+    db.add(report)
+    db.commit()
+    db.refresh(report)
+    return {"ok": True, "status": report.status}

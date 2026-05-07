@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import {
     Plus, Heart, Home, MessageSquare, User, Bell,
     Facebook, Twitter, Instagram, Youtube, ChevronDown, Zap,
-    Phone, ShoppingBag, X, Sparkles
+    Phone, ShoppingBag, X
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { getAvatarUrl } from '../utils/imageUtils';
@@ -156,18 +156,18 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                         </span>
                     </Link>
 
-                    {/* Discovery */}
-                    <Link to="/discovery"
+                    {/* Saved */}
+                    <Link to="/favorites"
                         className="flex-1 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform">
                         <div className={cn(
                             'w-10 h-7 rounded-xl flex items-center justify-center transition-all duration-200',
-                            isActive('/discovery') ? 'bg-primary-100' : ''
+                            isActive('/favorites') ? 'bg-primary-100' : ''
                         )}>
-                            <Sparkles className={cn('h-5 w-5 transition-colors', isActive('/discovery') ? 'text-primary-600' : 'text-gray-400')}
-                                strokeWidth={isActive('/discovery') ? 2.5 : 1.8} />
+                            <Heart className={cn('h-5 w-5 transition-colors', isActive('/favorites') ? 'text-primary-600 fill-primary-200' : 'text-gray-400')}
+                                strokeWidth={isActive('/favorites') ? 2.5 : 1.8} />
                         </div>
-                        <span className={cn('text-[10px] font-semibold', isActive('/discovery') ? 'text-primary-600' : 'text-gray-400')}>
-                            Smart Shop
+                        <span className={cn('text-[10px] font-semibold', isActive('/favorites') ? 'text-primary-600' : 'text-gray-400')}>
+                            Saved
                         </span>
                     </Link>
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { marketingService, CreateCodePayload } from '../../services/marketingService';
+import { marketingService } from '../../services/marketingService';
+import type { CreateCodePayload } from '../../services/marketingService';
 import { Plus, Copy, ToggleLeft, ToggleRight, TrendingUp, Users, Megaphone, Check, X, Loader2 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
