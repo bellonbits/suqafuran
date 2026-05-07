@@ -877,7 +877,7 @@ def apply_promo_code(
     
     return {
         "success": True,
-        "message": f"Promotion applied! {listing.title} is now promoted until {expires_at.date()}"
+        "message": f"Promotion applied! {listing.title_en} is now promoted until {expires_at.date()}"
     }
 
 
@@ -911,7 +911,7 @@ def get_agent_conversions(
         select(func.count(Listing.id)).where(Listing.created_at >= week_ago)
     ).one()
     active_listings = db.exec(
-        select(func.count(Listing.id)).where(Listing.is_active == True)
+        select(func.count(Listing.id)).where(Listing.status == "active")
     ).one()
     conversion_rate = round((users_with_ads / total_users * 100), 1) if total_users else 0
     return {
@@ -962,28 +962,39 @@ def get_agent_all_listings(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_agent_user),
     skip: int = 0,
-    limit: int = 50,
+    limit: int = 100,
     search: str = "",
+    status_filter: str = "",
 ) -> Any:
-    """All listings visible to agent for management."""
+    """Full database listing view for agents — all statuses."""
     stmt = select(Listing, User).join(User, Listing.owner_id == User.id)
     if search:
-        stmt = stmt.where(Listing.title.ilike(f"%{search}%"))
+        stmt = stmt.where(
+            Listing.title_en.ilike(f"%{search}%") | User.full_name.ilike(f"%{search}%")
+        )
+    if status_filter:
+        stmt = stmt.where(Listing.status == status_filter)
     stmt = stmt.order_by(Listing.created_at.desc()).offset(skip).limit(limit)
     rows = db.exec(stmt).all()
     result = []
-    for listing, owner in rows:
+    for row in rows:
+        listing, owner = row[0], row[1]
         result.append({
             "id": listing.id,
-            "title": listing.title,
-            "title_so": getattr(listing, "title_so", None),
-            "is_active": listing.is_active,
+            "title": listing.title_en,
+            "title_so": listing.title_so,
+            "is_active": listing.status == "active",
             "status": listing.status,
             "created_at": listing.created_at.isoformat(),
+            "updated_at": listing.updated_at.isoformat(),
+            "owner_id": owner.id,
             "owner_name": owner.full_name or "—",
             "owner_email": owner.email,
+            "owner_phone": owner.phone,
             "price": listing.price,
             "location": listing.location,
+            "boost_level": listing.boost_level,
+            "views": listing.views,
         })
     return result
 
@@ -994,19 +1005,37 @@ def agent_end_listing(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_agent_user),
 ) -> Any:
-    """Agent ends (deactivates) a listing."""
     listing = db.get(Listing, listing_id)
     if not listing:
         raise HTTPException(status_code=404, detail="Listing not found")
-    listing.is_active = False
-    listing.status = "ended"
+    listing.status = "closed"
     db.add(listing)
-    log = AuditLog(
+    db.add(AuditLog(
         action="END_LISTING",
         user_id=current_user.id,
         user_name=current_user.full_name,
-        details=f"Agent ended listing #{listing_id}: {listing.title}",
-    )
-    db.add(log)
+        details=f"Agent ended listing #{listing_id}: {listing.title_en}",
+    ))
+    db.commit()
+    return {"success": True}
+
+
+@router.post("/agent/listings/{listing_id}/reactivate")
+def agent_reactivate_listing(
+    listing_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_agent_user),
+) -> Any:
+    listing = db.get(Listing, listing_id)
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    listing.status = "active"
+    db.add(listing)
+    db.add(AuditLog(
+        action="REACTIVATE_LISTING",
+        user_id=current_user.id,
+        user_name=current_user.full_name,
+        details=f"Agent reactivated listing #{listing_id}: {listing.title_en}",
+    ))
     db.commit()
     return {"success": True}
