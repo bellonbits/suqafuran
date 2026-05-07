@@ -10,49 +10,162 @@
   <meta name="theme-color" content="#0ea5e9" />
   <link rel="apple-touch-icon" href="/pwa-icon-192.png">
   <link rel="manifest" href="/manifest.webmanifest">
-  <title>Suqafuran — Online Marketplace Somalia | Buy &amp; Sell in Mogadishu, Hargeisa &amp; Beyond</title>
-  <meta name="description" content="Suqafuran is Somalia's open online marketplace — buy, sell and trade safely with verified sellers across Mogadishu, Hargeisa, Garowe and beyond. Cars, phones, livestock, property and more. Pay with EVC Plus, Telesom Zaad or Golis. Post a free ad today." />
-  <meta name="keywords" content="Somalia marketplace, buy sell Somalia, Mogadishu online market, Hargeisa ads, suuq online, EVC Plus, Telesom Zaad, Somalia classifieds, gaari iibiye, guri iibiye" />
+
+  <!-- ── Primary SEO ──────────────────────────────────────────────────────── -->
+  <title>Suqafuran — Buy &amp; Sell Online | Africa's Free Marketplace</title>
+  <meta name="description" content="Suqafuran is Africa's free online marketplace. Buy and sell cars, phones, electronics, property, fashion and more. Post a free ad in seconds — no fees, no hassle. Trusted by buyers and sellers across Africa and worldwide." />
+  <meta name="keywords" content="African marketplace, buy and sell Africa, free classifieds Africa, online market Africa, sell items online Africa, buy sell online, free ads Africa, African online shopping, used cars Africa, phones for sale Africa, property Africa, electronics Africa, jobs Africa, fashion Africa, post free ad, online classifieds" />
   <link rel="canonical" href="https://suqafuran.com/" />
 
-  <!-- Open Graph -->
+  <!-- ── Geo & language signals ─────────────────────────────────────────── -->
+  <meta name="geo.region" content="ZZ" />
+  <meta name="language" content="English" />
+
+  <!-- ── Indexing directives ───────────────────────────────────────────── -->
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="googlebot" content="index, follow" />
+
+  <!-- ── Open Graph ────────────────────────────────────────────────────── -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://suqafuran.com/" />
-  <meta property="og:title" content="Suqafuran — Somalia's Open Online Marketplace" />
-  <meta property="og:description" content="Buy and sell safely across Somalia. Cars, phones, livestock, property and more. Pay with EVC Plus, Telesom Zaad or Golis. Post a free ad in 2 minutes." />
+  <meta property="og:title" content="Suqafuran — Buy &amp; Sell Online | Africa's Free Marketplace" />
+  <meta property="og:description" content="Buy and sell anything, anywhere. Cars, phones, electronics, property, fashion and more. Post a free ad today on Africa's fastest-growing marketplace." />
   <meta property="og:image" content="https://suqafuran.com/og-image.jpg" />
-  <meta property="og:locale" content="so_SO" />
-  <meta property="og:locale:alternate" content="en_US" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Suqafuran — Africa's Free Online Marketplace" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="en_GB" />
+  <meta property="og:locale:alternate" content="en_KE" />
+  <meta property="og:locale:alternate" content="en_NG" />
+  <meta property="og:locale:alternate" content="en_GH" />
+  <meta property="og:locale:alternate" content="en_ZA" />
   <meta property="og:site_name" content="Suqafuran" />
 
-  <!-- Twitter Card -->
+  <!-- ── Twitter / X Card ─────────────────────────────────────────────── -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Suqafuran — Somalia's Open Online Marketplace" />
-  <meta name="twitter:description" content="Buy and sell safely across Somalia. Cars, phones, livestock, property and more. Post a free ad in 2 minutes." />
+  <meta name="twitter:site" content="@suqafuran" />
+  <meta name="twitter:title" content="Suqafuran — Africa's Free Online Marketplace" />
+  <meta name="twitter:description" content="Buy and sell cars, phones, property, fashion and more. Post a free ad in seconds. Trusted across Africa and worldwide." />
   <meta name="twitter:image" content="https://suqafuran.com/og-image.jpg" />
 
-  <!-- JSON-LD Organization Schema -->
+  <!-- ── JSON-LD: Organization ─────────────────────────────────────────── -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "Suqafuran",
     "url": "https://suqafuran.com",
-    "logo": "https://suqafuran.com/logo.png",
-    "description": "Somalia's open online marketplace for buying and selling cars, phones, livestock, property and more.",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://suqafuran.com/website_logo.png",
+      "width": 512,
+      "height": 512
+    },
+    "description": "Africa's free online marketplace for buying and selling cars, phones, electronics, property, fashion and more.",
     "sameAs": [
       "https://www.facebook.com/suqafuran",
-      "https://www.instagram.com/suqafuran"
+      "https://www.instagram.com/suqafuran",
+      "https://twitter.com/suqafuran"
     ],
     "contactPoint": {
       "@type": "ContactPoint",
       "contactType": "customer support",
-      "availableLanguage": ["Somali", "English"]
+      "availableLanguage": ["English"]
     },
-    "areaServed": {
-      "@type": "Country",
-      "name": "Somalia"
+    "areaServed": [
+      { "@type": "Continent", "name": "Africa" },
+      { "@type": "Place", "name": "Worldwide" }
+    ]
+  }
+  </script>
+
+  <!-- ── JSON-LD: WebSite + SearchAction (Sitelinks Search Box) ──────── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Suqafuran",
+    "alternateName": "Suqafuran Marketplace",
+    "url": "https://suqafuran.com",
+    "description": "Africa's free online marketplace — buy and sell anything online.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://suqafuran.com/search?q={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
     }
+  }
+  </script>
+
+  <!-- ── JSON-LD: WebApplication (PWA) ─────────────────────────────── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Suqafuran",
+    "url": "https://suqafuran.com",
+    "applicationCategory": "ShoppingApplication",
+    "operatingSystem": "All",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "description": "Free mobile app and web marketplace to buy and sell anything across Africa.",
+    "screenshot": "https://suqafuran.com/og-image.jpg"
+  }
+  </script>
+
+  <!-- ── JSON-LD: FAQPage (high-value rich-snippet) ──────────────────── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is Suqafuran free to use?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Posting ads and browsing listings on Suqafuran is completely free. No hidden fees."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What can I buy and sell on Suqafuran?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "You can buy and sell almost anything: cars, phones, electronics, property, fashion, furniture, jobs and services — all in one place."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Where does Suqafuran operate?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Suqafuran is open to buyers and sellers across Africa and worldwide. Anyone can post a free ad or browse listings from anywhere."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I post a free ad on Suqafuran?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Create a free account, click 'Post Ad', fill in your item details and photos, and publish. Your ad goes live in under 2 minutes."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is Suqafuran safe?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Suqafuran uses verified seller badges, secure messaging, and community reporting to keep the marketplace safe for everyone."
+        }
+      }
+    ]
   }
   </script>
 

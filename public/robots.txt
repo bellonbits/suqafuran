@@ -3,5 +3,26 @@ Allow: /
 Disallow: /admin/
 Disallow: /dashboard/
 Disallow: /api/
+Disallow: /post-ad
+Disallow: /edit-ad/
+Disallow: /settings
+Disallow: /wallet
+Disallow: /notifications
+Disallow: /messages
+Disallow: /agent-dashboard
+
+# Allow key public pages explicitly
+Allow: /search
+Allow: /discovery
+Allow: /category/
+Allow: /listing/
+Allow: /seller/
+Allow: /about
+Allow: /safety
+Allow: /privacy
+Allow: /terms
+
+# Crawl-delay for courtesy
+Crawl-delay: 1
 
 Sitemap: https://suqafuran.com/sitemap.xml
