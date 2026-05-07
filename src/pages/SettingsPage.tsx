@@ -7,7 +7,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import {
     User, Mail, Phone, Lock,
     Camera, Shield, Bell, CheckCircle,
-    Loader2, XCircle, Edit3, Trash2
+    Loader2, XCircle, Edit3, Trash2, MapPin
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -15,11 +15,13 @@ import { cn } from '../utils/cn';
 import { getAvatarUrl } from '../utils/imageUtils';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { Globe } from 'lucide-react';
+import { useLocationStore } from '../store/useLocationStore';
 
 const SettingsPage: React.FC = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { user, setUser } = useAuthStore();
+    const { city: detectedCity } = useLocationStore();
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -29,6 +31,7 @@ const SettingsPage: React.FC = () => {
         full_name: user?.full_name || '',
         email: user?.email || '',
         phone: user?.phone || '',
+        location: (user as any)?.location || detectedCity || '',
         email_notifications: user?.email_notifications ?? true,
         sms_notifications: user?.sms_notifications ?? false,
     });
@@ -41,13 +44,14 @@ const SettingsPage: React.FC = () => {
 
     React.useEffect(() => {
         if (user) {
-            setFormData({
+            setFormData(prev => ({
                 full_name: user.full_name || '',
                 email: user.email || '',
                 phone: user.phone || '',
+                location: (user as any)?.location || prev.location || detectedCity || '',
                 email_notifications: !!user.email_notifications,
                 sms_notifications: !!user.sms_notifications,
-            });
+            }));
         }
     }, [user]);
 
@@ -166,6 +170,12 @@ const SettingsPage: React.FC = () => {
                     <div className="flex-1 text-center sm:text-left pb-1">
                         <h2 className="text-xl font-bold text-gray-900">{user?.full_name || t('settings.yourName')}</h2>
                         <p className="text-sm text-gray-500 mt-0.5">{user?.email}</p>
+                        {((user as any)?.location || detectedCity) && (
+                            <p className="flex items-center justify-center sm:justify-start gap-1 text-xs text-gray-400 mt-1">
+                                <MapPin className="h-3 w-3 flex-shrink-0" />
+                                {(user as any)?.location || detectedCity}
+                            </p>
+                        )}
                         <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
                             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-green-50 text-green-700 text-xs font-semibold border border-green-100">
                                 <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
@@ -241,6 +251,16 @@ const SettingsPage: React.FC = () => {
                                         value={formData.phone}
                                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                         placeholder="+254 700 000 000"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wide ml-1">Location</label>
+                                    <Input
+                                        className="rounded-xl"
+                                        icon={<MapPin className="h-4 w-4" />}
+                                        value={formData.location}
+                                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                        placeholder="Your city or region"
                                     />
                                 </div>
                             </div>

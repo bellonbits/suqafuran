@@ -34,6 +34,7 @@ class UserBase(SQLModel):
     profile_views: int = Field(default=0)
     referral_code: Optional[str] = Field(default=None, index=True)       # marketing promo code used at signup
     referral_listing_counted: bool = Field(default=False)                 # True after first ad posted
+    location: Optional[str] = Field(default=None)                        # city / region set from profile
 
 
 class User(UserBase, table=True):
@@ -62,6 +63,7 @@ class UserUpdate(SQLModel):
     response_time: Optional[str] = None
     email_notifications: Optional[bool] = None
     sms_notifications: Optional[bool] = None
+    location: Optional[str] = None
 
 
 class PasswordChange(SQLModel):
