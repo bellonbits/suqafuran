@@ -879,3 +879,134 @@ def apply_promo_code(
         "success": True,
         "message": f"Promotion applied! {listing.title} is now promoted until {expires_at.date()}"
     }
+
+
+# ─── Agent Marketing Endpoints ────────────────────────────────────────────────
+
+from app.models.user import User
+from sqlmodel import func
+
+@router.get("/agent/conversions")
+def get_agent_conversions(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_agent_user),
+) -> Any:
+    """Conversion funnel stats for the marketing view."""
+    total_users = db.exec(select(func.count(User.id))).one()
+    users_with_ads = db.exec(
+        select(func.count(func.distinct(Listing.owner_id)))
+    ).one()
+    today = datetime.utcnow().date()
+    week_ago = datetime.utcnow() - timedelta(days=7)
+    signups_today = db.exec(
+        select(func.count(User.id)).where(func.date(User.created_at) == today)
+    ).one()
+    signups_week = db.exec(
+        select(func.count(User.id)).where(User.created_at >= week_ago)
+    ).one()
+    ads_today = db.exec(
+        select(func.count(Listing.id)).where(func.date(Listing.created_at) == today)
+    ).one()
+    ads_week = db.exec(
+        select(func.count(Listing.id)).where(Listing.created_at >= week_ago)
+    ).one()
+    active_listings = db.exec(
+        select(func.count(Listing.id)).where(Listing.is_active == True)
+    ).one()
+    conversion_rate = round((users_with_ads / total_users * 100), 1) if total_users else 0
+    return {
+        "total_users": total_users,
+        "users_with_ads": users_with_ads,
+        "conversion_rate": conversion_rate,
+        "signups_today": signups_today,
+        "signups_week": signups_week,
+        "ads_today": ads_today,
+        "ads_week": ads_week,
+        "active_listings": active_listings,
+    }
+
+
+@router.get("/agent/signups")
+def get_agent_signups(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_agent_user),
+    skip: int = 0,
+    limit: int = 50,
+    search: str = "",
+) -> Any:
+    """List of signed-up users with their ad count."""
+    stmt = select(User).order_by(User.created_at.desc()).offset(skip).limit(limit)
+    if search:
+        stmt = select(User).where(
+            (User.full_name.ilike(f"%{search}%")) | (User.email.ilike(f"%{search}%"))
+        ).order_by(User.created_at.desc()).offset(skip).limit(limit)
+    users = db.exec(stmt).all()
+    result = []
+    for u in users:
+        ad_count = db.exec(select(func.count(Listing.id)).where(Listing.owner_id == u.id)).one()
+        result.append({
+            "id": u.id,
+            "full_name": u.full_name or "—",
+            "email": u.email,
+            "phone": u.phone,
+            "created_at": u.created_at.isoformat(),
+            "is_active": u.is_active,
+            "ad_count": ad_count,
+            "has_posted": ad_count > 0,
+        })
+    return result
+
+
+@router.get("/agent/all-listings")
+def get_agent_all_listings(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_agent_user),
+    skip: int = 0,
+    limit: int = 50,
+    search: str = "",
+) -> Any:
+    """All listings visible to agent for management."""
+    stmt = select(Listing, User).join(User, Listing.owner_id == User.id)
+    if search:
+        stmt = stmt.where(Listing.title.ilike(f"%{search}%"))
+    stmt = stmt.order_by(Listing.created_at.desc()).offset(skip).limit(limit)
+    rows = db.exec(stmt).all()
+    result = []
+    for listing, owner in rows:
+        result.append({
+            "id": listing.id,
+            "title": listing.title,
+            "title_so": getattr(listing, "title_so", None),
+            "is_active": listing.is_active,
+            "status": listing.status,
+            "created_at": listing.created_at.isoformat(),
+            "owner_name": owner.full_name or "—",
+            "owner_email": owner.email,
+            "price": listing.price,
+            "location": listing.location,
+        })
+    return result
+
+
+@router.post("/agent/listings/{listing_id}/end")
+def agent_end_listing(
+    listing_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_agent_user),
+) -> Any:
+    """Agent ends (deactivates) a listing."""
+    listing = db.get(Listing, listing_id)
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    listing.is_active = False
+    listing.status = "ended"
+    db.add(listing)
+    log = AuditLog(
+        action="END_LISTING",
+        user_id=current_user.id,
+        user_name=current_user.full_name,
+        details=f"Agent ended listing #{listing_id}: {listing.title}",
+    )
+    db.add(log)
+    db.commit()
+    return {"success": True}
