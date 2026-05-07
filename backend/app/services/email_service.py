@@ -7,8 +7,10 @@ from app.core.config import settings
 
 class EmailService:
     def __init__(self):
-        # redis.from_url() is lazy — ping to confirm the connection works
         self.redis = None
+        self._connect()
+
+    def _connect(self):
         try:
             client = redis.from_url(settings.REDIS_URL, decode_responses=True)
             client.ping()
@@ -18,16 +20,29 @@ class EmailService:
             print(f"[Email] Redis unavailable: {e}")
             self.redis = None
 
+    def _ensure_redis(self):
+        """Reconnect if the connection was lost or never established."""
+        if self.redis is not None:
+            try:
+                self.redis.ping()
+                return
+            except Exception:
+                self.redis = None
+        self._connect()
+
     def _redis_get(self, key: str) -> Optional[str]:
+        self._ensure_redis()
         if not self.redis:
             return None
         try:
             return self.redis.get(key)
         except Exception as e:
             print(f"[Email] Redis GET error: {e}")
+            self.redis = None
             return None
 
     def _redis_set(self, key: str, value: str, ex: int) -> bool:
+        self._ensure_redis()
         if not self.redis:
             return False
         try:
@@ -35,17 +50,21 @@ class EmailService:
             return True
         except Exception as e:
             print(f"[Email] Redis SET error: {e}")
+            self.redis = None
             return False
 
     def _redis_delete(self, key: str):
+        self._ensure_redis()
         if not self.redis:
             return
         try:
             self.redis.delete(key)
         except Exception as e:
             print(f"[Email] Redis DELETE error: {e}")
+            self.redis = None
 
     def _redis_incr(self, key: str, ex: int):
+        self._ensure_redis()
         if not self.redis:
             return
         try:
@@ -53,11 +72,13 @@ class EmailService:
             self.redis.expire(key, ex)
         except Exception as e:
             print(f"[Email] Redis INCR error: {e}")
+            self.redis = None
 
     def generate_otp(self) -> str:
         return str(secrets.randbelow(900000) + 100000)
 
     def check_rate_limit(self, email: str) -> bool:
+        self._ensure_redis()
         if not self.redis:
             return True  # allow if Redis is down
         attempts = self._redis_get(f"otp_attempts:{email}")
@@ -75,6 +96,7 @@ class EmailService:
 
         code = self.generate_otp()
 
+        self._ensure_redis()
         if self.redis:
             ok = self._redis_set(f"otp:{email}", code, ex=300)
             if not ok and settings.ENVIRONMENT == "production":
@@ -204,6 +226,7 @@ class EmailService:
         return False
 
     def check_verification_code(self, email: str, code: str) -> bool:
+        self._ensure_redis()
         if not self.redis:
             if settings.ENVIRONMENT != "production":
                 return code == "000000"
