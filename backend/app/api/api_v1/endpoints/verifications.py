@@ -19,6 +19,7 @@ async def apply_for_verification(
     db: Session = Depends(deps.get_db),
     # verification_in: VerificationRequestBase, # Cannot use Pydantic model with Form/File mix easily in FastAPI
     document_type: str = Form(...),
+    id_number: Optional[str] = Form(None),
     notes: Optional[str] = Form(None),
     document_files: List[UploadFile] = File(...),
     selfie_file: UploadFile = File(...),
@@ -58,6 +59,7 @@ async def apply_for_verification(
     db_obj = VerificationRequest(
         user_id=current_user.id,
         document_type=document_type,
+        id_number=id_number,
         notes=notes,
         status=VerificationStatus.PENDING,
         document_urls=document_urls,
@@ -89,7 +91,7 @@ def get_my_verification_status(
 def list_verification_requests(
     *,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_superuser),
+    current_user: User = Depends(deps.get_current_active_agent),
     skip: int = 0,
     limit: int = 100,
 ) -> Any:
@@ -124,7 +126,7 @@ def update_verification_status(
     db: Session = Depends(deps.get_db),
     id: int,
     status: VerificationStatus = Body(..., embed=True),
-    current_user: User = Depends(deps.get_current_active_superuser),
+    current_user: User = Depends(deps.get_current_active_agent),
 ) -> Any:
     """
     (Admin) Approve or reject a verification request.

@@ -77,7 +77,7 @@ const STATUS_STYLES: Record<string, string> = {
     sold:     'bg-blue-100 text-blue-700',
 };
 
-type Tab = 'marketing' | 'signups' | 'listings' | 'history';
+type Tab = 'marketing' | 'signups' | 'listings' | 'verifications' | 'history';
 
 // ── Small stat card ─────────────────────────────────────────────────────────
 const Stat: React.FC<{ label: string; value: string | number; icon: React.ElementType; color: string }> = ({ label, value, icon: Icon, color }) => (
@@ -134,6 +134,12 @@ const AgentDashboard: React.FC = () => {
         refetchInterval: 10000,
     });
 
+    const { data: verificationRequests = [], isLoading: verificationsLoading, refetch: refetchVerifications } = useQuery({
+        queryKey: ['agent-verifications'],
+        queryFn: () => adminService.getVerificationRequests(),
+        enabled: activeTab === 'verifications',
+    });
+
     // ── Mutations ────────────────────────────────────────────────────────────
     const endMutation = useMutation({
         mutationFn: (id: number) => api.post(`/promotions/agent/listings/${id}/end`),
@@ -153,10 +159,20 @@ const AgentDashboard: React.FC = () => {
         },
     });
 
+    const verifyMutation = useMutation({
+        mutationFn: ({ id, status }: { id: number; status: string }) =>
+            adminService.moderateVerification(id, status),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['agent-verifications'] });
+            queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
+        }
+    });
+
     const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
         { id: 'marketing', label: 'Marketing',    icon: TrendingUp },
         { id: 'signups',   label: 'Signups',      icon: Users },
         { id: 'listings',  label: 'All Listings', icon: ShoppingBag },
+        { id: 'verifications', label: 'Verifications', icon: Shield },
         { id: 'history',   label: 'History',      icon: CheckCircle },
     ];
 
@@ -429,6 +445,100 @@ const AgentDashboard: React.FC = () => {
                             )}
                         </div>
                     )}
+
+                    {/* VERIFICATIONS */}
+                    {activeTab === 'verifications' && (
+                        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                            <div className="p-5 border-b border-gray-50 flex items-center justify-between">
+                                <h3 className="font-bold text-gray-900">User Verification Requests</h3>
+                                <button onClick={() => refetchVerifications()} className="text-primary-600 hover:rotate-180 transition-all duration-500">
+                                    <RefreshCw size={16} />
+                                </button>
+                            </div>
+
+                            {verificationsLoading ? (
+                                <div className="p-20 text-center"><Clock className="animate-spin mx-auto text-gray-300 h-6 w-6" /></div>
+                            ) : verificationRequests.length === 0 ? (
+                                <div className="p-16 text-center text-gray-400 text-sm">No pending verifications</div>
+                            ) : (
+                                <div className="divide-y divide-gray-50">
+                                    {verificationRequests.map((req: any) => (
+                                        <div key={req.id} className="p-5 hover:bg-gray-50/70 transition-colors">
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div className="flex items-start gap-4 min-w-0">
+                                                    <div className="w-12 h-12 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 font-black text-lg">
+                                                        {(req.user?.full_name || 'U')[0].toUpperCase()}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="text-base font-black text-gray-900 truncate">{req.user?.full_name}</p>
+                                                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                                                            <span className="bg-gray-100 px-2 py-0.5 rounded-md font-bold text-[10px] uppercase">{req.document_type}</span>
+                                                            <span className="font-medium">{req.id_number || 'No ID Number'}</span>
+                                                            <span className="text-gray-400">{format(new Date(req.created_at), 'MMM d, HH:mm')}</span>
+                                                        </div>
+                                                        
+                                                        {/* Document Previews */}
+                                                        <div className="flex gap-3 mt-4">
+                                                            {req.selfie_url && (
+                                                                <div className="group relative">
+                                                                    <div className="text-[8px] font-black uppercase text-gray-400 mb-1">Selfie</div>
+                                                                    <img 
+                                                                        src={req.selfie_url} 
+                                                                        alt="Selfie" 
+                                                                        className="w-20 h-20 object-cover rounded-xl border border-gray-100 shadow-sm cursor-zoom-in hover:scale-105 transition-transform"
+                                                                        onClick={() => window.open(req.selfie_url, '_blank')}
+                                                                    />
+                                                                </div>
+                                                            )}
+                                                            {req.document_urls?.map((url: string, i: number) => (
+                                                                <div key={i} className="group relative">
+                                                                    <div className="text-[8px] font-black uppercase text-gray-400 mb-1">Doc {i+1}</div>
+                                                                    <img 
+                                                                        src={url} 
+                                                                        alt={`Doc ${i+1}`} 
+                                                                        className="w-20 h-20 object-cover rounded-xl border border-gray-100 shadow-sm cursor-zoom-in hover:scale-105 transition-transform"
+                                                                        onClick={() => window.open(url, '_blank')}
+                                                                    />
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex flex-col gap-2">
+                                                    {req.status === 'pending' ? (
+                                                        <>
+                                                            <button 
+                                                                onClick={() => verifyMutation.mutate({ id: req.id, status: 'approved' })}
+                                                                disabled={verifyMutation.isPending}
+                                                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-black shadow-lg shadow-green-200 transition-all active:scale-95 disabled:opacity-50"
+                                                            >
+                                                                Approve
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => verifyMutation.mutate({ id: req.id, status: 'rejected' })}
+                                                                disabled={verifyMutation.isPending}
+                                                                className="px-4 py-2 bg-white border border-red-100 text-red-600 hover:bg-red-50 rounded-xl text-xs font-black transition-all active:scale-95 disabled:opacity-50"
+                                                            >
+                                                                Reject
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <span className={cn(
+                                                            "px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest text-center",
+                                                            req.status === 'approved' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                                                        )}>
+                                                            {req.status}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
 
                     {/* HISTORY */}
                     {activeTab === 'history' && (

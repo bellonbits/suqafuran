@@ -14,6 +14,7 @@ class VerificationStatus(str, Enum):
 
 class VerificationRequestBase(SQLModel):
     document_type: str  # ID, Passport, Business Registration
+    id_number: Optional[str] = None
     status: VerificationStatus = Field(default=VerificationStatus.PENDING)
     notes: Optional[str] = None
     document_urls: List[str] = Field(default=[], sa_column=Column(JSON))

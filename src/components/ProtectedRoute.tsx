@@ -5,9 +5,10 @@ import { useAuthStore } from '../store/useAuthStore';
 interface ProtectedRouteProps {
     children?: React.ReactNode;
     requireAdmin?: boolean;
+    requireAgent?: boolean;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin, requireAgent }) => {
     const { isAuthenticated, user } = useAuthStore();
     const location = useLocation();
 
@@ -20,6 +21,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin 
     }
 
     if (requireAdmin && !user?.is_admin) {
+        return <Navigate to="/dashboard" replace />;
+    }
+
+    if (requireAgent && !user?.is_agent && !user?.is_admin) {
         return <Navigate to="/dashboard" replace />;
     }
 

@@ -16,6 +16,12 @@ class UserVerifiedLevel(str, enum.Enum):
     trusted = "trusted"
 
 
+class TrustLevel(str, enum.Enum):
+    NEW = "NEW"
+    VERIFIED = "VERIFIED"
+    TRUSTED = "TRUSTED"
+
+
 class UserBase(SQLModel):
     full_name: Optional[str] = None
     email: str = Field(unique=True, index=True)
@@ -35,6 +41,12 @@ class UserBase(SQLModel):
     referral_code: Optional[str] = Field(default=None, index=True)       # marketing promo code used at signup
     referral_listing_counted: bool = Field(default=False)                 # True after first ad posted
     location: Optional[str] = Field(default=None)                        # city / region set from profile
+    
+    # Trust & Security Fields
+    trust_score: int = Field(default=0)
+    trust_level: TrustLevel = Field(default=TrustLevel.NEW)
+    is_flagged: bool = Field(default=False)
+    is_suspended: bool = Field(default=False)
 
 
 class User(UserBase, table=True):

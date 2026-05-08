@@ -170,7 +170,7 @@ const App: React.FC = () => {
               <Route path="/pro-sales" element={<ProSalesPage />} />
               <Route path="/premium" element={<PremiumPage />} />
               <Route path="/followers" element={<FollowersPage />} />
-              <Route path="/agent-dashboard" element={<AgentDashboard />} />
+              <Route path="/agent-dashboard" element={<ProtectedRoute requireAgent><AgentDashboard /></ProtectedRoute>} />
             </Route>
 
             {/* Messages — accessible to all, guards internally */}

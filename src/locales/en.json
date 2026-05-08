@@ -732,6 +732,8 @@
     "submitted": "Documents Submitted!",
     "submittedDesc": "We'll review your documents and notify you within 24-48 hours.",
     "submissionFailed": "Submission failed. Please try again.",
+    "idNumber": "1.5. Enter ID Number",
+    "idNumberPlaceholder": "Enter your ID or business registration number",
     "selectDocType": "1. Select Document Type",
     "uploadIdDoc": "2. Upload ID Document",
     "uploadBothSides": "Upload both sides if applicable (front & back)",

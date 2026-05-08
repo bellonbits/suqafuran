@@ -28,6 +28,7 @@ const VerificationPage: React.FC = () => {
     const [selfieFile, setSelfieFile] = useState<File | null>(null);
     const [documentFiles, setDocumentFiles] = useState<File[]>([]);
     const [documentType, setDocumentType] = useState('national_id');
+    const [idNumber, setIdNumber] = useState('');
     const [webcamError, setWebcamError] = useState(false);
     const webcamRef = useRef<Webcam>(null);
 
@@ -52,6 +53,7 @@ const VerificationPage: React.FC = () => {
         mutationFn: async () => {
             const formData = new FormData();
             formData.append('document_type', documentType);
+            formData.append('id_number', idNumber);
 
             documentFiles.forEach((file) => {
                 formData.append('document_files', file);
@@ -223,6 +225,18 @@ const VerificationPage: React.FC = () => {
                             </select>
                             <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
                         </div>
+                    </div>
+
+                    {/* ID Number */}
+                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                        <h3 className="font-bold text-gray-900 mb-4">{t('verify.idNumber', 'ID Number')}</h3>
+                        <input
+                            type="text"
+                            value={idNumber}
+                            onChange={e => setIdNumber(e.target.value)}
+                            placeholder={t('verify.idNumberPlaceholder', 'Enter your ID or business registration number')}
+                            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
                     </div>
 
                     {/* Document Upload */}
