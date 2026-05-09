@@ -3,7 +3,7 @@ import Webcam from 'react-webcam';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-    Camera, Upload, CheckCircle, XCircle, Shield, Loader2,
+    Camera, Upload, CheckCircle, XCircle, Shield, Loader2, Award,
     AlertCircle, RefreshCw, Image as ImageIcon, ChevronDown, Sparkles, Fingerprint
 } from 'lucide-react';
 import api from '../services/api';

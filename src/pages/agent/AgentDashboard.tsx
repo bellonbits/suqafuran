@@ -82,13 +82,13 @@ type Tab = 'marketing' | 'signups' | 'listings' | 'verifications' | 'history';
 
 // ── Small stat card ─────────────────────────────────────────────────────────
 const Stat: React.FC<{ label: string; value: string | number; icon: React.ElementType; color: string }> = ({ label, value, icon: Icon, color }) => (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center gap-4">
-        <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0', color)}>
-            <Icon className="h-5 w-5" />
+    <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
+        <div className={cn('w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center flex-shrink-0', color)}>
+            <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
         </div>
-        <div>
-            <p className="text-xs text-gray-400 font-semibold">{label}</p>
-            <p className="text-2xl font-black text-gray-900 leading-none mt-0.5">{value}</p>
+        <div className="min-w-0">
+            <p className="text-[10px] sm:text-xs text-gray-400 font-semibold truncate">{label}</p>
+            <p className="text-xl sm:text-2xl font-black text-gray-900 leading-none mt-0.5">{value}</p>
         </div>
     </div>
 );
@@ -232,18 +232,18 @@ const AgentDashboard: React.FC = () => {
                                         <BarChart2 className="h-5 w-5 text-primary-200" />
                                         <h3 className="font-bold text-sm">Conversion Funnel</h3>
                                     </div>
-                                    <div className="grid grid-cols-3 gap-4 mb-5">
-                                        <div className="text-center">
-                                            <p className="text-3xl font-black">{stats.total_users.toLocaleString()}</p>
-                                            <p className="text-[10px] text-primary-200 font-semibold mt-1">Total Signups</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-4 mb-5">
+                                        <div className="text-center sm:text-left">
+                                            <p className="text-4xl sm:text-3xl font-black">{stats.total_users.toLocaleString()}</p>
+                                            <p className="text-[10px] text-primary-200 font-semibold mt-1 uppercase tracking-wider">Total Signups</p>
                                         </div>
-                                        <div className="text-center border-x border-white/20">
-                                            <p className="text-3xl font-black">{stats.users_with_ads.toLocaleString()}</p>
-                                            <p className="text-[10px] text-primary-200 font-semibold mt-1">Posted Ads</p>
+                                        <div className="text-center sm:text-left sm:border-x sm:border-white/20 sm:px-4">
+                                            <p className="text-4xl sm:text-3xl font-black">{stats.users_with_ads.toLocaleString()}</p>
+                                            <p className="text-[10px] text-primary-200 font-semibold mt-1 uppercase tracking-wider">Posted Ads</p>
                                         </div>
-                                        <div className="text-center">
-                                            <p className="text-3xl font-black">{stats.conversion_rate}%</p>
-                                            <p className="text-[10px] text-primary-200 font-semibold mt-1">Conversion</p>
+                                        <div className="text-center sm:text-right">
+                                            <p className="text-4xl sm:text-3xl font-black">{stats.conversion_rate}%</p>
+                                            <p className="text-[10px] text-primary-200 font-semibold mt-1 uppercase tracking-wider">Conversion</p>
                                         </div>
                                     </div>
                                     <div className="bg-white/20 rounded-full h-2.5 overflow-hidden">
@@ -366,8 +366,8 @@ const AgentDashboard: React.FC = () => {
                             ) : (
                                 <div className="divide-y divide-gray-50">
                                     {allListings.map(listing => (
-                                        <div key={listing.id} className="px-5 py-4 hover:bg-gray-50/70">
-                                            <div className="flex items-start justify-between gap-3">
+                                        <div key={listing.id} className="px-4 py-4 sm:px-5 hover:bg-gray-50/70">
+                                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                                                 {/* Left info */}
                                                 <div className="flex items-start gap-3 min-w-0">
                                                     <div className={cn(
@@ -376,7 +376,7 @@ const AgentDashboard: React.FC = () => {
                                                     )}>
                                                         <ShoppingBag className="h-4 w-4" />
                                                     </div>
-                                                    <div className="min-w-0">
+                                                    <div className="min-w-0 flex-1">
                                                         <div className="flex items-center gap-2 flex-wrap">
                                                             <p className="text-sm font-bold text-gray-900 truncate">{listing.title}</p>
                                                             <span className={cn('text-[9px] font-bold px-2 py-0.5 rounded-full', STATUS_STYLES[listing.status] || 'bg-gray-100 text-gray-500')}>
@@ -389,7 +389,7 @@ const AgentDashboard: React.FC = () => {
                                                             )}
                                                         </div>
                                                         {/* Owner row */}
-                                                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-400 flex-wrap">
+                                                        <div className="flex items-center gap-x-3 gap-y-1 mt-1 text-xs text-gray-400 flex-wrap">
                                                             <span className="flex items-center gap-1">
                                                                 <User className="h-3 w-3" />
                                                                 <span className="font-medium text-gray-600">{listing.owner_name}</span>
@@ -398,34 +398,34 @@ const AgentDashboard: React.FC = () => {
                                                                 <Mail className="h-3 w-3" />{listing.owner_email}
                                                             </span>
                                                             {listing.owner_phone && (
-                                                                <span className="flex items-center gap-1">
+                                                                <span className="flex items-center gap-1 whitespace-nowrap">
                                                                     <PhoneCall className="h-3 w-3" />{listing.owner_phone}
                                                                 </span>
                                                             )}
                                                         </div>
                                                         {/* Meta row */}
-                                                        <div className="flex items-center gap-3 mt-1 text-[10px] text-gray-400 flex-wrap">
-                                                            <span className="font-bold text-gray-700">${listing.price?.toLocaleString()}</span>
+                                                        <div className="flex items-center gap-x-3 gap-y-1 mt-1.5 text-[10px] text-gray-400 flex-wrap">
+                                                            <span className="font-bold text-gray-800 text-sm sm:text-[10px]">${listing.price?.toLocaleString()}</span>
                                                             {listing.location && (
                                                                 <span className="flex items-center gap-0.5">
                                                                     <MapPin className="h-2.5 w-2.5" />{listing.location}
                                                                 </span>
                                                             )}
                                                             <span className="flex items-center gap-0.5">
-                                                                <Eye className="h-2.5 w-2.5" />{listing.views ?? 0} views
+                                                                <Eye className="h-2.5 w-2.5" />{listing.views ?? 0}
                                                             </span>
-                                                            <span>{format(new Date(listing.created_at), 'MMM d, yyyy')}</span>
+                                                            <span className="whitespace-nowrap">{format(new Date(listing.created_at), 'MMM d, yyyy')}</span>
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 {/* Actions */}
-                                                <div className="flex items-center gap-2 flex-shrink-0">
+                                                <div className="flex items-center gap-2 sm:flex-shrink-0 pt-2 sm:pt-0 border-t border-gray-50 sm:border-0">
                                                     {listing.is_active ? (
                                                         <button
                                                             disabled={endMutation.isPending}
                                                             onClick={() => { if (window.confirm(`End "${listing.title}"?`)) endMutation.mutate(listing.id); }}
-                                                            className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold border border-red-200 text-red-600 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-50"
+                                                            className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-4 py-2 sm:py-1.5 text-[10px] font-bold border border-red-200 text-red-600 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-50"
                                                         >
                                                             <XCircle className="h-3 w-3" /> End
                                                         </button>
@@ -433,7 +433,7 @@ const AgentDashboard: React.FC = () => {
                                                         <button
                                                             disabled={reactivateMutation.isPending}
                                                             onClick={() => reactivateMutation.mutate(listing.id)}
-                                                            className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold border border-green-200 text-green-600 rounded-xl hover:bg-green-50 transition-colors disabled:opacity-50"
+                                                            className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-4 py-2 sm:py-1.5 text-[10px] font-bold border border-green-200 text-green-600 rounded-xl hover:bg-green-50 transition-colors disabled:opacity-50"
                                                         >
                                                             <Check className="h-3 w-3" /> Reactivate
                                                         </button>
@@ -464,40 +464,40 @@ const AgentDashboard: React.FC = () => {
                             ) : (
                                 <div className="divide-y divide-gray-50">
                                     {verificationRequests.map((req: any) => (
-                                        <div key={req.id} className="p-5 hover:bg-gray-50/70 transition-colors">
-                                            <div className="flex items-start justify-between gap-4">
+                                        <div key={req.id} className="p-4 sm:p-5 hover:bg-gray-50/70 transition-colors">
+                                            <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
                                                 <div className="flex items-start gap-4 min-w-0">
                                                     <div className="w-12 h-12 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 font-black text-lg">
                                                         {(req.user?.full_name || 'U')[0].toUpperCase()}
                                                     </div>
-                                                    <div className="min-w-0">
+                                                    <div className="min-w-0 flex-1">
                                                         <p className="text-base font-black text-gray-900 truncate">{req.user?.full_name}</p>
-                                                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                                                        <div className="flex items-center gap-x-3 gap-y-1 mt-1 text-xs text-gray-500 flex-wrap">
                                                             <span className="bg-gray-100 px-2 py-0.5 rounded-md font-bold text-[10px] uppercase">{req.document_type}</span>
                                                             <span className="font-medium">{req.id_number || 'No ID Number'}</span>
                                                             <span className="text-gray-400">{format(new Date(req.created_at), 'MMM d, HH:mm')}</span>
                                                         </div>
                                                         
                                                         {/* Document Previews */}
-                                                        <div className="flex gap-3 mt-4">
+                                                        <div className="flex gap-3 mt-4 overflow-x-auto pb-2 scrollbar-hide">
                                                             {req.selfie_url && (
-                                                                <div className="group relative">
+                                                                <div className="shrink-0 group relative">
                                                                     <div className="text-[8px] font-black uppercase text-gray-400 mb-1">Selfie</div>
                                                                     <img 
                                                                         src={req.selfie_url} 
                                                                         alt="Selfie" 
-                                                                        className="w-20 h-20 object-cover rounded-xl border border-gray-100 shadow-sm cursor-zoom-in hover:scale-105 transition-transform"
+                                                                        className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border border-gray-100 shadow-sm cursor-zoom-in hover:scale-105 transition-transform"
                                                                         onClick={() => window.open(req.selfie_url, '_blank')}
                                                                     />
                                                                 </div>
                                                             )}
                                                             {req.document_urls?.map((url: string, i: number) => (
-                                                                <div key={i} className="group relative">
+                                                                <div key={i} className="shrink-0 group relative">
                                                                     <div className="text-[8px] font-black uppercase text-gray-400 mb-1">Doc {i+1}</div>
                                                                     <img 
                                                                         src={url} 
                                                                         alt={`Doc ${i+1}`} 
-                                                                        className="w-20 h-20 object-cover rounded-xl border border-gray-100 shadow-sm cursor-zoom-in hover:scale-105 transition-transform"
+                                                                        className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border border-gray-100 shadow-sm cursor-zoom-in hover:scale-105 transition-transform"
                                                                         onClick={() => window.open(url, '_blank')}
                                                                     />
                                                                 </div>
@@ -506,27 +506,27 @@ const AgentDashboard: React.FC = () => {
                                                     </div>
                                                 </div>
 
-                                                <div className="flex flex-col gap-2">
+                                                <div className="flex flex-row lg:flex-col gap-2 pt-4 lg:pt-0 border-t border-gray-50 lg:border-0">
                                                     {req.status === 'pending' ? (
                                                         <>
                                                             <button 
                                                                 onClick={() => verifyMutation.mutate({ id: req.id, status: 'approved' })}
                                                                 disabled={verifyMutation.isPending}
-                                                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-black shadow-lg shadow-green-200 transition-all active:scale-95 disabled:opacity-50"
+                                                                className="flex-1 lg:flex-none px-6 py-3 lg:py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-black shadow-lg shadow-green-200 transition-all active:scale-95 disabled:opacity-50"
                                                             >
                                                                 Approve
                                                             </button>
                                                             <button 
                                                                 onClick={() => verifyMutation.mutate({ id: req.id, status: 'rejected' })}
                                                                 disabled={verifyMutation.isPending}
-                                                                className="px-4 py-2 bg-white border border-red-100 text-red-600 hover:bg-red-50 rounded-xl text-xs font-black transition-all active:scale-95 disabled:opacity-50"
+                                                                className="flex-1 lg:flex-none px-6 py-3 lg:py-2 bg-white border border-red-100 text-red-600 hover:bg-red-50 rounded-xl text-xs font-black transition-all active:scale-95 disabled:opacity-50"
                                                             >
                                                                 Reject
                                                             </button>
                                                         </>
                                                     ) : (
                                                         <span className={cn(
-                                                            "px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest text-center",
+                                                            "w-full lg:w-32 py-2 rounded-xl text-xs font-black uppercase tracking-widest text-center",
                                                             req.status === 'approved' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                                                         )}>
                                                             {req.status}

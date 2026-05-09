@@ -46,7 +46,6 @@ const ProductDetailPage: React.FC = () => {
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportReason, setReportReason] = useState('');
     const [reportDesc, setReportDesc] = useState('');
-    const [markedUnavailable, setMarkedUnavailable] = useState(false);
     const [translatedTitle, setTranslatedTitle] = useState<string | null>(null);
     const [translatedDesc, setTranslatedDesc] = useState<string | null>(null);
     const [isTranslating, setIsTranslating] = useState(false);

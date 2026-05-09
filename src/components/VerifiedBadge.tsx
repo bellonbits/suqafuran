@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Shield, Star, Award, Zap } from 'lucide-react';
+import { ShieldCheck, Shield, Star, Award } from 'lucide-react';
 import { cn } from '../utils/cn';
 
 export type TrustTier = 'NEW' | 'ESTABLISHED' | 'VERIFIED' | 'TRUSTED';

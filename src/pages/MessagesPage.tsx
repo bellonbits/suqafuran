@@ -8,9 +8,10 @@ import type { Conversation, Message } from '../services/messageService';
 import { useAuthStore } from '../store/useAuthStore';
 import { getImageUrl } from '../utils/imageUtils';
 import { cn } from '../utils/cn';
-import { Send, ArrowLeft, Loader2, User, Search, MessageSquare, Zap, AlertTriangle, ShieldAlert, ShieldCheck as ShieldIcon } from 'lucide-react';
+import { Send, ArrowLeft, Loader2, User, Search, MessageSquare, Zap, ShieldAlert, ShieldCheck as ShieldIcon } from 'lucide-react';
 import { aiService } from '../services/aiService';
-import { VerifiedBadge, TrustTier } from '../components/VerifiedBadge';
+import api from '../services/api';
+import { VerifiedBadge, type TrustTier } from '../components/VerifiedBadge';
 
 /* ── helpers ── */
 const formatTime = (iso: string | null) => {
@@ -275,7 +276,7 @@ const ChatView: React.FC<{
                                     other_user_id: conversation.other_user_id 
                                 }).then(() => {
                                     alert("Transaction confirmed! This will boost your trust score.");
-                                }).catch(err => {
+                                }).catch((err: any) => {
                                     alert(err.response?.data?.detail || "Failed to confirm deal");
                                 });
                             }

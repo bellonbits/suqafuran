@@ -1,9 +1,8 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../services/api';
-import { Shield, AlertTriangle, Users, Terminal, HardDrive, Globe } from 'lucide-react';
+import { Shield, AlertTriangle, Users, HardDrive, Globe } from 'lucide-react';
 import { Button } from '../../components/Button';
-import { cn } from '../../utils/cn';
 
 interface AccountSignal {
     id: number;
