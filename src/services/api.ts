@@ -19,6 +19,17 @@ api.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+        
+        // Layer 1.1: Device Fingerprinting
+        const fingerprint = [
+            navigator.userAgent,
+            screen.width,
+            screen.height,
+            navigator.language,
+            new Date().getTimezoneOffset()
+        ].join('|');
+        config.headers['X-Device-Fingerprint'] = btoa(fingerprint);
+        
         return config;
     },
     (error) => Promise.reject(error)

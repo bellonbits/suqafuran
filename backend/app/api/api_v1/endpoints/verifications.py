@@ -23,6 +23,9 @@ async def apply_for_verification(
     notes: Optional[str] = Form(None),
     document_files: List[UploadFile] = File(...),
     selfie_file: UploadFile = File(...),
+    tier: str = Form("tier2"),
+    proof_of_address_file: Optional[UploadFile] = File(None),
+    video_selfie_file: Optional[UploadFile] = File(None),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """Submit a verification request with ID documents and a selfie."""
@@ -56,14 +59,29 @@ async def apply_for_verification(
         selfie_content, selfie_file.filename or "selfie.jpg"
     )
 
+    # Proof of Address
+    address_url = None
+    if proof_of_address_file:
+        content = await proof_of_address_file.read()
+        address_url = await storage_service.upload_file(content, proof_of_address_file.filename or "address.pdf")
+
+    # Video Selfie
+    video_url = None
+    if video_selfie_file:
+        content = await video_selfie_file.read()
+        video_url = await storage_service.upload_file(content, video_selfie_file.filename or "video.mp4")
+
     db_obj = VerificationRequest(
         user_id=current_user.id,
         document_type=document_type,
         id_number=id_number,
+        tier=tier,
         notes=notes,
         status=VerificationStatus.PENDING,
         document_urls=document_urls,
         selfie_url=selfie_url,
+        proof_of_address_url=address_url,
+        video_selfie_url=video_url,
         facial_match_score=0.0,
         auto_verification_status="manual_review"
     )
@@ -144,7 +162,11 @@ def update_verification_status(
         user = db.get(User, request.user_id)
         if user:
             user.is_verified = True
-            user.verified_level = UserVerifiedLevel.id
+            # Map request tier to UserVerifiedLevel
+            if request.tier == "tier3":
+                user.verified_level = UserVerifiedLevel.t3
+            else:
+                user.verified_level = UserVerifiedLevel.t2
             db.add(user)
             
     db.commit()

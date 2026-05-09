@@ -30,4 +30,6 @@ class Deal(SQLModel, table=True):
     buyer_id: int = Field(foreign_key="user.id")
     seller_id: int = Field(foreign_key="user.id")
     outcome: str = Field(sa_column=Column(String))
+    buyer_confirmed: bool = Field(default=False)
+    seller_confirmed: bool = Field(default=False)
     created_at: datetime = Field(default_factory=datetime.utcnow)

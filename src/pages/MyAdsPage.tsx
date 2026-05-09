@@ -6,7 +6,7 @@ import { listingService } from '../services/listingService';
 import { getImageUrl } from '../utils/imageUtils';
 import {
     AlertTriangle, X, PlusCircle,
-    Eye, Loader2, ShoppingBag
+    Eye, Loader2, ShoppingBag, CheckCircle
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { cn } from '../utils/cn';
@@ -37,13 +37,22 @@ const MyAdsPage: React.FC = () => {
         },
     });
 
-    const [filter, setFilter] = React.useState<'all' | 'active' | 'pending' | 'declined'>('all');
+    const markAsSoldMutation = useMutation({
+        mutationFn: (id: number) => listingService.patchListing(id, { status: 'sold' }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['my-listings'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+        },
+    });
+
+    const [filter, setFilter] = React.useState<'all' | 'active' | 'pending' | 'declined' | 'sold'>('all');
 
     const filteredAds = myAds?.filter(ad => {
         if (filter === 'all') return true;
         if (filter === 'active') return ad.status === 'active';
         if (filter === 'pending') return ad.status === 'pending';
         if (filter === 'declined') return ad.status === 'reported';
+        if (filter === 'sold') return ad.status === 'closed' || ad.status === 'sold';
         return true;
     });
 
@@ -127,6 +136,15 @@ const MyAdsPage: React.FC = () => {
                                     Declined
                                 </span>
                             </button>
+                            <button
+                                onClick={() => setFilter('sold')}
+                                className={cn(
+                                    "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap",
+                                    filter === 'sold' ? "bg-gray-100 text-gray-700" : "text-gray-400 hover:text-gray-600"
+                                )}>
+                                <CheckCircle className="h-4 w-4" />
+                                Sold ({myAds?.filter(a => a.status === 'sold' || a.status === 'closed').length || 0})
+                            </button>
                         </div>
 
                         {/* Category Dropdown (Jiji Style) */}
@@ -196,6 +214,11 @@ const MyAdsPage: React.FC = () => {
                                                             Under Review
                                                         </div>
                                                     )}
+                                                    {(ad.status === 'sold' || ad.status === 'closed') && (
+                                                        <div className="inline-flex items-center px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 text-[10px] font-bold border border-gray-200">
+                                                            Sold / Closed
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 <div className="mt-3 flex items-center justify-between border-t border-gray-50 pt-2">
@@ -212,6 +235,19 @@ const MyAdsPage: React.FC = () => {
                                                         >
                                                             Delete
                                                         </button>
+                                                        {ad.status === 'active' && (
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (window.confirm('Mark this item as sold? It will be hidden from search.')) {
+                                                                        markAsSoldMutation.mutate(ad.id);
+                                                                    }
+                                                                }}
+                                                                className="text-green-600 text-xs font-bold hover:underline flex items-center gap-1"
+                                                            >
+                                                                <CheckCircle className="h-3 w-3" />
+                                                                Mark as Sold
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>

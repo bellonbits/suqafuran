@@ -46,7 +46,13 @@ export const messageService = {
         await api.post(`/messages/${otherUserId}/read`);
     },
 
-    async getPublicUser(userId: number): Promise<{ id: number; full_name: string; avatar_url: string | null }> {
+    async getPublicUser(userId: number): Promise<{ 
+        id: number; 
+        full_name: string; 
+        avatar_url: string | null;
+        trust_score: number;
+        trust_level: string;
+    }> {
         const res = await api.get(`/users/public/${userId}`);
         return res.data;
     },

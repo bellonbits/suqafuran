@@ -342,7 +342,6 @@ const PostAdPage: React.FC = () => {
                 attributes: {
                     ...form.attributes,
                     negotiable: form.negotiable,
-                    bulk_currency: currency,
                 },
                 lang_available: form.lang_available,
             };

@@ -11,15 +11,17 @@ if TYPE_CHECKING:
 
 class UserVerifiedLevel(str, enum.Enum):
     guest = "guest"
-    phone = "phone"
-    id = "id"
+    t1 = "tier1" # Minimal (Phone/Email)
+    t2 = "tier2" # Standard (ID/Address/Liveness)
+    t3 = "tier3" # Enhanced (Video/Bank)
     trusted = "trusted"
 
 
 class TrustLevel(str, enum.Enum):
-    NEW = "NEW"
-    VERIFIED = "VERIFIED"
-    TRUSTED = "TRUSTED"
+    NEW = "NEW"        # Bronze
+    ESTABLISHED = "ESTABLISHED" # Silver
+    VERIFIED = "VERIFIED"    # Gold
+    TRUSTED = "TRUSTED"     # Platinum
 
 
 class UserBase(SQLModel):
@@ -41,6 +43,8 @@ class UserBase(SQLModel):
     referral_code: Optional[str] = Field(default=None, index=True)       # marketing promo code used at signup
     referral_listing_counted: bool = Field(default=False)                 # True after first ad posted
     location: Optional[str] = Field(default=None)                        # city / region set from profile
+    device_fingerprint: Optional[str] = Field(default=None, index=True)
+    last_ip: Optional[str] = Field(default=None)
     
     # Trust & Security Fields
     trust_score: int = Field(default=0)

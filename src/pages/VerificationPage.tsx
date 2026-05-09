@@ -29,6 +29,9 @@ const VerificationPage: React.FC = () => {
     const [documentFiles, setDocumentFiles] = useState<File[]>([]);
     const [documentType, setDocumentType] = useState('national_id');
     const [idNumber, setIdNumber] = useState('');
+    const [tier, setTier] = useState<'tier2' | 'tier3'>('tier2');
+    const [proofOfAddressFile, setProofOfAddressFile] = useState<File | null>(null);
+    const [videoSelfieFile, setVideoSelfieFile] = useState<File | null>(null);
     const [webcamError, setWebcamError] = useState(false);
     const webcamRef = useRef<Webcam>(null);
 
@@ -54,10 +57,19 @@ const VerificationPage: React.FC = () => {
             const formData = new FormData();
             formData.append('document_type', documentType);
             formData.append('id_number', idNumber);
+            formData.append('tier', tier);
 
             documentFiles.forEach((file) => {
                 formData.append('document_files', file);
             });
+
+            if (proofOfAddressFile) {
+                formData.append('proof_of_address_file', proofOfAddressFile);
+            }
+
+            if (videoSelfieFile) {
+                formData.append('video_selfie_file', videoSelfieFile);
+            }
 
             if (selfieFile) {
                 formData.append('selfie_file', selfieFile, selfieFile.name);
@@ -209,6 +221,36 @@ const VerificationPage: React.FC = () => {
 
             {/* Form — only show if not pending/approved */}
             {(!status || status.status === 'rejected') && !submitMutation.isSuccess && (
+                <>
+                {/* Tier Selection */}
+                <div className="space-y-4 mb-6">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">{t('verify.chooseTier', 'Verification Tier')}</label>
+                    <div className="grid grid-cols-2 gap-4">
+                        <button 
+                            onClick={() => setTier('tier2')}
+                            className={cn(
+                                "p-4 rounded-2xl border-2 text-left transition-all",
+                                tier === 'tier2' ? "border-primary-500 bg-primary-50" : "border-gray-100 hover:border-gray-200"
+                            )}
+                        >
+                            <Shield className={cn("h-6 w-6 mb-2", tier === 'tier2' ? "text-primary-500" : "text-gray-400")} />
+                            <p className="font-bold text-sm text-gray-900">Tier 2: Standard</p>
+                            <p className="text-[10px] text-gray-500 mt-1">ID + Selfie. Required for basic selling.</p>
+                        </button>
+                        <button 
+                            onClick={() => setTier('tier3')}
+                            className={cn(
+                                "p-4 rounded-2xl border-2 text-left transition-all",
+                                tier === 'tier3' ? "border-primary-500 bg-primary-50" : "border-gray-100 hover:border-gray-200"
+                            )}
+                        >
+                            <Award className={cn("h-6 w-6 mb-2", tier === 'tier3' ? "text-primary-500" : "text-gray-400")} />
+                            <p className="font-bold text-sm text-gray-900">Tier 3: Enhanced</p>
+                            <p className="text-[10px] text-gray-500 mt-1">Video + Address. Required for high-value sellers.</p>
+                        </button>
+                    </div>
+                </div>
+
                 <div className="space-y-6">
                     {/* Document Type */}
                     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
@@ -238,6 +280,60 @@ const VerificationPage: React.FC = () => {
                             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         />
                     </div>
+
+                    {/* Tier 3 Additional Fields */}
+                    {tier === 'tier3' && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                                <h3 className="font-bold text-gray-900 mb-1">Proof of Address</h3>
+                                <p className="text-xs text-gray-500 mb-4">Upload a utility bill or bank statement showing your name and address.</p>
+                                <label className="block cursor-pointer">
+                                    <input 
+                                        type="file" 
+                                        accept=".pdf,image/*" 
+                                        onChange={(e) => setProofOfAddressFile(e.target.files?.[0] || null)}
+                                        className="hidden" 
+                                    />
+                                    <div className={cn(
+                                        "border-2 border-dashed rounded-xl p-6 text-center transition-colors",
+                                        proofOfAddressFile ? "border-green-300 bg-green-50" : "border-gray-200 hover:border-primary-300"
+                                    )}>
+                                        <div className="flex flex-col items-center gap-2">
+                                            <Upload className={cn("h-6 w-6", proofOfAddressFile ? "text-green-500" : "text-gray-400")} />
+                                            <span className="text-sm font-bold text-gray-600">
+                                                {proofOfAddressFile ? proofOfAddressFile.name : "Choose Address Document"}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                                <h3 className="font-bold text-gray-900 mb-1">Video Selfie</h3>
+                                <p className="text-xs text-gray-500 mb-4">A short 30-second video of yourself stating your name and holding your ID.</p>
+                                <label className="block cursor-pointer">
+                                    <input 
+                                        type="file" 
+                                        accept="video/*" 
+                                        capture="user"
+                                        onChange={(e) => setVideoSelfieFile(e.target.files?.[0] || null)}
+                                        className="hidden" 
+                                    />
+                                    <div className={cn(
+                                        "border-2 border-dashed rounded-xl p-6 text-center transition-colors",
+                                        videoSelfieFile ? "border-green-300 bg-green-50" : "border-gray-200 hover:border-primary-300"
+                                    )}>
+                                        <div className="flex flex-col items-center gap-2">
+                                            <Camera className={cn("h-6 w-6", videoSelfieFile ? "text-green-500" : "text-gray-400")} />
+                                            <span className="text-sm font-bold text-gray-600">
+                                                {videoSelfieFile ? videoSelfieFile.name : "Capture / Upload Video"}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Document Upload */}
                     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
@@ -444,6 +540,7 @@ const VerificationPage: React.FC = () => {
                         )}
                     </Button>
                 </div>
+                </>
             )}
 
             {/* Info */}

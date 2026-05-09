@@ -67,6 +67,7 @@ const AdminListingsPage = lazy(() => import('./pages/admin/AdminListingsPage'));
 const AdminVerificationsPage = lazy(() => import('./pages/admin/AdminVerificationsPage'));
 const AdminMarketingPage = lazy(() => import('./pages/admin/AdminMarketingPage'));
 const AdminReportsPage = lazy(() => import('./pages/admin/AdminReportsPage'));
+const UnusualAccountsPage = lazy(() => import('./pages/admin/UnusualAccountsPage'));
 const WebEditorPage = lazyNamed(() => import('./pages/admin/WebEditorPage'), 'WebEditorPage');
 const AgentDashboard = lazy(() => import('./pages/agent/AgentDashboard'));
 
@@ -199,6 +200,7 @@ const App: React.FC = () => {
               <Route path="verifications" element={<AdminVerificationsPage />} />
               <Route path="marketing" element={<AdminMarketingPage />} />
               <Route path="reports" element={<AdminReportsPage />} />
+              <Route path="unusual-accounts" element={<UnusualAccountsPage />} />
               <Route path="editor" element={<WebEditorPage />} />
             </Route>
 

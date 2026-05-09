@@ -8,8 +8,9 @@ import type { Conversation, Message } from '../services/messageService';
 import { useAuthStore } from '../store/useAuthStore';
 import { getImageUrl } from '../utils/imageUtils';
 import { cn } from '../utils/cn';
-import { Send, ArrowLeft, Loader2, User, Search, MessageSquare, Zap } from 'lucide-react';
+import { Send, ArrowLeft, Loader2, User, Search, MessageSquare, Zap, AlertTriangle, ShieldAlert, ShieldCheck as ShieldIcon } from 'lucide-react';
 import { aiService } from '../services/aiService';
+import { VerifiedBadge, TrustTier } from '../components/VerifiedBadge';
 
 /* ── helpers ── */
 const formatTime = (iso: string | null) => {
@@ -176,6 +177,12 @@ const ChatView: React.FC<{
         refetchInterval: 4000,
     });
 
+    const { data: targetUser } = useQuery({
+        queryKey: ['public-user', conversation.other_user_id],
+        queryFn: () => messageService.getPublicUser(conversation.other_user_id),
+        staleTime: 60_000,
+    });
+
     const [suggestions, setSuggestions] = useState<string[]>([]);
 
     useEffect(() => {
@@ -208,6 +215,21 @@ const ChatView: React.FC<{
     const handleSend = () => {
         const trimmed = text.trim();
         if (!trimmed || sendMutation.isPending) return;
+
+        // Layer 3.4: Scam Phrase Detection (Client-side warning)
+        const scamPatterns = [
+            /whatsapp/i, /telegram/i, /07\d{8}/, /deposit/i, /advance/i,
+            /gift card/i, /bitcoin/i, /wire transfer/i, /ship first/i
+        ];
+
+        const isScammy = scamPatterns.some(pattern => pattern.test(trimmed));
+        if (isScammy) {
+            const confirm = window.confirm(
+                "Warning: Sharing contact info or discussing off-platform payments increases scam risk. \n\nWe recommend staying in-app to keep your transaction protected. Continue anyway?"
+            );
+            if (!confirm) return;
+        }
+
         sendMutation.mutate(trimmed);
     };
 
@@ -218,16 +240,52 @@ const ChatView: React.FC<{
                 <button onClick={onBack} className="lg:hidden p-1 -ml-1 text-gray-500">
                     <ArrowLeft className="h-5 w-5" />
                 </button>
-                <Link to={`/seller/${conversation.other_user_id}`} className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
                     <Avatar name={conversation.other_user_name} avatarUrl={conversation.other_user_avatar} size="sm" />
                     <div className="min-w-0">
                         <p className="font-bold text-gray-900 text-sm truncate">{conversation.other_user_name}</p>
-                        <p className="text-[10px] text-primary-500">{t('messages.active')}</p>
+                        <div className="flex items-center gap-2">
+                             <p className="text-[10px] text-primary-500">{t('messages.active')}</p>
+                             {targetUser && (
+                                 <VerifiedBadge 
+                                     tier={targetUser.trust_level as TrustTier} 
+                                     score={targetUser.trust_score} 
+                                     className="scale-90 origin-left"
+                                 />
+                             )}
+                        </div>
                     </div>
-                </Link>
+                </div>
             </div>
 
-            {/* Messages area */}
+            {/* Listing Info & Deal Confirmation */}
+            {conversation.listing_id && (
+                <div className="px-4 py-2 bg-white border-b border-gray-100 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <ShieldIcon size={16} className="text-primary-500" />
+                        <span className="text-xs font-bold text-gray-700">Verified Transaction Flow</span>
+                    </div>
+                    <button 
+                        onClick={() => {
+                            const confirmed = window.confirm("Has this deal been successfully completed?");
+                            if (confirmed) {
+                                // Trigger deal confirmation API (to be implemented)
+                                api.post(`/deals/confirm`, { 
+                                    listing_id: conversation.listing_id,
+                                    other_user_id: conversation.other_user_id 
+                                }).then(() => {
+                                    alert("Transaction confirmed! This will boost your trust score.");
+                                }).catch(err => {
+                                    alert(err.response?.data?.detail || "Failed to confirm deal");
+                                });
+                            }
+                        }}
+                        className="px-3 py-1 bg-primary-500 text-white text-[10px] font-black uppercase rounded-lg hover:bg-primary-600 transition-all"
+                    >
+                        Mark as Sold / Bought
+                    </button>
+                </div>
+            )}
             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2 bg-gray-50">
                 {isLoading && (
                     <div className="flex justify-center pt-10">
@@ -238,6 +296,19 @@ const ChatView: React.FC<{
                     <div className="flex flex-col items-center justify-center h-full gap-3 pt-10">
                         <MessageSquare className="w-12 h-12 text-gray-200" />
                         <p className="text-sm text-gray-400">{t('messages.startConversation')}</p>
+                    </div>
+                )}
+                
+                {/* Anti-Scam Warning Banner */}
+                {targetUser && (targetUser.trust_score < 400) && (
+                    <div className="mx-2 mb-4 p-4 bg-amber-50 border border-amber-100 rounded-2xl flex gap-3">
+                        <ShieldAlert className="h-5 w-5 text-amber-500 shrink-0" />
+                        <div className="space-y-1">
+                            <p className="text-xs font-bold text-amber-900">Safety First</p>
+                            <p className="text-[11px] text-amber-700 leading-tight">
+                                This seller is new. Stay inside this chat for your protection. Never send money before seeing the item in person.
+                            </p>
+                        </div>
                     </div>
                 )}
                 {messages.map((msg, idx) => {

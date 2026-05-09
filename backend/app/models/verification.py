@@ -16,9 +16,12 @@ class VerificationRequestBase(SQLModel):
     document_type: str  # ID, Passport, Business Registration
     id_number: Optional[str] = None
     status: VerificationStatus = Field(default=VerificationStatus.PENDING)
+    tier: str = Field(default="tier2") # tier2, tier3
     notes: Optional[str] = None
     document_urls: List[str] = Field(default=[], sa_column=Column(JSON))
     selfie_url: Optional[str] = None
+    proof_of_address_url: Optional[str] = None
+    video_selfie_url: Optional[str] = None
     facial_match_score: Optional[float] = None
     auto_verification_status: Optional[str] = None  # passed, failed, manual_review
 

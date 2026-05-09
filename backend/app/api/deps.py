@@ -50,6 +50,25 @@ def get_current_user(
     user = db.get(User, token_data)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    # Layer 1.1: Capture Signals
+    changed = False
+    if request:
+        fingerprint = request.headers.get("X-Device-Fingerprint")
+        if fingerprint and user.device_fingerprint != fingerprint:
+            user.device_fingerprint = fingerprint
+            changed = True
+        
+        ip = request.client.host
+        if ip and user.last_ip != ip:
+            user.last_ip = ip
+            changed = True
+            
+    if changed:
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
     return user
 
 

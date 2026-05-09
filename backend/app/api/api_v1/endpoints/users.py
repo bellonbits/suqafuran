@@ -21,11 +21,36 @@ def create_user_signup(
     *,
     db: Session = Depends(deps.get_db),
     user_in: UserCreate,
+    request: Request,
     background_tasks: BackgroundTasks
 ) -> Any:
     """
     Create new user without the need to be logged in.
     """
+    from sqlmodel import func, select
+    from datetime import datetime, timedelta
+
+    # Layer 1.1: Capture Signals
+    fingerprint = request.headers.get("X-Device-Fingerprint")
+    ip = request.client.host
+
+    # Layer 1.2: Anti-Bulk Defenses
+    # 1. IP Limit: Max 3 per 24h
+    one_day_ago = datetime.utcnow() - timedelta(days=1)
+    ip_count = db.exec(
+        select(func.count(User.id)).where(User.last_ip == ip, User.created_at >= one_day_ago)
+    ).one()
+    if ip_count >= 3:
+        raise HTTPException(status_code=429, detail="Too many accounts created from this IP. Try again tomorrow.")
+
+    # 2. Device Limit: Max 2 per 30 days
+    if fingerprint:
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        fp_count = db.exec(
+            select(func.count(User.id)).where(User.device_fingerprint == fingerprint, User.created_at >= thirty_days_ago)
+        ).one()
+        if fp_count >= 2:
+            raise HTTPException(status_code=429, detail="Too many accounts created from this device. Try again next month.")
     user = crud_user.get_user_by_email(db, email=user_in.email)
     if user:
         raise HTTPException(
@@ -33,6 +58,13 @@ def create_user_signup(
             detail="The user with this username already exists in the system",
         )
     user = crud_user.create_user(db, user_in=user_in)
+    
+    # Save signals
+    user.last_ip = ip
+    user.device_fingerprint = fingerprint
+    db.add(user)
+    db.commit()
+    db.refresh(user)
     
     # Generate and send verification code
     code = generate_verification_code()
@@ -70,7 +102,9 @@ def read_user_public(
         "is_verified": user.is_verified,
         "avatar_url": user.avatar_url,
         "phone": user.phone, # Adding phone for the profile call button
-        "response_time": user.response_time
+        "response_time": user.response_time,
+        "trust_score": user.trust_score,
+        "trust_level": user.trust_level
     }
 
 

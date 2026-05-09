@@ -16,7 +16,7 @@ import {
     MapPin, Clock, ShieldCheck, Flag,
     ChevronLeft, ChevronRight, Navigation,
     MoreVertical, Camera, ChevronDown, ChevronUp, MessageCircle,
-    Share2, PhoneCall, AlertTriangle, XCircle, UserPlus, UserCheck, Star, User, Zap, Trash2, Loader2
+    Share2, PhoneCall, AlertTriangle, XCircle, UserPlus, UserCheck, Star, User, Zap, Trash2, Loader2, CheckCircle
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { ProductCard } from '../components/ProductCard';
@@ -53,11 +53,11 @@ const ProductDetailPage: React.FC = () => {
     const [isTranslated, setIsTranslated] = useState(false);
     const queryClient = useQueryClient();
 
-    const markUnavailableMutation = useMutation({
-        mutationFn: (id: number) => api.patch(`/listings/${id}`, { is_active: false }),
+    const markAsSoldMutation = useMutation({
+        mutationFn: (id: number) => listingService.patchListing(id, { status: 'sold' }),
         onSuccess: () => {
-            setMarkedUnavailable(true);
             queryClient.invalidateQueries({ queryKey: ['listing', listingId] });
+            queryClient.invalidateQueries({ queryKey: ['listings'] });
         },
     });
 
@@ -244,7 +244,13 @@ const ProductDetailPage: React.FC = () => {
     const whatsappUrl = `https://wa.me/${ad?.owner?.phone?.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi, I'm interested in: ${effectiveTitle ?? ''}`)}`;
 
     const attrEntries = ad?.attributes
-        ? Object.entries(ad.attributes).filter(([k]) => k !== 'negotiable' && k !== 'kh_pin')
+        ? Object.entries(ad.attributes).filter(([k]) => 
+            k !== 'negotiable' && 
+            k !== 'kh_pin' && 
+            k !== 'bulk_currency' && 
+            k !== 'bulk_price' && 
+            k !== 'bulk_quantity'
+        )
         : [];
 
     const prevImage = () => setActiveImage(i => (i - 1 + images.length) % images.length);
@@ -1037,15 +1043,15 @@ const ProductDetailPage: React.FC = () => {
                                             {user?.id === ad.owner_id && (
                                                 <button
                                                     onClick={() => {
-                                                        if (!markedUnavailable && window.confirm(t('listing.markUnavailableConfirm', 'Mark this listing as unavailable?'))) {
-                                                            markUnavailableMutation.mutate(ad.id);
+                                                        if (ad.status === 'active' && window.confirm('Mark as sold? This ad will be hidden from buyers.')) {
+                                                            markAsSoldMutation.mutate(ad.id);
                                                         }
                                                     }}
-                                                    disabled={markedUnavailable || markUnavailableMutation.isPending}
-                                                    className="flex-1 h-9 rounded-lg border border-gray-200 text-gray-400 hover:text-gray-600 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                                                    disabled={ad.status === 'sold' || ad.status === 'closed' || markAsSoldMutation.isPending}
+                                                    className="flex-1 h-9 rounded-lg border border-gray-200 text-gray-400 hover:text-green-600 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-green-50 transition-colors disabled:opacity-50"
                                                 >
-                                                    <XCircle className="h-3.5 w-3.5" />
-                                                    {markedUnavailable ? t('listing.unavailable', 'Unavailable') : t('listing.markUnavailable')}
+                                                    <CheckCircle className="h-3.5 w-3.5" />
+                                                    {(ad.status === 'sold' || ad.status === 'closed') ? 'Sold / Closed' : 'Mark as Sold'}
                                                 </button>
                                             )}
                                             <button

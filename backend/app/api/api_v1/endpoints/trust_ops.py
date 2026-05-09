@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Any, Optional, List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session, select
 from sqlalchemy import text
 from app.api import deps
@@ -163,14 +163,53 @@ def create_rating(
 @router.post("/reports", response_model=Report)
 def create_report(
     payload: ReportCreateIn,
+    request: Request,
     db: Session = Depends(deps.get_db),
-    current_user = Depends(deps.get_current_user)
+    current_user: User = Depends(deps.get_current_active_user)
 ) -> Any:
+    # Get reporter signals
+    reporter_ip = request.client.host if request.client else None
+    reporter_fingerprint = request.headers.get("X-Device-Fingerprint")
+
+    # Get offender signals
+    offender = None
+    offender_id = None
+    if payload.listing_id:
+        listing = db.get(Listing, payload.listing_id)
+        if listing:
+            offender_id = listing.owner_id
+            offender = db.get(User, offender_id)
+    
+    risk_score = 0
+    offender_ip = offender.last_ip if offender else None
+    offender_fingerprint = offender.device_fingerprint if offender else None
+
+    # Unusual Account Detection
+    if offender_fingerprint:
+        # Check how many other accounts share this fingerprint
+        shared_accounts = db.exec(
+            select(User).where(User.device_fingerprint == offender_fingerprint, User.id != offender_id)
+        ).all()
+        if len(shared_accounts) > 1:
+            risk_score += 300 # High risk: Fingerprint shared across multiple accounts
+        
+    if reporter_fingerprint == offender_fingerprint:
+        risk_score += 50 # Suspect report: self-reporting or same device
+
+    if offender_ip and reporter_ip == offender_ip:
+        risk_score += 50 # Suspect report: same network
+
     report = Report(
         listing_id=payload.listing_id,
+        reported_user_id=offender_id,
         reporter_id=current_user.id,
         reason=payload.reason,
-        description=payload.description
+        description=payload.description,
+        reporter_ip=reporter_ip,
+        reporter_fingerprint=reporter_fingerprint,
+        offender_ip=offender_ip,
+        offender_fingerprint=offender_fingerprint,
+        risk_score=risk_score
     )
     db.add(report)
     db.commit()
@@ -206,8 +245,12 @@ def list_reports(
             "reason": r.reason,
             "description": r.description,
             "status": r.status,
+            "risk_score": r.risk_score,
             "admin_note": r.admin_note,
             "admin_action": r.admin_action,
+            "reporter_ip": r.reporter_ip,
+            "offender_ip": r.offender_ip,
+            "offender_fingerprint": r.offender_fingerprint,
             "created_at": r.created_at.isoformat(),
             "resolved_at": r.resolved_at.isoformat() if r.resolved_at else None,
             "reporter": {
@@ -220,6 +263,8 @@ def list_reports(
                 "name": reported_user.full_name,
                 "email": reported_user.email,
                 "is_active": reported_user.is_active,
+                "trust_score": reported_user.trust_score,
+                "verified_level": reported_user.verified_level,
             } if reported_user else None,
             "listing": {
                 "id": listing.id,
@@ -286,3 +331,42 @@ def take_report_action(
     db.commit()
     db.refresh(report)
     return {"ok": True, "status": report.status}
+
+
+@router.get("/admin/unusual-accounts")
+def list_unusual_accounts(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin only")
+
+    # Find fingerprints that are shared by more than 1 account
+    shared_fingerprints_query = text("""
+        SELECT device_fingerprint, COUNT(id) as count 
+        FROM "user" 
+        WHERE device_fingerprint IS NOT NULL 
+        GROUP BY device_fingerprint 
+        HAVING COUNT(id) > 1
+        ORDER BY count DESC
+    """)
+    clusters = db.execute(shared_fingerprints_query).all()
+    
+    result = []
+    for fingerprint, count in clusters:
+        # Get users in this cluster
+        users = db.exec(select(User).where(User.device_fingerprint == fingerprint)).all()
+        for u in users:
+            result.append({
+                "id": u.id,
+                "full_name": u.full_name,
+                "email": u.email,
+                "device_fingerprint": u.device_fingerprint,
+                "last_ip": u.last_ip,
+                "trust_score": u.trust_score,
+                "verified_level": u.verified_level,
+                "created_at": u.created_at.isoformat(),
+                "linked_accounts_count": count
+            })
+            
+    return result

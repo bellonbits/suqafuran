@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { auditService } from '../../services/auditService';
 import type { AuditLogEntry } from '../../services/auditService';
 import { promotionService } from '../../services/promotionService';
+import { adminService } from '../../services/adminService';
 import api from '../../services/api';
 import {
     CheckCircle, Clock, Search, RefreshCw, Shield, Activity,
@@ -538,6 +539,7 @@ const AgentDashboard: React.FC = () => {
                                 </div>
                             )}
                         </div>
+                    )}
 
 
                     {/* HISTORY */}

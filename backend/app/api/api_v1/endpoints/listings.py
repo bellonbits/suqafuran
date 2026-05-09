@@ -11,6 +11,8 @@ from app.core.config import settings
 import uuid
 import os
 from app.services.storage_service import storage_service
+from app.services.screening_service import calculate_listing_risk
+from datetime import datetime, timedelta
 
 router = APIRouter()
 
@@ -445,29 +447,67 @@ def create_listing(
     Verified sellers: listing goes live immediately (status='active').
     Unverified sellers: listing requires admin approval (status='pending').
     """
+    # Layer 6: Rate Limiting & Progressive Friction
+    account_age = datetime.utcnow() - current_user.created_at
+    
+    # 1. Block messaging for first 24h is handled in messages endpoint
+    
+    # 2. Listing Limits
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    todays_count = db.exec(
+        select(func.count(Listing.id)).where(
+            Listing.owner_id == current_user.id,
+            Listing.created_at >= today_start
+        )
+    ).one()
+
+    if account_age < timedelta(hours=24):
+        # Day 0: No listings allowed (Browse only)
+        raise HTTPException(status_code=403, detail="New accounts must wait 24 hours before posting their first ad.")
+    elif account_age < timedelta(days=3):
+        # Day 1-3: Max 1 listing
+        if todays_count >= 1:
+            raise HTTPException(status_code=403, detail="New accounts are limited to 1 ad per day during their first 3 days.")
+    elif account_age < timedelta(days=7):
+        # Day 4-7: Max 3 listings
+        if todays_count >= 3:
+            raise HTTPException(status_code=403, detail="Accounts in their first week are limited to 3 ads per day.")
+
+    # Layer 4: Risk Screening
+    risk_score = calculate_listing_risk(listing_in.dict(), current_user, db)
+    
+    # Initial status based on verification and risk
+    status = "pending"
+    if current_user.is_verified and risk_score < 40:
+        status = "active"
+    elif risk_score >= 80:
+        # High risk always needs manual review
+        status = "pending"
+        # Log high risk event
+        db.add(AuditLog(
+            user_id=current_user.id,
+            action="HIGH_RISK_LISTING",
+            resource_type="listing",
+            resource_id=0, # Will update after creation
+            details=f"Risk Score: {risk_score}"
+        ))
+
     listing = crud_listing.create_listing(
         db=db, listing_in=listing_in, owner_id=current_user.id
     )
+    listing.status = status
+    db.add(listing)
+    db.commit()
+    db.refresh(listing)
 
-    # Auto-publish for verified sellers; unverified stays 'pending' for admin review
-    if current_user.is_verified:
-        listing.status = "active"
-        db.add(listing)
-        db.commit()
-        db.refresh(listing)
-
-    log = AuditLog(
+    # Consolidated Audit Log
+    db.add(AuditLog(
         user_id=current_user.id,
         action="CREATE_LISTING",
         resource_type="listing",
         resource_id=listing.id,
-        details=(
-            f"Verified seller created listing '{listing.title_en}' → auto-published (active)"
-            if current_user.is_verified
-            else f"Unverified user created listing '{listing.title_en}' → pending review"
-        )
-    )
-    db.add(log)
+        details=f"Listing created with status '{status}' (Risk Score: {risk_score})"
+    ))
 
     # Track first-ad conversion for marketing referral codes
     if current_user.referral_code and not current_user.referral_listing_counted:
