@@ -18,12 +18,12 @@ depends_on = None
 
 def upgrade():
     # 1. Add new values to the enum type in Postgres
-    # Note: ALTER TYPE ... ADD VALUE cannot be run in a transaction block in older PG,
-    # but Alembic usually handles this or we use op.execute with commit.
-    # Postgres 12+ supports it better.
-    op.execute("ALTER TYPE userverifiedlevel ADD VALUE IF NOT EXISTS 'tier1'")
-    op.execute("ALTER TYPE userverifiedlevel ADD VALUE IF NOT EXISTS 'tier2'")
-    op.execute("ALTER TYPE userverifiedlevel ADD VALUE IF NOT EXISTS 'tier3'")
+    # New enum values must be committed before they can be used in the same transaction.
+    # We use autocommit_block to ensure they are committed immediately.
+    with op.get_context().autocommit_block():
+        op.execute("ALTER TYPE userverifiedlevel ADD VALUE IF NOT EXISTS 'tier1'")
+        op.execute("ALTER TYPE userverifiedlevel ADD VALUE IF NOT EXISTS 'tier2'")
+        op.execute("ALTER TYPE userverifiedlevel ADD VALUE IF NOT EXISTS 'tier3'")
 
     # 2. Update existing data to use the new values
     op.execute("UPDATE \"user\" SET verified_level = 'tier1' WHERE verified_level = 'phone'")
