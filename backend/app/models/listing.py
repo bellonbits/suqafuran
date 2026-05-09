@@ -21,7 +21,7 @@ class ListingBase(SQLModel):
     category_id: int = Field(foreign_key="category.id")
     subcategory_id: Optional[int] = Field(default=None, foreign_key="subcategory.id")
     subsubcategory_id: Optional[int] = Field(default=None, foreign_key="subsubcategory.id")
-    status: str = Field(default="pending")  # pending, active, closed, reported
+    status: str = Field(default="pending")  # pending, active, closed, reported, deleted
     boost_level: int = Field(default=0)  # 0: none, 1: basic, 2: vip, 3: diamond
     boost_expires_at: Optional[datetime] = None
     currency: str = Field(default="USD")

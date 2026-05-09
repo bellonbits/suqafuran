@@ -115,8 +115,11 @@ def update_listing(
 
 def remove_listing(db: Session, *, id: int) -> Listing:
     obj = db.get(Listing, id)
-    db.delete(obj)
-    db.commit()
+    if obj:
+        obj.status = "deleted"
+        db.add(obj)
+        db.commit()
+        db.refresh(obj)
     return obj
 
 
