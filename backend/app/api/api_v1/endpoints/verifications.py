@@ -164,9 +164,9 @@ def update_verification_status(
             user.is_verified = True
             # Map request tier to UserVerifiedLevel
             if request.tier == "tier3":
-                user.verified_level = UserVerifiedLevel.t3
+                user.verified_level = UserVerifiedLevel.tier3
             else:
-                user.verified_level = UserVerifiedLevel.t2
+                user.verified_level = UserVerifiedLevel.tier2
             db.add(user)
             
     db.commit()

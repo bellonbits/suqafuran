@@ -109,7 +109,7 @@ def verify_otp(
             )
             user.email_verified = True
             user.phone_verified = True
-            user.verified_level = UserVerifiedLevel.phone
+            user.verified_level = UserVerifiedLevel.tier1
 
             # Apply marketing promo code if present and valid
             promo_code_val = signup_data.get("promo_code")
@@ -139,7 +139,7 @@ def verify_otp(
     else:
         user.email_verified = True
         user.phone_verified = True
-        user.verified_level = UserVerifiedLevel.phone
+        user.verified_level = UserVerifiedLevel.tier1
         db.add(user)
         db.add(AuditLog(
             user_id=user.id, action="USER_LOGIN", resource_type="user",
