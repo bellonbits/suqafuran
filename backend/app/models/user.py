@@ -11,6 +11,8 @@ if TYPE_CHECKING:
 
 class UserVerifiedLevel(str, enum.Enum):
     guest = "guest"
+    phone = "phone" # Legacy
+    id = "id"       # Legacy
     t1 = "tier1" # Minimal (Phone/Email)
     t2 = "tier2" # Standard (ID/Address/Liveness)
     t3 = "tier3" # Enhanced (Video/Bank)
