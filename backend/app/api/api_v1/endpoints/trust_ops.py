@@ -269,7 +269,7 @@ def list_reports(
             "listing": {
                 "id": listing.id,
                 "title": listing.title_en or listing.title_so,
-                "is_active": listing.is_active,
+                "status": listing.status,
             } if listing else None,
         })
     return result
@@ -317,7 +317,7 @@ def take_report_action(
         if report.listing_id:
             listing = db.get(Listing, report.listing_id)
             if listing:
-                listing.is_active = False
+                listing.status = "closed"
                 db.add(listing)
     elif action == "dismiss":
         report.status = "dismissed"
