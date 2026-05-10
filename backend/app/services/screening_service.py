@@ -14,7 +14,7 @@ def get_category_median_price(category_id: int, db: Session) -> float:
     """Calculates the median price for a category in the last 30 days."""
     # Simplified version: just average for now
     prices = db.exec(
-        select(Listing.price).where(Listing.category_id == category_id, Listing.is_active == True)
+        select(Listing.price).where(Listing.category_id == category_id, Listing.status == "active")
     ).all()
     if not prices:
         return 0.0
