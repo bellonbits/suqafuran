@@ -165,9 +165,8 @@ class EmailService:
                 print(f"[Email] Redis unavailable in production — cannot store OTP for {email}")
                 return False
             code = "000000"
-
         self.increment_rate_limit(email)
-
+        otp_content = f"""
         <div style="background: #fff7ed; border-radius: 12px; padding: 32px; text-align: center; margin: 32px 0; border: 1px solid #ffedd5;">
           <span style="font-size: 42px; font-weight: 900; letter-spacing: 10px; color: #ea580c; font-family: monospace;">{code}</span>
         </div>
