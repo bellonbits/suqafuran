@@ -1,0 +1,310 @@
+import React, { useState } from 'react';
+import { PublicLayout } from '../layouts/PublicLayout';
+import { Mail, Phone, MapPin, Send, Instagram, Twitter, MessageSquare, CheckCircle, Loader2 } from 'lucide-react';
+
+
+/* ── TikTok icon (no lucide equivalent) ── */
+const TikTokIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.32 6.32 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.95a8.2 8.2 0 0 0 4.78 1.52V7.01a4.85 4.85 0 0 1-1.01-.32z"/>
+    </svg>
+);
+
+const SOCIALS = [
+    {
+        name: 'Instagram',
+        handle: '@suqafuran',
+        url: 'https://www.instagram.com/suqafuran/',
+        icon: Instagram,
+        color: 'bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400',
+        textColor: 'text-white',
+    },
+    {
+        name: 'X (Twitter)',
+        handle: '@suqafuran',
+        url: 'https://x.com/suqafuran',
+        icon: Twitter,
+        color: 'bg-black',
+        textColor: 'text-white',
+    },
+    {
+        name: 'TikTok',
+        handle: '@suqafuran_',
+        url: 'https://www.tiktok.com/@suqafuran_',
+        icon: TikTokIcon,
+        color: 'bg-black',
+        textColor: 'text-white',
+    },
+];
+
+const ContactPage: React.FC = () => {
+    const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+    const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setStatus('sending');
+        // Open default mail client as fallback — real form submission can be wired to backend later
+        const mailto = `mailto:support@suqafuran.com?subject=${encodeURIComponent(form.subject || 'Contact from website')}&body=${encodeURIComponent(`Name: ${form.name}\nEmail: ${form.email}\n\n${form.message}`)}`;
+        window.location.href = mailto;
+        setTimeout(() => setStatus('sent'), 800);
+    };
+
+    return (
+        <PublicLayout>
+            {/* ── Hero ── */}
+            <div
+                className="relative overflow-hidden py-20 text-white"
+                style={{ background: 'linear-gradient(135deg, var(--color-primary-600, #1b5e20) 0%, var(--color-primary-500, #2e7d32) 60%, var(--color-primary-400, #43a047) 100%)' }}
+            >
+                <div className="absolute -top-16 -right-16 w-80 h-80 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+                <div className="absolute bottom-0 -left-16 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+                <div className="container mx-auto px-4 text-center relative z-10">
+                    <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full text-sm font-semibold mb-4">
+                        <MessageSquare className="w-4 h-4" />
+                        We're here to help
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4">Get in Touch</h1>
+                    <p className="text-lg text-white/80 max-w-xl mx-auto">
+                        Have a question, feedback, or need support? Our team typically responds within 24 hours.
+                    </p>
+                </div>
+            </div>
+
+            <div className="container mx-auto px-4 py-16 max-w-6xl">
+                <div className="grid lg:grid-cols-5 gap-12">
+
+                    {/* ── Left: Contact info ── */}
+                    <div className="lg:col-span-2 space-y-8">
+
+                        {/* Direct contacts */}
+                        <div>
+                            <h2 className="text-xl font-black text-gray-900 mb-5">Direct Contact</h2>
+                            <div className="space-y-4">
+                                <a
+                                    href="mailto:support@suqafuran.com"
+                                    className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-primary-200 transition-all group"
+                                >
+                                    <div
+                                        className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                                        style={{ background: 'linear-gradient(135deg, var(--color-primary-500, #2e7d32), var(--color-primary-400, #43a047))' }}
+                                    >
+                                        <Mail className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Email Support</p>
+                                        <p className="text-sm font-bold text-gray-900 group-hover:text-primary-600 transition-colors truncate">support@suqafuran.com</p>
+                                        <p className="text-[11px] text-gray-400 mt-0.5">Replies within 24 hours</p>
+                                    </div>
+                                </a>
+
+                                <a
+                                    href="tel:+254700000000"
+                                    className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-primary-200 transition-all group"
+                                >
+                                    <div
+                                        className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                                        style={{ background: 'linear-gradient(135deg, var(--color-primary-500, #2e7d32), var(--color-primary-400, #43a047))' }}
+                                    >
+                                        <Phone className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Phone &amp; WhatsApp</p>
+                                        <p className="text-sm font-bold text-gray-900 group-hover:text-primary-600 transition-colors">+254 700 000 000</p>
+                                        <p className="text-[11px] text-gray-400 mt-0.5">Mon – Fri, 8am – 6pm EAT</p>
+                                    </div>
+                                </a>
+
+                                {/* Address */}
+                                <a
+                                    href="https://maps.google.com/?q=Krishna+Pointe,+Riverside+Lane,+Westlands,+Nairobi"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-primary-200 transition-all group"
+                                >
+                                    <div
+                                        className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                                        style={{ background: 'linear-gradient(135deg, var(--color-primary-500, #2e7d32), var(--color-primary-400, #43a047))' }}
+                                    >
+                                        <MapPin className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Our Office</p>
+                                        <p className="text-sm font-bold text-gray-900 group-hover:text-primary-600 transition-colors leading-snug">
+                                            Flat 13, Krishna Pointe<br />
+                                            Riverside Lane, Westlands<br />
+                                            Nairobi, Kenya
+                                        </p>
+                                        <p className="text-[11px] text-primary-600 font-semibold mt-0.5">Open in Maps →</p>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+
+                        {/* Social media */}
+                        <div>
+                            <h2 className="text-xl font-black text-gray-900 mb-5">Follow Us</h2>
+                            <div className="space-y-3">
+                                {SOCIALS.map(({ name, handle, url, icon: Icon, color, textColor }) => (
+                                    <a
+                                        key={name}
+                                        href={url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group"
+                                    >
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
+                                            <Icon className={`w-5 h-5 ${textColor}`} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{name}</p>
+                                            <p className="text-sm font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{handle}</p>
+                                        </div>
+                                        <span className="text-xs font-bold text-primary-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">Follow →</span>
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Office hours card */}
+                        <div
+                            className="rounded-2xl p-5 text-white relative overflow-hidden"
+                            style={{ background: 'linear-gradient(135deg, var(--color-primary-600, #1b5e20), var(--color-primary-500, #2e7d32))' }}
+                        >
+                            <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10 pointer-events-none" />
+                            <h3 className="font-black text-base mb-3 relative z-10">Office Hours</h3>
+                            <div className="space-y-2 text-sm relative z-10">
+                                <div className="flex justify-between">
+                                    <span className="text-white/70">Monday – Friday</span>
+                                    <span className="font-bold">8:00 – 18:00 EAT</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-white/70">Saturday</span>
+                                    <span className="font-bold">9:00 – 14:00 EAT</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-white/70">Sunday</span>
+                                    <span className="font-bold text-white/50">Closed</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ── Right: Contact form ── */}
+                    <div className="lg:col-span-3">
+                        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
+                            <h2 className="text-2xl font-black text-gray-900 mb-2">Send us a Message</h2>
+                            <p className="text-gray-500 text-sm mb-8">Fill in the form and we'll get back to you as soon as possible.</p>
+
+                            {status === 'sent' ? (
+                                <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
+                                    <div
+                                        className="w-20 h-20 rounded-full flex items-center justify-center"
+                                        style={{ background: 'var(--color-primary-50, #f1f8e9)' }}
+                                    >
+                                        <CheckCircle className="w-10 h-10" style={{ color: 'var(--color-primary-500, #2e7d32)' }} />
+                                    </div>
+                                    <h3 className="text-xl font-black text-gray-900">Message Sent!</h3>
+                                    <p className="text-gray-500 max-w-xs">Your email client should have opened. We'll reply to you shortly.</p>
+                                    <button
+                                        onClick={() => { setStatus('idle'); setForm({ name: '', email: '', subject: '', message: '' }); }}
+                                        className="mt-2 px-6 py-2.5 rounded-xl text-sm font-bold border border-gray-200 hover:bg-gray-50 transition-colors"
+                                    >
+                                        Send another
+                                    </button>
+                                </div>
+                            ) : (
+                                <form onSubmit={handleSubmit} className="space-y-5">
+                                    <div className="grid sm:grid-cols-2 gap-5">
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Your Name *</label>
+                                            <input
+                                                name="name"
+                                                required
+                                                value={form.name}
+                                                onChange={handleChange}
+                                                placeholder="John Kamau"
+                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Email Address *</label>
+                                            <input
+                                                name="email"
+                                                type="email"
+                                                required
+                                                value={form.email}
+                                                onChange={handleChange}
+                                                placeholder="john@example.com"
+                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Subject *</label>
+                                        <select
+                                            name="subject"
+                                            required
+                                            value={form.subject}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all bg-white"
+                                        >
+                                            <option value="">Select a topic…</option>
+                                            <option value="General Inquiry">General Inquiry</option>
+                                            <option value="Account Help">Account Help</option>
+                                            <option value="Listing / Ad Support">Listing / Ad Support</option>
+                                            <option value="Payment Issue">Payment Issue</option>
+                                            <option value="Report a Problem">Report a Problem</option>
+                                            <option value="Business / Partnership">Business / Partnership</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Message *</label>
+                                        <textarea
+                                            name="message"
+                                            required
+                                            rows={6}
+                                            value={form.message}
+                                            onChange={handleChange}
+                                            placeholder="Tell us how we can help you…"
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all resize-none"
+                                        />
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={status === 'sending'}
+                                        className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-white font-black text-sm shadow-lg active:scale-[0.98] transition-all disabled:opacity-60"
+                                        style={{ background: 'linear-gradient(135deg, var(--color-primary-600, #1b5e20), var(--color-primary-500, #2e7d32))' }}
+                                    >
+                                        {status === 'sending' ? (
+                                            <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</>
+                                        ) : (
+                                            <><Send className="w-4 h-4" /> Send Message</>
+                                        )}
+                                    </button>
+
+                                    <p className="text-[11px] text-gray-400 text-center">
+                                        Or email us directly at{' '}
+                                        <a href="mailto:support@suqafuran.com" className="font-bold hover:underline" style={{ color: 'var(--color-primary-600, #1b5e20)' }}>
+                                            support@suqafuran.com
+                                        </a>
+                                    </p>
+                                </form>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </PublicLayout>
+    );
+};
+
+export { ContactPage };

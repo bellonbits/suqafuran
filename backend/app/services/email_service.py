@@ -74,6 +74,65 @@ class EmailService:
             print(f"[Email] Redis INCR error: {e}")
             self.redis = None
 
+    def _get_base_template(self, title: str, subtitle: str, content: str) -> str:
+        """Professional Suqafuran email wrapper."""
+        return f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f6f9fc; padding: 40px 0; margin: 0;">
+          <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%); padding: 48px 20px; text-align: center; color: white;">
+              <img src="https://suqafuran.com/logo.png" alt="Suqafuran" style="height: 56px; margin-bottom: 16px; display: block; margin-left: auto; margin-right: auto;">
+              <h1 style="margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.5px;">Suqafuran</h1>
+              <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px; font-weight: 500;">Kenya's Trusted Marketplace</p>
+            </div>
+            
+            <!-- Content -->
+            <div style="padding: 48px 40px; color: #334155; line-height: 1.6;">
+              <h2 style="margin-top: 0; color: #1e293b; font-size: 22px; font-weight: 800; letter-spacing: -0.3px;">{title}</h2>
+              <p style="font-size: 16px; margin-bottom: 32px;">{subtitle}</p>
+              {content}
+              <p style="margin-top: 32px; font-size: 14px; color: #94a3b8; font-style: italic;">
+                Best regards,<br>
+                <strong>The Suqafuran Team</strong>
+              </p>
+            </div>
+            
+            <!-- Footer -->
+            <div style="background: #f8fafc; padding: 48px 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+              <p style="font-size: 14px; font-weight: 700; color: #64748b; margin-bottom: 24px;">Connect with us</p>
+              <div style="margin-bottom: 32px;">
+                <a href="https://www.instagram.com/suqafuran/" style="margin: 0 10px; text-decoration: none; display: inline-block;">
+                  <img src="https://suqafuran.com/icons/instagram.png" alt="Instagram" width="24" height="24">
+                </a>
+                <a href="https://x.com/suqafuran" style="margin: 0 10px; text-decoration: none; display: inline-block;">
+                  <img src="https://suqafuran.com/icons/twitter.png" alt="X" width="24" height="24">
+                </a>
+                <a href="https://www.tiktok.com/@suqafuran_" style="margin: 0 10px; text-decoration: none; display: inline-block;">
+                  <img src="https://suqafuran.com/icons/tiktok.png" alt="TikTok" width="24" height="24">
+                </a>
+              </div>
+              
+              <div style="font-size: 12px; color: #94a3b8; line-height: 1.8;">
+                <p style="margin: 0; font-weight: 600; color: #64748b;">Suqafuran Limited</p>
+                <p style="margin: 4px 0 0 0;">Flat 13, Krishna Pointe Riverside Lane, Westlands Nairobi</p>
+                <p style="margin: 4px 0 0 0;">&copy; 2026 Suqafuran. All rights reserved.</p>
+              </div>
+              
+              <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #eef2f6;">
+                <a href="mailto:support@suqafuran.com" style="color: #f97316; font-weight: 800; text-decoration: none; font-size: 13px;">support@suqafuran.com</a>
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
+        """
+
     def generate_otp(self) -> str:
         return str(secrets.randbelow(900000) + 100000)
 
@@ -109,17 +168,18 @@ class EmailService:
 
         self.increment_rate_limit(email)
 
-        html_body = f"""
-        <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:32px;">
-          <h2 style="color:#1a1a1a;">Your verification code</h2>
-          <p style="color:#555;">Use the code below to verify your account. It expires in 5 minutes.</p>
-          <div style="background:#f4f4f4;border-radius:12px;padding:24px;text-align:center;margin:24px 0;">
-            <span style="font-size:36px;font-weight:bold;letter-spacing:8px;color:#1a1a1a;">{code}</span>
-          </div>
-          <p style="color:#999;font-size:13px;">If you didn't request this, ignore this email.</p>
-          <p style="color:#999;font-size:13px;">&mdash; The Suqafuran Team</p>
+        otp_content = f"""
+        <div style="background: #fff7ed; border-radius: 12px; padding: 32px; text-align: center; margin: 32px 0; border: 1px solid #ffedd5;">
+          <span style="font-size: 42px; font-weight: 900; letter-spacing: 10px; color: #ea580c; font-family: monospace;">{code}</span>
         </div>
+        <p style="color: #64748b; font-size: 13px; text-align: center;">This code will expire in 5 minutes. If you did not request this code, you can safely ignore this email.</p>
         """
+
+        html_body = self._get_base_template(
+            title="Verify your account",
+            subtitle="Welcome to Suqafuran! Please use the verification code below to complete your registration.",
+            content=otp_content
+        )
 
         # Try Resend first
         if settings.RESEND_API_KEY:
@@ -170,17 +230,18 @@ class EmailService:
         return False
 
     def send_reset_code(self, email: str, code: str) -> bool:
-        html_body = f"""
-        <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:32px;">
-          <h2 style="color:#1a1a1a;">Reset your password</h2>
-          <p style="color:#555;">Use the code below to reset your Suqafuran password. It expires in 1 hour.</p>
-          <div style="background:#f4f4f4;border-radius:12px;padding:24px;text-align:center;margin:24px 0;">
-            <span style="font-size:36px;font-weight:bold;letter-spacing:8px;color:#1a1a1a;">{code}</span>
-          </div>
-          <p style="color:#999;font-size:13px;">If you didn't request this, ignore this email.</p>
-          <p style="color:#999;font-size:13px;">&mdash; The Suqafuran Team</p>
+        reset_content = f"""
+        <div style="background: #fff7ed; border-radius: 12px; padding: 32px; text-align: center; margin: 32px 0; border: 1px solid #ffedd5;">
+          <span style="font-size: 42px; font-weight: 900; letter-spacing: 10px; color: #ea580c; font-family: monospace;">{code}</span>
         </div>
+        <p style="color: #64748b; font-size: 13px; text-align: center;">This code will expire in 1 hour. If you did not request a password reset, please secure your account.</p>
         """
+
+        html_body = self._get_base_template(
+            title="Reset your password",
+            subtitle="We received a request to reset your Suqafuran password. Use the code below to proceed.",
+            content=reset_content
+        )
 
         if settings.RESEND_API_KEY:
             try:

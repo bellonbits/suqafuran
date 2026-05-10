@@ -42,6 +42,9 @@ const EditAdPage = lazyNamed(() => import('./pages/EditAdPage'), 'EditAdPage');
 const SellerProfilePage = lazyNamed(() => import('./pages/SellerProfilePage'), 'SellerProfilePage');
 const SearchResultsPage = lazyNamed(() => import('./pages/SearchResultsPage'), 'SearchResultsPage');
 const AboutPage = lazyNamed(() => import('./pages/AboutPage'), 'AboutPage');
+const ContactPage = lazyNamed(() => import('./pages/ContactPage'), 'ContactPage');
+const DownloadPage = lazyNamed(() => import('./pages/DownloadPage'), 'DownloadPage');
+
 const SafetyTipsPage = lazyNamed(() => import('./pages/SafetyTipsPage'), 'SafetyTipsPage');
 const ForgotPasswordPage = lazyNamed(() => import('./pages/ForgotPasswordPage'), 'ForgotPasswordPage');
 const ResetPasswordPage = lazyNamed(() => import('./pages/ResetPasswordPage'), 'ResetPasswordPage');
@@ -183,6 +186,9 @@ const App: React.FC = () => {
             <Route path="/seller/:sellerId" element={<SellerProfilePage />} />
             <Route path="/search" element={<SearchResultsPage />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/download" element={<DownloadPage />} />
+
             <Route path="/safety" element={<SafetyTipsPage />} />
             <Route path="/privacy" element={<PrivacyPolicyPage />} />
             <Route path="/terms" element={<TermsPage />} />
