@@ -55,6 +55,8 @@ def get_listings(
         statement = statement.where(Listing.price <= max_price)
     if status is not None:
         statement = statement.where(Listing.status == status)
+    else:
+        statement = statement.where(Listing.status != "deleted")
 
     if attributes:
         attrs_copy = dict(attributes)
@@ -116,8 +118,10 @@ def update_listing(
 def remove_listing(db: Session, *, id: int) -> Listing:
     obj = db.get(Listing, id)
     if obj:
-        db.delete(obj)
+        obj.status = "deleted"
+        db.add(obj)
         db.commit()
+        db.refresh(obj)
     return obj
 
 
