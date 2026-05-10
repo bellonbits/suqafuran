@@ -55,6 +55,8 @@ class DemandInsightsRequest(BaseModel):
 
 class SupportChatRequest(BaseModel):
     messages: List[dict]
+    current_listing_id: Optional[int] = None
+    user_history: Optional[List[int]] = []
 
 
 # ─── Endpoints ────────────────────────────────────────────────────────────────
@@ -200,7 +202,11 @@ def support_chat(
     current_user: Optional[User] = Depends(deps.get_current_user_optional),
 ):
     """AI Support Agent for the marketplace."""
-    result = ai_service.get_support_response(messages=body.messages)
+    result = ai_service.get_support_response(
+        messages=body.messages,
+        db=db,
+        current_listing_id=body.current_listing_id
+    )
     
     # If the AI thinks a ticket is needed, or if we want to log all support chats
     if result.get("needs_ticket") or True: # Logging all for follow-up

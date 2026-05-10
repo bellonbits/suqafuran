@@ -57,8 +57,11 @@ export const aiService = {
         return response.data;
     },
 
-    async getSupportChat(messages: { role: string; content: string }[]) {
-        const response = await api.post('/ai/support/chat', { messages });
+    async getSupportChat(messages: { role: string; content: string }[], currentListingId?: number) {
+        const response = await api.post('/ai/support/chat', { 
+            messages,
+            current_listing_id: currentListingId
+        });
         return response.data;
     }
 };

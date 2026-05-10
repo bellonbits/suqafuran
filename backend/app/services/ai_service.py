@@ -421,15 +421,53 @@ Return a JSON object:
         except:
             return {"title": input_text, "suggestions": [input_text]}
 
-    def get_support_response(self, messages: list) -> dict:
+    def get_support_response(self, messages: list, db: any = None, current_listing_id: int = None) -> dict:
         """
-        AI Support Agent that knows about Suqafuran.
+        AI Support Agent that knows about Suqafuran and current product context.
         """
         if not self.client:
             raise HTTPException(status_code=503, detail="AI Service is not configured")
 
-        system_prompt = """
+        listing_context = ""
+        recommendations = []
+        
+        if db and current_listing_id:
+            from app.models.listing import Listing
+            from sqlmodel import select
+            
+            listing = db.exec(select(Listing).where(Listing.id == current_listing_id)).first()
+            if listing:
+                listing_context = f"""
+                USER IS CURRENTLY LOOKING AT THIS PRODUCT:
+                - Title: {listing.title_en}
+                - Price: {listing.price} {listing.currency}
+                - Category ID: {listing.category_id}
+                - Condition: {listing.condition}
+                - Location: {listing.location}
+                """
+                
+                # Fetch 3 similar products in same category
+                similar = db.exec(
+                    select(Listing)
+                    .where(Listing.category_id == listing.category_id)
+                    .where(Listing.id != current_listing_id)
+                    .where(Listing.status == "active")
+                    .limit(3)
+                ).all()
+                
+                for item in similar:
+                    recommendations.append({
+                        "id": item.id,
+                        "title": item.title_en,
+                        "price": item.price,
+                        "currency": item.currency,
+                        "image": item.images[0] if item.images else None
+                    })
+
+        system_prompt = f"""
         You are a helpful and professional customer support agent for Suqafuran — the leading marketplace for Somalia and Africa.
+        
+        {listing_context}
         
         YOUR IDENTITY:
         - Your name is 'Suqafuran Agent'.
@@ -439,6 +477,8 @@ Return a JSON object:
         YOUR MISSION:
         - Help users navigate Suqafuran (posting ads, buying, payments).
         - Answer questions about marketplace rules, boosting plans, and safety.
+        - If the user is looking at a product (see context above), help them with it.
+        - If they seem interested but unsure, suggest similar products from our marketplace.
         - NEVER answer questions outside of Suqafuran or marketplace context.
         - If you don't know the answer or the user is frustrated, tell them to contact our human team on WhatsApp: +252 612 958679.
         - Be professional, helpful, and concise.
@@ -450,21 +490,24 @@ Return a JSON object:
         - Listing: Users can post for free, but boosting gives better reach.
         - Verification: Users can verify their IDs to build trust.
         
+        PRODUCT RECOMMENDATIONS:
+        If the user asks for suggestions or seems to be browsing, you can mention that we have other similar items.
+        
         STRICTOR CONTEXT RULE:
-        If the user asks about anything NOT related to Suqafuran (e.g., politics, unrelated tech, personal advice, other websites), politely state that you only assist with Suqafuran marketplace concerns and offer to help with an ad or a search instead.
+        If the user asks about anything NOT related to Suqafuran, politely state that you only assist with Suqafuran marketplace concerns.
         
         TICKET GENERATION:
-        If the user has a serious issue (scam report, payment failure, technical bug, account locked), you should flag it as a ticket.
-        You must decide if a ticket is needed.
+        If the user has a serious issue (scam report, payment failure, technical bug), flag it as a ticket.
         
         RESPONSE FORMAT:
         Return a JSON object:
-        {
+        {{
             "answer": "your message to user",
             "needs_ticket": true | false,
             "ticket_priority": "low | medium | high",
-            "ticket_subject": "short summary of issue"
-        }
+            "ticket_subject": "short summary of issue",
+            "suggest_products": true | false
+        }}
         """
         
         # Format conversation history
@@ -491,7 +534,8 @@ Return a JSON object:
                 "whatsapp_support": "+252 612 958679",
                 "needs_ticket": result.get("needs_ticket", False),
                 "ticket_priority": result.get("ticket_priority", "low"),
-                "ticket_subject": result.get("ticket_subject", "Support Inquiry")
+                "ticket_subject": result.get("ticket_subject", "Support Inquiry"),
+                "recommendations": recommendations if result.get("suggest_products") else []
             }
         except Exception as e:
             logger.error(f"Support AI Error: {e}")

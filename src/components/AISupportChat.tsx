@@ -3,15 +3,19 @@ import { MessageCircle, X, Send, Phone, Bot, User, Loader2, Minimize2, Maximize2
 import { aiService } from '../services/aiService';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../utils/cn';
+import { useParams, Link } from 'react-router-dom';
+import { ShoppingBag } from 'lucide-react';
 
 interface Message {
     role: 'user' | 'assistant';
     content: string;
     timestamp: Date;
+    recommendations?: any[];
 }
 
 export const AISupportChat: React.FC = () => {
     const { t } = useTranslation();
+    const { id: listingId } = useParams<{ id: string }>();
     const [isOpen, setIsOpen] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
     const [isVisible, setIsVisible] = useState(true);
@@ -49,12 +53,13 @@ export const AISupportChat: React.FC = () => {
                 content: m.content
             }));
             
-            const response = await aiService.getSupportChat(history);
+            const response = await aiService.getSupportChat(history, listingId ? parseInt(listingId) : undefined);
             
             setMessages(prev => [...prev, {
                 role: 'assistant',
                 content: response.answer,
-                timestamp: new Date()
+                timestamp: new Date(),
+                recommendations: response.recommendations
             }]);
         } catch (error) {
             setMessages(prev => [...prev, {
@@ -141,6 +146,35 @@ export const AISupportChat: React.FC = () => {
                                         : "bg-white text-gray-800 border border-gray-100 rounded-tl-none"
                                 )}>
                                     {msg.content}
+                                    
+                                    {msg.recommendations && msg.recommendations.length > 0 && (
+                                        <div className="mt-3 pt-3 border-t border-gray-100 space-y-2 w-full min-w-[200px]">
+                                            <p className="text-[10px] font-bold text-primary-600 uppercase tracking-wider mb-2">Similar Items</p>
+                                            <div className="grid gap-2">
+                                                {msg.recommendations.map((item: any) => (
+                                                    <Link 
+                                                        key={item.id} 
+                                                        to={`/listings/${item.id}`}
+                                                        className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors group"
+                                                    >
+                                                        <div className="w-10 h-10 rounded bg-gray-200 overflow-hidden shrink-0">
+                                                            {item.image ? (
+                                                                <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                                                    <ShoppingBag size={14} />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-[11px] font-medium text-gray-900 truncate group-hover:text-primary-600">{item.title}</p>
+                                                            <p className="text-[10px] text-primary-600 font-bold">{item.price} {item.currency}</p>
+                                                        </div>
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                                 <span className="text-[10px] text-gray-400 mt-1 px-1">
                                     {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
