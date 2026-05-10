@@ -71,6 +71,10 @@ const VerificationPage: React.FC = () => {
                 formData.append('video_selfie_file', videoSelfieFile);
             }
 
+            if (aiResult) {
+                formData.append('facial_match_score', String(aiResult.match_score || 0));
+            }
+
             if (selfieFile) {
                 formData.append('selfie_file', selfieFile, selfieFile.name);
             } else if (selfieCapture) {
@@ -150,6 +154,29 @@ const VerificationPage: React.FC = () => {
                 <BiometricScanner 
                     onComplete={handleScannerComplete} 
                     onCancel={() => setShowAdvancedScanner(false)} 
+                    fetchResult={async () => {
+                        const formData = new FormData();
+                        if (documentFiles.length > 0) {
+                            formData.append('document_file', documentFiles[0]);
+                        } else {
+                            throw new Error("No document file");
+                        }
+                        
+                        if (selfieFile) {
+                            formData.append('selfie_file', selfieFile, selfieFile.name);
+                        } else if (selfieCapture) {
+                            const res = await fetch(selfieCapture);
+                            const blob = await res.blob();
+                            formData.append('selfie_file', blob, 'selfie.jpg');
+                        } else {
+                            throw new Error("No selfie file");
+                        }
+                        
+                        const res = await api.post('/ai/verifications/check-match', formData, {
+                            headers: { 'Content-Type': 'multipart/form-data' }
+                        });
+                        return res.data;
+                    }}
                 />
             )}
 
@@ -503,26 +530,39 @@ const VerificationPage: React.FC = () => {
                     )}
 
                     {aiResult && (
-                        <div className="bg-green-50 p-6 rounded-2xl border border-green-200 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className={cn(
+                            "p-6 rounded-2xl border animate-in fade-in slide-in-from-bottom-4 duration-500",
+                            aiResult.is_authentic ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
+                        )}>
                             <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-2 text-green-700">
-                                    <CheckCircle className="h-5 w-5" />
-                                    <h3 className="font-bold uppercase text-xs tracking-widest">Smart Analysis Complete</h3>
+                                <div className={cn("flex items-center gap-2", aiResult.is_authentic ? "text-green-700" : "text-red-700")}>
+                                    {aiResult.is_authentic ? <CheckCircle className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+                                    <h3 className="font-bold uppercase text-xs tracking-widest">
+                                        {aiResult.is_authentic ? "Smart Analysis Complete" : "Verification Failed"}
+                                    </h3>
                                 </div>
-                                <span className="text-[10px] font-black text-green-700">{aiResult.match_score}% MATCH</span>
+                                <span className={cn("text-[10px] font-black", aiResult.is_authentic ? "text-green-700" : "text-red-700")}>
+                                    {aiResult.match_score}% MATCH
+                                </span>
                             </div>
                             <div className="space-y-3">
                                 <div className="flex justify-between items-center text-xs">
-                                    <span className="text-green-800">Biometric Similarity</span>
-                                    <span className="font-bold text-green-900">High Confidence</span>
+                                    <span className={aiResult.is_authentic ? "text-green-800" : "text-red-800"}>Biometric Similarity</span>
+                                    <span className={cn("font-bold", aiResult.is_authentic ? "text-green-900" : "text-red-900")}>
+                                        {aiResult.is_authentic ? "High Confidence" : "Low Confidence"}
+                                    </span>
                                 </div>
-                                <div className="w-full h-1.5 bg-green-200 rounded-full overflow-hidden">
+                                <div className={cn("w-full h-1.5 rounded-full overflow-hidden", aiResult.is_authentic ? "bg-green-200" : "bg-red-200")}>
                                     <div 
-                                        className="h-full bg-green-600 rounded-full transition-all duration-1000" 
-                                        style={{ width: `${aiResult.match_score}%` }}
+                                        className={cn("h-full rounded-full transition-all duration-1000", aiResult.is_authentic ? "bg-green-600" : "bg-red-600")} 
+                                        style={{ width: `${Math.max(10, aiResult.match_score)}%` }}
                                     />
                                 </div>
-                                <p className="text-[10px] text-green-700 italic">Face match confirmed. Documents appear authentic. Ready for final submission.</p>
+                                <p className={cn("text-[10px] italic", aiResult.is_authentic ? "text-green-700" : "text-red-700 font-bold")}>
+                                    {aiResult.is_authentic 
+                                        ? "Face match confirmed. Documents appear authentic. Ready for final submission." 
+                                        : aiResult.reason || "The uploaded image does not appear to be a valid ID document. Please try again with a clear, readable ID card."}
+                                </p>
                             </div>
                         </div>
                     )}

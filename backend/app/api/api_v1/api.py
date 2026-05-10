@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.api_v1.endpoints import auth, users, listings, admin, favorites, notifications, dashboard, verifications, wallet, boosts, interactions, meetings, deals, trust_ops, promotions, login, mobile_money, audit, kh, messages, translate, feedback, follows, content, ai, marketing, support
+from app.api.api_v1.endpoints import auth, users, listings, admin, favorites, notifications, dashboard, verifications, wallet, boosts, interactions, meetings, deals, trust_ops, promotions, login, mobile_money, audit, kh, messages, translate, feedback, follows, content, ai, marketing, support, verification_check
 
 api_router = APIRouter()
 api_router.include_router(login.router, tags=["login"])
@@ -31,3 +31,4 @@ api_router.include_router(content.router, prefix="/content", tags=["content"])
 api_router.include_router(ai.router, prefix="/ai", tags=["ai"])
 api_router.include_router(marketing.router, prefix="/marketing", tags=["marketing"])
 api_router.include_router(support.router, prefix="/support", tags=["support"])
+api_router.include_router(verification_check.router, prefix="/ai/verifications", tags=["ai-verifications"])

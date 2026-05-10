@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Sparkles, Loader2, CheckCircle, Fingerprint } from 'lucide-react';
+import { Shield, Sparkles, Loader2, CheckCircle, Fingerprint, XCircle } from 'lucide-react';
 import { cn } from '../utils/cn';
 
 interface BiometricScannerProps {
     onComplete: (result: any) => void;
     onCancel: () => void;
+    fetchResult: () => Promise<any>;
 }
 
-export const BiometricScanner: React.FC<BiometricScannerProps> = ({ onComplete, onCancel }) => {
+export const BiometricScanner: React.FC<BiometricScannerProps> = ({ onComplete, onCancel, fetchResult }) => {
     const [progress, setProgress] = useState(0);
     const [status, setStatus] = useState<'scanning' | 'analyzing' | 'complete'>('scanning');
     const [scanLines, setScanLines] = useState<number[]>([]);
+    const [realResult, setRealResult] = useState<any>(null);
 
     useEffect(() => {
         if (status === 'scanning') {
@@ -27,17 +29,25 @@ export const BiometricScanner: React.FC<BiometricScannerProps> = ({ onComplete, 
             }, 50);
             return () => clearInterval(interval);
         } else if (status === 'analyzing') {
-            const timer = setTimeout(() => {
-                setStatus('complete');
-                setTimeout(() => {
-                    onComplete({
-                        match_score: 98.4,
-                        is_authentic: true,
-                        biometric_tokens: "v3_sha256_verified"
-                    });
-                }, 1000);
-            }, 2500);
-            return () => clearTimeout(timer);
+            let isCancelled = false;
+            fetchResult().then(res => {
+                if (!isCancelled) {
+                    setRealResult(res);
+                    setStatus('complete');
+                    setTimeout(() => {
+                        onComplete(res);
+                    }, 1500);
+                }
+            }).catch(() => {
+                if (!isCancelled) {
+                    setRealResult({ match_score: 0, is_authentic: false, reason: "Error contacting AI server" });
+                    setStatus('complete');
+                    setTimeout(() => {
+                        onComplete({ match_score: 0, is_authentic: false, reason: "Error contacting AI server" });
+                    }, 1500);
+                }
+            });
+            return () => { isCancelled = true; };
         }
     }, [status, onComplete]);
 
@@ -107,10 +117,21 @@ export const BiometricScanner: React.FC<BiometricScannerProps> = ({ onComplete, 
                             )}
                             {status === 'complete' && (
                                 <div className="flex flex-col items-center gap-3 animate-in zoom-in duration-300">
-                                    <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center shadow-[0_0_20px_#22c55e]">
-                                        <CheckCircle className="h-6 w-6 text-white" />
-                                    </div>
-                                    <span className="text-xs font-black text-green-400 uppercase tracking-widest">Match Confirmed</span>
+                                    {realResult?.is_authentic === false ? (
+                                        <>
+                                            <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-[0_0_20px_#ef4444]">
+                                                <XCircle className="h-6 w-6 text-white" />
+                                            </div>
+                                            <span className="text-xs font-black text-red-400 uppercase tracking-widest text-center">Invalid Document<br/><span className="text-[8px] opacity-80 mt-1 block leading-tight max-w-[150px]">Image does not appear to be a valid ID card</span></span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center shadow-[0_0_20px_#22c55e]">
+                                                <CheckCircle className="h-6 w-6 text-white" />
+                                            </div>
+                                            <span className="text-xs font-black text-green-400 uppercase tracking-widest">Match Confirmed</span>
+                                        </>
+                                    )}
                                 </div>
                             )}
                         </div>

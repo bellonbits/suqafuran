@@ -26,6 +26,7 @@ async def apply_for_verification(
     tier: str = Form("tier2"),
     proof_of_address_file: Optional[UploadFile] = File(None),
     video_selfie_file: Optional[UploadFile] = File(None),
+    facial_match_score: float = Form(0.0),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """Submit a verification request with ID documents and a selfie."""
@@ -82,7 +83,7 @@ async def apply_for_verification(
         selfie_url=selfie_url,
         proof_of_address_url=address_url,
         video_selfie_url=video_url,
-        facial_match_score=0.0,
+        facial_match_score=facial_match_score,
         auto_verification_status="manual_review"
     )
     db.add(db_obj)

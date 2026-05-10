@@ -626,4 +626,63 @@ Return a JSON object:
             raise HTTPException(status_code=500, detail=f"AI processing failed: {str(e)}")
 
 # Singleton instance
+    def verify_identity(self, selfie_b64: str, document_b64: str) -> tuple[float, bool, str]:
+        if not self.client:
+            return 85.0, True, "AI service not configured, bypassing."
+
+        # Note: True face-matching via LLM is imperfect and often restricted by safety filters.
+        # This implementation uses the vision model to attempt a basic comparison of the two images.
+        system_prompt = """
+        You are an AI Identity Verification Assistant. 
+        You are given two images: 
+        1. A live selfie of a user.
+        2. A photo of an ID document.
+        
+        Analyze both images and compare the face in the selfie with the face on the ID document.
+        Do they appear to be the same person?
+        Also verify if the ID document looks like a real, authentic ID card or passport.
+        
+        Return a JSON object:
+        {{
+            "match_score": 95.5,
+            "is_authentic": true,
+            "reason": "Faces appear to match and document looks authentic."
+        }}
+        Output ONLY the JSON object.
+        """
+
+        try:
+            chat_completion = self.client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": "Compare these two images."},
+                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{selfie_b64}"}},
+                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{document_b64}"}},
+                        ],
+                    }
+                ],
+                model="llama-3.2-11b-vision-preview",
+                temperature=0.1,
+                max_tokens=150,
+            )
+            response_text = chat_completion.choices[0].message.content
+            
+            import json
+            import re
+            json_match = re.search(r'\{.*\}', response_text.replace('\n', ''))
+            if json_match:
+                data = json.loads(json_match.group())
+                score = float(data.get("match_score", 0.0))
+                is_auth = bool(data.get("is_authentic", False))
+                reason = str(data.get("reason", "No reason provided."))
+                return score, is_auth, reason
+            else:
+                return 50.0, False, "Failed to parse AI response."
+        except Exception as e:
+            logger.error(f"Error in verify_identity: {e}")
+            return 0.0, False, f"Error processing images: {str(e)}"
+
 ai_service = AIService()
