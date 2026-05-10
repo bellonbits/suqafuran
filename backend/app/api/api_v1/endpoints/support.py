@@ -13,7 +13,7 @@ def read_tickets(
     skip: int = 0,
     limit: int = 100,
     status: Optional[str] = None,
-    current_user: User = Depends(deps.get_current_active_admin),
+    current_user: User = Depends(deps.get_current_active_superuser),
 ):
     """Retrieve support tickets (Admin only)."""
     query = select(SupportTicket)
@@ -27,7 +27,7 @@ def read_tickets(
 def read_ticket(
     ticket_id: int,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_admin),
+    current_user: User = Depends(deps.get_current_active_superuser),
 ):
     """Get ticket details (Admin only)."""
     ticket = db.get(SupportTicket, ticket_id)
@@ -40,7 +40,7 @@ def update_ticket(
     ticket_id: int,
     ticket_in: SupportTicketUpdate,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_admin),
+    current_user: User = Depends(deps.get_current_active_superuser),
 ):
     """Update ticket status or notes (Admin only)."""
     db_ticket = db.get(SupportTicket, ticket_id)
@@ -60,7 +60,7 @@ def update_ticket(
 def delete_ticket(
     ticket_id: int,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_admin),
+    current_user: User = Depends(deps.get_current_active_superuser),
 ):
     """Delete a ticket (Admin only)."""
     ticket = db.get(SupportTicket, ticket_id)
@@ -73,7 +73,7 @@ def delete_ticket(
 @router.get("/stats")
 def support_stats(
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_admin),
+    current_user: User = Depends(deps.get_current_active_superuser),
 ):
     """Get support stats (Admin only)."""
     total = db.exec(select(func.count(SupportTicket.id))).one()
