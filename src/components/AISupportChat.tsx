@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send, Phone, Bot, User, Loader2, Minimize2, Maximize2 } from 'lucide-react';
+import { MessageCircle, X, Send, Phone, User, Loader2, Minimize2, Maximize2 } from 'lucide-react';
 import { aiService } from '../services/aiService';
-import { useTranslation } from 'react-i18next';
 import { cn } from '../utils/cn';
 import { useParams, Link } from 'react-router-dom';
 import { ShoppingBag } from 'lucide-react';
@@ -14,7 +13,6 @@ interface Message {
 }
 
 export const AISupportChat: React.FC = () => {
-    const { t } = useTranslation();
     const { id: listingId } = useParams<{ id: string }>();
     const [isOpen, setIsOpen] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);

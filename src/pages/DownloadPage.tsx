@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Apple, Download, ChevronRight, CheckCircle, Star, Users, ShoppingBag, Zap } from 'lucide-react';
 

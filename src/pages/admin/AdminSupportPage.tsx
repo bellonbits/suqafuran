@@ -1,13 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
-    LifeBuoy, Search, Filter, MessageSquare, 
-    CheckCircle2, Clock, AlertCircle, Trash2,
-    User, Calendar, Shield, ExternalLink,
-    MoreVertical, ChevronRight, MessageCircle, Bot,
-    Flag, Save
+    LifeBuoy, CheckCircle2, User, Calendar,
+    MoreVertical, Bot, Flag, Save
 } from 'lucide-react';
 import { supportService } from '../../services/supportService';
-import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 import { cn } from '../../utils/cn';
 
@@ -25,12 +21,10 @@ interface Ticket {
 }
 
 export const AdminSupportPage: React.FC = () => {
-    const { t } = useTranslation();
     const [tickets, setTickets] = useState<Ticket[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
     const [filterStatus, setFilterStatus] = useState<string>('open');
-    const [stats, setStats] = useState({ total: 0, open: 0, resolved: 0 });
     const [adminNote, setAdminNote] = useState('');
 
     useEffect(() => {
@@ -40,12 +34,11 @@ export const AdminSupportPage: React.FC = () => {
     const loadData = async () => {
         try {
             setLoading(true);
-            const [data, s] = await Promise.all([
+            const [data] = await Promise.all([
                 supportService.getTickets({ status: filterStatus === 'all' ? undefined : filterStatus }),
                 supportService.getStats()
             ]);
             setTickets(data);
-            setStats(s);
         } catch (error) {
             toast.error('Failed to load support data');
         } finally {

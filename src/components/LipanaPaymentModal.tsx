@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Smartphone, CheckCircle2, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from './Button';

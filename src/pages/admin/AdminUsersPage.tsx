@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
-    Users, Search, Filter, Shield, ShieldAlert, 
+    Users, Search, Filter,
     Trash2, Power, PowerOff, ExternalLink, 
-    CheckCircle2, XCircle, MoreVertical, Ban,
-    ArrowRight, Mail, Phone, Calendar, UserCheck, ShieldCheck
+    CheckCircle2, Ban,
+    Mail, Phone, Calendar, ShieldCheck
 } from 'lucide-react';
 import { adminService } from '../../services/adminService';
-import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 interface User {
     id: number;
@@ -23,7 +22,6 @@ interface User {
 }
 
 export const AdminUsersPage: React.FC = () => {
-    const { t } = useTranslation();
     const navigate = useNavigate();
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
@@ -44,7 +42,7 @@ export const AdminUsersPage: React.FC = () => {
         try {
             setLoading(true);
             const data = await adminService.getUsers();
-            setUsers(data);
+            setUsers(data as any as User[]);
             
             // Calculate stats
             const s = {

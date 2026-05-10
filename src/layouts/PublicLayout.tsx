@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import {
     Plus, Heart, Home, MessageSquare, User, Bell,
     Facebook, Twitter, Instagram, Youtube, ChevronDown, Zap,
-    Phone, ShoppingBag, X
+    Phone, ShoppingBag
 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { getAvatarUrl } from '../utils/imageUtils';
