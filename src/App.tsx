@@ -16,6 +16,7 @@ import { CookieBanner } from './components/CookieBanner';
 import { useCurrencyStore } from './store/useCurrencyStore';
 import { detectCurrencyFromIP } from './utils/detectCurrency';
 import { useLocationStore } from './store/useLocationStore';
+import { NotificationPoller } from './components/NotificationPoller';
 
 // Helper for named exports
 const lazyNamed = (importFn: () => Promise<any>, name: string) =>
@@ -148,6 +149,7 @@ const App: React.FC = () => {
         <Toaster position="top-center" reverseOrder={false} />
         <ScrollToTop />
         <CookieBanner />
+        <NotificationPoller />
         <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
           <Routes>
             <Route path="/" element={<LandingPage />} />

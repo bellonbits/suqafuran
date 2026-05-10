@@ -1,6 +1,6 @@
 from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 from app.api import deps
 from app.crud import crud_listing
 from app.models.listing import Listing, ListingBase, ListingRead, Category, SubCategory, SubSubCategory

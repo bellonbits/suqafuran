@@ -157,11 +157,11 @@ Price: {listing_data.get('price')} {listing_data.get('currency', 'USD')}
 Description: {listing_data.get('description_en') or listing_data.get('description_so')}
 
 Return a JSON object with:
-{
+{{
   "risk": "low | medium | high",
   "reasons": ["list of reasons"],
   "recommendation": "short advice for the user"
-}
+}}
 Do not include any other text in your response.
 """
         import json
@@ -222,13 +222,13 @@ Category: {listing_data.get('category')}
 Condition: {listing_data.get('condition', 'Used')}
 
 Return a JSON object:
-{
-  "recommended_price": number,
-  "min_range": number,
-  "max_range": number,
+{{
+  "recommended_price": 0,
+  "min_range": 0,
+  "max_range": 0,
   "market_demand": "low | medium | high",
   "currency": "{listing_data.get('currency', 'USD')}"
-}
+}}
 Do not include other text.
 """
         import json
@@ -255,11 +255,11 @@ Product: "{title}"
 Description snippet: "{description[:100]}"
 
 Return a JSON object:
-{
+{{
   "category_slug": "slug",
-  "confidence": number (0 to 1),
+  "confidence": 0.9,
   "reason": "short explanation"
-}
+}}
 """
         import json
         response_text = self._call_ai(system_prompt, user_prompt)
