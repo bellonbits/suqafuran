@@ -13,6 +13,7 @@ from app.models.delivery import Delivery
 from app.models.feedback import Feedback
 from app.models.follow import Follow
 from app.models.site_content import SiteContent
+from app.models.support import SupportTicket
 
 __all__ = [
     "User",
@@ -39,4 +40,5 @@ __all__ = [
     "Feedback",
     "Follow",
     "SiteContent",
+    "SupportTicket",
 ]
