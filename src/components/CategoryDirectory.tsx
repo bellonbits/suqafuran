@@ -122,7 +122,7 @@ export const CategoryDirectory: React.FC<CategoryDirectoryProps> = ({ categories
                                 onClick={() => goToCategory(activeCategory.slug || activeCategory.id)}
                                 className="text-[11px] text-primary-600 font-bold hover:underline shrink-0 ml-2"
                             >
-                                {t('landing.viewAll', 'View all')} →
+                                {t('landing.viewAll')} →
                             </button>
                         </div>
                         <div className="divide-y divide-gray-50">
@@ -218,7 +218,7 @@ export const CategoryDirectory: React.FC<CategoryDirectoryProps> = ({ categories
                             <div className="flex-1 text-left min-w-0">
                                 <p className="text-[13.5px] font-bold text-gray-800 truncate">{getField(cat, 'name')}</p>
                                 {cat.subcategories?.length > 0 && (
-                                    <p className="text-[11px] text-gray-400">{cat.subcategories.length} {t('landing.subcategories', 'subcategories')}</p>
+                                    <p className="text-[11px] text-gray-400">{cat.subcategories.length} {t('landing.subcategories')}</p>
                                 )}
                             </div>
                             <ChevronRight size={16} className="text-gray-300 shrink-0" />

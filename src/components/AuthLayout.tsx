@@ -14,9 +14,11 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
     children,
     title,
     subtitle,
-    imageCaption = "Connecting Africa, One Listing at a Time."
+    imageCaption
 }) => {
     const { t } = useTranslation();
+    const defaultCaption = t('auth.imageCaption', 'Connecting Africa, One Listing at a Time.');
+    const displayCaption = imageCaption || defaultCaption;
     return (
         <div className="min-h-screen w-full flex flex-col lg:flex-row bg-gray-50 text-gray-900">
             {/* Left Side - Image/Visuals (Hidden on mobile) */}
@@ -50,7 +52,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
 
                         <div className="max-w-md relative z-10">
                             <h2 className="text-4xl font-bold text-white tracking-tight leading-tight drop-shadow-sm">
-                                {imageCaption}
+                                {displayCaption}
                             </h2>
                             <div className="mt-6 flex gap-2">
                                 <div className="w-8 h-1 bg-white/30 rounded-full" />

@@ -1,5 +1,6 @@
 import React, { lazy, Suspense, useState, useCallback, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 
 function ScrollToTop() {
     const { pathname } = useLocation();
@@ -71,6 +72,8 @@ const AdminVerificationsPage = lazy(() => import('./pages/admin/AdminVerificatio
 const AdminMarketingPage = lazy(() => import('./pages/admin/AdminMarketingPage'));
 const AdminReportsPage = lazy(() => import('./pages/admin/AdminReportsPage'));
 const UnusualAccountsPage = lazy(() => import('./pages/admin/UnusualAccountsPage'));
+const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'));
+const AdminSupportPage = lazy(() => import('./pages/admin/AdminSupportPage'));
 const WebEditorPage = lazyNamed(() => import('./pages/admin/WebEditorPage'), 'WebEditorPage');
 const AgentDashboard = lazy(() => import('./pages/agent/AgentDashboard'));
 
@@ -142,6 +145,7 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         {phase === 'onboarding' && <OnboardingScreen onDone={handleOnboardingDone} />}
+        <Toaster position="top-center" reverseOrder={false} />
         <ScrollToTop />
         <CookieBanner />
         <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
@@ -207,6 +211,8 @@ const App: React.FC = () => {
               <Route path="marketing" element={<AdminMarketingPage />} />
               <Route path="reports" element={<AdminReportsPage />} />
               <Route path="unusual-accounts" element={<UnusualAccountsPage />} />
+              <Route path="users" element={<AdminUsersPage />} />
+              <Route path="support" element={<AdminSupportPage />} />
               <Route path="editor" element={<WebEditorPage />} />
             </Route>
 

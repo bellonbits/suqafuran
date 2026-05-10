@@ -89,7 +89,7 @@ class EmailService:
             <div style="background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%); padding: 48px 20px; text-align: center; color: white;">
               <img src="https://suqafuran.com/logo.png" alt="Suqafuran" style="height: 56px; margin-bottom: 16px; display: block; margin-left: auto; margin-right: auto;">
               <h1 style="margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.5px;">Suqafuran</h1>
-              <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px; font-weight: 500;">Kenya's Trusted Marketplace</p>
+              <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px; font-weight: 500;">Suuqa Loogu Kalsoon Yahay ee Afrika</p>
             </div>
             
             <!-- Content -->
@@ -98,14 +98,14 @@ class EmailService:
               <p style="font-size: 16px; margin-bottom: 32px;">{subtitle}</p>
               {content}
               <p style="margin-top: 32px; font-size: 14px; color: #94a3b8; font-style: italic;">
-                Best regards,<br>
-                <strong>The Suqafuran Team</strong>
+                Mahadsanid,<br>
+                <strong>Kooxda Suqafuran</strong>
               </p>
             </div>
             
             <!-- Footer -->
             <div style="background: #f8fafc; padding: 48px 20px; text-align: center; border-top: 1px solid #e2e8f0;">
-              <p style="font-size: 14px; font-weight: 700; color: #64748b; margin-bottom: 24px;">Connect with us</p>
+              <p style="font-size: 14px; font-weight: 700; color: #64748b; margin-bottom: 24px;">Nala xiriir</p>
               <div style="margin-bottom: 32px;">
                 <a href="https://www.instagram.com/suqafuran/" style="margin: 0 10px; text-decoration: none; display: inline-block;">
                   <img src="https://suqafuran.com/icons/instagram.png" alt="Instagram" width="24" height="24">
@@ -121,7 +121,7 @@ class EmailService:
               <div style="font-size: 12px; color: #94a3b8; line-height: 1.8;">
                 <p style="margin: 0; font-weight: 600; color: #64748b;">Suqafuran Limited</p>
                 <p style="margin: 4px 0 0 0;">Flat 13, Krishna Pointe Riverside Lane, Westlands Nairobi</p>
-                <p style="margin: 4px 0 0 0;">&copy; 2026 Suqafuran. All rights reserved.</p>
+                <p style="margin: 4px 0 0 0;">&copy; 2026 Suqafuran. Xuquuqda oo dhan waa la dhawray.</p>
               </div>
               
               <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #eef2f6;">
@@ -168,16 +168,15 @@ class EmailService:
 
         self.increment_rate_limit(email)
 
-        otp_content = f"""
         <div style="background: #fff7ed; border-radius: 12px; padding: 32px; text-align: center; margin: 32px 0; border: 1px solid #ffedd5;">
           <span style="font-size: 42px; font-weight: 900; letter-spacing: 10px; color: #ea580c; font-family: monospace;">{code}</span>
         </div>
-        <p style="color: #64748b; font-size: 13px; text-align: center;">This code will expire in 5 minutes. If you did not request this code, you can safely ignore this email.</p>
+        <p style="color: #64748b; font-size: 13px; text-align: center;">Koodhkani wuxuu dhacayaa 5 daqiiqo gudahood. Haddii aadan codsan koodkan, waad iska indho-tiri kartaa iimaylkan.</p>
         """
 
         html_body = self._get_base_template(
-            title="Verify your account",
-            subtitle="Welcome to Suqafuran! Please use the verification code below to complete your registration.",
+            title="Xaqiiji koontadaada",
+            subtitle="Ku soo dhawaada Suqafuran! Fadlan isticmaal koodka xaqiijinta ee hoos ku qoran si aad u dhammaystirto diiwaangelintaada.",
             content=otp_content
         )
 
@@ -189,7 +188,7 @@ class EmailService:
                 resend.Emails.send({
                     "from": f"{settings.EMAIL_FROM_NAME} <{settings.EMAIL_FROM}>",
                     "to": [email],
-                    "subject": "Your Suqafuran verification code",
+                    "subject": "Koodhka xaqiijinta ee Suqafuran",
                     "html": html_body,
                 })
                 print(f"[Email] OTP sent via Resend to {email}")
@@ -204,7 +203,7 @@ class EmailService:
                 from email.mime.multipart import MIMEMultipart
                 from email.mime.text import MIMEText
                 msg = MIMEMultipart("alternative")
-                msg["Subject"] = "Your Suqafuran verification code"
+                msg["Subject"] = "Koodhka xaqiijinta ee Suqafuran"
                 msg["From"] = f"{settings.EMAIL_FROM_NAME} <{settings.SMTP_USER}>"
                 msg["To"] = email
                 msg.attach(MIMEText(html_body, "html"))
@@ -234,12 +233,12 @@ class EmailService:
         <div style="background: #fff7ed; border-radius: 12px; padding: 32px; text-align: center; margin: 32px 0; border: 1px solid #ffedd5;">
           <span style="font-size: 42px; font-weight: 900; letter-spacing: 10px; color: #ea580c; font-family: monospace;">{code}</span>
         </div>
-        <p style="color: #64748b; font-size: 13px; text-align: center;">This code will expire in 1 hour. If you did not request a password reset, please secure your account.</p>
+        <p style="color: #64748b; font-size: 13px; text-align: center;">Koodhkani wuxuu dhacayaa 1 saac gudahood. Haddii aadan codsan dib-u-dejinta erayga sirta ah, fadlan xaqiiji amniga koontadaada.</p>
         """
 
         html_body = self._get_base_template(
-            title="Reset your password",
-            subtitle="We received a request to reset your Suqafuran password. Use the code below to proceed.",
+            title="Dib u deji eraygaaga sirta ah",
+            subtitle="Waxaan helnay codsi ah in dib loo dejiyo eraygaaga sirta ah ee Suqafuran. Isticmaal koodka hoose si aad u sii socoto.",
             content=reset_content
         )
 
@@ -250,7 +249,7 @@ class EmailService:
                 resend.Emails.send({
                     "from": f"{settings.EMAIL_FROM_NAME} <{settings.EMAIL_FROM}>",
                     "to": [email],
-                    "subject": "Reset your Suqafuran password",
+                    "subject": "Dib u deji erayga sirta ah ee Suqafuran",
                     "html": html_body,
                 })
                 print(f"[Email] Reset code sent via Resend to {email}")
@@ -264,7 +263,7 @@ class EmailService:
                 from email.mime.multipart import MIMEMultipart
                 from email.mime.text import MIMEText
                 msg = MIMEMultipart("alternative")
-                msg["Subject"] = "Reset your Suqafuran password"
+                msg["Subject"] = "Dib u deji erayga sirta ah ee Suqafuran"
                 msg["From"] = f"{settings.EMAIL_FROM_NAME} <{settings.SMTP_USER}>"
                 msg["To"] = email
                 msg.attach(MIMEText(html_body, "html"))

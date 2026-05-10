@@ -177,7 +177,7 @@ const LandingPage: React.FC = () => {
                         <div className="px-4 mb-3 flex items-center justify-between relative z-10">
                             <div className="flex items-center gap-2">
                                 <Zap className="h-4 w-4 text-secondary-500 fill-secondary-500" />
-                                <h2 className="text-[14px] font-extrabold text-gray-900">{t('landing.recommendedForYou', 'AI Picks for You')}</h2>
+                                <h2 className="text-[14px] font-extrabold text-gray-900">{t('landing.recommendedForYou')}</h2>
                             </div>
                         </div>
                         <div className="overflow-x-auto pb-1 scrollbar-none relative z-10">
@@ -210,7 +210,7 @@ const LandingPage: React.FC = () => {
                 <div className="px-4 flex items-center justify-between mb-3 mt-2">
                     <div className="flex items-center gap-1.5">
                         <Flame className="w-5 h-5 text-secondary-500 fill-secondary-500" />
-                        <h2 className="text-[15px] font-extrabold text-gray-900">Hot Deals Near You</h2>
+                        <h2 className="text-[15px] font-extrabold text-gray-900">{t('landing.hotDeals')}</h2>
                     </div>
                 </div>
 
@@ -391,7 +391,7 @@ const LandingPage: React.FC = () => {
                                         </div>
                                         <div className="flex items-center gap-2 mb-4 relative z-10">
                                             <Zap className="h-5 w-5 text-secondary-500 fill-secondary-500" />
-                                            <h2 className="text-lg font-bold text-gray-900">{t('landing.recommendedForYou', 'AI Recommended')}</h2>
+                                            <h2 className="text-lg font-bold text-gray-900">{t('landing.recommendedForYou')}</h2>
                                         </div>
                                         <div className="grid grid-cols-2 xl:grid-cols-3 gap-4 relative z-10">
                                             {recommendations.map((ad: any) => (
@@ -419,7 +419,7 @@ const LandingPage: React.FC = () => {
                                     <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                                         <div className="flex items-center gap-2 mb-4">
                                             <Flame className="h-5 w-5 text-secondary-500 fill-secondary-500" />
-                                            <h2 className="text-lg font-bold text-gray-900">Hot Deals Near You</h2>
+                                            <h2 className="text-lg font-bold text-gray-900">{t('landing.hotDeals')}</h2>
                                         </div>
                                         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
                                             {hotDeals.map((ad) => (

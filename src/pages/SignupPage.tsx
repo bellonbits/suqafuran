@@ -50,10 +50,10 @@ const SignupPage: React.FC = () => {
                 const res = await marketingService.validateCode(promoCode);
                 if (res.valid) {
                     setPromoStatus('valid');
-                    setPromoMessage(res.description || 'Valid promo code applied!');
+                    setPromoMessage(res.description || t('auth.promoValid'));
                 } else {
                     setPromoStatus('invalid');
-                    setPromoMessage(res.reason || 'Invalid code');
+                    setPromoMessage(res.reason || t('auth.promoInvalid'));
                 }
             } catch {
                 setPromoStatus('idle');
@@ -196,7 +196,7 @@ const SignupPage: React.FC = () => {
                         }`} />
                         <input
                             type="text"
-                            placeholder="Promo code (optional)"
+                            placeholder={t('auth.promoOptional')}
                             value={promoCode}
                             onChange={e => setPromoCode(e.target.value.toUpperCase())}
                             className="flex-1 py-3 text-sm bg-transparent outline-none font-mono tracking-widest placeholder:font-sans placeholder:tracking-normal text-gray-900"

@@ -7,6 +7,7 @@
     "profile": "Profile",
     "alerts": "Alerts",
     "boost": "Boost",
+    "myAds": "My Adverts",
     "signIn": "Sign In",
     "search": "Search listings…"
   },
@@ -26,13 +27,169 @@
     "connect": "Connect",
     "tagline": "© 2026 Suqafuran. Buy. Sell. Connect.",
     "whatsappSupport": "WhatsApp Support",
-    "payWith": "Pay With"
+    "payWith": "Pay With",
+    "getUsOn": "Get us on",
+    "downloadApp": "Download App",
+    "downloadOn": "Download on the",
+    "appStore": "App Store",
+    "getItOn": "Get it on",
+    "googlePlay": "Google Play",
+    "androidDirect": "Android Direct",
+    "downloadApk": "Download APK"
   },
   "cookie": {
     "title": "We use cookies",
     "message": "We use cookies to improve your experience, personalise content and analyse traffic.",
     "learnMore": "Learn more",
     "accept": "Accept & Continue"
+  },
+  "contact": {
+    "heroTitle": "Get in Touch",
+    "heroSubtitle": "Have a question, feedback, or need support? Our team typically responds within 24 hours.",
+    "directContact": "Direct Contact",
+    "emailSupport": "Email Support",
+    "phoneWhatsapp": "Phone & WhatsApp",
+    "ourOffice": "Our Office",
+    "followUs": "Follow Us",
+    "officeHours": "Office Hours",
+    "sendMessage": "Send us a Message",
+    "formSubtitle": "Fill in the form and we'll get back to you as soon as possible.",
+    "yourName": "Your Name",
+    "emailAddress": "Email Address",
+    "subject": "Subject",
+    "message": "Message",
+    "sendButton": "Send Message",
+    "successTitle": "Message Sent!",
+    "successDesc": "Your email client should have opened. We'll reply to you shortly.",
+    "sendAnother": "Send another",
+    "repliesWithin": "Replies within 24 hours"
+  },
+  "download": {
+    "heroSubtitle": "Buy & Sell — Kenya's Marketplace",
+    "rating": "4.8 · 10k+ reviews",
+    "googlePlay": "Google Play",
+    "appStore": "App Store",
+    "androidDirect": "Android Direct",
+    "downloadApk": "Download APK",
+    "downloading": "Downloading…",
+    "comingSoon": "Coming Soon",
+    "activeUsers": "Active Users",
+    "listings": "Listings",
+    "dailyDeals": "Daily Deals"
+  },
+  "terms": {
+    "title": "Terms & Conditions",
+    "subtitle": "Please read these terms carefully before using Suqafuran. By accessing or using our platform, you agree to be bound by these conditions.",
+    "lastUpdated": "Last updated",
+    "introText": "Welcome to Suqafuran. These Terms & Conditions govern your access to and use of the suqafuran.com website, mobile applications, and services. If you do not agree to all the terms and conditions outlined below, you may not access or use the platform.",
+    "accountRegistration": "Account Registration",
+    "accountRegistrationContent": [
+      "You must be at least 18 years old to create an account and post listings on Suqafuran.",
+      "You agree to provide accurate, current, and complete information during the registration process.",
+      "You are responsible for maintaining the confidentiality of your password and for all activities that occur under your account.",
+      "Suqafuran reserves the right to suspend or terminate accounts that provide false information or violate these terms."
+    ],
+    "listingRules": "Listing Rules & Guidelines",
+    "listingRulesContent": [
+      "All listings must accurately describe the item or service being offered.",
+      "Items listed must be legally available for sale in the location where they are posted.",
+      "Prohibited items include illegal drugs, weapons, counterfeit goods, and stolen property.",
+      "Listings must not contain misleading information, spam, or offensive language.",
+      "Suqafuran reserves the right to remove any listing that violates our community standards without prior notice."
+    ],
+    "buyerSeller": "Buyer & Seller Responsibilities",
+    "buyerSellerContent": [
+      "Suqafuran acts as a venue to connect buyers and sellers and is not a party to the actual transaction.",
+      "Buyers are responsible for inspecting items before making any payment.",
+      "Sellers are responsible for accurately describing the condition and legality of the items they sell.",
+      "Users should exercise caution when conducting transactions with unknown parties.",
+      "We strongly recommend meeting in safe, public places when completing transactions."
+    ],
+    "fees": "Fees & Paid Promotions",
+    "feesContent": [
+      "Basic listings on Suqafuran are currently free, but we may charge for premium services or promotions.",
+      "Payment for boosted listings or advertisements is non-refundable once the service has started.",
+      "Users are responsible for any taxes or local fees associated with their sales.",
+      "Pricing for premium services is subject to change with prior notice on our platform."
+    ],
+    "intellectualProperty": "Intellectual Property",
+    "intellectualPropertyContent": [
+      "The Suqafuran logo, branding, and platform content are protected by copyright and trademark laws.",
+      "By posting content on Suqafuran, you grant us a non-exclusive license to display and promote that content.",
+      "You may not use our branding or scrape our platform data without express written permission."
+    ],
+    "liability": "Limitation of Liability",
+    "liabilityContent": [
+      "Suqafuran is provided 'as is' without any warranties, express or implied.",
+      "We are not liable for any losses, damages, or disputes arising from user transactions.",
+      "We do not guarantee the accuracy of user-posted content or the availability of the platform at all times.",
+      "Our total liability for any claim related to our services is limited to the amount paid by you for those services."
+    ],
+    "changesToTerms": "Changes to Terms",
+    "changesDesc": "We reserve the right to modify these terms at any time. We will notify you of any changes by posting the new Terms & Conditions on this page. You are advised to review these terms periodically for any changes.",
+    "questionsTitle": "Questions about our terms?",
+    "questionsDesc": "If you have any questions or require clarification about these terms, please contact our support team."
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "subtitle": "We respect your privacy and are committed to protecting your personal data. This policy explains how Suqafuran collects, uses, and safeguards your information.",
+    "introText": "By using Suqafuran — including our website at suqafuran.com and our mobile apps — you agree to the collection and use of information described in this policy. If you do not agree, please do not use our services.",
+    "dataCollection": "Information We Collect",
+    "dataCollectionContent": [
+      "Account information: name, email address, phone number, and profile photo when you register.",
+      "Listing data: titles, descriptions, prices, images, and location you provide when posting ads.",
+      "Usage data: pages visited, search queries, clicks, and time spent on the platform.",
+      "Device information: IP address, browser type, operating system, and device identifiers.",
+      "Communications: messages exchanged between buyers and sellers through our platform."
+    ],
+    "howWeUse": "How We Use Your Information",
+    "howWeUseContent": [
+      "To create and manage your account, authenticate logins, and keep your account secure.",
+      "To display your listings to potential buyers across Somalia and Africa.",
+      "To send you important notifications about your ads, messages, and account activity.",
+      "To improve our platform, fix bugs, and develop new features based on usage patterns.",
+      "To detect and prevent fraud, spam, and misuse of the Suqafuran marketplace.",
+      "To comply with applicable laws and regulations in Somalia and the jurisdictions we operate in."
+    ],
+    "sharing": "Information We Share",
+    "sharingContent": [
+      "Your public listing details (title, price, location, images) are visible to all users.",
+      "Your display name and general location are shown on your seller profile.",
+      "We do not sell your personal data to third parties for marketing purposes.",
+      "We may share data with trusted service providers (hosting, payments, analytics) under strict confidentiality agreements.",
+      "We may disclose information when required by law, court order, or to protect the safety of our users."
+    ],
+    "security": "Data Security",
+    "securityContent": [
+      "All data is transmitted over HTTPS with TLS encryption.",
+      "Passwords are hashed using industry-standard algorithms and never stored in plain text.",
+      "Access to production databases is restricted to authorised personnel only.",
+      "We conduct regular security audits and vulnerability assessments.",
+      "In the event of a data breach, we will notify affected users within 72 hours."
+    ],
+    "yourRights": "Your Rights & Choices",
+    "yourRightsContent": [
+      "Access: You may request a copy of the personal data we hold about you at any time.",
+      "Correction: You can update your profile information directly from your account settings.",
+      "Deletion: You may request deletion of your account and associated data by contacting us.",
+      "Opt-out: You can unsubscribe from marketing emails using the link in any email we send.",
+      "Data portability: You may request your data in a machine-readable format."
+    ],
+    "cookies": "Cookies & Tracking",
+    "cookiesContent": [
+      "We use cookies — small text files stored on your device — to make Suqafuran work and improve your experience.",
+      "Essential cookies: required for login sessions, security tokens, and core platform functionality. These cannot be turned off.",
+      "Preference cookies: remember your language choice (English or Somali) and display settings.",
+      "Analytics cookies: help us understand how users navigate the platform using aggregated, anonymised data.",
+      "When you first visit Suqafuran, a cookie notice will appear. Clicking \"Accept\" records your consent in your browser.",
+      "You can disable non-essential cookies in your browser or device settings at any time."
+    ],
+    "childrenPrivacy": "Children's Privacy",
+    "childrenDesc": "Suqafuran is not intended for children under the age of 13. We do not knowingly collect personal data from children. If you believe a child has provided us with personal information, please contact us and we will promptly delete it.",
+    "changesToPolicy": "Changes to This Policy",
+    "changesDesc": "We may update this Privacy Policy from time to time. We will notify you of significant changes by posting a notice on our platform or sending you an email. Continued use of Suqafuran after changes are posted constitutes your acceptance of the revised policy.",
+    "questionsTitle": "Questions about your data?",
+    "questionsDesc": "If you have any questions, requests, or concerns about this Privacy Policy or how we handle your personal data, please reach out to us."
   },
   "landing": {
     "heroTitle": "Discover Great Deals Near You!",
@@ -57,7 +214,10 @@
     "freeToPost": "FREE TO POST",
     "sponsored": "Sponsored",
     "new": "New",
-    "staySafe": "Stay safe when buying & selling"
+    "staySafe": "Stay safe while buying and selling",
+    "more": "More",
+    "recommendedForYou": "AI Picks for You",
+    "hotDeals": "Hot Deals Near You"
   },
   "listing": {
     "postAd": "Post Ad",
@@ -253,8 +413,8 @@
     "nameInvalid": "Name contains invalid characters",
     "phoneInvalid": "Invalid phone number",
     "passwordTooShort": "Password must be at least 8 characters",
-    "passwordUppercase": "Must contain uppercase letter",
-    "passwordNumber": "Must contain a number",
+    "passwordUppercase": "Password must contain an uppercase letter",
+    "passwordNumber": "Password must contain a number",
     "passwordsMismatch": "Passwords do not match",
     "invalidCredentials": "Invalid email or password",
     "attemptsRemaining": "{{count}} attempts remaining",
@@ -265,7 +425,10 @@
     "verifyAccount": "Verify Account",
     "didntReceiveCode": "Didn't receive code?",
     "resend": "Resend",
-    "changePhone": "Change phone number"
+    "changePhone": "Change phone number",
+    "promoValid": "Valid promo code applied!",
+    "promoInvalid": "Invalid code",
+    "promoOptional": "Promo code (optional)"
   },
   "promotion": {
     "title": "Promote Your Ad",
@@ -310,6 +473,7 @@
     "allListings": "All Listings",
     "promotions": "Promotions",
     "categories": "Categories",
+    "users": "User Management",
     "verifications": "Verifications",
     "sellAnItem": "Sell an Item",
     "postAd": "Post Ad",
@@ -799,7 +963,20 @@
     "popular": "Popular",
     "verifiedId": "Verified ID",
     "unverified": "Unverified",
-    "yearsPlus": "3+ Years"
+    "yearsPlus": "3+ Years",
+    "select": "Select...",
+    "closed": "Closed",
+    "date": "April 2026",
+    "days": {
+      "monFri": "Monday – Friday",
+      "sat": "Saturday",
+      "sun": "Sunday"
+    },
+    "verifiedSeller": "Verified Seller",
+    "chatSeller": "Chat with Seller",
+    "isAvailableMsg": "Is this still available?",
+    "conditionNew": "Condition: New",
+    "conditionUsed": "Condition: Used"
   },
   "followers": {
     "title": "Followers",
@@ -887,6 +1064,29 @@
     "realtimeAnalytics": "Real-time Analytics",
     "averageBoostResults": "Average Boost Results"
   },
+  "payment": {
+    "mpesaTitle": "M-Pesa Lipana",
+    "secured": "SMART SECURED",
+    "boostPlan": "Boost Plan",
+    "chargedFrom": "will be charged from your M-Pesa account",
+    "phoneLabel": "M-Pesa Phone Number",
+    "phonePlaceholder": "712 345 678",
+    "invalidPhone": "Please enter a valid phone number (e.g. 0712345678)",
+    "promptInfo": "You'll receive an M-Pesa prompt on this number. Enter your PIN to complete payment.",
+    "sendRequest": "Send Payment Request",
+    "sendingRequest": "Sending Payment Request...",
+    "waitPrompt": "Please wait while we send an M-Pesa prompt to your phone.",
+    "waiting": "Waiting for Payment",
+    "checkPhone": "Check your phone and enter your M-Pesa PIN to confirm.",
+    "stillWaiting": "Still waiting... Did you enter your PIN?",
+    "checkingStatus": "Checking status...",
+    "confirmed": "Payment Confirmed!",
+    "successDesc": "Your {{planName}} boost is now active. Your ad will get more visibility immediately.",
+    "done": "Done",
+    "failed": "Payment Failed",
+    "timeout": "Payment timeout. Please check your M-Pesa messages and try again.",
+    "tryAgain": "Try Again"
+  },
   "delivery": {
     "title": "Suqafuran Delivery",
     "subtitle": "Track your orders and shipping status in real-time.",
@@ -896,52 +1096,31 @@
     "noDeliveries": "No active deliveries",
     "noDeliveriesDesc": "Items you buy or sell with Suqafuran Delivery will appear here."
   },
-  "terms": {
-    "title": "Terms & Conditions",
-    "subtitle": "Please read these terms carefully before using Suqafuran. By accessing or using our platform, you agree to be bound by these conditions.",
-    "accountRegistration": "Account Registration",
-    "listingRules": "Listing Rules & Guidelines",
-    "buyerSeller": "Buyer & Seller Responsibilities",
-    "fees": "Fees & Paid Promotions",
-    "intellectualProperty": "Intellectual Property",
-    "liability": "Limitation of Liability",
-    "changesToTerms": "Changes to Terms",
-    "questionsTitle": "Questions about our terms?",
-    "questionsDesc": "If you have any questions or require clarification about these terms, please contact our support team."
-  },
-  "privacy": {
-    "title": "Privacy Policy",
-    "subtitle": "We are committed to protecting your personal information and your right to privacy.",
-    "dataCollection": "Data We Collect",
-    "howWeUse": "How We Use Your Data",
-    "sharing": "Data Sharing",
-    "security": "Data Security",
-    "yourRights": "Your Rights",
-    "contact": "Contact Us",
-    "questionsTitle": "Questions about your data?",
-    "questionsDesc": "If you have any questions, requests, or concerns about this Privacy Policy or how we handle your personal data, please reach out to us.",
-    "cookies": "Cookies & Tracking",
-    "childrenPrivacy": "Children's Privacy",
-    "changesToPolicy": "Changes to This Policy"
-  },
   "about": {
-    "mission": "Our Mission is to Connect Africa through Commerce",
-    "missionDesc": "Suqafuran is more than just a marketplace. It's a community where trust and technology meet.",
-    "trustTitle": "Trust Above All",
-    "trustDesc": "We invest heavily in safety and verification to ensure every transaction is secure.",
+    "mission": "Our Mission",
+    "missionDesc": "Our mission is to create a safe, transparent, and seamless marketplace for millions of people across the continent.",
+    "trustTitle": "Trust",
+    "trustDesc": "Trust is at the core of everything we do. We build the best verification tools for our community.",
     "velocityTitle": "Velocity",
-    "velocityDesc": "Our platform is optimized for speed, helping you sell your items in record time.",
+    "velocityDesc": "Sell your items in no time. Our platform is built for speed and efficiency.",
     "communityTitle": "Community",
-    "communityDesc": "We empower local businesses and individuals to reach more customers daily.",
+    "communityDesc": "We support local businesses to grow and reach more customers every day.",
     "activeAds": "Active Ads",
     "happySellers": "Happy Sellers",
     "monthlyUsers": "Monthly Users",
     "userRating": "User Rating",
-    "builtForAfrica": "Built for Africa, by people who care",
-    "teamDesc": "Our team consists of engineers, designers, and customer support specialists dedicated to solving the unique challenges of the African marketplace.",
-    "operatingAcross": "Operating across the continent",
-    "mobileOptimized": "100% Mobile Optimized",
-    "innovation": "Innovation drives us forward."
+    "builtForAfrica": "Built for Africa",
+    "teamSubtitle": "by people who care",
+    "teamDesc": "Our team is dedicated to solving unique trade challenges across the African continent.",
+    "storyTitle": "Our Story",
+    "heroTitle": "Connecting Africa",
+    "heroSubtitle": "through Commerce",
+    "storyPara1": "We started with a simple observation: buying and selling in East Africa was too risky, too slow, and too disconnected.",
+    "storyPara2": "So we built Suqafuran — a platform with trust at its core, AI-powered tools to simplify listings, and a community focused on real, face-to-face commerce.",
+    "valuesBadge": "What drives us",
+    "valuesTitle": "Our Core Values",
+    "mobileOptimized": "Mobile Optimized",
+    "operatingAcross": "Operating Across the Continent"
   },
   "safety": {
     "title": "Your Safety is Our Priority",

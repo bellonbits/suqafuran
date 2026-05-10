@@ -8,7 +8,7 @@ import {
     Heart, Settings, LogOut,
     PlusCircle, Bell, HelpCircle, Shield, Wallet, Folder,
     Menu, X, TrendingUp, MessageSquare, Zap, Target,
-
+    LifeBuoy,
     MessageCircle, Users, Globe, House, Megaphone, Flag
 } from 'lucide-react';
 import { cn } from '../utils/cn';
@@ -219,6 +219,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                                 {t('dashboard.adminPanel', 'Admin Panel')}
                             </Link>
                             <Link
+                                to="/admin/users"
+                                className={cn(
+                                    "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-secondary-600 hover:bg-secondary-50",
+                                    location.pathname === '/admin/users' && "bg-secondary-50 shadow-sm"
+                                )}
+                            >
+                                <Users className="h-5 w-5" />
+                                {t('dashboard.users', 'User Management')}
+                            </Link>
+                            <Link
                                 to="/admin/listings"
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
@@ -277,6 +287,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             >
                                 <Flag className="h-5 w-5" />
                                 Abuse Reports
+                            </Link>
+                            <Link
+                                to="/admin/support"
+                                className={cn(
+                                    "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
+                                    location.pathname === '/admin/support' && "bg-primary-50 shadow-sm"
+                                )}
+                            >
+                                <LifeBuoy className="h-5 w-5" />
+                                {t('dashboard.supportManagement', 'Support Management')}
                             </Link>
                             <Link
                                 to="/admin/editor"

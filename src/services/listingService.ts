@@ -12,8 +12,10 @@ export const listingService = {
         return response.data;
     },
 
-    async createListing(data: ListingCreate): Promise<Listing> {
-        const response = await api.post('/listings/', data);
+    async createListing(data: ListingCreate, ownerId?: number): Promise<Listing> {
+        const response = await api.post('/listings/', data, {
+            params: { owner_id: ownerId }
+        });
         return response.data;
     },
 

@@ -133,6 +133,16 @@ const PostAdPage: React.FC = () => {
         return () => clearTimeout(timer);
     }, [form.title_en, form.categoryId, form.condition, currency]);
 
+    const [ownerId, setOwnerId] = useState<number | null>(null);
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const oid = params.get('owner_id');
+        if (oid && user?.is_admin) {
+            setOwnerId(Number(oid));
+        }
+    }, [user]);
+
     useEffect(() => {
         if (isEditMode && id) {
             listingService.getListing(Number(id))
@@ -352,7 +362,7 @@ const PostAdPage: React.FC = () => {
                 setCreatedListingTitle(result.title_en || result.title_so || '');
                 setSubmitted(true);
             } else {
-                result = await listingService.createListing(payload);
+                result = await listingService.createListing(payload, ownerId || undefined);
                 setCreatedListingId(result.id);
                 setCreatedListingTitle(result.title_en || result.title_so || '');
                 setSubmitted(true);
@@ -688,6 +698,23 @@ const PostAdPage: React.FC = () => {
                         Clear
                     </button>
                 </div>
+
+                {/* Impersonation Banner */}
+                {ownerId && (
+                    <div className="flex items-center justify-between bg-amber-50 border border-amber-200 p-3 rounded-xl mb-3 text-amber-700 text-xs font-bold">
+                        <div className="flex items-center gap-2">
+                            <Shield className="h-4 w-4" />
+                            <span>Impersonation Active: Posting on behalf of User #{ownerId}</span>
+                        </div>
+                        <button 
+                            type="button" 
+                            onClick={() => setOwnerId(null)}
+                            className="text-amber-800 hover:underline"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                )}
 
                 {/* Step Indicators */}
                 <div className="flex items-center gap-3">

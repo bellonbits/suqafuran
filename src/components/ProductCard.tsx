@@ -157,7 +157,7 @@ const ProductCard = React.memo(function ProductCard({
                             <span className="text-[9px] font-bold text-amber-500">★ {rating.toFixed(1)}</span>
                         )}
                         {isVerified && (
-                            <span className="inline-flex items-center justify-center bg-green-50 rounded-full border border-green-200 shadow-sm p-0.5" title="Verified Seller">
+                            <span className="inline-flex items-center justify-center bg-green-50 rounded-full border border-green-200 shadow-sm p-0.5" title={t('common.verifiedSeller')}>
                                 <BadgeCheck className="w-3.5 h-3.5 fill-green-500 text-white" />
                             </span>
                         )}
@@ -177,12 +177,12 @@ const ProductCard = React.memo(function ProductCard({
                         onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            navigate(`/messages?user=${ownerId}&listing=${id}&msg=${encodeURIComponent('Is this still available?')}`);
+                            navigate(`/messages?user=${ownerId}&listing=${id}&msg=${encodeURIComponent(t('common.isAvailableMsg'))}`);
                         }}
                         className="mt-1.5 w-full bg-primary-50 hover:bg-primary-100 text-primary-600 font-bold text-[11px] py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-colors border border-primary-100 shadow-sm active:scale-95"
                     >
                         <MessageCircle size={14} className="fill-primary-100" />
-                        Chat Seller
+                        {t('common.chatSeller')}
                     </button>
                 )}
             </div>

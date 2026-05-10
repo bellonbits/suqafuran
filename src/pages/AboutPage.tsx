@@ -1,5 +1,7 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { PublicLayout } from '../layouts/PublicLayout';
+
 import {
     ShieldCheck, Zap, Heart, Globe,
     Star, CheckCircle, ShoppingBag, Smartphone, Lock, Award, Users, TrendingUp
@@ -7,62 +9,63 @@ import {
 
 import { Link } from 'react-router-dom';
 
-const STATS = [
-    { value: '100k+', label: 'Active Listings' },
-    { value: '50k+',  label: 'Happy Sellers' },
-    { value: '1M+',   label: 'Monthly Visits' },
-    { value: '4.8/5', label: 'App Store Rating' },
-];
-
-const VALUES = [
-    {
-        icon: ShieldCheck,
-        title: 'Trust Above All',
-        desc: 'Every seller is verified through a multi-step identity check. Our AI-powered fraud detection system monitors suspicious activity around the clock, so both buyers and sellers can transact with complete peace of mind.',
-        color: 'bg-emerald-50 text-emerald-600',
-    },
-    {
-        icon: Zap,
-        title: 'Speed & Simplicity',
-        desc: 'Post an ad in under 60 seconds using our AI-assisted listing wizard. Powerful search, instant messaging, and real-time notifications mean deals close faster than anywhere else.',
-        color: 'bg-amber-50 text-amber-600',
-    },
-    {
-        icon: Heart,
-        title: 'Community First',
-        desc: 'We are built by and for the communities we serve. From Nairobi to Mogadishu, Suqafuran empowers local entrepreneurs to reach thousands of customers — without leaving their neighbourhood.',
-        color: 'bg-rose-50 text-rose-600',
-    },
-    {
-        icon: Globe,
-        title: 'Built for Africa',
-        desc: 'Fully localised in Somali, Swahili, and English. M-Pesa integration, low-data mode, and offline browsing ensure Suqafuran works flawlessly on every device and connection speed.',
-        color: 'bg-blue-50 text-blue-600',
-    },
-    {
-        icon: Lock,
-        title: 'Your Privacy Matters',
-        desc: 'Your personal data is never sold. End-to-end encrypted messages, private phone numbers, and granular privacy controls give you full ownership of your information.',
-        color: 'bg-purple-50 text-purple-600',
-    },
-    {
-        icon: Award,
-        title: 'Premium Verification',
-        desc: 'Our multi-tier verification system — from phone confirmation through to government ID and video selfie — creates a trusted marketplace where reputation is everything.',
-        color: 'bg-teal-50 text-teal-600',
-    },
-];
-
-const FEATURES = [
-    { icon: Smartphone,   text: 'iOS & Android apps — free, always' },
-    { icon: ShoppingBag,  text: 'Unlimited free listings in every category' },
-    { icon: TrendingUp,   text: 'Promoted ads that reach 10× more buyers' },
-    { icon: CheckCircle,  text: 'Escrow-ready deal confirmation system' },
-    { icon: Star,         text: 'Seller ratings & public trust scores' },
-    { icon: Users,        text: 'Follow favourite sellers for live updates' },
-];
-
 const AboutPage: React.FC = () => {
+    const { t } = useTranslation();
+
+    const STATS = [
+        { value: '100k+', label: t('about.activeAds') },
+        { value: '50k+',  label: t('about.happySellers') },
+        { value: '1M+',   label: t('about.monthlyUsers') },
+        { value: '4.8/5', label: t('about.userRating') },
+    ];
+
+    const VALUES = [
+        {
+            icon: ShieldCheck,
+            title: t('about.trustTitle'),
+            desc: t('about.trustDesc'),
+            color: 'bg-emerald-50 text-emerald-600',
+        },
+        {
+            icon: Zap,
+            title: t('about.velocityTitle'),
+            desc: t('about.velocityDesc'),
+            color: 'bg-amber-50 text-amber-600',
+        },
+        {
+            icon: Heart,
+            title: t('about.communityTitle'),
+            desc: t('about.communityDesc'),
+            color: 'bg-rose-50 text-rose-600',
+        },
+        {
+            icon: Globe,
+            title: t('about.africaTitle'),
+            desc: t('about.teamDesc'),
+            color: 'bg-blue-50 text-blue-600',
+        },
+        {
+            icon: Lock,
+            title: t('privacy.title'),
+            desc: t('privacy.subtitle'),
+            color: 'bg-purple-50 text-purple-600',
+        },
+        {
+            icon: Award,
+            title: t('listing.verifiedSeller'),
+            desc: t('listing.verifiedSellerGuarantee'),
+            color: 'bg-teal-50 text-teal-600',
+        },
+    ];
+
+    const FEATURES = [
+        { icon: Smartphone,   text: t('about.mobileOptimized') },
+        { icon: ShoppingBag,  text: t('landing.freeToPost') },
+        { icon: TrendingUp,   text: t('landing.featuredAds') },
+        { icon: CheckCircle,  text: t('listing.verified') },
+        { icon: Star,         text: t('listing.viewProfile') },
+        { icon: Users,        text: t('about.communityTitle') },
+    ];
     return (
         <PublicLayout>
 
@@ -80,15 +83,14 @@ const AboutPage: React.FC = () => {
                         className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full text-sm font-semibold mb-6"
                     >
                         <Heart className="w-4 h-4 fill-white text-white" />
-                        Our Story
+                        {t('about.storyTitle')}
                     </div>
                     <h1 className="text-4xl md:text-6xl font-black tracking-tight leading-tight mb-6">
-                        Connecting Africa<br />
-                        <span className="text-white/70">through Commerce</span>
+                        {t('about.heroTitle')} <br />
+                        <span className="text-white/70">{t('about.heroSubtitle')}</span>
                     </h1>
                     <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto leading-relaxed">
-                        Suqafuran is more than just a marketplace. It's a community where trust, technology,
-                        and opportunity meet — giving every person the tools to buy and sell confidently.
+                        {t('about.missionDesc')}
                     </p>
                 </div>
             </section>
@@ -119,19 +121,17 @@ const AboutPage: React.FC = () => {
                                 className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold mb-4 uppercase tracking-wider"
                                 style={{ background: 'var(--color-primary-50, #f1f8e9)', color: 'var(--color-primary-600, #1b5e20)' }}
                             >
-                                Our Mission
+                                {t('about.mission')}
                             </div>
                             <h2 className="text-3xl md:text-4xl font-black text-gray-900 leading-tight mb-6">
-                                Built for Africa,<br />
-                                <span style={{ color: 'var(--color-primary-600, #1b5e20)' }}>by people who care</span>
+                                {t('about.builtForAfrica')}<br />
+                                <span style={{ color: 'var(--color-primary-600, #1b5e20)' }}>{t('about.teamSubtitle')}</span>
                             </h2>
                             <p className="text-gray-600 leading-relaxed mb-5 text-base">
-                                We started with a simple observation: buying and selling in East Africa was too risky, too slow, and too disconnected.
-                                Scams were rampant, prices were opaque, and small business owners had no platform that truly understood their needs.
+                                {t('about.storyPara1')}
                             </p>
                             <p className="text-gray-600 leading-relaxed mb-8 text-base">
-                                So we built Suqafuran — a platform with trust at its core, AI-powered tools to simplify listings, and a community
-                                focused on real, face-to-face commerce. Today we serve buyers and sellers across Kenya, Somalia, and beyond.
+                                {t('about.storyPara2')}
                             </p>
                             <div className="space-y-3">
                                 {FEATURES.map(({ icon: Icon, text }) => (
@@ -177,9 +177,9 @@ const AboutPage: React.FC = () => {
                             className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold mb-4 uppercase tracking-wider"
                             style={{ background: 'var(--color-primary-50, #f1f8e9)', color: 'var(--color-primary-600, #1b5e20)' }}
                         >
-                            What drives us
+                            {t('about.valuesBadge')}
                         </div>
-                        <h2 className="text-3xl md:text-4xl font-black text-gray-900">Our Core Values</h2>
+                        <h2 className="text-3xl md:text-4xl font-black text-gray-900">{t('about.valuesTitle')}</h2>
                     </div>
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {VALUES.map(({ icon: Icon, title, desc, color }) => (
@@ -202,9 +202,9 @@ const AboutPage: React.FC = () => {
             >
                 <div className="absolute top-0 right-0 w-1/3 h-full bg-white/10 skew-x-12 transform origin-top-right pointer-events-none" />
                 <div className="container mx-auto px-4 relative z-10 text-center">
-                    <h2 className="text-3xl md:text-4xl font-black text-white mb-4">Ready to join the community?</h2>
+                    <h2 className="text-3xl md:text-4xl font-black text-white mb-4">{t('landing.ctaTitle')}</h2>
                     <p className="text-white/80 text-lg mb-10 max-w-xl mx-auto">
-                        Millions of buyers are waiting. Post your first ad in under 60 seconds — it's completely free.
+                        {t('landing.ctaSubtitle')}
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link
@@ -212,13 +212,13 @@ const AboutPage: React.FC = () => {
                             className="px-8 py-4 bg-white font-black text-sm rounded-2xl shadow-xl hover:bg-gray-50 active:scale-[0.98] transition-all"
                             style={{ color: 'var(--color-primary-600, #1b5e20)' }}
                         >
-                            Create Free Account
+                            {t('auth.createAccount')}
                         </Link>
                         <Link
                             to="/download"
                             className="px-8 py-4 bg-white/20 backdrop-blur-sm text-white font-black text-sm rounded-2xl border border-white/30 hover:bg-white/30 active:scale-[0.98] transition-all"
                         >
-                            Download the App
+                            {t('footer.downloadApp')}
                         </Link>
                     </div>
                 </div>

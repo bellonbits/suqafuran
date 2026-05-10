@@ -55,5 +55,10 @@ export const aiService = {
     async getRecommendations(params?: { category_id?: number; limit?: number }) {
         const response = await api.post('/ai/recommendations', params);
         return response.data;
+    },
+
+    async getSupportChat(messages: { role: string; content: string }[]) {
+        const response = await api.post('/ai/support/chat', { messages });
+        return response.data;
     }
 };

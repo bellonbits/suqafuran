@@ -6,6 +6,7 @@ from app.api import deps
 from app.models.listing import Listing, Category, ListingRead
 from app.models.user import User
 from app.models.promotion import Promotion, PromotionStatus
+from app.models.audit import AuditLog
 
 router = APIRouter()
 
@@ -122,5 +123,65 @@ def remove_agent(
         raise HTTPException(status_code=404, detail="No account found with that email.")
     user.is_agent = False
     db.add(user)
+    db.commit()
+    return {"success": True}
+
+@router.post("/users/{user_id}/status")
+def update_user_status(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+    user_id: int,
+    is_active: bool,
+) -> Any:
+    """
+    Deactivate or activate a user account.
+    """
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.is_active = is_active
+    db.add(user)
+    
+    # Audit log
+    db.add(AuditLog(
+        user_id=current_user.id,
+        action="USER_STATUS_UPDATE",
+        resource_type="user",
+        resource_id=user_id,
+        details=f"User {'activated' if is_active else 'deactivated'}"
+    ))
+    
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.delete("/users/{user_id}")
+def delete_user_admin(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+    user_id: int,
+) -> Any:
+    """
+    Permanently delete a user account.
+    """
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    db.delete(user)
+    
+    # Audit log
+    db.add(AuditLog(
+        user_id=current_user.id,
+        action="USER_DELETE",
+        resource_type="user",
+        resource_id=user_id,
+        details="User permanently deleted"
+    ))
+    
     db.commit()
     return {"success": True}

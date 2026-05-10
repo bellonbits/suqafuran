@@ -421,32 +421,84 @@ Return a JSON object:
         except:
             return {"title": input_text, "suggestions": [input_text]}
 
-    def get_recommended_listings(self, user_history: list) -> dict:
+    def get_support_response(self, messages: list) -> dict:
         """
-        Generate recommendations based on user history.
+        AI Support Agent that knows about Suqafuran.
         """
         if not self.client:
             raise HTTPException(status_code=503, detail="AI Service is not configured")
 
         system_prompt = """
-You are a recommendation engine.
-Suggest relevant categories or items based on user's recent activity.
-"""
-        user_prompt = f"""
-Recently viewed: {user_history}
-
-Return a JSON object:
-{{
-  "recommended_categories": ["slug1", "slug2"],
-  "recommended_keywords": ["key1", "key2"]
-}}
-"""
-        import json
-        response_text = self._call_ai(system_prompt, user_prompt)
+        You are a helpful and professional customer support agent for Suqafuran — the leading marketplace for Somalia and Africa.
+        
+        YOUR IDENTITY:
+        - Your name is 'Suqafuran Agent'.
+        - Never refer to yourself as an AI, bot, or machine.
+        - Speak like a helpful human who cares about the user's success on our platform.
+        
+        YOUR MISSION:
+        - Help users navigate Suqafuran (posting ads, buying, payments).
+        - Answer questions about marketplace rules, boosting plans, and safety.
+        - NEVER answer questions outside of Suqafuran or marketplace context.
+        - If you don't know the answer or the user is frustrated, tell them to contact our human team on WhatsApp: +252 612 958679.
+        - Be professional, helpful, and concise.
+        
+        KNOWLEDGE BASE:
+        - Boosting: We have Top, Premium, and VIP plans to sell 10x-100x faster.
+        - Payments: We accept M-Pesa (Lipana) for all promotions.
+        - Safety: Never pay before seeing the item. Meet in public places.
+        - Listing: Users can post for free, but boosting gives better reach.
+        - Verification: Users can verify their IDs to build trust.
+        
+        STRICTOR CONTEXT RULE:
+        If the user asks about anything NOT related to Suqafuran (e.g., politics, unrelated tech, personal advice, other websites), politely state that you only assist with Suqafuran marketplace concerns and offer to help with an ad or a search instead.
+        
+        TICKET GENERATION:
+        If the user has a serious issue (scam report, payment failure, technical bug, account locked), you should flag it as a ticket.
+        You must decide if a ticket is needed.
+        
+        RESPONSE FORMAT:
+        Return a JSON object:
+        {
+            "answer": "your message to user",
+            "needs_ticket": true | false,
+            "ticket_priority": "low | medium | high",
+            "ticket_subject": "short summary of issue"
+        }
+        """
+        
+        # Format conversation history
+        history = []
+        for m in messages[-8:]: # Keep last 8 messages
+            history.append({"role": m["role"], "content": m["content"]})
+            
         try:
-            return json.loads(response_text)
-        except:
-            return {"recommended_categories": [], "recommended_keywords": []}
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    *history
+                ],
+                temperature=0.3,
+                response_format={ "type": "json_object" }
+            )
+            
+            import json
+            result = json.loads(response.choices[0].message.content.strip())
+            
+            return {
+                "answer": result.get("answer"),
+                "whatsapp_support": "+252 612 958679",
+                "needs_ticket": result.get("needs_ticket", False),
+                "ticket_priority": result.get("ticket_priority", "low"),
+                "ticket_subject": result.get("ticket_subject", "Support Inquiry")
+            }
+        except Exception as e:
+            logger.error(f"Support AI Error: {e}")
+            return {
+                "answer": "I'm having a bit of trouble right now. Please reach out to our team on WhatsApp for immediate help.",
+                "whatsapp_support": "+252 612 958679"
+            }
 
     def analyze_image(self, image_url: str) -> dict:
         """

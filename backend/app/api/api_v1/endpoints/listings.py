@@ -441,6 +441,7 @@ def create_listing(
     db: Session = Depends(deps.get_db),
     listing_in: ListingBase,
     current_user: User = Depends(deps.get_current_active_user),
+    owner_id: Optional[int] = None,
 ) -> Any:
     """
     Create new listing.
@@ -492,8 +493,17 @@ def create_listing(
             details=f"Risk Score: {risk_score}"
         ))
 
+    # Determine effective owner
+    effective_owner_id = current_user.id
+    if owner_id and current_user.is_admin:
+        # Verify target user exists
+        target_user = db.get(User, owner_id)
+        if not target_user:
+            raise HTTPException(status_code=404, detail="Target user for impersonation not found")
+        effective_owner_id = owner_id
+
     listing = crud_listing.create_listing(
-        db=db, listing_in=listing_in, owner_id=current_user.id
+        db=db, listing_in=listing_in, owner_id=effective_owner_id
     )
     listing.status = status
     db.add(listing)

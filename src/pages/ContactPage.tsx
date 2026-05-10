@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { Mail, Phone, MapPin, Send, Instagram, Twitter, MessageSquare, CheckCircle, Loader2 } from 'lucide-react';
 
@@ -38,6 +39,7 @@ const SOCIALS = [
 ];
 
 const ContactPage: React.FC = () => {
+    const { t } = useTranslation();
     const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
     const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
 
@@ -66,11 +68,11 @@ const ContactPage: React.FC = () => {
                 <div className="container mx-auto px-4 text-center relative z-10">
                     <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full text-sm font-semibold mb-4">
                         <MessageSquare className="w-4 h-4" />
-                        We're here to help
+                        {t('contact.heroBadge')}
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4">Get in Touch</h1>
+                    <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4">{t('contact.heroTitle')}</h1>
                     <p className="text-lg text-white/80 max-w-xl mx-auto">
-                        Have a question, feedback, or need support? Our team typically responds within 24 hours.
+                        {t('contact.heroSubtitle')}
                     </p>
                 </div>
             </div>
@@ -83,7 +85,7 @@ const ContactPage: React.FC = () => {
 
                         {/* Direct contacts */}
                         <div>
-                            <h2 className="text-xl font-black text-gray-900 mb-5">Direct Contact</h2>
+                            <h2 className="text-xl font-black text-gray-900 mb-5">{t('contact.directContact')}</h2>
                             <div className="space-y-4">
                                 <a
                                     href="mailto:support@suqafuran.com"
@@ -96,9 +98,9 @@ const ContactPage: React.FC = () => {
                                         <Mail className="w-5 h-5 text-white" />
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Email Support</p>
+                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('contact.emailSupport')}</p>
                                         <p className="text-sm font-bold text-gray-900 group-hover:text-primary-600 transition-colors truncate">support@suqafuran.com</p>
-                                        <p className="text-[11px] text-gray-400 mt-0.5">Replies within 24 hours</p>
+                                        <p className="text-[11px] text-gray-400 mt-0.5">{t('contact.repliesWithin')}</p>
                                     </div>
                                 </a>
 
@@ -113,9 +115,9 @@ const ContactPage: React.FC = () => {
                                         <Phone className="w-5 h-5 text-white" />
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Phone &amp; WhatsApp</p>
+                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('contact.phoneWhatsapp')}</p>
                                         <p className="text-sm font-bold text-gray-900 group-hover:text-primary-600 transition-colors">+254 700 000 000</p>
-                                        <p className="text-[11px] text-gray-400 mt-0.5">Mon – Fri, 8am – 6pm EAT</p>
+                                        <p className="text-[11px] text-gray-400 mt-0.5">{t('contact.officeHoursTime', 'Mon – Fri, 8am – 6pm EAT')}</p>
                                     </div>
                                 </a>
 
@@ -133,7 +135,7 @@ const ContactPage: React.FC = () => {
                                         <MapPin className="w-5 h-5 text-white" />
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Our Office</p>
+                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('contact.ourOffice')}</p>
                                         <p className="text-sm font-bold text-gray-900 group-hover:text-primary-600 transition-colors leading-snug">
                                             Flat 13, Krishna Pointe<br />
                                             Riverside Lane, Westlands<br />
@@ -147,7 +149,7 @@ const ContactPage: React.FC = () => {
 
                         {/* Social media */}
                         <div>
-                            <h2 className="text-xl font-black text-gray-900 mb-5">Follow Us</h2>
+                            <h2 className="text-xl font-black text-gray-900 mb-5">{t('contact.followUs')}</h2>
                             <div className="space-y-3">
                                 {SOCIALS.map(({ name, handle, url, icon: Icon, color, textColor }) => (
                                     <a
@@ -170,25 +172,24 @@ const ContactPage: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Office hours card */}
                         <div
                             className="rounded-2xl p-5 text-white relative overflow-hidden"
                             style={{ background: 'linear-gradient(135deg, var(--color-primary-600, #1b5e20), var(--color-primary-500, #2e7d32))' }}
                         >
                             <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10 pointer-events-none" />
-                            <h3 className="font-black text-base mb-3 relative z-10">Office Hours</h3>
+                            <h3 className="font-black text-base mb-3 relative z-10">{t('contact.officeHours')}</h3>
                             <div className="space-y-2 text-sm relative z-10">
                                 <div className="flex justify-between">
-                                    <span className="text-white/70">Monday – Friday</span>
+                                    <span className="text-white/70">{t('common.days.monFri', 'Monday – Friday')}</span>
                                     <span className="font-bold">8:00 – 18:00 EAT</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-white/70">Saturday</span>
+                                    <span className="text-white/70">{t('common.days.sat', 'Saturday')}</span>
                                     <span className="font-bold">9:00 – 14:00 EAT</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-white/70">Sunday</span>
-                                    <span className="font-bold text-white/50">Closed</span>
+                                    <span className="text-white/70">{t('common.days.sun', 'Sunday')}</span>
+                                    <span className="font-bold text-white/50">{t('common.closed', 'Closed')}</span>
                                 </div>
                             </div>
                         </div>
@@ -197,8 +198,8 @@ const ContactPage: React.FC = () => {
                     {/* ── Right: Contact form ── */}
                     <div className="lg:col-span-3">
                         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
-                            <h2 className="text-2xl font-black text-gray-900 mb-2">Send us a Message</h2>
-                            <p className="text-gray-500 text-sm mb-8">Fill in the form and we'll get back to you as soon as possible.</p>
+                            <h2 className="text-2xl font-black text-gray-900 mb-2">{t('contact.sendMessage')}</h2>
+                            <p className="text-gray-500 text-sm mb-8">{t('contact.formSubtitle')}</p>
 
                             {status === 'sent' ? (
                                 <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
@@ -208,20 +209,20 @@ const ContactPage: React.FC = () => {
                                     >
                                         <CheckCircle className="w-10 h-10" style={{ color: 'var(--color-primary-500, #2e7d32)' }} />
                                     </div>
-                                    <h3 className="text-xl font-black text-gray-900">Message Sent!</h3>
-                                    <p className="text-gray-500 max-w-xs">Your email client should have opened. We'll reply to you shortly.</p>
+                                    <h3 className="text-xl font-black text-gray-900">{t('contact.successTitle')}</h3>
+                                    <p className="text-gray-500 max-w-xs">{t('contact.successDesc')}</p>
                                     <button
                                         onClick={() => { setStatus('idle'); setForm({ name: '', email: '', subject: '', message: '' }); }}
                                         className="mt-2 px-6 py-2.5 rounded-xl text-sm font-bold border border-gray-200 hover:bg-gray-50 transition-colors"
                                     >
-                                        Send another
+                                        {t('contact.sendAnother')}
                                     </button>
                                 </div>
                             ) : (
                                 <form onSubmit={handleSubmit} className="space-y-5">
                                     <div className="grid sm:grid-cols-2 gap-5">
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Your Name *</label>
+                                            <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">{t('contact.yourName')} *</label>
                                             <input
                                                 name="name"
                                                 required
@@ -232,7 +233,7 @@ const ContactPage: React.FC = () => {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Email Address *</label>
+                                            <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">{t('contact.emailAddress')} *</label>
                                             <input
                                                 name="email"
                                                 type="email"
@@ -246,7 +247,7 @@ const ContactPage: React.FC = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Subject *</label>
+                                        <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">{t('contact.subject')} *</label>
                                         <select
                                             name="subject"
                                             required
@@ -254,26 +255,26 @@ const ContactPage: React.FC = () => {
                                             onChange={handleChange}
                                             className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all bg-white"
                                         >
-                                            <option value="">Select a topic…</option>
-                                            <option value="General Inquiry">General Inquiry</option>
-                                            <option value="Account Help">Account Help</option>
-                                            <option value="Listing / Ad Support">Listing / Ad Support</option>
-                                            <option value="Payment Issue">Payment Issue</option>
-                                            <option value="Report a Problem">Report a Problem</option>
-                                            <option value="Business / Partnership">Business / Partnership</option>
-                                            <option value="Other">Other</option>
+                                            <option value="">{t('common.select')}</option>
+                                            <option value="General Inquiry">{t('contact.subjectGeneral')}</option>
+                                            <option value="Account Help">{t('contact.subjectAccount')}</option>
+                                            <option value="Listing / Ad Support">{t('contact.subjectAd')}</option>
+                                            <option value="Payment Issue">{t('contact.subjectPayment')}</option>
+                                            <option value="Report a Problem">{t('contact.subjectReport')}</option>
+                                            <option value="Business / Partnership">{t('contact.subjectBusiness')}</option>
+                                            <option value="Other">{t('contact.subjectOther')}</option>
                                         </select>
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Message *</label>
+                                        <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">{t('contact.message')} *</label>
                                         <textarea
                                             name="message"
                                             required
                                             rows={6}
                                             value={form.message}
                                             onChange={handleChange}
-                                            placeholder="Tell us how we can help you…"
+                                            placeholder={t('contact.messagePlaceholder', 'Tell us how we can help you…')}
                                             className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-all resize-none"
                                         />
                                     </div>
@@ -285,9 +286,9 @@ const ContactPage: React.FC = () => {
                                         style={{ background: 'linear-gradient(135deg, var(--color-primary-600, #1b5e20), var(--color-primary-500, #2e7d32))' }}
                                     >
                                         {status === 'sending' ? (
-                                            <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</>
+                                            <><Loader2 className="w-4 h-4 animate-spin" /> {t('common.sending', 'Sending…')}</>
                                         ) : (
-                                            <><Send className="w-4 h-4" /> Send Message</>
+                                            <><Send className="w-4 h-4" /> {t('contact.sendButton')}</>
                                         )}
                                     </button>
 

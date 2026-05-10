@@ -53,6 +53,9 @@ class DemandInsightsRequest(BaseModel):
     category_id: Optional[int] = None
     location: Optional[str] = "Nairobi"
 
+class SupportChatRequest(BaseModel):
+    messages: List[dict]
+
 
 # ─── Endpoints ────────────────────────────────────────────────────────────────
 
@@ -187,4 +190,48 @@ def get_recommendations(body: RecommendationsRequest):
     result = ai_service.get_recommended_listings(
         user_history=body.user_history or [],
     )
+    return result
+
+
+@router.post("/support/chat")
+def support_chat(
+    body: SupportChatRequest,
+    db: Session = Depends(deps.get_db),
+    current_user: Optional[User] = Depends(deps.get_current_user_optional),
+):
+    """AI Support Agent for the marketplace."""
+    result = ai_service.get_support_response(messages=body.messages)
+    
+    # If the AI thinks a ticket is needed, or if we want to log all support chats
+    if result.get("needs_ticket") or True: # Logging all for follow-up
+        from app.models.support import SupportTicket
+        from sqlmodel import select
+        
+        user_id = current_user.id if current_user else None
+        
+        # Check if there's an open ticket for this user to append to
+        ticket = None
+        if user_id:
+            ticket = db.exec(
+                select(SupportTicket)
+                .where(SupportTicket.user_id == user_id)
+                .where(SupportTicket.status == "open")
+            ).first()
+            
+        if not ticket:
+            ticket = SupportTicket(
+                user_id=user_id,
+                subject=result.get("ticket_subject", "Support Inquiry"),
+                priority=result.get("ticket_priority", "low"),
+                chat_history=body.messages,
+                last_agent_response=result.get("answer")
+            )
+        else:
+            # Append new messages to existing ticket
+            ticket.chat_history = body.messages
+            ticket.last_agent_response = result.get("answer")
+            
+        db.add(ticket)
+        db.commit()
+        
     return result

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Apple, Download, ChevronRight, CheckCircle, Star, Users, ShoppingBag, Zap } from 'lucide-react';
 
 
 const DownloadPage: React.FC = () => {
+    const { t } = useTranslation();
     const [apkClicked, setApkClicked] = useState(false);
 
     return (
@@ -27,14 +28,14 @@ const DownloadPage: React.FC = () => {
                         <img src="/logo.png" alt="Suqafuran" className="w-14 h-14 object-contain" onError={(e) => { (e.target as HTMLImageElement).src = '/icon.png'; }} />
                     </div>
                     <h1 className="relative z-10 text-2xl font-black text-white tracking-tight">Suqafuran</h1>
-                    <p className="relative z-10 text-sm text-white/80 mt-1 font-medium">Buy &amp; Sell — Kenya's Marketplace</p>
+                    <p className="relative z-10 text-sm text-white/80 mt-1 font-medium">{t('download.heroSubtitle')}</p>
 
                     {/* Rating row */}
                     <div className="relative z-10 flex items-center justify-center gap-1 mt-3">
                         {[...Array(5)].map((_, i) => (
                             <Star key={i} className="w-3.5 h-3.5 fill-yellow-300 text-yellow-300" />
                         ))}
-                        <span className="text-white/80 text-xs ml-1 font-semibold">4.8 · 10k+ reviews</span>
+                        <span className="text-white/80 text-xs ml-1 font-semibold">{t('download.rating')}</span>
                     </div>
                 </div>
 
@@ -52,8 +53,8 @@ const DownloadPage: React.FC = () => {
                             <Apple className="w-5 h-5 text-white" />
                         </div>
                         <div className="flex-1 text-left">
-                            <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Download on the</p>
-                            <p className="text-base font-bold text-gray-900 -mt-0.5">App Store</p>
+                            <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">{t('footer.downloadApp')}</p>
+                            <p className="text-base font-bold text-gray-900 -mt-0.5">{t('download.appStore')}</p>
                         </div>
                         <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors flex-shrink-0" />
                     </a>
@@ -70,10 +71,10 @@ const DownloadPage: React.FC = () => {
                             </svg>
                         </div>
                         <div className="flex-1 text-left">
-                            <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Get it on</p>
-                            <p className="text-base font-bold text-gray-900 -mt-0.5">Google Play</p>
+                            <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">{t('footer.getUsOn')}</p>
+                            <p className="text-base font-bold text-gray-900 -mt-0.5">{t('download.googlePlay')}</p>
                         </div>
-                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 flex-shrink-0">Coming Soon</span>
+                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 flex-shrink-0">{t('download.comingSoon')}</span>
                     </div>
 
                     {/* Direct APK */}
@@ -91,9 +92,9 @@ const DownloadPage: React.FC = () => {
                             {apkClicked ? <CheckCircle className="w-5 h-5 text-white" /> : <Download className="w-5 h-5 text-white" />}
                         </div>
                         <div className="flex-1 text-left">
-                            <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Android Direct</p>
+                            <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">{t('download.androidDirect')}</p>
                             <p className="text-base font-bold text-gray-900 -mt-0.5">
-                                {apkClicked ? 'Downloading…' : 'Download APK'}
+                                {apkClicked ? t('download.downloading') : t('download.downloadApk')}
                             </p>
                         </div>
                         <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0" />
@@ -111,9 +112,9 @@ const DownloadPage: React.FC = () => {
             {/* Mini stats */}
             <div className="mt-8 grid grid-cols-3 gap-4 w-full max-w-sm">
                 {[
-                    { icon: Users, label: 'Active Users', value: '50k+' },
-                    { icon: ShoppingBag, label: 'Listings', value: '100k+' },
-                    { icon: Zap, label: 'Daily Deals', value: '5k+' },
+                    { icon: Users, label: t('download.activeUsers'), value: '50k+' },
+                    { icon: ShoppingBag, label: t('download.listings'), value: '100k+' },
+                    { icon: Zap, label: t('download.dailyDeals'), value: '5k+' },
                 ].map(({ icon: Icon, label, value }) => (
                     <div key={label} className="bg-white/80 backdrop-blur-sm rounded-2xl p-3 text-center shadow-sm">
                         <Icon className="w-5 h-5 mx-auto mb-1" style={{ color: 'var(--color-primary-500, #2e7d32)' }} />

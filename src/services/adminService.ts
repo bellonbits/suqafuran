@@ -83,5 +83,16 @@ export const adminService = {
 
     async deleteSubSubCategory(id: number): Promise<void> {
         await api.delete(`/listings/subsubcategories/${id}`);
+    },
+
+    async updateUserStatus(userId: number, isActive: boolean): Promise<User> {
+        const response = await api.post(`/admin/users/${userId}/status`, null, {
+            params: { is_active: isActive }
+        });
+        return response.data;
+    },
+
+    async deleteUser(userId: number): Promise<void> {
+        await api.delete(`/admin/users/${userId}`);
     }
 };
