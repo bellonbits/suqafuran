@@ -523,6 +523,32 @@ Return a JSON object:
             "description": "Automatically analyzed by Suqafuran AI"
         }
 
+    def get_recommended_listings(self, user_history: list) -> dict:
+        """
+        Suggest listings based on user history.
+        """
+        if not self.client:
+            return {"recommendations": [], "reason": "AI Service not configured"}
+
+        history_str = ", ".join(user_history) if user_history else "No history"
+        system_prompt = "You are a personalized shopping assistant for a marketplace."
+        user_prompt = f"""
+        User has looked at: {history_str}
+        Suggest 5 relevant marketplace categories or keywords they might be interested in.
+        
+        Return a JSON object:
+        {{
+            "recommendations": ["category1", "category2", "keyphrase1", ...],
+            "reason": "short explanation of why these were suggested"
+        }}
+        """
+        import json
+        response_text = self._call_ai(system_prompt, user_prompt)
+        try:
+            return json.loads(response_text)
+        except:
+            return {"recommendations": ["Electronics", "Vehicles"], "reason": "General trends"}
+
     def _call_ai(self, system_prompt: str, user_prompt: str, model: str = None) -> str:
         try:
             response = self.client.chat.completions.create(
