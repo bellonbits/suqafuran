@@ -16,10 +16,12 @@ interface VerificationRequest {
     id: number;
     user_id: number;
     document_type: string;
+    id_number?: string;
     status: 'pending' | 'approved' | 'rejected';
     notes?: string;
     document_urls: string[];
     selfie_url?: string;
+    facial_match_score?: number;
     created_at: string;
     user?: { full_name: string; phone: string; email?: string };
 }
@@ -107,6 +109,7 @@ const AdminVerificationsPage: React.FC = () => {
                             <tr>
                                 <th className="px-6 py-3 text-left">{t('admin.user')}</th>
                                 <th className="px-6 py-3 text-left">{t('admin.documentType')}</th>
+                                <th className="px-6 py-3 text-left">{t('admin.matchScore')}</th>
                                 <th className="px-6 py-3 text-left">{t('admin.submitted')}</th>
                                 <th className="px-6 py-3 text-left">{t('admin.status')}</th>
                                 <th className="px-6 py-3 text-left">{t('admin.actions')}</th>
@@ -127,6 +130,31 @@ const AdminVerificationsPage: React.FC = () => {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 capitalize text-gray-600">{req.document_type}</td>
+                                    <td className="px-6 py-4">
+                                        {req.facial_match_score !== undefined ? (
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-12 bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className={cn(
+                                                            "h-full rounded-full transition-all duration-1000",
+                                                            req.facial_match_score >= 80 ? "bg-green-500" :
+                                                            req.facial_match_score >= 50 ? "bg-yellow-500" : "bg-red-500"
+                                                        )}
+                                                        style={{ width: `${req.facial_match_score}%` }}
+                                                    />
+                                                </div>
+                                                <span className={cn(
+                                                    "text-xs font-bold",
+                                                    req.facial_match_score >= 80 ? "text-green-600" :
+                                                    req.facial_match_score >= 50 ? "text-yellow-600" : "text-red-600"
+                                                )}>
+                                                    {Math.round(req.facial_match_score)}%
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <span className="text-gray-300 text-xs">—</span>
+                                        )}
+                                    </td>
                                     <td className="px-6 py-4 text-gray-500">
                                         {new Date(req.created_at).toLocaleDateString()}
                                     </td>
@@ -188,9 +216,51 @@ const AdminVerificationsPage: React.FC = () => {
                         </div>
                         <div className="p-6 space-y-6">
                             {preview.selfie_url && (
-                                <div>
-                                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t('admin.selfie')}</p>
-                                    <img src={getImageUrl(preview.selfie_url)} alt={t('admin.selfie')} className="w-40 h-40 object-cover rounded-xl border border-gray-100" />
+                                <div className="flex gap-6">
+                                    <div className="flex-1">
+                                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t('admin.selfie')}</p>
+                                        <img src={getImageUrl(preview.selfie_url)} alt={t('admin.selfie')} className="w-full h-48 object-cover rounded-xl border border-gray-100 shadow-sm" />
+                                    </div>
+                                    <div className="w-48 bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center border border-gray-100">
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">{t('admin.aiMatchScore')}</p>
+                                        <div className="relative w-24 h-24 flex items-center justify-center">
+                                            <svg className="w-full h-full transform -rotate-90">
+                                                <circle
+                                                    cx="48" cy="48" r="40"
+                                                    stroke="currentColor" strokeWidth="8" fill="transparent"
+                                                    className="text-gray-200"
+                                                />
+                                                <circle
+                                                    cx="48" cy="48" r="40"
+                                                    stroke="currentColor" strokeWidth="8" fill="transparent"
+                                                    strokeDasharray={251.2}
+                                                    strokeDashoffset={251.2 * (1 - (preview.facial_match_score || 0) / 100)}
+                                                    className={cn(
+                                                        "transition-all duration-1000",
+                                                        (preview.facial_match_score || 0) >= 80 ? "text-green-500" :
+                                                        (preview.facial_match_score || 0) >= 50 ? "text-yellow-500" : "text-red-500"
+                                                    )}
+                                                />
+                                            </svg>
+                                            <span className="absolute text-xl font-black text-gray-900">
+                                                {Math.round(preview.facial_match_score || 0)}%
+                                            </span>
+                                        </div>
+                                        <p className="text-[10px] font-bold text-gray-500 mt-2 text-center leading-tight">
+                                            {(preview.facial_match_score || 0) >= 80 ? t('admin.highConfidence') :
+                                             (preview.facial_match_score || 0) >= 50 ? t('admin.mediumConfidence') : t('admin.lowConfidence')}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {preview.id_number && (
+                                <div className="bg-primary-50 border border-primary-100 rounded-xl p-4 flex items-center justify-between">
+                                    <div>
+                                        <p className="text-[10px] font-bold text-primary-500 uppercase tracking-widest mb-1">{t('admin.idNumber')}</p>
+                                        <p className="font-mono text-lg font-bold text-primary-900">{preview.id_number}</p>
+                                    </div>
+                                    <Shield className="w-8 h-8 text-primary-200" />
                                 </div>
                             )}
                             {preview.document_urls?.length > 0 && (
