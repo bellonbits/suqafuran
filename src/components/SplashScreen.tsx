@@ -113,7 +113,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onDone }) => {
             animation: 'logoFloat 3s ease-in-out infinite',
           }}>
             <img 
-              src="/logo_1.png" 
+              src="/pwa-icon-512.png" 
               alt="Suqafuran" 
               style={{ width: 90, height: 'auto', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))' }} 
             />
