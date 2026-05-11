@@ -161,6 +161,10 @@ const VerificationPage: React.FC = () => {
                         } else {
                             throw new Error("No document file");
                         }
+
+                        if (idNumber) {
+                            formData.append('id_number', idNumber);
+                        }
                         
                         if (selfieFile) {
                             formData.append('selfie_file', selfieFile, selfieFile.name);

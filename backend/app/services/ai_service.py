@@ -626,27 +626,29 @@ Return a JSON object:
             raise HTTPException(status_code=500, detail=f"AI processing failed: {str(e)}")
 
 # Singleton instance
-    def verify_identity(self, selfie_b64: str, document_b64: str) -> tuple[float, bool, str]:
+    def verify_identity(self, selfie_b64: str, document_b64: str, id_number: str = None) -> tuple[float, bool, str]:
         if not self.client:
             return 85.0, True, "AI service not configured, bypassing."
 
         # Note: True face-matching via LLM is imperfect and often restricted by safety filters.
         # This implementation uses the vision model to attempt a basic comparison of the two images.
-        system_prompt = """
+        system_prompt = f"""
         You are an AI Identity Verification Assistant. 
-        You are given two images: 
+        You are given two images and an ID number: 
         1. A live selfie of a user.
         2. A photo of an ID document.
+        3. Provided ID Number: {id_number if id_number else "Not provided"}
         
-        Analyze both images and compare the face in the selfie with the face on the ID document.
-        Do they appear to be the same person?
-        Also verify if the ID document looks like a real, authentic ID card or passport.
+        Tasks:
+        1. Analyze both images and compare the face in the selfie with the face on the ID document. Do they appear to be the same person?
+        2. Verify if the ID document looks like a real, authentic ID card or passport.
+        3. If an ID number was provided, check if it matches the ID number visible on the document.
         
         Return a JSON object:
         {{
             "match_score": 95.5,
             "is_authentic": true,
-            "reason": "Faces appear to match and document looks authentic."
+            "reason": "Faces appear to match, document looks authentic, and ID number matches."
         }}
         Output ONLY the JSON object.
         """
@@ -658,7 +660,7 @@ Return a JSON object:
                     {
                         "role": "user",
                         "content": [
-                            {"type": "text", "text": "Compare these two images."},
+                            {"type": "text", "text": "Compare these images and verify the identity."},
                             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{selfie_b64}"}},
                             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{document_b64}"}},
                         ],

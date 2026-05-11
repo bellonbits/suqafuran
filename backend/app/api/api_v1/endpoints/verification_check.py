@@ -1,4 +1,4 @@
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, File, UploadFile, Form
 from app.services.ai_service import ai_service
 import base64
 import io
@@ -22,7 +22,8 @@ def compress_image(image_bytes: bytes, max_dimension=1024, quality=70) -> bytes:
 @router.post("/check-match")
 async def check_match(
     selfie_file: UploadFile = File(...),
-    document_file: UploadFile = File(...)
+    document_file: UploadFile = File(...),
+    id_number: str = Form(None)
 ):
     selfie_content = await selfie_file.read()
     document_content = await document_file.read()
@@ -33,7 +34,7 @@ async def check_match(
     selfie_b64 = base64.b64encode(selfie_compressed).decode("utf-8")
     doc_b64 = base64.b64encode(document_compressed).decode("utf-8")
     
-    score, is_authentic, reason = ai_service.verify_identity(selfie_b64, doc_b64)
+    score, is_authentic, reason = ai_service.verify_identity(selfie_b64, doc_b64, id_number)
     
     return {
         "match_score": score,

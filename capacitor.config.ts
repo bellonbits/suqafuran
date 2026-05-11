@@ -8,7 +8,7 @@ const config: CapacitorConfig = {
     allowMixedContent: true,
     captureInput: true,
     webContentsDebuggingEnabled: false,
-    backgroundColor: '#0ea5e9',
+    backgroundColor: '#0c4a6e',
   },
   ios: {
     contentInset: 'automatic',
@@ -21,7 +21,7 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 0,
       launchAutoHide: true,
-      backgroundColor: '#0ea5e9',
+      backgroundColor: '#0c4a6e',
       showSpinner: false,
       fadeOutDuration: 0,
     },

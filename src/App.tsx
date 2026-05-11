@@ -17,6 +17,7 @@ import { useCurrencyStore } from './store/useCurrencyStore';
 import { detectCurrencyFromIP } from './utils/detectCurrency';
 import { useLocationStore } from './store/useLocationStore';
 import { NotificationPoller } from './components/NotificationPoller';
+import { SplashScreen } from './components/SplashScreen';
 
 // Helper for named exports
 const lazyNamed = (importFn: () => Promise<any>, name: string) =>
@@ -94,13 +95,21 @@ const queryClient = new QueryClient({
   },
 });
 
-type AppPhase = 'onboarding' | 'app';
+type AppPhase = 'splash' | 'onboarding' | 'app';
 
 const App: React.FC = () => {
   const onboardingSeen = localStorage.getItem('suqafuran-onboarding-seen') === '1';
-  const [phase, setPhase] = useState<AppPhase>(onboardingSeen ? 'app' : 'onboarding');
+  const [phase, setPhase] = useState<AppPhase>('splash');
   const { autoDetected, setAutoDetected, setCurrency } = useCurrencyStore();
   const { permissionAsked, setPermissionAsked, setLocation } = useLocationStore();
+  
+  useEffect(() => {
+    if (phase !== 'splash') {
+      document.body.style.backgroundColor = '#ffffff';
+    } else {
+      document.body.style.backgroundColor = '#0c4a6e';
+    }
+  }, [phase]);
 
   useEffect(() => {
     if (autoDetected) return;
@@ -122,6 +131,17 @@ const App: React.FC = () => {
             { headers: { 'Accept-Language': 'en' } }
           );
           const data = await res.json();
+          const countryCode = data.address?.country_code?.toUpperCase();
+          if (countryCode && !autoDetected) {
+            // Check if we have a mapping for this country
+            const mappings: Record<string, any> = {
+              'KE': 'KES', 'UG': 'UGX', 'TZ': 'TZS', 'ET': 'ETB', 'RW': 'RWF', 'SO': 'SOS'
+            };
+            if (mappings[countryCode]) {
+              setCurrency(mappings[countryCode]);
+              setAutoDetected(true);
+            }
+          }
           const city =
             data.address?.city ||
             data.address?.town ||
@@ -138,6 +158,10 @@ const App: React.FC = () => {
     );
   }, []);
 
+  const handleSplashDone = useCallback(() => {
+    setPhase(onboardingSeen ? 'app' : 'onboarding');
+  }, [onboardingSeen]);
+
   const handleOnboardingDone = useCallback(() => {
     setPhase('app');
   }, []);
@@ -145,6 +169,7 @@ const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        {phase === 'splash' && <SplashScreen onDone={handleSplashDone} />}
         {phase === 'onboarding' && <OnboardingScreen onDone={handleOnboardingDone} />}
         <Toaster position="top-center" reverseOrder={false} />
         <ScrollToTop />
