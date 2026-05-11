@@ -664,7 +664,7 @@ Return a JSON object:
                         ],
                     }
                 ],
-                model="llama-3.2-90b-vision-preview",
+                model=self.model,
                 temperature=0.1,
                 max_tokens=150,
             )
