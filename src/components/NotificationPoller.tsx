@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
-import { notificationService, Notification } from '../services/notificationService';
+import { notificationService } from '../services/notificationService';
 
 export const NotificationPoller: React.FC = () => {
     const { isAuthenticated } = useAuthStore();

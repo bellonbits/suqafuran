@@ -259,6 +259,11 @@ const LoginPage: React.FC = () => {
                 <BiometricScanner
                     onComplete={handleBiometricSuccess}
                     onCancel={() => setShowScanner(false)}
+                    fetchResult={async () => {
+                        return new Promise((resolve) => {
+                            setTimeout(() => resolve({ is_authentic: true, match_score: 99.9 }), 1500);
+                        });
+                    }}
                 />
             )}
         </AuthLayout>
