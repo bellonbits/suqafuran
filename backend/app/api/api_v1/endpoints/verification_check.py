@@ -1,8 +1,23 @@
 from fastapi import APIRouter, File, UploadFile
 from app.services.ai_service import ai_service
 import base64
+import io
+from PIL import Image
 
 router = APIRouter()
+
+def compress_image(image_bytes: bytes, max_dimension=1024, quality=70) -> bytes:
+    try:
+        img = Image.open(io.BytesIO(image_bytes))
+        if img.mode != "RGB":
+            img = img.convert("RGB")
+        # Resize if larger than max_dimension
+        img.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS)
+        out_io = io.BytesIO()
+        img.save(out_io, format="JPEG", quality=quality)
+        return out_io.getvalue()
+    except Exception:
+        return image_bytes
 
 @router.post("/check-match")
 async def check_match(
@@ -12,8 +27,11 @@ async def check_match(
     selfie_content = await selfie_file.read()
     document_content = await document_file.read()
     
-    selfie_b64 = base64.b64encode(selfie_content).decode("utf-8")
-    doc_b64 = base64.b64encode(document_content).decode("utf-8")
+    selfie_compressed = compress_image(selfie_content)
+    document_compressed = compress_image(document_content)
+    
+    selfie_b64 = base64.b64encode(selfie_compressed).decode("utf-8")
+    doc_b64 = base64.b64encode(document_compressed).decode("utf-8")
     
     score, is_authentic, reason = ai_service.verify_identity(selfie_b64, doc_b64)
     
