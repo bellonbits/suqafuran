@@ -26,7 +26,7 @@ const DownloadPage: React.FC = () => {
 
                     {/* App icon */}
                     <div className="relative z-10 w-20 h-20 mx-auto mb-4 rounded-2xl bg-white shadow-lg flex items-center justify-center overflow-hidden">
-                        <img src="/pwa-icon-512.png" alt="Suqafuran" className="w-14 h-14 object-contain" />
+                        <img src="/icon1.png" alt="Suqafuran" className="w-14 h-14 object-contain" />
                     </div>
                     <h1 className="relative z-10 text-2xl font-black text-white tracking-tight">Suqafuran</h1>
                     <p className="relative z-10 text-sm text-white/80 mt-1 font-medium">{t('download.heroSubtitle')}</p>

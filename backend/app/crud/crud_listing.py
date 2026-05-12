@@ -28,8 +28,8 @@ def get_listings(
         .join(User, Listing.owner_id == User.id)
         .order_by(
             Listing.boost_level.desc(), 
-            User.is_verified.desc(),
-            Listing.created_at.desc()
+            Listing.created_at.desc(),
+            User.is_verified.desc()
         )
         .offset(skip)
         .limit(limit)
