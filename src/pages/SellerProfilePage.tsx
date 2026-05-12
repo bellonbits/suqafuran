@@ -131,9 +131,14 @@ const SellerProfilePage: React.FC = () => {
                                 </div>
                                 <h1 className="text-xl font-bold text-gray-900 mb-1">{seller.full_name}</h1>
 
-                                <div className="flex items-center gap-1.5 text-primary-600 mb-3">
-                                    <ShieldCheck className="h-4 w-4 fill-primary-50" />
-                                    <span className="text-xs font-bold uppercase tracking-wider">{t('sellerProfile.verifiedSeller', 'Verified Seller')}</span>
+                                <div className={cn(
+                                    "flex items-center gap-1.5 mb-3",
+                                    seller.verified_level === 'premium' ? "text-amber-600" : "text-primary-600"
+                                )}>
+                                    <ShieldCheck className={cn("h-4 w-4", seller.verified_level === 'premium' ? "fill-amber-50" : "fill-primary-50")} />
+                                    <span className="text-xs font-bold uppercase tracking-wider">
+                                        {seller.verified_level === 'premium' ? 'Premium Trusted Seller' : t('sellerProfile.verifiedSeller', 'Verified Seller')}
+                                    </span>
                                 </div>
 
                                 {/* Smart Shop Trust Score Card */}
@@ -255,6 +260,7 @@ const SellerProfilePage: React.FC = () => {
                                         location={ad.location}
                                         imageUrl={ad.images?.[0]}
                                         isVerified={seller.is_verified}
+                                        verifiedLevel={seller.verified_level}
                                         isPromoted={(ad.boost_level ?? 0) > 1}
                                         isPopular={idx < 1}
                                         registrationAge="Verified User"

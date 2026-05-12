@@ -96,6 +96,28 @@ const OverviewDashboard: React.FC = () => {
                     )}
                 </div>
 
+                {/* Premium Badge Card */}
+                <div className="bg-[#1e1e1e] p-8 rounded-3xl border border-gray-800 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-secondary-500/10 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-secondary-500/20 transition-all duration-700"></div>
+                    <div className="relative z-10">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="w-14 h-14 bg-secondary-500/10 rounded-2xl flex items-center justify-center">
+                                <Award className="h-8 w-8 text-secondary-500" />
+                            </div>
+                            <div className="px-3 py-1 bg-secondary-500/20 rounded-full border border-secondary-500/30">
+                                <span className="text-[10px] font-black text-secondary-400 uppercase tracking-widest">Upgrade Available</span>
+                            </div>
+                        </div>
+                        <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">Get the Premium Badge</h3>
+                        <p className="text-gray-400 mb-8 leading-relaxed text-sm">Elevate your profile with the Gold Premium Badge. Verified users get <span className="text-secondary-400 font-bold">10x more trust</span> and priority placement in search results.</p>
+                    </div>
+                    <Link to="/dashboard/verify">
+                        <Button className="w-full rounded-xl bg-secondary-500 hover:bg-secondary-400 text-white font-black h-12 shadow-lg shadow-secondary-500/20 active:scale-[0.98] transition-all">
+                            UPGRADE TO PREMIUM
+                        </Button>
+                    </Link>
+                </div>
+
                 {/* Tips Card */}
                 <div className="bg-primary-500 p-8 rounded-3xl text-white flex flex-col justify-between relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2"></div>

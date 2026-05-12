@@ -16,20 +16,9 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     rollupOptions: {
-      output: {
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash][extname]',
-        // Everything in node_modules goes into a single vendor chunk.
-        // This guarantees only one copy of React exists in the bundle —
-        // splitting node_modules is only safe when you can prove no chunk
-        // imports React, and that's hard to guarantee as dependencies evolve.
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            return 'vendor';
-          }
-        },
-      },
     },
   },
   plugins: [

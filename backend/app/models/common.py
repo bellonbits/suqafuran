@@ -13,5 +13,6 @@ class OwnerRead(SQLModel):
     phone: Optional[str] = None
     email: Optional[str] = None
     is_verified: bool = False
+    verified_level: Optional[str] = None
     avatar_url: Optional[str] = None
     response_time: Optional[str] = None

@@ -16,12 +16,12 @@ class ListingBase(SQLModel):
     description_en: str
     description_so: Optional[str] = Field(default=None)
     price: float
-    location: str
+    location: str = Field(index=True)
     condition: str  # New, Used, Refurbished
-    category_id: int = Field(foreign_key="category.id")
-    subcategory_id: Optional[int] = Field(default=None, foreign_key="subcategory.id")
-    subsubcategory_id: Optional[int] = Field(default=None, foreign_key="subsubcategory.id")
-    status: str = Field(default="pending")  # pending, active, closed, reported, deleted
+    category_id: int = Field(foreign_key="category.id", index=True)
+    subcategory_id: Optional[int] = Field(default=None, foreign_key="subcategory.id", index=True)
+    subsubcategory_id: Optional[int] = Field(default=None, foreign_key="subsubcategory.id", index=True)
+    status: str = Field(default="pending", index=True)  # pending, active, closed, reported, deleted
     boost_level: int = Field(default=0)  # 0: none, 1: basic, 2: vip, 3: diamond
     boost_expires_at: Optional[datetime] = None
     currency: str = Field(default="USD")
@@ -37,8 +37,8 @@ class ListingBase(SQLModel):
 
 class Listing(ListingBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    owner_id: int = Field(foreign_key="user.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    owner_id: int = Field(foreign_key="user.id", index=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     owner: Optional["User"] = Relationship(back_populates="listings")

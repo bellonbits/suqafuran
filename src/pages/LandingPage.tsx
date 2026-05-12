@@ -28,7 +28,7 @@ const LandingPage: React.FC = () => {
     const [showAllCats, setShowAllCats] = useState(false);
     const [selectedLocation, setSelectedLocation] = useState(detectedCity || '');
 
-    const { data: categories } = useQuery({
+    const { data: categories, isLoading: categoriesLoading } = useQuery({
         queryKey: ['categories'],
         queryFn: listingService.getCategories,
         staleTime: 24 * 60 * 60 * 1000, // 24 hours
@@ -37,23 +37,28 @@ const LandingPage: React.FC = () => {
 
     const { data: featuredAds, isLoading: adsLoading } = useQuery({
         queryKey: ['featured-ads'],
-        queryFn: () => listingService.getListings({ limit: 12 }),
+        queryFn: () => listingService.getListings({ limit: 24 }),
+        staleTime: 5 * 60 * 1000, // Cache for 5 minutes to prevent refetching on back navigation
     });
 
     const { data: hotDealsData, isLoading: hotDealsLoading } = useQuery({
         queryKey: ['hot-deals', selectedLocation],
-        queryFn: () => listingService.getListings({ limit: 20, location: selectedLocation || undefined }),
+        queryFn: () => listingService.getListings({ limit: 8, location: selectedLocation || undefined }),
+        staleTime: 5 * 60 * 1000,
     });
 
-    const { data: recommendations } = useQuery({
+    const { data: recommendations, isLoading: recommendationsLoading } = useQuery({
         queryKey: ['ai-recommendations'],
         queryFn: () => aiService.getRecommendations({ limit: 6 }),
         enabled: true, // Should ideally depend on user history, but we'll show generic AI picks if not logged in
+        staleTime: 10 * 60 * 1000,
     });
 
     const displayCategories = categories || [];
     const displayAds = featuredAds || [];
-    const hotDeals = (hotDealsData || []).slice().sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 4);
+    const hotDeals = useMemo(() => 
+        (hotDealsData || []).slice().sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 8),
+    [hotDealsData]);
 
     return (
         <PublicLayout>
@@ -100,33 +105,42 @@ const LandingPage: React.FC = () => {
                     </div>
 
                     {/* Horizontal scroll row */}
-                    <div className="overflow-x-auto pb-2 scrollbar-none">
+                    <div className="overflow-x-auto pb-2 scrollbar-none" style={{ minHeight: '90px' }}>
                         <div className="flex gap-3 px-4" style={{ width: 'max-content' }}>
-                            {(showAllCats ? displayCategories : displayCategories.slice(0, 10)).map((cat) => {
-                                const Icon = getCategoryIcon(cat.icon_name || cat.slug);
-                                return (
-                                    <button
-                                        key={cat.id}
-                                        onClick={() => navigate(`/category/${cat.slug || cat.id}`)}
-                                        className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
-                                        style={{ minWidth: 64 }}
-                                    >
-                                        <div className="w-14 h-14 rounded-2xl bg-primary-50 border border-primary-100 flex items-center justify-center overflow-hidden shadow-sm">
-                                            {cat.image_url ? (
-                                                <img src={getImageUrl(cat.image_url)} alt="" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <Icon size={26} className="text-primary-500" />
-                                            )}
-                                        </div>
-                                        <span className="text-[10px] font-bold text-gray-700 text-center leading-tight max-w-[64px] truncate">
-                                            {getField(cat, 'name')}
-                                        </span>
-                                    </button>
-                                );
-                            })}
+                            {categoriesLoading ? (
+                                Array.from({ length: 6 }).map((_, i) => (
+                                    <div key={`cat-skel-${i}`} className="flex flex-col items-center gap-1.5" style={{ minWidth: 64 }}>
+                                        <div className="w-14 h-14 rounded-2xl bg-gray-200 animate-pulse" />
+                                        <div className="w-10 h-2 bg-gray-200 rounded animate-pulse" />
+                                    </div>
+                                ))
+                            ) : (
+                                (showAllCats ? displayCategories : displayCategories.slice(0, 10)).map((cat) => {
+                                    const Icon = getCategoryIcon(cat.icon_name || cat.slug);
+                                    return (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() => navigate(`/category/${cat.slug || cat.id}`)}
+                                            className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
+                                            style={{ minWidth: 64 }}
+                                        >
+                                            <div className="w-14 h-14 rounded-2xl bg-primary-50 border border-primary-100 flex items-center justify-center overflow-hidden shadow-sm">
+                                                {cat.image_url ? (
+                                                    <img src={getImageUrl(cat.image_url)} alt="" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <Icon size={26} className="text-primary-500" />
+                                                )}
+                                            </div>
+                                            <span className="text-[10px] font-bold text-gray-700 text-center leading-tight max-w-[64px] truncate">
+                                                {getField(cat, 'name')}
+                                            </span>
+                                        </button>
+                                    );
+                                })
+                            )}
 
                             {/* "More" chip if > 10 categories */}
-                            {!showAllCats && displayCategories.length > 10 && (
+                            {!categoriesLoading && !showAllCats && displayCategories.length > 10 && (
                                 <button
                                     onClick={() => setShowAllCats(true)}
                                     className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
@@ -169,7 +183,7 @@ const LandingPage: React.FC = () => {
                 </div>
 
                 {/* AI Recommendations — horizontal scroll */}
-                {recommendations && recommendations.length > 0 && (
+                {(recommendationsLoading || (recommendations && recommendations.length > 0)) && (
                     <div className="bg-[#fff9f0] pt-4 pb-5 border-b border-orange-100/50 relative overflow-hidden mb-4">
                         <div className="absolute top-0 right-0 p-2 pointer-events-none opacity-20">
                             <Zap size={60} className="text-secondary-500 fill-secondary-500" />
@@ -180,27 +194,33 @@ const LandingPage: React.FC = () => {
                                 <h2 className="text-[14px] font-extrabold text-gray-900">{t('landing.recommendedForYou')}</h2>
                             </div>
                         </div>
-                        <div className="overflow-x-auto pb-1 scrollbar-none relative z-10">
+                        <div className="overflow-x-auto pb-1 scrollbar-none relative z-10" style={{ minHeight: '220px' }}>
                             <div className="flex gap-3 px-4" style={{ width: 'max-content' }}>
-                                {recommendations.map((ad: any) => (
-                                    <div key={ad.id} className="w-[160px]">
-                                        <ProductCard
-                                            id={String(ad.id)}
-                                            ownerId={ad.owner_id}
-                                            title_en={ad.title_en || ''}
-                                            title_so={ad.title_so}
-                                            price={ad.price || 0}
-                                            currency={ad.currency || 'USD'}
-                                            location={ad.location || ''}
-                                            imageUrl={ad.images?.[0] || ''}
-                                            isVerified={ad.owner?.is_verified}
-                                            isPromoted={(ad.boost_level ?? 0) > 0}
-                                            isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
-                                            hasBulkPrice={!!ad.attributes?.bulk_price}
-                                            className="h-full"
-                                        />
-                                    </div>
-                                ))}
+                                {recommendationsLoading ? (
+                                    Array.from({ length: 3 }).map((_, i) => (
+                                        <div key={`rec-skel-${i}`} className="w-[160px] h-[200px] bg-white rounded-xl animate-pulse shadow-sm" />
+                                    ))
+                                ) : (
+                                    recommendations.map((ad: any) => (
+                                        <div key={ad.id} className="w-[160px]">
+                                            <ProductCard
+                                                id={String(ad.id)}
+                                                ownerId={ad.owner_id}
+                                                title_en={ad.title_en || ''}
+                                                title_so={ad.title_so}
+                                                price={ad.price || 0}
+                                                currency={ad.currency || 'USD'}
+                                                location={ad.location || ''}
+                                                imageUrl={ad.images?.[0] || ''}
+                                                isVerified={ad.owner?.is_verified}
+                                                isPromoted={(ad.boost_level ?? 0) > 0}
+                                                isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
+                                                hasBulkPrice={!!ad.attributes?.bulk_price}
+                                                className="h-full"
+                                            />
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </div>
                     </div>
@@ -215,26 +235,32 @@ const LandingPage: React.FC = () => {
                 </div>
 
                 {/* Hot Deals Grid */}
-                {!hotDealsLoading && hotDeals.length > 0 && (
-                    <div className="grid grid-cols-2 gap-3 px-4 pb-6 border-b border-gray-100 mb-6">
-                        {hotDeals.map((ad) => (
-                            <ProductCard
-                                key={`hot-${ad.id}`}
-                                id={String(ad.id)}
-                                ownerId={ad.owner_id}
-                                title_en={ad.title_en || ''}
-                                title_so={ad.title_so}
-                                price={ad.price || 0}
-                                currency={ad.currency || 'USD'}
-                                location={ad.location || ''}
-                                imageUrl={ad.images?.[0] || ''}
-                                isVerified={ad.owner?.is_verified}
-                                isPopular={true}
-                                rating={4.9}
-                                isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
-                                hasBulkPrice={!!ad.attributes?.bulk_price}
-                            />
-                        ))}
+                {(hotDealsLoading || hotDeals.length > 0) && (
+                    <div className="grid grid-cols-2 gap-3 px-4 pb-6 border-b border-gray-100 mb-6" style={{ minHeight: '200px' }}>
+                        {hotDealsLoading ? (
+                            Array.from({ length: 4 }).map((_, i) => (
+                                <div key={`hot-skel-${i}`} className="w-full h-[200px] bg-white rounded-xl animate-pulse shadow-sm" />
+                            ))
+                        ) : (
+                            hotDeals.map((ad) => (
+                                <ProductCard
+                                    key={`hot-${ad.id}`}
+                                    id={String(ad.id)}
+                                    ownerId={ad.owner_id}
+                                    title_en={ad.title_en || ''}
+                                    title_so={ad.title_so}
+                                    price={ad.price || 0}
+                                    currency={ad.currency || 'USD'}
+                                    location={ad.location || ''}
+                                    imageUrl={ad.images?.[0] || ''}
+                                    isVerified={ad.owner?.is_verified}
+                                    isPopular={true}
+                                    rating={4.9}
+                                    isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
+                                    hasBulkPrice={!!ad.attributes?.bulk_price}
+                                />
+                            ))
+                        )}
                     </div>
                 )}
 
@@ -384,8 +410,8 @@ const LandingPage: React.FC = () => {
                                 </div>
 
                                 {/* AI Recommendations Desktop */}
-                                {recommendations && recommendations.length > 0 && (
-                                    <div className="bg-[#fff9f0] p-5 rounded-2xl border border-orange-100 relative overflow-hidden">
+                                {(recommendationsLoading || (recommendations && recommendations.length > 0)) && (
+                                    <div className="bg-[#fff9f0] p-5 rounded-2xl border border-orange-100 relative overflow-hidden" style={{ minHeight: '340px' }}>
                                         <div className="absolute top-4 right-4 pointer-events-none opacity-10">
                                             <Zap size={100} className="text-secondary-500 fill-secondary-500" />
                                         </div>
@@ -394,51 +420,65 @@ const LandingPage: React.FC = () => {
                                             <h2 className="text-lg font-bold text-gray-900">{t('landing.recommendedForYou')}</h2>
                                         </div>
                                         <div className="grid grid-cols-2 xl:grid-cols-3 gap-4 relative z-10">
-                                            {recommendations.map((ad: any) => (
-                                                <ProductCard
-                                                    key={ad.id}
-                                                    id={String(ad.id)}
-                                                    title_en={ad.title_en || ''}
-                                                    title_so={ad.title_so}
-                                                    price={ad.price || 0}
-                                                    currency={ad.currency || 'USD'}
-                                                    location={ad.location || ''}
-                                                    imageUrl={ad.images?.[0] || ''}
-                                                    isVerified={ad.owner?.is_verified}
-                                                    isPromoted={(ad.boost_level ?? 0) > 0}
-                                                    isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
-                                                    hasBulkPrice={!!ad.attributes?.bulk_price}
-                                                />
-                                            ))}
+                                            {recommendationsLoading ? (
+                                                Array.from({ length: 3 }).map((_, i) => (
+                                                    <div key={`desk-rec-skel-${i}`} className="w-full h-[225px] bg-white rounded-xl animate-pulse shadow-sm" />
+                                                ))
+                                            ) : (
+                                                recommendations.map((ad: any) => (
+                                                    <ProductCard
+                                                        key={ad.id}
+                                                        id={String(ad.id)}
+                                                        title_en={ad.title_en || ''}
+                                                        title_so={ad.title_so}
+                                                        price={ad.price || 0}
+                                                        currency={ad.currency || 'USD'}
+                                                        location={ad.location || ''}
+                                                        imageUrl={ad.images?.[0] || ''}
+                                                        isVerified={ad.owner?.is_verified}
+                                                        verifiedLevel={ad.owner?.verified_level}
+                                                        isPromoted={(ad.boost_level ?? 0) > 0}
+                                                        isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
+                                                        hasBulkPrice={!!ad.attributes?.bulk_price}
+                                                    />
+                                                ))
+                                            )}
                                         </div>
                                     </div>
                                 )}
 
                                 {/* Hot Deals Desktop */}
-                                {!hotDealsLoading && hotDeals.length > 0 && (
-                                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                                {(hotDealsLoading || hotDeals.length > 0) && (
+                                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100" style={{ minHeight: '340px' }}>
                                         <div className="flex items-center gap-2 mb-4">
                                             <Flame className="h-5 w-5 text-secondary-500 fill-secondary-500" />
                                             <h2 className="text-lg font-bold text-gray-900">{t('landing.hotDeals')}</h2>
                                         </div>
                                         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-                                            {hotDeals.map((ad) => (
-                                                <ProductCard
-                                                    key={`desk-hot-${ad.id}`}
-                                                    id={String(ad.id)}
-                                                    title_en={ad.title_en || ''}
-                                                    title_so={ad.title_so}
-                                                    price={ad.price || 0}
-                                                    currency={ad.currency || 'USD'}
-                                                    location={ad.location || ''}
-                                                    imageUrl={ad.images?.[0] || ''}
-                                                    isVerified={ad.owner?.is_verified}
-                                                    isPopular={true}
-                                                    rating={4.9}
-                                                    isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
-                                                    hasBulkPrice={!!ad.attributes?.bulk_price}
-                                                />
-                                            ))}
+                                            {hotDealsLoading ? (
+                                                Array.from({ length: 4 }).map((_, i) => (
+                                                    <div key={`desk-hot-skel-${i}`} className="w-full h-[225px] bg-gray-50 rounded-xl animate-pulse" />
+                                                ))
+                                            ) : (
+                                                hotDeals.map((ad) => (
+                                                    <ProductCard
+                                                        key={`desk-hot-${ad.id}`}
+                                                        id={String(ad.id)}
+                                                        title_en={ad.title_en || ''}
+                                                        title_so={ad.title_so}
+                                                        price={ad.price || 0}
+                                                        currency={ad.currency || 'USD'}
+                                                        location={ad.location || ''}
+                                                        imageUrl={ad.images?.[0] || ''}
+                                                        isVerified={ad.owner?.is_verified}
+                                                        verifiedLevel={ad.owner?.verified_level}
+                                                        isPopular={true}
+                                                        rating={4.9}
+                                                        isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
+                                                        hasBulkPrice={!!ad.attributes?.bulk_price}
+                                                    />
+                                                ))
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -453,8 +493,10 @@ const LandingPage: React.FC = () => {
                                         <Button variant="ghost" className="text-primary-600 text-sm" onClick={() => navigate('/search')}>{t('landing.seeAll')}</Button>
                                     </div>
                                     {adsLoading ? (
-                                        <div className="flex justify-center py-12">
-                                            <Loader2 className="w-8 h-8 animate-spin text-primary-400" />
+                                        <div className="grid grid-cols-2 xl:grid-cols-3 gap-4" style={{ minHeight: '450px' }}>
+                                            {Array.from({ length: 6 }).map((_, i) => (
+                                                <div key={`feat-skel-${i}`} className="w-full h-[225px] bg-gray-50 rounded-xl animate-pulse" />
+                                            ))}
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
@@ -469,6 +511,7 @@ const LandingPage: React.FC = () => {
                                                     location={ad.location || ''}
                                                     imageUrl={ad.images?.[0] || ''}
                                                     isVerified={ad.owner?.is_verified}
+                                                    verifiedLevel={ad.owner?.verified_level}
                                                     isPromoted={(ad.boost_level ?? 0) > 0}
                                                     isPopular={idx < 2}
                                                     rating={4.8 + (idx / 10)}

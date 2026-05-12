@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useLanguageField } from '../hooks/useLanguageField';
 import { PublicLayout } from '../layouts/PublicLayout';
@@ -126,19 +126,23 @@ const CategoryListingPage: React.FC = () => {
         });
     }, [setSearchParams]);
 
-    const { data: listings, isLoading, isFetching } = useQuery({
+    const { data, isLoading, isFetching, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
         queryKey: ['listings', categoryId, debouncedLocation, debouncedMin, debouncedMax, attrsParam],
-        queryFn: () => listingService.getListings({
+        queryFn: ({ pageParam = 0 }) => listingService.getListings({
             category_id: categoryId,
             ...(debouncedLocation ? { location: debouncedLocation } : {}),
             ...(debouncedMin !== '' ? { min_price: debouncedMin } : {}),
             ...(debouncedMax !== '' ? { max_price: debouncedMax } : {}),
             ...(attrsParam ? { attrs: attrsParam } : {}),
-            limit: 40,
+            limit: 24,
+            skip: pageParam,
         }),
+        getNextPageParam: (lastPage, allPages) => lastPage.length === 24 ? allPages.length * 24 : undefined,
+        initialPageParam: 0,
         enabled: !!categoryId,
-        placeholderData: (prev) => prev, // keep old data visible while refetching
     });
+
+    const listings = data?.pages.flat() || [];
 
     const onCloseFilters = useCallback(() => setShowFilters(false), []);
     const onToggleFilters = useCallback(() => setShowFilters(v => !v), []);
@@ -299,6 +303,7 @@ const CategoryListingPage: React.FC = () => {
                                             location={ad.location}
                                             imageUrl={ad.images?.[0] || ''}
                                             isVerified={ad.owner?.is_verified}
+                                            verifiedLevel={ad.owner?.verified_level}
                                             isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
                                             hasBulkPrice={!!ad.attributes?.bulk_price}
                                         />
@@ -307,20 +312,16 @@ const CategoryListingPage: React.FC = () => {
                             </div>
                         )}
 
-                        {listings && listings.length > 0 && (
-                            <div className="mt-12 flex justify-center gap-2">
-                                <Button variant="outline" size="sm" disabled className="rounded-lg">{t('category.previous')}</Button>
-                                {[1, 2, 3].map((page, i) => (
-                                    <Button
-                                        key={i}
-                                        variant={page === 1 ? 'primary' : 'ghost'}
-                                        size="sm"
-                                        className={cn("w-9 h-9 p-0 rounded-lg", page === 1 && "shadow-md")}
-                                    >
-                                        {page}
-                                    </Button>
-                                ))}
-                                <Button variant="outline" size="sm" className="rounded-lg">{t('category.next')}</Button>
+                        {hasNextPage && (
+                            <div className="mt-12 flex justify-center">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => fetchNextPage()}
+                                    disabled={isFetchingNextPage}
+                                    className="rounded-xl px-8 shadow-sm"
+                                >
+                                    {isFetchingNextPage ? t('common.loading', 'Loading...') : t('category.loadMore', 'Load More')}
+                                </Button>
                             </div>
                         )}
                     </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { ProductCard } from '../components/ProductCard';
@@ -9,6 +9,18 @@ import { Search, SlidersHorizontal, Info, Loader2, Sparkles } from 'lucide-react
 import { Button } from '../components/Button';
 import { FilterSidebar } from '../components/FilterSidebar';
 import { aiService } from '../services/aiService';
+
+const SKELETON_COUNT = 10;
+const SkeletonCard = () => (
+    <div className="bg-white rounded-xl overflow-hidden card-shadow animate-pulse">
+        <div className="aspect-[16/9] bg-gray-200" />
+        <div className="px-2.5 pt-2 pb-2.5 space-y-2">
+            <div className="h-3 bg-gray-200 rounded w-4/5" />
+            <div className="h-3 bg-gray-200 rounded w-3/5" />
+            <div className="h-3 bg-gray-100 rounded w-2/5" />
+        </div>
+    </div>
+);
 
 const SearchResultsPage: React.FC = () => {
     const { t } = useTranslation();
@@ -43,16 +55,22 @@ const SearchResultsPage: React.FC = () => {
         }
     };
 
-    const { data: results = [], isLoading } = useQuery({
+    const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
         queryKey: ['listings', 'search', query, location, minPrice, maxPrice, attributeFilters],
-        queryFn: () => listingService.getListings({
+        queryFn: ({ pageParam = 0 }) => listingService.getListings({
             q: query,
             ...(location ? { location } : {}),
             ...(minPrice !== '' ? { min_price: minPrice } : {}),
             ...(maxPrice !== '' ? { max_price: maxPrice } : {}),
-            attrs: Object.keys(attributeFilters).length > 0 ? JSON.stringify(attributeFilters) : undefined
+            attrs: Object.keys(attributeFilters).length > 0 ? JSON.stringify(attributeFilters) : undefined,
+            limit: 24,
+            skip: pageParam,
         }),
+        getNextPageParam: (lastPage, allPages) => lastPage.length === 24 ? allPages.length * 24 : undefined,
+        initialPageParam: 0,
     });
+
+    const results = data?.pages.flat() || [];
 
     return (
         <PublicLayout>
@@ -105,28 +123,46 @@ const SearchResultsPage: React.FC = () => {
 
                     <div className="flex-1 min-w-0">
                         {isLoading ? (
-                            <div className="flex justify-center py-20">
-                                <Loader2 className="w-12 h-12 animate-spin text-primary-400" />
-                            </div>
-                        ) : results.length > 0 ? (
                             <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                                {results.map((ad) => (
-                                    <ProductCard
-                                        key={ad.id}
-                                        id={String(ad.id)}
-                                        ownerId={ad.owner_id}
-                                        title_en={ad.title_en}
-                                        title_so={ad.title_so}
-                                        price={ad.price}
-                                        currency={ad.currency}
-                                        location={ad.location}
-                                        imageUrl={ad.images?.[0] || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=400'}
-                                        isVerified={ad.owner?.is_verified}
-                                        isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
-                                        hasBulkPrice={!!ad.attributes?.bulk_price}
-                                    />
+                                {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+                                    <SkeletonCard key={i} />
                                 ))}
                             </div>
+                        ) : results.length > 0 ? (
+                            <>
+                                <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                                    {results.map((ad) => (
+                                        <ProductCard
+                                            key={ad.id}
+                                            id={String(ad.id)}
+                                            ownerId={ad.owner_id}
+                                            title_en={ad.title_en}
+                                            title_so={ad.title_so}
+                                            price={ad.price}
+                                            currency={ad.currency}
+                                            location={ad.location}
+                                            imageUrl={ad.images?.[0] || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=400'}
+                                            isVerified={ad.owner?.is_verified}
+                                            verifiedLevel={ad.owner?.verified_level}
+                                            isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
+                                            hasBulkPrice={!!ad.attributes?.bulk_price}
+                                        />
+                                    ))}
+                                </div>
+                                
+                                {hasNextPage && (
+                                    <div className="mt-12 flex justify-center">
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => fetchNextPage()}
+                                            disabled={isFetchingNextPage}
+                                            className="rounded-xl px-8 shadow-sm"
+                                        >
+                                            {isFetchingNextPage ? t('common.loading', 'Loading...') : t('search.loadMore', 'Load More')}
+                                        </Button>
+                                    </div>
+                                )}
+                            </>
                         ) : (
                             <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
                                 <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">

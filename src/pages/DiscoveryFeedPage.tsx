@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { 
     Heart, MessageCircle, Share2, ShoppingBag, 
@@ -20,20 +20,30 @@ const DiscoveryFeedPage: React.FC = () => {
     const { currency: targetCurrency } = useCurrencyStore();
     const navigate = useNavigate();
 
-    const { data: listings, isLoading } = useQuery({
+    const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
         queryKey: ['discovery-feed'],
-        queryFn: () => listingService.getListings({ limit: 20 }),
+        queryFn: ({ pageParam = 0 }) => listingService.getListings({ limit: 12, skip: pageParam }),
+        getNextPageParam: (lastPage, allPages) => lastPage.length === 12 ? allPages.length * 12 : undefined,
+        initialPageParam: 0,
     });
+
+    const listings = data?.pages.flat() || [];
 
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     const handleScroll = () => {
         if (!scrollContainerRef.current) return;
-        const scrollPos = scrollContainerRef.current.scrollTop;
-        const height = scrollContainerRef.current.clientHeight;
-        const newIndex = Math.round(scrollPos / height);
+        const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+        const newIndex = Math.round(scrollTop / clientHeight);
         if (newIndex !== activeIndex) {
             setActiveIndex(newIndex);
+        }
+
+        // Fetch next page when user is close to the end of the current results
+        if (scrollTop + clientHeight >= scrollHeight - clientHeight * 2) {
+            if (hasNextPage && !isFetchingNextPage) {
+                fetchNextPage();
+            }
         }
     };
 

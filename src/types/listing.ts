@@ -24,6 +24,7 @@ export interface Listing {
     owner?: User & {
         response_time?: string;
         is_verified?: boolean;
+        verified_level?: string;
     };
     attributes?: Record<string, any>;
     is_negotiable?: boolean;

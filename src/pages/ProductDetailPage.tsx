@@ -110,8 +110,10 @@ const ProductDetailPage: React.FC = () => {
     });
 
     const { data: relatedAds } = useQuery<Listing[]>({
-        queryKey: ['related-listings'],
-        queryFn: () => listingService.getListings({ limit: 6 }),
+        queryKey: ['related-listings', ad?.category_id],
+        queryFn: () => listingService.getListings({ limit: 6, category_id: ad?.category_id }),
+        enabled: !!ad?.category_id,
+        staleTime: 5 * 60 * 1000,
     });
 
     const { data: followStats } = useQuery({
@@ -612,9 +614,14 @@ const ProductDetailPage: React.FC = () => {
                             <div className="flex-1 min-w-0">
                                 <p className="font-bold text-gray-900 text-sm truncate">{ad.owner?.full_name || t('listing.seller')}</p>
                                 {ad.owner?.is_verified && (
-                                    <div className="flex items-center gap-1 text-primary-600 mt-0.5">
-                                        <ShieldCheck className="h-3 w-3" />
-                                        <span className="text-[10px] font-bold">{t('listing.verifiedSeller')}</span>
+                                    <div className={cn(
+                                        "flex items-center gap-1 mt-0.5",
+                                        ad.owner?.verified_level === 'premium' ? "text-amber-600" : "text-primary-600"
+                                    )}>
+                                        <BadgeCheck className={cn("h-3.5 w-3.5", ad.owner?.verified_level === 'premium' ? "fill-amber-500 text-white" : "fill-primary-500 text-white")} />
+                                        <span className="text-[10px] font-black uppercase tracking-tight">
+                                            {ad.owner?.verified_level === 'premium' ? 'Premium Trusted Seller' : t('listing.verifiedSeller')}
+                                        </span>
                                     </div>
                                 )}
                                 {avgRating && (

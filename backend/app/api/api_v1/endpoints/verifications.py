@@ -164,7 +164,9 @@ def update_verification_status(
         if user:
             user.is_verified = True
             # Map request tier to UserVerifiedLevel
-            if request.tier == "tier3":
+            if request.tier == "premium":
+                user.verified_level = UserVerifiedLevel.premium
+            elif request.tier == "tier3":
                 user.verified_level = UserVerifiedLevel.tier3
             else:
                 user.verified_level = UserVerifiedLevel.tier2

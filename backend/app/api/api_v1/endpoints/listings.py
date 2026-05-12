@@ -1,5 +1,5 @@
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, BackgroundTasks
 from sqlmodel import Session, select, func
 from app.api import deps
 from app.crud import crud_listing
@@ -7,6 +7,7 @@ from app.models.listing import Listing, ListingBase, ListingRead, Category, SubC
 from app.models.user import User
 from app.models.audit import AuditLog
 from app.models.marketing_code import MarketingCode
+from app.services.cache_service import cache
 from app.core.config import settings
 import uuid
 import os
@@ -21,6 +22,7 @@ router = APIRouter()
 async def upload_image(
     *,
     file: UploadFile = File(...),
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
@@ -41,14 +43,14 @@ async def upload_image(
     try:
         url = await storage_service.upload_file(contents, filename)
         
-        # AI Image Intelligence
+        # AI Image Intelligence moved to background to prevent blocking UI
         from app.services.ai_service import ai_service
-        analysis = ai_service.analyze_image(url)
+        background_tasks.add_task(ai_service.analyze_image, url)
         
         return {
             "filename": filename, 
             "url": url,
-            "analysis": analysis
+            "analysis": "processing_in_background"
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")
@@ -85,12 +87,8 @@ async def upload_multiple_images(
     return results
 
 
-# Simple in-memory cache for categories
-_categories_cache = {"data": None, "timestamp": 0}
-CACHE_TTL = 300  # 5 minutes
-
-
 @router.get("/categories", response_model=List[Any])
+@cache.cached(prefix="categories", ttl=3600)
 def read_categories(
     db: Session = Depends(deps.get_db),
 ) -> Any:
@@ -98,13 +96,7 @@ def read_categories(
     Retrieve categories with subcategories.
     """
     import json
-    import time
     
-    # Return cached data if available and fresh
-    current_time = time.time()
-    if _categories_cache["data"] and (current_time - _categories_cache["timestamp"] < CACHE_TTL):
-        return _categories_cache["data"]
-
     categories = crud_listing.get_categories(db)
     result = []
     
@@ -378,6 +370,7 @@ def read_my_listings(
 
 
 @router.get("/", response_model=List[ListingRead])
+@cache.cached(prefix="listings", ttl=60)
 def read_listings(
     db: Session = Depends(deps.get_db),
     skip: int = 0,

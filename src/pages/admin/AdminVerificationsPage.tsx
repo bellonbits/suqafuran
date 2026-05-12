@@ -23,6 +23,9 @@ interface VerificationRequest {
     selfie_url?: string;
     facial_match_score?: number;
     created_at: string;
+    tier?: string;
+    proof_of_address_url?: string;
+    video_selfie_url?: string;
     user?: { full_name: string; phone: string; email?: string };
 }
 
@@ -108,6 +111,7 @@ const AdminVerificationsPage: React.FC = () => {
                         <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
                             <tr>
                                 <th className="px-6 py-3 text-left">{t('admin.user')}</th>
+                                <th className="px-6 py-3 text-left">Tier</th>
                                 <th className="px-6 py-3 text-left">{t('admin.documentType')}</th>
                                 <th className="px-6 py-3 text-left">{t('admin.matchScore')}</th>
                                 <th className="px-6 py-3 text-left">{t('admin.submitted')}</th>
@@ -128,6 +132,14 @@ const AdminVerificationsPage: React.FC = () => {
                                                 <p className="text-xs text-gray-400">{req.user?.phone || req.user?.email}</p>
                                             </div>
                                         </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className={cn(
+                                            "px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest",
+                                            req.tier === 'premium' ? "bg-secondary-500 text-white" : "bg-gray-100 text-gray-500"
+                                        )}>
+                                            {req.tier === 'premium' ? 'Premium' : 'Standard'}
+                                        </span>
                                     </td>
                                     <td className="px-6 py-4 capitalize text-gray-600">{req.document_type}</td>
                                     <td className="px-6 py-4">
@@ -275,6 +287,28 @@ const AdminVerificationsPage: React.FC = () => {
                                             </a>
                                         ))}
                                     </div>
+                                </div>
+                            )}
+
+                            {preview.proof_of_address_url && (
+                                <div>
+                                    <p className="text-xs font-bold text-secondary-600 uppercase tracking-wider mb-2">Proof of Address</p>
+                                    <a href={getImageUrl(preview.proof_of_address_url)} target="_blank" rel="noreferrer" className="block p-4 bg-secondary-50 border border-secondary-100 rounded-xl">
+                                        <div className="flex items-center gap-3">
+                                            <FileText className="text-secondary-600" />
+                                            <span className="text-sm font-bold text-secondary-900">View Address Document</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            )}
+
+                            {preview.video_selfie_url && (
+                                <div>
+                                    <p className="text-xs font-bold text-secondary-600 uppercase tracking-wider mb-2">Video Selfie</p>
+                                    <video controls className="w-full rounded-xl border-2 border-secondary-100">
+                                        <source src={getImageUrl(preview.video_selfie_url)} type="video/mp4" />
+                                        Your browser does not support the video tag.
+                                    </video>
                                 </div>
                             )}
                             {preview.status === 'pending' && (

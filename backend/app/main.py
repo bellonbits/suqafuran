@@ -2,6 +2,7 @@ from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.middleware.gzip import GZipMiddleware
 from slowapi.errors import RateLimitExceeded
 from app.core.limiter import limiter
 from app.api.api_v1.api import api_router
@@ -33,6 +34,9 @@ app.add_middleware(
     SessionMiddleware,
     secret_key=settings.SECRET_KEY,
 )
+
+# GZip Compression
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Serve uploaded files
 if Path(settings.UPLOAD_DIR).exists():

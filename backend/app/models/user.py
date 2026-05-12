@@ -16,6 +16,7 @@ class UserVerifiedLevel(str, enum.Enum):
     tier1 = "tier1" # Minimal (Phone/Email)
     tier2 = "tier2" # Standard (ID/Address/Liveness)
     tier3 = "tier3" # Enhanced (Video/Bank)
+    premium = "premium" # Gold Badge
     trusted = "trusted"
 
 

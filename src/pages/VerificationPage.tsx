@@ -29,7 +29,7 @@ const VerificationPage: React.FC = () => {
     const [documentFiles, setDocumentFiles] = useState<File[]>([]);
     const [documentType, setDocumentType] = useState('national_id');
     const [idNumber, setIdNumber] = useState('');
-    const [tier, setTier] = useState<'tier2' | 'tier3'>('tier2');
+    const [tier, setTier] = useState<'tier2' | 'premium'>('tier2');
     const [proofOfAddressFile, setProofOfAddressFile] = useState<File | null>(null);
     const [videoSelfieFile, setVideoSelfieFile] = useState<File | null>(null);
     const [webcamError, setWebcamError] = useState(false);
@@ -265,19 +265,22 @@ const VerificationPage: React.FC = () => {
                             )}
                         >
                             <Shield className={cn("h-6 w-6 mb-2", tier === 'tier2' ? "text-primary-500" : "text-gray-400")} />
-                            <p className="font-bold text-sm text-gray-900">Tier 2: Standard</p>
-                            <p className="text-[10px] text-gray-500 mt-1">ID + Selfie. Required for basic selling.</p>
+                            <p className="font-bold text-sm text-gray-900">{t('verify.tier2Name', 'Standard ID')}</p>
+                            <p className="text-[10px] text-gray-500 mt-1">ID + Selfie. Get the verified checkmark.</p>
                         </button>
                         <button 
-                            onClick={() => setTier('tier3')}
+                            onClick={() => setTier('premium')}
                             className={cn(
-                                "p-4 rounded-2xl border-2 text-left transition-all",
-                                tier === 'tier3' ? "border-primary-500 bg-primary-50" : "border-gray-100 hover:border-gray-200"
+                                "p-4 rounded-2xl border-2 text-left transition-all relative overflow-hidden",
+                                tier === 'premium' ? "border-secondary-500 bg-secondary-50" : "border-gray-100 hover:border-gray-200"
                             )}
                         >
-                            <Award className={cn("h-6 w-6 mb-2", tier === 'tier3' ? "text-primary-500" : "text-gray-400")} />
-                            <p className="font-bold text-sm text-gray-900">Tier 3: Enhanced</p>
-                            <p className="text-[10px] text-gray-500 mt-1">Video + Address. Required for high-value sellers.</p>
+                            <div className="absolute top-0 right-0 p-1 bg-secondary-500 text-white rounded-bl-lg">
+                                <Sparkles className="h-3 w-3" />
+                            </div>
+                            <Award className={cn("h-6 w-6 mb-2", tier === 'premium' ? "text-secondary-500" : "text-gray-400")} />
+                            <p className="font-bold text-sm text-gray-900">{t('verify.premiumName', 'Premium Badge')}</p>
+                            <p className="text-[10px] text-gray-500 mt-1">Video + Address. Get the Gold Premium badge.</p>
                         </button>
                     </div>
                 </div>
@@ -313,7 +316,7 @@ const VerificationPage: React.FC = () => {
                     </div>
 
                     {/* Tier 3 Additional Fields */}
-                    {tier === 'tier3' && (
+                    {tier === 'premium' && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
                             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                                 <h3 className="font-bold text-gray-900 mb-1">Proof of Address</h3>
