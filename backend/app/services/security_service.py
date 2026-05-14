@@ -6,6 +6,11 @@ from app.models.device import Device, UserDeviceLink
 from app.models.user import User
 from app.models.fraud import FraudEvent, FraudTargetType
 
+from prometheus_client import Counter
+
+fraud_events_total = Counter('suqafuran_fraud_events_total', 'Total number of detected fraud events', ['rule_name', 'target_type'])
+critical_risk_actions_total = Counter('suqafuran_critical_risk_actions_total', 'Total automated actions taken due to critical risk', ['target_type'])
+
 class SecurityService:
     def get_or_create_device(self, db: Session, fingerprint: str, metadata: Dict[str, Any]) -> Device:
         device = db.query(Device).filter(Device.fingerprint == fingerprint).first()
@@ -82,8 +87,12 @@ class SecurityService:
         )
         db.add(event)
         
+        # Increment Prometheus Metric
+        fraud_events_total.labels(rule_name=rule_name, target_type=target_type.value).inc()
+        
         # If risk is critical, take automated action
         if risk_score >= 90:
+            critical_risk_actions_total.labels(target_type=target_type.value).inc()
             if target_type == FraudTargetType.USER:
                 user = db.query(User).filter(User.id == int(target_id)).first()
                 if user:
