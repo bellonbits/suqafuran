@@ -36,8 +36,6 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// Track whether we're already handling a session-expiry to avoid loops
-let isValidatingSession = false;
 
 api.interceptors.response.use(
     (response) => response,
@@ -47,29 +45,14 @@ api.interceptors.response.use(
         // Only attempt recovery on 401 (Unauthorized) when we have a stored token.
         // 403 (Forbidden) means the token is valid but the user lacks permission —
         // do NOT log them out for that.
-        if (status === 401 && !isValidatingSession) {
-            const { token } = useAuthStore.getState();
-
-            if (!token) return Promise.reject(error);
-
-            isValidatingSession = true;
-            try {
-                // Background check to see if the session is truly dead
-                await axios.get(`${API_BASE_URL}/users/me`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                // If it succeeds, the original 401 was a fluke or endpoint-specific
-            } catch (verifyError: any) {
-                if (verifyError.response?.status === 401) {
-                    // Only log out if it's a genuine, confirmed 401 on /users/me
-                    // and we are NOT on a native platform where we want to be stickier
-                    const isNative = typeof (window as any).Capacitor !== 'undefined';
-                    if (!isNative) {
-                        // logout(); // Disabled per user request: "no refreshing of the app and logs you out"
-                    }
+        if (status === 401) {
+            const isNative = typeof (window as any).Capacitor !== 'undefined';
+            if (!isNative) {
+                useAuthStore.getState().logout();
+                // Force a redirect to login if we're on a protected route
+                if (window.location.pathname !== '/login') {
+                    window.location.href = '/login';
                 }
-            } finally {
-                isValidatingSession = false;
             }
         }
 

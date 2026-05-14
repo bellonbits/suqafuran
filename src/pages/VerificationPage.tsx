@@ -4,13 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     Camera, Upload, CheckCircle, XCircle, Shield, Loader2, Award,
-    AlertCircle, RefreshCw, Image as ImageIcon, ChevronDown, Sparkles, Fingerprint
+    AlertCircle, RefreshCw, Image as ImageIcon, ChevronDown
 } from 'lucide-react';
 import api from '../services/api';
 import { Button } from '../components/Button';
 import { cn } from '../utils/cn';
 import { useAuthStore } from '../store/useAuthStore';
-import { BiometricScanner } from '../components/BiometricScanner';
 
 const DOCUMENT_TYPE_KEYS = [
     { value: 'national_id', tKey: 'verify.nationalId' },
@@ -71,9 +70,7 @@ const VerificationPage: React.FC = () => {
                 formData.append('video_selfie_file', videoSelfieFile);
             }
 
-            if (aiResult) {
-                formData.append('facial_match_score', String(aiResult.match_score || 0));
-            }
+
 
             if (selfieFile) {
                 formData.append('selfie_file', selfieFile, selfieFile.name);
@@ -115,17 +112,7 @@ const VerificationPage: React.FC = () => {
         }
     };
 
-    const [showAdvancedScanner, setShowAdvancedScanner] = useState(false);
-    const [aiResult, setAiResult] = useState<any>(null);
 
-    const handleAiAnalyze = () => {
-        setShowAdvancedScanner(true);
-    };
-
-    const handleScannerComplete = (result: any) => {
-        setShowAdvancedScanner(false);
-        setAiResult(result);
-    };
 
     const handleSubmit = () => {
         if ((selfieCapture || selfieFile) && documentFiles.length > 0) {
@@ -150,39 +137,7 @@ const VerificationPage: React.FC = () => {
                 <p className="text-gray-500">{t('verify.subtitle')}</p>
             </div>
 
-            {showAdvancedScanner && (
-                <BiometricScanner 
-                    onComplete={handleScannerComplete} 
-                    onCancel={() => setShowAdvancedScanner(false)} 
-                    fetchResult={async () => {
-                        const formData = new FormData();
-                        if (documentFiles.length > 0) {
-                            formData.append('document_file', documentFiles[0]);
-                        } else {
-                            throw new Error("No document file");
-                        }
 
-                        if (idNumber) {
-                            formData.append('id_number', idNumber);
-                        }
-                        
-                        if (selfieFile) {
-                            formData.append('selfie_file', selfieFile, selfieFile.name);
-                        } else if (selfieCapture) {
-                            const res = await fetch(selfieCapture);
-                            const blob = await res.blob();
-                            formData.append('selfie_file', blob, 'selfie.jpg');
-                        } else {
-                            throw new Error("No selfie file");
-                        }
-                        
-                        const res = await api.post('/ai/verifications/check-match', formData, {
-                            headers: { 'Content-Type': 'multipart/form-data' }
-                        });
-                        return res.data;
-                    }}
-                />
-            )}
 
             {/* Status Banner */}
             {status && (
@@ -275,9 +230,6 @@ const VerificationPage: React.FC = () => {
                                 tier === 'premium' ? "border-secondary-500 bg-secondary-50" : "border-gray-100 hover:border-gray-200"
                             )}
                         >
-                            <div className="absolute top-0 right-0 p-1 bg-secondary-500 text-white rounded-bl-lg">
-                                <Sparkles className="h-3 w-3" />
-                            </div>
                             <Award className={cn("h-6 w-6 mb-2", tier === 'premium' ? "text-secondary-500" : "text-gray-400")} />
                             <p className="font-bold text-sm text-gray-900">{t('verify.premiumName', 'Premium Badge')}</p>
                             <p className="text-[10px] text-gray-500 mt-1">Video + Address. Get the Gold Premium badge.</p>
@@ -497,87 +449,12 @@ const VerificationPage: React.FC = () => {
                         )}
                     </div>
 
-                    {/* AI Identity Pre-check */}
-                    {canSubmit && !aiResult && (
-                        <div className="bg-[#0f172a] p-8 rounded-[2rem] border border-primary-500/30 shadow-2xl relative overflow-hidden group">
-                            {/* Animated Pulse Ring */}
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary-500/5 rounded-full animate-pulse" />
-                            
-                            <div className="relative z-10 text-center">
-                                <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-500/10 rounded-full border border-primary-500/20 mb-6">
-                                    <Sparkles className="h-3 w-3 text-primary-400" />
-                                    <span className="text-[10px] font-black text-primary-400 uppercase tracking-widest">Biometric Phase</span>
-                                </div>
-                                
-                                <h3 className="text-xl font-black text-white mb-3 tracking-tight">Smart Identity Protocol</h3>
-                                <p className="text-white/60 text-xs leading-relaxed mb-6">
-                                    Initialize advanced face-match validation. Our Smart System analyzes <span className="text-white font-bold">128 facial landmarks</span> against your document.
-                                </p>
-                                
-                                <Button 
-                                    className="w-full rounded-2xl bg-primary-500 hover:bg-primary-400 text-white font-black py-4 shadow-[0_0_20px_rgba(59,130,246,0.3)] group-hover:shadow-[0_0_30px_rgba(59,130,246,0.5)] transition-all"
-                                    onClick={handleAiAnalyze}
-                                >
-                                    <Fingerprint className="w-5 h-5 mr-2" /> 
-                                    INITIALIZE IDENTITY SCAN
-                                </Button>
-                                
-                                <div className="mt-4 flex items-center justify-center gap-4 opacity-40">
-                                    <div className="flex items-center gap-1">
-                                        <div className="w-1 h-1 rounded-full bg-green-500" />
-                                        <span className="text-[8px] font-bold text-white uppercase tracking-tighter">Encrypted</span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <div className="w-1 h-1 rounded-full bg-blue-500" />
-                                        <span className="text-[8px] font-bold text-white uppercase tracking-tighter">SMART CORE V3</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
-                    {aiResult && (
-                        <div className={cn(
-                            "p-6 rounded-2xl border animate-in fade-in slide-in-from-bottom-4 duration-500",
-                            aiResult.is_authentic ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
-                        )}>
-                            <div className="flex items-center justify-between mb-4">
-                                <div className={cn("flex items-center gap-2", aiResult.is_authentic ? "text-green-700" : "text-red-700")}>
-                                    {aiResult.is_authentic ? <CheckCircle className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
-                                    <h3 className="font-bold uppercase text-xs tracking-widest">
-                                        {aiResult.is_authentic ? "Smart Analysis Complete" : "Verification Failed"}
-                                    </h3>
-                                </div>
-                                <span className={cn("text-[10px] font-black", aiResult.is_authentic ? "text-green-700" : "text-red-700")}>
-                                    {aiResult.match_score}% MATCH
-                                </span>
-                            </div>
-                            <div className="space-y-3">
-                                <div className="flex justify-between items-center text-xs">
-                                    <span className={aiResult.is_authentic ? "text-green-800" : "text-red-800"}>Biometric Similarity</span>
-                                    <span className={cn("font-bold", aiResult.is_authentic ? "text-green-900" : "text-red-900")}>
-                                        {aiResult.is_authentic ? "High Confidence" : "Low Confidence"}
-                                    </span>
-                                </div>
-                                <div className={cn("w-full h-1.5 rounded-full overflow-hidden", aiResult.is_authentic ? "bg-green-200" : "bg-red-200")}>
-                                    <div 
-                                        className={cn("h-full rounded-full transition-all duration-1000", aiResult.is_authentic ? "bg-green-600" : "bg-red-600")} 
-                                        style={{ width: `${Math.max(10, aiResult.match_score)}%` }}
-                                    />
-                                </div>
-                                <p className={cn("text-[10px] italic", aiResult.is_authentic ? "text-green-700" : "text-red-700 font-bold")}>
-                                    {aiResult.is_authentic 
-                                        ? "Face match confirmed. Documents appear authentic. Ready for final submission." 
-                                        : aiResult.reason || "The uploaded image does not appear to be a valid ID document. Please try again with a clear, readable ID card."}
-                                </p>
-                            </div>
-                        </div>
-                    )}
 
                     {/* Submit */}
                     <Button
                         className="w-full rounded-xl py-3 text-base shadow-lg shadow-primary-100"
-                        disabled={!canSubmit || (!aiResult && !submitMutation.isPending)}
+                        disabled={!canSubmit}
                         onClick={handleSubmit}
                     >
                         {submitMutation.isPending ? (

@@ -38,7 +38,7 @@ export const listingService = {
         return response.data;
     },
 
-    async uploadImage(file: File): Promise<{ filename: string; url: string }> {
+    async uploadImage(file: File): Promise<{ filename: string; url: string; phash?: string }> {
         const formData = new FormData();
         formData.append('file', file);
         const response = await api.post('/listings/upload', formData, {
@@ -49,7 +49,7 @@ export const listingService = {
         return response.data;
     },
 
-    async uploadMultipleImages(files: File[]): Promise<{ filename: string; url: string }[]> {
+    async uploadMultipleImages(files: File[]): Promise<{ filename: string; url: string; phash?: string }[]> {
         const formData = new FormData();
         files.forEach(file => formData.append('files', file));
         const response = await api.post('/listings/upload-multiple', formData, {

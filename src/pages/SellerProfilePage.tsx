@@ -11,12 +11,11 @@ import { Button } from '../components/Button';
 import {
     ShieldCheck, MapPin, Clock, Phone,
     Share2, Flag, Loader2, ChevronLeft,
-    UserPlus, UserCheck, Users, Sparkles, Award
+    UserPlus, UserCheck, Users
 } from 'lucide-react';
 import type { Listing } from '../types/listing';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/useAuthStore';
-import { aiService } from '../services/aiService';
 import { cn } from '../utils/cn';
 
 const SellerProfilePage: React.FC = () => {
@@ -43,12 +42,8 @@ const SellerProfilePage: React.FC = () => {
         enabled: !!sellerId && !!me,
     });
 
-    const { data: sellerScore } = useQuery({
-        queryKey: ['ai-seller-score', sellerId],
-        queryFn: () => aiService.getSellerScore(Number(sellerId)),
-        enabled: !!sellerId,
-        staleTime: 300_000,
-    });
+
+
 
     const followMutation = useMutation({
         mutationFn: () => followsService.followUser(Number(sellerId)),
@@ -142,32 +137,8 @@ const SellerProfilePage: React.FC = () => {
                                     </span>
                                 </div>
 
-                                {/* Smart Shop Trust Score Card */}
-                                {sellerScore && (
-                                    <div className="bg-gradient-to-br from-primary-50 to-white border border-primary-100 rounded-3xl p-5 mb-4 shadow-sm">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <div className="flex items-center gap-2">
-                                                <Sparkles className="h-4 w-4 text-primary-500" />
-                                                <span className="text-[10px] font-bold text-primary-700 uppercase tracking-tight">Smart Trust Score</span>
-                                            </div>
-                                            <span className="text-sm font-bold text-primary-600">{sellerScore.score}%</span>
-                                        </div>
-                                        <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden mb-2">
-                                            <div 
-                                                className="h-full bg-primary-500 rounded-full transition-all duration-1000" 
-                                                style={{ width: `${sellerScore.score}%` }}
-                                            />
-                                        </div>
-                                        <div className="flex gap-1 overflow-x-auto no-scrollbar">
-                                            {sellerScore.badges.map((badge: string, i: number) => (
-                                                <div key={i} className="flex items-center gap-1 px-1.5 py-0.5 bg-white border border-primary-100 rounded text-[9px] text-primary-600 font-medium whitespace-nowrap">
-                                                    <Award size={8} />
-                                                    {badge}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+
+
 
                                 {/* Follower stats */}
                                 {!isStatsLoading && followStats && (

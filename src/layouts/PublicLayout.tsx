@@ -31,6 +31,7 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
         href === '/' ? path === '/' : path.startsWith(href);
 
     return (
+        <>
         <div className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden relative">
 
             {/* ── MOBILE HEADER ── */}
@@ -311,7 +312,8 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
             </footer>
 
-            <AISupportChat />
+
+
 
             {/* Mobile Footer (collapsible) */}
             <footer className="md:hidden bg-primary-500 text-black content-bottom-safe">
@@ -357,6 +359,8 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
             </footer>
         </div>
+        <AISupportChat />
+        </>
     );
 };
 

@@ -1,12 +1,11 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/useAuthStore';
-import { PlusCircle, ShoppingBag, MessageCircle, Heart, ShieldCheck, Zap, Award } from 'lucide-react';
+import { PlusCircle, ShoppingBag, MessageCircle, Heart, ShieldCheck, Award } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Link } from 'react-router-dom';
 import { cn } from '../utils/cn';
 import { dashboardService } from '../services/dashboardService';
-import { aiService } from '../services/aiService';
 import { useQuery } from '@tanstack/react-query';
 
 const OverviewDashboard: React.FC = () => {
@@ -19,20 +18,15 @@ const OverviewDashboard: React.FC = () => {
         queryFn: dashboardService.getStats,
     });
 
-    const { data: aiScore } = useQuery({
-        queryKey: ['ai-seller-score', user?.id],
-        queryFn: () => aiService.getSellerScore(user!.id),
-        enabled: !!user?.id,
-        staleTime: 300_000,   // score is stable — don't re-fetch on every dashboard visit
-        retry: false,
-    });
+
+
 
     const stats = [
         { label: t('overview.myListings'), value: realStats?.listings?.toString() || '0', icon: ShoppingBag, color: 'text-primary-600', bg: 'bg-primary-50' },
         { label: t('overview.activeMessages'), value: realStats?.messages?.toString() || '0', icon: MessageCircle, color: 'text-primary-600', bg: 'bg-primary-100' },
         { label: t('overview.savedAds'), value: realStats?.favorites?.toString() || '0', icon: Heart, color: 'text-red-600', bg: 'bg-red-50' },
-        { label: 'AI Trust Score', value: aiScore?.score?.toString() || '...', icon: Zap, color: 'text-secondary-600', bg: 'bg-secondary-50' },
     ];
+
 
     const tips = [t('overview.tip1'), t('overview.tip2'), t('overview.tip3'), t('overview.tip4')];
 

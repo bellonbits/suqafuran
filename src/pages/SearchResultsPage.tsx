@@ -5,10 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { ProductCard } from '../components/ProductCard';
 import { listingService } from '../services/listingService';
-import { Search, SlidersHorizontal, Info, Loader2, Sparkles } from 'lucide-react';
+import { Search, SlidersHorizontal, Info } from 'lucide-react';
 import { Button } from '../components/Button';
 import { FilterSidebar } from '../components/FilterSidebar';
-import { aiService } from '../services/aiService';
 
 const SKELETON_COUNT = 10;
 const SkeletonCard = () => (
@@ -24,10 +23,9 @@ const SkeletonCard = () => (
 
 const SearchResultsPage: React.FC = () => {
     const { t } = useTranslation();
-    const [searchParams, setSearchParams] = useSearchParams();
+    const [searchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
     const [showFilters, setShowFilters] = React.useState(false);
-    const [aiParsing, setAiParsing] = React.useState(false);
 
     // Filter State
     const [location, setLocation] = React.useState('');
@@ -35,25 +33,8 @@ const SearchResultsPage: React.FC = () => {
     const [maxPrice, setMaxPrice] = React.useState('');
     const [attributeFilters, setAttributeFilters] = React.useState<Record<string, any>>({});
 
-    const handleAISmartSearch = async () => {
-        if (!query) return;
-        setAiParsing(true);
-        try {
-            const filters = await aiService.parseSearch(query);
-            if (filters.location) setLocation(filters.location);
-            if (filters.min_price) setMinPrice(String(filters.min_price));
-            if (filters.max_price) setMaxPrice(String(filters.max_price));
-            if (filters.q && filters.q !== query) {
-                setSearchParams({ q: filters.q });
-            }
-            // Auto-open filters to show what changed
-            setShowFilters(true);
-        } catch (err) {
-            console.error("AI Smart Search failed", err);
-        } finally {
-            setAiParsing(false);
-        }
-    };
+
+
 
     const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
         queryKey: ['listings', 'search', query, location, minPrice, maxPrice, attributeFilters],
@@ -82,16 +63,8 @@ const SearchResultsPage: React.FC = () => {
                         </h1>
                         <p className="text-sm text-gray-500 mt-1">{results.length} items found</p>
                         
-                        {query && (
-                            <button
-                                onClick={handleAISmartSearch}
-                                disabled={aiParsing}
-                                className="mt-2 flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 text-primary-600 rounded-full text-xs font-bold hover:bg-primary-100 transition-all border border-primary-100 shadow-sm"
-                            >
-                                {aiParsing ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-                                ✨ Smart Shop Search
-                            </button>
-                        )}
+
+
                     </div>
                     <Button
                         variant="outline"
@@ -172,13 +145,8 @@ const SearchResultsPage: React.FC = () => {
                                 <p className="text-gray-500 max-w-sm text-center">
                                     We couldn't find anything matching your search. Try adjusting your filters or keywords.
                                 </p>
-                                <button 
-                                    onClick={handleAISmartSearch}
-                                    className="px-4 py-2 bg-primary-50 text-primary-600 rounded-xl font-black text-[10px] uppercase tracking-widest border border-primary-100 flex items-center gap-2 active:scale-95 transition-all"
-                                >
-                                    <Sparkles size={12} />
-                                    ✨ Smart Shop Search
-                                </button>
+
+
                                 <Button
                                     className="mt-6 rounded-full px-8 bg-primary-300 hover:bg-primary-400 text-white"
                                     onClick={() => {

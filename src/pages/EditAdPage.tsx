@@ -2,10 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronLeft, Plus, X, CheckCircle2, Loader2, Sparkles, Languages } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Plus, X, CheckCircle2, Loader2 } from 'lucide-react';
 
 import { listingService } from '../services/listingService';
-import { aiService } from '../services/aiService';
 import { getImageUrl } from '../utils/imageUtils';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { LocationPickerModal } from '../components/LocationPickerModal';
@@ -76,7 +75,6 @@ const EditAdPage: React.FC = () => {
     const [submitted, setSubmitted] = useState(false);
     const { getField } = useLanguageField();
 
-    const [aiLoading, setAiLoading] = useState<string | null>(null);
 
     // Fetch existing listing
     const { data: listing, isLoading: loadingListing } = useQuery({
@@ -143,43 +141,8 @@ const EditAdPage: React.FC = () => {
         }
     }
 
-    const handleAIAssist = async (type: 'title' | 'description' | 'translate', field: 'en' | 'so') => {
-        let input = '';
-        if (type === 'translate') {
-            input = field === 'en' ? form.description_so : form.description_en;
-            if (!input) return;
-        } else {
-            input = field === 'en' 
-                ? (type === 'title' ? form.title_en : form.description_en)
-                : (type === 'title' ? form.title_so : form.description_so);
-            if (!input && type !== 'description') return;
-        }
-
-        setAiLoading(`${type}_${field}`);
-        try {
-            const res = await aiService.generateListingText({
-                type,
-                title: input || (type === 'description' ? `Generate description for ${form.title_en || form.title_so}` : ''),
-                target_language: field,
-                category: selectedCategory ? getField(selectedCategory, 'name') : undefined,
-                attributes: form.attributes
-            });
-            
-            if (res.result) {
-                if (type === 'title') {
-                    set(field === 'en' ? 'title_en' : 'title_so', res.result);
-                } else if (type === 'description' || type === 'translate') {
-                    set(field === 'en' ? 'description_en' : 'description_so', res.result);
-                }
-            }
-        } catch (err) {
-            console.error("AI Assist failed", err);
-        } finally {
-            setAiLoading(null);
-        }
-    };
-
     const handleImageUpload = async (files: FileList | null) => {
+
         if (!files) return;
         for (const file of Array.from(files)) {
             try {
@@ -394,14 +357,13 @@ const EditAdPage: React.FC = () => {
                              {formTab === 'en' ? (
                                 <div className="space-y-2">
                                     {renderFloatingInput('title_en', 'English Title*', form.title_en, v => set('title_en', v), errors.title_en, { maxLength: TITLE_MAX })}
-                                    <button type="button" onClick={() => handleAIAssist('title', 'en')} disabled={!!aiLoading} className="text-[11px] flex items-center gap-1 text-primary-600 font-bold ml-auto"><Sparkles size={12}/> ✨ AI Improve</button>
                                 </div>
                              ) : (
                                 <div className="space-y-2">
                                     {renderFloatingInput('title_so', 'Gali Magaca (Somali)*', form.title_so, v => set('title_so', v), errors.title_so, { maxLength: TITLE_MAX })}
-                                    <button type="button" onClick={() => handleAIAssist('title', 'so')} disabled={!!aiLoading} className="text-[11px] flex items-center gap-1 text-primary-600 font-bold ml-auto"><Sparkles size={12}/> ✨ AI Improve</button>
                                 </div>
                              )}
+
                         </div>
 
                         <div className="relative mb-4">
@@ -450,10 +412,6 @@ const EditAdPage: React.FC = () => {
                              ) : (
                                 <textarea value={form.description_so} onChange={e => set('description_so', e.target.value)} rows={5} placeholder="Faahfaahinta Somali..." className="w-full p-3 border border-gray-300 rounded-md outline-none focus:border-primary-500 text-sm" />
                              )}
-                             <div className="flex gap-2 mt-2">
-                                <button type="button" onClick={() => handleAIAssist('description', formTab)} disabled={!!aiLoading} className="text-[11px] flex items-center gap-1 text-primary-600 font-bold border border-primary-100 px-2 py-1 rounded-md hover:bg-primary-50 transition-all"><Sparkles size={12}/> AI Improve</button>
-                                <button type="button" onClick={() => handleAIAssist('translate', formTab)} disabled={!!aiLoading} className="text-[11px] flex items-center gap-1 text-gray-600 font-bold border border-gray-100 px-2 py-1 rounded-md hover:bg-gray-50 transition-all"><Languages size={12}/> Translate</button>
-                             </div>
                         </div>
 
                         <div className="flex gap-2">

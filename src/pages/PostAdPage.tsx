@@ -88,12 +88,8 @@ const PostAdPage: React.FC = () => {
     const [showLipanaModal, setShowLipanaModal] = useState(false);
     const [createdListingTitle, setCreatedListingTitle] = useState('');
     const [aiLoading, setAiLoading] = useState(false);
-    const [titleSuggestions, setTitleSuggestions] = useState<string[]>([]);
-    const [priceHint, setPriceHint] = useState<{ min: number; max: number; demand: string } | null>(null);
-    const [priceHintLoading, setPriceHintLoading] = useState(false);
-    const [moderationWarning, setModerationWarning] = useState<{ risk: string; reasons: string[]; recommendation: string } | null>(null);
-    const [bypassModeration, setBypassModeration] = useState(false);
     const [isDragOver, setIsDragOver] = useState(false);
+
 
     const { data: verificationStatus } = useQuery({
         queryKey: ['verification-status'],
@@ -114,28 +110,8 @@ const PostAdPage: React.FC = () => {
         }
     }, [verificationStatus?.status]);
 
-    // Auto price suggestion: debounced, triggers when title + category are set
-    useEffect(() => {
-        if (!form.title_en || form.title_en.length < 5) { setPriceHint(null); return; }
-        const timer = setTimeout(async () => {
-            setPriceHintLoading(true);
-            try {
-                const res = await aiService.getPriceRecommendation({
-                    title: form.title_en,
-                    category_id: form.categoryId || 0,
-                    condition: form.condition,
-                    currency,
-                });
-                if (res.min_range && res.max_range) {
-                    setPriceHint({ min: res.min_range, max: res.max_range, demand: res.market_demand || 'medium' });
-                }
-            } catch {}
-            finally { setPriceHintLoading(false); }
-        }, 2000);
-        return () => clearTimeout(timer);
-    }, [form.title_en, form.categoryId, form.condition, currency]);
-
     const [ownerId, setOwnerId] = useState<number | null>(null);
+
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -157,6 +133,7 @@ const PostAdPage: React.FC = () => {
                         subsubcategoryId: listing.subsubcategory_id || null,
                         location: listing.location || '',
                         images: listing.images || [],
+                        image_hashes: listing.image_hashes || [],
                         youtubeLink: listing.youtube_link || '',
                         description_en: listing.description_en || '',
                         description_so: listing.description_so || '',
@@ -178,22 +155,8 @@ const PostAdPage: React.FC = () => {
         queryFn: listingService.getCategories,
     });
 
-    // Auto-categorize: triggers when title_en is typed and no category is chosen yet
-    useEffect(() => {
-        if (!form.title_en || form.title_en.length < 10 || form.categoryId) return;
-        const timer = setTimeout(async () => {
-            try {
-                const res = await aiService.predictCategory(form.title_en);
-                if (res.category_slug && res.confidence > 0.5) {
-                    const matchedCat = categories.find((c: any) => c.slug === res.category_slug);
-                    if (matchedCat) set('categoryId', matchedCat.id);
-                }
-            } catch {}
-        }, 1500);
-        return () => clearTimeout(timer);
-    }, [form.title_en, categories]);
-
     const { data: promotionPlans = [] } = useQuery({
+
         queryKey: ['promotionPlans'],
         queryFn: promotionService.getPlans,
     });
@@ -405,25 +368,9 @@ const PostAdPage: React.FC = () => {
             return;
         }
 
-        // AI moderation check — skip if user already acknowledged warning
-        if (!bypassModeration) {
-            const checkText = `${form.title_en || form.title_so} ${form.description_en || form.description_so}`.trim();
-            if (checkText.length > 10) {
-                setSubmitting(true);
-                try {
-                    const modResult = await aiService.checkModeration({ text: checkText, image_urls: form.images });
-                    if (modResult.risk === 'high' || modResult.risk === 'medium') {
-                        setModerationWarning(modResult);
-                        setSubmitting(false);
-                        return;
-                    }
-                } catch {} // never block submission on moderation API error
-                setSubmitting(false);
-            }
-        }
-        setBypassModeration(false);
         await doCreateListing();
     };
+
 
     const handleLipanaConfirm = async (phone: string): Promise<{ promoId?: number; error?: string }> => {
         if (!createdListingId || !promoPlanId) return { error: 'Missing listing or plan' };
@@ -457,6 +404,7 @@ const PostAdPage: React.FC = () => {
             subsubcategoryId: null,
             location: '',
             images: [],
+            image_hashes: [],
             youtubeLink: '',
             description_en: '',
             description_so: '',
@@ -788,7 +736,6 @@ const PostAdPage: React.FC = () => {
                                         if (res.category_id) set('categoryId', res.category_id);
                                         if (res.condition) set('condition', res.condition);
                                         if (res.is_negotiable !== undefined) set('negotiable', res.is_negotiable ? 'yes' : 'no');
-                                        if (res.suggestions) setTitleSuggestions(res.suggestions);
                                         set('lang_available', 'both');
                                         (document.getElementById('ai-quick-post') as HTMLInputElement).value = '';
                                     } catch (e: any) {
@@ -814,31 +761,8 @@ const PostAdPage: React.FC = () => {
                             </button>
                         </div>
 
-                        {titleSuggestions.length > 0 && (
-                            <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-500">
-                                <p className="text-[11px] font-bold text-primary-600 uppercase tracking-widest mb-2 px-1">AI Title Suggestions:</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {titleSuggestions.map((suggestion, i) => (
-                                        <button
-                                            key={i}
-                                            type="button"
-                                            onClick={() => set('title_en', suggestion)}
-                                            className="bg-primary-50 text-primary-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-primary-100 hover:bg-primary-100 transition-colors active:scale-95"
-                                        >
-                                            {suggestion}
-                                        </button>
-                                    ))}
-                                    <button
-                                        type="button"
-                                        onClick={() => setTitleSuggestions([])}
-                                        className="text-gray-400 hover:text-gray-600 p-1"
-                                    >
-                                        <X size={14} />
-                                    </button>
-                                </div>
-                            </div>
-                        )}
                     </div>
+
 
                     <div className="bg-white rounded-md shadow-sm border-[1.5px] border-gray-200/60 p-5 mb-5">
                         
@@ -898,31 +822,11 @@ const PostAdPage: React.FC = () => {
                              </div>
 
                              {formTab === 'en' ? (
-                                <div className="flex gap-2 items-start">
-                                    <div className="flex-1">
-                                        {renderFloatingInput('title_en', 'English Title (Required if EN selected)', form.title_en, v => set('title_en', v), errors.title_en, { maxLength: TITLE_MAX })}
-                                    </div>
-                                    <button 
-                                        type="button"
-                                        onClick={async () => {
-                                            if (form.title_en.length < 5) return;
-                                            try {
-                                                const res = await aiService.predictCategory(form.title_en);
-                                                if (res.category_id) {
-                                                    set('categoryId', res.category_id);
-                                                    set('subcategoryId', res.subcategory_id || null);
-                                                }
-                                            } catch (e) {}
-                                        }}
-                                        className="h-11 px-2.5 rounded-md bg-secondary-50 text-secondary-600 border border-secondary-100 flex items-center justify-center hover:bg-secondary-100 transition-colors"
-                                        title="Predict Category"
-                                    >
-                                        <Zap size={16} />
-                                    </button>
-                                </div>
+                                renderFloatingInput('title_en', 'English Title (Required if EN selected)', form.title_en, v => set('title_en', v), errors.title_en, { maxLength: TITLE_MAX })
                              ) : (
                                 renderFloatingInput('title_so', 'Gali Magaca (Somali)', form.title_so, v => set('title_so', v), errors.title_so, { maxLength: TITLE_MAX })
                              )}
+
                         </div>
 
                         {/* Category Chooser */}
@@ -1043,43 +947,8 @@ const PostAdPage: React.FC = () => {
                 {/* ── STEP 2: Extended Details ──────────────────────────── */}
                 <div style={{ display: step === 2 ? 'block' : 'none' }}>
 
-                    {/* AI Moderation Warning */}
-                    {moderationWarning && (
-                        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 animate-in slide-in-from-top-2 duration-300">
-                            <div className="flex items-start gap-3">
-                                <ShieldAlert className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-bold text-red-800">AI flagged your listing</p>
-                                    <p className="text-xs text-red-600 mt-1">{moderationWarning.recommendation}</p>
-                                    {moderationWarning.reasons.length > 0 && (
-                                        <ul className="text-xs text-red-500 mt-2 space-y-0.5 list-disc list-inside">
-                                            {moderationWarning.reasons.map((r, i) => <li key={i}>{r}</li>)}
-                                        </ul>
-                                    )}
-                                    <div className="flex gap-2 mt-3">
-                                        <button
-                                            type="button"
-                                            onClick={() => setModerationWarning(null)}
-                                            className="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-bold hover:bg-red-200 transition-colors"
-                                        >
-                                            Edit Listing
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setModerationWarning(null);
-                                                setBypassModeration(true);
-                                                doCreateListing();
-                                            }}
-                                            className="px-3 py-1.5 bg-white text-gray-600 border border-gray-200 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors"
-                                        >
-                                            Post Anyway
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+
+
 
                     {/* CARD 1: Core Details */}
                     <div className="bg-white rounded-md shadow-sm border border-gray-200 p-5 mb-5">
@@ -1155,20 +1024,6 @@ const PostAdPage: React.FC = () => {
                                         placeholder="Describe your item in English..."
                                         className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm text-gray-900 focus:outline-none resize-y ${errors.description_en ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-primary-500'}`}
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={async () => {
-                                            if (!form.title_en) return;
-                                            try {
-                                                const res = await aiService.generateListingText({ title: form.title_en, category: selectedCategory?.slug });
-                                                set('description_en', res.description_en || res.text || '');
-                                            } catch (e) {}
-                                        }}
-                                        className="absolute top-2 right-2 p-1.5 rounded-md bg-secondary-500 text-white shadow-lg hover:scale-105 transition-transform"
-                                        title="AI Generate"
-                                    >
-                                        <Zap size={14} className="fill-white" />
-                                    </button>
                                 </div>
                             ) : (
                                 <div className="relative">
@@ -1181,21 +1036,8 @@ const PostAdPage: React.FC = () => {
                                         placeholder="Sharaxaad ka bixi alaabtaada (Somali)..."
                                         className={`peer block w-full rounded-md border bg-transparent px-3 py-3 text-sm text-gray-900 focus:outline-none resize-y ${errors.description_so ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-primary-500'}`}
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={async () => {
-                                            if (!form.title_so) return;
-                                            try {
-                                                const res = await aiService.generateListingText({ title: form.title_so, category: selectedCategory?.slug });
-                                                set('description_so', res.description_so || res.text || '');
-                                            } catch (e) {}
-                                        }}
-                                        className="absolute top-2 right-2 p-1.5 rounded-md bg-secondary-500 text-white shadow-lg hover:scale-105 transition-transform"
-                                        title="AI Generate"
-                                    >
-                                        <Zap size={14} className="fill-white" />
-                                    </button>
                                 </div>
+
                             )}
                             <div className="flex justify-end mt-1">
                                 <span className="text-[10px] text-gray-400">
@@ -1258,31 +1100,9 @@ const PostAdPage: React.FC = () => {
                                     }
                                 </p>
                                 {errors.price && <p className="text-[11px] text-red-500 mt-1 pl-1">{errors.price}</p>}
-                                {priceHintLoading && <p className="text-[11px] text-gray-400 mt-1.5 pl-1 animate-pulse">✨ Getting price suggestion...</p>}
-                                {priceHint && !priceHintLoading && (
-                                    <div className="flex items-center gap-2 mt-1.5 pl-1 flex-wrap">
-                                        <span className="text-[11px] font-bold text-emerald-600">
-                                            💡 Suggested: {currency} {priceHint.min.toLocaleString()} – {priceHint.max.toLocaleString()}
-                                        </span>
-                                        <span className={cn(
-                                            "text-[9px] font-bold px-1.5 py-0.5 rounded-full",
-                                            priceHint.demand === 'high' ? "bg-red-100 text-red-600" :
-                                            priceHint.demand === 'medium' ? "bg-amber-100 text-amber-700" :
-                                            "bg-gray-100 text-gray-500"
-                                        )}>
-                                            {priceHint.demand} demand
-                                        </span>
-                                        <button
-                                            type="button"
-                                            onClick={() => set('price', String(priceHint.min))}
-                                            className="text-[10px] text-primary-500 font-bold underline underline-offset-2"
-                                        >
-                                            Use min
-                                        </button>
-                                    </div>
-                                )}
                             </div>
                         </div>
+
 
                         {/* Bulk Price */}
                         <div className="flex justify-center mb-6">

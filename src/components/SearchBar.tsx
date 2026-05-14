@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useLanguageField } from '../hooks/useLanguageField';
 import { listingService } from '../services/listingService';
-import { aiService } from '../services/aiService';
-import { Search, X, ArrowRight, Loader2, Sparkles } from 'lucide-react';
+import { Search, X, ArrowRight, Loader2 } from 'lucide-react';
 import { getImageUrl } from '../utils/imageUtils';
 
 interface SearchBarProps {
@@ -28,7 +27,6 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     const [open, setOpen] = useState(false);
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
-    const [aiParsing, setAiParsing] = useState(false);
 
     const inputRef = useRef<HTMLInputElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -80,26 +78,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         navigate(`/search?q=${encodeURIComponent(trimmed)}`);
     }, [navigate]);
 
-    const handleAiSearch = useCallback(async () => {
-        const trimmed = query.trim();
-        if (!trimmed) return;
-        setAiParsing(true);
-        setOpen(false);
-        try {
-            const res = await aiService.parseSearch(trimmed);
-            const params = new URLSearchParams();
-            if (res.q) params.set('q', res.q);
-            if (res.location) params.set('location', res.location);
-            if (res.min_price != null) params.set('minPrice', String(res.min_price));
-            if (res.max_price != null) params.set('maxPrice', String(res.max_price));
-            if (res.category_id) params.set('category', res.category_id);
-            navigate(`/search?${params.toString()}`);
-        } catch {
-            handleSubmit(trimmed);
-        } finally {
-            setAiParsing(false);
-        }
-    }, [query, navigate, handleSubmit]);
+
+
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') handleSubmit(query);
@@ -136,19 +116,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                             <X className="h-3.5 w-3.5" />
                         </button>
                     )}
-                    {query && (
-                        <button
-                            onClick={handleAiSearch}
-                            disabled={aiParsing}
-                            title="AI Smart Search"
-                            className="shrink-0 text-primary-400 active:text-primary-600"
-                        >
-                            {aiParsing
-                                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                : <Sparkles className="h-3.5 w-3.5" />
-                            }
-                        </button>
-                    )}
+
+
                     {query && (
                         <button
                             onClick={() => handleSubmit(query)}
@@ -213,19 +182,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                         <X className="h-4 w-4" />
                     </button>
                 )}
-                {query && (
-                    <button
-                        onClick={handleAiSearch}
-                        disabled={aiParsing}
-                        title="AI Smart Search — understands natural language"
-                        className="h-full px-3 text-primary-400 hover:text-primary-600 border-r border-gray-100 transition-colors"
-                    >
-                        {aiParsing
-                            ? <Loader2 className="h-4 w-4 animate-spin" />
-                            : <Sparkles className="h-4 w-4" />
-                        }
-                    </button>
-                )}
+
+
                 <button
                     onClick={() => handleSubmit(query)}
                     className="h-full px-5 bg-primary-500 hover:bg-primary-600 transition-colors flex items-center gap-2 text-white font-semibold text-sm rounded-r-2xl"

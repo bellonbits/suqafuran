@@ -41,6 +41,8 @@ python-multipart
 # Observability
 structlog
 sentry-sdk[fastapi]
+prometheus-fastapi-instrumentator
+
 
 # Email
 emails==0.6

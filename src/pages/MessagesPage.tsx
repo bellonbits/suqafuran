@@ -8,8 +8,7 @@ import type { Conversation, Message } from '../services/messageService';
 import { useAuthStore } from '../store/useAuthStore';
 import { getImageUrl } from '../utils/imageUtils';
 import { cn } from '../utils/cn';
-import { Send, ArrowLeft, Loader2, User, Search, MessageSquare, Zap, ShieldAlert, ShieldCheck as ShieldIcon } from 'lucide-react';
-import { aiService } from '../services/aiService';
+import { Send, ArrowLeft, Loader2, User, Search, MessageSquare, ShieldAlert, ShieldCheck as ShieldIcon } from 'lucide-react';
 import api from '../services/api';
 import { VerifiedBadge, type TrustTier } from '../components/VerifiedBadge';
 
@@ -184,15 +183,8 @@ const ChatView: React.FC<{
         staleTime: 60_000,
     });
 
-    const [suggestions, setSuggestions] = useState<string[]>([]);
 
-    useEffect(() => {
-        if (conversation.other_user_id) {
-            aiService.getChatSuggestions(conversation.other_user_id)
-                .then(res => setSuggestions(res.suggestions || []))
-                .catch(() => {});
-        }
-    }, [conversation.other_user_id, messages.length]);
+
 
     const sendMutation = useMutation({
         mutationFn: (content: string) =>
@@ -349,24 +341,8 @@ const ChatView: React.FC<{
                 <div ref={bottomRef} />
             </div>
 
-            {/* AI Suggestions */}
-            {suggestions.length > 0 && (
-                <div className="px-4 py-2 flex gap-2 overflow-x-auto bg-white border-t border-gray-100 no-scrollbar">
-                    {suggestions.map((s, i) => (
-                        <button
-                            key={i}
-                            onClick={() => {
-                                setText(s);
-                                inputRef.current?.focus();
-                            }}
-                            className="whitespace-nowrap px-3 py-1.5 rounded-full bg-secondary-50 text-secondary-600 text-xs font-bold border border-secondary-100 hover:bg-secondary-100 transition-colors flex items-center gap-1.5"
-                        >
-                            <Zap size={10} className="fill-secondary-500 text-secondary-500" />
-                            {s}
-                        </button>
-                    ))}
-                </div>
-            )}
+
+
 
             {/* Input */}
             <div

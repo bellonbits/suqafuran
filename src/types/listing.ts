@@ -16,7 +16,9 @@ export interface Listing {
     owner_id: number;
     status: string;
     images: string[];
+    image_hashes?: string[];
     boost_level?: number;
+
     boost_expires_at?: string;
     created_at: string;
     updated_at: string;

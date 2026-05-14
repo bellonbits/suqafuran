@@ -8,7 +8,9 @@ from app.core.limiter import limiter
 from app.api.api_v1.api import api_router
 from app.core.config import settings
 from slowapi import _rate_limit_exceeded_handler
+from prometheus_fastapi_instrumentator import Instrumentator
 import uuid
+
 
 # Create upload directory if it doesn't exist
 app = FastAPI(
@@ -43,6 +45,10 @@ if Path(settings.UPLOAD_DIR).exists():
     app.mount("/api/v1/listings/images", StaticFiles(directory=settings.UPLOAD_DIR), name="images")
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+# Monitoring
+Instrumentator().instrument(app).expose(app)
+
 
 
 @app.get("/", include_in_schema=False)
