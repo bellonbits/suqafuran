@@ -10,6 +10,8 @@ import redis
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+ALGORITHM = settings.JWT_ALGORITHM
+
 # Redis connection for custom rate limiting
 # In production, use the URL from settings
 try:

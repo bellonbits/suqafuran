@@ -126,3 +126,4 @@ def get_current_active_agent(
 # Alias for admin endpoints
 get_current_admin_user = get_current_active_superuser
 get_current_agent_user = get_current_active_agent
+get_current_active_admin = get_current_active_superuser
