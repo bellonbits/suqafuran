@@ -14,6 +14,8 @@ from app.models.feedback import Feedback
 from app.models.follow import Follow
 from app.models.site_content import SiteContent
 from app.models.support import SupportTicket
+from app.models.device import Device, UserDeviceLink
+from app.models.fraud import FraudEvent, RiskHistory
 
 __all__ = [
     "User",
@@ -41,4 +43,8 @@ __all__ = [
     "Follow",
     "SiteContent",
     "SupportTicket",
+    "Device",
+    "UserDeviceLink",
+    "FraudEvent",
+    "RiskHistory",
 ]

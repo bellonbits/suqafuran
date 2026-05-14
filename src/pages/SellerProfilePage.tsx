@@ -17,6 +17,7 @@ import type { Listing } from '../types/listing';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/useAuthStore';
 import { aiService } from '../services/aiService';
+import { cn } from '../utils/cn';
 
 const SellerProfilePage: React.FC = () => {
     const { t } = useTranslation();
@@ -133,11 +134,11 @@ const SellerProfilePage: React.FC = () => {
 
                                 <div className={cn(
                                     "flex items-center gap-1.5 mb-3",
-                                    seller.verified_level === 'premium' ? "text-amber-600" : "text-primary-600"
+                                    (seller as any).verified_level === 'premium' ? "text-amber-600" : "text-primary-600"
                                 )}>
-                                    <ShieldCheck className={cn("h-4 w-4", seller.verified_level === 'premium' ? "fill-amber-50" : "fill-primary-50")} />
+                                    <ShieldCheck className={cn("h-4 w-4", (seller as any).verified_level === 'premium' ? "fill-amber-50" : "fill-primary-50")} />
                                     <span className="text-xs font-bold uppercase tracking-wider">
-                                        {seller.verified_level === 'premium' ? 'Premium Trusted Seller' : t('sellerProfile.verifiedSeller', 'Verified Seller')}
+                                        {(seller as any).verified_level === 'premium' ? 'Premium Trusted Seller' : t('sellerProfile.verifiedSeller', 'Verified Seller')}
                                     </span>
                                 </div>
 
@@ -260,7 +261,7 @@ const SellerProfilePage: React.FC = () => {
                                         location={ad.location}
                                         imageUrl={ad.images?.[0]}
                                         isVerified={seller.is_verified}
-                                        verifiedLevel={seller.verified_level}
+                                        verifiedLevel={(seller as any).verified_level}
                                         isPromoted={(ad.boost_level ?? 0) > 1}
                                         isPopular={idx < 1}
                                         registrationAge="Verified User"

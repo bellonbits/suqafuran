@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/useAuthStore';
-import { PlusCircle, ShoppingBag, MessageCircle, Heart, ShieldCheck, Zap } from 'lucide-react';
+import { PlusCircle, ShoppingBag, MessageCircle, Heart, ShieldCheck, Zap, Award } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Link } from 'react-router-dom';
 import { cn } from '../utils/cn';

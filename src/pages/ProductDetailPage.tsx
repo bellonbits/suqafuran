@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { translateTexts } from '../services/translateService';
 import { useParams, Link, useNavigate } from 'react-router-dom';
@@ -16,7 +17,7 @@ import {
     MapPin, Clock, ShieldCheck, Flag,
     ChevronLeft, ChevronRight, Navigation,
     MoreVertical, Camera, ChevronDown, ChevronUp, MessageCircle,
-    Share2, PhoneCall, AlertTriangle, XCircle, UserPlus, UserCheck, Star, User, Zap, Trash2, Loader2, CheckCircle
+    Share2, PhoneCall, AlertTriangle, XCircle, UserPlus, UserCheck, Star, User, Zap, Trash2, Loader2, CheckCircle, BadgeCheck
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { ProductCard } from '../components/ProductCard';
@@ -613,31 +614,53 @@ const ProductDetailPage: React.FC = () => {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="font-bold text-gray-900 text-sm truncate">{ad.owner?.full_name || t('listing.seller')}</p>
-                                {ad.owner?.is_verified && (
-                                    <div className={cn(
-                                        "flex items-center gap-1 mt-0.5",
-                                        ad.owner?.verified_level === 'premium' ? "text-amber-600" : "text-primary-600"
-                                    )}>
-                                        <BadgeCheck className={cn("h-3.5 w-3.5", ad.owner?.verified_level === 'premium' ? "fill-amber-500 text-white" : "fill-primary-500 text-white")} />
-                                        <span className="text-[10px] font-black uppercase tracking-tight">
-                                            {ad.owner?.verified_level === 'premium' ? 'Premium Trusted Seller' : t('listing.verifiedSeller')}
-                                        </span>
+                                
+                                <div className="flex flex-col gap-1 mt-1">
+                                    {ad.owner?.is_verified && (
+                                        <div className={cn(
+                                            "flex items-center gap-1",
+                                            (ad.owner?.verified_level as string) === 'premium' ? "text-amber-600" : "text-primary-600"
+                                        )}>
+                                            <BadgeCheck className={cn("h-3.5 w-3.5", (ad.owner?.verified_level as string) === 'premium' ? "fill-amber-500 text-white" : "fill-primary-500 text-white")} />
+                                            <span className="text-[10px] font-black uppercase tracking-tight">
+                                                {(ad.owner?.verified_level as string) === 'premium' ? 'Premium Trusted' : 'Verified Seller'}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {/* Trust Score Progress */}
+                                    <div className="w-full max-w-[120px] flex flex-col gap-1 mt-0.5">
+                                        <div className="flex items-center justify-between text-[8px] font-bold text-gray-400 uppercase tracking-tighter">
+                                            <span>Trust Score</span>
+                                            <span className="text-gray-900">{(ad.owner?.trust_score || 500) / 10}%</span>
+                                        </div>
+                                        <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+                                            <div 
+                                                className={cn(
+                                                    "h-full transition-all duration-500",
+                                                    (ad.owner?.trust_score || 0) > 700 ? "bg-green-500" : 
+                                                    (ad.owner?.trust_score || 0) > 400 ? "bg-primary-500" : "bg-amber-500"
+                                                )}
+                                                style={{ width: `${(ad.owner?.trust_score || 500) / 10}%` }}
+                                            />
+                                        </div>
                                     </div>
-                                )}
-                                {avgRating && (
-                                    <div className="flex items-center gap-1 text-yellow-500 mt-0.5">
-                                        <Star className="h-3 w-3 fill-yellow-500" />
-                                        <span className="text-[10px] font-bold">{avgRating} ({feedback?.length})</span>
+
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                        {ad.owner?.created_at && (
+                                            <span className="text-[9px] text-gray-400 flex items-center gap-0.5">
+                                                <Clock className="w-2.5 h-2.5" />
+                                                Joined {format(new Date(ad.owner.created_at), 'MMM yyyy')}
+                                            </span>
+                                        )}
+                                        {avgRating && (
+                                            <div className="flex items-center gap-0.5 text-amber-500">
+                                                <Star className="h-2.5 w-2.5 fill-amber-500" />
+                                                <span className="text-[9px] font-bold">{avgRating}</span>
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                                {user && user.id !== ad.owner_id && (
-                                    <button 
-                                        onClick={() => setShowFeedbackModal(true)}
-                                        className="text-[10px] font-bold text-primary-500 hover:text-primary-600 mt-1 uppercase tracking-wider block"
-                                    >
-                                        {t('listing.writeReview', 'Write Review')}
-                                    </button>
-                                )}
+                                </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 {user && user.id !== ad.owner_id && (

@@ -74,6 +74,7 @@ const AdminVerificationsPage = lazy(() => import('./pages/admin/AdminVerificatio
 const AdminMarketingPage = lazy(() => import('./pages/admin/AdminMarketingPage'));
 const AdminReportsPage = lazy(() => import('./pages/admin/AdminReportsPage'));
 const UnusualAccountsPage = lazy(() => import('./pages/admin/UnusualAccountsPage'));
+const FraudModerationPage = lazy(() => import('./pages/admin/FraudModerationPage'));
 const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'));
 const AdminSupportPage = lazy(() => import('./pages/admin/AdminSupportPage'));
 const WebEditorPage = lazyNamed(() => import('./pages/admin/WebEditorPage'), 'WebEditorPage');
@@ -237,6 +238,7 @@ const App: React.FC = () => {
               <Route path="verifications" element={<AdminVerificationsPage />} />
               <Route path="marketing" element={<AdminMarketingPage />} />
               <Route path="reports" element={<AdminReportsPage />} />
+              <Route path="fraud-moderation" element={<FraudModerationPage />} />
               <Route path="unusual-accounts" element={<UnusualAccountsPage />} />
               <Route path="users" element={<AdminUsersPage />} />
               <Route path="support" element={<AdminSupportPage />} />

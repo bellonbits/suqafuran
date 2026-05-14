@@ -7,7 +7,11 @@ export interface User {
     is_verified: boolean;
     is_admin: boolean;
     is_agent: boolean;
-    verified_level: 'guest' | 'phone' | 'id' | 'trusted';
+    verified_level: 'guest' | 'phone' | 'id' | 'trusted' | 'premium' | 'TRUSTED' | 'NEW';
+    trust_score?: number;
+    trust_level?: string;
+    is_suspended?: boolean;
+    created_at?: string;
     avatar_url?: string | null;
     response_time?: string;
     email_notifications: boolean;

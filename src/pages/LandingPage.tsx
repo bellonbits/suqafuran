@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -242,7 +242,7 @@ const LandingPage: React.FC = () => {
                                 <div key={`hot-skel-${i}`} className="w-full h-[200px] bg-white rounded-xl animate-pulse shadow-sm" />
                             ))
                         ) : (
-                            hotDeals.map((ad) => (
+                            hotDeals.map((ad: any) => (
                                 <ProductCard
                                     key={`hot-${ad.id}`}
                                     id={String(ad.id)}
@@ -460,7 +460,7 @@ const LandingPage: React.FC = () => {
                                                     <div key={`desk-hot-skel-${i}`} className="w-full h-[225px] bg-gray-50 rounded-xl animate-pulse" />
                                                 ))
                                             ) : (
-                                                hotDeals.map((ad) => (
+                                                hotDeals.map((ad: any) => (
                                                     <ProductCard
                                                         key={`desk-hot-${ad.id}`}
                                                         id={String(ad.id)}

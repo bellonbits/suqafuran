@@ -26,8 +26,10 @@ def get_listings(
     statement = (
         select(Listing)
         .join(User, Listing.owner_id == User.id)
+        .where(User.is_suspended == False) # Security: Hide listings from suspended scammers
         .order_by(
             Listing.boost_level.desc(), 
+            User.trust_score.desc(), # Primary anti-scam signal for ranking
             Listing.created_at.desc(),
             User.is_verified.desc()
         )

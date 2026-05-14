@@ -1,5 +1,5 @@
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, BackgroundTasks, Header
 from sqlmodel import Session, select, func
 from app.api import deps
 from app.crud import crud_listing
@@ -8,6 +8,10 @@ from app.models.user import User
 from app.models.audit import AuditLog
 from app.models.marketing_code import MarketingCode
 from app.services.cache_service import cache
+from app.services.security_service import security_service
+from app.services.moderation_service import moderation_service
+from app.services.ai_service import ai_service
+from app.core.security import risk_security
 from app.core.config import settings
 import uuid
 import os
@@ -41,15 +45,16 @@ async def upload_image(
     filename = f"{uuid.uuid4()}.{extension}"
     
     try:
-        url = await storage_service.upload_file(contents, filename)
+        url, phash = await storage_service.upload_file(contents, filename)
         
-        # AI Image Intelligence moved to background to prevent blocking UI
+        # AI Image Intelligence moved to background
         from app.services.ai_service import ai_service
         background_tasks.add_task(ai_service.analyze_image, url)
         
         return {
             "filename": filename, 
             "url": url,
+            "phash": phash,
             "analysis": "processing_in_background"
         }
     except Exception as e:
@@ -78,8 +83,12 @@ async def upload_multiple_images(
         filename = f"{uuid.uuid4()}.{extension}"
         
         try:
-            url = await storage_service.upload_file(contents, filename)
-            results.append({"filename": filename, "url": url})
+            url, phash = await storage_service.upload_file(contents, filename)
+            results.append({
+                "filename": filename, 
+                "url": url,
+                "phash": phash
+            })
         except Exception as e:
             # For multiple uploads, we might just skip the failed ones or log them
             continue
@@ -435,81 +444,77 @@ def create_listing(
     listing_in: ListingBase,
     current_user: User = Depends(deps.get_current_active_user),
     owner_id: Optional[int] = None,
+    x_device_fingerprint: Optional[str] = Header(None),
 ) -> Any:
     """
     Create new listing.
-    Verified sellers: listing goes live immediately (status='active').
-    Unverified sellers: listing requires admin approval (status='pending').
     """
-    # Layer 6: Rate Limiting & Progressive Friction
-    account_age = datetime.utcnow() - current_user.created_at
-    
-    # 1. Block messaging for first 24h is handled in messages endpoint
-    
-    # 2. Listing Limits
-    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    todays_count = db.exec(
-        select(func.count(Listing.id)).where(
-            Listing.owner_id == current_user.id,
-            Listing.created_at >= today_start
-        )
-    ).one()
+    # 1. Device Intelligence & Fingerprinting
+    if x_device_fingerprint:
+        device = security_service.get_or_create_device(db, x_device_fingerprint, {})
+        security_service.link_user_to_device(db, current_user, device)
+        if device.is_banned:
+            raise HTTPException(status_code=403, detail="Access denied for this device.")
 
-    if account_age < timedelta(hours=24):
-        # Day 0: No listings allowed (Browse only)
-        raise HTTPException(status_code=403, detail="New accounts must wait 24 hours before posting their first ad.")
-    elif account_age < timedelta(days=3):
-        # Day 1-3: Max 1 listing
-        if todays_count >= 1:
-            raise HTTPException(status_code=403, detail="New accounts are limited to 1 ad per day during their first 3 days.")
-    elif account_age < timedelta(days=7):
-        # Day 4-7: Max 3 listings
-        if todays_count >= 3:
-            raise HTTPException(status_code=403, detail="Accounts in their first week are limited to 3 ads per day.")
+    # 2. Risk-Based Rate Limiting
+    risk_security.check_listing_limit(current_user)
 
-    # Layer 4: Risk Screening
-    risk_score = calculate_listing_risk(listing_in.dict(), current_user, db)
+    # 3. Messaging & Content Moderation
+    flags = moderation_service.analyze_listing(
+        db, 
+        current_user, 
+        listing_in.title_en, 
+        listing_in.description_en or "", 
+        listing_in.price
+    )
     
-    # Initial status based on verification and risk
+    # Layer 3.5: Duplicate Image Detection (PHash)
+    if listing_in.image_hashes:
+        from app.models.listing import Listing
+        from sqlalchemy import func
+        
+        for h in listing_in.image_hashes:
+            if not h: continue
+            # Check if this hash exists in other listings (not by this user)
+            # In a real system, we'd use a specialized vector DB or Hamming distance index
+            # For now, exact hash match for identifying repeated farm accounts
+            duplicates = db.query(Listing).filter(
+                Listing.image_hashes.contains([h]),
+                Listing.owner_id != current_user.id
+            ).count()
+            
+            if duplicates > 0:
+                flags.append("duplicate_image_detected")
+                break
+    
+    # Layer 4: AI Analysis
+    ai_mod = ai_service.check_moderation(listing_in.dict())
+    
+    # Layer 6: Status Logic
     status = "pending"
-    if current_user.is_verified and risk_score < 40:
+    if current_user.trust_score >= 500 and ai_mod.get("risk") == "low" and not flags:
         status = "active"
-    elif risk_score >= 80:
-        # High risk always needs manual review
-        status = "pending"
-        # Log high risk event
-        db.add(AuditLog(
-            user_id=current_user.id,
-            action="HIGH_RISK_LISTING",
-            resource_type="listing",
-            resource_id=0, # Will update after creation
-            details=f"Risk Score: {risk_score}"
-        ))
-
-    # Determine effective owner
+    
+    # Determine effective owner (Admin impersonation support)
     effective_owner_id = current_user.id
     if owner_id and current_user.is_admin:
-        # Verify target user exists
         target_user = db.get(User, owner_id)
         if not target_user:
             raise HTTPException(status_code=404, detail="Target user for impersonation not found")
         effective_owner_id = owner_id
 
-    listing = crud_listing.create_listing(
-        db=db, listing_in=listing_in, owner_id=effective_owner_id
-    )
+    listing = crud_listing.create_listing(db, listing_in=listing_in, owner_id=effective_owner_id)
     listing.status = status
     db.add(listing)
     db.commit()
     db.refresh(listing)
-
     # Consolidated Audit Log
     db.add(AuditLog(
         user_id=current_user.id,
         action="CREATE_LISTING",
         resource_type="listing",
         resource_id=listing.id,
-        details=f"Listing created with status '{status}' (Risk Score: {risk_score})"
+        details=f"Listing created with status '{status}'"
     ))
 
     # Track first-ad conversion for marketing referral codes
@@ -522,6 +527,7 @@ def create_listing(
         db.add(current_user)
 
     db.commit()
+    db.refresh(listing)
     return listing
 
 

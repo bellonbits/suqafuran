@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { 
     Heart, MessageCircle, Share2, ShoppingBag, 

@@ -30,6 +30,7 @@ interface FormValues {
     subsubcategoryId: number | null;
     location: string;
     images: string[];
+    image_hashes: string[];
     youtubeLink: string;
     description_en: string;
     description_so: string;
@@ -57,6 +58,7 @@ const PostAdPage: React.FC = () => {
         subsubcategoryId: null,
         location: '',
         images: [],
+        image_hashes: [],
         youtubeLink: '',
         description_en: '',
         description_so: '',
@@ -265,7 +267,11 @@ const PostAdPage: React.FC = () => {
         for (const file of Array.from(files)) {
             try {
                 const result = await listingService.uploadImage(file);
-                setForm(f => ({ ...f, images: [...f.images, result.url] }));
+                setForm(f => ({ 
+                    ...f, 
+                    images: [...f.images, result.url],
+                    image_hashes: [...f.image_hashes, result.phash || '']
+                }));
             } catch {
                 // silently skip failed uploads
             }
@@ -274,7 +280,11 @@ const PostAdPage: React.FC = () => {
     };
 
     const removeImage = (idx: number) => {
-        setForm(f => ({ ...f, images: f.images.filter((_, i) => i !== idx) }));
+        setForm(f => ({ 
+            ...f, 
+            images: f.images.filter((_, i) => i !== idx),
+            image_hashes: f.image_hashes.filter((_, i) => i !== idx)
+        }));
     };
 
     const validateStep1 = () => {
@@ -354,6 +364,7 @@ const PostAdPage: React.FC = () => {
                     negotiable: form.negotiable,
                 },
                 lang_available: form.lang_available,
+                image_hashes: form.image_hashes,
             };
             let result;
             if (isEditMode && id) {

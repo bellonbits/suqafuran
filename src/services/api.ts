@@ -20,15 +20,16 @@ api.interceptors.request.use(
             config.headers.Authorization = `Bearer ${token}`;
         }
         
-        // Layer 1.1: Device Fingerprinting
-        const fingerprint = [
-            navigator.userAgent,
-            screen.width,
-            screen.height,
-            navigator.language,
-            new Date().getTimezoneOffset()
-        ].join('|');
-        config.headers['X-Device-Fingerprint'] = btoa(fingerprint);
+        // Layer 1.1: Advanced Device Fingerprinting (Sync Signals)
+        const fingerprintData = {
+            ua: navigator.userAgent,
+            scr: `${screen.width}x${screen.height}`,
+            lang: navigator.language,
+            tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            plat: navigator.platform,
+            hc: navigator.hardwareConcurrency || 'unknown'
+        };
+        config.headers['X-Device-Fingerprint'] = btoa(JSON.stringify(fingerprintData));
         
         return config;
     },

@@ -21,11 +21,7 @@ export interface Listing {
     created_at: string;
     updated_at: string;
     lang_available: string; // en, so, both
-    owner?: User & {
-        response_time?: string;
-        is_verified?: boolean;
-        verified_level?: string;
-    };
+    owner?: User;
     attributes?: Record<string, any>;
     is_negotiable?: boolean;
     views?: number;
@@ -48,6 +44,7 @@ export interface ListingCreate {
     subcategory_id?: number;
     subsubcategory_id?: number;
     images: string[];
+    image_hashes?: string[];
     status?: string;
     attributes?: Record<string, any>;
     is_negotiable?: boolean;

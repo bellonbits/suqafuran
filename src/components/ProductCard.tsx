@@ -40,7 +40,7 @@ const ProductCard = React.memo(function ProductCard({
     location,
     imageUrl,
     isVerified = false,
-    verifiedLevel,
+    verifiedLevel = 'NEW',
     isPromoted = false,
     registrationAge,
     rating,
@@ -150,7 +150,7 @@ const ProductCard = React.memo(function ProductCard({
                     )}
                 </div>
 
-                {/* Location + verified row */}
+                {/* Location & Trust */}
                 <div className="flex items-center justify-between gap-1">
                     <div className="flex items-center gap-0.5 text-[10px] text-gray-400 min-w-0">
                         <MapPin className="h-2.5 w-2.5 shrink-0" />
@@ -164,13 +164,13 @@ const ProductCard = React.memo(function ProductCard({
                             <span 
                                 className={cn(
                                     "inline-flex items-center justify-center rounded-full border shadow-sm p-0.5",
-                                    verifiedLevel === 'premium' ? "bg-amber-50 border-amber-200" : "bg-green-50 border-green-200"
+                                    verifiedLevel === 'TRUSTED' || verifiedLevel === 'premium' ? "bg-amber-50 border-amber-200" : "bg-primary-50 border-primary-200"
                                 )} 
-                                title={verifiedLevel === 'premium' ? 'Premium Trusted Seller' : t('common.verifiedSeller')}
+                                title={verifiedLevel === 'TRUSTED' || verifiedLevel === 'premium' ? 'Trusted Seller' : t('common.verifiedSeller')}
                             >
                                 <BadgeCheck className={cn(
-                                    "w-3.5 h-3.5 text-white",
-                                    verifiedLevel === 'premium' ? "fill-amber-500" : "fill-green-500"
+                                    "w-3 h-3 text-white",
+                                    verifiedLevel === 'TRUSTED' || verifiedLevel === 'premium' ? "fill-amber-500" : "fill-primary-500"
                                 )} />
                             </span>
                         )}

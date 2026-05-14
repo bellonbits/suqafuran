@@ -1,80 +1,88 @@
-from typing import Optional
-from sqlmodel import Session, select, func
-from app.models.user import User, TrustLevel
-from app.models.meeting_deal import Deal
-from app.models.trust import Report
 from datetime import datetime, timedelta
+from typing import Dict, Any
+from sqlalchemy.orm import Session
+from sqlalchemy import func
+from app.models.user import User, TrustLevel
+from app.models.fraud import RiskHistory, FraudEvent, FraudTargetType
+from app.models.listing import Listing
+from app.models.trust import Rating, Report
 
-def calculate_trust_score(user_id: int, db: Session) -> int:
-    """
-    Calculates the trust score for a user based on the Suqafuran formula.
-    Base Score: 100
-    Verified Deal: +20
-    Unique Counterparty Bonus: +5
-    Time Decay: Recent transactions have higher weight.
-    """
-    score = 100
-    
-    # 1. Verified Transactions (+20 each)
-    # Only count deals where both parties confirmed
-    verified_deals = db.exec(
-        select(Deal).where(
-            (Deal.buyer_id == user_id) | (Deal.seller_id == user_id),
-            Deal.buyer_confirmed == True,
-            Deal.seller_confirmed == True,
-            Deal.outcome == "bought"
-        )
-    ).all()
-    
-    unique_counterparties = set()
-    for deal in verified_deals:
-        # Time Decay Logic
-        days_ago = (datetime.utcnow() - deal.created_at).days
-        weight = 1.0
-        if days_ago <= 30: weight = 3.0
-        elif days_ago <= 90: weight = 1.5
-        elif days_ago <= 180: weight = 0.75
-        elif days_ago <= 365: weight = 0.5
-        else: weight = 0.1
-        
-        score += int(20 * weight)
-        
-        # Unique counterparty bonus
-        other_party = deal.seller_id if deal.buyer_id == user_id else deal.buyer_id
-        if other_party not in unique_counterparties:
-            score += 5
-            unique_counterparties.add(other_party)
+class TrustService:
+    WEIGHTS = {
+        "account_age_days": 2,
+        "verified_identity": 300,
+        "positive_rating": 20,
+        "successful_deal": 50,
+        "report_penalty": -200,
+        "fraud_event_penalty": -300,
+        "listing_quality_bonus": 10
+    }
 
-    # 2. Negative Weights
-    # Unresolved Disputes / Reports
-    reports = db.exec(
-        select(Report).where(Report.reported_user_id == user_id, Report.status != "dismissed")
-    ).all()
-    
-    for report in reports:
-        if report.status == "suspended":
-            score -= 300 # Instant suspension weight
-        else:
-            score -= 10 # Reported unconfirmed
+    def calculate_trust_score(self, db: Session, user: User) -> int:
+        score = 0
+        
+        # 1. Account Age
+        age = datetime.utcnow() - user.created_at
+        score += min(200, age.days * self.WEIGHTS["account_age_days"])
+        
+        # 2. Verification Level
+        if user.is_verified:
+            score += self.WEIGHTS["verified_identity"]
             
-    # Cap score between 0 and 1000
-    return max(0, min(1000, score))
-
-def update_user_trust(user: User, db: Session):
-    """Updates a user's trust score and level."""
-    new_score = calculate_trust_score(user.id, db)
-    user.trust_score = new_score
-    
-    # Update Trust Level
-    if new_score >= 800:
-        user.trust_level = TrustLevel.TRUSTED # Platinum
-    elif new_score >= 600:
-        user.trust_level = TrustLevel.VERIFIED # Gold
-    elif new_score >= 400:
-        user.trust_level = TrustLevel.ESTABLISHED # Silver
-    else:
-        user.trust_level = TrustLevel.NEW # Bronze
+        # 3. Ratings
+        avg_rating = db.query(func.avg(Rating.score)).filter(Rating.rated_user_id == user.id).scalar() or 0
+        rating_count = db.query(Rating).filter(Rating.rated_user_id == user.id).count()
+        if rating_count > 0:
+            score += int((avg_rating - 3) * 50) # Bonus for 4-5 stars, penalty for 1-2
+            
+        # 4. Active Listings & Quality
+        listing_count = db.query(Listing).filter(Listing.owner_id == user.id).count()
+        score += min(100, listing_count * self.WEIGHTS["listing_quality_bonus"])
         
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+        # 5. Penalties (Reports)
+        report_count = db.query(Report).filter(Report.reported_user_id == user.id, Report.status != "dismissed").count()
+        score += report_count * self.WEIGHTS["report_penalty"]
+        
+        # 6. Fraud Events
+        fraud_events = db.query(FraudEvent).filter(
+            FraudEvent.target_type == FraudTargetType.USER,
+            FraudEvent.target_id == str(user.id)
+        ).all()
+        for event in fraud_events:
+            score += self.WEIGHTS["fraud_event_penalty"] * (event.risk_score / 100)
+
+        # Normalize score 0-1000
+        final_score = max(0, min(1000, score))
+        return int(final_score)
+
+    def update_user_trust(self, db: Session, user: User):
+        old_score = user.trust_score
+        new_score = self.calculate_trust_score(db, user)
+        
+        if old_score != new_score:
+            user.trust_score = new_score
+            
+            # Update Trust Level
+            if new_score >= 800:
+                user.trust_level = TrustLevel.TRUSTED
+            elif new_score >= 500:
+                user.trust_level = TrustLevel.VERIFIED
+            elif new_score >= 200:
+                user.trust_level = TrustLevel.ESTABLISHED
+            else:
+                user.trust_level = TrustLevel.NEW
+                
+            db.add(user)
+            
+            # Record History
+            history = RiskHistory(
+                user_id=user.id,
+                old_score=old_score,
+                new_score=new_score,
+                reason="automated_recalculation",
+                change_type="automated"
+            )
+            db.add(history)
+            db.commit()
+
+trust_service = TrustService()

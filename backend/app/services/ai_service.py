@@ -546,26 +546,42 @@ Return a JSON object:
 
     def analyze_image(self, image_url: str) -> dict:
         """
-        Analyze an image for quality, tags, and authenticity.
+        Analyze an image for quality, tags, and authenticity using AI Vision.
         """
         if not self.client:
-            return {
-                "quality_score": 85,
-                "tags": ["product", "clear"],
-                "is_stolen": False,
-                "is_blur": False,
-                "description": "A well-lit product photo"
-            }
+            return {"quality_score": 85, "tags": ["product"], "is_blur": False}
 
-        import random
-        score = random.randint(70, 98)
-        return {
-            "quality_score": score,
-            "tags": ["Verified Item", "High Quality"],
-            "is_stolen": False,
-            "is_blur": False,
-            "description": "Automatically analyzed by Suqafuran AI"
-        }
+        try:
+            # Using Groq's Vision capability
+            chat_completion = self.client.chat.completions.create(
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": "Analyze this marketplace product image. Return JSON with: quality_score (0-100), tags (list of 3 tags), is_blur (bool), is_stolen_stock_photo (bool), and a short description."},
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": image_url,
+                                },
+                            },
+                        ],
+                    }
+                ],
+                model="llama-3.2-11b-vision-preview", # Standard vision model for Groq
+                response_format={"type": "json_object"}
+            )
+            import json
+            return json.loads(chat_completion.choices[0].message.content)
+        except Exception as e:
+            logger.error(f"Vision AI Error: {e}")
+            return {
+                "quality_score": 75,
+                "tags": ["Standard"],
+                "is_blur": False,
+                "is_stolen": False,
+                "description": "Auto-moderated"
+            }
 
     def get_recommended_listings(self, user_history: list) -> dict:
         """

@@ -4,6 +4,9 @@ from sqlmodel import Session, SQLModel
 from app.api import deps
 from app.crud.crud_message import crud_message
 from app.models.message import Message
+from app.services.moderation_service import moderation_service
+from app.core.security import risk_security
+from app.models.user import User
 
 router = APIRouter()
 
@@ -17,11 +20,22 @@ def send_message(
     *,
     db: Session = Depends(deps.get_db),
     message_in: MessageCreate,
-    current_user = Depends(deps.get_current_active_user),
+    current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Send a new message.
     """
+    # 1. Risk-Based Rate Limiting
+    risk_security.check_messaging_limit(current_user)
+    
+    # 2. Content Moderation
+    is_flagged, reason = moderation_service.analyze_message(db, current_user, message_in.content)
+    if is_flagged:
+        raise HTTPException(
+            status_code=403, 
+            detail=f"Message blocked due to suspicious content: {reason}. To maintain safety, avoid sharing phone numbers or external links."
+        )
+
     return crud_message.create(db, obj_in=message_in.model_dump(), sender_id=current_user.id)
 
 @router.get("/conversations", response_model=List[Any])
