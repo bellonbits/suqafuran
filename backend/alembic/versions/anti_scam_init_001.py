@@ -50,7 +50,7 @@ def upgrade():
         sa.Column('risk_score', sa.Integer(), nullable=False),
         sa.Column('confidence', sa.Float(), nullable=False),
         sa.Column('status', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-        sa.Column('metadata', sa.JSON(), nullable=True),
+        sa.Column('event_data', sa.JSON(), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.PrimaryKeyConstraint('id')
     )

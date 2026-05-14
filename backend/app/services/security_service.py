@@ -83,7 +83,7 @@ class SecurityService:
             rule_name=rule_name,
             risk_score=risk_score,
             confidence=confidence,
-            metadata=metadata
+            event_data=metadata
         )
         db.add(event)
         

@@ -16,7 +16,7 @@ class FraudEvent(SQLModel, table=True):
     rule_name: str # The name of the fraud detection rule triggered
     risk_score: int # 0-100 score for this specific event
     confidence: float # 0.0-1.0 confidence in the detection
-    metadata: Dict[str, Any] = Field(default_factory=dict, sa_type=JSON) # Raw signals that triggered the rule
+    event_data: Dict[str, Any] = Field(default_factory=dict, sa_type=JSON) # Raw signals that triggered the rule
     status: str = Field(default="pending") # pending, investigated, dismissed, actioned
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
