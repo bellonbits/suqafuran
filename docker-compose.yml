@@ -108,7 +108,7 @@ services:
     volumes:
       - certs:/etc/letsencrypt
       - certbot_webroot:/var/www/certbot
-    command: ["/bin/sh", "-c", "if [ $# -gt 0 ]; then exec certbot \"$@\"; else while :; do certbot renew; sleep 12h & wait $$!; done; fi", "--"]
+    entrypoint: ["/bin/sh", "-c", "if [ $# -gt 0 ]; then exec certbot \"$@\"; else while :; do certbot renew; sleep 12h & wait $$!; done; fi", "--"]
 
   prometheus:
     image: prom/prometheus:latest
