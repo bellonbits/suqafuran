@@ -206,6 +206,22 @@ services:
     expose:
       - "9808"
 
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: suqafuran_node_exporter
+    restart: always
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    expose:
+      - "9100"
+
 
 volumes:
   redis_data:
