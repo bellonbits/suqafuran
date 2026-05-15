@@ -21,6 +21,8 @@ import redis as redis_lib
 from app.core.config import settings
 
 
+from fastapi.encoders import jsonable_encoder
+
 class CacheService:
     def __init__(self):
         self._client: Optional[redis_lib.Redis] = None
@@ -45,7 +47,9 @@ class CacheService:
 
     def set(self, key: str, value: Any, ttl: int = 60) -> None:
         try:
-            self.client.setex(key, ttl, json.dumps(value, default=str))
+            # Use jsonable_encoder to convert models/datetimes to JSON-compatible dicts/strings
+            encoded_value = jsonable_encoder(value)
+            self.client.setex(key, ttl, json.dumps(encoded_value))
         except Exception:
             pass  # Don't fail if Redis is unavailable
 
