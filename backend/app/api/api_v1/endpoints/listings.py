@@ -21,9 +21,6 @@ from datetime import datetime, timedelta
 
 router = APIRouter()
 
-# Simple in-memory cache for categories
-_categories_cache = {"data": None, "timestamp": None}
-
 
 @router.post("/upload")
 async def upload_image(
@@ -156,9 +153,6 @@ def read_categories(
         }
         result.append(cat_dict)
     
-    # Store in cache
-    _categories_cache["data"] = result
-    _categories_cache["timestamp"] = current_time
     return result
 
 
