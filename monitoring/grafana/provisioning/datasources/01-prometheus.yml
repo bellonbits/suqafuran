@@ -9,6 +9,3 @@ datasources:
     isDefault: true
     jsonData:
       httpMethod: POST
-      exemplarTraceIdDest:
-        datasourceUid: tempo
-        name: trace_id
