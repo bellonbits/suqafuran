@@ -25,7 +25,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "Prometheus"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -105,7 +105,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "Prometheus"
+            "uid": "prometheus"
           },
           "editorMode": "code",
           "expr": "rate(fraud_events_total[5m])",
@@ -121,7 +121,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "Prometheus"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -171,7 +171,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "Prometheus"
+            "uid": "prometheus"
           },
           "editorMode": "code",
           "expr": "sum(fraud_events_total)",
@@ -183,7 +183,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "Loki"
+        "uid": "loki"
       },
       "gridPos": {
         "h": 10,
@@ -207,7 +207,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "Loki"
+            "uid": "loki"
           },
           "expr": "{container_name=\"suqafuran_api\"} |= \"SecurityService\"",
           "refId": "A"
