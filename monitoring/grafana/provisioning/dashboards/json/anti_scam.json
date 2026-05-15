@@ -23,10 +23,7 @@
   "liveNow": false,
   "panels": [
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "sqfrn-prom"
-      },
+      "datasource": null,
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -119,10 +116,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "sqfrn-prom"
-      },
+      "datasource": null,
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -181,10 +175,7 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "loki",
-        "uid": "sqfrn-loki"
-      },
+      "datasource": "Loki",
       "gridPos": {
         "h": 10,
         "w": 24,
@@ -205,10 +196,7 @@
       "title": "Live Fraud & Security Logs",
       "targets": [
         {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
+          "datasource": "Loki",
           "expr": "{container_name=\"suqafuran_api\"} |= \"SecurityService\"",
           "refId": "A"
         }
