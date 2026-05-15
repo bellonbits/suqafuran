@@ -156,7 +156,7 @@ services:
     restart: always
     volumes:
       - ./monitoring/tempo/tempo.yml:/etc/tempo-config.yaml:ro
-    command: -config.file=/etc/tempo-config.yaml
+    command: ["-config.file=/etc/tempo-config.yaml", "-target=all"]
     expose:
       - "3200" # HTTP
       - "4317" # OTLP gRPC
