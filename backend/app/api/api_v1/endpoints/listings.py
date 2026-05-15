@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Backgro
 from sqlmodel import Session, select, func
 from app.api import deps
 from app.crud import crud_listing
-from app.models.listing import Listing, ListingBase, ListingRead, Category, SubCategory, SubSubCategory, ListingUpdate
+from app.models.listing import Listing, ListingBase, ListingRead, Category, SubCategory, SubSubCategory
 from app.core.metrics import LISTINGS_CREATED_TOTAL
 from app.models.user import User
 from app.models.audit import AuditLog

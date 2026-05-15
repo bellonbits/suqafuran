@@ -8,22 +8,13 @@ distributor:
         grpc:
         http:
 
-ingester:
-  trace_idle_period: 10s
-  max_block_bytes: 1000000
-  max_block_duration: 5m
-
-compactor:
-  compaction:
-    compaction_interval: 30s
-    max_compaction_objects: 6000000
-    block_retention: 1h
-    compacted_block_retention: 1h
-
 storage:
   trace:
     backend: local
-    local:
-      path: /tmp/tempo/traces
     wal:
       path: /tmp/tempo/wal
+    local:
+      path: /tmp/tempo/blocks
+
+overrides:
+  metrics_generator_processors: [service-graphs, span-metrics]
