@@ -1,0 +1,56 @@
+groups:
+- name: suqafuran_alerts
+  rules:
+  - alert: HighApiLatency
+    expr: http_request_duration_seconds_sum / http_request_duration_seconds_count > 1
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High API Latency detected"
+      description: "Average API response time is > 1s for the last 5 minutes."
+
+  - alert: ApiErrorRateHigh
+    expr: rate(http_request_duration_seconds_count{status_code=~"5.."}[5m]) / rate(http_request_duration_seconds_count[5m]) > 0.05
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "High 5xx Error Rate"
+      description: "More than 5% of requests are failing with 5xx errors."
+
+  - alert: DatabaseDown
+    expr: suqafuran_health_status{service="db"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Database unreachable"
+      description: "FastAPI health check reports database is down."
+
+  - alert: RedisDown
+    expr: suqafuran_health_status{service="redis"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Redis unreachable"
+      description: "FastAPI health check reports Redis is down."
+
+  - alert: FraudSpike
+    expr: rate(suqafuran_fraud_events_total[5m]) > 0.5
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High Fraud Detection Rate"
+      description: "System is detecting more than 30 fraud events per minute."
+
+  - alert: CeleryQueueBacklog
+    expr: celery_queue_length > 100
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Celery Queue Backlog"
+      description: "There are more than 100 pending tasks in the queue."

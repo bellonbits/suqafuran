@@ -3,7 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Backgro
 from sqlmodel import Session, select, func
 from app.api import deps
 from app.crud import crud_listing
-from app.models.listing import Listing, ListingBase, ListingRead, Category, SubCategory, SubSubCategory
+from app.models.listing import Listing, ListingBase, ListingRead, Category, SubCategory, SubSubCategory, ListingUpdate
+from app.core.metrics import LISTINGS_CREATED_TOTAL
 from app.models.user import User
 from app.models.audit import AuditLog
 from app.models.marketing_code import MarketingCode
@@ -505,6 +506,22 @@ def create_listing(
     db.add(listing)
     db.commit()
     db.refresh(listing)
+
+    # Track business metric
+    try:
+        category_name = "unknown"
+        if listing.category_id:
+            cat = db.get(Category, listing.category_id)
+            if cat:
+                category_name = cat.name_en
+        
+        LISTINGS_CREATED_TOTAL.labels(
+            category=category_name,
+            location=listing.location or "unknown"
+        ).inc()
+    except Exception:
+        pass # Never fail request due to metrics
+
     # Consolidated Audit Log
     db.add(AuditLog(
         user_id=current_user.id,

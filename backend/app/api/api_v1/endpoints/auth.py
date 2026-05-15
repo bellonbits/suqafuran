@@ -12,6 +12,7 @@ from app.models.audit import AuditLog
 from app.models.marketing_code import MarketingCode
 from app.services.email_service import email_service
 from pydantic import BaseModel
+from app.core.metrics import USER_REGISTRATIONS_TOTAL, SUCCESSFUL_LOGINS_TOTAL
 
 router = APIRouter()
 
@@ -129,6 +130,9 @@ def verify_otp(
             ))
             db.commit()
             db.refresh(user)
+
+            # Track business metric
+            USER_REGISTRATIONS_TOTAL.labels(method="email_otp").inc()
         except IntegrityError as e:
             db.rollback()
             email_service.delete_pending_signup(payload.email)
@@ -147,6 +151,9 @@ def verify_otp(
         ))
         db.commit()
         db.refresh(user)
+
+        # Track business metric
+        SUCCESSFUL_LOGINS_TOTAL.inc()
 
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(user.id, expires_delta=access_token_expires)

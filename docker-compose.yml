@@ -139,6 +139,7 @@ services:
       - prometheus
       - loki
       - tempo
+      - alertmanager
     ports:
       - "3000:3000"
     environment:
@@ -180,6 +181,31 @@ services:
       # - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/log:/var/log:ro
     command: -config.file=/etc/promtail/config.yml
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: suqafuran_alertmanager
+    restart: always
+    volumes:
+      - ./monitoring/prometheus/alertmanager.yml:/etc/prometheus/alertmanager.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    expose:
+      - "9093"
+
+  celery-exporter:
+    image: gjrtimmer/celery-exporter:latest
+    container_name: suqafuran_celery_exporter
+    restart: always
+    environment:
+      - CELERY_EXPORTER_BROKER_URL=redis://:${REDIS_PASSWORD:-suqaredis}@redis:6379/0
+      - CELERY_EXPORTER_LIST_QUEUES=default,promotions,notifications
+    depends_on:
+      redis:
+        condition: service_healthy
+    expose:
+      - "9808"
 
 
 volumes:

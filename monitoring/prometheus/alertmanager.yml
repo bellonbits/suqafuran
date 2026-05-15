@@ -1,0 +1,16 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname', 'service']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: 'telegram-notifications'
+
+receivers:
+- name: 'telegram-notifications'
+  # Note: In a real production environment, you'd use a bot token and chat ID
+  # For now, we'll use a placeholder or the webhook endpoint if using Slack
+  webhook_configs:
+  - url: 'http://placeholder-webhook:8080' # To be replaced by user with Slack/Telegram webhook
