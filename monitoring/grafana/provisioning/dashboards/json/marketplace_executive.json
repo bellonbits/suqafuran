@@ -32,7 +32,10 @@
       "type": "row"
     },
     {
-      "datasource": "Prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "sqfrn-prom"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -90,7 +93,10 @@
       "type": "stat"
     },
     {
-      "datasource": "Prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "sqfrn-prom"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -148,7 +154,10 @@
       "type": "stat"
     },
     {
-      "datasource": "Prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "sqfrn-prom"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -219,7 +228,10 @@
       "type": "row"
     },
     {
-      "datasource": "Prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "sqfrn-prom"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -307,7 +319,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "Prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "sqfrn-prom"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {

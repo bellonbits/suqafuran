@@ -3,17 +3,21 @@ apiVersion: 1
 datasources:
   - name: Prometheus
     type: prometheus
+    uid: sqfrn-prom
     url: http://prometheus:9090
     isDefault: true
 
   - name: Loki
     type: loki
+    uid: sqfrn-loki
     url: http://loki:3100
 
   - name: Tempo
     type: tempo
+    uid: sqfrn-tempo
     url: http://tempo:3200
 
   - name: Alertmanager
     type: alertmanager
+    uid: sqfrn-alert
     url: http://alertmanager:9093

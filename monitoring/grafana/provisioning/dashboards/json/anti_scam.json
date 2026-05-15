@@ -23,7 +23,10 @@
   "liveNow": false,
   "panels": [
     {
-      "datasource": "Prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "sqfrn-prom"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -116,7 +119,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "Prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "sqfrn-prom"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -175,7 +181,10 @@
       "type": "stat"
     },
     {
-      "datasource": "Loki",
+      "datasource": {
+        "type": "loki",
+        "uid": "sqfrn-loki"
+      },
       "gridPos": {
         "h": 10,
         "w": 24,

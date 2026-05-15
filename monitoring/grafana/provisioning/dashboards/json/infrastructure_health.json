@@ -32,7 +32,10 @@
       "type": "row"
     },
     {
-      "datasource": "Prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "sqfrn-prom"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -97,7 +100,10 @@
       "type": "gauge"
     },
     {
-      "datasource": "Prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "sqfrn-prom"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -162,7 +168,10 @@
       "type": "gauge"
     },
     {
-      "datasource": "Prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "sqfrn-prom"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -274,7 +283,10 @@
       "type": "row"
     },
     {
-      "datasource": "Prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "sqfrn-prom"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -329,7 +341,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "Prometheus",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "sqfrn-prom"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
