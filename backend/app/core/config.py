@@ -111,7 +111,7 @@ class Settings(BaseSettings):
 
     # FILE UPLOAD
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
-    ALLOWED_EXTENSIONS: Any = ["jpg", "jpeg", "png", "pdf"]
+    ALLOWED_EXTENSIONS: Any = ["jpg", "jpeg", "png", "webp", "svg", "pdf"]
     UPLOAD_DIR: str = "./uploads"
 
     # CLOUDINARY

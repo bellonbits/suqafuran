@@ -36,8 +36,13 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 async def logging_middleware(request: Request, call_next):
     request_id = str(uuid.uuid4())
     structlog.contextvars.clear_contextvars()
+    from opentelemetry import trace
+    span = trace.get_current_span()
+    trace_id = format(span.get_span_context().trace_id, "032x") if span.get_span_context().trace_id else None
+
     structlog.contextvars.bind_contextvars(
         request_id=request_id,
+        trace_id=trace_id,
         method=request.method,
         path=request.url.path,
         client_ip=request.client.host if request.client else "unknown",
