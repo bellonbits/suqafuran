@@ -22,6 +22,8 @@ celery_app.conf.update(
     task_acks_late=True,          # Only ack after task completes (safer)
     task_reject_on_worker_lost=True,
     worker_prefetch_multiplier=1, # Don't prefetch — fair distribution
+    worker_send_task_events=True,
+    task_send_sent_event=True,
     task_routes={
         "app.tasks.promotion_tasks.*": {"queue": "promotions"},
         "app.tasks.notification_tasks.*": {"queue": "notifications"},

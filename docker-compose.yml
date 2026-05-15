@@ -195,12 +195,11 @@ services:
       - "9093"
 
   celery-exporter:
-    image: gjrtimmer/celery-exporter:latest
+    image: danihodovic/celery-exporter:latest
     container_name: suqafuran_celery_exporter
     restart: always
     environment:
-      - CELERY_EXPORTER_BROKER_URL=redis://:${REDIS_PASSWORD:-suqaredis}@redis:6379/0
-      - CELERY_EXPORTER_LIST_QUEUES=default,promotions,notifications
+      - CE_BROKER_URL=redis://:${REDIS_PASSWORD:-suqaredis}@redis:6379/0
     depends_on:
       redis:
         condition: service_healthy
