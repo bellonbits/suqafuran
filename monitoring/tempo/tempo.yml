@@ -1,5 +1,7 @@
+stream_over_http: true
 server:
   http_listen_port: 3200
+  grpc_listen_port: 9095
 
 distributor:
   receivers:
@@ -15,6 +17,3 @@ storage:
       path: /tmp/tempo/wal
     local:
       path: /tmp/tempo/blocks
-
-overrides:
-  metrics_generator_processors: [service-graphs, span-metrics]
