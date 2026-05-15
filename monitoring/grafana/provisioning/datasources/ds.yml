@@ -1,12 +1,19 @@
 apiVersion: 1
 
 datasources:
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    access: proxy
+    url: http://tempo:3200
+
   - name: Prometheus
     type: prometheus
     uid: prometheus
     access: proxy
     url: http://prometheus:9090
     isDefault: true
+
   - name: Loki
     type: loki
     uid: loki
@@ -18,9 +25,3 @@ datasources:
           matcherRegex: "trace_id=(\\w+)"
           name: TraceID
           url: "$${__value.raw}"
-
-  - name: Tempo
-    type: tempo
-    uid: tempo
-    access: proxy
-    url: http://tempo:3200
