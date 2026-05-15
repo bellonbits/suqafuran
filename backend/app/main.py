@@ -10,6 +10,14 @@ from app.core.config import settings
 from slowapi import _rate_limit_exceeded_handler
 from prometheus_fastapi_instrumentator import Instrumentator
 import uuid
+import time
+import structlog
+from app.core.logging_config import setup_logging, get_logger
+from app.core.tracing import setup_tracing
+
+# Initialize structured logging
+setup_logging()
+logger = get_logger("api")
 
 
 # Create upload directory if it doesn't exist
@@ -17,8 +25,42 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
+
+# Initialize distributed tracing
+setup_tracing(app)
+
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+@app.middleware("http")
+async def logging_middleware(request: Request, call_next):
+    request_id = str(uuid.uuid4())
+    structlog.contextvars.clear_contextvars()
+    structlog.contextvars.bind_contextvars(
+        request_id=request_id,
+        method=request.method,
+        path=request.url.path,
+        client_ip=request.client.host if request.client else "unknown",
+    )
+    
+    start_time = time.perf_counter()
+    try:
+        response = await call_next(request)
+    except Exception as e:
+        logger.exception("unhandled_exception", error=str(e))
+        raise e
+    finally:
+        process_time = time.perf_counter() - start_time
+        
+    # Standard request logging
+    logger.info(
+        "http_request",
+        status_code=response.status_code,
+        latency_ms=round(process_time * 1000, 2),
+    )
+    
+    response.headers["X-Request-ID"] = request_id
+    return response
 
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware

@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     # ENVIRONMENT
     ENVIRONMENT: str = "development"  # development, staging, production
     
+    # OBSERVABILITY
+    OTEL_EXPORTER_OTLP_ENDPOINT: Optional[str] = None # e.g., http://tempo:4317
+    
     # DATABASE
     POSTGRES_SERVER: str
     POSTGRES_USER: str

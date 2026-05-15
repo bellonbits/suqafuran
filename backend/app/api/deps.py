@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.db.session import Session as DbSession, engine
 from app.models.user import User
 from app.core.limiter import limiter
+import structlog
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token",
@@ -50,6 +51,13 @@ def get_current_user(
     user = db.get(User, token_data)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    # Bind user context to logs
+    structlog.contextvars.bind_contextvars(
+        user_id=user.id,
+        user_email=user.email,
+        is_admin=user.is_admin
+    )
     
     # Layer 1.1: Capture Signals
     changed = False
@@ -93,7 +101,14 @@ def get_current_user_optional(
     except (jwt.JWTError, ValidationError):
         return None
     
-    return db.get(User, token_data)
+    user = db.get(User, token_data)
+    if user:
+        structlog.contextvars.bind_contextvars(
+            user_id=user.id,
+            user_email=user.email,
+            is_admin=user.is_admin
+        )
+    return user
 
 
 def get_current_active_user(

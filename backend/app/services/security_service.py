@@ -7,6 +7,9 @@ from app.models.user import User
 from app.models.fraud import FraudEvent, FraudTargetType
 
 from prometheus_client import Counter
+from app.core.logging_config import get_security_logger
+
+logger = get_security_logger()
 
 fraud_events_total = Counter('suqafuran_fraud_events_total', 'Total number of detected fraud events', ['rule_name', 'target_type'])
 critical_risk_actions_total = Counter('suqafuran_critical_risk_actions_total', 'Total automated actions taken due to critical risk', ['target_type'])
@@ -89,6 +92,17 @@ class SecurityService:
         
         # Increment Prometheus Metric
         fraud_events_total.labels(rule_name=rule_name, target_type=target_type.value).inc()
+        
+        # Log structured security event
+        logger.warning(
+            "fraud_event_detected",
+            rule_name=rule_name,
+            target_type=target_type.value,
+            target_id=target_id,
+            risk_score=risk_score,
+            confidence=confidence,
+            **(metadata or {})
+        )
         
         # If risk is critical, take automated action
         if risk_score >= 90:
