@@ -35,9 +35,9 @@ class ListingBase(SQLModel):
     is_negotiable: bool = Field(default=False)
     
     # Security & Fraud Fields
-    image_hashes: List[str] = Field(default=[], sa_column=Column(JSON)) # Perceptual hashes for duplicate detection
+    image_hashes: Optional[List[str]] = Field(default=[], sa_column=Column(JSON)) # Perceptual hashes for duplicate detection
     fraud_risk_score: int = Field(default=0, index=True) # 0-100 calculated by AI
-    fraud_flags: List[str] = Field(default=[], sa_column=Column(JSON)) # Specific rule violations
+    fraud_flags: Optional[List[str]] = Field(default=[], sa_column=Column(JSON)) # Specific rule violations
 
 
 class Listing(ListingBase, table=True):

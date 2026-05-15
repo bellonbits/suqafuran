@@ -21,6 +21,9 @@ from datetime import datetime, timedelta
 
 router = APIRouter()
 
+# Simple in-memory cache for categories
+_categories_cache = {"data": None, "timestamp": None}
+
 
 @router.post("/upload")
 async def upload_image(
