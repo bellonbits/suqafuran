@@ -179,7 +179,9 @@ def create_category(
         image_url=category_in.get("image_url"),
         attributes_schema=category_in.get("attributes_schema", {})
     )
-    return crud_listing.create_category(db, category_in=cat)
+    result = crud_listing.create_category(db, category_in=cat)
+    cache.delete_pattern("cache:categories:*")
+    return result
 
 
 @router.patch("/categories/{id}", response_model=Any)
@@ -204,6 +206,7 @@ def update_category(
     db.add(category)
     db.commit()
     db.refresh(category)
+    cache.delete_pattern("cache:categories:*")
     return category
 
 
@@ -217,7 +220,9 @@ def delete_category(
     """
     Delete a category (Admin only).
     """
-    return crud_listing.remove_category(db, id=id)
+    result = crud_listing.remove_category(db, id=id)
+    cache.delete_pattern("cache:categories:*")
+    return result
 
 
 @router.post("/subcategories", response_model=Any)
@@ -243,7 +248,9 @@ def create_subcategory(
         category_id=subcategory_in["category_id"],
         attributes_schema=subcategory_in.get("attributes_schema", {})
     )
-    return crud_listing.create_subcategory(db, subcategory_in=subcat)
+    result = crud_listing.create_subcategory(db, subcategory_in=subcat)
+    cache.delete_pattern("cache:categories:*")
+    return result
 
 
 @router.patch("/subcategories/{id}", response_model=Any)
@@ -262,7 +269,9 @@ def update_subcategory(
     if not subcat:
         raise HTTPException(status_code=404, detail="Subcategory not found")
     
-    return crud_listing.update_subcategory(db, db_obj=subcat, subcategory_in=subcategory_in)
+    result = crud_listing.update_subcategory(db, db_obj=subcat, subcategory_in=subcategory_in)
+    cache.delete_pattern("cache:categories:*")
+    return result
 
 
 @router.delete("/subcategories/{id}", response_model=Any)
@@ -275,7 +284,9 @@ def delete_subcategory(
     """
     Delete a subcategory (Admin only).
     """
-    return crud_listing.remove_subcategory(db, id=id)
+    result = crud_listing.remove_subcategory(db, id=id)
+    cache.delete_pattern("cache:categories:*")
+    return result
 
 
 @router.post("/subsubcategories", response_model=Any)
@@ -302,6 +313,7 @@ def create_subsubcategory(
     db.add(subsubcat)
     db.commit()
     db.refresh(subsubcat)
+    cache.delete_pattern("cache:categories:*")
     return subsubcat
 
 
@@ -327,6 +339,7 @@ def update_subsubcategory(
     db.add(subsubcat)
     db.commit()
     db.refresh(subsubcat)
+    cache.delete_pattern("cache:categories:*")
     return subsubcat
 
 
@@ -345,6 +358,7 @@ def delete_subsubcategory(
         raise HTTPException(status_code=404, detail="Sub-subcategory not found")
     db.delete(subsubcat)
     db.commit()
+    cache.delete_pattern("cache:categories:*")
     return subsubcat
 
 
