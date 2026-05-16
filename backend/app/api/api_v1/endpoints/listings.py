@@ -490,8 +490,12 @@ def create_listing(
             # Check if this hash exists in other listings (not by this user)
             # In a real system, we'd use a specialized vector DB or Hamming distance index
             # For now, exact hash match for identifying repeated farm accounts
+            # Fix: cast JSON to JSONB for proper containment check in PostgreSQL
+            from sqlalchemy.dialects.postgresql import JSONB
+            from sqlalchemy import cast
+            
             duplicates = db.query(Listing).filter(
-                Listing.image_hashes.contains([h]),
+                cast(Listing.image_hashes, JSONB).contains([h]),
                 Listing.owner_id != current_user.id
             ).count()
             
