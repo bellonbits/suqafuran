@@ -16,23 +16,21 @@ critical_risk_actions_total = Counter('suqafuran_critical_risk_actions_total', '
 
 class SecurityService:
     def get_or_create_device(self, db: Session, fingerprint: str, metadata: Dict[str, Any]) -> Device:
-        device = db.query(Device).filter(Device.fingerprint == fingerprint).first()
+        device = db.query(Device).filter(Device.fingerprint_hash == fingerprint).first()
         if not device:
             device = Device(
-                fingerprint=fingerprint,
-                browser=metadata.get("browser"),
-                os=metadata.get("os"),
-                screen_resolution=metadata.get("screen"),
-                timezone=metadata.get("timezone"),
-                language=metadata.get("language"),
-                gpu_info=metadata.get("gpu"),
+                fingerprint_hash=fingerprint,
+                metadata=metadata,
+                is_banned=False
             )
             db.add(device)
             db.commit()
             db.refresh(device)
         else:
             # Update device if metadata changed or just update timestamp
-            device.updated_at = datetime.utcnow()
+            device.last_seen_at = datetime.utcnow()
+            if metadata:
+                device.metadata = metadata
             db.add(device)
             db.commit()
         return device
@@ -65,8 +63,8 @@ class SecurityService:
                     metadata={"user_ids": [user.id]}
                 )
         else:
-            link.last_used_at = datetime.utcnow()
-            db.add(link)
+            # Just record that we've seen it (in a real app, maybe update a 'last_seen' field if it existed)
+            pass
             
         db.commit()
 

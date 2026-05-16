@@ -23,8 +23,7 @@ class FraudEvent(SQLModel, table=True):
 class RiskHistory(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
-    old_score: int
+    previous_score: int
     new_score: int
     reason: str
-    change_type: str # automated, manual, peer_report
     created_at: datetime = Field(default_factory=datetime.utcnow)
