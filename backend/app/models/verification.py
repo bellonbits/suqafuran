@@ -1,6 +1,7 @@
 from datetime import datetime
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, List, Any, TYPE_CHECKING
 from sqlmodel import Field, SQLModel, Relationship
+from pydantic import field_validator
 from enum import Enum
 from sqlalchemy import Column, JSON
 from app.models.common import OwnerRead
@@ -24,6 +25,13 @@ class VerificationRequestBase(SQLModel):
     video_selfie_url: Optional[str] = None
     facial_match_score: Optional[float] = None
     auto_verification_status: Optional[str] = None  # passed, failed, manual_review
+    
+    @field_validator("document_urls", mode="before")
+    @classmethod
+    def flatten_urls(cls, v: Any) -> Any:
+        if isinstance(v, list) and len(v) > 0 and isinstance(v[0], list):
+            return v[0]
+        return v
 
 class VerificationRequest(VerificationRequestBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
