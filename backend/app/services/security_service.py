@@ -20,7 +20,7 @@ class SecurityService:
         if not device:
             device = Device(
                 fingerprint_hash=fingerprint,
-                metadata=metadata,
+                device_metadata=metadata,
                 is_banned=False
             )
             db.add(device)
@@ -30,7 +30,7 @@ class SecurityService:
             # Update device if metadata changed or just update timestamp
             device.last_seen_at = datetime.utcnow()
             if metadata:
-                device.metadata = metadata
+                device.device_metadata = metadata
             db.add(device)
             db.commit()
         return device

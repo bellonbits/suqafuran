@@ -12,7 +12,7 @@ class UserDeviceLink(SQLModel, table=True):
 class Device(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     fingerprint_hash: str = Field(unique=True, index=True)
-    metadata: Optional[Dict[str, Any]] = Field(default={}, sa_column=Column(JSON))
+    device_metadata: Optional[Dict[str, Any]] = Field(default={}, sa_column=Column("metadata", JSON))
     is_banned: bool = Field(default=False)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     last_seen_at: datetime = Field(default_factory=datetime.utcnow)
