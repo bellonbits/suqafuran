@@ -165,12 +165,13 @@ Return a JSON object with:
 Do not include any other text in your response.
 """
         import json
-        response_text = self._call_ai(system_prompt, user_prompt)
         try:
+            response_text = self._call_ai(system_prompt, user_prompt)
             return json.loads(response_text)
-        except:
-            # Fallback if AI fails to return clean JSON
-            return {"risk": "low", "reasons": [], "recommendation": "Safe to post"}
+        except Exception as e:
+            logger.error(f"Moderation AI Error (Falling back to safe): {e}")
+            # Fallback if AI fails: assume low risk to avoid blocking user
+            return {"risk": "low", "reasons": ["AI moderation temporarily unavailable"], "recommendation": "Safe to post"}
 
     def parse_search_query(self, query: str) -> dict:
         """
@@ -415,10 +416,11 @@ Return a JSON object:
         Do not include other text. Ensure descriptions are persuasive and localized for the East African market.
         """
         import json
-        response_text = self._call_ai(system_prompt, user_prompt)
         try:
+            response_text = self._call_ai(system_prompt, user_prompt)
             return json.loads(response_text)
-        except:
+        except Exception as e:
+            logger.error(f"AI Parsing Error (Falling back): {e}")
             return {"title": input_text, "suggestions": [input_text]}
 
     def get_support_response(self, messages: list, db: any = None, current_listing_id: int = None) -> dict:
