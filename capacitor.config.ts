@@ -9,6 +9,7 @@ const config: CapacitorConfig = {
     captureInput: true,
     webContentsDebuggingEnabled: false,
     backgroundColor: '#0c4a6e',
+    adjustMarginsForEdgeToEdge: 'auto',
   },
   ios: {
     contentInset: 'automatic',
@@ -16,7 +17,6 @@ const config: CapacitorConfig = {
   plugins: {
     StatusBar: {
       style: 'default',
-      backgroundColor: '#7dcce9',
     },
     SplashScreen: {
       launchShowDuration: 0,
