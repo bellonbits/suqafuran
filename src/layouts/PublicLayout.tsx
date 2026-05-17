@@ -309,6 +309,29 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Programmatic SEO Tags */}
+                    <div className="mt-8 pt-8 border-t border-black/10">
+                        <h4 className="font-extrabold mb-3 uppercase tracking-wider text-xs text-black/60">Trending Near You</h4>
+                        <div className="flex flex-wrap gap-2">
+                            {[
+                                { name: "Cheap iPhones in Nairobi", query: "product=iPhone&city=Nairobi&category=Electronics" },
+                                { name: "Gaming Laptops in Kenya", query: "product=laptops&city=Nairobi&category=Electronics" },
+                                { name: "Used Toyota Cars for Sale", query: "product=Toyota&city=Nairobi&category=Vehicles" },
+                                { name: "Houses for Rent in Nairobi", query: "product=houses&city=Nairobi&category=Property" },
+                                { name: "Hire Web Developers", query: "skill=web%20developer&city=Nairobi&category=Jobs" },
+                                { name: "Plumbers near me", query: "service=plumber&city=Nairobi&category=Services" },
+                            ].map((tag) => (
+                                <Link 
+                                    key={tag.name} 
+                                    to={`/discover?${tag.query}`} 
+                                    className="text-xs bg-black/5 hover:bg-black/10 text-black font-semibold px-3 py-1.5 rounded-full transition-all"
+                                >
+                                    {tag.name}
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </footer>
 

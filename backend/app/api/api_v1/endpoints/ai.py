@@ -202,11 +202,23 @@ def support_chat(
     current_user: Optional[User] = Depends(deps.get_current_user_optional),
 ):
     """AI Support Agent for the marketplace."""
-    result = ai_service.get_support_response(
-        messages=body.messages,
-        db=db,
-        current_listing_id=body.current_listing_id
-    )
+    needs_agent = False
+    try:
+        result = ai_service.get_support_response(
+            messages=body.messages,
+            db=db,
+            current_listing_id=body.current_listing_id
+        )
+    except Exception as e:
+        import logging
+        logging.error(f"Support response failed, forwarding to agent: {e}")
+        needs_agent = True
+        result = {
+            "answer": "Our platform support is currently connecting you to an active agent. A member of our team will reply to you here shortly!",
+            "needs_ticket": True,
+            "ticket_subject": body.messages[-1].get("content")[:50] if body.messages else "Support Request",
+            "ticket_priority": "high"
+        }
     
     # If the AI thinks a ticket is needed, or if we want to log all support chats
     if result.get("needs_ticket") or True: # Logging all for follow-up
@@ -221,7 +233,7 @@ def support_chat(
             ticket = db.exec(
                 select(SupportTicket)
                 .where(SupportTicket.user_id == user_id)
-                .where(SupportTicket.status == "open")
+                .where(SupportTicket.status != "resolved")
             ).first()
             
         if not ticket:
@@ -237,7 +249,21 @@ def support_chat(
             ticket.chat_history = body.messages
             ticket.last_agent_response = result.get("answer")
             
+        if needs_agent:
+            from datetime import datetime
+            ticket.status = "open"
+            # Ensure the offline warning message is logged in historical logs for reference
+            if ticket.chat_history and len(ticket.chat_history) > 0:
+                if ticket.chat_history[-1].get("role") == "user":
+                    ticket.chat_history.append({
+                        "role": "assistant",
+                        "content": result["answer"],
+                        "timestamp": datetime.utcnow().isoformat()
+                    })
+            
         db.add(ticket)
         db.commit()
+        db.refresh(ticket)
+        result["ticket_id"] = ticket.id
         
     return result

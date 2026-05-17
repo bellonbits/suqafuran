@@ -79,6 +79,7 @@ const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'));
 const AdminSupportPage = lazy(() => import('./pages/admin/AdminSupportPage'));
 const WebEditorPage = lazyNamed(() => import('./pages/admin/WebEditorPage'), 'WebEditorPage');
 const AgentDashboard = lazy(() => import('./pages/agent/AgentDashboard'));
+const ProgrammaticSEOPage = lazy(() => import('./pages/ProgrammaticSEOPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -227,6 +228,7 @@ const App: React.FC = () => {
             <Route path="/delete-account" element={<DeleteAccountPage />} />
             <Route path="/kh" element={<KaalayHeedhePage />} />
             <Route path="/discovery" element={<DiscoveryFeedPage />} />
+            <Route path="/discover" element={<ProgrammaticSEOPage />} />
 
             {/* Admin Routes */}
             <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminLayout /></ProtectedRoute>}>

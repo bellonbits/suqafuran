@@ -4,12 +4,13 @@ import { auditService } from '../../services/auditService';
 import type { AuditLogEntry } from '../../services/auditService';
 import { promotionService } from '../../services/promotionService';
 import { adminService } from '../../services/adminService';
+import { supportService } from '../../services/supportService';
 import api from '../../services/api';
 import {
     CheckCircle, Clock, Search, RefreshCw, Shield, Activity,
     User, ShoppingBag, Wallet, Zap, AlertTriangle,
     TrendingUp, Users, BarChart2, MapPin, XCircle,
-    CreditCard, Eye, PhoneCall, Mail, Check
+    CreditCard, Eye, PhoneCall, Mail, Check, LifeBuoy, Bot, Send
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -78,7 +79,7 @@ const STATUS_STYLES: Record<string, string> = {
     sold:     'bg-blue-100 text-blue-700',
 };
 
-type Tab = 'marketing' | 'signups' | 'listings' | 'verifications' | 'history';
+type Tab = 'marketing' | 'signups' | 'listings' | 'verifications' | 'chats' | 'history';
 
 // ── Small stat card ─────────────────────────────────────────────────────────
 const Stat: React.FC<{ label: string; value: string | number; icon: React.ElementType; color: string }> = ({ label, value, icon: Icon, color }) => (
@@ -160,6 +161,22 @@ const AgentDashboard: React.FC = () => {
         },
     });
 
+    const approveListingMutation = useMutation({
+        mutationFn: (id: number) => api.post(`/promotions/agent/listings/${id}/approve`),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['agent-all-listings'] });
+            queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
+        },
+    });
+
+    const rejectListingMutation = useMutation({
+        mutationFn: (id: number) => api.post(`/promotions/agent/listings/${id}/reject`),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['agent-all-listings'] });
+            queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
+        },
+    });
+
     const verifyMutation = useMutation({
         mutationFn: ({ id, status }: { id: number; status: string }) =>
             adminService.moderateVerification(id, status),
@@ -169,11 +186,86 @@ const AgentDashboard: React.FC = () => {
         }
     });
 
+    // Support Chat State
+    const [tickets, setTickets] = useState<any[]>([]);
+    const [ticketsLoading, setTicketsLoading] = useState(false);
+    const [selectedTicket, setSelectedTicket] = useState<any | null>(null);
+    const [chatFilter, setChatFilter] = useState<string>('open');
+    const [replyInput, setReplyInput] = useState('');
+    const [sendingReply, setSendingReply] = useState(false);
+    const [adminNote, setAdminNote] = useState('');
+
+    const fetchTickets = async () => {
+        try {
+            setTicketsLoading(true);
+            const data = await supportService.getTickets({
+                status: chatFilter === 'all' ? undefined : chatFilter
+            });
+            setTickets(data);
+            
+            // Sync selected ticket details if one is selected
+            if (selectedTicket) {
+                const updated = data.find((t: any) => t.id === selectedTicket.id);
+                if (updated) {
+                    setSelectedTicket(updated);
+                }
+            }
+        } catch (err) {
+            console.error('Failed to load tickets', err);
+        } finally {
+            setTicketsLoading(false);
+        }
+    };
+
+    React.useEffect(() => {
+        if (activeTab === 'chats') {
+            fetchTickets();
+        }
+    }, [activeTab, chatFilter]);
+
+    const handleSendReply = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!replyInput.trim() || !selectedTicket || sendingReply) return;
+        try {
+            setSendingReply(true);
+            const updated = await supportService.replyToTicket(selectedTicket.id, replyInput);
+            setReplyInput('');
+            setSelectedTicket(updated);
+            fetchTickets();
+        } catch (error) {
+            console.error('Failed to send reply', error);
+        } finally {
+            setSendingReply(false);
+        }
+    };
+
+    const handleUpdateTicketStatus = async (ticketId: number, status: string) => {
+        try {
+            const updated = await supportService.updateTicket(ticketId, { status });
+            setSelectedTicket(updated);
+            fetchTickets();
+        } catch (error) {
+            console.error('Failed to update ticket status', error);
+        }
+    };
+
+    const handleSaveNote = async () => {
+        if (!selectedTicket) return;
+        try {
+            const updated = await supportService.updateTicket(selectedTicket.id, { admin_notes: adminNote });
+            setSelectedTicket(updated);
+            fetchTickets();
+        } catch (error) {
+            console.error('Failed to save notes', error);
+        }
+    };
+
     const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
         { id: 'marketing', label: 'Marketing',    icon: TrendingUp },
         { id: 'signups',   label: 'Signups',      icon: Users },
         { id: 'listings',  label: 'All Listings', icon: ShoppingBag },
         { id: 'verifications', label: 'Verifications', icon: Shield },
+        { id: 'chats',     label: 'Support Chat', icon: LifeBuoy },
         { id: 'history',   label: 'History',      icon: CheckCircle },
     ];
 
@@ -421,22 +513,43 @@ const AgentDashboard: React.FC = () => {
 
                                                 {/* Actions */}
                                                 <div className="flex items-center gap-2 sm:flex-shrink-0 pt-2 sm:pt-0 border-t border-gray-50 sm:border-0">
-                                                    {listing.is_active ? (
+                                                    {listing.status === 'pending' ? (
+                                                        <>
+                                                            <button
+                                                                disabled={approveListingMutation.isPending}
+                                                                onClick={() => approveListingMutation.mutate(listing.id)}
+                                                                className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-4 py-2 sm:py-1.5 text-[10px] font-bold bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors disabled:opacity-50 active:scale-95 transition-all shadow-sm"
+                                                            >
+                                                                <Check className="h-3 w-3" /> Approve
+                                                            </button>
+                                                            <button
+                                                                disabled={rejectListingMutation.isPending}
+                                                                onClick={() => rejectListingMutation.mutate(listing.id)}
+                                                                className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-4 py-2 sm:py-1.5 text-[10px] font-bold bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors disabled:opacity-50 active:scale-95 transition-all shadow-sm"
+                                                            >
+                                                                <XCircle className="h-3 w-3" /> Reject
+                                                            </button>
+                                                        </>
+                                                    ) : listing.status === 'active' ? (
                                                         <button
-                                                            disabled={endMutation.isPending}
-                                                            onClick={() => { if (window.confirm(`End "${listing.title}"?`)) endMutation.mutate(listing.id); }}
-                                                            className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-4 py-2 sm:py-1.5 text-[10px] font-bold border border-red-200 text-red-600 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-50"
+                                                            disabled={rejectListingMutation.isPending}
+                                                            onClick={() => { if (window.confirm(`Reject "${listing.title}"?`)) rejectListingMutation.mutate(listing.id); }}
+                                                            className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-4 py-2 sm:py-1.5 text-[10px] font-bold border border-red-200 text-red-600 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-50 active:scale-95 transition-all"
                                                         >
-                                                            <XCircle className="h-3 w-3" /> End
+                                                            <XCircle className="h-3 w-3" /> Reject Product
+                                                        </button>
+                                                    ) : listing.status === 'rejected' ? (
+                                                        <button
+                                                            disabled={approveListingMutation.isPending}
+                                                            onClick={() => approveListingMutation.mutate(listing.id)}
+                                                            className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-4 py-2 sm:py-1.5 text-[10px] font-bold border border-green-200 text-green-600 rounded-xl hover:bg-green-50 transition-colors disabled:opacity-50 active:scale-95 transition-all"
+                                                        >
+                                                            <Check className="h-3 w-3" /> Approve Product
                                                         </button>
                                                     ) : (
-                                                        <button
-                                                            disabled={reactivateMutation.isPending}
-                                                            onClick={() => reactivateMutation.mutate(listing.id)}
-                                                            className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-4 py-2 sm:py-1.5 text-[10px] font-bold border border-green-200 text-green-600 rounded-xl hover:bg-green-50 transition-colors disabled:opacity-50"
-                                                        >
-                                                            <Check className="h-3 w-3" /> Reactivate
-                                                        </button>
+                                                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider bg-gray-50 px-2.5 py-1 rounded-lg">
+                                                            {listing.status}
+                                                        </span>
                                                     )}
                                                 </div>
                                             </div>
@@ -538,6 +651,215 @@ const AgentDashboard: React.FC = () => {
                                     ))}
                                 </div>
                             )}
+                        </div>
+                    )}
+
+
+                    {/* SUPPORT CHATS */}
+                    {activeTab === 'chats' && (
+                        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden h-[600px] flex">
+                            {/* Tickets Sidebar */}
+                            <div className="w-80 border-r border-gray-50 flex flex-col shrink-0">
+                                <div className="p-4 border-b border-gray-50">
+                                    <h3 className="font-extrabold text-gray-900 flex items-center gap-2">
+                                        <LifeBuoy className="text-primary-500" size={18} />
+                                        Inquiries & Chats
+                                    </h3>
+                                    <div className="flex gap-1 mt-3 bg-gray-50 p-0.5 rounded-xl">
+                                        {['all', 'open', 'resolved', 'pending'].map((s) => (
+                                            <button
+                                                key={s}
+                                                onClick={() => {
+                                                    setChatFilter(s);
+                                                    setSelectedTicket(null);
+                                                }}
+                                                className={cn(
+                                                    "flex-1 py-1 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all",
+                                                    chatFilter === s 
+                                                        ? "bg-white text-primary-600 shadow-sm border border-gray-100" 
+                                                        : "text-gray-400 hover:text-gray-600"
+                                                )}
+                                            >
+                                                {s}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
+                                    {ticketsLoading ? (
+                                        Array(4).fill(0).map((_, i) => (
+                                            <div key={i} className="p-4 animate-pulse">
+                                                <div className="h-4 bg-gray-100 rounded w-3/4 mb-2"></div>
+                                                <div className="h-3 bg-gray-50 rounded w-1/2"></div>
+                                            </div>
+                                        ))
+                                    ) : tickets.length === 0 ? (
+                                        <div className="p-12 text-center text-gray-400 text-xs italic">
+                                            No inquiries found
+                                        </div>
+                                    ) : (
+                                        tickets.map((ticket: any) => (
+                                            <button
+                                                key={ticket.id}
+                                                onClick={() => {
+                                                    setSelectedTicket(ticket);
+                                                    setAdminNote(ticket.admin_notes || '');
+                                                }}
+                                                className={cn(
+                                                    "w-full p-4 text-left hover:bg-gray-50/50 transition-colors flex flex-col gap-1.5",
+                                                    selectedTicket?.id === ticket.id ? "bg-primary-50/40 border-r-4 border-r-primary-500" : ""
+                                                )}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <span className={cn(
+                                                        "text-[9px] font-black px-1.5 py-0.5 rounded border uppercase tracking-wider",
+                                                        ticket.priority === 'high' ? "bg-red-50 text-red-600 border-red-100" :
+                                                        ticket.priority === 'medium' ? "bg-amber-50 text-amber-600 border-amber-100" :
+                                                        "bg-blue-50 text-blue-600 border-blue-100"
+                                                    )}>
+                                                        {ticket.priority}
+                                                    </span>
+                                                    <span className="text-[9px] text-gray-400 font-medium">
+                                                        {new Date(ticket.created_at).toLocaleDateString()}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs font-bold text-gray-900 truncate w-full">{ticket.subject}</p>
+                                                <p className="text-[11px] text-gray-500 line-clamp-1 w-full">{ticket.last_agent_response || 'No reply yet'}</p>
+                                                <div className="flex items-center gap-1.5 mt-1">
+                                                    <span className={cn(
+                                                        "text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-md",
+                                                        ticket.status === 'resolved' ? "bg-green-100 text-green-700" :
+                                                        ticket.status === 'pending' ? "bg-amber-100 text-amber-700" :
+                                                        "bg-blue-100 text-blue-700"
+                                                    )}>
+                                                        {ticket.status}
+                                                    </span>
+                                                </div>
+                                            </button>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Chat Details View */}
+                            <div className="flex-1 bg-gray-50 flex flex-col overflow-hidden">
+                                {selectedTicket ? (
+                                    <>
+                                        {/* Chat Header */}
+                                        <div className="bg-white p-4 border-b border-gray-100 flex items-center justify-between shrink-0">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className="w-10 h-10 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center font-black text-sm shrink-0">
+                                                    {selectedTicket.user_id ? 'U' : 'G'}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <h4 className="text-sm font-extrabold text-gray-900 truncate">{selectedTicket.subject}</h4>
+                                                    <p className="text-[10px] text-gray-400 font-medium mt-0.5">
+                                                        User ID: {selectedTicket.user_id || 'Guest'} • Status: <span className="font-bold uppercase text-primary-500">{selectedTicket.status}</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                {selectedTicket.status !== 'resolved' && (
+                                                    <button 
+                                                        onClick={() => handleUpdateTicketStatus(selectedTicket.id, 'resolved')}
+                                                        className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all active:scale-95"
+                                                    >
+                                                        <CheckCircle size={14} /> Resolve
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Chat Area & Side Panel */}
+                                        <div className="flex-1 flex overflow-hidden">
+                                            {/* Chat History */}
+                                            <div className="flex-1 flex flex-col overflow-hidden bg-gray-50/50">
+                                                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                                                    {selectedTicket.chat_history?.map((msg: any, i: number) => (
+                                                        <div key={i} className={cn(
+                                                            "flex gap-2.5 max-w-[85%]",
+                                                            msg.role === 'user' ? "ml-auto flex-row-reverse" : ""
+                                                        )}>
+                                                            <div className={cn(
+                                                                "w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-white text-[10px] font-bold shadow-sm",
+                                                                msg.role === 'user' ? "bg-gray-400" : "bg-primary-500"
+                                                            )}>
+                                                                {msg.role === 'user' ? <User size={12} /> : <Bot size={12} />}
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <div className={cn(
+                                                                    "px-3.5 py-2 rounded-2xl text-xs shadow-sm",
+                                                                    msg.role === 'user' 
+                                                                        ? "bg-white text-gray-800 border border-gray-100 rounded-tr-none" 
+                                                                        : "bg-primary-500 text-white rounded-tl-none"
+                                                                )}>
+                                                                    {msg.content}
+                                                                </div>
+                                                                {msg.timestamp && (
+                                                                    <span className={cn(
+                                                                        "text-[8px] text-gray-400 mt-1",
+                                                                        msg.role === 'user' ? "text-right" : "text-left"
+                                                                    )}>
+                                                                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                                {/* Agent Reply Input Box */}
+                                                <form onSubmit={handleSendReply} className="p-3 bg-white border-t border-gray-100 flex items-center gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={replyInput}
+                                                        onChange={(e) => setReplyInput(e.target.value)}
+                                                        placeholder="Type your manual response to user..."
+                                                        className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-primary-500 transition-all"
+                                                        disabled={sendingReply}
+                                                    />
+                                                    <button 
+                                                        type="submit"
+                                                        disabled={!replyInput.trim() || sendingReply}
+                                                        className="w-8 h-8 rounded-xl bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 active:scale-95 disabled:opacity-50 disabled:active:scale-100 transition-all shrink-0"
+                                                    >
+                                                        <Send size={14} />
+                                                    </button>
+                                                </form>
+                                            </div>
+
+                                            {/* Notes / Internal Side Panel */}
+                                            <div className="w-60 bg-white border-l border-gray-50 p-4 flex flex-col shrink-0 gap-3">
+                                                <div className="text-gray-900 font-extrabold text-xs flex items-center gap-1.5">
+                                                    <Clock size={14} className="text-amber-500" />
+                                                    Internal Notes
+                                                </div>
+                                                <textarea
+                                                    className="flex-1 w-full bg-gray-50 border-none rounded-xl p-3 text-xs focus:ring-2 focus:ring-primary-500 transition-all resize-none"
+                                                    placeholder="Add internal follow-up notes here..."
+                                                    value={adminNote}
+                                                    onChange={(e) => setAdminNote(e.target.value)}
+                                                />
+                                                <button 
+                                                    onClick={handleSaveNote}
+                                                    className="w-full bg-primary-500 hover:bg-primary-600 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1 shadow-sm transition-all active:scale-95"
+                                                >
+                                                    Save Notes
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex-1 flex flex-col items-center justify-center text-center p-12">
+                                        <div className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center text-primary-500 mb-4">
+                                            <LifeBuoy size={32} />
+                                        </div>
+                                        <h4 className="text-base font-extrabold text-gray-900">Live Chat Follow-up</h4>
+                                        <p className="text-gray-500 text-xs max-w-xs mt-1.5">Select a customer inquiry to view history, internal notes, and take over the chat manually.</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
 

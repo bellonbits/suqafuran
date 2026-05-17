@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Send, Phone, User, Loader2, Minimize2, Maximize2 } from 'lucide-react';
 import { aiService } from '../services/aiService';
+import { supportService } from '../services/supportService';
 import { cn } from '../utils/cn';
 import { useParams, Link } from 'react-router-dom';
 import { ShoppingBag } from 'lucide-react';
@@ -28,6 +29,56 @@ export const AISupportChat: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    const [activeTicketId, setActiveTicketId] = useState<number | null>(() => {
+        const stored = localStorage.getItem('suqafuran_guest_ticket_id');
+        return stored ? parseInt(stored) : null;
+    });
+
+    const isAuthenticated = !!localStorage.getItem('suqafuran-token');
+
+    const syncTicketHistory = async () => {
+        try {
+            let ticket: any = null;
+            if (isAuthenticated) {
+                ticket = await supportService.getMyActiveTicket();
+            } else if (activeTicketId) {
+                ticket = await supportService.getTicketById(activeTicketId);
+            }
+
+            if (ticket && ticket.chat_history && ticket.chat_history.length > 0) {
+                const mappedMessages: Message[] = ticket.chat_history.map((m: any) => ({
+                    role: m.role,
+                    content: m.content,
+                    timestamp: m.timestamp ? new Date(m.timestamp) : new Date(),
+                }));
+                setMessages(mappedMessages);
+                
+                if (!isAuthenticated && ticket.id !== activeTicketId) {
+                    setActiveTicketId(ticket.id);
+                    localStorage.setItem('suqafuran_guest_ticket_id', ticket.id.toString());
+                }
+            }
+        } catch (error) {
+            console.error('Failed to sync support ticket history', error);
+        }
+    };
+
+    useEffect(() => {
+        if (isOpen) {
+            syncTicketHistory();
+        }
+    }, [isOpen, isAuthenticated]);
+
+    useEffect(() => {
+        if (!isOpen || isMinimized) return;
+        
+        const interval = setInterval(() => {
+            syncTicketHistory();
+        }, 5000);
+        
+        return () => clearInterval(interval);
+    }, [isOpen, isMinimized, isAuthenticated, activeTicketId]);
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
@@ -41,12 +92,13 @@ export const AISupportChat: React.FC = () => {
         if (!input.trim() || isLoading) return;
 
         const userMsg: Message = { role: 'user', content: input, timestamp: new Date() };
-        setMessages(prev => [...prev, userMsg]);
+        const updatedMessages = [...messages, userMsg];
+        setMessages(updatedMessages);
         setInput('');
         setIsLoading(true);
 
         try {
-            const history = messages.concat(userMsg).map(m => ({
+            const history = updatedMessages.map(m => ({
                 role: m.role,
                 content: m.content
             }));
@@ -59,10 +111,15 @@ export const AISupportChat: React.FC = () => {
                 timestamp: new Date(),
                 recommendations: response.recommendations
             }]);
+
+            if (response.ticket_id && !isAuthenticated) {
+                setActiveTicketId(response.ticket_id);
+                localStorage.setItem('suqafuran_guest_ticket_id', response.ticket_id.toString());
+            }
         } catch (error) {
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: "I'm having a bit of trouble with my connection. Please try again or reach out to our team on WhatsApp: +252 612 958679",
+                content: "I'm having a bit of trouble right now. Please reach out to our team on WhatsApp for immediate help.",
                 timestamp: new Date()
             }]);
         } finally {

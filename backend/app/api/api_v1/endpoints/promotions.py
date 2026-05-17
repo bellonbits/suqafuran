@@ -1039,3 +1039,45 @@ def agent_reactivate_listing(
     ))
     db.commit()
     return {"success": True}
+
+
+@router.post("/agent/listings/{listing_id}/approve")
+def agent_approve_listing(
+    listing_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_agent_user),
+) -> Any:
+    listing = db.get(Listing, listing_id)
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    listing.status = "active"
+    db.add(listing)
+    db.add(AuditLog(
+        action="APPROVE_LISTING",
+        user_id=current_user.id,
+        user_name=current_user.full_name,
+        details=f"Agent approved listing #{listing_id}: {listing.title_en}",
+    ))
+    db.commit()
+    return {"success": True}
+
+
+@router.post("/agent/listings/{listing_id}/reject")
+def agent_reject_listing(
+    listing_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_agent_user),
+) -> Any:
+    listing = db.get(Listing, listing_id)
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    listing.status = "rejected"
+    db.add(listing)
+    db.add(AuditLog(
+        action="REJECT_LISTING",
+        user_id=current_user.id,
+        user_name=current_user.full_name,
+        details=f"Agent rejected listing #{listing_id}: {listing.title_en}",
+    ))
+    db.commit()
+    return {"success": True}

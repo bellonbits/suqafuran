@@ -67,4 +67,42 @@
     <priority>0.4</priority>
   </url>
 
+  <!-- Programmatic SEO Landing Pages -->
+  <url>
+    <loc>https://suqafuran.com/discover?product=iPhone&amp;city=Nairobi&amp;category=Electronics</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://suqafuran.com/discover?product=laptops&amp;city=Nairobi&amp;category=Electronics</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://suqafuran.com/discover?product=Toyota&amp;city=Nairobi&amp;category=Vehicles</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://suqafuran.com/discover?product=houses&amp;city=Nairobi&amp;category=Property</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://suqafuran.com/discover?skill=web%20developer&amp;city=Nairobi&amp;category=Jobs</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://suqafuran.com/discover?service=plumber&amp;city=Nairobi&amp;category=Services</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
 </urlset>
