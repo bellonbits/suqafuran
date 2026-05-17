@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../services/api';
 import { 
     Shield, CheckCircle2, ChevronRight, HelpCircle, 
-    ShoppingBag, MapPin, Eye, Lock, Heart, Award, ArrowLeft,
+    ShoppingBag, MapPin, Eye, Lock, Award, ArrowLeft,
     Sparkles, RefreshCw, Star
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -34,7 +34,7 @@ const ProgrammaticSEOPage: React.FC = () => {
     const skill = searchParams.get('skill') || '';
     const service = searchParams.get('service') || '';
 
-    const { data, isLoading, refetch } = useQuery<SEOResponse>({
+    const { data, isLoading } = useQuery<SEOResponse>({
         queryKey: ['seo-landing', product, city, category, country, skill, service],
         queryFn: async () => {
             const res = await api.get('/seo/landing', {

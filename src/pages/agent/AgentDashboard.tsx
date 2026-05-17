@@ -143,23 +143,6 @@ const AgentDashboard: React.FC = () => {
     });
 
     // ── Mutations ────────────────────────────────────────────────────────────
-    const endMutation = useMutation({
-        mutationFn: (id: number) => api.post(`/promotions/agent/listings/${id}/end`),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['agent-all-listings'] });
-            queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
-            queryClient.invalidateQueries({ queryKey: ['agent-conversions'] });
-        },
-    });
-
-    const reactivateMutation = useMutation({
-        mutationFn: (id: number) => api.post(`/promotions/agent/listings/${id}/reactivate`),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['agent-all-listings'] });
-            queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
-            queryClient.invalidateQueries({ queryKey: ['agent-conversions'] });
-        },
-    });
 
     const approveListingMutation = useMutation({
         mutationFn: (id: number) => api.post(`/promotions/agent/listings/${id}/approve`),
