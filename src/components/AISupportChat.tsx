@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send, Phone, User, Loader2, Minimize2, Maximize2 } from 'lucide-react';
+import { MessageCircle, X, Send, Phone, User, Loader2, Minimize2, Maximize2, Heart, PlusCircle, Compass, Instagram, Twitter, ShoppingBag } from 'lucide-react';
 import { aiService } from '../services/aiService';
 import { supportService } from '../services/supportService';
 import { cn } from '../utils/cn';
-import { useParams, Link } from 'react-router-dom';
-import { ShoppingBag } from 'lucide-react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 
 interface Message {
     role: 'user' | 'assistant';
@@ -15,6 +14,7 @@ interface Message {
 
 export const AISupportChat: React.FC = () => {
     const { id: listingId } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
     const [isVisible, setIsVisible] = useState(true);
@@ -127,6 +127,55 @@ export const AISupportChat: React.FC = () => {
         }
     };
 
+    const renderMessageContent = (content: string) => {
+        const mdLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+        const parts = [];
+        let lastIndex = 0;
+        let match;
+        
+        while ((match = mdLinkRegex.exec(content)) !== null) {
+            const index = match.index;
+            if (index > lastIndex) {
+                parts.push(content.substring(lastIndex, index));
+            }
+            
+            const text = match[1];
+            const url = match[2];
+            
+            if (url.startsWith('/')) {
+                parts.push(
+                    <Link 
+                        key={index} 
+                        to={url} 
+                        className="text-primary-600 hover:text-primary-700 font-bold underline transition-colors"
+                    >
+                        {text}
+                    </Link>
+                );
+            } else {
+                parts.push(
+                    <a 
+                        key={index} 
+                        href={url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-primary-600 hover:text-primary-700 font-bold underline transition-colors inline-flex items-center gap-0.5"
+                    >
+                        {text}
+                    </a>
+                );
+            }
+            
+            lastIndex = mdLinkRegex.lastIndex;
+        }
+        
+        if (lastIndex < content.length) {
+            parts.push(content.substring(lastIndex));
+        }
+        
+        return parts.length > 0 ? parts : content;
+    };
+
     if (!isVisible) return null;
 
     if (!isOpen) {
@@ -200,16 +249,18 @@ export const AISupportChat: React.FC = () => {
                                         ? "bg-primary-500 text-white rounded-tr-none" 
                                         : "bg-white text-gray-800 border border-gray-100 rounded-tl-none"
                                 )}>
-                                    {msg.content}
+                                    <div className="whitespace-pre-line leading-relaxed">
+                                        {renderMessageContent(msg.content)}
+                                    </div>
                                     
                                     {msg.recommendations && msg.recommendations.length > 0 && (
                                         <div className="mt-3 pt-3 border-t border-gray-100 space-y-2 w-full min-w-[200px]">
-                                            <p className="text-[10px] font-bold text-primary-600 uppercase tracking-wider mb-2">Similar Items</p>
+                                            <p className="text-[10px] font-bold text-primary-600 uppercase tracking-wider mb-2">Matches Found</p>
                                             <div className="grid gap-2">
                                                 {msg.recommendations.map((item: any) => (
                                                     <Link 
                                                         key={item.id} 
-                                                        to={`/listings/${item.id}`}
+                                                        to={`/listing/${item.id}`}
                                                         className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors group"
                                                     >
                                                         <div className="w-10 h-10 rounded bg-gray-200 overflow-hidden shrink-0">
@@ -246,15 +297,19 @@ export const AISupportChat: React.FC = () => {
                     </div>
 
                     {/* Quick Actions */}
-                    <div className="px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar border-t border-gray-50 bg-white">
+                    <div className="px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar border-t border-gray-50 bg-white shrink-0 scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                         {[
+                            { icon: PlusCircle, text: 'Post Ad', action: () => navigate('/post-ad') },
+                            { icon: Heart, text: 'Watchlist', action: () => navigate('/favorites') },
+                            { icon: Compass, text: 'Discovery', action: () => navigate('/discovery') },
                             { icon: Phone, text: 'WhatsApp', action: () => window.open('https://wa.me/252612958679', '_blank') },
-                            { icon: MessageCircle, text: 'Post an Ad', action: () => { setInput('How do I post an ad?'); handleSend(); } },
+                            { icon: Instagram, text: 'Instagram', action: () => window.open('https://www.instagram.com/suqafuran/', '_blank') },
+                            { icon: Twitter, text: 'Twitter/X', action: () => window.open('https://x.com/suqafuran', '_blank') },
                         ].map((btn, i) => (
                             <button
                                 key={i}
                                 onClick={btn.action}
-                                className="flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full text-[11px] font-medium transition-colors"
+                                className="flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full text-[11px] font-semibold transition-colors shrink-0"
                             >
                                 <btn.icon size={12} />
                                 {btn.text}
@@ -263,18 +318,18 @@ export const AISupportChat: React.FC = () => {
                     </div>
 
                     {/* Input Area */}
-                    <form onSubmit={handleSend} className="p-3 bg-white border-t border-gray-100 flex items-center gap-2">
+                    <form onSubmit={handleSend} className="p-3 bg-white border-t border-gray-100 flex items-center gap-2 shrink-0">
                         <input
                             type="text"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            placeholder="Ask about Suqafuran..."
+                            placeholder="Ask about Suqafuran or search items..."
                             className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-primary-500 transition-all"
                         />
                         <button 
                             type="submit"
                             disabled={!input.trim() || isLoading}
-                            className="w-10 h-10 rounded-xl bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 active:scale-95 disabled:opacity-50 disabled:active:scale-100 transition-all"
+                            className="w-10 h-10 rounded-xl bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 active:scale-95 disabled:opacity-50 disabled:active:scale-100 transition-all shrink-0"
                         >
                             <Send size={18} />
                         </button>

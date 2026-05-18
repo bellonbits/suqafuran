@@ -484,6 +484,21 @@ Return a JSON object:
         - NEVER answer questions outside of Suqafuran or marketplace context.
         - If you don't know the answer or the user is frustrated, tell them to contact our human team on WhatsApp: +252 612 958679.
         - Be professional, helpful, and concise.
+
+        EASY REDIRECTION LINKS:
+        - When the user asks to navigate the site, suggest pages, or view pages in Suqafuran, ALWAYS include them in markdown format like [Link Text](route) where route is one of:
+          * Post an Ad: [Post an Ad](/post-ad)
+          * Saved Ads / Watchlist: [Saved Ads](/favorites)
+          * Messaging / Inbox: [Messages](/messages)
+          * Settings / Profile: [Settings](/settings)
+          * Help Center: [Help Center](/help)
+          * User Dashboard: [Dashboard](/dashboard)
+          * Discovery Feed: [Discovery Feed](/discovery)
+        - When the user asks for social media or contact info, ALWAYS include them in markdown format like [Link Text](url):
+          * Instagram: [Instagram](https://www.instagram.com/suqafuran/)
+          * Twitter/X: [Twitter/X](https://x.com/suqafuran)
+          * TikTok: [TikTok](https://www.tiktok.com/@suqafuran_)
+          * WhatsApp Support: [WhatsApp Support](https://wa.me/252612958679)
         
         KNOWLEDGE BASE:
         - Boosting: We have Top, Premium, and VIP plans to sell 10x-100x faster.
@@ -492,8 +507,10 @@ Return a JSON object:
         - Listing: Users can post for free, but boosting gives better reach.
         - Verification: Users can verify their IDs to build trust.
         
-        PRODUCT RECOMMENDATIONS:
-        If the user asks for suggestions or seems to be browsing, you can mention that we have other similar items.
+        PRODUCT RECOMMENDATIONS & SEARCHING:
+        - If the user asks for suggestions or seems to be browsing, you can mention that we have other similar items.
+        - If the user is asking to search or look for items (e.g., 'show me shoes', 'do you have phones?', 'search for cars', 'I want a bag'), set "search_query" in the JSON response to the extracted item name (e.g. 'shoe', 'phone', 'car', 'bag') and set "suggest_products" to true.
+        - In the "answer" field, reply politely and inform them that you have found active listings for them.
         
         STRICTOR CONTEXT RULE:
         If the user asks about anything NOT related to Suqafuran, politely state that you only assist with Suqafuran marketplace concerns.
@@ -508,7 +525,8 @@ Return a JSON object:
             "needs_ticket": true | false,
             "ticket_priority": "low | medium | high",
             "ticket_subject": "short summary of issue",
-            "suggest_products": true | false
+            "suggest_products": true | false,
+            "search_query": "extracted item search term or null if not searching"
         }}
         """
         
@@ -531,13 +549,45 @@ Return a JSON object:
             import json
             result = json.loads(response.choices[0].message.content.strip())
             
+            # Perform active database search if AI set search_query
+            search_query = result.get("search_query")
+            if db and search_query:
+                from app.models.listing import Listing
+                from sqlmodel import select, or_
+                search_term = search_query.strip().lower()
+                stmt = (
+                    select(Listing)
+                    .where(Listing.status == "active")
+                    .where(
+                        or_(
+                            Listing.title_en.ilike(f"%{search_term}%"),
+                            Listing.title_so.ilike(f"%{search_term}%"),
+                            Listing.description_en.ilike(f"%{search_term}%"),
+                            Listing.description_so.ilike(f"%{search_term}%")
+                        )
+                    )
+                    .limit(5)
+                )
+                search_listings = db.exec(stmt).all()
+                if search_listings:
+                    # Clear default recommendations and populate with search results
+                    recommendations = []
+                    for item in search_listings:
+                        recommendations.append({
+                            "id": item.id,
+                            "title": item.title_en,
+                            "price": item.price,
+                            "currency": item.currency,
+                            "image": item.images[0] if item.images else None
+                        })
+            
             return {
                 "answer": result.get("answer"),
                 "whatsapp_support": "+252 612 958679",
                 "needs_ticket": result.get("needs_ticket", False),
                 "ticket_priority": result.get("ticket_priority", "low"),
                 "ticket_subject": result.get("ticket_subject", "Support Inquiry"),
-                "recommendations": recommendations if result.get("suggest_products") else []
+                "recommendations": recommendations if (result.get("suggest_products") or search_query) else []
             }
         except Exception as e:
             logger.error(f"Support AI Error: {e}")
