@@ -91,6 +91,7 @@ class Settings(BaseSettings):
     EMAILS_FROM_NAME: str = "Suqafuran"
     EMAIL_VERIFICATION_EXPIRE_HOURS: int = 24
     EMAIL_TEMPLATES_DIR: str = "app/email-templates"
+    FRONTEND_URL: str = "http://localhost:5173"
 
     # SECURITY
     RATE_LIMIT_PER_MINUTE: int = 60
