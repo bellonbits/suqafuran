@@ -1,8 +1,11 @@
 import secrets
 import json
 import redis
-from typing import Optional
+from typing import Optional, List
 from app.core.config import settings
+from sqlmodel import Session
+from app.db.session import engine
+from app.models.email_log import EmailLog
 
 
 class EmailService:
@@ -87,9 +90,9 @@ class EmailService:
           <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
             <!-- Header -->
             <div style="background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%); padding: 48px 20px; text-align: center; color: white;">
-              <img src="https://suqafuran.com/logo.png" alt="Suqafuran" style="height: 56px; margin-bottom: 16px; display: block; margin-left: auto; margin-right: auto;">
+              <img src="cid:logo_icon" alt="Suqafuran" style="height: 56px; margin-bottom: 16px; display: block; margin-left: auto; margin-right: auto;">
               <h1 style="margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.5px;">Suqafuran</h1>
-              <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px; font-weight: 500;">Suuqa Loogu Kalsoon Yahay ee Afrika</p>
+              <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px; font-weight: 500;">The Trusted Marketplace of Africa</p>
             </div>
             
             <!-- Content -->
@@ -98,14 +101,14 @@ class EmailService:
               <p style="font-size: 16px; margin-bottom: 32px;">{subtitle}</p>
               {content}
               <p style="margin-top: 32px; font-size: 14px; color: #94a3b8; font-style: italic;">
-                Mahadsanid,<br>
-                <strong>Kooxda Suqafuran</strong>
+                Thank you,<br>
+                <strong>The Suqafuran Team</strong>
               </p>
             </div>
             
             <!-- Footer -->
             <div style="background: #f8fafc; padding: 48px 20px; text-align: center; border-top: 1px solid #e2e8f0;">
-              <p style="font-size: 14px; font-weight: 700; color: #64748b; margin-bottom: 24px;">Nala xiriir</p>
+              <p style="font-size: 14px; font-weight: 700; color: #64748b; margin-bottom: 24px;">Connect with us</p>
               <div style="margin-bottom: 32px;">
                 <a href="https://www.instagram.com/suqafuran/" style="margin: 0 10px; text-decoration: none; display: inline-block;">
                   <img src="https://suqafuran.com/icons/instagram.png" alt="Instagram" width="24" height="24">
@@ -121,7 +124,7 @@ class EmailService:
               <div style="font-size: 12px; color: #94a3b8; line-height: 1.8;">
                 <p style="margin: 0; font-weight: 600; color: #64748b;">Suqafuran Limited</p>
                 <p style="margin: 4px 0 0 0;">Flat 13, Krishna Pointe Riverside Lane, Westlands Nairobi</p>
-                <p style="margin: 4px 0 0 0;">&copy; 2026 Suqafuran. Xuquuqda oo dhan waa la dhawray.</p>
+                <p style="margin: 4px 0 0 0;">&copy; 2026 Suqafuran. All rights reserved.</p>
               </div>
               
               <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #eef2f6;">
@@ -170,12 +173,12 @@ class EmailService:
         <div style="background: #fff7ed; border-radius: 12px; padding: 32px; text-align: center; margin: 32px 0; border: 1px solid #ffedd5;">
           <span style="font-size: 42px; font-weight: 900; letter-spacing: 10px; color: #ea580c; font-family: monospace;">{code}</span>
         </div>
-        <p style="color: #64748b; font-size: 13px; text-align: center;">Koodhkani wuxuu dhacayaa 5 daqiiqo gudahood. Haddii aadan codsan koodkan, waad iska indho-tiri kartaa iimaylkan.</p>
+        <p style="color: #64748b; font-size: 13px; text-align: center;">This code will expire in 5 minutes. If you did not request this verification code, you can safely ignore this email.</p>
         """
 
         html_body = self._get_base_template(
-            title="Xaqiiji koontadaada",
-            subtitle="Ku soo dhawaada Suqafuran! Fadlan isticmaal koodka xaqiijinta ee hoos ku qoran si aad u dhammaystirto diiwaangelintaada.",
+            title="Verify your account",
+            subtitle="Welcome to Suqafuran! Please use the verification code below to complete your registration.",
             content=otp_content
         )
 
@@ -187,7 +190,7 @@ class EmailService:
                 resend.Emails.send({
                     "from": f"{settings.EMAIL_FROM_NAME} <{settings.EMAIL_FROM}>",
                     "to": [email],
-                    "subject": "Koodhka xaqiijinta ee Suqafuran",
+                    "subject": "Suqafuran Verification Code",
                     "html": html_body,
                 })
                 print(f"[Email] OTP sent via Resend to {email}")
@@ -202,7 +205,7 @@ class EmailService:
                 from email.mime.multipart import MIMEMultipart
                 from email.mime.text import MIMEText
                 msg = MIMEMultipart("alternative")
-                msg["Subject"] = "Koodhka xaqiijinta ee Suqafuran"
+                msg["Subject"] = "Suqafuran Verification Code"
                 msg["From"] = f"{settings.EMAIL_FROM_NAME} <{settings.SMTP_USER}>"
                 msg["To"] = email
                 msg.attach(MIMEText(html_body, "html"))
@@ -232,12 +235,12 @@ class EmailService:
         <div style="background: #fff7ed; border-radius: 12px; padding: 32px; text-align: center; margin: 32px 0; border: 1px solid #ffedd5;">
           <span style="font-size: 42px; font-weight: 900; letter-spacing: 10px; color: #ea580c; font-family: monospace;">{code}</span>
         </div>
-        <p style="color: #64748b; font-size: 13px; text-align: center;">Koodhkani wuxuu dhacayaa 1 saac gudahood. Haddii aadan codsan dib-u-dejinta erayga sirta ah, fadlan xaqiiji amniga koontadaada.</p>
+        <p style="color: #64748b; font-size: 13px; text-align: center;">This code will expire in 1 hour. If you did not request a password reset, please ensure your account is secure.</p>
         """
 
         html_body = self._get_base_template(
-            title="Dib u deji eraygaaga sirta ah",
-            subtitle="Waxaan helnay codsi ah in dib loo dejiyo eraygaaga sirta ah ee Suqafuran. Isticmaal koodka hoose si aad u sii socoto.",
+            title="Reset your password",
+            subtitle="We received a request to reset your password on Suqafuran. Use the code below to proceed.",
             content=reset_content
         )
 
@@ -248,7 +251,7 @@ class EmailService:
                 resend.Emails.send({
                     "from": f"{settings.EMAIL_FROM_NAME} <{settings.EMAIL_FROM}>",
                     "to": [email],
-                    "subject": "Dib u deji erayga sirta ah ee Suqafuran",
+                    "subject": "Reset your Suqafuran Password",
                     "html": html_body,
                 })
                 print(f"[Email] Reset code sent via Resend to {email}")
@@ -262,7 +265,7 @@ class EmailService:
                 from email.mime.multipart import MIMEMultipart
                 from email.mime.text import MIMEText
                 msg = MIMEMultipart("alternative")
-                msg["Subject"] = "Dib u deji erayga sirta ah ee Suqafuran"
+                msg["Subject"] = "Reset your Suqafuran Password"
                 msg["From"] = f"{settings.EMAIL_FROM_NAME} <{settings.SMTP_USER}>"
                 msg["To"] = email
                 msg.attach(MIMEText(html_body, "html"))
@@ -283,6 +286,1461 @@ class EmailService:
 
         print(f"[Email] No email provider available for reset code to {email}")
         return False
+
+    def _send_and_log(
+        self,
+        email: str,
+        subject: str,
+        html_body: str,
+        email_type: str,
+        user_id: Optional[int] = None,
+        campaign_id: Optional[str] = None,
+        metadata: Optional[dict] = None
+    ) -> bool:
+        import json
+        import re
+        from urllib.parse import quote
+        
+        meta_str = json.dumps(metadata) if metadata else None
+        
+        log_entry = EmailLog(
+            user_id=user_id,
+            email=email,
+            email_type=email_type,
+            subject=subject,
+            status="queued",
+            campaign_id=campaign_id,
+            metadata_json=meta_str
+        )
+        
+        # Outbound link rewriting for high-fidelity CTR (Click-Through Rate) analytics
+        def rewrite_link(match):
+            url = match.group(1)
+            if "track-click" in url or "mailto:" in url or url.startswith("#"):
+                return match.group(0)
+            tracked_url = f"{settings.FRONTEND_URL}/api/v1/content/email/track-click?token={log_entry.tracking_token}&redirect_url={quote(url)}"
+            return f'href="{tracked_url}"'
+
+        html_body_tracked = re.sub(r'href=["\'](https?://[^"\']+)["\']', rewrite_link, html_body)
+        
+        # Inject transparent 1x1 tracking pixel
+        tracking_pixel = f'<img src="{settings.FRONTEND_URL}/api/v1/content/email/track-open?token={log_entry.tracking_token}" alt="" width="1" height="1" style="display:none;" />'
+        if "</body>" in html_body_tracked:
+            html_body_tracked = html_body_tracked.replace("</body>", f"{tracking_pixel}</body>")
+        else:
+            html_body_tracked += tracking_pixel
+            
+        success = False
+        provider = None
+        failed_reason = None
+        
+        # Primary: Resend API Delivery
+        if settings.RESEND_API_KEY:
+            try:
+                import resend
+                import os
+                import base64
+                
+                resend.api_key = settings.RESEND_API_KEY
+                
+                attachments = []
+                logo_path = "/Users/mac/suqafuran/public/icon1.png"
+                if os.path.exists(logo_path):
+                    with open(logo_path, "rb") as f:
+                        content_b64 = base64.b64encode(f.read()).decode("utf-8")
+                    attachments.append({
+                        "filename": "icon1.png",
+                        "content": content_b64,
+                        "cid": "logo_icon",
+                        "disposition": "inline"
+                    })
+                
+                resend.Emails.send({
+                    "from": f"{settings.EMAIL_FROM_NAME} <{settings.EMAIL_FROM}>",
+                    "to": [email],
+                    "subject": subject,
+                    "html": html_body_tracked,
+                    "attachments": attachments
+                })
+                print(f"[Email] {email_type} sent via Resend to {email}")
+                success = True
+                provider = "Resend"
+            except Exception as e:
+                failed_reason = f"Resend failed: {str(e)}"
+                print(f"[Email] Resend failed ({e}), trying SMTP fallback...")
+
+        # Secondary: SMTP Fallback Delivery Chain
+        if not success and settings.SMTP_HOST and settings.SMTP_USER and settings.SMTP_PASSWORD:
+            try:
+                import smtplib
+                import os
+                from email.mime.multipart import MIMEMultipart
+                from email.mime.text import MIMEText
+                from email.mime.image import MIMEImage
+                
+                logo_path = "/Users/mac/suqafuran/public/icon1.png"
+                
+                if os.path.exists(logo_path):
+                    msg = MIMEMultipart("related")
+                    msg["Subject"] = subject
+                    msg["From"] = f"{settings.EMAIL_FROM_NAME} <{settings.SMTP_USER}>"
+                    msg["To"] = email
+                    
+                    # Alternative part for HTML content
+                    msg_alternative = MIMEMultipart("alternative")
+                    msg_alternative.attach(MIMEText(html_body_tracked, "html"))
+                    msg.attach(msg_alternative)
+                    
+                    # Attach inline image
+                    with open(logo_path, "rb") as f:
+                        img_data = f.read()
+                    img = MIMEImage(img_data)
+                    img.add_header("Content-ID", "<logo_icon>")
+                    img.add_header("Content-Disposition", "inline", filename="icon1.png")
+                    msg.attach(img)
+                else:
+                    msg = MIMEMultipart("alternative")
+                    msg["Subject"] = subject
+                    msg["From"] = f"{settings.EMAIL_FROM_NAME} <{settings.SMTP_USER}>"
+                    msg["To"] = email
+                    msg.attach(MIMEText(html_body_tracked, "html"))
+                
+                # Check for SSL vs TLS vs standard connection
+                if settings.SMTP_SSL:
+                    with smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT) as server:
+                        server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+                        server.sendmail(settings.SMTP_USER, email, msg.as_string())
+                else:
+                    with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
+                        if settings.SMTP_TLS:
+                            server.starttls()
+                        server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+                        server.sendmail(settings.SMTP_USER, email, msg.as_string())
+                print(f"[Email] {email_type} sent via SMTP to {email}")
+                success = True
+                provider = "SMTP"
+            except Exception as e:
+                failed_reason = (failed_reason + " | " if failed_reason else "") + f"SMTP failed: {str(e)}"
+                print(f"[Email] SMTP failed: {e}")
+
+        # Local Dev Bypass fallback
+        if not success:
+            if settings.ENVIRONMENT != "production":
+                print(f"[Email] Dev bypass logged for {email} ({email_type})")
+                success = True
+                provider = "DevFallback"
+                log_entry.status = "sent"
+            else:
+                log_entry.status = "failed"
+                log_entry.failed_reason = failed_reason
+        else:
+            log_entry.status = "sent"
+            log_entry.provider_used = provider
+
+        try:
+            with Session(engine) as session:
+                session.add(log_entry)
+                session.commit()
+        except Exception as db_err:
+            print(f"[Email] Failed to write email log: {db_err}")
+
+        return success
+
+    # A. Onboarding / Activation Emails
+    def send_welcome_email(self, email: str, name: str, user_id: Optional[int] = None) -> bool:
+        welcome_content = f"""
+        <p style="font-size: 15px; margin-bottom: 24px; color: #475569;">
+          Hello {name},<br><br>
+          We're absolutely thrilled to welcome you to <strong>Suqafuran</strong>! Africa's most trusted, premium, and lightning-fast marketplace.
+        </p>
+        <div style="background: #f0f9ff; border-radius: 16px; padding: 24px; margin: 32px 0; border: 1px solid #e0f2fe;">
+          <h4 style="margin: 0 0 12px 0; color: #0369a1; font-weight: 800;">Here's how to kickstart your journey:</h4>
+          <ul style="margin: 0; padding-left: 20px; color: #334155; font-size: 14px; line-height: 1.8;">
+            <li>⚡ <strong>Post in seconds:</strong> Snap a photo, add details, and start selling.</li>
+            <li>🔍 <strong>Find amazing deals:</strong> Search by location, category, or trending status.</li>
+            <li>🛡️ <strong>Verified protection:</strong> Chat securely with verified buyers & sellers.</li>
+          </ul>
+        </div>
+        <div style="text-align: center; margin-bottom: 12px;">
+          <a href="{settings.FRONTEND_URL}/post" style="display: inline-block; background: #0ea5e9; color: white; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 800; font-size: 14px;">
+            Get Started Now
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Welcome to Suqafuran!",
+            subtitle="Let's find or sell your next great deal today.",
+            content=welcome_content
+        )
+        return self._send_and_log(email, "Welcome to Suqafuran", html_body, "onboarding_welcome", user_id)
+
+    def send_complete_profile_email(self, email: str, name: str, user_id: Optional[int] = None) -> bool:
+        content = f"""
+        <p style="font-size: 15px; margin-bottom: 24px; color: #475569;">
+          Hello {name},<br><br>
+          Did you know that users with fully completed and verified profiles get up to <strong>5x more messages and trust</strong> from the community?
+        </p>
+        <div style="background: #fdf2f8; border-radius: 16px; padding: 24px; margin: 32px 0; border: 1px solid #fce7f3;">
+          <h4 style="margin: 0 0 12px 0; color: #be185d; font-weight: 800;">Complete these three quick steps:</h4>
+          <ul style="margin: 0; padding-left: 20px; color: #334155; font-size: 14px; line-height: 1.8;">
+            <li>🔒 <strong>Verify your account:</strong> Complete verification to unlock gold badges.</li>
+            <li>📸 <strong>Set avatar picture:</strong> Put a friendly face to your store.</li>
+            <li>📍 <strong>Set location:</strong> Helps local buyers find your items faster.</li>
+          </ul>
+        </div>
+        <div style="text-align: center; margin-bottom: 12px;">
+          <a href="{settings.FRONTEND_URL}/settings" style="display: inline-block; background: #db2777; color: white; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 800; font-size: 14px;">
+            Complete My Profile
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Unlock 5x More Trust",
+            subtitle="Complete your profile to build instant buyer confidence.",
+            content=content
+        )
+        return self._send_and_log(email, "Build instant trust on Suqafuran", html_body, "onboarding_complete_profile", user_id)
+
+    def send_first_action_prompt_email(self, email: str, name: str, user_type: str, user_id: Optional[int] = None) -> bool:
+        if user_type == "seller":
+            title = "Ready to make your first sale?"
+            subtitle = "Sellers who post within 24 hours of joining are 3x more successful."
+            action_text = "Post Your First Listing"
+            action_url = f"{settings.FRONTEND_URL}/post"
+            detail = "List any electronics, fashion items, cars, or home appliances in less than 10 seconds!"
+        elif user_type == "freelancer":
+            title = "Find clients near you today"
+            subtitle = "Nairobi's top businesses are looking for freelance talent right now."
+            action_text = "Create Service Listing"
+            action_url = f"{settings.FRONTEND_URL}/post?type=service"
+            detail = "Showcase your skills, set your rates, and get hired by verified local clients."
+        else:
+            title = "Explore deals near you today"
+            subtitle = "Over 1,000+ new items listed in your neighborhood this morning."
+            action_text = "Find Deals Near Me"
+            action_url = f"{settings.FRONTEND_URL}/search"
+            detail = "Browse verified listings, make offers, and get absolute value for your money."
+
+        content = f"""
+        <p style="font-size: 15px; margin-bottom: 24px; color: #475569;">
+          Hello {name},<br><br>
+          Your next big milestone on Suqafuran is waiting for you! {detail}
+        </p>
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="{action_url}" style="display: inline-block; background: #0ea5e9; color: white; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 800; font-size: 14px;">
+            {action_text}
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title=title,
+            subtitle=subtitle,
+            content=content
+        )
+        return self._send_and_log(email, title, html_body, "onboarding_first_action", user_id)
+
+    # B. Marketplace Activity / Core Growth Emails
+    def send_new_listing_alert(
+        self,
+        email: str,
+        name: str,
+        listing_title: str,
+        price: str,
+        location: str,
+        category: str,
+        listing_id: int,
+        image_url: Optional[str] = None,
+        user_id: Optional[int] = None
+    ) -> bool:
+        img_tag = f'<img src="{image_url}" alt="{listing_title}" style="width:100%; max-height:240px; object-fit:cover; border-radius:12px; margin-bottom:16px;" />' if image_url else ''
+        content = f"""
+        {img_tag}
+        <h3 style="margin-top:0; color:#1e293b; font-weight:800; font-size:18px;">{listing_title}</h3>
+        <p style="font-size:16px; color:#ea580c; font-weight:900; margin:4px 0 16px 0;">KES {price}</p>
+        <div style="background:#f8fafc; padding:16px; border-radius:12px; margin-bottom:24px; font-size:13px; color:#475569;">
+          📍 <strong>Location:</strong> {location}<br>
+          📁 <strong>Category:</strong> {category}
+        </div>
+        <div style="text-align: center;">
+          <a href="{settings.FRONTEND_URL}/listing/{listing_id}" style="display: inline-block; background: #0ea5e9; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            View Full Listing
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="New Item Listed Nearby!",
+            subtitle="A brand-new matching item was just listed near your location.",
+            content=content
+        )
+        return self._send_and_log(email, f"New listing: {listing_title} near you", html_body, "activity_new_listing", user_id)
+
+    def send_saved_search_alert(
+        self,
+        email: str,
+        name: str,
+        search_query: str,
+        matched_listings: List[dict],
+        user_id: Optional[int] = None
+    ) -> bool:
+        items_html = ""
+        for item in matched_listings[:3]:
+            img_html = f'<td style="width:80px; padding-right:12px;"><img src="{item.get("image_url")}" style="width:80px; height:80px; object-fit:cover; border-radius:8px;" /></td>' if item.get("image_url") else ''
+            items_html += f"""
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              {img_html}
+              <td style="padding:12px 0; vertical-align:top;">
+                <h4 style="margin:0; font-size:14px; font-weight:800; color:#1e293b;">{item.get("title")}</h4>
+                <p style="margin:4px 0 0 0; font-size:13px; color:#ea580c; font-weight:700;">KES {item.get("price")}</p>
+                <p style="margin:2px 0 0 0; font-size:11px; color:#94a3b8;">{item.get("location")}</p>
+              </td>
+              <td style="text-align:right; width:90px;">
+                <a href="{settings.FRONTEND_URL}/listing/{item.get("id")}" style="display:inline-block; background:#0ea5e9; color:white; font-size:11px; padding:6px 12px; border-radius:6px; text-decoration:none; font-weight:800;">View</a>
+              </td>
+            </tr>
+            """
+        content = f"""
+        <table style="width:100%; border-collapse:collapse; margin-top:16px;">
+          {items_html}
+        </table>
+        """
+        html_body = self._get_base_template(
+            title=f'Matches for "{search_query}"',
+            subtitle="We found new items matching your saved search criteria.",
+            content=content
+        )
+        return self._send_and_log(email, f"New matches for '{search_query}'", html_body, "activity_saved_search", user_id)
+
+    def send_price_drop_alert(
+        self,
+        email: str,
+        name: str,
+        listing_title: str,
+        old_price: str,
+        new_price: str,
+        listing_id: int,
+        image_url: Optional[str] = None,
+        user_id: Optional[int] = None
+    ) -> bool:
+        img_tag = f'<img src="{image_url}" alt="{listing_title}" style="width:100%; max-height:220px; object-fit:cover; border-radius:12px; margin-bottom:16px;" />' if image_url else ''
+        content = f"""
+        {img_tag}
+        <h3 style="margin-top:0; color:#1e293b; font-weight:800; font-size:16px;">{listing_title}</h3>
+        <div style="margin: 16px 0; background:#fff7ed; border:1px solid #ffedd5; padding:16px; border-radius:12px; text-align:center;">
+          <span style="text-decoration:line-through; color:#94a3b8; font-size:14px; margin-right:8px;">KES {old_price}</span>
+          <span style="color:#ea580c; font-weight:900; font-size:22px;">KES {new_price}</span>
+        </div>
+        <div style="text-align: center;">
+          <a href="{settings.FRONTEND_URL}/listing/{listing_id}" style="display: inline-block; background: #0ea5e9; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            Buy Now
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Price Dropped!",
+            subtitle="An item on your watch-list just got cheaper. Act fast before it's gone!",
+            content=content
+        )
+        return self._send_and_log(email, f"🔥 Price dropped for '{listing_title}'!", html_body, "activity_price_drop", user_id)
+
+    def send_trending_items_email(self, email: str, name: str, location: str, listings: List[dict], user_id: Optional[int] = None) -> bool:
+        items_html = ""
+        for idx, item in enumerate(listings[:4]):
+            img_html = f'<img src="{item.get("image_url")}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:8px;" />' if item.get("image_url") else ''
+            items_html += f"""
+            <div style="width:48%; display:inline-block; box-sizing:border-box; padding:6px; margin-bottom:12px; vertical-align:top;">
+              <div style="background:#f8fafc; border:1px solid #f1f5f9; padding:8px; border-radius:12px;">
+                {img_html}
+                <h4 style="margin:0; font-size:12px; font-weight:800; color:#1e293b; height:32px; overflow:hidden;">{item.get("title")}</h4>
+                <p style="margin:4px 0 0 0; font-size:13px; color:#ea580c; font-weight:700;">KES {item.get("price")}</p>
+                <a href="{settings.FRONTEND_URL}/listing/{item.get("id")}" style="display:block; text-align:center; background:#0ea5e9; color:white; font-size:11px; padding:6px; border-radius:6px; text-decoration:none; margin-top:8px; font-weight:800;">View Deal</a>
+              </div>
+            </div>
+            """
+        content = f"""
+        <div style="width:100%;">
+          {items_html}
+        </div>
+        """
+        html_body = self._get_base_template(
+            title=f"Trending in {location} Today",
+            subtitle="Here are the hottest, most-viewed items in your neighborhood right now.",
+            content=content
+        )
+        return self._send_and_log(email, f"Top trending items in {location} today", html_body, "activity_trending", user_id)
+
+    # C. Transaction / Trust Layer
+    def send_message_notification(
+        self,
+        email: str,
+        name: str,
+        sender_name: str,
+        message_excerpt: str,
+        chat_url: str,
+        user_id: Optional[int] = None
+    ) -> bool:
+        content = f"""
+        <p style="font-size: 15px; margin-bottom: 24px; color: #475569;">
+          Hello {name},<br><br>
+          You have received a new message regarding your active marketplace listing from <strong>{sender_name}</strong>:
+        </p>
+        <div style="background: #f8fafc; border-left: 4px solid #0ea5e9; border-radius: 8px; padding: 16px; margin: 24px 0; font-style: italic; color: #334155; font-size: 14px;">
+          "{message_excerpt}"
+        </div>
+        <div style="text-align: center; margin-top: 24px;">
+          <a href="{chat_url}" style="display: inline-block; background: #0ea5e9; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            Reply to Message
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="New Message Received",
+            subtitle="A potential client is waiting for your reply.",
+            content=content
+        )
+        return self._send_and_log(email, f"New message from {sender_name}", html_body, "transaction_message", user_id)
+
+    def send_offer_received(
+        self,
+        email: str,
+        name: str,
+        item_title: str,
+        offer_amount: str,
+        offer_url: str,
+        user_id: Optional[int] = None
+    ) -> bool:
+        content = f"""
+        <p style="font-size: 15px; margin-bottom: 24px; color: #475569;">
+          Hello {name},<br><br>
+          Excellent news! A prospective buyer has submitted a formal offer for <strong>{item_title}</strong>:
+        </p>
+        <div style="background: #fff7ed; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0; border: 1px solid #ffedd5;">
+          <span style="font-size: 14px; color: #64748b;">Offer Amount</span><br>
+          <span style="font-size: 28px; font-weight: 900; color: #ea580c;">KES {offer_amount}</span>
+        </div>
+        <div style="text-align: center;">
+          <a href="{offer_url}" style="display: inline-block; background: #ea580c; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            Respond to Offer
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="New Offer Received!",
+            subtitle="Review your offer to complete the transaction.",
+            content=content
+        )
+        return self._send_and_log(email, f"New offer for your item: {item_title}", html_body, "transaction_offer", user_id)
+
+    def send_deal_update(self, email: str, name: str, item_title: str, status: str, user_id: Optional[int] = None) -> bool:
+        content = f"""
+        <p style="font-size: 15px; color: #475569;">
+          Hello {name},<br><br>
+          The deal status for <strong>{item_title}</strong> has been successfully updated to <strong>{status}</strong>.
+        </p>
+        """
+        html_body = self._get_base_template(
+            title="Deal Status Updated",
+            subtitle="Your transaction details have been updated.",
+            content=content
+        )
+        return self._send_and_log(email, f"Deal status update: {item_title}", html_body, "transaction_deal_update", user_id)
+
+    def send_payment_status(self, email: str, name: str, amount: str, status: str, tx_ref: str, user_id: Optional[int] = None) -> bool:
+        bg = "#f0fdf4" if status.lower() == "successful" else "#fef2f2"
+        color = "#16a34a" if status.lower() == "successful" else "#dc2626"
+        content = f"""
+        <div style="background: {bg}; border-radius: 16px; padding: 24px; border: 1px solid {color}50; margin: 24px 0;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <tr>
+              <td style="padding:6px 0; color:#64748b;">Transaction Reference</td>
+              <td style="padding:6px 0; text-align:right; font-weight:800; color:#1e293b;">{tx_ref}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px 0; color:#64748b;">Amount Paid</td>
+              <td style="padding:6px 0; text-align:right; font-weight:800; color:#1e293b;">KES {amount}</td>
+            </tr>
+            <tr>
+              <td style="padding:6px 0; color:#64748b;">Status</td>
+              <td style="padding:6px 0; text-align:right; font-weight:800; color:{color};">{status.upper()}</td>
+            </tr>
+          </table>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Payment Processing Complete",
+            subtitle="Here is your official payment transaction status record.",
+            content=content
+        )
+        return self._send_and_log(email, f"Payment {status}: KES {amount}", html_body, "transaction_payment", user_id)
+
+    # D. Trust & Safety Emails
+    def send_suspicious_activity_alert(
+        self,
+        email: str,
+        name: str,
+        ip: str,
+        device: str,
+        timestamp: str,
+        user_id: Optional[int] = None
+    ) -> bool:
+        content = f"""
+        <div style="background: #fef2f2; border-radius: 12px; padding: 16px; border: 1px solid #fecaca; margin-bottom: 24px; color: #b91c1c; font-size: 14px; font-weight: 700;">
+          ⚠️ Warning: Suspicious Login Detected
+        </div>
+        <table style="width:100%; border-collapse:collapse; font-size:14px; color:#475569; margin-bottom:24px;">
+          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px 0;">IP Address</td><td style="padding:8px 0; text-align:right; font-weight:800;">{ip}</td></tr>
+          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px 0;">Device/Browser</td><td style="padding:8px 0; text-align:right; font-weight:800;">{device}</td></tr>
+          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px 0;">Timestamp</td><td style="padding:8px 0; text-align:right; font-weight:800;">{timestamp}</td></tr>
+        </table>
+        <p style="font-size:13px; color:#64748b; line-height:1.6;">
+          If this wasn't you, please reset your password immediately and verify your login history to secure your account assets.
+        </p>
+        <div style="text-align: center; margin-top:24px;">
+          <a href="{settings.FRONTEND_URL}/reset-password" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            Secure My Account
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Suspicious Login Detected",
+            subtitle="We blocked or flagged an unusual login attempt on your account.",
+            content=content
+        )
+        return self._send_and_log(email, "⚠️ Security Alert: Unusual login attempt", html_body, "safety_suspicious_login", user_id)
+
+    def send_scam_warning_alert(self, email: str, name: str, reason: str, user_id: Optional[int] = None) -> bool:
+        content = f"""
+        <div style="background: #fffbeb; border-radius: 12px; padding: 24px; border: 1px solid #fef3c7; color: #b45309; margin-bottom: 24px;">
+          <h4 style="margin:0 0 12px 0; font-weight:800; font-size:16px;">⚠️ Marketplace Safety Warning</h4>
+          <p style="margin:0; font-size:14px; line-height:1.6;">{reason}</p>
+        </div>
+        <div style="background:#f8fafc; padding:20px; border-radius:12px; font-size:13px; color:#475569;">
+          <h5 style="margin:0 0 8px 0; font-weight:800; color:#1e293b;">Safe Trading Checklist:</h5>
+          <ul style="margin:0; padding-left:20px; line-height:1.7;">
+            <li>Meet in high-density, public, well-lit places (e.g. malls, restaurants).</li>
+            <li>Never send deposits before physically inspecting the product.</li>
+            <li>Use the official platform chat to retain safety guarantees.</li>
+          </ul>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Marketplace Safety Reminder",
+            subtitle="We want you to have a secure and scam-free experience.",
+            content=content
+        )
+        return self._send_and_log(email, "🔒 Important: Safety alert regarding your marketplace actions", html_body, "safety_scam_warning", user_id)
+
+    def send_account_protection_alert(self, email: str, name: str, action: str, user_id: Optional[int] = None) -> bool:
+        content = f"""
+        <p style="font-size:15px; color:#475569; line-height:1.6;">
+          Hello {name},<br><br>
+          This is an automated confirmation that a security profile update occurred: <strong>{action}</strong>.
+        </p>
+        <p style="font-size:13px; color:#94a3b8; font-style:italic; margin-top:24px;">
+          If you did not perform this action, please reach out to our platform administration support team instantly.
+        </p>
+        """
+        html_body = self._get_base_template(
+            title="Account Security Notification",
+            subtitle="Security configurations updated on your profile.",
+            content=content
+        )
+        return self._send_and_log(email, f"Security Alert: {action}", html_body, "safety_protection", user_id)
+
+    # E. Engagement / Retention Emails
+    def send_weekly_digest(
+        self,
+        email: str,
+        name: str,
+        location: str,
+        items: List[dict],
+        categories: List[dict],
+        user_id: Optional[int] = None
+    ) -> bool:
+        items_html = ""
+        for item in items[:3]:
+            img_html = f'<td style="width:70px; padding-right:12px;"><img src="{item.get("image_url")}" style="width:70px; height:70px; object-fit:cover; border-radius:8px;" /></td>' if item.get("image_url") else ''
+            items_html += f"""
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              {img_html}
+              <td style="padding:10px 0; vertical-align:top;">
+                <h4 style="margin:0; font-size:13px; font-weight:800; color:#1e293b;">{item.get("title")}</h4>
+                <p style="margin:4px 0 0 0; font-size:12px; color:#ea580c; font-weight:700;">KES {item.get("price")}</p>
+              </td>
+              <td style="text-align:right;">
+                <a href="{settings.FRONTEND_URL}/listing/{item.get("id")}" style="display:inline-block; background:#0ea5e9; color:white; font-size:11px; padding:4px 10px; border-radius:6px; text-decoration:none; font-weight:800;">View</a>
+              </td>
+            </tr>
+            """
+        
+        cats_html = ""
+        for cat in categories[:4]:
+            cats_html += f'<span style="display:inline-block; background:#f1f5f9; color:#475569; font-size:12px; font-weight:700; padding:6px 12px; border-radius:20px; margin:4px;">{cat.get("name")}</span>'
+            
+        content = f"""
+        <h3 style="margin-top:0; font-size:15px; color:#1e293b; font-weight:800;">🔥 Fresh Deals in {location}:</h3>
+        <table style="width:100%; border-collapse:collapse; margin-bottom:24px;">
+          {items_html}
+        </table>
+        
+        <h3 style="font-size:15px; color:#1e293b; font-weight:800; margin-bottom:12px;">Explore Popular Categories:</h3>
+        <div style="margin-bottom:24px;">
+          {cats_html}
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Your Weekly Suqafuran Digest",
+            subtitle="Hand-picked deals and trending items matching your profile.",
+            content=content
+        )
+        return self._send_and_log(email, f"Weekly Deals Digest in {location}", html_body, "retention_weekly_digest", user_id)
+
+    def send_reengagement_email(self, email: str, name: str, reason: str, featured_items: List[dict], user_id: Optional[int] = None) -> bool:
+        items_html = ""
+        for item in featured_items[:2]:
+            img_html = f'<img src="{item.get("image_url")}" style="width:100%; height:110px; object-fit:cover; border-radius:8px; margin-bottom:8px;" />' if item.get("image_url") else ''
+            items_html += f"""
+            <div style="width:48%; display:inline-block; box-sizing:border-box; padding:4px; vertical-align:top;">
+              <div style="background:#f8fafc; border:1px solid #f1f5f9; padding:8px; border-radius:12px;">
+                {img_html}
+                <h4 style="margin:0; font-size:12px; font-weight:800; color:#1e293b; height:32px; overflow:hidden;">{item.get("title")}</h4>
+                <p style="margin:4px 0 0 0; font-size:12px; color:#ea580c; font-weight:700;">KES {item.get("price")}</p>
+              </div>
+            </div>
+            """
+        content = f"""
+        <p style="font-size:15px; color:#475569; margin-bottom:24px;">
+          Hello {name},<br><br>
+          We've missed you! There are so many newly uploaded deals matching your search patterns that we just couldn't keep them from you.
+        </p>
+        <div style="margin-bottom:24px;">
+          {items_html}
+        </div>
+        <div style="text-align: center;">
+          <a href="{settings.FRONTEND_URL}/search" style="display: inline-block; background: #0ea5e9; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            Come Back & Explore
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="We Miss You!",
+            subtitle=reason,
+            content=content
+        )
+        return self._send_and_log(email, "We miss you — new deals waiting", html_body, "retention_reengagement", user_id)
+
+    def send_abandoned_action_email(self, email: str, name: str, action: str, user_id: Optional[int] = None) -> bool:
+        if action == "listing":
+            title = "Finish posting your listing"
+            subtitle = "You were just a few clicks away from getting cash for your item."
+            action_text = "Resume Listing"
+            action_url = f"{settings.FRONTEND_URL}/post"
+            detail = "Your draft listing was saved. Resume now and list it in front of thousands of active buyers."
+        else:
+            title = "Complete your registration"
+            subtitle = "Finish signing up to unlock premium local trading features."
+            action_text = "Finish Signup"
+            action_url = f"{settings.FRONTEND_URL}/signup"
+            detail = "Unlock instant messaging, deal negotiation tools, and verified gold profile badges."
+
+        content = f"""
+        <p style="font-size:15px; color:#475569; margin-bottom:24px;">
+          Hello {name},<br><br>
+          {detail}
+        </p>
+        <div style="text-align: center; margin:32px 0;">
+          <a href="{action_url}" style="display: inline-block; background: #ea580c; color: white; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 800; font-size: 14px;">
+            {action_text}
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title=title,
+            subtitle=subtitle,
+            content=content
+        )
+        return self._send_and_log(email, title, html_body, "retention_abandoned_action", user_id)
+
+    # F. Seller Growth Emails
+    def send_seller_tips(self, email: str, name: str, user_id: Optional[int] = None) -> bool:
+        content = f"""
+        <div style="background:#f0fdf4; border-radius:16px; padding:24px; border:1px solid #bbf7d0; margin-bottom:24px;">
+          <h4 style="margin:0 0 12px 0; color:#16a34a; font-weight:800;">🚀 How to Sell 5x Faster:</h4>
+          <ul style="margin:0; padding-left:20px; color:#334155; font-size:14px; line-height:1.8;">
+            <li>📸 <strong>Take bright, clear photos:</strong> Buyers ignore dark or blurry pictures.</li>
+            <li>🏷️ <strong>Price it right:</strong> Check similar items nearby and price competitively.</li>
+            <li>💬 <strong>Respond instantly:</strong> Quick response times increase sales conversion by 80%.</li>
+          </ul>
+        </div>
+        <div style="text-align: center;">
+          <a href="{settings.FRONTEND_URL}/post" style="display: inline-block; background: #16a34a; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            Create New Listing
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Pro Seller Tips",
+            subtitle="Learn how to close deals faster and make more money.",
+            content=content
+        )
+        return self._send_and_log(email, "How to sell faster on Suqafuran", html_body, "seller_growth_tips", user_id)
+
+    def send_boost_listing_suggestion(
+        self,
+        email: str,
+        name: str,
+        listing_title: str,
+        listing_id: int,
+        views: int,
+        user_id: Optional[int] = None
+    ) -> bool:
+        content = f"""
+        <p style="font-size:15px; color:#475569; line-height:1.6;">
+          Hello {name},<br><br>
+          Your listing <strong>{listing_title}</strong> has received <strong>{views} organic views</strong>. Excellent work!
+        </p>
+        <div style="background:#fff7ed; border:1px solid #ffedd5; padding:20px; border-radius:12px; margin:24px 0; text-align:center;">
+          <h4 style="margin:0 0 8px 0; color:#c2410c; font-weight:800;">Get up to 10x More Views!</h4>
+          <p style="margin:0 0 16px 0; font-size:13px; color:#475569;">Promoting your item pushes it back to the top and features it prominently across Nairobi.</p>
+          <a href="{settings.FRONTEND_URL}/promote/{listing_id}" style="display: inline-block; background: #ea580c; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: 800; font-size: 12px;">
+            Boost Listing Now
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Promote Your Listing",
+            subtitle="Unlock massive visibility and close the deal today.",
+            content=content
+        )
+        return self._send_and_log(email, f"Boost '{listing_title}' to get more views", html_body, "seller_growth_boost", user_id)
+
+    def send_performance_insights(self, email: str, name: str, views: int, clicks: int, messages: int, user_id: Optional[int] = None) -> bool:
+        content = f"""
+        <div style="background:#f8fafc; border-radius:16px; padding:24px; border:1px solid #e2e8f0; margin-bottom:24px;">
+          <table style="width: 100%; text-align: center; border-collapse: collapse;">
+            <tr>
+              <td style="width:33.3%; padding:12px 0; border-right:1px solid #e2e8f0;">
+                <span style="font-size: 24px; font-weight: 900; color: #0ea5e9;">{views}</span><br>
+                <span style="font-size: 12px; color: #64748b;">Views</span>
+              </td>
+              <td style="width:33.3%; padding:12px 0; border-right:1px solid #e2e8f0;">
+                <span style="font-size: 24px; font-weight: 900; color: #10b981;">{clicks}</span><br>
+                <span style="font-size: 12px; color: #64748b;">Clicks</span>
+              </td>
+              <td style="width:33.3%; padding:12px 0;">
+                <span style="font-size: 24px; font-weight: 900; color: #ea580c;">{messages}</span><br>
+                <span style="font-size: 12px; color: #64748b;">Messages</span>
+              </td>
+            </tr>
+          </table>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Your Weekly Performance Insights",
+            subtitle="Here is how your listings performed on Suqafuran over the last 7 days.",
+            content=content
+        )
+        return self._send_and_log(email, "Your weekly performance insights on Suqafuran", html_body, "seller_growth_insights", user_id)
+
+    # G. Buyer Behavior Emails
+    def send_recommendations_email(self, email: str, name: str, recommendations: List[dict], user_id: Optional[int] = None) -> bool:
+        items_html = ""
+        for item in recommendations[:3]:
+            img_html = f'<td style="width:70px; padding-right:12px;"><img src="{item.get("image_url")}" style="width:70px; height:70px; object-fit:cover; border-radius:8px;" /></td>' if item.get("image_url") else ''
+            items_html += f"""
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              {img_html}
+              <td style="padding:10px 0; vertical-align:top;">
+                <h4 style="margin:0; font-size:13px; font-weight:800; color:#1e293b;">{item.get("title")}</h4>
+                <p style="margin:4px 0 0 0; font-size:12px; color:#ea580c; font-weight:700;">KES {item.get("price")}</p>
+              </td>
+              <td style="text-align:right;">
+                <a href="{settings.FRONTEND_URL}/listing/{item.get("id")}" style="display:inline-block; background:#0ea5e9; color:white; font-size:11px; padding:4px 10px; border-radius:6px; text-decoration:none; font-weight:800;">View</a>
+              </td>
+            </tr>
+            """
+        content = f"""
+        <table style="width:100%; border-collapse:collapse;">
+          {items_html}
+        </table>
+        """
+        html_body = self._get_base_template(
+            title="Recommendations for You",
+            subtitle="Based on your recent browsing activity on the platform.",
+            content=content
+        )
+        return self._send_and_log(email, "Recommended deals based on your browsing", html_body, "buyer_behavior_recommendations", user_id)
+
+    def send_similar_items_email(self, email: str, name: str, source_item_title: str, items: List[dict], user_id: Optional[int] = None) -> bool:
+        items_html = ""
+        for item in items[:2]:
+            img_html = f'<img src="{item.get("image_url")}" style="width:100%; height:110px; object-fit:cover; border-radius:8px; margin-bottom:8px;" />' if item.get("image_url") else ''
+            items_html += f"""
+            <div style="width:48%; display:inline-block; box-sizing:border-box; padding:4px; vertical-align:top;">
+              <div style="background:#f8fafc; border:1px solid #f1f5f9; padding:8px; border-radius:12px;">
+                {img_html}
+                <h4 style="margin:0; font-size:12px; font-weight:800; color:#1e293b; height:32px; overflow:hidden;">{item.get("title")}</h4>
+                <p style="margin:4px 0 0 0; font-size:12px; color:#ea580c; font-weight:700;">KES {item.get("price")}</p>
+              </div>
+            </div>
+            """
+        content = f"""
+        <div style="margin-bottom:24px;">
+          {items_html}
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Similar Items Available",
+            subtitle=f"Check out these listings similar to the '{source_item_title}' you recently viewed.",
+            content=content
+        )
+        return self._send_and_log(email, f"Similar items to '{source_item_title}'", html_body, "buyer_behavior_similar", user_id)
+
+    # H. Admin / Platform Emails
+    # H. Admin / Platform Emails
+    def send_system_alert(self, email: str, subject: str, body: str, user_id: Optional[int] = None) -> bool:
+        content = f"""
+        <div style="background:#f8fafc; border-radius:12px; padding:20px; border:1px solid #e2e8f0; font-size:14px; line-height:1.6; color:#334155;">
+          {body}
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="System / Admin Notice",
+            subtitle="Important administrative notification regarding your account or activities.",
+            content=content
+        )
+        return self._send_and_log(email, subject, html_body, "admin_system_alert", user_id)
+
+    # 1. Additional Transactional Emails
+    def send_offer_response(
+        self,
+        email: str,
+        name: str,
+        item_title: str,
+        response_status: str,
+        response_amount: Optional[str] = None,
+        user_id: Optional[int] = None
+    ) -> bool:
+        amount_details = ""
+        if response_amount:
+            amount_details = f"""
+            <div style="background: #fff7ed; border-radius: 12px; padding: 16px; text-align: center; margin: 16px 0; border: 1px solid #ffedd5;">
+              <span style="font-size: 13px; color: #64748b;">Counter Offer Price</span><br>
+              <span style="font-size: 24px; font-weight: 900; color: #ea580c;">KES {response_amount}</span>
+            </div>
+            """
+        content = f"""
+        <p style="font-size: 15px; color: #475569;">
+          Hello {name},<br><br>
+          We've received an update on your offer for <strong>{item_title}</strong>. The seller has marked the request as:
+          <strong style="color: #ea580c; text-transform: uppercase;">{response_status}</strong>.
+        </p>
+        {amount_details}
+        <div style="text-align: center; margin-top: 24px;">
+          <a href="{settings.FRONTEND_URL}/offers" style="display: inline-block; background: #0ea5e9; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            View My Offers
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Offer Status Update",
+            subtitle="A seller has responded to your marketplace offer.",
+            content=content
+        )
+        return self._send_and_log(email, f"Update on your offer: '{item_title}'", html_body, "transaction_offer_response", user_id)
+
+    def send_receipt_email(
+        self,
+        email: str,
+        name: str,
+        items: List[dict],
+        total_amount: str,
+        tx_ref: str,
+        payment_method: str,
+        user_id: Optional[int] = None
+    ) -> bool:
+        rows = ""
+        for item in items:
+            rows += f"""
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 12px 0; font-size: 14px; color: #1e293b; font-weight: 700;">{item.get("title")}</td>
+              <td style="padding: 12px 0; text-align: right; font-size: 14px; color: #ea580c; font-weight: 800;">KES {item.get("price")}</td>
+            </tr>
+            """
+        content = f"""
+        <p style="font-size: 15px; color: #475569;">
+          Hello {name},<br><br>
+          Thank you for your purchase on Suqafuran! Here is your official transaction receipt record.
+        </p>
+        <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin: 24px 0; border: 1px solid #e2e8f0;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="border-bottom: 2px solid #e2e8f0;">
+                <th style="text-align: left; padding-bottom: 8px; font-size: 12px; color: #64748b; text-transform: uppercase;">Item Description</th>
+                <th style="text-align: right; padding-bottom: 8px; font-size: 12px; color: #64748b; text-transform: uppercase;">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows}
+              <tr>
+                <td style="padding: 16px 0 0 0; font-weight: 800; font-size: 16px; color: #1e293b;">Total Amount Paid</td>
+                <td style="padding: 16px 0 0 0; text-align: right; font-weight: 900; font-size: 18px; color: #ea580c;">KES {total_amount}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 12px; color: #64748b;">
+            💳 <strong>Payment Method:</strong> {payment_method}<br>
+            🔍 <strong>Reference:</strong> {tx_ref}
+          </div>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Official Transaction Receipt",
+            subtitle="Your payment has been successfully processed.",
+            content=content
+        )
+        return self._send_and_log(email, f"Your Suqafuran Payment Receipt: {tx_ref}", html_body, "transaction_receipt", user_id)
+
+    def send_order_confirmation(
+        self,
+        email: str,
+        name: str,
+        order_id: str,
+        item_title: str,
+        seller_name: str,
+        delivery_estimate: str,
+        user_id: Optional[int] = None
+    ) -> bool:
+        content = f"""
+        <p style="font-size: 15px; color: #475569;">
+          Hello {name},<br><br>
+          Your order has been formally submitted and confirmed with the seller <strong>{seller_name}</strong>!
+        </p>
+        <div style="background: #f0fdf4; border-radius: 12px; padding: 20px; margin: 24px 0; border: 1px solid #bbf7d0;">
+          <h4 style="margin: 0 0 8px 0; color: #16a34a; font-weight: 800;">Order Confirmed</h4>
+          <p style="margin: 0; font-size: 14px; color: #1e293b; line-height: 1.6;">
+            📦 <strong>Item:</strong> {item_title}<br>
+            🆔 <strong>Order ID:</strong> {order_id}<br>
+            📅 <strong>Est. Delivery:</strong> {delivery_estimate}
+          </p>
+        </div>
+        <div style="text-align: center;">
+          <a href="{settings.FRONTEND_URL}/orders/{order_id}" style="display: inline-block; background: #16a34a; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            Track Order Status
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Order Confirmed!",
+            subtitle="The seller is preparing your package for dispatch.",
+            content=content
+        )
+        return self._send_and_log(email, f"Order Confirmed: #{order_id} - '{item_title}'", html_body, "transaction_order_confirmation", user_id)
+
+    # 2. Additional Trust & Safety Emails
+    def send_password_change_alert(
+        self,
+        email: str,
+        name: str,
+        timestamp: str,
+        ip: str,
+        user_id: Optional[int] = None
+    ) -> bool:
+        content = f"""
+        <div style="background: #fef2f2; border-radius: 12px; padding: 16px; border: 1px solid #fecaca; color: #b91c1c; font-size: 14px; font-weight: 700; margin-bottom: 20px;">
+          ⚠️ Notice: Your password was changed
+        </div>
+        <p style="font-size: 14px; color: #475569; line-height: 1.6;">
+          Hello {name},<br><br>
+          This is an automated security notification that the password linked to your Suqafuran account was updated on <strong>{timestamp}</strong> from IP address <strong>{ip}</strong>.
+        </p>
+        <div style="background: #f8fafc; padding: 16px; border-radius: 12px; margin: 24px 0; font-size: 13px; color: #64748b;">
+          <strong>If this was you:</strong> You can safely ignore this warning notice.<br><br>
+          <strong>If this wasn't you:</strong> Please lock your profile immediately and contact platform safety moderators.
+        </div>
+        <div style="text-align: center;">
+          <a href="{settings.FRONTEND_URL}/lock-account" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            Lock My Account Instantly
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Password Changed",
+            subtitle="Security configurations updated on your profile.",
+            content=content
+        )
+        return self._send_and_log(email, "⚠️ Security Notice: Password changed on Suqafuran", html_body, "safety_password_change", user_id)
+
+    def send_new_device_login_alert(
+        self,
+        email: str,
+        name: str,
+        device: str,
+        location: str,
+        timestamp: str,
+        ip: str,
+        user_id: Optional[int] = None
+    ) -> bool:
+        content = f"""
+        <div style="background: #fffbeb; border-radius: 12px; padding: 16px; border: 1px solid #fef3c7; color: #b45309; font-size: 14px; font-weight: 700; margin-bottom: 20px;">
+          ⚠️ Unrecognized login attempt detected
+        </div>
+        <table style="width:100%; border-collapse:collapse; font-size:13px; color:#475569; margin:16px 0;">
+          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px 0; font-weight:700;">Device Model</td><td style="padding:8px 0; text-align:right;">{device}</td></tr>
+          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px 0; font-weight:700;">Approximated Location</td><td style="padding:8px 0; text-align:right;">{location}</td></tr>
+          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px 0; font-weight:700;">IP Address</td><td style="padding:8px 0; text-align:right;">{ip}</td></tr>
+          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px 0; font-weight:700;">Time Recorded</td><td style="padding:8px 0; text-align:right;">{timestamp}</td></tr>
+        </table>
+        <div style="text-align: center; margin-top:24px;">
+          <a href="{settings.FRONTEND_URL}/security-logs" style="display: inline-block; background: #b45309; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            Review Login Activity
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Unrecognized Login Detected",
+            subtitle="We flagged an unusual sign-in fingerprint on your profile.",
+            content=content
+        )
+        return self._send_and_log(email, "⚠️ Security Alert: Login on new device detected", html_body, "safety_new_device", user_id)
+
+    # 3. Additional Engagement & Retention Emails
+    def send_recommended_items_email(
+        self,
+        email: str,
+        name: str,
+        items: List[dict],
+        user_id: Optional[int] = None
+    ) -> bool:
+        items_html = ""
+        for item in items[:4]:
+            img_html = f'<td style="width:70px; padding-right:12px;"><img src="{item.get("image_url")}" style="width:70px; height:70px; object-fit:cover; border-radius:8px;" /></td>' if item.get("image_url") else ''
+            items_html += f"""
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              {img_html}
+              <td style="padding:10px 0; vertical-align:top;">
+                <h4 style="margin:0; font-size:13px; font-weight:800; color:#1e293b;">{item.get("title")}</h4>
+                <p style="margin:4px 0 0 0; font-size:12px; color:#ea580c; font-weight:700;">KES {item.get("price")}</p>
+                <p style="margin:2px 0 0 0; font-size:11px; color:#94a3b8;">{item.get("location")}</p>
+              </td>
+              <td style="text-align:right;">
+                <a href="{settings.FRONTEND_URL}/listing/{item.get("id")}" style="display:inline-block; background:#0ea5e9; color:white; font-size:11px; padding:4px 10px; border-radius:6px; text-decoration:none; font-weight:800;">View Deal</a>
+              </td>
+            </tr>
+            """
+        content = f"""
+        <table style="width:100%; border-collapse:collapse; margin-top:16px;">
+          {items_html}
+        </table>
+        """
+        html_body = self._get_base_template(
+            title="Handpicked Recommended Items",
+            subtitle="Based on your search history and recent interactions on the platform.",
+            content=content
+        )
+        return self._send_and_log(email, "Recommended Deals specifically selected for you", html_body, "retention_recommendations", user_id)
+
+    def send_category_interest_email(
+        self,
+        email: str,
+        name: str,
+        category_name: str,
+        items: List[dict],
+        user_id: Optional[int] = None
+    ) -> bool:
+        items_html = ""
+        for item in items[:4]:
+            img_html = f'<img src="{item.get("image_url")}" style="width:100%; height:110px; object-fit:cover; border-radius:8px; margin-bottom:8px;" />' if item.get("image_url") else ''
+            items_html += f"""
+            <div style="width:48%; display:inline-block; box-sizing:border-box; padding:4px; vertical-align:top; margin-bottom: 12px;">
+              <div style="background:#f8fafc; border:1px solid #f1f5f9; padding:8px; border-radius:12px;">
+                {img_html}
+                <h4 style="margin:0; font-size:12px; font-weight:800; color:#1e293b; height:32px; overflow:hidden;">{item.get("title")}</h4>
+                <p style="margin:4px 0 0 0; font-size:12px; color:#ea580c; font-weight:700;">KES {item.get("price")}</p>
+                <a href="{settings.FRONTEND_URL}/listing/{item.get("id")}" style="display:block; text-align:center; background:#0ea5e9; color:white; font-size:10px; padding:4px; border-radius:4px; text-decoration:none; margin-top:8px; font-weight:800;">Details</a>
+              </div>
+            </div>
+            """
+        content = f"""
+        <p style="font-size: 15px; color: #475569; margin-bottom: 20px;">
+          Hello {name},<br><br>
+          It looks like you've been searching for items in the <strong>{category_name}</strong> category. We gathered the absolute best trending ads just for you:
+        </p>
+        <div style="width:100%;">
+          {items_html}
+        </div>
+        """
+        html_body = self._get_base_template(
+            title=f"Hottest deals in {category_name}",
+            subtitle=f"Check out what's fresh in your favorite marketplace section today.",
+            content=content
+        )
+        return self._send_and_log(email, f"Fresh deals in '{category_name}' matching your interests", html_body, "retention_category_interest", user_id)
+
+    def send_market_summary_email(
+        self,
+        email: str,
+        name: str,
+        location: str,
+        average_price_change: str,
+        popular_keywords: List[str],
+        user_id: Optional[int] = None
+    ) -> bool:
+        keyword_chips = ""
+        for kw in popular_keywords:
+            keyword_chips += f'<span style="display:inline-block; background:#fff7ed; color:#c2410c; border:1px solid #ffedd5; font-size:11px; font-weight:700; padding:6px 12px; border-radius:20px; margin:4px;">#{kw}</span>'
+        content = f"""
+        <p style="font-size: 15px; color: #475569; line-height: 1.6;">
+          Hello {name},<br><br>
+          Here is your localized market valuation digest for <strong>{location}</strong>:
+        </p>
+        <div style="background: #f8fafc; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 24px;">
+          <h4 style="margin:0 0 12px 0; color:#1e293b; font-size:14px;">Market Velocity Indicators:</h4>
+          <ul style="margin:0; padding-left:20px; font-size:13px; color:#475569; line-height:1.7;">
+            <li>📈 Average Listing Price Change: <strong>{average_price_change}</strong></li>
+            <li>⚡ Demand Velocity Index: <strong>High</strong></li>
+          </ul>
+        </div>
+        <h4 style="margin:0 0 12px 0; font-size:13px; color:#1e293b;">Trending Keywords in {location}:</h4>
+        <div style="margin-bottom:24px;">
+          {keyword_chips}
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Local Market Summary",
+            subtitle="Keep track of market conditions and popular search trends in your region.",
+            content=content
+        )
+        return self._send_and_log(email, f"Suqafuran Market Report: Trending in {location}", html_body, "retention_market_summary", user_id)
+
+    # 4. Additional Seller Growth Emails
+    def send_listing_performance_email(
+        self,
+        email: str,
+        name: str,
+        listing_title: str,
+        views: int,
+        clicks: int,
+        inquiries: int,
+        user_id: Optional[int] = None
+    ) -> bool:
+        ctr = f"{(clicks / views * 100):.1f}%" if views > 0 else "0.0%"
+        content = f"""
+        <p style="font-size:15px; color:#475569;">
+          Hello {name},<br><br>
+          Here is the dynamic catalog diagnostic report for your listing <strong>{listing_title}</strong>:
+        </p>
+        <div style="background:#f8fafc; border-radius:16px; padding:20px; border:1px solid #e2e8f0; margin:24px 0;">
+          <table style="width: 100%; text-align: center; border-collapse: collapse;">
+            <tr>
+              <td style="width:25%; padding:10px 0; border-right:1px solid #e2e8f0;">
+                <span style="font-size: 20px; font-weight: 900; color: #0ea5e9;">{views}</span><br>
+                <span style="font-size: 11px; color: #64748b;">Views</span>
+              </td>
+              <td style="width:25%; padding:10px 0; border-right:1px solid #e2e8f0;">
+                <span style="font-size: 20px; font-weight: 900; color: #10b981;">{clicks}</span><br>
+                <span style="font-size: 11px; color: #64748b;">Clicks</span>
+              </td>
+              <td style="width:25%; padding:10px 0; border-right:1px solid #e2e8f0;">
+                <span style="font-size: 20px; font-weight: 900; color: #f59e0b;">{ctr}</span><br>
+                <span style="font-size: 11px; color: #64748b;">CTR</span>
+              </td>
+              <td style="width:25%; padding:10px 0;">
+                <span style="font-size: 20px; font-weight: 900; color: #ea580c;">{inquiries}</span><br>
+                <span style="font-size: 11px; color: #64748b;">Inquiries</span>
+              </td>
+            </tr>
+          </table>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Listing Performance Report",
+            subtitle="Track client interaction data to optimize catalog metrics.",
+            content=content
+        )
+        return self._send_and_log(email, f"Monthly performance report: '{listing_title}'", html_body, "seller_growth_listing_performance", user_id)
+
+    def send_boost_listing_email(
+        self,
+        email: str,
+        name: str,
+        listing_title: str,
+        listing_id: int,
+        current_views: int,
+        boost_multiplier: int = 10,
+        user_id: Optional[int] = None
+    ) -> bool:
+        content = f"""
+        <p style="font-size: 15px; color: #475569; line-height: 1.6;">
+          Hello {name},<br><br>
+          Your listing <strong>{listing_title}</strong> has received <strong>{current_views} views</strong>. Unlock premium visibility upgrades to sell up to {boost_multiplier}x faster!
+        </p>
+        <div style="background: #fff7ed; border: 1px solid #ffedd5; padding: 20px; border-radius: 12px; text-align: center; margin: 24px 0;">
+          <h4 style="margin:0 0 8px 0; color:#ea580c; font-weight:800;">Get up to {boost_multiplier}x More Leads!</h4>
+          <p style="margin:0 0 16px 0; font-size:13px; color:#475569;">Pushes your ad back to the top of category pages and features it prominently across regional feeds.</p>
+          <a href="{settings.FRONTEND_URL}/promote/{listing_id}" style="display: inline-block; background: #ea580c; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            Promote My Listing Now
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Boost Active Listing",
+            subtitle="Sellers who utilize promo options close deals in less than 48 hours.",
+            content=content
+        )
+        return self._send_and_log(email, f"⚡ Promoted ad booster suggestion: '{listing_title}'", html_body, "seller_growth_boost_listing", user_id)
+
+    def send_ai_pricing_suggestion_email(
+        self,
+        email: str,
+        name: str,
+        listing_title: str,
+        current_price: str,
+        suggested_price: str,
+        price_difference: str,
+        confidence_score: float,
+        user_id: Optional[int] = None
+    ) -> bool:
+        conf_pct = f"{(confidence_score * 100):.0f}%"
+        content = f"""
+        <p style="font-size: 15px; color: #475569;">
+          Hello {name},<br><br>
+          Our regional marketplace AI demand models scanned nearby catalog pricing and supply indicators for <strong>{listing_title}</strong>:
+        </p>
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 20px; margin: 24px 0;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <tr style="border-bottom:1px solid #bbf7d050;"><td style="padding:8px 0; color:#334155;">Current Price</td><td style="padding:8px 0; text-align:right; font-weight:700;">KES {current_price}</td></tr>
+            <tr style="border-bottom:1px solid #bbf7d050;"><td style="padding:8px 0; color:#16a34a; font-weight:700;">Suggested Price</td><td style="padding:8px 0; text-align:right; font-weight:900; color:#16a34a;">KES {suggested_price}</td></tr>
+            <tr style="border-bottom:1px solid #bbf7d050;"><td style="padding:8px 0; color:#334155;">Difference</td><td style="padding:8px 0; text-align:right; font-weight:700; color:#dc2626;">KES {price_difference}</td></tr>
+            <tr><td style="padding:8px 0; color:#334155;">Model Confidence</td><td style="padding:8px 0; text-align:right; font-weight:700; color:#16a34a;">{conf_pct}</td></tr>
+          </table>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="AI Smart Pricing Suggestion",
+            subtitle="Adjusting pricing metrics based on supply trends increases lead conversion by 65%.",
+            content=content
+        )
+        return self._send_and_log(email, f"🤖 AI Pricing optimization suggestion for '{listing_title}'", html_body, "seller_growth_ai_pricing", user_id)
+
+    def send_seller_milestone_email(
+        self,
+        email: str,
+        name: str,
+        milestone_type: str,
+        badge_earned: str,
+        reward_detail: str,
+        user_id: Optional[int] = None
+    ) -> bool:
+        content = f"""
+        <p style="font-size:15px; color:#475569; line-height: 1.6;">
+          Hello {name},<br><br>
+          Congratulations! Your seller profile completed a critical milestone threshold: <strong>{milestone_type}</strong>!
+        </p>
+        <div style="background: #fffbeb; border: 1px solid #fef3c7; padding: 24px; border-radius: 16px; text-align: center; margin: 24px 0;">
+          <span style="font-size: 48px;">🏆</span><br>
+          <h4 style="margin:8px 0 4px 0; color:#d97706; font-size:18px; font-weight:800;">Badge Earned: {badge_earned}</h4>
+          <p style="margin:0; font-size:13px; color:#475569;">{reward_detail}</p>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Seller Achievement Unlocked!",
+            subtitle="Thank you for being a premium, top-performing seller on Suqafuran.",
+            content=content
+        )
+        return self._send_and_log(email, f"🎉 Achievement unlocked: {badge_earned} badge earned!", html_body, "seller_growth_milestone", user_id)
+
+    # 5. Additional Admin & Platform Emails
+    def system_status_email(
+        self,
+        email: str,
+        component: str,
+        status: str,
+        details: str,
+        user_id: Optional[int] = None
+    ) -> bool:
+        color = "#16a34a" if status.lower() == "operational" else "#dc2626"
+        content = f"""
+        <div style="background: #f8fafc; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+          <h4 style="margin:0 0 8px 0; color:#1e293b;">Platform Core Component Diagnostic Report:</h4>
+          <p style="font-size:13px; color:#475569; margin:4px 0;">💻 <strong>Component:</strong> {component}</p>
+          <p style="font-size:13px; color:{color}; margin:4px 0;">⚡ <strong>Status:</strong> {status.upper()}</p>
+          <p style="font-size:13px; color:#475569; margin:4px 0;">🔍 <strong>Details:</strong> {details}</p>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="System Operational Status Alert",
+            subtitle="Platform technical operations and service status update notifications.",
+            content=content
+        )
+        return self._send_and_log(email, f"[System Status] {component} is {status}", html_body, "admin_system_status", user_id)
+
+    def fraud_report_summary(
+        self,
+        email: str,
+        report_count: int,
+        pending_reviews: int,
+        active_suspensions: int,
+        user_id: Optional[int] = None
+    ) -> bool:
+        content = f"""
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+          <h4 style="margin: 0 0 12px 0; color: #b91c1c;">Moderate Queue Warning</h4>
+          <table style="width: 100%; font-size: 13px; color: #334155;">
+            <tr style="border-bottom:1px solid #fecaca50;"><td style="padding:6px 0;">Flagged Ads Reported</td><td style="padding:6px 0; text-align:right; font-weight:700; color:#b91c1c;">{report_count}</td></tr>
+            <tr style="border-bottom:1px solid #fecaca50;"><td style="padding:6px 0;">Pending Review Queue</td><td style="padding:6px 0; text-align:right; font-weight:700;">{pending_reviews}</td></tr>
+            <tr><td style="padding:6px 0;">Active Profile Suspensions</td><td style="padding:6px 0; text-align:right; font-weight:700;">{active_suspensions}</td></tr>
+          </table>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Safety & Fraud Queue Report",
+            subtitle="Summary digest of flagged catalog items and pending mod reviews.",
+            content=content
+        )
+        return self._send_and_log(email, f"[Moderation Alert] {report_count} pending fraud flags", html_body, "admin_fraud_report", user_id)
+
+    def moderation_alert_email(
+        self,
+        email: str,
+        name: str,
+        listing_title: str,
+        violation_reason: str,
+        listing_id: int,
+        user_id: Optional[int] = None
+    ) -> bool:
+        content = f"""
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px; margin-bottom: 20px; color: #b91c1c; font-weight: bold; font-size: 14px;">
+          ⚠️ Listing Hidden Due to Guideline Violation
+        </div>
+        <p style="font-size: 14px; color: #475569; line-height: 1.6;">
+          Hello {name},<br><br>
+          Our platform catalog filters or moderator team flag indicators identified structural issues with your active ad <strong>{listing_title}</strong>:
+        </p>
+        <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 13px; color: #475569; margin: 16px 0;">
+          🚫 <strong>Reason for Violation:</strong> {violation_reason}
+        </div>
+        <p style="font-size: 13px; color: #64748b;">
+          Please edit your listing configuration details to align with the marketplace guidelines.
+        </p>
+        <div style="text-align: center; margin-top:24px;">
+          <a href="{settings.FRONTEND_URL}/edit/{listing_id}" style="display: inline-block; background: #ea580c; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            Edit & Re-Submit Ad
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Marketplace Listing Moderated",
+            subtitle="Your listing has been hidden temporarily until guidelines are resolved.",
+            content=content
+        )
+        return self._send_and_log(email, f"⚠️ Marketplace Notice: Guideline action taken on '{listing_title}'", html_body, "admin_moderation_alert", user_id)
+
+    def analytics_summary_email(
+        self,
+        email: str,
+        active_users: int,
+        listings_created: int,
+        transactions_completed: int,
+        open_rate: float,
+        user_id: Optional[int] = None
+    ) -> bool:
+        rate_pct = f"{(open_rate * 100):.1f}%"
+        content = f"""
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin-bottom: 20px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #334155;">
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:10px 0; font-weight:700;">Weekly Active Users</td><td style="padding:10px 0; text-align:right; font-weight:800; color:#0ea5e9;">{active_users}</td></tr>
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:10px 0; font-weight:700;">New Listings Created</td><td style="padding:10px 0; text-align:right; font-weight:800; color:#10b981;">{listings_created}</td></tr>
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:10px 0; font-weight:700;">Transactions Completed</td><td style="padding:10px 0; text-align:right; font-weight:800; color:#f59e0b;">{transactions_completed}</td></tr>
+            <tr><td style="padding:10px 0; font-weight:700;">Email Open Rate (KPI)</td><td style="padding:10px 0; text-align:right; font-weight:800; color:#ea580c;">{rate_pct}</td></tr>
+          </table>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Weekly KPI Analytics Digest",
+            subtitle="Administrative overview of Suqafuran conversion metrics and engagement cohorts.",
+            content=content
+        )
+    def send_custom_manual_email(
+        self,
+        email: str,
+        subject: str,
+        title: str,
+        subtitle: Optional[str],
+        content_html: str,
+        action_text: Optional[str] = None,
+        action_url: Optional[str] = None,
+        campaign_id: Optional[str] = None,
+        user_id: Optional[int] = None
+    ) -> bool:
+        # Resolve target user details dynamically for functional placeholder interpolation
+        user_name = "Customer"
+        user_email = email
+        user_phone = "None"
+        user_location = "None"
+        
+        from sqlmodel import Session, select
+        from app.db.session import engine
+        from app.models.user import User
+        
+        try:
+            with Session(engine) as session:
+                u = None
+                if user_id:
+                    u = session.get(User, int(user_id))
+                else:
+                    u = session.exec(select(User).where(User.email == email)).first()
+                if u:
+                    user_name = u.full_name or "Customer"
+                    user_email = u.email or email
+                    user_phone = u.phone or "None"
+                    user_location = u.location or "None"
+                    if not user_id:
+                        user_id = u.id
+        except Exception as e:
+            print(f"[Email CRM] Error resolving user metadata: {e}")
+
+        import datetime
+        current_date_str = datetime.date.today().strftime("%B %d, %Y")
+        
+        def apply_replacements(text: Optional[str]) -> Optional[str]:
+            if not text:
+                return text
+            text = text.replace("{{name}}", user_name)
+            text = text.replace("{{email}}", user_email)
+            text = text.replace("{{phone}}", user_phone)
+            text = text.replace("{{location}}", user_location)
+            text = text.replace("{{date}}", current_date_str)
+            return text
+
+        # Dynamically interpolate placeholders
+        subject = apply_replacements(subject)
+        title = apply_replacements(title)
+        subtitle = apply_replacements(subtitle)
+        content_html = apply_replacements(content_html)
+        action_text = apply_replacements(action_text)
+        action_url = apply_replacements(action_url)
+
+        cta_button = ""
+        if action_text and action_url:
+            cta_button = f"""
+            <div style="text-align: center; margin-top: 24px;">
+              <a href="{action_url}" style="display: inline-block; background: #ea580c; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+                {action_text}
+              </a>
+            </div>
+            """
+        content = f"""
+        <div style="font-size: 15px; color: #475569; line-height: 1.6;">
+          {content_html}
+        </div>
+        {cta_button}
+        """
+        html_body = self._get_base_template(
+            title=title,
+            subtitle=subtitle or "Direct communication from Suqafuran Support",
+            content=content
+        )
+        return self._send_and_log(email, subject, html_body, f"crm_manual_{campaign_id or 'custom'}", user_id, campaign_id=campaign_id)
 
     def check_verification_code(self, email: str, code: str) -> bool:
         self._ensure_redis()

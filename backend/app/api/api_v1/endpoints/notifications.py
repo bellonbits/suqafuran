@@ -32,3 +32,31 @@ def mark_notification_read(
     if not notification:
         raise HTTPException(status_code=404, detail="Notification not found")
     return notification
+
+@router.post("/read-all")
+def mark_all_notifications_read(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Mark all notifications of current user as read.
+    """
+    count = crud_notification.mark_all_as_read(db, user_id=current_user.id)
+    return {"message": "Success", "updated_count": count}
+
+@router.delete("/{notification_id}")
+def delete_notification(
+    *,
+    db: Session = Depends(deps.get_db),
+    notification_id: int,
+    current_user = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Delete a notification.
+    """
+    success = crud_notification.remove(db, notification_id=notification_id, user_id=current_user.id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    return {"message": "Success"}
+

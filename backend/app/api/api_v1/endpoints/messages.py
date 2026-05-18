@@ -36,7 +36,31 @@ def send_message(
             detail=f"Message blocked due to suspicious content: {reason}. To maintain safety, avoid sharing phone numbers or external links."
         )
 
-    return crud_message.create(db, obj_in=message_in.model_dump(), sender_id=current_user.id)
+    msg = crud_message.create(db, obj_in=message_in.model_dump(), sender_id=current_user.id)
+
+    # Trigger active in-app notification for incoming message
+    from app.crud.crud_notification import crud_notification
+    try:
+        crud_notification.create(
+            db,
+            obj_in={
+                "type": "message",
+                "data": {
+                    "message_id": msg.id,
+                    "sender_id": current_user.id,
+                    "sender_name": current_user.full_name or "Someone",
+                    "content": msg.content,
+                    "listing_id": msg.listing_id,
+                    "message": f"New message from {current_user.full_name or 'Someone'}: \"{msg.content[:60]}\""
+                }
+            },
+            user_id=message_in.receiver_id
+        )
+    except Exception:
+        pass
+
+    return msg
+
 
 @router.get("/conversations", response_model=List[Any])
 def get_my_conversations(

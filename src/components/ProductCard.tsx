@@ -2,13 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Heart, MapPin, ShieldCheck, Zap, MessageCircle, BadgeCheck } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query';
 import { cn } from '../utils/cn';
 import { getImageUrl } from '../utils/imageUtils';
 import { useCurrencyStore } from '../store/useCurrencyStore';
 import { formatConvertedPrice } from '../utils/currencyUtils';
 import { listingService } from '../services/listingService';
 import { translateSingle } from '../services/translateService';
+import { useAuthStore } from '../store/useAuthStore';
+import { favoriteService } from '../services/favoriteService';
+import type { Listing } from '../types/listing';
 
 interface ProductCardProps {
     id: string;
@@ -53,8 +56,40 @@ const ProductCard = React.memo(function ProductCard({
     const { t, i18n } = useTranslation();
     const queryClient = useQueryClient();
     const navigate = useNavigate();
-    const [liked, setLiked] = useState(false);
+    const { user } = useAuthStore();
     const [autoTitle, setAutoTitle] = useState<string | null>(null);
+
+    const { data: favorites } = useQuery<Listing[]>({
+        queryKey: ['favorites'],
+        queryFn: favoriteService.getMyFavorites,
+        enabled: !!user,
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const liked = favorites?.some((fav: any) => fav.id === Number(id)) ?? false;
+
+    const toggleFavoriteMutation = useMutation({
+        mutationFn: async () => {
+            if (!user) {
+                navigate('/login');
+                return;
+            }
+            if (liked) {
+                await favoriteService.removeFavorite(Number(id));
+            } else {
+                await favoriteService.addFavorite(Number(id));
+            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['favorites'] });
+        },
+    });
+
+    const handleFavoriteClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleFavoriteMutation.mutate();
+    };
 
     useEffect(() => {
         if (i18n.language !== 'so' || title_so) {
@@ -118,7 +153,7 @@ const ProductCard = React.memo(function ProductCard({
 
                 {/* Heart button — top right */}
                 <button
-                    onClick={(e) => { e.preventDefault(); setLiked(l => !l); }}
+                    onClick={handleFavoriteClick}
                     className={cn(
                         'absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center transition-all shadow-sm active:scale-90',
                         liked ? 'bg-red-500 text-white' : 'bg-white/85 backdrop-blur-sm text-gray-500'

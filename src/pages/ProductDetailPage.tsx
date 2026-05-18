@@ -27,6 +27,7 @@ import { useCurrencyStore } from '../store/useCurrencyStore';
 import { formatConvertedPrice } from '../utils/currencyUtils';
 import { useLanguageField } from '../hooks/useLanguageField';
 import type { Listing } from '../types/listing';
+import { favoriteService } from '../services/favoriteService';
 
 const WA_ICON = (
     <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" xmlns="http://www.w3.org/2000/svg">
@@ -137,6 +138,32 @@ const ProductDetailPage: React.FC = () => {
     const unfollowMutation = useMutation({
         mutationFn: () => followsService.unfollowUser(ad!.owner_id),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['follow-stats', ad?.owner_id] }),
+    });
+
+    const { data: favorites } = useQuery<Listing[]>({
+        queryKey: ['favorites'],
+        queryFn: favoriteService.getMyFavorites,
+        enabled: !!user,
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const isFavorite = favorites?.some((fav: any) => fav.id === id) ?? false;
+
+    const toggleFavoriteMutation = useMutation({
+        mutationFn: async () => {
+            if (!user) {
+                navigate('/login');
+                return;
+            }
+            if (isFavorite) {
+                await favoriteService.removeFavorite(id);
+            } else {
+                await favoriteService.addFavorite(id);
+            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['favorites'] });
+        },
     });
 
     const avgRating = feedback?.length 
@@ -285,8 +312,11 @@ const ProductDetailPage: React.FC = () => {
                             <ChevronLeft className="h-5 w-5 text-white" />
                         </button>
                         <div className="flex gap-2">
-                            <button className="w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
-                                <Heart className="h-4 w-4 text-white" />
+                            <button 
+                                onClick={() => toggleFavoriteMutation.mutate()}
+                                className="w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform"
+                            >
+                                <Heart className={cn("h-4 w-4", isFavorite ? "text-red-500 fill-red-500" : "text-white")} />
                             </button>
                             <button className="w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
                                 <MoreVertical className="h-4 w-4 text-white" />
@@ -1040,6 +1070,20 @@ const ProductDetailPage: React.FC = () => {
                                                         {followStats?.is_following ? t('sellerProfile.following', 'Following') : t('sellerProfile.follow', 'Follow Seller')}
                                                     </button>
                                                 )}
+
+                                                {/* Watchlist/Favorite button */}
+                                                <button
+                                                    onClick={() => toggleFavoriteMutation.mutate()}
+                                                    className={cn(
+                                                        "w-full h-11 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] border",
+                                                        isFavorite 
+                                                            ? "bg-red-50 text-red-600 border-red-200 hover:bg-red-100" 
+                                                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                                                    )}
+                                                >
+                                                    <Heart className={cn("h-4 w-4", isFavorite && "fill-red-600")} />
+                                                    {isFavorite ? t('favorites.saved', 'Saved in Watchlist') : t('favorites.save', 'Save to Watchlist')}
+                                                </button>
 
                                                 {/* Start chat */}
                                                 <Link

@@ -94,5 +94,32 @@ export const adminService = {
 
     async deleteUser(userId: number): Promise<void> {
         await api.delete(`/admin/users/${userId}`);
+    },
+
+    async sendManualEmail(data: {
+        email: string;
+        subject: string;
+        title: string;
+        subtitle?: string;
+        content_html: string;
+        action_text?: string;
+        action_url?: string;
+        campaign_id?: string;
+    }): Promise<any> {
+        const response = await api.post('/admin/email/send-manual', data);
+        return response.data;
+    },
+
+    async sendBroadcastEmail(data: {
+        subject: string;
+        title: string;
+        subtitle?: string;
+        content_html: string;
+        action_text?: string;
+        action_url?: string;
+        campaign_id?: string;
+    }): Promise<any> {
+        const response = await api.post('/admin/email/broadcast', data);
+        return response.data;
     }
 };

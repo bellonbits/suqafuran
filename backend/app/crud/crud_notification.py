@@ -30,4 +30,25 @@ class CRUDNotification:
             return db_obj
         return None
 
+    def mark_all_as_read(self, db: Session, *, user_id: int) -> int:
+        statement = select(Notification).where(
+            Notification.user_id == user_id,
+            Notification.is_read == False
+        )
+        notifications = db.exec(statement).all()
+        for notif in notifications:
+            notif.is_read = True
+            db.add(notif)
+        db.commit()
+        return len(notifications)
+
+    def remove(self, db: Session, *, notification_id: int, user_id: int) -> bool:
+        db_obj = db.get(Notification, notification_id)
+        if db_obj and db_obj.user_id == user_id:
+            db.delete(db_obj)
+            db.commit()
+            return True
+        return False
+
 crud_notification = CRUDNotification()
+

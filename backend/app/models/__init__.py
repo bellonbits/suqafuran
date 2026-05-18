@@ -16,6 +16,7 @@ from app.models.site_content import SiteContent
 from app.models.support import SupportTicket
 from app.models.device import Device, UserDeviceLink
 from app.models.fraud import FraudEvent, RiskHistory
+from app.models.email_log import EmailLog
 
 __all__ = [
     "User",
@@ -23,6 +24,7 @@ __all__ = [
     "Category",
     "VerificationRequest",
     "Wallet",
+    "EmailLog",
     "Transaction",
     "Favorite",
     "Notification",

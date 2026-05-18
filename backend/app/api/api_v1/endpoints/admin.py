@@ -185,3 +185,219 @@ def delete_user_admin(
     
     db.commit()
     return {"success": True}
+
+
+@router.get("/email/analytics", response_model=dict)
+def read_email_analytics(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Get highly performant, enterprise-grade Email Growth Engine analytics.
+    Reports campaign CTRs, regional engagement, and onboarding funnel conversion rates.
+    """
+    from app.models.email_log import EmailLog
+    import json
+
+    # 1. Aggregate Campaign CTRs using DB Grouping
+    group_stats = db.exec(
+        select(EmailLog.email_type, EmailLog.status, func.count(EmailLog.id))
+        .group_by(EmailLog.email_type, EmailLog.status)
+    ).all()
+
+    campaigns = {}
+    for email_type, status, count in group_stats:
+        if email_type not in campaigns:
+            campaigns[email_type] = {"sent": 0, "opened": 0, "clicked": 0, "failed": 0, "total": 0}
+        campaigns[email_type]["total"] += count
+        if status in ["sent", "opened", "clicked"]:
+            campaigns[email_type]["sent"] += count
+        if status == "opened":
+            campaigns[email_type]["opened"] += count
+        elif status == "clicked":
+            # Clicked implies opened as well for analytic tracking
+            campaigns[email_type]["opened"] += count
+            campaigns[email_type]["clicked"] += count
+        elif status == "failed":
+            campaigns[email_type]["failed"] += count
+
+    # Compute high-fidelity percentages
+    for c_type, stats in campaigns.items():
+        sent_count = stats["sent"]
+        stats["open_rate"] = f"{(stats['opened'] / sent_count * 100):.1f}%" if sent_count > 0 else "0.0%"
+        stats["click_rate"] = f"{(stats['clicked'] / sent_count * 100):.1f}%" if sent_count > 0 else "0.0%"
+        stats["ctr"] = f"{(stats['clicked'] / stats['opened'] * 100):.1f}%" if stats["opened"] > 0 else "0.0%"
+
+    # 2. Compute Onboarding Funnel Conversion Rates
+    welcome_sent = campaigns.get("onboarding_welcome", {}).get("sent", 0)
+    welcome_opened = campaigns.get("onboarding_welcome", {}).get("opened", 0)
+    profile_sent = campaigns.get("onboarding_complete_profile", {}).get("sent", 0)
+    first_action_sent = campaigns.get("onboarding_first_action", {}).get("sent", 0)
+
+    onboarding_funnel = {
+        "welcome_sent": welcome_sent,
+        "welcome_opened": welcome_opened,
+        "profile_sent": profile_sent,
+        "first_action_sent": first_action_sent,
+        "welcome_to_open_ratio": f"{(welcome_opened / welcome_sent * 100):.1f}%" if welcome_sent > 0 else "0.0%",
+        "profile_completion_ratio": f"{(profile_sent / welcome_opened * 100):.1f}%" if welcome_opened > 0 else "0.0%",
+        "activation_conversion_ratio": f"{(first_action_sent / welcome_opened * 100):.1f}%" if welcome_opened > 0 else "0.0%"
+    }
+
+    # 3. Analyze Regional Engagement from Hit Metadata
+    metadata_logs = db.exec(
+        select(EmailLog.metadata_json)
+        .where(EmailLog.metadata_json != None)
+        .limit(1000)
+    ).all()
+
+    regional_hits = {}
+    total_tracked_hits = 0
+    for meta_str in metadata_logs:
+        if not meta_str:
+            continue
+        try:
+            meta = json.loads(meta_str)
+            for hit in meta.get("hits", []):
+                total_tracked_hits += 1
+                ip = hit.get("ip", "unknown")
+                # Group by IP segment to simulate geographical region clusters
+                ip_segment = ".".join(ip.split(".")[:2]) if "." in ip else "unknown"
+                if ip_segment not in regional_hits:
+                    regional_hits[ip_segment] = 0
+                regional_hits[ip_segment] += 1
+        except Exception:
+            continue
+
+    # Return top engagement regions
+    sorted_regions = sorted(regional_hits.items(), key=lambda x: x[1], reverse=True)[:5]
+    regions_breakdown = [{"region_cluster": r, "hits": h} for r, h in sorted_regions]
+
+    return {
+        "campaigns": campaigns,
+        "onboarding_funnel": onboarding_funnel,
+        "regional_engagement": {
+            "total_tracked_hits": total_tracked_hits,
+            "top_regions": regions_breakdown
+        }
+    }
+
+
+class ManualEmailSend(BaseModel):
+    email: str
+    subject: str
+    title: str
+    subtitle: Optional[str] = None
+    content_html: str
+    action_text: Optional[str] = None
+    action_url: Optional[str] = None
+    campaign_id: Optional[str] = None
+
+
+class BroadcastEmailSend(BaseModel):
+    subject: str
+    title: str
+    subtitle: Optional[str] = None
+    content_html: str
+    action_text: Optional[str] = None
+    action_url: Optional[str] = None
+    campaign_id: Optional[str] = None
+
+
+@router.post("/email/send-manual")
+def send_manual_email(
+    *,
+    payload: ManualEmailSend,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Send a manual tracked custom email to a specific customer profile.
+    Saves in EmailLog and routes asynchronously via Celery worker queue.
+    """
+    from app.tasks.email_tasks import dispatch_growth_email_task
+    
+    target_user = db.exec(select(User).where(User.email == payload.email)).first()
+    target_user_id = target_user.id if target_user else None
+
+    dispatch_growth_email_task.delay(
+        email_type="crm_manual",
+        email=payload.email,
+        context={
+            "subject": payload.subject,
+            "title": payload.title,
+            "subtitle": payload.subtitle,
+            "content_html": payload.content_html,
+            "action_text": payload.action_text,
+            "action_url": payload.action_url
+        },
+        user_id=target_user_id,
+        campaign_id=payload.campaign_id or "manual_direct"
+    )
+    return {"success": True, "message": f"Manual email successfully queued for {payload.email}"}
+
+
+@router.post("/email/broadcast")
+def send_broadcast_email(
+    *,
+    payload: BroadcastEmailSend,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Broadcast a manual tracked custom email to ALL active customer profiles at once.
+    Saves in EmailLog and routes asynchronously via Celery worker queue.
+    """
+    from app.tasks.email_tasks import dispatch_growth_email_task
+    active_users = db.exec(select(User).where(User.is_active == True)).all()
+    
+    import datetime
+    current_date_str = datetime.date.today().strftime("%B %d, %Y")
+    
+    count = 0
+    for u in active_users:
+        if not u.email:
+            continue
+        
+        # Resolve user metadata
+        name_placeholder = u.full_name or "customer"
+        email_placeholder = u.email
+        phone_placeholder = u.phone or "None"
+        location_placeholder = u.location or "None"
+        
+        # Apply replacements to all fields
+        def apply_replacements(text: Optional[str]) -> Optional[str]:
+            if not text:
+                return text
+            text = text.replace("{{name}}", name_placeholder)
+            text = text.replace("{{email}}", email_placeholder)
+            text = text.replace("{{phone}}", phone_placeholder)
+            text = text.replace("{{location}}", location_placeholder)
+            text = text.replace("{{date}}", current_date_str)
+            return text
+            
+        subj = apply_replacements(payload.subject)
+        tit = apply_replacements(payload.title)
+        subt = apply_replacements(payload.subtitle)
+        body = apply_replacements(payload.content_html)
+        action_text = apply_replacements(payload.action_text)
+        action_url = apply_replacements(payload.action_url)
+        
+        dispatch_growth_email_task.delay(
+            email_type="crm_manual",
+            email=u.email,
+            context={
+                "subject": subj,
+                "title": tit,
+                "subtitle": subt,
+                "content_html": body,
+                "action_text": action_text,
+                "action_url": action_url
+            },
+            user_id=u.id,
+            campaign_id=payload.campaign_id or "broadcast_all"
+        )
+        count += 1
+        
+    return {"success": True, "message": f"Broadcast successfully queued for {count} active customers."}
+

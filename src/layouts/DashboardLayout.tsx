@@ -9,7 +9,7 @@ import {
     PlusCircle, Bell, HelpCircle, Shield, Wallet, Folder,
     Menu, X, TrendingUp, MessageSquare, Zap, Target,
     LifeBuoy,
-    MessageCircle, Users, Globe, House, Megaphone, Flag
+    MessageCircle, Users, Globe, House, Megaphone, Flag, Send
 } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { getAvatarUrl } from '../utils/imageUtils';
@@ -227,6 +227,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             >
                                 <Users className="h-5 w-5" />
                                 {t('dashboard.users', 'User Management')}
+                            </Link>
+                            <Link
+                                to="/admin/users"
+                                className={cn(
+                                    "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-orange-600 hover:bg-orange-50",
+                                    location.pathname === '/admin/users' && "bg-orange-50 shadow-sm"
+                                )}
+                            >
+                                <Send className="h-5 w-5" />
+                                CRM & Email campaigns
                             </Link>
                             <Link
                                 to="/admin/listings"

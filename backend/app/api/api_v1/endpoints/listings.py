@@ -560,7 +560,28 @@ def create_listing(
 
     db.commit()
     db.refresh(listing)
+
+    # Trigger active in-app notification for ad posting
+    from app.crud.crud_notification import crud_notification
+    try:
+        crud_notification.create(
+            db,
+            obj_in={
+                "type": "ad_posted",
+                "data": {
+                    "listing_id": listing.id,
+                    "title": listing.title_en,
+                    "status": status,
+                    "message": f"Your listing '{listing.title_en}' has been successfully created and is now {status}!"
+                }
+            },
+            user_id=effective_owner_id
+        )
+    except Exception:
+        pass
+
     return listing
+
 
 
 

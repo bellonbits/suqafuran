@@ -44,6 +44,7 @@ const NotificationsPage: React.FC = () => {
         switch (type) {
             case 'message': return <MessageCircle className="h-5 w-5 text-primary-500" />;
             case 'ad_approved': return <CheckCircle className="h-5 w-5 text-green-500" />;
+            case 'ad_posted': return <CheckCircle className="h-5 w-5 text-secondary-500" />;
             case 'price_drop': return <TrendingDown className="h-5 w-5 text-orange-500" />;
             default: return <Info className="h-5 w-5 text-primary-500" />;
         }
@@ -107,7 +108,8 @@ const NotificationsPage: React.FC = () => {
                                         notif.is_read ? "text-gray-600" : "text-gray-900"
                                     )}>
                                         {notif.type === 'message' ? t('notifications.newMessage') :
-                                            notif.type === 'ad_approved' ? t('notifications.adApproved') : t('notifications.update')}
+                                            notif.type === 'ad_approved' ? t('notifications.adApproved') : 
+                                            notif.type === 'ad_posted' ? t('notifications.adPosted', 'Ad Published') : t('notifications.update')}
                                     </h3>
                                     <div className="flex items-center gap-1 text-[10px] text-gray-400 font-medium">
                                         <Clock className="h-3 w-3" />
