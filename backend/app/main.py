@@ -14,6 +14,7 @@ import time
 import structlog
 from app.core.logging_config import setup_logging, get_logger
 from app.core.tracing import setup_tracing
+from app.tasks.celery_app import celery_app
 
 # Initialize structured logging
 setup_logging()
