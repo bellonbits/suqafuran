@@ -50,6 +50,7 @@ export const AISupportChat: React.FC = () => {
                     role: m.role,
                     content: m.content,
                     timestamp: m.timestamp ? new Date(m.timestamp) : new Date(),
+                    recommendations: m.recommendations || []
                 }));
                 setMessages(mappedMessages);
                 
@@ -103,7 +104,11 @@ export const AISupportChat: React.FC = () => {
                 content: m.content
             }));
             
-            const response = await aiService.getSupportChat(history, listingId ? parseInt(listingId) : undefined);
+            const response = await aiService.getSupportChat(
+                history, 
+                listingId ? parseInt(listingId) : undefined,
+                activeTicketId || undefined
+            );
             
             setMessages(prev => [...prev, {
                 role: 'assistant',

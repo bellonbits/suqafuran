@@ -57,6 +57,7 @@ class SupportChatRequest(BaseModel):
     messages: List[dict]
     current_listing_id: Optional[int] = None
     user_history: Optional[List[int]] = []
+    ticket_id: Optional[int] = None
 
 
 # ─── Endpoints ────────────────────────────────────────────────────────────────
@@ -224,10 +225,11 @@ def support_chat(
     if result.get("needs_ticket") or True: # Logging all for follow-up
         from app.models.support import SupportTicket
         from sqlmodel import select
+        from datetime import datetime
         
         user_id = current_user.id if current_user else None
         
-        # Check if there's an open ticket for this user to append to
+        # Check if there's an open ticket to append to
         ticket = None
         if user_id:
             ticket = db.exec(
@@ -235,31 +237,38 @@ def support_chat(
                 .where(SupportTicket.user_id == user_id)
                 .where(SupportTicket.status != "resolved")
             ).first()
+        elif body.ticket_id:
+            ticket = db.exec(
+                select(SupportTicket)
+                .where(SupportTicket.id == body.ticket_id)
+                .where(SupportTicket.status != "resolved")
+            ).first()
+            
+        # We must append the new user message AND the AI's response to the ticket history
+        ai_response_msg = {
+            "role": "assistant",
+            "content": result.get("answer"),
+            "timestamp": datetime.utcnow().isoformat(),
+            "recommendations": result.get("recommendations", [])
+        }
+        
+        full_chat_history = list(body.messages)
+        full_chat_history.append(ai_response_msg)
             
         if not ticket:
             ticket = SupportTicket(
                 user_id=user_id,
                 subject=result.get("ticket_subject", "Support Inquiry"),
                 priority=result.get("ticket_priority", "low"),
-                chat_history=body.messages,
+                chat_history=full_chat_history,
                 last_agent_response=result.get("answer")
             )
         else:
-            # Append new messages to existing ticket
-            ticket.chat_history = body.messages
+            ticket.chat_history = full_chat_history
             ticket.last_agent_response = result.get("answer")
             
         if needs_agent:
-            from datetime import datetime
             ticket.status = "open"
-            # Ensure the offline warning message is logged in historical logs for reference
-            if ticket.chat_history and len(ticket.chat_history) > 0:
-                if ticket.chat_history[-1].get("role") == "user":
-                    ticket.chat_history.append({
-                        "role": "assistant",
-                        "content": result["answer"],
-                        "timestamp": datetime.utcnow().isoformat()
-                    })
             
         db.add(ticket)
         db.commit()
