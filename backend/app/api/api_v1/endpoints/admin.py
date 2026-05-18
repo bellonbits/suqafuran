@@ -315,24 +315,25 @@ def send_manual_email(
     Send a manual tracked custom email to a specific customer profile.
     Saves in EmailLog and routes asynchronously via Celery worker queue.
     """
-    from app.tasks.email_tasks import dispatch_growth_email_task
+    from app.tasks.celery_app import celery_app
     
     target_user = db.exec(select(User).where(User.email == payload.email)).first()
     target_user_id = target_user.id if target_user else None
 
-    dispatch_growth_email_task.delay(
-        email_type="crm_manual",
-        email=payload.email,
-        context={
+    celery_app.send_task(
+        "app.tasks.email_tasks.dispatch_growth_email",
+        args=["crm_manual", payload.email, {
             "subject": payload.subject,
             "title": payload.title,
             "subtitle": payload.subtitle,
             "content_html": payload.content_html,
             "action_text": payload.action_text,
             "action_url": payload.action_url
-        },
-        user_id=target_user_id,
-        campaign_id=payload.campaign_id or "manual_direct"
+        }],
+        kwargs={
+            "user_id": target_user_id,
+            "campaign_id": payload.campaign_id or "manual_direct"
+        }
     )
     return {"success": True, "message": f"Manual email successfully queued for {payload.email}"}
 
@@ -348,7 +349,7 @@ def send_broadcast_email(
     Broadcast a manual tracked custom email to ALL active customer profiles at once.
     Saves in EmailLog and routes asynchronously via Celery worker queue.
     """
-    from app.tasks.email_tasks import dispatch_growth_email_task
+    from app.tasks.celery_app import celery_app
     active_users = db.exec(select(User).where(User.is_active == True)).all()
     
     import datetime
@@ -362,8 +363,8 @@ def send_broadcast_email(
         # Resolve user metadata
         name_placeholder = u.full_name or "customer"
         email_placeholder = u.email
-        phone_placeholder = u.phone or "None"
-        location_placeholder = u.location or "None"
+        phone_placeholder = u.phone_number or "None"
+        location_placeholder = "N/A"
         
         # Apply replacements to all fields
         def apply_replacements(text: Optional[str]) -> Optional[str]:
@@ -383,19 +384,20 @@ def send_broadcast_email(
         action_text = apply_replacements(payload.action_text)
         action_url = apply_replacements(payload.action_url)
         
-        dispatch_growth_email_task.delay(
-            email_type="crm_manual",
-            email=u.email,
-            context={
+        celery_app.send_task(
+            "app.tasks.email_tasks.dispatch_growth_email",
+            args=["crm_manual", u.email, {
                 "subject": subj,
                 "title": tit,
                 "subtitle": subt,
                 "content_html": body,
                 "action_text": action_text,
                 "action_url": action_url
-            },
-            user_id=u.id,
-            campaign_id=payload.campaign_id or "broadcast_all"
+            }],
+            kwargs={
+                "user_id": u.id,
+                "campaign_id": payload.campaign_id or "broadcast_all"
+            }
         )
         count += 1
         
