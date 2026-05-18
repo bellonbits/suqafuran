@@ -363,8 +363,8 @@ def send_broadcast_email(
         # Resolve user metadata
         name_placeholder = u.full_name or "customer"
         email_placeholder = u.email
-        phone_placeholder = u.phone_number or "None"
-        location_placeholder = "N/A"
+        phone_placeholder = u.phone or "None"
+        location_placeholder = u.location or "None"
         
         # Apply replacements to all fields
         def apply_replacements(text: Optional[str]) -> Optional[str]:
