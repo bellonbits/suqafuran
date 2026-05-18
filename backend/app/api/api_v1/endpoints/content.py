@@ -95,3 +95,16 @@ def sync_content(
             )
         count += 1
     return {"synced": count}
+
+
+@router.get("/version")
+def read_system_version() -> Any:
+    """
+    Retrieve the latest platform app versions and store URLs.
+    """
+    return {
+        "latest_android_version": "1.6.2",
+        "latest_ios_version": "1.6.2",
+        "android_store_url": "https://play.google.com/store/apps/details?id=com.suqafuran.app",
+        "ios_store_url": "https://apps.apple.com/app/suqafuran/id1669472390"
+    }

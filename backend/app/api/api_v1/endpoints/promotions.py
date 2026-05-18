@@ -1014,6 +1014,8 @@ def agent_end_listing(
         action="END_LISTING",
         user_id=current_user.id,
         user_name=current_user.full_name,
+        resource_type="listing",
+        resource_id=listing_id,
         details=f"Agent ended listing #{listing_id}: {listing.title_en}",
     ))
     db.commit()
@@ -1035,6 +1037,8 @@ def agent_reactivate_listing(
         action="REACTIVATE_LISTING",
         user_id=current_user.id,
         user_name=current_user.full_name,
+        resource_type="listing",
+        resource_id=listing_id,
         details=f"Agent reactivated listing #{listing_id}: {listing.title_en}",
     ))
     db.commit()
@@ -1056,6 +1060,8 @@ def agent_approve_listing(
         action="APPROVE_LISTING",
         user_id=current_user.id,
         user_name=current_user.full_name,
+        resource_type="listing",
+        resource_id=listing_id,
         details=f"Agent approved listing #{listing_id}: {listing.title_en}",
     ))
     db.commit()
@@ -1077,6 +1083,8 @@ def agent_reject_listing(
         action="REJECT_LISTING",
         user_id=current_user.id,
         user_name=current_user.full_name,
+        resource_type="listing",
+        resource_id=listing_id,
         details=f"Agent rejected listing #{listing_id}: {listing.title_en}",
     ))
     db.commit()

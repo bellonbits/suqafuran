@@ -1,7 +1,10 @@
 import React, { lazy, Suspense, useState, useCallback, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-
+import { useRegisterSW } from 'virtual:pwa-register/react';
+import { RefreshCw } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
 function ScrollToTop() {
     const { pathname } = useLocation();
     useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
@@ -104,6 +107,72 @@ const App: React.FC = () => {
   const [phase, setPhase] = useState<AppPhase>('splash');
   const { autoDetected, setAutoDetected, setCurrency } = useCurrencyStore();
   const { permissionAsked, setPermissionAsked, setLocation } = useLocationStore();
+  const [storeUpdate, setStoreUpdate] = useState<{
+    needed: boolean;
+    storeUrl: string;
+    latestVersion: string;
+    currentVersion: string;
+  }>({
+    needed: false,
+    storeUrl: '',
+    latestVersion: '',
+    currentVersion: ''
+  });
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      CapApp.getInfo().then(async (info) => {
+        const currentVersion = info.version;
+        try {
+          const res = await fetch('/api/v1/content/version');
+          if (res.ok) {
+            const data = await res.json();
+            const platform = Capacitor.getPlatform();
+            const latestVersion = platform === 'ios' ? data.latest_ios_version : data.latest_android_version;
+            const storeUrl = platform === 'ios' ? data.ios_store_url : data.android_store_url;
+
+            if (latestVersion && latestVersion !== currentVersion) {
+              setStoreUpdate({
+                needed: true,
+                storeUrl,
+                latestVersion,
+                currentVersion
+              });
+            }
+          }
+        } catch (err) {
+          console.error('Failed to check for native updates', err);
+        }
+      }).catch(err => {
+        console.error('Failed to get Capacitor app info', err);
+      });
+    }
+  }, []);
+  const {
+    needRefresh: [needRefresh, setNeedRefresh],
+    updateServiceWorker,
+  } = useRegisterSW({
+    onRegisteredSW(_, r) {
+      if (r) {
+        // Automatically check for updates every 3 minutes (180,000 ms)
+        setInterval(() => {
+          r.update().catch(() => {});
+        }, 180_000);
+      }
+    }
+  });
+
+  useEffect(() => {
+    const handleFocus = () => {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(registration => {
+          registration.update().catch(() => {});
+        });
+      }
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
   
   useEffect(() => {
     if (phase !== 'splash') {
@@ -251,6 +320,79 @@ const App: React.FC = () => {
           </Routes>
         </Suspense>
       </BrowserRouter>
+      {needRefresh && (
+        <div className="fixed bottom-6 left-6 right-6 md:left-auto md:w-96 bg-white/95 backdrop-blur-xl border border-sky-100 shadow-2xl rounded-3xl p-5 z-[99999] flex flex-col gap-3 animate-bounce">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-sky-50 text-sky-600 rounded-2xl shrink-0">
+              <RefreshCw className="w-5 h-5 animate-spin" style={{ animationDuration: '3s' }} />
+            </div>
+            <div>
+              <h4 className="text-sm font-black text-gray-900 leading-tight">New Update Available!</h4>
+              <p className="text-xs text-gray-500 font-medium mt-1 leading-relaxed">
+                We've upgraded the platform with awesome new features and fixes. Reload to see them now!
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2.5">
+            <button
+              onClick={() => updateServiceWorker(true)}
+              className="flex-1 bg-sky-600 hover:bg-sky-700 active:scale-98 text-white text-xs font-black py-2.5 px-4 rounded-xl shadow-md shadow-sky-100 transition-all cursor-pointer"
+            >
+              Update Now
+            </button>
+            <button
+              onClick={() => setNeedRefresh(false)}
+              className="px-4 py-2.5 bg-gray-50 hover:bg-gray-100 active:scale-98 text-gray-500 text-xs font-black rounded-xl transition-all cursor-pointer"
+            >
+              Later
+            </button>
+          </div>
+        </div>
+      )}
+      {storeUpdate.needed && (
+        <div className="fixed inset-0 bg-sky-950/40 backdrop-blur-md z-[999999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[32px] max-w-sm w-full p-6 shadow-2xl border border-sky-100/50 flex flex-col items-center text-center gap-5 relative overflow-hidden animate-bounce" style={{ animationDuration: '2s' }}>
+            {/* Ambient visual background glow */}
+            <div className="absolute -right-16 -top-16 w-32 h-32 bg-sky-500/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -left-16 -bottom-16 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+
+            {/* Premium Upgrade Badge & Icon */}
+            <div className="w-16 h-16 rounded-[24px] bg-sky-50 flex items-center justify-center text-sky-600 shadow-inner">
+              <RefreshCw className="w-7 h-7 animate-spin" style={{ animationDuration: '4s' }} />
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-lg font-black text-gray-900 leading-tight">
+                Update Available!
+              </h3>
+              <p className="text-xs text-gray-500 font-bold uppercase tracking-widest bg-sky-50 px-3 py-1 rounded-full inline-block">
+                v{storeUpdate.latestVersion} is live
+              </p>
+              <p className="text-xs text-gray-400 font-medium leading-relaxed px-2 mt-2">
+                A new and improved version of the Suqafuran app is ready for you in the store. Enjoy smoother browsing and newly unlocked marketplace security tools!
+              </p>
+            </div>
+
+            {/* Call to actions */}
+            <div className="w-full space-y-2.5">
+              <a
+                href={storeUpdate.storeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full text-center bg-sky-600 hover:bg-sky-700 active:scale-98 text-white text-xs font-black py-3 rounded-2xl shadow-lg shadow-sky-100 transition-all cursor-pointer animate-pulse"
+              >
+                Go to App Store
+              </a>
+              <button
+                onClick={() => setStoreUpdate(prev => ({ ...prev, needed: false }))}
+                className="w-full text-center hover:bg-gray-50 active:scale-98 text-gray-400 text-xs font-black py-2.5 rounded-2xl transition-all cursor-pointer"
+              >
+                Update Later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </QueryClientProvider>
   );
 };

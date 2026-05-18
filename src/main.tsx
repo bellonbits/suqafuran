@@ -8,12 +8,9 @@ import App from './App.tsx'
 // Load dynamic site content overrides from backend
 loadOverrides();
 
-import { registerSW } from 'virtual:pwa-register'
 import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import { App as CapApp } from '@capacitor/app'
-
-registerSW({ immediate: true })
 
 if (Capacitor.isNativePlatform()) {
   const isAndroid = Capacitor.getPlatform() === 'android';
