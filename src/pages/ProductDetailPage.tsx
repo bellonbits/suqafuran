@@ -23,6 +23,7 @@ import { Button } from '../components/Button';
 import { ProductCard } from '../components/ProductCard';
 import { cn } from '../utils/cn';
 import { getImageUrl } from '../utils/imageUtils';
+import { Capacitor } from '@capacitor/core';
 import { useCurrencyStore } from '../store/useCurrencyStore';
 import { formatConvertedPrice } from '../utils/currencyUtils';
 import { useLanguageField } from '../hooks/useLanguageField';
@@ -182,7 +183,7 @@ const ProductDetailPage: React.FC = () => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const displayRelatedAds = relatedAds || [];
-    const { currency: targetCurrency } = useCurrencyStore();
+    const { currency: targetCurrency, setCurrency } = useCurrencyStore();
 
     const rawTitle = ad ? getField(ad, 'title') : '';
     const rawDesc = ad ? getField(ad, 'description') : '';
@@ -463,6 +464,32 @@ const ProductDetailPage: React.FC = () => {
                             <span className="text-[22px] font-black text-secondary-500">
                                 {formatConvertedPrice(ad.price, ad.currency, targetCurrency)}
                             </span>
+                            {Capacitor.getPlatform() === 'ios' && (
+                                <div className="inline-flex p-0.5 bg-gray-100/80 rounded-lg border border-gray-200/50 shadow-sm shrink-0 items-center">
+                                    <button
+                                        onClick={() => setCurrency('KES')}
+                                        className={cn(
+                                            "px-1.5 py-0.5 text-[9px] font-black rounded-md transition-all cursor-pointer",
+                                            targetCurrency === 'KES'
+                                                ? "bg-white text-secondary-500 shadow-xs"
+                                                : "text-gray-400 hover:text-gray-600"
+                                        )}
+                                    >
+                                        KES
+                                    </button>
+                                    <button
+                                        onClick={() => setCurrency('USD')}
+                                        className={cn(
+                                            "px-1.5 py-0.5 text-[9px] font-black rounded-md transition-all cursor-pointer",
+                                            targetCurrency === 'USD'
+                                                ? "bg-white text-secondary-500 shadow-xs"
+                                                : "text-gray-400 hover:text-gray-600"
+                                        )}
+                                    >
+                                        USD
+                                    </button>
+                                </div>
+                            )}
                             {isNegotiable && (
                                 <span className="text-[11px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100 uppercase tracking-wide">
                                     {t('common.negotiable')}
@@ -895,12 +922,38 @@ const ProductDetailPage: React.FC = () => {
                                     {ad ? <span>{ad.location}</span> : S.line('w-28', 'h-3')}
                                     {postedDate && <><Clock className="h-3.5 w-3.5 ml-1" /><span>{postedDate}</span></>}
                                 </div>
-                                <div className="flex items-baseline gap-3 mb-4">
+                                <div className="flex items-baseline gap-3 mb-4 flex-wrap">
                                     {ad ? (
                                         <>
                                             <span className="text-2xl font-extrabold text-secondary-500">
                                                 {formatConvertedPrice(ad.price, ad.currency, targetCurrency)}
                                             </span>
+                                            {Capacitor.getPlatform() === 'ios' && (
+                                                <div className="inline-flex p-0.5 bg-gray-100/80 rounded-lg border border-gray-200/50 shadow-sm shrink-0 items-center">
+                                                    <button
+                                                        onClick={() => setCurrency('KES')}
+                                                        className={cn(
+                                                            "px-1.5 py-0.5 text-[10px] font-black rounded-md transition-all cursor-pointer",
+                                                            targetCurrency === 'KES'
+                                                                ? "bg-white text-secondary-500 shadow-xs"
+                                                                : "text-gray-400 hover:text-gray-600"
+                                                        )}
+                                                    >
+                                                        KES
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setCurrency('USD')}
+                                                        className={cn(
+                                                            "px-1.5 py-0.5 text-[10px] font-black rounded-md transition-all cursor-pointer",
+                                                            targetCurrency === 'USD'
+                                                                ? "bg-white text-secondary-500 shadow-xs"
+                                                                : "text-gray-400 hover:text-gray-600"
+                                                        )}
+                                                    >
+                                                        USD
+                                                    </button>
+                                                </div>
+                                            )}
                                             {isNegotiable && <span className="text-sm text-gray-400">{t('common.negotiable')}</span>}
                                         </>
                                     ) : S.line('w-1/4', 'h-7')}
@@ -994,8 +1047,36 @@ const ProductDetailPage: React.FC = () => {
                                     <div className="px-5 pt-5 pb-3 border-b border-gray-100">
                                         {ad ? (
                                             <>
-                                                <div className="text-2xl font-extrabold text-secondary-500 mb-0.5">
-                                                    {formatConvertedPrice(ad.price, ad.currency, targetCurrency)}
+                                                <div className="flex items-center gap-2 mb-0.5 justify-between">
+                                                    <span className="text-2xl font-extrabold text-secondary-500">
+                                                        {formatConvertedPrice(ad.price, ad.currency, targetCurrency)}
+                                                    </span>
+                                                    {Capacitor.getPlatform() === 'ios' && (
+                                                        <div className="inline-flex p-0.5 bg-gray-100 rounded-lg border border-gray-200/50 shadow-sm shrink-0 items-center">
+                                                            <button
+                                                                onClick={() => setCurrency('KES')}
+                                                                className={cn(
+                                                                    "px-2 py-0.5 text-[9px] font-black rounded-md transition-all cursor-pointer",
+                                                                    targetCurrency === 'KES'
+                                                                        ? "bg-white text-secondary-500 shadow-sm"
+                                                                        : "text-gray-400 hover:text-gray-600"
+                                                                )}
+                                                            >
+                                                                KES
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setCurrency('USD')}
+                                                                className={cn(
+                                                                    "px-2 py-0.5 text-[9px] font-black rounded-md transition-all cursor-pointer",
+                                                                    targetCurrency === 'USD'
+                                                                        ? "bg-white text-secondary-500 shadow-sm"
+                                                                        : "text-gray-400 hover:text-gray-600"
+                                                                )}
+                                                            >
+                                                                USD
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 {isNegotiable && <p className="text-xs text-gray-400">{t('common.negotiable')}</p>}
                                             </>

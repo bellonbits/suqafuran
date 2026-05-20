@@ -11,8 +11,9 @@ WEBP_QUALITY = 82
 def _resize_to_bytes(file_content: bytes) -> bytes:
     """Resize image and return as JPEG bytes for Cloudinary upload."""
     try:
-        from PIL import Image
+        from PIL import Image, ImageOps
         img = Image.open(io.BytesIO(file_content))
+        img = ImageOps.exif_transpose(img)
         if img.mode in ("RGBA", "P", "LA"):
             img = img.convert("RGB")
         img.thumbnail((MAX_WIDTH, MAX_HEIGHT), Image.LANCZOS)
@@ -73,8 +74,9 @@ class LocalStorage:
         dest = os.path.join(settings.UPLOAD_DIR, unique_name)
 
         try:
-            from PIL import Image
+            from PIL import Image, ImageOps
             img = Image.open(io.BytesIO(file_content))
+            img = ImageOps.exif_transpose(img)
             if img.mode in ("RGBA", "P", "LA"):
                 img = img.convert("RGB")
             img.thumbnail((MAX_WIDTH, MAX_HEIGHT), Image.LANCZOS)

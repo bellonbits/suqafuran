@@ -461,6 +461,15 @@ def create_listing(
     """
     Create new listing.
     """
+    # Prevent duplicated products from the same user account
+    existing_duplicate = db.exec(
+        select(Listing).where(
+            Listing.owner_id == current_user.id,
+            Listing.title_en == listing_in.title_en
+        )
+    ).first()
+    if existing_duplicate:
+        raise HTTPException(status_code=400, detail="Duplicate product detected. You have already posted a listing with this title.")
     # 1. Device Intelligence & Fingerprinting
     if x_device_fingerprint:
         device = security_service.get_or_create_device(db, x_device_fingerprint, {})
@@ -507,9 +516,7 @@ def create_listing(
     ai_mod = ai_service.check_moderation(listing_in.dict())
     
     # Layer 6: Status Logic
-    status = "pending"
-    if current_user.trust_score >= 500 and ai_mod.get("risk") == "low" and not flags:
-        status = "active"
+    status = "active"
     
     # Determine effective owner (Admin impersonation support)
     effective_owner_id = current_user.id

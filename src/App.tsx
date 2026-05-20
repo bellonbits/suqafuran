@@ -183,6 +183,12 @@ const App: React.FC = () => {
   }, [phase]);
 
   useEffect(() => {
+    if (Capacitor.getPlatform() === 'ios') {
+      setCurrency('KES');
+      setAutoDetected(true);
+      return;
+    }
+
     if (autoDetected) return;
     detectCurrencyFromIP().then(currency => {
       setCurrency(currency);
