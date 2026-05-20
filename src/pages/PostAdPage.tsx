@@ -15,6 +15,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import { cn } from '../utils/cn';
 import { aiService } from '../services/aiService';
 import { promotionService } from '../services/promotionService';
+import { ImageCropperModal } from '../components/ImageCropperModal';
 
 const KES_RATE = 130; // 1 USD = 130 KES
 
@@ -90,6 +91,11 @@ const PostAdPage: React.FC = () => {
     const [createdListingTitle, setCreatedListingTitle] = useState('');
     const [aiLoading, setAiLoading] = useState(false);
     const [isDragOver, setIsDragOver] = useState(false);
+    
+    // Image Cropper State
+    const [queuedFiles, setQueuedFiles] = useState<File[]>([]);
+    const [currentCropFile, setCurrentCropFile] = useState<File | null>(null);
+    const [currentCropUrl, setCurrentCropUrl] = useState<string | null>(null);
 
 
     const { data: verificationStatus } = useQuery({
@@ -218,7 +224,6 @@ const PostAdPage: React.FC = () => {
 
     const handleImageUpload = async (files: FileList | null) => {
         if (!files || files.length === 0) return;
-        setUploading(true);
         setImageWarning(null);
 
         const warnings: string[] = [];
@@ -228,26 +233,59 @@ const PostAdPage: React.FC = () => {
         }
         if (warnings.length) setImageWarning(warnings.join(' '));
 
-        for (const file of Array.from(files)) {
-            try {
-                const options = {
-                    maxSizeMB: 1,
-                    maxWidthOrHeight: 1920,
-                    useWebWorker: true,
-                };
-                const compressedBlob = await imageCompression(file, options);
-                const compressedFile = new File([compressedBlob], file.name, { type: compressedBlob.type || file.type });
-                const result = await listingService.uploadImage(compressedFile);
-                setForm(f => ({ 
-                    ...f, 
-                    images: [...f.images, result.url],
-                    image_hashes: [...f.image_hashes, result.phash || '']
-                }));
-            } catch {
-                // silently skip failed uploads
-            }
+        const fileArray = Array.from(files);
+        setQueuedFiles(fileArray.slice(1));
+        setCurrentCropFile(fileArray[0]);
+        setCurrentCropUrl(URL.createObjectURL(fileArray[0]));
+    };
+
+    const processUpload = async (file: File) => {
+        setUploading(true);
+        try {
+            const options = {
+                maxSizeMB: 1,
+                maxWidthOrHeight: 1920,
+                useWebWorker: true,
+            };
+            const compressedBlob = await imageCompression(file, options);
+            const compressedFile = new File([compressedBlob], file.name, { type: compressedBlob.type || file.type });
+            const result = await listingService.uploadImage(compressedFile);
+            setForm(f => ({ 
+                ...f, 
+                images: [...f.images, result.url],
+                image_hashes: [...f.image_hashes, result.phash || '']
+            }));
+        } catch {
+            // silently skip failed uploads
+        } finally {
+            setUploading(false);
+            processNextInQueue();
         }
-        setUploading(false);
+    };
+
+    const processNextInQueue = () => {
+        if (currentCropUrl) URL.revokeObjectURL(currentCropUrl);
+        if (queuedFiles.length > 0) {
+            const nextFile = queuedFiles[0];
+            setQueuedFiles(prev => prev.slice(1));
+            setCurrentCropFile(nextFile);
+            setCurrentCropUrl(URL.createObjectURL(nextFile));
+        } else {
+            setCurrentCropFile(null);
+            setCurrentCropUrl(null);
+        }
+    };
+
+    const handleCropComplete = (croppedFile: File) => {
+        processUpload(croppedFile);
+    };
+
+    const handleCropSkip = () => {
+        if (currentCropFile) {
+            processUpload(currentCropFile);
+        } else {
+            processNextInQueue();
+        }
     };
 
     const removeImage = (idx: number) => {
@@ -1311,6 +1349,21 @@ const PostAdPage: React.FC = () => {
                 amount={promoPlanId > 0 ? Math.round((promotionPlans.find((p: any) => p.id === promoPlanId)?.price_usd || 0) * KES_RATE) : 0}
                 planName={promoPlanId > 0 ? getField(promotionPlans.find((p: any) => p.id === promoPlanId) || {}, 'name') : ''}
                 listingTitle={createdListingTitle}
+            />
+
+            {/* Image Cropper Modal */}
+            <ImageCropperModal
+                isOpen={!!currentCropFile}
+                onClose={() => {
+                    if (currentCropUrl) URL.revokeObjectURL(currentCropUrl);
+                    setCurrentCropFile(null);
+                    setCurrentCropUrl(null);
+                    setQueuedFiles([]); // cancel remaining queue
+                }}
+                imageSrc={currentCropUrl}
+                onCropComplete={handleCropComplete}
+                onSkip={handleCropSkip}
+                fileName={currentCropFile?.name || 'cropped.jpg'}
             />
         </div>
     );

@@ -12,6 +12,7 @@ import { LocationPickerModal } from '../components/LocationPickerModal';
 import { useLanguageField } from '../hooks/useLanguageField';
 import { useAuthStore } from '../store/useAuthStore';
 import { cn } from '../utils/cn';
+import { ImageCropperModal } from '../components/ImageCropperModal';
 
 const TITLE_MAX = 70;
 
@@ -75,6 +76,11 @@ const EditAdPage: React.FC = () => {
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const { getField } = useLanguageField();
+
+    // Image Cropper State
+    const [queuedFiles, setQueuedFiles] = useState<File[]>([]);
+    const [currentCropFile, setCurrentCropFile] = useState<File | null>(null);
+    const [currentCropUrl, setCurrentCropUrl] = useState<string | null>(null);
 
 
     // Fetch existing listing
@@ -143,20 +149,54 @@ const EditAdPage: React.FC = () => {
     }
 
     const handleImageUpload = async (files: FileList | null) => {
+        if (!files || files.length === 0) return;
+        
+        const fileArray = Array.from(files);
+        setQueuedFiles(fileArray.slice(1));
+        setCurrentCropFile(fileArray[0]);
+        setCurrentCropUrl(URL.createObjectURL(fileArray[0]));
+    };
 
-        if (!files) return;
-        for (const file of Array.from(files)) {
-            try {
-                const options = {
-                    maxSizeMB: 1,
-                    maxWidthOrHeight: 1920,
-                    useWebWorker: true,
-                };
-                const compressedBlob = await imageCompression(file, options);
-                const compressedFile = new File([compressedBlob], file.name, { type: compressedBlob.type || file.type });
-                const result = await listingService.uploadImage(compressedFile);
-                setForm(f => ({ ...f, images: [...f.images, result.url] }));
-            } catch { /* skip */ }
+    const processUpload = async (file: File) => {
+        try {
+            const options = {
+                maxSizeMB: 1,
+                maxWidthOrHeight: 1920,
+                useWebWorker: true,
+            };
+            const compressedBlob = await imageCompression(file, options);
+            const compressedFile = new File([compressedBlob], file.name, { type: compressedBlob.type || file.type });
+            const result = await listingService.uploadImage(compressedFile);
+            setForm(f => ({ ...f, images: [...f.images, result.url] }));
+        } catch { 
+            /* skip */ 
+        } finally {
+            processNextInQueue();
+        }
+    };
+
+    const processNextInQueue = () => {
+        if (currentCropUrl) URL.revokeObjectURL(currentCropUrl);
+        if (queuedFiles.length > 0) {
+            const nextFile = queuedFiles[0];
+            setQueuedFiles(prev => prev.slice(1));
+            setCurrentCropFile(nextFile);
+            setCurrentCropUrl(URL.createObjectURL(nextFile));
+        } else {
+            setCurrentCropFile(null);
+            setCurrentCropUrl(null);
+        }
+    };
+
+    const handleCropComplete = (croppedFile: File) => {
+        processUpload(croppedFile);
+    };
+
+    const handleCropSkip = () => {
+        if (currentCropFile) {
+            processUpload(currentCropFile);
+        } else {
+            processNextInQueue();
         }
     };
 
@@ -453,6 +493,21 @@ const EditAdPage: React.FC = () => {
             </form>
 
             <LocationPickerModal isOpen={isLocationOpen} onClose={() => setIsLocationOpen(false)} onSelect={loc => set('location', loc)} />
+
+            {/* Image Cropper Modal */}
+            <ImageCropperModal
+                isOpen={!!currentCropFile}
+                onClose={() => {
+                    if (currentCropUrl) URL.revokeObjectURL(currentCropUrl);
+                    setCurrentCropFile(null);
+                    setCurrentCropUrl(null);
+                    setQueuedFiles([]); // cancel remaining queue
+                }}
+                imageSrc={currentCropUrl}
+                onCropComplete={handleCropComplete}
+                onSkip={handleCropSkip}
+                fileName={currentCropFile?.name || 'cropped.jpg'}
+            />
         </div>
     );
 };
