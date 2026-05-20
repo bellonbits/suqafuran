@@ -5,6 +5,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, Plus, X, Shield, ShieldAlert, Clock, CheckCircle2, Loader2, Zap, Sparkles } from 'lucide-react';
 
 import { listingService } from '../services/listingService';
+import imageCompression from 'browser-image-compression';
 import { getImageUrl } from '../utils/imageUtils';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { LocationPickerModal } from '../components/LocationPickerModal';
@@ -229,7 +230,13 @@ const PostAdPage: React.FC = () => {
 
         for (const file of Array.from(files)) {
             try {
-                const result = await listingService.uploadImage(file);
+                const options = {
+                    maxSizeMB: 1,
+                    maxWidthOrHeight: 1920,
+                    useWebWorker: true,
+                };
+                const compressedFile = await imageCompression(file, options);
+                const result = await listingService.uploadImage(compressedFile);
                 setForm(f => ({ 
                     ...f, 
                     images: [...f.images, result.url],

@@ -5,6 +5,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, Plus, X, CheckCircle2, Loader2 } from 'lucide-react';
 
 import { listingService } from '../services/listingService';
+import imageCompression from 'browser-image-compression';
 import { getImageUrl } from '../utils/imageUtils';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { LocationPickerModal } from '../components/LocationPickerModal';
@@ -146,7 +147,13 @@ const EditAdPage: React.FC = () => {
         if (!files) return;
         for (const file of Array.from(files)) {
             try {
-                const result = await listingService.uploadImage(file);
+                const options = {
+                    maxSizeMB: 1,
+                    maxWidthOrHeight: 1920,
+                    useWebWorker: true,
+                };
+                const compressedFile = await imageCompression(file, options);
+                const result = await listingService.uploadImage(compressedFile);
                 setForm(f => ({ ...f, images: [...f.images, result.url] }));
             } catch { /* skip */ }
         }
