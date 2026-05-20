@@ -152,7 +152,8 @@ const EditAdPage: React.FC = () => {
                     maxWidthOrHeight: 1920,
                     useWebWorker: true,
                 };
-                const compressedFile = await imageCompression(file, options);
+                const compressedBlob = await imageCompression(file, options);
+                const compressedFile = new File([compressedBlob], file.name, { type: compressedBlob.type || file.type });
                 const result = await listingService.uploadImage(compressedFile);
                 setForm(f => ({ ...f, images: [...f.images, result.url] }));
             } catch { /* skip */ }
