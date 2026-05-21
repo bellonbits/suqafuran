@@ -39,6 +39,7 @@ import {
 import { useAuthStore } from '../../store/useAuthStore';
 import { listingService } from '../../services/listingService';
 import type { Business, Employee, BusinessProduct, BusinessCustomer, Order, BusinessMessage, TeamMessage, BusinessTask } from '../../services/businessService';
+import { businessService } from '../../services/businessService';
 import { Button } from '../../components/Button';
 import { API_BASE_URL } from '../../services/api';
 

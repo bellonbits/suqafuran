@@ -63,14 +63,19 @@ class CRUDBusiness:
             Employee.user_id == user_id,
             Employee.is_active == True
         )
-        emp_business_ids = db.exec(emp_stmt).all()
-
-        stmt = select(Business).where(
-            or_(
-                Business.owner_id == user_id,
-                Business.id.in_(emp_business_ids)
+        raw_ids = db.exec(emp_stmt).all()
+        # Ensure we have a flat list of integers (handle tuple results)
+        emp_business_ids = [bid if not isinstance(bid, (list, tuple)) else bid[0] for bid in raw_ids if bid is not None]
+        # If no employee businesses, only filter by ownership
+        if not emp_business_ids:
+            stmt = select(Business).where(Business.owner_id == user_id)
+        else:
+            stmt = select(Business).where(
+                or_(
+                    Business.owner_id == user_id,
+                    Business.id.in_(emp_business_ids)
+                )
             )
-        )
         return db.exec(stmt).all()
 
     def update_business(self, db: Session, business: Business, update_data: dict) -> Business:
