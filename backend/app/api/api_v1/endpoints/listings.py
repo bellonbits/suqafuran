@@ -491,9 +491,6 @@ def create_listing(
     
     # Layer 3.5: Duplicate Image Detection (PHash)
     if listing_in.image_hashes:
-        from app.models.listing import Listing
-        from sqlalchemy import func
-        
         for h in listing_in.image_hashes:
             if not h: continue
             # Check if this hash exists in other listings (not by this user)
