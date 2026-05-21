@@ -62,6 +62,9 @@ services:
       dockerfile: Dockerfile
     container_name: suqafuran_api
     restart: always
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     depends_on:
       redis:
         condition: service_healthy
@@ -93,6 +96,9 @@ services:
       dockerfile: Dockerfile.worker
     container_name: suqafuran_worker
     restart: always
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     depends_on:
       redis:
         condition: service_healthy
@@ -118,6 +124,9 @@ services:
       dockerfile: Dockerfile.worker
     container_name: suqafuran_beat
     restart: always
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     depends_on:
       redis:
         condition: service_healthy
@@ -152,6 +161,9 @@ services:
   certbot:
     image: certbot/certbot
     container_name: suqafuran_certbot
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     volumes:
       - certs:/etc/letsencrypt
       - certbot_webroot:/var/www/certbot
@@ -164,104 +176,111 @@ services:
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-    expose:
-      - "9090"
-
-  grafana:
-    image: grafana/grafana:latest
-    container_name: suqafuran_grafana
-    restart: always
-    depends_on:
-      - prometheus
-      - loki
-      - tempo
-      - alertmanager
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
-      - GF_SERVER_ROOT_URL=https://api.suqafuran.com/monitoring/
-      - GF_SERVER_SERVE_FROM_SUB_PATH=true
-    volumes:
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-      - grafana_data:/var/lib/grafana
-
-  tempo:
-    image: grafana/tempo:latest
-    container_name: suqafuran_tempo
-    restart: always
-    volumes:
-      - ./monitoring/tempo/tempo.yml:/etc/tempo-config.yaml:ro
-    command: ["-config.file=/etc/tempo-config.yaml", "-target=all"]
-    expose:
-      - "3200" # HTTP
-      - "4317" # OTLP gRPC
-
-  loki:
-    image: grafana/loki:latest
-    container_name: suqafuran_loki
-    restart: always
-    volumes:
-      - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
-      - loki_data:/loki
-    command: -config.file=/etc/loki/local-config.yaml
-    expose:
-      - "3100"
-
-  promtail:
-    image: grafana/promtail:latest
-    container_name: suqafuran_promtail
-    restart: always
-    volumes:
-      - ./monitoring/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
-      # - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/log:/var/log:ro
-    command: -config.file=/etc/promtail/config.yml
-
-  alertmanager:
-    image: prom/alertmanager:latest
-    container_name: suqafuran_alertmanager
-    restart: always
-    volumes:
-      - ./monitoring/prometheus/alertmanager.yml:/etc/prometheus/alertmanager.yml:ro
-    command:
-      - '--config.file=/etc/prometheus/alertmanager.yml'
-      - '--storage.path=/alertmanager'
-    expose:
-      - "9093"
-
-  celery-exporter:
-    image: danihodovic/celery-exporter:latest
-    container_name: suqafuran_celery_exporter
-    restart: always
-    environment:
-      - CE_BROKER_URL=redis://:${REDIS_PASSWORD:-suqaredis}@redis:6379/0
-    depends_on:
-      redis:
-        condition: service_healthy
-    expose:
-      - "9808"
-
-  node-exporter:
-    image: quay.io/prometheus/node-exporter:latest
-    container_name: suqafuran_node_exporter
-    restart: always
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.rootfs=/rootfs'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-    expose:
-      - "9100"
+#   prometheus:
+#     image: prom/prometheus:latest
+#     container_name: suqafuran_prometheus
+#     restart: always
+#     volumes:
+#       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+#       - prometheus_data:/prometheus
+#     command:
+#       - '--config.file=/etc/prometheus/prometheus.yml'
+#       - '--storage.tsdb.path=/prometheus'
+#       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+#       - '--web.console.templates=/usr/share/prometheus/consoles'
+#     expose:
+#       - "9090"
+# 
+#   grafana:
+#     image: grafana/grafana:latest
+#     container_name: suqafuran_grafana
+#     restart: always
+#     depends_on:
+#       - prometheus
+#       - loki
+#       - tempo
+#       - alertmanager
+#     ports:
+#       - "3000:3000"
+#     environment:
+#       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+#       - GF_SERVER_ROOT_URL=https://api.suqafuran.com/monitoring/
+#       - GF_SERVER_SERVE_FROM_SUB_PATH=true
+#     volumes:
+#       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+#       - grafana_data:/var/lib/grafana
+# 
+#   tempo:
+#     image: grafana/tempo:latest
+#     container_name: suqafuran_tempo
+#     restart: always
+#     volumes:
+#       - ./monitoring/tempo/tempo.yml:/etc/tempo-config.yaml:ro
+#     command: ["-config.file=/etc/tempo-config.yaml", "-target=all"]
+#     expose:
+#       - "3200" # HTTP
+#       - "4317" # OTLP gRPC
+# 
+#   loki:
+#     image: grafana/loki:latest
+#     container_name: suqafuran_loki
+#     restart: always
+#     volumes:
+#       - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
+#       - loki_data:/loki
+#     command: -config.file=/etc/loki/local-config.yaml
+#     expose:
+#       - "3100"
+# 
+#   promtail:
+#     image: grafana/promtail:latest
+#     container_name: suqafuran_promtail
+#     restart: always
+#     volumes:
+#       - ./monitoring/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+#       # - /var/lib/docker/containers:/var/lib/docker/containers:ro
+#       - /var/log:/var/log:ro
+#     command: -config.file=/etc/promtail/config.yml
+# 
+#   alertmanager:
+#     image: prom/alertmanager:latest
+#     container_name: suqafuran_alertmanager
+#     restart: always
+#     volumes:
+#       - ./monitoring/prometheus/alertmanager.yml:/etc/prometheus/alertmanager.yml:ro
+#     command:
+#       - '--config.file=/etc/prometheus/alertmanager.yml'
+#       - '--storage.path=/alertmanager'
+#     expose:
+#       - "9093"
+# 
+#   celery-exporter:
+#     image: danihodovic/celery-exporter:latest
+#     container_name: suqafuran_celery_exporter
+#     restart: always
+#     environment:
+#       - CE_BROKER_URL=redis://:${REDIS_PASSWORD:-suqaredis}@redis:6379/0
+#     depends_on:
+#       redis:
+#         condition: service_healthy
+#     expose:
+#       - "9808"
+# 
+#   node-exporter:
+#     image: quay.io/prometheus/node-exporter:latest
+#     container_name: suqafuran_node_exporter
+#     restart: always
+#     volumes:
+#       - /proc:/host/proc:ro
+#       - /sys:/host/sys:ro
+#       - /:/rootfs:ro
+#     command:
+#       - '--path.procfs=/host/proc'
+#       - '--path.rootfs=/rootfs'
+#       - '--path.sysfs=/host/sys'
+#       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+#     expose:
+#       - "9100"
 
 
 volumes:
