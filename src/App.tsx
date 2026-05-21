@@ -46,6 +46,7 @@ const AdminDashboard = lazyNamed(() => import('./pages/AdminDashboard'), 'AdminD
 const OverviewDashboard = lazyNamed(() => import('./pages/OverviewDashboard'), 'OverviewDashboard');
 const EditAdPage = lazyNamed(() => import('./pages/EditAdPage'), 'EditAdPage');
 const SellerProfilePage = lazyNamed(() => import('./pages/SellerProfilePage'), 'SellerProfilePage');
+const ShopProfile = lazyNamed(() => import('./pages/ShopProfile'), 'ShopProfile');
 const SearchResultsPage = lazyNamed(() => import('./pages/SearchResultsPage'), 'SearchResultsPage');
 const AboutPage = lazyNamed(() => import('./pages/AboutPage'), 'AboutPage');
 const ContactPage = lazyNamed(() => import('./pages/ContactPage'), 'ContactPage');
@@ -296,6 +297,7 @@ const App: React.FC = () => {
             <Route path="/category/:categoryId" element={<CategoryListingPage />} />
             <Route path="/listing/:listingId" element={<ProductDetailPage />} />
             <Route path="/seller/:sellerId" element={<SellerProfilePage />} />
+            <Route path="/shop/:slug" element={<ShopProfile />} />
             <Route path="/search" element={<SearchResultsPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />

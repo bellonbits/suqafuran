@@ -143,6 +143,86 @@ def list_my_businesses(
     return crud_business.list_user_businesses(db, current_user.id)
 
 
+@router.get("/public/{slug}")
+def get_public_business(
+    slug: str,
+    db: Session = Depends(get_db)
+) -> Any:
+    """Get public profile details of a business and its products."""
+    business = crud_business.get_business_by_slug(db, slug)
+    if not business:
+        raise HTTPException(status_code=404, detail="Business not found")
+    
+    # Fetch all active products for this business
+    products_stmt = select(BusinessProduct).where(
+        BusinessProduct.business_id == business.id,
+        BusinessProduct.is_active == True
+    )
+    products = db.exec(products_stmt).all()
+    
+    return {
+        "business": business,
+        "products": products
+    }
+
+
+@router.get("/nearby")
+def get_nearby_businesses(
+    db: Session = Depends(get_db),
+    lat: Optional[float] = Query(None),
+    lng: Optional[float] = Query(None),
+    category: Optional[str] = Query(None),
+    limit: int = Query(20),
+    offset: int = Query(0)
+) -> Any:
+    """List all active businesses, optionally sorted by distance/proximity if coordinates are provided."""
+    stmt = select(Business).where(Business.is_active == True)
+    if category:
+        stmt = stmt.where(Business.category == category)
+        
+    businesses = db.exec(stmt).all()
+    
+    result = []
+    for b in businesses:
+        dist = None
+        if lat is not None and lng is not None and b.location_lat is not None and b.location_lng is not None:
+            from math import radians, cos, sin, asin, sqrt
+            lat1, lng1, lat2, lng2 = map(radians, [lat, lng, b.location_lat, b.location_lng])
+            dlon = lng2 - lng1 
+            dlat = lat2 - lat1 
+            a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+            c = 2 * asin(sqrt(a)) 
+            dist = c * 6371  # km
+            
+        result.append({
+            "id": str(b.id),
+            "owner_id": b.owner_id,
+            "name": b.name,
+            "slug": b.slug,
+            "logo_url": b.logo_url,
+            "banner_url": b.banner_url,
+            "description": b.description,
+            "category": b.category,
+            "location_lat": b.location_lat,
+            "location_lng": b.location_lng,
+            "address": b.address,
+            "phone": b.phone,
+            "email": b.email,
+            "website": b.website,
+            "is_verified": b.is_verified,
+            "rating": b.rating,
+            "trust_score": b.trust_score,
+            "brand_color": b.brand_color,
+            "tagline": b.tagline,
+            "distance_km": dist
+        })
+        
+    if lat is not None and lng is not None:
+        result.sort(key=lambda x: (x["distance_km"] is None, x["distance_km"]))
+        
+    return result[offset : offset + limit]
+
+
 @router.get("/{business_id}", response_model=Business)
 def get_business_details(
     business_id: uuid_pkg.UUID,

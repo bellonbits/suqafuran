@@ -37,7 +37,8 @@ import {
     ShieldCheck
 } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
-import { businessService, Business, Employee, BusinessProduct, BusinessCustomer, Order, BusinessMessage, TeamMessage, BusinessTask } from '../../services/businessService';
+import { listingService } from '../../services/listingService';
+import type { Business, Employee, BusinessProduct, BusinessCustomer, Order, BusinessMessage, TeamMessage, BusinessTask } from '../../services/businessService';
 import { Button } from '../../components/Button';
 import { API_BASE_URL } from '../../services/api';
 
@@ -54,7 +55,11 @@ export function BusinessDashboard() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<TabType>('overview');
 
-    // UI State for Modal / Creation
+    // Additional UI state for Storefront editing and CRM Kanban
+    const [storefrontData, setStorefrontData] = useState<Partial<Business>>({});
+    const [logoPreview, setLogoPreview] = useState<string>('');
+    const [bannerPreview, setBannerPreview] = useState<string>('');
+    const [kanbanData, setKanbanData] = useState<Record<string, BusinessCustomer[]>>({ contacted: [], negotiation: [], offerSent: [], dealClosed: [] });
     const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
     const [registerData, setRegisterData] = useState({
         name: '',
@@ -680,50 +685,56 @@ export function BusinessDashboard() {
     }
 
     return (
-        <div className="h-screen flex bg-slate-900 text-slate-100 overflow-hidden font-outfit">
+        <div className="h-screen flex bg-[#f8f9fa] text-[#1a1a1a] overflow-hidden font-sans">
             
             {/* 1. SAAS MASTER SIDEBAR */}
-            <aside className="w-64 bg-slate-950 border-r border-slate-800 flex flex-col shrink-0">
-                {/* Brand & Workspace Picker */}
-                <div className="p-5 border-b border-slate-800 space-y-3">
-                    <div className="flex items-center justify-between">
-                        <Link to="/" className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center text-white font-bold">S</div>
-                            <span className="text-base font-black uppercase tracking-wider text-white">Suqafuran OS</span>
-                        </Link>
-                    </div>
-                    
-                    {businesses.length > 0 && (
-                        <div className="relative">
-                            <select
-                                value={activeBusiness?.id || ''}
-                                onChange={(e) => {
-                                    const selected = businesses.find(b => b.id === e.target.value);
-                                    if (selected) setActiveBusiness(selected);
-                                }}
-                                className="w-full bg-slate-900 border border-slate-800 text-xs font-bold py-2 px-3 rounded-xl focus:outline-none focus:ring-1 focus:ring-sky-500 text-slate-200 cursor-pointer"
-                            >
-                                {businesses.map(b => (
-                                    <option key={b.id} value={b.id}>{b.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
+            <aside className="w-64 bg-white border-r border-[#f0f0ee] flex flex-col shrink-0">
+                {/* Brand Header */}
+                <div className="p-6 border-b border-[#f0f0ee]">
+                    <Link to="/" className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-[#1a1a1a] flex items-center justify-center text-white font-extrabold text-lg shadow-sm">B</div>
+                        <span className="text-xl font-extrabold tracking-tight text-[#1a1a1a]">BizLink</span>
+                    </Link>
                 </div>
 
+                {/* Workspaces / Active Workspace Selector */}
+                {businesses.length > 0 && (
+                    <div className="px-5 py-4 border-b border-[#f0f0ee] bg-slate-50/20">
+                        <p className="text-[10px] font-extrabold text-[#7d7d7d] uppercase tracking-wider mb-2.5 px-1">Workspaces</p>
+                        <div className="space-y-1.5 max-h-36 overflow-y-auto hide-scrollbar">
+                            {businesses.map(b => (
+                                <button
+                                    key={b.id}
+                                    onClick={() => setActiveBusiness(b)}
+                                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
+                                        activeBusiness?.id === b.id
+                                            ? 'bg-[#f4f4f0] text-[#1a1a1a] shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]'
+                                            : 'text-[#7d7d7d] hover:bg-slate-50 hover:text-[#1a1a1a]'
+                                    }`}
+                                >
+                                    <span className="truncate pr-2">{b.name}</span>
+                                    {activeBusiness?.id === b.id && (
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* Sidebar Navigation Link Tabs */}
-                <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto custom-scrollbar">
+                <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar">
                     {[
-                        { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-                        { id: 'storefront', label: 'Storefront', icon: Store },
-                        { id: 'inventory', label: 'Inventory', icon: Package },
+                        { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
+                        { id: 'tasks', label: 'Tasks', icon: CheckSquare },
+                        { id: 'crm', label: 'Customers', icon: Users },
+                        { id: 'messages', label: 'Activity / Chat', icon: MessageSquare },
+                        { id: 'storefront', label: 'Storefront Settings', icon: Store },
+                        { id: 'inventory', label: 'Inventory / Catalog', icon: Package },
                         { id: 'orders', label: 'Orders', icon: ShoppingCart },
-                        { id: 'crm', label: 'CRM / Customers', icon: Users },
-                        { id: 'team', label: 'Team roster', icon: ShieldCheck },
-                        { id: 'tasks', label: 'Kanban Tasks', icon: CheckSquare },
-                        { id: 'messages', label: 'Unified Chat', icon: MessageSquare },
+                        { id: 'team', label: 'Team Roster', icon: ShieldCheck },
                         { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-                        { id: 'ai', label: 'AI Workspace', icon: Bot }
+                        { id: 'ai', label: 'AI Copilot', icon: Bot }
                     ].map(item => {
                         const Icon = item.icon;
                         const isSel = activeTab === item.id;
@@ -731,75 +742,144 @@ export function BusinessDashboard() {
                             <button
                                 key={item.id}
                                 onClick={() => setActiveTab(item.id as TabType)}
-                                className={`flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all ${
+                                className={`flex items-center gap-3.5 w-full px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 active:scale-[0.98] ${
                                     isSel
-                                        ? 'bg-gradient-to-r from-sky-500/20 to-indigo-500/10 border-l-2 border-sky-400 text-white shadow-inner shadow-sky-500/5'
-                                        : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
+                                        ? 'bg-[#f4f4f0] text-[#1a1a1a] shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]'
+                                        : 'text-[#7d7d7d] hover:bg-slate-50 hover:text-[#1a1a1a]'
                                 }`}
                             >
-                                <Icon className={`h-4.5 w-4.5 ${isSel ? 'text-sky-400' : 'text-slate-500'}`} />
+                                <Icon className={`h-4.5 w-4.5 ${isSel ? 'text-[#1a1a1a]' : 'text-[#a3a3a3]'}`} />
                                 {item.label}
                             </button>
                         );
                     })}
                 </nav>
 
-                {/* Footer Controls */}
-                <div className="p-4 border-t border-slate-800 space-y-3.5 bg-slate-950/80">
-                    <button
-                        onClick={() => setIsRegisterModalOpen(true)}
-                        className="w-full py-2 border border-dashed border-slate-800 hover:border-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-200 transition-all"
-                    >
-                        + Create Workspace
-                    </button>
-                    
-                    <div className="flex items-center justify-between border-t border-slate-900 pt-3.5">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center font-bold text-xs">
+                {/* Members Section (Active Employees list) */}
+                <div className="px-4 py-4 border-t border-[#f0f0ee]">
+                    <div className="flex items-center justify-between px-2 mb-2.5">
+                        <p className="text-[10px] font-extrabold text-[#7d7d7d] uppercase tracking-wider">Members</p>
+                        <button
+                            onClick={() => setActiveTab('team')}
+                            className="text-[#7d7d7d] hover:text-[#1a1a1a] transition-all p-0.5 hover:bg-slate-50 rounded-md"
+                            title="Manage Team"
+                        >
+                            <Plus className="h-4 w-4" />
+                        </button>
+                    </div>
+                    <div className="space-y-2 max-h-36 overflow-y-auto hide-scrollbar">
+                        {employees.slice(0, 4).map((e, idx) => {
+                            const colors = [
+                                'bg-rose-100 text-rose-700',
+                                'bg-emerald-100 text-emerald-700',
+                                'bg-amber-100 text-amber-700',
+                                'bg-sky-100 text-sky-700'
+                            ];
+                            const avatarColor = colors[idx % colors.length];
+                            return (
+                                <div key={e.id} className="flex items-center justify-between px-2 py-1 rounded-xl transition-all duration-200 hover:bg-slate-50">
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                        <div className="relative shrink-0">
+                                            <div className={`w-7.5 h-7.5 rounded-full flex items-center justify-center font-bold text-[10px] uppercase ${avatarColor}`}>
+                                                {e.invite_email?.[0] || e.role[0]}
+                                            </div>
+                                            {e.is_active && (
+                                                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
+                                            )}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-[11px] font-bold text-[#1a1a1a] truncate">
+                                                {e.user_id ? `Member #${e.user_id}` : e.invite_email || 'Invited User'}
+                                            </p>
+                                            <p className="text-[9px] text-[#7d7d7d] font-bold uppercase tracking-wider truncate">
+                                                {e.role.replace('_', ' ')}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        {employees.length === 0 && (
+                            <p className="text-[10px] text-[#7d7d7d] italic px-2 py-1">No workers active.</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Footer Controls / Profile */}
+                <div className="p-4 border-t border-[#f0f0ee] bg-slate-50/50">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-extrabold text-xs text-[#1a1a1a]">
                                 {user?.full_name?.[0] || 'U'}
                             </div>
                             <div className="min-w-0">
-                                <p className="text-xs font-bold truncate text-slate-200">{user?.full_name}</p>
-                                <p className="text-[10px] uppercase font-black tracking-widest text-amber-500">
-                                    {myMembership?.role || 'staff'}
+                                <p className="text-xs font-bold text-[#1a1a1a] truncate">{user?.full_name}</p>
+                                <p className="text-[9px] uppercase font-bold tracking-wider text-amber-600 truncate">
+                                    {myMembership?.role || 'owner'}
                                 </p>
                             </div>
                         </div>
+                        <button
+                            onClick={() => navigate('/')}
+                            className="text-[#7d7d7d] hover:text-[#1a1a1a] transition-all p-1 hover:bg-[#f4f4f0] rounded-lg active:scale-95 duration-100"
+                            title="Return to Marketplace"
+                        >
+                            <ArrowRight className="h-4.5 w-4.5 rotate-180" />
+                        </button>
                     </div>
                 </div>
             </aside>
 
             {/* 2. MAIN HUB WORKSPACE CONTENT */}
-            <main className="flex-1 flex flex-col min-w-0 bg-slate-900 h-full overflow-hidden">
+            <main className="flex-1 flex flex-col min-w-0 bg-[#f8f9fa] h-full overflow-hidden">
                 
                 {/* 2.1 HEADER */}
-                <header className="h-16 shrink-0 border-b border-slate-800 flex items-center justify-between px-6 bg-slate-950/30 backdrop-blur-md">
-                    <div className="flex items-center gap-3">
-                        <h2 className="text-base font-black uppercase tracking-widest text-white">
-                            {activeTab}
-                        </h2>
-                        {activeBusiness && (
-                            <span className="text-[10px] font-extrabold bg-slate-800/80 border border-slate-700/50 px-2 py-0.5 rounded-full text-slate-300">
-                                Slug: /{activeBusiness.slug}
-                            </span>
-                        )}
+                <header className="h-16 shrink-0 border-b border-[#f0f0ee] bg-white flex items-center justify-between px-8">
+                    {/* Left Search Bar */}
+                    <div className="flex items-center gap-3 w-80 bg-[#f4f4f0] px-3.5 py-2 rounded-xl border border-slate-100 hover:bg-[#eaeaea]/40 transition-all duration-200">
+                        <svg className="h-4 w-4 text-[#7d7d7d]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <input
+                            type="text"
+                            placeholder={
+                                activeTab === 'crm' ? "Search customer..." :
+                                activeTab === 'inventory' ? "Search products..." : "Search workspace..."
+                            }
+                            className="bg-transparent border-none outline-none text-xs font-bold text-[#1a1a1a] placeholder-[#7d7d7d] w-full"
+                        />
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    {/* Right Controls */}
+                    <div className="flex items-center gap-4.5">
+                        <div className="flex items-center gap-3.5 text-xs font-bold text-[#7d7d7d]">
+                            <button className="flex items-center gap-1 hover:text-[#1a1a1a] transition-all duration-150 active:scale-95">
+                                <Filter className="h-3.5 w-3.5" /> Sort by
+                            </button>
+                            <button className="flex items-center gap-1 hover:text-[#1a1a1a] transition-all duration-150 active:scale-95">
+                                Filters
+                            </button>
+                            {activeBusiness && (
+                                <span className="text-[10px] font-extrabold bg-[#f4f4f0] border border-slate-200/50 px-2.5 py-1 rounded-full text-[#1a1a1a]">
+                                    slug: /{activeBusiness.slug}
+                                </span>
+                            )}
+                        </div>
+
                         {/* Live Socket Status LED indicator */}
-                        <div className="flex items-center gap-2 bg-slate-950/80 px-3 py-1 rounded-full border border-slate-800">
-                            <span className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30 animate-pulse' : 'bg-rose-500 animate-ping'}`} />
-                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                                {wsConnected ? 'Broker Online' : 'Broker Syncing'}
+                        <div className="flex items-center gap-2 bg-[#f4f4f0] px-3 py-1 rounded-full border border-slate-200/40">
+                            <span className={`w-1.5 h-1.5 rounded-full ${wsConnected ? 'bg-emerald-500 shadow-md shadow-emerald-500/20 animate-pulse' : 'bg-rose-500'}`} />
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-[#7d7d7d]">
+                                {wsConnected ? 'Broker Online' : 'Syncing'}
                             </span>
                         </div>
 
-                        {/* Quick Marketplace Redirect */}
+                        {/* Marketplace Redirect */}
                         <Link
                             to="/dashboard"
-                            className="bg-slate-850 hover:bg-slate-800 text-[10px] font-black uppercase tracking-widest py-1.5 px-3 rounded-lg text-slate-300 border border-slate-800 transition-all"
+                            className="bg-[#f4f4f0] hover:bg-[#eaeaea] text-[#1a1a1a] text-[10px] font-bold uppercase tracking-wider py-1.5 px-3.5 rounded-xl border border-slate-200/40 transition-all duration-200 active:scale-95"
                         >
-                            ← Marketplace Dashboard
+                            ← Marketplace
                         </Link>
                     </div>
                 </header>
@@ -812,36 +892,49 @@ export function BusinessDashboard() {
                         {activeTab === 'overview' && (
                             <div className="space-y-6">
                                 {/* Stats Metrics Cards Grid */}
-                                <div className="grid grid-cols-4 gap-4">
+                                <div className="grid grid-cols-4 gap-5">
                                     {[
-                                        { label: 'Workspace Sales', value: `$${analytics?.revenue || '0.00'}`, icon: DollarSign, color: 'text-emerald-500' },
-                                        { label: 'Completed Orders', value: analytics?.completed_orders || 0, icon: ShoppingCart, color: 'text-sky-500' },
-                                        { label: 'Products in Catalog', value: analytics?.product_count || 0, icon: Package, color: 'text-indigo-500' },
-                                        { label: 'CRM Active Logs', value: analytics?.customer_count || 0, icon: Users, color: 'text-amber-500' }
-                                    ].map((c, i) => (
-                                        <div key={i} className="bg-slate-950/40 border border-slate-800/80 rounded-2xl p-5 shadow-sm space-y-3 relative overflow-hidden">
-                                            <div className="flex justify-between items-start">
-                                                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">{c.label}</p>
-                                                <c.icon className={`h-5 w-5 ${c.color}`} />
+                                        { label: 'Workspace Revenue', value: `$${analytics?.revenue || '0.00'}`, trend: '+8.4%', trendColor: 'text-[#15803d] bg-[#ebf8f2]', icon: DollarSign, colorBg: 'bg-[#ebf8f2] border border-[#d1f2e1]/40', colorText: 'text-[#15803d]' },
+                                        { label: 'Completed Orders', value: analytics?.completed_orders || 0, trend: '+2.1%', trendColor: 'text-[#b45309] bg-[#fff6e0]', icon: ShoppingCart, colorBg: 'bg-[#fff6e0] border border-[#feebd1]/40', colorText: 'text-[#b45309]' },
+                                        { label: 'Products in Catalog', value: analytics?.product_count || 0, trend: 'Catalog size', trendColor: 'text-[#0369a1] bg-[#e0f2fe]', icon: Package, colorBg: 'bg-[#e0f2fe] border border-[#bde4ff]/40', colorText: 'text-[#0369a1]' },
+                                        { label: 'Active Customers', value: analytics?.customer_count || 0, trend: 'Relationships', trendColor: 'text-[#6d28d9] bg-[#faf5ff]', icon: Users, colorBg: 'bg-[#faf5ff] border border-[#f3e8ff]/40', colorText: 'text-[#6d28d9]' }
+                                    ].map((c, i) => {
+                                        const Icon = c.icon;
+                                        return (
+                                            <div key={i} className={`${c.colorBg} rounded-[24px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.01)] flex flex-col justify-between h-36 relative overflow-hidden transition-all duration-300 hover:scale-[1.02]`}>
+                                                <div className="flex justify-between items-start">
+                                                    <p className={`text-[10px] font-extrabold uppercase tracking-wider opacity-85 ${c.colorText}`}>{c.label}</p>
+                                                    <div className={`p-2 rounded-xl bg-white/60 shrink-0 ${c.colorText}`}>
+                                                        <Icon className="h-4.5 w-4.5" />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <h3 className={`text-2.5xl font-extrabold tracking-tight ${c.colorText}`}>{c.value}</h3>
+                                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${c.trendColor}`}>{c.trend}</span>
+                                                        <span className={`text-[9px] opacity-75 font-semibold ${c.colorText}`}>since last week</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <h3 className="text-2xl font-black text-white">{c.value}</h3>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
 
                                 {/* Danger Warning Alert if Stock is Low */}
                                 {analytics?.low_stock_count > 0 && (
-                                    <div className="bg-amber-950/20 border border-amber-800/50 rounded-2xl p-4 flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <ShieldAlert className="h-5 w-5 text-amber-500 shrink-0" />
+                                    <div className="bg-[#fef7e0] border border-[#fcdcad]/50 rounded-[20px] p-4 flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.015)]">
+                                        <div className="flex items-center gap-3.5">
+                                            <div className="p-2 bg-amber-100 rounded-xl text-amber-700 shrink-0">
+                                                <ShieldAlert className="h-5 w-5" />
+                                            </div>
                                             <div>
-                                                <h4 className="text-xs font-black uppercase text-amber-400">Inventory Alert</h4>
-                                                <p className="text-[11px] text-slate-300 font-medium">There are {analytics.low_stock_count} products falling below their minimum stock threshold.</p>
+                                                <h4 className="text-xs font-bold uppercase text-amber-800 tracking-wider">Inventory Restock Alert</h4>
+                                                <p className="text-xs text-amber-700 font-bold mt-0.5">There are {analytics.low_stock_count} products falling below their minimum stock threshold.</p>
                                             </div>
                                         </div>
                                         <button
                                             onClick={() => setActiveTab('inventory')}
-                                            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all"
+                                            className="px-4 py-2 bg-[#1a1a1a] hover:bg-[#2d2d2d] text-white text-xs font-bold rounded-xl transition-all duration-200 active:scale-95 shadow-sm"
                                         >
                                             Restock Now
                                         </button>
@@ -851,16 +944,16 @@ export function BusinessDashboard() {
                                 {/* Main overview details */}
                                 <div className="grid grid-cols-3 gap-6">
                                     {/* Quick Order Logging Widget */}
-                                    <div className="col-span-1 bg-slate-950/30 border border-slate-800/80 rounded-2xl p-5 space-y-4">
-                                        <h3 className="text-xs font-black uppercase tracking-wider text-slate-200">Log Manual Sale</h3>
-                                        <form onSubmit={handleRecordOrder} className="space-y-3">
+                                    <div className="col-span-1 bg-white border border-[#f0f0ee] rounded-[24px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.015)] space-y-5">
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-[#1a1a1a]">Log Manual Sale</h3>
+                                        <form onSubmit={handleRecordOrder} className="space-y-4">
                                             <div>
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Product</label>
+                                                <label className="text-[10px] font-extrabold text-[#7d7d7d] uppercase tracking-wider">Select Product</label>
                                                 <select
                                                     value={newOrder.product_id}
                                                     onChange={e => setNewOrder(prev => ({ ...prev, product_id: e.target.value }))}
                                                     required
-                                                    className="w-full bg-slate-900 border border-slate-800 text-xs py-2 px-3 rounded-lg text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500 mt-1"
+                                                    className="w-full bg-[#f8f9fa] border border-[#f0f0ee] text-xs font-bold py-2.5 px-3.5 rounded-xl text-[#1a1a1a] focus:outline-none focus:border-[#1a1a1a] focus:ring-1 focus:ring-[#1a1a1a] mt-1.5 transition-all"
                                                 >
                                                     <option value="">-- Choose Item --</option>
                                                     {products.map(p => (
@@ -868,36 +961,36 @@ export function BusinessDashboard() {
                                                     ))}
                                                 </select>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-2">
+                                            <div className="grid grid-cols-2 gap-3">
                                                 <div>
-                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Quantity</label>
+                                                    <label className="text-[10px] font-extrabold text-[#7d7d7d] uppercase tracking-wider">Quantity</label>
                                                     <input
                                                         type="number"
                                                         value={newOrder.qty}
                                                         onChange={e => setNewOrder(prev => ({ ...prev, qty: e.target.value }))}
                                                         required
                                                         min="1"
-                                                        className="w-full bg-slate-900 border border-slate-800 text-xs py-2 px-3 rounded-lg text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500 mt-1"
+                                                        className="w-full bg-[#f8f9fa] border border-[#f0f0ee] text-xs font-bold py-2.5 px-3.5 rounded-xl text-[#1a1a1a] focus:outline-none focus:border-[#1a1a1a] focus:ring-1 focus:ring-[#1a1a1a] mt-1.5 transition-all"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Customer ID</label>
+                                                    <label className="text-[10px] font-extrabold text-[#7d7d7d] uppercase tracking-wider">Customer</label>
                                                     <select
                                                         value={newOrder.customer_id}
                                                         onChange={e => setNewOrder(prev => ({ ...prev, customer_id: e.target.value }))}
                                                         required
-                                                        className="w-full bg-slate-900 border border-slate-800 text-xs py-2 px-3 rounded-lg text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-500 mt-1"
+                                                        className="w-full bg-[#f8f9fa] border border-[#f0f0ee] text-xs font-bold py-2.5 px-3.5 rounded-xl text-[#1a1a1a] focus:outline-none focus:border-[#1a1a1a] focus:ring-1 focus:ring-[#1a1a1a] mt-1.5 transition-all"
                                                     >
-                                                        <option value="">-- Customer --</option>
+                                                        <option value="">-- Choose --</option>
                                                         {customers.map(c => (
-                                                            <option key={c.id} value={c.user_id}>ID: {c.user_id} ({c.segmentation})</option>
+                                                            <option key={c.id} value={c.user_id}>Customer #{c.user_id}</option>
                                                         ))}
                                                     </select>
                                                 </div>
                                             </div>
                                             <button
                                                 type="submit"
-                                                className="w-full py-2 bg-gradient-to-r from-sky-500 to-indigo-600 text-white text-[10px] font-black uppercase tracking-wider rounded-xl transition-all"
+                                                className="w-full py-2.5 bg-[#1a1a1a] hover:bg-[#2d2d2d] text-white text-xs font-bold rounded-xl transition-all duration-200 shadow-sm active:scale-95"
                                             >
                                                 Log Order Completion
                                             </button>
@@ -905,13 +998,21 @@ export function BusinessDashboard() {
                                     </div>
 
                                     {/* Workspace activity lists */}
-                                    <div className="col-span-2 bg-slate-950/30 border border-slate-800/80 rounded-2xl p-5 space-y-4">
-                                        <h3 className="text-xs font-black uppercase tracking-wider text-slate-200">Recent Workspace Orders</h3>
+                                    <div className="col-span-2 bg-white border border-[#f0f0ee] rounded-[24px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.015)] space-y-5">
+                                        <div className="flex justify-between items-center">
+                                            <h3 className="text-xs font-bold uppercase tracking-wider text-[#1a1a1a]">Recent Workspace Orders</h3>
+                                            <button
+                                                onClick={() => setActiveTab('orders')}
+                                                className="text-xs font-bold text-[#7d7d7d] hover:text-[#1a1a1a] transition-all"
+                                            >
+                                                See all
+                                            </button>
+                                        </div>
                                         <div className="overflow-x-auto">
-                                            <table className="w-full text-left text-xs">
+                                            <table className="w-full text-left text-xs font-semibold text-[#1a1a1a]">
                                                 <thead>
-                                                    <tr className="border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
-                                                        <th className="py-2.5">ID</th>
+                                                    <tr className="border-b border-[#f0f0ee] text-[#7d7d7d] font-bold uppercase tracking-wider">
+                                                        <th className="py-3">ID</th>
                                                         <th>Customer</th>
                                                         <th>Amount</th>
                                                         <th>Method</th>
@@ -921,24 +1022,29 @@ export function BusinessDashboard() {
                                                 </thead>
                                                 <tbody>
                                                     {orders.slice(-5).reverse().map(o => (
-                                                        <tr key={o.id} className="border-b border-slate-800/50 hover:bg-slate-900/30 text-slate-300 font-medium">
-                                                            <td className="py-2.5 font-bold">#{o.id}</td>
-                                                            <td>User {o.customer_id}</td>
-                                                            <td className="font-bold text-white">${o.total_amount}</td>
-                                                            <td className="capitalize">{o.payment_method}</td>
+                                                        <tr key={o.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                                            <td className="py-3.5 font-bold">#{o.id}</td>
+                                                            <td>Customer #{o.customer_id}</td>
+                                                            <td className="font-bold text-[#1a1a1a]">${o.total_amount}</td>
+                                                            <td className="capitalize text-[#7d7d7d]">{o.payment_method}</td>
                                                             <td>
-                                                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                                                                    o.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                                    o.status === 'pending' ? 'bg-amber-500/20 text-amber-400' : 'bg-slate-800 text-slate-400'
+                                                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                                                    o.status === 'completed' ? 'bg-[#e6f4ea] text-[#137333]' :
+                                                                    o.status === 'pending' ? 'bg-[#fef7e0] text-[#b06000]' : 'bg-slate-100 text-[#7d7d7d]'
                                                                 }`}>
                                                                     {o.status}
                                                                 </span>
                                                             </td>
-                                                            <td className="text-slate-500 text-[10px]">
+                                                            <td className="text-[#7d7d7d] text-[10px]">
                                                                 {new Date(o.created_at).toLocaleDateString()}
                                                             </td>
                                                         </tr>
                                                     ))}
+                                                    {orders.length === 0 && (
+                                                        <tr>
+                                                            <td colSpan={6} className="py-8 text-center text-[#7d7d7d] italic">No orders logged in this workspace yet.</td>
+                                                        </tr>
+                                                    )}
                                                 </tbody>
                                             </table>
                                         </div>
@@ -946,6 +1052,66 @@ export function BusinessDashboard() {
                                 </div>
                             </div>
                         )}
+
+                        {/* --- TAB: CRM --- */}
+                        {activeTab === 'crm' && (
+                             <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-lg">
+                                 <h3 className="text-lg font-bold text-slate-800 mb-4">CRM Overview</h3>
+                                 <div className="grid grid-cols-4 gap-4 mb-6">
+                                     <div className="bg-white/60 backdrop-blur rounded-xl p-4 shadow">
+                                         <p className="text-xs font-medium text-slate-600">Revenue</p>
+                                         <p className="text-2xl font-bold text-slate-800">${analytics?.revenue?.toFixed(2) ?? '0.00'}</p>
+                                     </div>
+                                     <div className="bg-white/60 backdrop-blur rounded-xl p-4 shadow">
+                                         <p className="text-xs font-medium text-slate-600">Orders</p>
+                                         <p className="text-2xl font-bold text-slate-800">{analytics?.completed_orders ?? 0}</p>
+                                     </div>
+                                     <div className="bg-white/60 backdrop-blur rounded-xl p-4 shadow">
+                                         <p className="text-xs font-medium text-slate-600">Customers</p>
+                                         <p className="text-2xl font-bold text-slate-800">{analytics?.customer_count ?? 0}</p>
+                                     </div>
+                                     <div className="bg-white/60 backdrop-blur rounded-xl p-4 shadow">
+                                         <p className="text-xs font-medium text-slate-600">Loyalty</p>
+                                         <p className="text-2xl font-bold text-slate-800">{analytics?.loyalty_score ?? 0}</p>
+                                     </div>
+                                 </div>
+                                 <div className="grid grid-cols-2 gap-4 mb-6">
+                                     <div className="bg-white/60 backdrop-blur rounded-xl p-4 flex items-center">
+                                         <div className="w-1/2">
+                                             <p className="text-xs font-medium text-slate-600">New Customers (Mon-Fri)</p>
+                                             <div className="flex space-x-1 mt-2">
+                                                 {["Mon","Tue","Wed","Thu","Fri"].map((day,i)=> (
+                                                     <div key={day} className="flex-1 h-4 bg-slate-200 rounded" style={{height: `${Math.random()*60+20}%`}}></div>
+                                                 ))}
+                                             </div>
+                                         </div>
+                                     </div>
+                                     <div className="bg-white/60 backdrop-blur rounded-xl p-4 flex items-center justify-center">
+                                         <svg viewBox="0 0 100 50" className="w-24 h-24">
+                                             <path d="M10,45 A40,40 0 0,1 90,45" fill="none" stroke="#e5e7eb" strokeWidth="10"/>
+                                             <path d="M10,45 A40,40 0 0,1 90,45" fill="none" stroke="#3b82f6" strokeWidth="10" strokeDasharray="251.2" strokeDashoffset={`${251.2 - (251.2 * (analytics?.deal_success_rate||0)/100)}`}/>
+                                             <text x="50" y="30" textAnchor="middle" className="text-sm fill-slate-800 font-bold">{analytics?.deal_success_rate ?? 0}%</text>
+                                         </svg>
+                                     </div>
+                                 </div>
+                                 <h4 className="text-md font-semibold text-slate-700 mb-2">Deal Pipeline</h4>
+                                 <div className="grid grid-cols-4 gap-4">
+                                     {['contacted','negotiation','offerSent','dealClosed'].map(col => (
+                                         <div key={col} className="bg-white/60 backdrop-blur rounded-xl p-3 min-h-[200px]">
+                                             <h5 className="text-sm font-medium text-slate-600 capitalize mb-2">{col.replace(/([A-Z])/g, ' $1')}</h5>
+                                             <div className="space-y-2">
+                                                 {kanbanData[col]?.map(cust => (
+                                                     <div key={cust.id} className="bg-white border border-slate-200 rounded p-2 shadow-sm hover:shadow-md transition-shadow cursor-move">
+                                                         <p className="text-xs font-bold">Customer #{cust.user_id}</p>
+                                                         <p className="text-xs text-slate-500">{cust.notes?.slice(0,30)}</p>
+                                                     </div>
+                                                 ))}
+                                             </div>
+                                         </div>
+                                     ))}
+                                 </div>
+                             </div>
+                         )}
 
                         {/* --- TAB: STOREFRONT --- */}
                         {activeTab === 'storefront' && (
@@ -958,15 +1124,14 @@ export function BusinessDashboard() {
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Business Title</label>
                                             <input
                                                 type="text"
-                                                value={activeBusiness?.name || ''}
-                                                disabled
-                                                className="w-full bg-slate-900 border border-slate-800 text-xs py-2.5 px-3 rounded-lg text-slate-400 mt-1 cursor-not-allowed"
+                                                value={storefrontData.name ?? activeBusiness?.name ?? ''}
+                                                onChange={e => setStorefrontData(prev => ({ ...prev, name: e.target.value }))}
+                                                className="w-full bg-white border border-slate-300 text-xs py-2.5 px-3.5 rounded-lg text-slate-800 mt-1"
                                             />
                                         </div>
                                         <div>
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Workspace Bio / Description</label>
                                             <textarea
-                                                value={activeBusiness?.description || ''}
                                                 disabled
                                                 rows={3}
                                                 className="w-full bg-slate-900 border border-slate-800 text-xs py-2 px-3 rounded-lg text-slate-400 mt-1 cursor-not-allowed"

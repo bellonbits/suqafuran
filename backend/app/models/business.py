@@ -39,6 +39,8 @@ class Business(SQLModel, table=True):
     is_active: bool = Field(default=True, index=True)
     rating: float = Field(default=0.0)
     trust_score: int = Field(default=0)
+    brand_color: Optional[str] = Field(default="#2563eb")
+    tagline: Optional[str] = Field(default=None)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 

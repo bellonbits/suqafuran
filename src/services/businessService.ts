@@ -20,6 +20,8 @@ export interface Business {
     rating: number;
     trust_score: number;
     is_active: boolean;
+    brand_color?: string;
+    tagline?: string;
     created_at: string;
     updated_at: string;
 }
@@ -376,5 +378,22 @@ export const businessService = {
             customer_id: customerId,
         });
         return data.summary;
+    },
+
+    // Public Storefront methods
+    getPublicShop: async (slug: string): Promise<{ business: Business; products: BusinessProduct[] }> => {
+        const { data } = await api.get<{ business: Business; products: BusinessProduct[] }>(`/businesses/public/${slug}`);
+        return data;
+    },
+
+    getNearbyShops: async (params?: {
+        lat?: number;
+        lng?: number;
+        category?: string;
+        limit?: number;
+        offset?: number;
+    }): Promise<(Business & { distance_km?: number })[]> => {
+        const { data } = await api.get<(Business & { distance_km?: number })[]>('/businesses/nearby', { params });
+        return data;
     },
 };

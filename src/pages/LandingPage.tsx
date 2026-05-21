@@ -5,9 +5,11 @@ import { useQuery } from '@tanstack/react-query';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { ProductCard } from '../components/ProductCard';
 import { listingService } from '../services/listingService';
+import { businessService } from '../services/businessService';
 import {
     MapPin, TrendingUp, ShieldCheck, Loader2,
-    ChevronRight, ShoppingBag, ArrowRight, Zap, ChevronDown, Flame
+    ChevronRight, ShoppingBag, ArrowRight, Zap, ChevronDown, Flame,
+    Sparkles, Store
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { LocationPickerModal } from '../components/LocationPickerModal';
@@ -22,7 +24,7 @@ const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const { getField } = useLanguageField();
-    const { city: detectedCity } = useLocationStore();
+    const { city: detectedCity, lat: userLat, lng: userLng } = useLocationStore();
     const [isLocationOpen, setLocationOpen] = useState(false);
     const [showAllCats, setShowAllCats] = useState(false);
     const [selectedLocation, setSelectedLocation] = useState(detectedCity || '');
@@ -43,6 +45,16 @@ const LandingPage: React.FC = () => {
     const { data: hotDealsData, isLoading: hotDealsLoading } = useQuery({
         queryKey: ['hot-deals', selectedLocation],
         queryFn: () => listingService.getListings({ limit: 8, location: selectedLocation || undefined }),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const { data: nearbyShops, isLoading: shopsLoading } = useQuery({
+        queryKey: ['nearby-shops', userLat, userLng],
+        queryFn: () => businessService.getNearbyShops({
+            lat: userLat || undefined,
+            lng: userLng || undefined,
+            limit: 8
+        }),
         staleTime: 5 * 60 * 1000,
     });
 
@@ -178,6 +190,69 @@ const LandingPage: React.FC = () => {
                 </div>
 
 
+
+
+                {/* Shops Near You Mobile */}
+                {(!shopsLoading && nearbyShops && nearbyShops.length > 0) && (
+                    <div className="bg-white py-4 border-b border-gray-100 mb-2">
+                        <div className="px-4 mb-3 flex items-center justify-between">
+                            <div className="flex items-center gap-1.5">
+                                <Store className="w-5 h-5 text-primary-500 animate-pulse" />
+                                <h2 className="text-[15px] font-extrabold text-gray-900">Shops Near You</h2>
+                            </div>
+                        </div>
+
+                        <div className="overflow-x-auto pb-2 scrollbar-none">
+                            <div className="flex gap-4 px-4" style={{ width: 'max-content' }}>
+                                {nearbyShops.map((shop) => (
+                                    <div
+                                        key={shop.id}
+                                        onClick={() => navigate(`/shop/${shop.slug}`)}
+                                        className="w-48 bg-slate-900 border border-slate-800 rounded-3xl p-4 flex flex-col justify-between hover:border-primary-500/30 transition-all cursor-pointer shadow-sm group active:scale-98"
+                                    >
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <div className="w-10 h-10 rounded-xl bg-slate-950 overflow-hidden flex items-center justify-center shrink-0 border border-slate-800">
+                                                    {shop.logo_url ? (
+                                                        <img src={getImageUrl(shop.logo_url)} alt={shop.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full text-white font-black text-sm uppercase flex items-center justify-center" style={{ backgroundColor: shop.brand_color || '#2563eb' }}>
+                                                            {shop.name.charAt(0)}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <h3 className="text-xs font-black text-white truncate leading-tight group-hover:text-primary-400 transition-colors flex items-center gap-0.5">
+                                                        {shop.name}
+                                                        {shop.is_verified && <ShieldCheck className="h-3 w-3 text-amber-500 fill-amber-500/10 shrink-0" />}
+                                                    </h3>
+                                                    <span className="text-[9px] uppercase tracking-wider text-gray-500 font-bold">{shop.category}</span>
+                                                </div>
+                                            </div>
+                                            {shop.tagline && (
+                                                <p className="text-[10px] text-gray-400 line-clamp-2 leading-relaxed italic mb-3">"{shop.tagline}"</p>
+                                            )}
+                                        </div>
+
+                                        <div className="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px]">
+                                            <span className="text-gray-500 flex items-center gap-0.5 truncate max-w-[90px]">
+                                                <MapPin className="h-3 w-3 shrink-0" />
+                                                {shop.distance_km !== null && shop.distance_km !== undefined ? (
+                                                    `${shop.distance_km.toFixed(1)} km`
+                                                ) : (
+                                                    shop.address || 'Nearby'
+                                                )}
+                                            </span>
+                                            <span className="text-white font-bold shrink-0 bg-primary-950/40 border border-primary-500/20 text-primary-400 px-2 py-0.5 rounded-full uppercase scale-90">
+                                                Visit
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
 
                 {/* Section header — Hot Deals */}
@@ -364,6 +439,79 @@ const LandingPage: React.FC = () => {
                                 </div>
 
 
+
+
+                                {/* Shops Near You Desktop */}
+                                {(!shopsLoading && nearbyShops && nearbyShops.length > 0) && (
+                                    <div className="bg-slate-900 p-6 rounded-3xl shadow-lg border border-slate-800">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-2">
+                                                <Store className="h-5 w-5 text-primary-500 animate-pulse" />
+                                                <h2 className="text-lg font-black text-white tracking-tight uppercase">Shops Near You</h2>
+                                            </div>
+                                            <span className="text-[10px] font-bold text-gray-500 bg-slate-950 px-2.5 py-1 rounded-full border border-slate-800 uppercase tracking-widest">
+                                                Local Merchants
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+                                            {nearbyShops.map((shop) => (
+                                                <div
+                                                    key={shop.id}
+                                                    onClick={() => navigate(`/shop/${shop.slug}`)}
+                                                    className="bg-slate-950 border border-slate-900 hover:border-primary-500/25 hover:shadow-xl hover:-translate-y-0.5 rounded-3xl p-5 flex flex-col justify-between transition-all duration-300 cursor-pointer group relative overflow-hidden"
+                                                >
+                                                    {/* subtle ambient color overlay */}
+                                                    <div className="absolute top-0 right-0 w-24 h-24 rounded-full filter blur-xl opacity-[0.03] pointer-events-none" style={{ backgroundColor: shop.brand_color || '#2563eb' }} />
+                                                    
+                                                    <div>
+                                                        <div className="flex items-center gap-3 mb-4">
+                                                            <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center shrink-0 overflow-hidden shadow-inner group-hover:scale-105 transition-transform duration-300">
+                                                                {shop.logo_url ? (
+                                                                    <img src={getImageUrl(shop.logo_url)} alt={shop.name} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <div className="w-full h-full text-white font-black text-base uppercase flex items-center justify-center" style={{ backgroundColor: shop.brand_color || '#2563eb' }}>
+                                                                        {shop.name.charAt(0)}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <h3 className="text-sm font-black text-white truncate leading-tight group-hover:text-primary-400 transition-colors flex items-center gap-1">
+                                                                    {shop.name}
+                                                                    {shop.is_verified && <ShieldCheck className="h-4 w-4 text-amber-500 fill-amber-500/10 shrink-0" />}
+                                                                </h3>
+                                                                <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">{shop.category}</span>
+                                                            </div>
+                                                        </div>
+
+                                                        {shop.tagline ? (
+                                                            <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed italic mb-4">"{shop.tagline}"</p>
+                                                        ) : (
+                                                            <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed mb-4">Visit our storefront to discover premium deals and listings catalog.</p>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="pt-3 border-t border-slate-900 flex items-center justify-between text-xs">
+                                                        <span className="text-gray-400 flex items-center gap-1 truncate font-medium max-w-[110px]">
+                                                            <MapPin className="h-3.5 w-3.5 text-gray-500 shrink-0" />
+                                                            {shop.distance_km !== null && shop.distance_km !== undefined ? (
+                                                                `${shop.distance_km.toFixed(1)} km away`
+                                                            ) : (
+                                                                shop.address || 'Nearby'
+                                                            )}
+                                                        </span>
+                                                        <span 
+                                                            className="text-white font-extrabold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider transition-all"
+                                                            style={{ backgroundColor: `${shop.brand_color || '#2563eb'}20`, border: `1px solid ${shop.brand_color || '#2563eb'}40`, color: shop.brand_color || '#2563eb' }}
+                                                        >
+                                                            Enter
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
 
 
                                 {/* Hot Deals Desktop */}
