@@ -44,6 +44,18 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
 
+  kafdrop:
+    image: obsidiandelta/kafdrop:latest
+    container_name: suqafuran_kafdrop
+    restart: always
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: "kafka:29092"
+      JVM_OPTS: "-Xms32M -Xmx64M"
+    depends_on:
+      - kafka
+
   api:
     build:
       context: ./backend
