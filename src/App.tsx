@@ -67,6 +67,7 @@ const PerformancePage = lazyNamed(() => import('./pages/PerformancePage'), 'Perf
 const ProSalesPage = lazyNamed(() => import('./pages/ProSalesPage'), 'ProSalesPage');
 const PremiumPage = lazyNamed(() => import('./pages/PremiumPage'), 'PremiumPage');
 const DiscoveryFeedPage = lazy(() => import('./pages/DiscoveryFeedPage'));
+const BusinessDashboard = lazyNamed(() => import('./pages/business/BusinessDashboard'), 'BusinessDashboard');
 
 // Lazy load pages - Default Exports (Admin/Agent Pages)
 const AdminCategoriesPage = lazy(() => import('./pages/admin/AdminCategoriesPage'));
@@ -287,6 +288,9 @@ const App: React.FC = () => {
 
             {/* Messages — accessible to all, guards internally */}
             <Route path="/messages" element={<MessagesPage />} />
+
+            {/* Business Hub SaaS Workspace */}
+            <Route path="/business" element={<ProtectedRoute><BusinessDashboard /></ProtectedRoute>} />
 
             {/* Public Pages with Layout */}
             <Route path="/category/:categoryId" element={<CategoryListingPage />} />

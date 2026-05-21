@@ -1,5 +1,6 @@
 from typing import Any, Dict, Optional
 from app.tasks.email_tasks import dispatch_growth_email_task
+from app.services.kafka_service import kafka_service
 
 
 def trigger_event(
@@ -12,7 +13,16 @@ def trigger_event(
     Unified operational Event Bus to trigger enterprise growth campaigns, transactional receipts,
     moderation actions, and security warning alerts across the Suqafuran ecosystem.
     Delegates all dispatches asynchronously to background Celery / Redis queues.
+    Also streams events in real-time to Confluent Kafka event brokers.
     """
+    # Stream event in real-time to Confluent Kafka
+    business_id = payload.get("business_id")
+    kafka_service.send_event(
+        event_type=event_name,
+        payload=payload,
+        key=str(business_id) if business_id else (str(user_id) if user_id else None)
+    )
+
     email = payload.get("email")
     if not email:
         return

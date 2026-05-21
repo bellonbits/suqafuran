@@ -79,6 +79,14 @@ class Settings(BaseSettings):
             return f"redis://:{password}@{host}:{port}/{db}"
         return f"redis://{host}:{port}/{db}"
 
+    # KAFKA
+    KAFKA_BOOTSTRAP_SERVERS: Optional[str] = "localhost:9092"
+    KAFKA_SASL_USERNAME: Optional[str] = None
+    KAFKA_SASL_PASSWORD: Optional[str] = None
+    KAFKA_SECURITY_PROTOCOL: str = "PLAINTEXT"
+    KAFKA_SASL_MECHANISM: str = "PLAIN"
+    KAFKA_TOPIC_BUSINESS_EVENTS: str = "suqafuran-business-events"
+
     # EMAIL
     EMAILS_ENABLED: bool = True
     SMTP_TLS: bool = False

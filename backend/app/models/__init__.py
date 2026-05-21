@@ -17,6 +17,17 @@ from app.models.support import SupportTicket
 from app.models.device import Device, UserDeviceLink
 from app.models.fraud import FraudEvent, RiskHistory
 from app.models.email_log import EmailLog
+from app.models.business import (
+    Business,
+    Employee,
+    BusinessProduct,
+    BusinessCustomer,
+    Order,
+    BusinessMessage,
+    TeamMessage,
+    BusinessTask,
+    BusinessRole,
+)
 
 __all__ = [
     "User",
@@ -49,4 +60,13 @@ __all__ = [
     "UserDeviceLink",
     "FraudEvent",
     "RiskHistory",
+    "Business",
+    "Employee",
+    "BusinessProduct",
+    "BusinessCustomer",
+    "Order",
+    "BusinessMessage",
+    "TeamMessage",
+    "BusinessTask",
+    "BusinessRole",
 ]

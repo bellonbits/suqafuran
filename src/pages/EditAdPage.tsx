@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronLeft, Plus, X, CheckCircle2, Loader2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Plus, X, CheckCircle2, Loader2, Pencil } from 'lucide-react';
 
 import { listingService } from '../services/listingService';
 import imageCompression from 'browser-image-compression';
@@ -81,6 +81,7 @@ const EditAdPage: React.FC = () => {
     const [queuedFiles, setQueuedFiles] = useState<File[]>([]);
     const [currentCropFile, setCurrentCropFile] = useState<File | null>(null);
     const [currentCropUrl, setCurrentCropUrl] = useState<string | null>(null);
+    const [editingImageIndex, setEditingImageIndex] = useState<number | null>(null);
 
 
     // Fetch existing listing
@@ -189,11 +190,47 @@ const EditAdPage: React.FC = () => {
     };
 
     const handleCropComplete = (croppedFile: File) => {
-        processUpload(croppedFile);
+        if (editingImageIndex !== null) {
+            processReplaceUpload(croppedFile, editingImageIndex);
+        } else {
+            processUpload(croppedFile);
+        }
+    };
+
+    const processReplaceUpload = async (file: File, index: number) => {
+        try {
+            const options = { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true };
+            const compressedBlob = await imageCompression(file, options);
+            const compressedFile = new File([compressedBlob], file.name, { type: compressedBlob.type || file.type });
+            const result = await listingService.uploadImage(compressedFile);
+            setForm(f => {
+                const newImages = [...f.images];
+                newImages[index] = result.url;
+                return { ...f, images: newImages };
+            });
+        } catch {
+            /* skip */
+        } finally {
+            setEditingImageIndex(null);
+            if (currentCropUrl && !currentCropUrl.startsWith('http')) URL.revokeObjectURL(currentCropUrl);
+            setCurrentCropFile(null);
+            setCurrentCropUrl(null);
+        }
+    };
+
+    const editImage = (idx: number, url: string) => {
+        setEditingImageIndex(idx);
+        setCurrentCropUrl(url);
+        setCurrentCropFile(null);
     };
 
     const handleCropSkip = () => {
-        if (currentCropFile) {
+        if (editingImageIndex !== null) {
+            setEditingImageIndex(null);
+            if (currentCropUrl && !currentCropUrl.startsWith('http')) URL.revokeObjectURL(currentCropUrl);
+            setCurrentCropFile(null);
+            setCurrentCropUrl(null);
+        } else if (currentCropFile) {
             processUpload(currentCropFile);
         } else {
             processNextInQueue();
@@ -432,9 +469,18 @@ const EditAdPage: React.FC = () => {
                                     <span className="text-[10px] text-gray-400">Add Photo</span>
                                 </button>
                                 {form.images.map((img, i) => (
-                                    <div key={i} className="aspect-square rounded-lg bg-gray-50 relative group overflow-hidden">
+                                    <div key={i} className="aspect-square rounded-lg bg-gray-50 relative group/img overflow-hidden">
                                         <img src={getImageUrl(img)} alt="" className="w-full h-full object-cover" />
-                                        <button onClick={() => removeImage(i)} className="absolute top-1 right-1 bg-red-500 text-white p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><X size={12} /></button>
+                                        {/* Edit overlay on hover/tap */}
+                                        <button
+                                            type="button"
+                                            onClick={() => editImage(i, getImageUrl(img))}
+                                            className="absolute inset-0 bg-black/40 rounded-lg flex flex-col items-center justify-center gap-1 opacity-0 group-hover/img:opacity-100 transition-opacity"
+                                        >
+                                            <Pencil size={18} color="white" />
+                                            <span className="text-white text-[10px] font-bold">Edit</span>
+                                        </button>
+                                        <button onClick={() => removeImage(i)} className="absolute top-1 right-1 bg-red-500 text-white p-0.5 rounded-full opacity-0 group-hover/img:opacity-100 transition-opacity z-10"><X size={12} /></button>
                                     </div>
                                 ))}
                             </div>
@@ -496,12 +542,16 @@ const EditAdPage: React.FC = () => {
 
             {/* Image Cropper Modal */}
             <ImageCropperModal
-                isOpen={!!currentCropFile}
+                isOpen={!!(currentCropFile || currentCropUrl)}
                 onClose={() => {
-                    if (currentCropUrl) URL.revokeObjectURL(currentCropUrl);
+                    if (editingImageIndex !== null) {
+                        setEditingImageIndex(null);
+                    } else {
+                        setQueuedFiles([]);
+                    }
+                    if (currentCropUrl && !currentCropUrl.startsWith('http')) URL.revokeObjectURL(currentCropUrl);
                     setCurrentCropFile(null);
                     setCurrentCropUrl(null);
-                    setQueuedFiles([]); // cancel remaining queue
                 }}
                 imageSrc={currentCropUrl}
                 onCropComplete={handleCropComplete}

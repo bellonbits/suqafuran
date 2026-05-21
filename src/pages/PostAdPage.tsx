@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
-import { ChevronRight, ChevronLeft, Plus, X, Shield, ShieldAlert, Clock, CheckCircle2, Loader2, Zap, Sparkles } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Plus, X, Shield, ShieldAlert, Clock, CheckCircle2, Loader2, Zap, Sparkles, Pencil } from 'lucide-react';
 
 import { listingService } from '../services/listingService';
 import imageCompression from 'browser-image-compression';
@@ -96,6 +96,7 @@ const PostAdPage: React.FC = () => {
     const [queuedFiles, setQueuedFiles] = useState<File[]>([]);
     const [currentCropFile, setCurrentCropFile] = useState<File | null>(null);
     const [currentCropUrl, setCurrentCropUrl] = useState<string | null>(null);
+    const [editingImageIndex, setEditingImageIndex] = useState<number | null>(null);
 
 
     const { data: verificationStatus } = useQuery({
@@ -277,11 +278,53 @@ const PostAdPage: React.FC = () => {
     };
 
     const handleCropComplete = (croppedFile: File) => {
-        processUpload(croppedFile);
+        if (editingImageIndex !== null) {
+            // Replace existing image at this index
+            processReplaceUpload(croppedFile, editingImageIndex);
+        } else {
+            processUpload(croppedFile);
+        }
+    };
+
+    const processReplaceUpload = async (file: File, index: number) => {
+        setUploading(true);
+        try {
+            const options = { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true };
+            const compressedBlob = await imageCompression(file, options);
+            const compressedFile = new File([compressedBlob], file.name, { type: compressedBlob.type || file.type });
+            const result = await listingService.uploadImage(compressedFile);
+            setForm(f => {
+                const newImages = [...f.images];
+                const newHashes = [...f.image_hashes];
+                newImages[index] = result.url;
+                newHashes[index] = result.phash || '';
+                return { ...f, images: newImages, image_hashes: newHashes };
+            });
+        } catch {
+            // silently skip
+        } finally {
+            setUploading(false);
+            setEditingImageIndex(null);
+            if (currentCropUrl) URL.revokeObjectURL(currentCropUrl);
+            setCurrentCropFile(null);
+            setCurrentCropUrl(null);
+        }
+    };
+
+    const editImage = (idx: number, url: string) => {
+        setEditingImageIndex(idx);
+        setCurrentCropUrl(url);
+        setCurrentCropFile(null); // no local file, editing an existing hosted image
     };
 
     const handleCropSkip = () => {
-        if (currentCropFile) {
+        if (editingImageIndex !== null) {
+            // Skip = keep original, just close
+            setEditingImageIndex(null);
+            if (currentCropUrl) URL.revokeObjectURL(currentCropUrl);
+            setCurrentCropFile(null);
+            setCurrentCropUrl(null);
+        } else if (currentCropFile) {
             processUpload(currentCropFile);
         } else {
             processNextInQueue();
@@ -947,15 +990,24 @@ const PostAdPage: React.FC = () => {
                             {form.images.length > 0 && (
                                 <div className="grid grid-cols-4 gap-2 mt-2">
                                     {form.images.map((url, i) => (
-                                        <div key={i} className="relative aspect-square">
+                                        <div key={i} className="relative aspect-square group/img">
                                             <img src={getImageUrl(url)} alt="" className="w-full h-full object-cover rounded-lg border border-gray-200" />
                                             {i === 0 && (
                                                 <span className="absolute bottom-1 left-1 bg-primary-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">Cover</span>
                                             )}
+                                            {/* Edit overlay on hover/tap */}
+                                            <button
+                                                type="button"
+                                                onClick={() => editImage(i, getImageUrl(url))}
+                                                className="absolute inset-0 bg-black/40 rounded-lg flex flex-col items-center justify-center gap-1 opacity-0 group-hover/img:opacity-100 transition-opacity"
+                                            >
+                                                <Pencil size={18} color="white" />
+                                                <span className="text-white text-[10px] font-bold">Edit</span>
+                                            </button>
                                             <button
                                                 type="button"
                                                 onClick={() => removeImage(i)}
-                                                className="absolute -top-1.5 -right-1.5 bg-red-500 w-5 h-5 rounded-full flex items-center justify-center shadow-md"
+                                                className="absolute -top-1.5 -right-1.5 bg-red-500 w-5 h-5 rounded-full flex items-center justify-center shadow-md z-10"
                                             >
                                                 <X size={10} color="white" />
                                             </button>
@@ -1353,12 +1405,17 @@ const PostAdPage: React.FC = () => {
 
             {/* Image Cropper Modal */}
             <ImageCropperModal
-                isOpen={!!currentCropFile}
+                isOpen={!!(currentCropFile || currentCropUrl)}
                 onClose={() => {
-                    if (currentCropUrl) URL.revokeObjectURL(currentCropUrl);
+                    if (editingImageIndex !== null) {
+                        // Cancelled editing existing image
+                        setEditingImageIndex(null);
+                    } else {
+                        setQueuedFiles([]); // cancel remaining queue
+                    }
+                    if (currentCropUrl && !currentCropUrl.startsWith('http')) URL.revokeObjectURL(currentCropUrl);
                     setCurrentCropFile(null);
                     setCurrentCropUrl(null);
-                    setQueuedFiles([]); // cancel remaining queue
                 }}
                 imageSrc={currentCropUrl}
                 onCropComplete={handleCropComplete}

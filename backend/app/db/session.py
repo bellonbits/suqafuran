@@ -11,6 +11,10 @@ engine = create_engine(
 )
 
 
+def SessionLocal():
+    return Session(engine)
+
+
 def init_db():
     """Create all tables in the database."""
     SQLModel.metadata.create_all(engine)
