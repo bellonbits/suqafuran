@@ -48,7 +48,7 @@ async def apply_for_verification(
         if ext not in ["jpg", "jpeg", "png", "pdf"]:
             continue
         content = await file.read()
-        url = await storage_service.upload_file(content, file.filename)
+        url, _ = await storage_service.upload_file(content, file.filename)
         document_urls.append(url)
 
     if not document_urls:
@@ -56,7 +56,7 @@ async def apply_for_verification(
 
     # Upload selfie via storage_service (Cloudinary)
     selfie_content = await selfie_file.read()
-    selfie_url = await storage_service.upload_file(
+    selfie_url, _ = await storage_service.upload_file(
         selfie_content, selfie_file.filename or "selfie.jpg"
     )
 
@@ -64,13 +64,13 @@ async def apply_for_verification(
     address_url = None
     if proof_of_address_file:
         content = await proof_of_address_file.read()
-        address_url = await storage_service.upload_file(content, proof_of_address_file.filename or "address.pdf")
+        address_url, _ = await storage_service.upload_file(content, proof_of_address_file.filename or "address.pdf")
 
     # Video Selfie
     video_url = None
     if video_selfie_file:
         content = await video_selfie_file.read()
-        video_url = await storage_service.upload_file(content, video_selfie_file.filename or "video.mp4")
+        video_url, _ = await storage_service.upload_file(content, video_selfie_file.filename or "video.mp4")
 
     db_obj = VerificationRequest(
         user_id=current_user.id,

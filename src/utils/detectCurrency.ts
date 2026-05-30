@@ -1,21 +1,25 @@
 import type { Currency } from '../store/useCurrencyStore';
 
-// ISO country code → display currency
+/**
+ * Auto-detection rule (per product decision):
+ *   Kenya → KES.
+ *   East-African neighbours (Somalia, Uganda, Tanzania, Rwanda, Burundi,
+ *   DRC, South Sudan, Ethiopia, Djibouti, Eritrea, Sudan) → USD.
+ *   Everywhere else → USD.
+ *
+ * Users can still manually switch to UGX/TZS/ETB/RWF/SOS via the CurrencySwitcher.
+ */
 const COUNTRY_TO_CURRENCY: Record<string, Currency> = {
-    KE: 'KES',  // Kenya
-    UG: 'UGX',  // Uganda
-    TZ: 'TZS',  // Tanzania
-    ET: 'ETB',  // Ethiopia
-    RW: 'RWF',  // Rwanda
-    BI: 'USD',  // Burundi (uses USD for large transactions)
-    SS: 'USD',  // South Sudan
-    SD: 'USD',  // Sudan
-    SO: 'USD',  // Somalia — USD is the de facto currency
-    DJ: 'USD',  // Djibouti
-    ER: 'USD',  // Eritrea
+    KE: 'KES',
 };
 
-export async function detectCurrencyFromIP(): Promise<Currency> {
+export interface GeoDetectionResult {
+    currency: Currency;
+    countryCode: string | null;
+    city: string | null;
+}
+
+export async function detectGeoFromIP(): Promise<GeoDetectionResult> {
     try {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 4000);
@@ -23,12 +27,20 @@ export async function detectCurrencyFromIP(): Promise<Currency> {
         const res = await fetch('https://ipapi.co/json/', { signal: controller.signal });
         clearTimeout(timer);
 
-        if (!res.ok) return 'USD';
+        if (!res.ok) return { currency: 'USD', countryCode: null, city: null };
 
         const data = await res.json();
-        const countryCode: string = data.country_code ?? '';
-        return COUNTRY_TO_CURRENCY[countryCode] ?? 'USD';
+        const countryCode: string = (data.country_code ?? '').toUpperCase();
+        const city: string | null = data.city ?? null;
+        const currency = COUNTRY_TO_CURRENCY[countryCode] ?? 'USD';
+        return { currency, countryCode: countryCode || null, city };
     } catch {
-        return 'USD';
+        return { currency: 'USD', countryCode: null, city: null };
     }
+}
+
+// Back-compat: existing callers that only want the currency.
+export async function detectCurrencyFromIP(): Promise<Currency> {
+    const { currency } = await detectGeoFromIP();
+    return currency;
 }

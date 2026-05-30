@@ -9,7 +9,7 @@ import { businessService } from '../services/businessService';
 import {
     MapPin, TrendingUp, ShieldCheck, Loader2,
     ChevronRight, ShoppingBag, ArrowRight, Zap, ChevronDown, Flame,
-    Sparkles, Store
+    Store
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { LocationPickerModal } from '../components/LocationPickerModal';
@@ -24,7 +24,7 @@ const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const { getField } = useLanguageField();
-    const { city: detectedCity, lat: userLat, lng: userLng } = useLocationStore();
+    const { city: detectedCity, lat: userLat, lng: userLng, countryCode } = useLocationStore();
     const [isLocationOpen, setLocationOpen] = useState(false);
     const [showAllCats, setShowAllCats] = useState(false);
     const [selectedLocation, setSelectedLocation] = useState(detectedCity || '');
@@ -43,8 +43,16 @@ const LandingPage: React.FC = () => {
     });
 
     const { data: hotDealsData, isLoading: hotDealsLoading } = useQuery({
-        queryKey: ['hot-deals', selectedLocation],
-        queryFn: () => listingService.getListings({ limit: 8, location: selectedLocation || undefined }),
+        queryKey: ['hot-deals', selectedLocation, userLat, userLng, countryCode],
+        queryFn: () => listingService.getListings({
+            limit: 8,
+            location: selectedLocation || undefined,
+            // Proximity filters — backend may use these to rank/restrict to nearby ads.
+            lat: userLat ?? undefined,
+            lng: userLng ?? undefined,
+            radius_km: userLat && userLng ? 50 : undefined,
+            country_code: countryCode ?? undefined,
+        }),
         staleTime: 5 * 60 * 1000,
     });
 
@@ -261,6 +269,12 @@ const LandingPage: React.FC = () => {
                         <Flame className="w-5 h-5 text-secondary-500 fill-secondary-500" />
                         <h2 className="text-[15px] font-extrabold text-gray-900">{t('landing.hotDeals')}</h2>
                     </div>
+                    <button
+                        onClick={() => navigate(`/search${selectedLocation ? `?location=${encodeURIComponent(selectedLocation)}` : ''}`)}
+                        className="text-primary-500 text-xs font-bold flex items-center gap-0.5 active:opacity-70"
+                    >
+                        {t('landing.seeAll')} <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
                 </div>
 
                 {/* Hot Deals Grid */}
@@ -517,9 +531,18 @@ const LandingPage: React.FC = () => {
                                 {/* Hot Deals Desktop */}
                                 {(hotDealsLoading || hotDeals.length > 0) && (
                                     <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100" style={{ minHeight: '340px' }}>
-                                        <div className="flex items-center gap-2 mb-4">
-                                            <Flame className="h-5 w-5 text-secondary-500 fill-secondary-500" />
-                                            <h2 className="text-lg font-bold text-gray-900">{t('landing.hotDeals')}</h2>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-2">
+                                                <Flame className="h-5 w-5 text-secondary-500 fill-secondary-500" />
+                                                <h2 className="text-lg font-bold text-gray-900">{t('landing.hotDeals')}</h2>
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                className="text-primary-600 text-sm"
+                                                onClick={() => navigate(`/search${selectedLocation ? `?location=${encodeURIComponent(selectedLocation)}` : ''}`)}
+                                            >
+                                                {t('landing.seeAll')}
+                                            </Button>
                                         </div>
                                         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
                                             {hotDealsLoading ? (

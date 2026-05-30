@@ -81,7 +81,8 @@ const VerificationPage: React.FC = () => {
             }
 
             return api.post('/verifications/apply', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
+                headers: { 'Content-Type': 'multipart/form-data' },
+                timeout: 300000 // 5 minutes to accommodate large files/videos
             });
         },
         onSuccess: () => {
@@ -349,7 +350,32 @@ const VerificationPage: React.FC = () => {
                                         <ul className="text-xs text-green-700 space-y-0.5">
                                             {documentFiles.map((f, i) => <li key={i}>{f.name}</li>)}
                                         </ul>
-                                        <p className="text-xs text-green-600 mt-1">{t('verify.clickToChange')}</p>
+                                        <div className="grid grid-cols-2 gap-3 mt-4 max-w-md mx-auto">
+                                            {documentFiles.map((file, i) => {
+                                                const isPdf = file.type === 'application/pdf' || file.name.endsWith('.pdf');
+                                                return (
+                                                    <div key={i} className="relative rounded-xl overflow-hidden border border-gray-200 bg-white aspect-[4/3] group shadow-sm">
+                                                        {isPdf ? (
+                                                            <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 text-gray-400 p-2">
+                                                                <FileText className="w-8 h-8 text-gray-400 mb-1" />
+                                                                <span className="text-[10px] font-bold truncate max-w-full px-1 text-gray-600">{file.name}</span>
+                                                            </div>
+                                                        ) : (
+                                                            <img 
+                                                                src={URL.createObjectURL(file)} 
+                                                                alt={file.name} 
+                                                                className="w-full h-full object-cover" 
+                                                                onLoad={(e) => {
+                                                                    // Revoke URL to prevent memory leaks once the image is rendered
+                                                                    try { URL.revokeObjectURL((e.target as HTMLImageElement).src); } catch (err) {}
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        <p className="text-xs text-green-600 mt-2">{t('verify.clickToChange')}</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-2">

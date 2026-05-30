@@ -507,8 +507,8 @@ const AgentDashboard: React.FC = () => {
                                                             </button>
                                                             <button
                                                                 disabled={rejectListingMutation.isPending}
-                                                                onClick={() => rejectListingMutation.mutate(listing.id)}
-                                                                className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-4 py-2 sm:py-1.5 text-[10px] font-bold bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors disabled:opacity-50 active:scale-95 transition-all shadow-sm"
+                                                                onClick={() => { if (window.confirm(`Reject "${listing.title}"?`)) rejectListingMutation.mutate(listing.id); }}
+                                                                className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-4 py-2 sm:py-1.5 text-[10px] font-bold border border-red-200 text-red-600 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-50 active:scale-95 transition-all"
                                                             >
                                                                 <XCircle className="h-3 w-3" /> Reject
                                                             </button>
@@ -522,18 +522,8 @@ const AgentDashboard: React.FC = () => {
                                                             <XCircle className="h-3 w-3" /> Reject Product
                                                         </button>
                                                     ) : listing.status === 'rejected' ? (
-                                                        <button
-                                                            disabled={approveListingMutation.isPending}
-                                                            onClick={() => approveListingMutation.mutate(listing.id)}
-                                                            className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-4 py-2 sm:py-1.5 text-[10px] font-bold border border-green-200 text-green-600 rounded-xl hover:bg-green-50 transition-colors disabled:opacity-50 active:scale-95 transition-all"
-                                                        >
-                                                            <Check className="h-3 w-3" /> Approve Product
-                                                        </button>
-                                                    ) : (
-                                                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider bg-gray-50 px-2.5 py-1 rounded-lg">
-                                                            {listing.status}
-                                                        </span>
-                                                    )}
+                                                        <span className="text-[10px] font-bold text-red-400">Rejected</span>
+                                                    ) : null}
                                                 </div>
                                             </div>
                                         </div>
@@ -547,7 +537,10 @@ const AgentDashboard: React.FC = () => {
                     {activeTab === 'verifications' && (
                         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                             <div className="p-5 border-b border-gray-50 flex items-center justify-between">
-                                <h3 className="font-bold text-gray-900">User Verification Requests</h3>
+                                <div>
+                                    <h3 className="font-bold text-gray-900">Verification Requests</h3>
+                                    <p className="text-xs text-gray-400 mt-0.5">{verificationRequests.filter((r: any) => r.status === 'pending').length} Pending</p>
+                                </div>
                                 <button onClick={() => refetchVerifications()} className="text-primary-600 hover:rotate-180 transition-all duration-500">
                                     <RefreshCw size={16} />
                                 </button>
@@ -556,82 +549,84 @@ const AgentDashboard: React.FC = () => {
                             {verificationsLoading ? (
                                 <div className="p-20 text-center"><Clock className="animate-spin mx-auto text-gray-300 h-6 w-6" /></div>
                             ) : verificationRequests.length === 0 ? (
-                                <div className="p-16 text-center text-gray-400 text-sm">No pending verifications</div>
+                                <div className="p-16 text-center text-gray-400 text-sm">No verification requests</div>
                             ) : (
-                                <div className="divide-y divide-gray-50">
-                                    {verificationRequests.map((req: any) => (
-                                        <div key={req.id} className="p-4 sm:p-5 hover:bg-gray-50/70 transition-colors">
-                                            <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
-                                                <div className="flex items-start gap-4 min-w-0">
-                                                    <div className="w-12 h-12 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 font-black text-lg">
-                                                        {(req.user?.full_name || 'U')[0].toUpperCase()}
-                                                    </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="text-base font-black text-gray-900 truncate">{req.user?.full_name}</p>
-                                                        <div className="flex items-center gap-x-3 gap-y-1 mt-1 text-xs text-gray-500 flex-wrap">
-                                                            <span className="bg-gray-100 px-2 py-0.5 rounded-md font-bold text-[10px] uppercase">{req.document_type}</span>
-                                                            <span className="font-medium">{req.id_number || 'No ID Number'}</span>
-                                                            <span className="text-gray-400">{format(new Date(req.created_at), 'MMM d, HH:mm')}</span>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full min-w-[700px] text-sm table-fixed">
+                                        <colgroup>
+                                            <col style={{width: '32%'}} />
+                                            <col style={{width: '18%'}} />
+                                            <col style={{width: '15%'}} />
+                                            <col style={{width: '13%'}} />
+                                            <col style={{width: '22%'}} />
+                                        </colgroup>
+                                        <thead className="bg-gray-50 text-gray-400 text-[11px] font-bold uppercase tracking-wider">
+                                            <tr>
+                                                <th className="px-6 py-3.5 text-left">User</th>
+                                                <th className="px-6 py-3.5 text-left">Doc Type</th>
+                                                <th className="px-6 py-3.5 text-left">Date</th>
+                                                <th className="px-6 py-3.5 text-left">Status</th>
+                                                <th className="px-6 py-3.5 text-left">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-50">
+                                            {verificationRequests.map((req: any) => (
+                                                <tr key={req.id} className="hover:bg-gray-50/60 transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-9 h-9 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 font-black text-sm">
+                                                                {(req.user?.full_name || 'U')[0].toUpperCase()}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-semibold text-gray-900 text-sm leading-tight">{req.user?.full_name || `User #${req.user_id}`}</p>
+                                                                <p className="text-[11px] text-gray-400 truncate">{req.user?.phone || req.user?.email || ''}</p>
+                                                            </div>
                                                         </div>
-                                                        
-                                                        {/* Document Previews */}
-                                                        <div className="flex gap-3 mt-4 overflow-x-auto pb-2 scrollbar-hide">
-                                                            {req.selfie_url && (
-                                                                <div className="shrink-0 group relative">
-                                                                    <div className="text-[8px] font-black uppercase text-gray-400 mb-1">Selfie</div>
-                                                                    <img 
-                                                                        src={req.selfie_url} 
-                                                                        alt="Selfie" 
-                                                                        className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border border-gray-100 shadow-sm cursor-zoom-in hover:scale-105 transition-transform"
-                                                                        onClick={() => window.open(req.selfie_url, '_blank')}
-                                                                    />
-                                                                </div>
-                                                            )}
-                                                            {req.document_urls?.map((url: string, i: number) => (
-                                                                <div key={i} className="shrink-0 group relative">
-                                                                    <div className="text-[8px] font-black uppercase text-gray-400 mb-1">Doc {i+1}</div>
-                                                                    <img 
-                                                                        src={url} 
-                                                                        alt={`Doc ${i+1}`} 
-                                                                        className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border border-gray-100 shadow-sm cursor-zoom-in hover:scale-105 transition-transform"
-                                                                        onClick={() => window.open(url, '_blank')}
-                                                                    />
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex flex-row lg:flex-col gap-2 pt-4 lg:pt-0 border-t border-gray-50 lg:border-0">
-                                                    {req.status === 'pending' ? (
-                                                        <>
-                                                            <button 
-                                                                onClick={() => verifyMutation.mutate({ id: req.id, status: 'approved' })}
-                                                                disabled={verifyMutation.isPending}
-                                                                className="flex-1 lg:flex-none px-6 py-3 lg:py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-black shadow-lg shadow-green-200 transition-all active:scale-95 disabled:opacity-50"
-                                                            >
-                                                                Approve
-                                                            </button>
-                                                            <button 
-                                                                onClick={() => verifyMutation.mutate({ id: req.id, status: 'rejected' })}
-                                                                disabled={verifyMutation.isPending}
-                                                                className="flex-1 lg:flex-none px-6 py-3 lg:py-2 bg-white border border-red-100 text-red-600 hover:bg-red-50 rounded-xl text-xs font-black transition-all active:scale-95 disabled:opacity-50"
-                                                            >
-                                                                Reject
-                                                            </button>
-                                                        </>
-                                                    ) : (
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className="inline-block bg-gray-100 text-gray-600 px-3 py-1 rounded-lg font-bold text-[11px] uppercase tracking-wide whitespace-nowrap">
+                                                            {req.document_type?.replace(/_/g, ' ')}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-gray-500 text-xs whitespace-nowrap">
+                                                        {format(new Date(req.created_at), 'MMM d, yyyy')}
+                                                    </td>
+                                                    <td className="px-6 py-4">
                                                         <span className={cn(
-                                                            "w-full lg:w-32 py-2 rounded-xl text-xs font-black uppercase tracking-widest text-center",
-                                                            req.status === 'approved' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                                                            "inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide whitespace-nowrap",
+                                                            req.status === 'approved' ? "bg-green-100 text-green-700" :
+                                                            req.status === 'rejected' ? "bg-red-100 text-red-600" :
+                                                            "bg-amber-100 text-amber-700"
                                                         )}>
                                                             {req.status}
                                                         </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        {req.status === 'pending' ? (
+                                                            <div className="flex items-center gap-2">
+                                                                <button
+                                                                    onClick={() => verifyMutation.mutate({ id: req.id, status: 'approved' })}
+                                                                    disabled={verifyMutation.isPending}
+                                                                    className="px-5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition-all active:scale-95 disabled:opacity-50 shadow-sm shadow-green-200 whitespace-nowrap"
+                                                                >
+                                                                    Approve
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => verifyMutation.mutate({ id: req.id, status: 'rejected' })}
+                                                                    disabled={verifyMutation.isPending}
+                                                                    className="px-5 py-1.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs font-bold transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
+                                                                >
+                                                                    Reject
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-gray-300 text-xs font-medium">—</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             )}
                         </div>

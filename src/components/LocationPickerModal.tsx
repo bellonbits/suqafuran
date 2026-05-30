@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, MapPin, XCircle, ChevronRight, ChevronLeft, Globe, Navigation } from 'lucide-react';
 import type { State, Region } from '../utils/somaliRegions';
 import { SOMALI_STATES } from '../utils/somaliRegions';
+import { useLocationStore } from '../store/useLocationStore';
+import { getCountryInfo } from '../utils/eastAfricanCities';
 
 const GOOGLE_API_KEY = 'AIzaSyDV3YpLO1MEXJWvpGMr_cIV-TaRfkvHPbs';
 
@@ -41,11 +43,18 @@ interface LocationPickerModalProps {
 }
 
 type SelectionLevel = 'state' | 'region' | 'town';
+type Tab = 'local' | 'google';
 
 export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
     isOpen, onClose, onSelect, title = 'Choose Location',
 }) => {
-    const [tab, setTab] = useState<'google' | 'somali'>('google');
+    const { countryCode } = useLocationStore();
+    const country = getCountryInfo(countryCode);
+    // For Somalia we still show the hierarchical region/town drilldown.
+    const useSomaliPicker = country?.code === 'SO';
+    const hasFlatCityList = !!country && !useSomaliPicker;
+
+    const [tab, setTab] = useState<Tab>(country ? 'local' : 'google');
     const [level, setLevel] = useState<SelectionLevel>('state');
     const [selectedState, setSelectedState] = useState<State | null>(null);
     const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
@@ -94,20 +103,27 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         onClose();
     };
 
-    // Somali picker logic
+    // Somali drilldown
     const handleBack = () => {
         if (level === 'town') { setLevel('region'); setSelectedRegion(null); }
         else if (level === 'region') { setLevel('state'); setSelectedState(null); }
     };
 
-    const somaliQuery = tab === 'somali' ? searchQuery : '';
-    const filteredItems = useMemo(() => {
-        const q = somaliQuery.toLowerCase().trim();
+    const localQuery = tab === 'local' ? searchQuery : '';
+    const filteredSomali = useMemo(() => {
+        if (!useSomaliPicker) return [];
+        const q = localQuery.toLowerCase().trim();
         if (level === 'state') return SOMALI_STATES.filter(s => s.name.toLowerCase().includes(q) || s.regions.some(r => r.name.toLowerCase().includes(q)));
         if (level === 'region' && selectedState) return selectedState.regions.filter(r => r.name.toLowerCase().includes(q));
         if (level === 'town' && selectedRegion) return selectedRegion.towns.filter(t => t.toLowerCase().includes(q));
         return [];
-    }, [level, selectedState, selectedRegion, somaliQuery]);
+    }, [useSomaliPicker, level, selectedState, selectedRegion, localQuery]);
+
+    const filteredCities = useMemo(() => {
+        if (!hasFlatCityList || !country) return [];
+        const q = localQuery.toLowerCase().trim();
+        return q ? country.cities.filter(c => c.toLowerCase().includes(q)) : country.cities;
+    }, [hasFlatCityList, country, localQuery]);
 
     const handleSomaliSelect = (item: any) => {
         setSearchQuery('');
@@ -120,8 +136,13 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         }
     };
 
+    const handleCitySelect = (city: string) => {
+        onSelect(country ? `${city}, ${country.name}` : city);
+        onClose();
+    };
+
     const resetModal = () => {
-        setTab('google');
+        setTab(country ? 'local' : 'google');
         setSearchQuery('');
         setSuggestions([]);
         setLevel('state');
@@ -139,7 +160,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 const { latitude, longitude } = position.coords;
-                
+
                 if (!geocoder.current) {
                     await loadGoogleMapsScript();
                     geocoder.current = new window.google.maps.Geocoder();
@@ -153,7 +174,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                             const result = results[0];
                             const city = result.address_components.find((c: any) => c.types.includes('locality'))?.long_name;
                             const region = result.address_components.find((c: any) => c.types.includes('administrative_area_level_1'))?.long_name;
-                            
+
                             const displayName = city && region ? `${city}, ${region}` : result.formatted_address;
                             onSelect(displayName);
                             onClose();
@@ -170,6 +191,8 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             { enableHighAccuracy: true, timeout: 10000 }
         );
     };
+
+    const localTabLabel = country ? country.name : 'Local';
 
     return (
         <AnimatePresence onExitComplete={resetModal}>
@@ -188,7 +211,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                         {/* Header */}
                         <div className="px-5 pt-5 pb-3 flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                {tab === 'somali' && level !== 'state' && (
+                                {tab === 'local' && useSomaliPicker && level !== 'state' && (
                                     <button onClick={handleBack} className="p-1.5 hover:bg-gray-100 rounded-full transition-colors">
                                         <ChevronLeft className="w-5 h-5 text-gray-500" />
                                     </button>
@@ -197,9 +220,11 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                                     <h2 className="text-lg font-bold text-gray-900">{title}</h2>
                                     <p className="text-xs text-primary-500 font-semibold mt-0.5">
                                         {tab === 'google' ? 'Search any location worldwide' :
-                                            level === 'state' ? 'Select Region' :
-                                            level === 'region' ? `Regions in ${selectedState?.name}` :
-                                            `Towns in ${selectedRegion?.name}`}
+                                            useSomaliPicker ? (
+                                                level === 'state' ? 'Select Region' :
+                                                level === 'region' ? `Regions in ${selectedState?.name}` :
+                                                `Towns in ${selectedRegion?.name}`
+                                            ) : `Cities in ${country?.name ?? 'your country'}`}
                                     </p>
                                 </div>
                             </div>
@@ -211,17 +236,19 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                         {/* Tab switcher */}
                         <div className="px-5 pb-3">
                             <div className="flex bg-gray-100 rounded-2xl p-1 gap-1">
+                                {country && (
+                                    <button
+                                        onClick={() => { setTab('local'); setSearchQuery(''); setSuggestions([]); }}
+                                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold transition-all ${tab === 'local' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                    >
+                                        <MapPin className="w-4 h-4" /> {localTabLabel}
+                                    </button>
+                                )}
                                 <button
                                     onClick={() => { setTab('google'); setSearchQuery(''); setSuggestions([]); }}
                                     className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold transition-all ${tab === 'google' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                                 >
-                                    <Globe className="w-4 h-4" /> Google Maps
-                                </button>
-                                <button
-                                    onClick={() => { setTab('somali'); setSearchQuery(''); setSuggestions([]); }}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold transition-all ${tab === 'somali' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                                >
-                                    <MapPin className="w-4 h-4" /> Somalia
+                                    <Globe className="w-4 h-4" /> Worldwide
                                 </button>
                             </div>
                         </div>
@@ -244,7 +271,13 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                 <input
                                     type="text"
-                                    placeholder={tab === 'google' ? 'Search any city, town, or address…' : `Search ${level}…`}
+                                    placeholder={
+                                        tab === 'google'
+                                            ? 'Search any city, town, or address…'
+                                            : useSomaliPicker
+                                                ? `Search ${level}…`
+                                                : `Search cities in ${country?.name ?? ''}…`
+                                    }
                                     value={searchQuery}
                                     onChange={e => setSearchQuery(e.target.value)}
                                     className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
@@ -261,7 +294,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                         {/* Content */}
                         <div className="flex-1 overflow-y-auto px-5 pb-6">
 
-                            {/* ── Google tab ── */}
+                            {/* ── Worldwide tab ── */}
                             {tab === 'google' && (
                                 <div className="space-y-1.5">
                                     {loadingGoogle && !googleReady && (
@@ -300,8 +333,8 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                                 </div>
                             )}
 
-                            {/* ── Somalia tab ── */}
-                            {tab === 'somali' && (
+                            {/* ── Local tab — Somali drilldown ── */}
+                            {tab === 'local' && useSomaliPicker && (
                                 <div className="space-y-1.5">
                                     {level === 'state' && (
                                         <button
@@ -318,7 +351,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                                         </button>
                                     )}
 
-                                    {filteredItems.map((item: any, idx) => (
+                                    {filteredSomali.map((item: any, idx) => (
                                         <button
                                             key={idx}
                                             onClick={() => handleSomaliSelect(item)}
@@ -338,13 +371,13 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                                         </button>
                                     ))}
 
-                                    {filteredItems.length === 0 && somaliQuery && (
+                                    {filteredSomali.length === 0 && localQuery && (
                                         <div className="py-12 flex flex-col items-center text-center">
                                             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                                                 <Search className="w-8 h-8 text-gray-200" />
                                             </div>
                                             <p className="text-gray-900 font-bold text-sm">No locations found</p>
-                                            <p className="text-xs text-gray-500 mt-1">Try the Google Maps tab instead</p>
+                                            <p className="text-xs text-gray-500 mt-1">Try the Worldwide tab instead</p>
                                         </div>
                                     )}
 
@@ -356,6 +389,50 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                                             </React.Fragment>
                                         ))}
                                     </div>
+                                </div>
+                            )}
+
+                            {/* ── Local tab — flat city list for non-Somalia countries ── */}
+                            {tab === 'local' && hasFlatCityList && (
+                                <div className="space-y-1.5">
+                                    <button
+                                        onClick={() => { onSelect('All Locations'); onClose(); }}
+                                        className="w-full text-left p-4 rounded-2xl hover:bg-primary-50 text-gray-600 font-medium transition-colors flex items-center justify-between group"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center group-hover:bg-primary-100 transition-colors">
+                                                <MapPin className="w-5 h-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
+                                            </div>
+                                            <span>All Locations</span>
+                                        </div>
+                                        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-primary-500 transition-colors" />
+                                    </button>
+
+                                    {filteredCities.map((city) => (
+                                        <button
+                                            key={city}
+                                            onClick={() => handleCitySelect(city)}
+                                            className="w-full text-left p-4 rounded-2xl hover:bg-primary-50 text-gray-800 font-semibold transition-all flex items-center justify-between group border border-transparent hover:border-primary-100"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-white transition-colors shadow-sm">
+                                                    <MapPin className="w-5 h-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
+                                                </div>
+                                                <span className="text-gray-900">{city}</span>
+                                            </div>
+                                            <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-primary-500 transition-colors" />
+                                        </button>
+                                    ))}
+
+                                    {filteredCities.length === 0 && (
+                                        <div className="py-12 flex flex-col items-center text-center">
+                                            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                                                <Search className="w-8 h-8 text-gray-200" />
+                                            </div>
+                                            <p className="text-gray-900 font-bold text-sm">No cities found</p>
+                                            <p className="text-xs text-gray-500 mt-1">Try the Worldwide tab instead</p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>

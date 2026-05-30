@@ -25,10 +25,11 @@ const SearchResultsPage: React.FC = () => {
     const { t } = useTranslation();
     const [searchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
+    const initialLocation = searchParams.get('location') || '';
     const [showFilters, setShowFilters] = React.useState(false);
 
     // Filter State
-    const [location, setLocation] = React.useState('');
+    const [location, setLocation] = React.useState(initialLocation);
     const [minPrice, setMinPrice] = React.useState('');
     const [maxPrice, setMaxPrice] = React.useState('');
     const [attributeFilters, setAttributeFilters] = React.useState<Record<string, any>>({});

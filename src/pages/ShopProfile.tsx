@@ -6,9 +6,9 @@ import { businessService } from '../services/businessService';
 import { getImageUrl } from '../utils/imageUtils';
 import { Button } from '../components/Button';
 import {
-    ShieldCheck, MapPin, Phone, Mail, Globe, Share2, 
+    ShieldCheck, MapPin, Phone, Mail, Globe, 
     MessageCircle, Sparkles, Loader2, ChevronLeft, ShoppingBag, 
-    AlertCircle, Check, Copy, Heart, HeartOff
+    AlertCircle, Check, Copy, Heart
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../utils/cn';

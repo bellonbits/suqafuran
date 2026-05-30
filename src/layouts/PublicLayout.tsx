@@ -3,14 +3,37 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
     Plus, Heart, Home, MessageSquare, User, Bell,
-    Facebook, Twitter, Instagram, Youtube, ChevronDown, Zap,
+    ChevronDown, Zap,
     Phone, ShoppingBag
 } from 'lucide-react';
+
+/* ── Brand-accurate social icons (use brand SVGs + brand colors) ── */
+const XIcon = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+);
+const FacebookIcon = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
+        <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.412c0-3.017 1.792-4.683 4.533-4.683 1.312 0 2.686.235 2.686.235v2.965h-1.514c-1.49 0-1.955.93-1.955 1.886v2.263h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z" />
+    </svg>
+);
+const InstagramIcon = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
+        <path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38a3.7 3.7 0 0 1-1.38.9c-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.42-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.86 5.86 0 0 0-2.13 1.38A5.86 5.86 0 0 0 .63 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.26 2.15.56 2.91.31.79.73 1.46 1.38 2.13a5.86 5.86 0 0 0 2.13 1.38c.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.26 2.91-.56a5.86 5.86 0 0 0 2.13-1.38 5.86 5.86 0 0 0 1.38-2.13c.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.86 5.86 0 0 0-1.38-2.13A5.86 5.86 0 0 0 19.86.63C19.1.33 18.22.13 16.95.07 15.67.01 15.26 0 12 0zm0 5.84A6.16 6.16 0 1 0 18.16 12 6.16 6.16 0 0 0 12 5.84zm0 10.16A4 4 0 1 1 16 12a4 4 0 0 1-4 4zm6.41-11.85a1.44 1.44 0 1 0 1.44 1.44 1.44 1.44 0 0 0-1.44-1.44z"/>
+    </svg>
+);
+const TikTokIcon = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
+        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.32 6.32 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.95a8.2 8.2 0 0 0 4.78 1.52V7.01a4.85 4.85 0 0 1-1.01-.32z"/>
+    </svg>
+);
 import { Logo } from '../components/Logo';
 import { getAvatarUrl } from '../utils/imageUtils';
 import { cn } from '../utils/cn';
 import { useAuthStore } from '../store/useAuthStore';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import { CurrencySwitcher } from '../components/CurrencySwitcher';
 import { AISupportChat } from '../components/AISupportChat';
 
 interface LayoutProps {
@@ -48,6 +71,9 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                     </Link>
                     <div className="flex-1" />
                     <div className="shrink-0">
+                        <CurrencySwitcher compact />
+                    </div>
+                    <div className="shrink-0">
                         <LanguageSwitcher compact light />
                     </div>
                     <Link to="/notifications" className="relative p-2 shrink-0 text-primary-800">
@@ -83,6 +109,7 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                         </Link>
 
                         <div className="flex items-center gap-1 ml-auto shrink-0">
+                            <CurrencySwitcher />
                             <LanguageSwitcher compact />
 
                             <Link to="/favorites" className="p-2 text-white/90 hover:text-white hover:bg-white/10 rounded-full transition-all" title={t('nav.saved')}>
@@ -266,17 +293,17 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                         <div>
                             <h3 className="font-extrabold mb-4 uppercase tracking-wider text-sm">{t('footer.connect')}</h3>
                             <div className="flex gap-3 mb-4">
-                                <a href="https://www.facebook.com/suqafuran" target="_blank" rel="noopener noreferrer" className="h-9 w-9 bg-black/10 rounded-full flex items-center justify-center hover:bg-black/20 transition-colors">
-                                    <Facebook className="h-4 w-4 text-black" />
+                                <a href="https://www.facebook.com/suqafuran" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="h-9 w-9 bg-[#1877F2] rounded-full flex items-center justify-center hover:opacity-90 transition-opacity shadow-sm">
+                                    <FacebookIcon className="h-4 w-4 text-white" />
                                 </a>
-                                <a href="https://www.twitter.com/suqafuran" target="_blank" rel="noopener noreferrer" className="h-9 w-9 bg-black/10 rounded-full flex items-center justify-center hover:bg-black/20 transition-colors">
-                                    <Twitter className="h-4 w-4 text-black" />
+                                <a href="https://x.com/suqafuran" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" className="h-9 w-9 bg-black rounded-full flex items-center justify-center hover:opacity-90 transition-opacity shadow-sm">
+                                    <XIcon className="h-4 w-4 text-white" />
                                 </a>
-                                <a href="https://www.instagram.com/suqafuran" target="_blank" rel="noopener noreferrer" className="h-9 w-9 bg-black/10 rounded-full flex items-center justify-center hover:bg-black/20 transition-colors">
-                                    <Instagram className="h-4 w-4 text-black" />
+                                <a href="https://www.instagram.com/suqafuran" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="h-9 w-9 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-full flex items-center justify-center hover:opacity-90 transition-opacity shadow-sm">
+                                    <InstagramIcon className="h-4 w-4 text-white" />
                                 </a>
-                                <a href="https://www.youtube.com/@suqafuran" target="_blank" rel="noopener noreferrer" className="h-9 w-9 bg-black/10 rounded-full flex items-center justify-center hover:bg-black/20 transition-colors">
-                                    <Youtube className="h-4 w-4 text-black" />
+                                <a href="https://www.tiktok.com/@suqafuran_" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="h-9 w-9 bg-black rounded-full flex items-center justify-center hover:opacity-90 transition-opacity shadow-sm">
+                                    <TikTokIcon className="h-4 w-4 text-white" />
                                 </a>
                             </div>
                             <p className="text-xs text-black/60 italic mb-6">{t('footer.tagline')}</p>
@@ -348,17 +375,17 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                     {openSections['footer'] && (
                         <div className="pt-2 pb-4 space-y-3">
                             <div className="flex gap-3">
-                                <a href="https://www.facebook.com/suqafuran" target="_blank" rel="noopener noreferrer" className="h-8 w-8 bg-black/10 rounded-full flex items-center justify-center">
-                                    <Facebook className="h-4 w-4 text-black" />
+                                <a href="https://www.facebook.com/suqafuran" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="h-8 w-8 bg-[#1877F2] rounded-full flex items-center justify-center shadow-sm">
+                                    <FacebookIcon className="h-4 w-4 text-white" />
                                 </a>
-                                <a href="https://www.twitter.com/suqafuran" target="_blank" rel="noopener noreferrer" className="h-8 w-8 bg-black/10 rounded-full flex items-center justify-center">
-                                    <Twitter className="h-4 w-4 text-black" />
+                                <a href="https://x.com/suqafuran" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" className="h-8 w-8 bg-black rounded-full flex items-center justify-center shadow-sm">
+                                    <XIcon className="h-4 w-4 text-white" />
                                 </a>
-                                <a href="https://www.instagram.com/suqafuran" target="_blank" rel="noopener noreferrer" className="h-8 w-8 bg-black/10 rounded-full flex items-center justify-center">
-                                    <Instagram className="h-4 w-4 text-black" />
+                                <a href="https://www.instagram.com/suqafuran" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="h-8 w-8 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
+                                    <InstagramIcon className="h-4 w-4 text-white" />
                                 </a>
-                                <a href="https://www.youtube.com/@suqafuran" target="_blank" rel="noopener noreferrer" className="h-8 w-8 bg-black/10 rounded-full flex items-center justify-center">
-                                    <Youtube className="h-4 w-4 text-black" />
+                                <a href="https://www.tiktok.com/@suqafuran_" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="h-8 w-8 bg-black rounded-full flex items-center justify-center shadow-sm">
+                                    <TikTokIcon className="h-4 w-4 text-white" />
                                 </a>
                             </div>
                             <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm text-black/80">

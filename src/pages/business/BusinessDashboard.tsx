@@ -7,29 +7,19 @@ import {
     Package,
     ShoppingCart,
     Users,
-    Layers,
     CheckSquare,
     MessageSquare,
     BarChart3,
     Bot,
-    Settings,
     Plus,
     Send,
-    Phone,
-    Mail,
     Globe,
     MapPin,
-    Check,
-    Trash2,
     ArrowRight,
     ShieldAlert,
     Sparkles,
     UserPlus,
-    AlertCircle,
-    Edit,
-    ThumbsUp,
     DollarSign,
-    Calendar,
     Clock,
     RefreshCw,
     X,
@@ -37,10 +27,8 @@ import {
     ShieldCheck
 } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
-import { listingService } from '../../services/listingService';
 import type { Business, Employee, BusinessProduct, BusinessCustomer, Order, BusinessMessage, TeamMessage, BusinessTask } from '../../services/businessService';
 import { businessService } from '../../services/businessService';
-import { Button } from '../../components/Button';
 import { API_BASE_URL } from '../../services/api';
 
 type TabType = 'overview' | 'storefront' | 'inventory' | 'orders' | 'crm' | 'team' | 'tasks' | 'messages' | 'analytics' | 'ai';
@@ -58,9 +46,7 @@ export function BusinessDashboard() {
 
     // Additional UI state for Storefront editing and CRM Kanban
     const [storefrontData, setStorefrontData] = useState<Partial<Business>>({});
-    const [logoPreview, setLogoPreview] = useState<string>('');
-    const [bannerPreview, setBannerPreview] = useState<string>('');
-    const [kanbanData, setKanbanData] = useState<Record<string, BusinessCustomer[]>>({ contacted: [], negotiation: [], offerSent: [], dealClosed: [] });
+    const [kanbanData] = useState<Record<string, BusinessCustomer[]>>({ contacted: [], negotiation: [], offerSent: [], dealClosed: [] });
     const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
     const [registerData, setRegisterData] = useState({
         name: '',
@@ -80,7 +66,7 @@ export function BusinessDashboard() {
     const [tasks, setTasks] = useState<BusinessTask[]>([]);
     const [customerChats, setCustomerChats] = useState<Record<number, BusinessMessage[]>>({});
     const [activeCustomerId, setActiveCustomerId] = useState<number | null>(null);
-    const [teamMessages, setTeamMessages] = useState<TeamMessage[]>([]);
+    const [_teamMessages, setTeamMessages] = useState<TeamMessage[]>([]);
     const [analytics, setAnalytics] = useState<any>(null);
 
     // WebSocket state
@@ -89,8 +75,6 @@ export function BusinessDashboard() {
 
     // Form inputs state
     const [chatInput, setChatInput] = useState('');
-    const [teamChatInput, setTeamChatInput] = useState('');
-    const [isAnnouncement, setIsAnnouncement] = useState(false);
     const [newProduct, setNewProduct] = useState({
         name_en: '',
         name_so: '',
@@ -443,48 +427,6 @@ export function BusinessDashboard() {
                 setAiSuggestedReplyList([]);
             } catch (e) {
                 toast.error('Failed to dispatch message');
-            }
-        }
-    };
-
-    // Dispatch internal announcements
-    const handleSendTeamMessage = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!activeBusiness || !teamChatInput.trim()) return;
-
-        if (wsConnected && socketRef.current) {
-            socketRef.current.send(JSON.stringify({
-                type: 'team_message',
-                token: token,
-                payload: {
-                    content: teamChatInput,
-                    is_announcement: isAnnouncement
-                }
-            }));
-            // Optimistic insert
-            const mockMsg: TeamMessage = {
-                id: Math.random(),
-                business_id: activeBusiness.id,
-                sender_id: user?.id || 0,
-                content: teamChatInput,
-                is_announcement: isAnnouncement,
-                created_at: new Date().toISOString()
-            };
-            setTeamMessages(prev => [...prev, mockMsg]);
-            setTeamChatInput('');
-            setIsAnnouncement(false);
-        } else {
-            try {
-                const sent = await businessService.sendTeamChatMessage(
-                    activeBusiness.id,
-                    teamChatInput,
-                    isAnnouncement
-                );
-                setTeamMessages(prev => [...prev, sent]);
-                setTeamChatInput('');
-                setIsAnnouncement(false);
-            } catch (e) {
-                toast.error('Failed to post team message');
             }
         }
     };
@@ -1081,7 +1023,7 @@ export function BusinessDashboard() {
                                          <div className="w-1/2">
                                              <p className="text-xs font-medium text-slate-600">New Customers (Mon-Fri)</p>
                                              <div className="flex space-x-1 mt-2">
-                                                 {["Mon","Tue","Wed","Thu","Fri"].map((day,i)=> (
+                                                 {["Mon","Tue","Wed","Thu","Fri"].map((day)=> (
                                                      <div key={day} className="flex-1 h-4 bg-slate-200 rounded" style={{height: `${Math.random()*60+20}%`}}></div>
                                                  ))}
                                              </div>

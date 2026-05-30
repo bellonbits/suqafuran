@@ -29,8 +29,14 @@ class VerificationRequestBase(SQLModel):
     @field_validator("document_urls", mode="before")
     @classmethod
     def flatten_urls(cls, v: Any) -> Any:
-        if isinstance(v, list) and len(v) > 0 and isinstance(v[0], list):
-            return v[0]
+        if isinstance(v, list):
+            new_list = []
+            for item in v:
+                if isinstance(item, (list, tuple)) and len(item) > 0:
+                    new_list.append(item[0])
+                elif isinstance(item, str):
+                    new_list.append(item)
+            return new_list
         return v
 
 class VerificationRequest(VerificationRequestBase, table=True):

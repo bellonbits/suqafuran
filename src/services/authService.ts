@@ -67,6 +67,7 @@ export const authService = {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
+            timeout: 120000, // 2 minutes for profile photo upload
         });
         return response.data;
     },

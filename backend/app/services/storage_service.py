@@ -50,17 +50,43 @@ class CloudinaryStorage:
 
     async def upload_file(self, file_content: bytes, filename: str) -> tuple[str, str]:
         import cloudinary.uploader
-        phash = calculate_phash(file_content)
-        resized = _resize_to_bytes(file_content)
+        
+        filename = filename or ""
+        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+        is_video = ext in ["mp4", "mov", "avi", "3gp", "webm", "mpeg", "mkv"]
+        is_pdf = ext == "pdf"
+        
+        phash = ""
+        if not is_video and not is_pdf:
+            phash = calculate_phash(file_content)
+            resized = _resize_to_bytes(file_content)
+            resource_type = "image"
+            upload_format = "webp"
+            transformation = [{"quality": "auto", "fetch_format": "auto"}]
+        elif is_pdf:
+            resized = file_content
+            resource_type = "raw"
+            upload_format = None
+            transformation = None
+        else:
+            resized = file_content
+            resource_type = "video"
+            upload_format = None
+            transformation = None
+
         public_id = f"suqafuran/{uuid.uuid4().hex}"
-        result = cloudinary.uploader.upload(
-            resized,
-            public_id=public_id,
-            overwrite=True,
-            resource_type="image",
-            format="webp",
-            transformation=[{"quality": "auto", "fetch_format": "auto"}],
-        )
+        
+        upload_kwargs = {
+            "public_id": public_id,
+            "overwrite": True,
+            "resource_type": resource_type,
+        }
+        if upload_format:
+            upload_kwargs["format"] = upload_format
+        if transformation:
+            upload_kwargs["transformation"] = transformation
+            
+        result = cloudinary.uploader.upload(resized, **upload_kwargs)
         return result["secure_url"], phash
 
 

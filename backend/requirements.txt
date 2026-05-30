@@ -61,4 +61,4 @@ PyWavelets
 async_timeout
 cffi
 groq
-confluent-kafka
+

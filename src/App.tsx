@@ -17,7 +17,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { OnboardingScreen } from './components/OnboardingScreen';
 import { CookieBanner } from './components/CookieBanner';
 import { useCurrencyStore } from './store/useCurrencyStore';
-import { detectCurrencyFromIP } from './utils/detectCurrency';
+import { detectGeoFromIP } from './utils/detectCurrency';
 import { useLocationStore } from './store/useLocationStore';
 import { NotificationPoller } from './components/NotificationPoller';
 import { SplashScreen } from './components/SplashScreen';
@@ -106,9 +106,9 @@ type AppPhase = 'splash' | 'onboarding' | 'app';
 
 const App: React.FC = () => {
   const onboardingSeen = localStorage.getItem('suqafuran-onboarding-seen') === '1';
-  const [phase, setPhase] = useState<AppPhase>('splash');
+  const [phase, setPhase] = useState<AppPhase>(Capacitor.isNativePlatform() ? 'splash' : 'app');
   const { autoDetected, setAutoDetected, setCurrency } = useCurrencyStore();
-  const { permissionAsked, setPermissionAsked, setLocation } = useLocationStore();
+  const { permissionAsked, setPermissionAsked, setLocation, setCountryCode } = useLocationStore();
   const [storeUpdate, setStoreUpdate] = useState<{
     needed: boolean;
     storeUrl: string;
@@ -187,13 +187,21 @@ const App: React.FC = () => {
   useEffect(() => {
     if (Capacitor.getPlatform() === 'ios') {
       setCurrency('KES');
+      setCountryCode('KE');
       setAutoDetected(true);
       return;
     }
 
     if (autoDetected) return;
-    detectCurrencyFromIP().then(currency => {
+    detectGeoFromIP().then(({ currency, countryCode, city }) => {
       setCurrency(currency);
+      if (countryCode) setCountryCode(countryCode);
+      // Seed city from IP if we don't already have a precise one from geolocation.
+      const existingCity = useLocationStore.getState().city;
+      if (!existingCity && city) {
+        const { lat, lng } = useLocationStore.getState();
+        setLocation(city, lat, lng);
+      }
       setAutoDetected(true);
     });
   }, []);
@@ -211,13 +219,12 @@ const App: React.FC = () => {
           );
           const data = await res.json();
           const countryCode = data.address?.country_code?.toUpperCase();
-          if (countryCode && !autoDetected) {
-            // Check if we have a mapping for this country
-            const mappings: Record<string, any> = {
-              'KE': 'KES', 'UG': 'UGX', 'TZ': 'TZS', 'ET': 'ETB', 'RW': 'RWF', 'SO': 'SOS'
-            };
-            if (mappings[countryCode]) {
-              setCurrency(mappings[countryCode]);
+          if (countryCode) {
+            setCountryCode(countryCode);
+            // Geolocation is more precise than IP — let it override the auto-detected currency
+            // on first run, but never clobber a manual user choice (autoDetected gates that).
+            if (!autoDetected) {
+              setCurrency(countryCode === 'KE' ? 'KES' : 'USD');
               setAutoDetected(true);
             }
           }

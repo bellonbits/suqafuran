@@ -45,6 +45,7 @@ export const listingService = {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
+            timeout: 120000, // 2 minutes for large single image upload
         });
         return response.data;
     },
@@ -56,6 +57,7 @@ export const listingService = {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
+            timeout: 240000, // 4 minutes for multiple images upload
         });
         return response.data;
     },

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle, XCircle, Eye, Loader2, Shield, User, FileText, X } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, Loader2, Shield, User, FileText, X, ZoomIn } from 'lucide-react';
 import { adminService } from '../../services/adminService';
 import { getImageUrl } from '../../utils/imageUtils';
 import { cn } from '../../utils/cn';
@@ -29,11 +29,14 @@ interface VerificationRequest {
     user?: { full_name: string; phone: string; email?: string };
 }
 
+const PLACEHOLDER = 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=300&q=60';
+
 const AdminVerificationsPage: React.FC = () => {
     const { t } = useTranslation();
     const queryClient = useQueryClient();
     const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
     const [preview, setPreview] = useState<VerificationRequest | null>(null);
+    const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
     const { data: requests = [], isLoading } = useQuery<VerificationRequest[]>({
         queryKey: ['admin-verifications'],
@@ -213,6 +216,27 @@ const AdminVerificationsPage: React.FC = () => {
                 </div>
             )}
 
+            {/* Lightbox */}
+            {lightboxUrl && (
+                <div
+                    className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4 cursor-zoom-out"
+                    onClick={() => setLightboxUrl(null)}
+                >
+                    <button
+                        className="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
+                        onClick={() => setLightboxUrl(null)}
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                    <img
+                        src={lightboxUrl}
+                        alt="Document preview"
+                        className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl"
+                        onClick={e => e.stopPropagation()}
+                    />
+                </div>
+            )}
+
             {/* Document Preview Modal */}
             {preview && (
                 <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setPreview(null)}>
@@ -231,7 +255,19 @@ const AdminVerificationsPage: React.FC = () => {
                                 <div className="flex gap-6">
                                     <div className="flex-1">
                                         <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t('admin.selfie')}</p>
-                                        <img src={getImageUrl(preview.selfie_url)} alt={t('admin.selfie')} className="w-full h-48 object-cover rounded-xl border border-gray-100 shadow-sm" />
+                                        <div className="relative group cursor-zoom-in" onClick={() => setLightboxUrl(getImageUrl(preview.selfie_url))}>
+                                            <img
+                                                src={getImageUrl(preview.selfie_url)}
+                                                alt={t('admin.selfie')}
+                                                className="w-full h-48 object-cover rounded-xl border border-gray-100 shadow-sm group-hover:brightness-90 transition-all"
+                                                onError={e => { (e.target as HTMLImageElement).src = PLACEHOLDER; }}
+                                            />
+                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="bg-black/50 rounded-full p-2">
+                                                    <ZoomIn className="w-5 h-5 text-white" />
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div className="w-48 bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center border border-gray-100">
                                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">{t('admin.aiMatchScore')}</p>
@@ -275,16 +311,42 @@ const AdminVerificationsPage: React.FC = () => {
                                     <Shield className="w-8 h-8 text-primary-200" />
                                 </div>
                             )}
+
                             {preview.document_urls?.length > 0 && (
                                 <div>
-                                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1">
                                         <FileText className="w-3 h-3" /> {t('admin.documents')}
+                                        <span className="ml-1 bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded-full">
+                                            {preview.document_urls.length}
+                                        </span>
                                     </p>
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className={cn(
+                                        "grid gap-3",
+                                        preview.document_urls.length === 1 ? "grid-cols-1" :
+                                        preview.document_urls.length === 2 ? "grid-cols-2" :
+                                        "grid-cols-3"
+                                    )}>
                                         {preview.document_urls.map((url, i) => (
-                                            <a key={i} href={getImageUrl(url)} target="_blank" rel="noreferrer">
-                                                <img src={getImageUrl(url)} alt={`Doc ${i + 1}`} className="w-full rounded-xl border border-gray-100 hover:opacity-90 transition-opacity" />
-                                            </a>
+                                            <div
+                                                key={i}
+                                                className="relative group cursor-zoom-in"
+                                                onClick={() => setLightboxUrl(getImageUrl(url))}
+                                            >
+                                                <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                                                    Doc {i + 1}
+                                                </div>
+                                                <img
+                                                    src={getImageUrl(url)}
+                                                    alt={`Doc ${i + 1}`}
+                                                    className="w-full rounded-xl border border-gray-100 shadow-sm object-cover aspect-[4/3] group-hover:brightness-90 transition-all"
+                                                    onError={e => { (e.target as HTMLImageElement).src = PLACEHOLDER; }}
+                                                />
+                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity mt-4">
+                                                    <div className="bg-black/50 rounded-full p-2">
+                                                        <ZoomIn className="w-4 h-4 text-white" />
+                                                    </div>
+                                                </div>
+                                            </div>
                                         ))}
                                     </div>
                                 </div>
@@ -293,12 +355,31 @@ const AdminVerificationsPage: React.FC = () => {
                             {preview.proof_of_address_url && (
                                 <div>
                                     <p className="text-xs font-bold text-secondary-600 uppercase tracking-wider mb-2">Proof of Address</p>
-                                    <a href={getImageUrl(preview.proof_of_address_url)} target="_blank" rel="noreferrer" className="block p-4 bg-secondary-50 border border-secondary-100 rounded-xl">
-                                        <div className="flex items-center gap-3">
-                                            <FileText className="text-secondary-600" />
-                                            <span className="text-sm font-bold text-secondary-900">View Address Document</span>
+                                    {/\.(jpg|jpeg|png|webp|gif)$/i.test(preview.proof_of_address_url) || preview.proof_of_address_url.includes('cloudinary') ? (
+                                        <div
+                                            className="relative group cursor-zoom-in"
+                                            onClick={() => setLightboxUrl(getImageUrl(preview.proof_of_address_url))}
+                                        >
+                                            <img
+                                                src={getImageUrl(preview.proof_of_address_url)}
+                                                alt="Proof of Address"
+                                                className="w-full rounded-xl border border-secondary-100 shadow-sm group-hover:brightness-90 transition-all"
+                                                onError={e => { (e.target as HTMLImageElement).src = PLACEHOLDER; }}
+                                            />
+                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="bg-black/50 rounded-full p-2">
+                                                    <ZoomIn className="w-5 h-5 text-white" />
+                                                </div>
+                                            </div>
                                         </div>
-                                    </a>
+                                    ) : (
+                                        <a href={getImageUrl(preview.proof_of_address_url)} target="_blank" rel="noreferrer" className="block p-4 bg-secondary-50 border border-secondary-100 rounded-xl hover:bg-secondary-100 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <FileText className="text-secondary-600" />
+                                                <span className="text-sm font-bold text-secondary-900">View Address Document</span>
+                                            </div>
+                                        </a>
+                                    )}
                                 </div>
                             )}
 
@@ -311,6 +392,7 @@ const AdminVerificationsPage: React.FC = () => {
                                     </video>
                                 </div>
                             )}
+
                             {preview.status === 'pending' && (
                                 <div className="flex gap-3 pt-2">
                                     <button
