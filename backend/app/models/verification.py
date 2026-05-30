@@ -35,9 +35,32 @@ class VerificationRequestBase(SQLModel):
                 if isinstance(item, (list, tuple)) and len(item) > 0:
                     new_list.append(item[0])
                 elif isinstance(item, str):
-                    new_list.append(item)
+                    # Check if the string itself is a tuple representation
+                    val_str = item.strip()
+                    if val_str.startswith("(") and val_str.endswith(")"):
+                        inner = val_str[1:-1]
+                        parts = inner.split(",", 1)
+                        if parts:
+                            new_list.append(parts[0].strip().strip("'").strip('"'))
+                        else:
+                            new_list.append(item)
+                    else:
+                        new_list.append(item)
             return new_list
         return v
+
+    @field_validator("selfie_url", "proof_of_address_url", "video_selfie_url", mode="before")
+    @classmethod
+    def clean_tuple_string(cls, v: Any) -> Optional[str]:
+        if not v:
+            return None
+        v_str = str(v).strip()
+        if v_str.startswith("(") and v_str.endswith(")"):
+            inner = v_str[1:-1]
+            parts = inner.split(",", 1)
+            if parts:
+                return parts[0].strip().strip("'").strip('"')
+        return v_str
 
 class VerificationRequest(VerificationRequestBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
