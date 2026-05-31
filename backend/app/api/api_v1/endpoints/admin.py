@@ -215,112 +215,251 @@ def delete_user_admin(
         raise HTTPException(status_code=400, detail="Cannot delete your own account")
 
     # ── Cascade: delete all FK-linked records in dependency order ─────────────
+    # We wrap each execution in a SAVEPOINT using db.begin_nested()
+    # so that if a table does not exist or has a different constraint name,
+    # the failure won't abort the entire PostgreSQL transaction.
+    
     # 1. Audit logs referencing this user
-    db.exec(text("DELETE FROM auditlog WHERE user_id = :uid").bindparams(uid=user_id))
-
-    # 2. Notifications
     try:
-        db.exec(text("DELETE FROM notification WHERE user_id = :uid").bindparams(uid=user_id))
+        with db.begin_nested():
+            db.exec(text("DELETE FROM auditlog WHERE user_id = :uid").bindparams(uid=user_id))
     except Exception:
         pass
 
-    # 3. Device tokens
+    # 2. Notifications
     try:
-        db.exec(text("DELETE FROM devicetoken WHERE user_id = :uid").bindparams(uid=user_id))
+        with db.begin_nested():
+            db.exec(text("DELETE FROM notification WHERE user_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 3. Device tokens / links
+    try:
+        with db.begin_nested():
+            db.exec(text("DELETE FROM userdevicelink WHERE user_id = :uid").bindparams(uid=user_id))
     except Exception:
         pass
 
     # 4. Email logs
     try:
-        db.exec(text("DELETE FROM emaillog WHERE user_id = :uid").bindparams(uid=user_id))
+        with db.begin_nested():
+            db.exec(text("DELETE FROM emaillog WHERE user_id = :uid").bindparams(uid=user_id))
     except Exception:
         pass
 
-    # 5. Favorites (as owner or favoriting)
+    # 5. Favorites
     try:
-        db.exec(text("DELETE FROM favorite WHERE user_id = :uid").bindparams(uid=user_id))
+        with db.begin_nested():
+            db.exec(text("DELETE FROM favorite WHERE user_id = :uid").bindparams(uid=user_id))
     except Exception:
         pass
 
     # 6. Follows
     try:
-        db.exec(text("DELETE FROM follow WHERE follower_id = :uid OR following_id = :uid").bindparams(uid=user_id))
+        with db.begin_nested():
+            db.exec(text("DELETE FROM follow WHERE follower_id = :uid OR followed_id = :uid").bindparams(uid=user_id))
     except Exception:
         pass
 
     # 7. Messages
     try:
-        db.exec(text("DELETE FROM message WHERE sender_id = :uid OR recipient_id = :uid").bindparams(uid=user_id))
+        with db.begin_nested():
+            db.exec(text("DELETE FROM message WHERE sender_id = :uid OR recipient_id = :uid").bindparams(uid=user_id))
     except Exception:
         pass
 
-    # 8. Mobile money transactions
+    # 8. Mobile money transactions / mobile transactions
     try:
-        db.exec(text("DELETE FROM mobilemoneytransaction WHERE user_id = :uid").bindparams(uid=user_id))
+        with db.begin_nested():
+            db.exec(text("DELETE FROM mobiletransaction WHERE user_id = :uid").bindparams(uid=user_id))
     except Exception:
         pass
 
-    # 9. Wallet
+    # 9. KaalayHeedhePin
     try:
-        db.exec(text("DELETE FROM wallet WHERE user_id = :uid").bindparams(uid=user_id))
+        with db.begin_nested():
+            db.exec(text("DELETE FROM kaalayheedhepin WHERE owner_id = :uid").bindparams(uid=user_id))
     except Exception:
         pass
 
-    # 10. Trust / fraud records
+    # 10. Support tickets
     try:
-        db.exec(text("DELETE FROM trustrecord WHERE user_id = :uid").bindparams(uid=user_id))
-    except Exception:
-        pass
-    try:
-        db.exec(text("DELETE FROM fraudreport WHERE reporter_id = :uid OR reported_user_id = :uid").bindparams(uid=user_id))
+        with db.begin_nested():
+            db.exec(text("DELETE FROM supportticket WHERE user_id = :uid").bindparams(uid=user_id))
     except Exception:
         pass
 
-    # 11. Meeting deals
+    # 11. Verification requests
     try:
-        db.exec(text("DELETE FROM meetingdeal WHERE buyer_id = :uid OR seller_id = :uid").bindparams(uid=user_id))
+        with db.begin_nested():
+            db.exec(text("DELETE FROM verificationrequest WHERE user_id = :uid").bindparams(uid=user_id))
     except Exception:
         pass
 
-    # 12. Verification requests
+    # 12. Risk history
     try:
-        db.exec(text("DELETE FROM verificationrequest WHERE user_id = :uid").bindparams(uid=user_id))
+        with db.begin_nested():
+            db.exec(text("DELETE FROM riskhistory WHERE user_id = :uid").bindparams(uid=user_id))
     except Exception:
         pass
 
-    # 13. Support tickets
+    # 13. Ratings & Reports
     try:
-        db.exec(text("DELETE FROM supportticket WHERE user_id = :uid").bindparams(uid=user_id))
+        with db.begin_nested():
+            db.exec(text("DELETE FROM rating WHERE rater_id = :uid OR rated_user_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+    try:
+        with db.begin_nested():
+            db.exec(text("DELETE FROM report WHERE reporter_id = :uid OR reported_user_id = :uid").bindparams(uid=user_id))
     except Exception:
         pass
 
-    # 14. Promotions linked to user's listings
+    # 14. Feedback
     try:
-        db.exec(text(
-            "DELETE FROM promotion WHERE listing_id IN "
-            "(SELECT id FROM listing WHERE owner_id = :uid)"
-        ).bindparams(uid=user_id))
+        with db.begin_nested():
+            db.exec(text("DELETE FROM feedback WHERE author_id = :uid OR target_user_id = :uid").bindparams(uid=user_id))
     except Exception:
         pass
 
-    # 15. Listing interactions / views
+    # 15. Meetings & Deals
     try:
-        db.exec(text(
-            "DELETE FROM listinginteraction WHERE listing_id IN "
-            "(SELECT id FROM listing WHERE owner_id = :uid)"
-        ).bindparams(uid=user_id))
+        with db.begin_nested():
+            db.exec(text("DELETE FROM meeting WHERE buyer_id = :uid OR seller_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+    try:
+        with db.begin_nested():
+            db.exec(text("DELETE FROM deal WHERE buyer_id = :uid OR seller_id = :uid").bindparams(uid=user_id))
     except Exception:
         pass
 
-    # 16. Listings themselves
+    # 16. Delivery
     try:
-        db.exec(text("DELETE FROM listing WHERE owner_id = :uid").bindparams(uid=user_id))
+        with db.begin_nested():
+            db.exec(text("DELETE FROM delivery WHERE seller_id = :uid OR buyer_id = :uid").bindparams(uid=user_id))
     except Exception:
         pass
 
-    # 17. Business profiles
+    # 17. Wallet & Transactions & Vouchers
     try:
-        db.exec(text("DELETE FROM business WHERE owner_id = :uid").bindparams(uid=user_id))
+        with db.begin_nested():
+            # Delete transactions belonging to user's wallet
+            db.exec(text(
+                "DELETE FROM transaction WHERE wallet_id IN "
+                "(SELECT id FROM wallet WHERE user_id = :uid)"
+            ).bindparams(uid=user_id))
+    except Exception:
+        pass
+    try:
+        with db.begin_nested():
+            db.exec(text("DELETE FROM wallet WHERE user_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+    try:
+        with db.begin_nested():
+            db.exec(text("UPDATE voucher SET redeemed_by_id = NULL WHERE redeemed_by_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 18. Promotions linked to user's listings
+    try:
+        with db.begin_nested():
+            db.exec(text(
+                "DELETE FROM promotion WHERE listing_id IN "
+                "(SELECT id FROM listing WHERE owner_id = :uid)"
+            ).bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 19. Listing interactions / views
+    try:
+        with db.begin_nested():
+            db.exec(text(
+                "DELETE FROM interaction WHERE listing_id IN "
+                "(SELECT id FROM listing WHERE owner_id = :uid)"
+            ).bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 20. Business Tasks, Messages, Orders, Customers, Products, Employees under user's business
+    try:
+        with db.begin_nested():
+            # Delete tasks assigned to employees of user's business, or tasks under user's business
+            db.exec(text(
+                "DELETE FROM businesstask WHERE business_id IN "
+                "(SELECT id FROM business WHERE owner_id = :uid) OR "
+                "assigned_to IN (SELECT id FROM employee WHERE user_id = :uid)"
+            ).bindparams(uid=user_id))
+    except Exception:
+        pass
+    try:
+        with db.begin_nested():
+            db.exec(text(
+                "DELETE FROM teammessage WHERE business_id IN "
+                "(SELECT id FROM business WHERE owner_id = :uid) OR "
+                "sender_id = :uid"
+            ).bindparams(uid=user_id))
+    except Exception:
+        pass
+    try:
+        with db.begin_nested():
+            db.exec(text(
+                "DELETE FROM businessmessage WHERE business_id IN "
+                "(SELECT id FROM business WHERE owner_id = :uid) OR "
+                "customer_id = :uid OR sender_id = :uid"
+            ).bindparams(uid=user_id))
+    except Exception:
+        pass
+    try:
+        with db.begin_nested():
+            db.exec(text(
+                'DELETE FROM "order" WHERE business_id IN '
+                '(SELECT id FROM business WHERE owner_id = :uid) OR '
+                'customer_id = :uid OR '
+                'employee_id IN (SELECT id FROM employee WHERE user_id = :uid)'
+            ).bindparams(uid=user_id))
+    except Exception:
+        pass
+    try:
+        with db.begin_nested():
+            db.exec(text(
+                "DELETE FROM businesscustomer WHERE business_id IN "
+                "(SELECT id FROM business WHERE owner_id = :uid) OR "
+                "user_id = :uid"
+            ).bindparams(uid=user_id))
+    except Exception:
+        pass
+    try:
+        with db.begin_nested():
+            db.exec(text(
+                "DELETE FROM businessproduct WHERE business_id IN "
+                "(SELECT id FROM business WHERE owner_id = :uid) OR "
+                "listing_id IN (SELECT id FROM listing WHERE owner_id = :uid)"
+            ).bindparams(uid=user_id))
+    except Exception:
+        pass
+    try:
+        with db.begin_nested():
+            db.exec(text(
+                "DELETE FROM employee WHERE business_id IN "
+                "(SELECT id FROM business WHERE owner_id = :uid) OR "
+                "user_id = :uid"
+            ).bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 21. Listings themselves
+    try:
+        with db.begin_nested():
+            db.exec(text("DELETE FROM listing WHERE owner_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 22. Business profiles
+    try:
+        with db.begin_nested():
+            db.exec(text("DELETE FROM business WHERE owner_id = :uid").bindparams(uid=user_id))
     except Exception:
         pass
 
