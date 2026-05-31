@@ -1,11 +1,12 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/useAuthStore';
-import { PlusCircle, ShoppingBag, MessageCircle, Heart, ShieldCheck, Award } from 'lucide-react';
+import { PlusCircle, ShoppingBag, MessageCircle, Heart, ShieldCheck, Award, Store } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Link } from 'react-router-dom';
 import { cn } from '../utils/cn';
 import { dashboardService } from '../services/dashboardService';
+import { businessService } from '../services/businessService';
 import { useQuery } from '@tanstack/react-query';
 
 const OverviewDashboard: React.FC = () => {
@@ -17,6 +18,12 @@ const OverviewDashboard: React.FC = () => {
         queryKey: ['dashboard-stats'],
         queryFn: dashboardService.getStats,
     });
+
+    const { data: myBusinesses } = useQuery({
+        queryKey: ['my-businesses'],
+        queryFn: businessService.getMyBusinesses,
+    });
+    const hasBusiness = myBusinesses && myBusinesses.length > 0;
 
 
 
@@ -69,6 +76,37 @@ const OverviewDashboard: React.FC = () => {
 
             {/* Action Center */}
             <div className="grid md:grid-cols-2 gap-8">
+                {/* Shop Profile Onboarding/Dashboard Card */}
+                <div className="bg-gradient-to-br from-indigo-950 to-slate-900 p-8 rounded-3xl border border-indigo-900/50 shadow-2xl flex flex-col justify-between relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-indigo-500/20 transition-all duration-700"></div>
+                    <div className="relative z-10">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center border border-indigo-500/20">
+                                <Store className="h-8 w-8 text-indigo-400" />
+                            </div>
+                            <div className="px-3 py-1 bg-indigo-500/20 rounded-full border border-indigo-500/30">
+                                <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">
+                                    {hasBusiness ? 'Shop Dashboard Live' : 'New Feature'}
+                                </span>
+                            </div>
+                        </div>
+                        <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">
+                            {hasBusiness ? 'Your Shop Dashboard' : 'Get a Shop Profile'}
+                        </h3>
+                        <p className="text-gray-400 mb-8 leading-relaxed text-sm">
+                            {hasBusiness 
+                                ? 'Manage your storefront catalog, log customer sales, analyze workspace revenue charts, and review real-time buyer chats.' 
+                                : 'Set up your dedicated digital storefront. List products, track logs, and request to show your business as a "Shop Near You" on our homepage!'
+                            }
+                        </p>
+                    </div>
+                    <Link to="/business">
+                        <Button className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black h-12 shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all">
+                            {hasBusiness ? 'OPEN SHOP DASHBOARD' : 'REGISTER NOW'}
+                        </Button>
+                    </Link>
+                </div>
+
                 {/* Verification Card */}
                 <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between">
                     <div>

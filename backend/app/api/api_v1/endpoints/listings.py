@@ -608,6 +608,21 @@ def read_listing(
     db.commit()
     db.refresh(listing)
     
+    # Query for owner's active business storefront and attach it
+    if listing.owner:
+        from app.models.business import Business
+        from sqlmodel import select
+        business = db.exec(select(Business).where(Business.owner_id == listing.owner_id, Business.is_active == True)).first()
+        if business:
+            listing.owner.business = {
+                "name": business.name,
+                "slug": business.slug,
+                "logo_url": business.logo_url,
+                "banner_url": business.banner_url,
+                "category": business.category,
+                "is_verified": business.is_verified,
+            }
+    
     return listing
 
 

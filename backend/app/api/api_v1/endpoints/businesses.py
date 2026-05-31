@@ -31,6 +31,7 @@ from app.models.business import (
     BusinessTask,
     BusinessRole
 )
+from app.models.listing import Listing
 from app.crud.crud_business import crud_business
 from app.services.kafka_service import ws_manager, kafka_service
 from app.services.ai_service import ai_service
@@ -148,21 +149,29 @@ def get_public_business(
     slug: str,
     db: Session = Depends(get_db)
 ) -> Any:
-    """Get public profile details of a business and its products."""
+    """Get public profile details of a business, its products, and owner's listings."""
     business = crud_business.get_business_by_slug(db, slug)
     if not business:
         raise HTTPException(status_code=404, detail="Business not found")
     
-    # Fetch all active products for this business
+    # Fetch active in-store products for this business
     products_stmt = select(BusinessProduct).where(
         BusinessProduct.business_id == business.id,
         BusinessProduct.is_active == True
     )
     products = db.exec(products_stmt).all()
+
+    # Also fetch the owner's active marketplace listings (ads)
+    listings_stmt = select(Listing).where(
+        Listing.owner_id == business.owner_id,
+        Listing.status == "active"
+    ).order_by(Listing.created_at.desc())
+    listings = db.exec(listings_stmt).all()
     
     return {
         "business": business,
-        "products": products
+        "products": products,
+        "listings": [l.model_dump() for l in listings]
     }
 
 
@@ -176,7 +185,11 @@ def get_nearby_businesses(
     offset: int = Query(0)
 ) -> Any:
     """List all active businesses, optionally sorted by distance/proximity if coordinates are provided."""
-    stmt = select(Business).where(Business.is_active == True)
+    stmt = select(Business).where(
+        Business.is_active == True,
+        Business.show_in_nearby == True,
+        Business.is_approved == True
+    )
     if category:
         stmt = stmt.where(Business.category == category)
         
@@ -250,7 +263,7 @@ def update_business_profile(
         raise HTTPException(status_code=404, detail="Business not found")
     
     # Exclude immutable parameters
-    for field in ["id", "owner_id", "slug", "created_at"]:
+    for field in ["id", "owner_id", "slug", "created_at", "is_approved"]:
         update_data.pop(field, None)
 
     return crud_business.update_business(db, business, update_data)

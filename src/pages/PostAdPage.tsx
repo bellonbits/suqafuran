@@ -999,7 +999,7 @@ const PostAdPage: React.FC = () => {
                                             <button
                                                 type="button"
                                                 onClick={() => editImage(i, getImageUrl(url))}
-                                                className="absolute inset-0 bg-black/40 rounded-lg flex flex-col items-center justify-center gap-1 opacity-0 group-hover/img:opacity-100 transition-opacity"
+                                                className="absolute inset-0 bg-black/40 rounded-lg hidden sm:flex flex-col items-center justify-center gap-1 opacity-0 group-hover/img:opacity-100 transition-opacity"
                                             >
                                                 <Pencil size={18} color="white" />
                                                 <span className="text-white text-[10px] font-bold">Edit</span>

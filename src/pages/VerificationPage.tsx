@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import imageCompression from 'browser-image-compression';
 import Webcam from 'react-webcam';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -32,6 +33,7 @@ const VerificationPage: React.FC = () => {
     const [proofOfAddressFile, setProofOfAddressFile] = useState<File | null>(null);
     const [videoSelfieFile, setVideoSelfieFile] = useState<File | null>(null);
     const [webcamError, setWebcamError] = useState(false);
+    const [isCompressing, setIsCompressing] = useState(false);
     const webcamRef = useRef<Webcam>(null);
 
     const { data: status, isLoading } = useQuery({
@@ -58,31 +60,54 @@ const VerificationPage: React.FC = () => {
             formData.append('id_number', idNumber);
             formData.append('tier', tier);
 
-            documentFiles.forEach((file) => {
-                formData.append('document_files', file);
-            });
+            setIsCompressing(true);
+            try {
+                // Compress document images before upload
+                const docOptions = { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true };
+                for (const file of documentFiles) {
+                    const isPdf = file.type === 'application/pdf' || file.name.endsWith('.pdf');
+                    if (isPdf) {
+                        formData.append('document_files', file);
+                    } else {
+                        const compressed = await imageCompression(file, docOptions);
+                        formData.append('document_files', new File([compressed], file.name, { type: compressed.type || file.type }));
+                    }
+                }
 
-            if (proofOfAddressFile) {
-                formData.append('proof_of_address_file', proofOfAddressFile);
-            }
+                // Compress proof of address if it's an image
+                if (proofOfAddressFile) {
+                    const isPdf = proofOfAddressFile.type === 'application/pdf' || proofOfAddressFile.name.endsWith('.pdf');
+                    if (isPdf) {
+                        formData.append('proof_of_address_file', proofOfAddressFile);
+                    } else {
+                        const compressed = await imageCompression(proofOfAddressFile, docOptions);
+                        formData.append('proof_of_address_file', new File([compressed], proofOfAddressFile.name, { type: compressed.type || proofOfAddressFile.type }));
+                    }
+                }
 
-            if (videoSelfieFile) {
-                formData.append('video_selfie_file', videoSelfieFile);
-            }
+                if (videoSelfieFile) {
+                    formData.append('video_selfie_file', videoSelfieFile);
+                }
 
-
-
-            if (selfieFile) {
-                formData.append('selfie_file', selfieFile, selfieFile.name);
-            } else if (selfieCapture) {
-                const res = await fetch(selfieCapture);
-                const blob = await res.blob();
-                formData.append('selfie_file', blob, 'selfie.jpg');
+                // Compress selfie
+                const selfieOptions = { maxSizeMB: 0.5, maxWidthOrHeight: 1280, useWebWorker: true };
+                if (selfieFile) {
+                    const compressed = await imageCompression(selfieFile, selfieOptions);
+                    formData.append('selfie_file', new File([compressed], selfieFile.name, { type: compressed.type || selfieFile.type }));
+                } else if (selfieCapture) {
+                    const res = await fetch(selfieCapture);
+                    const blob = await res.blob();
+                    // Webcam captures are already JPEG, compress them too
+                    const compressed = await imageCompression(new File([blob], 'selfie.jpg', { type: 'image/jpeg' }), selfieOptions);
+                    formData.append('selfie_file', compressed, 'selfie.jpg');
+                }
+            } finally {
+                setIsCompressing(false);
             }
 
             return api.post('/verifications/apply', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
-                timeout: 300000 // 5 minutes to accommodate large files/videos
+                timeout: 120000 // 2 minutes — sufficient now images are compressed
             });
         },
         onSuccess: () => {
@@ -121,7 +146,7 @@ const VerificationPage: React.FC = () => {
         }
     };
 
-    const canSubmit = (!!selfieCapture || !!selfieFile) && documentFiles.length > 0 && !submitMutation.isPending;
+    const canSubmit = (!!selfieCapture || !!selfieFile) && documentFiles.length > 0 && !submitMutation.isPending && !isCompressing;
 
     if (isLoading) {
         return (
@@ -144,20 +169,20 @@ const VerificationPage: React.FC = () => {
             {status && (
                 <div className={cn(
                     "mb-8 p-5 rounded-2xl border-2 flex items-center gap-4",
-                    status.status === 'approved' ? "bg-green-50 border-green-200" :
+                    status.status === 'approved' ? "bg-secondary-50 border-secondary-200" :
                         status.status === 'pending' ? "bg-primary-50 border-primary-200" :
                             "bg-red-50 border-red-200"
                 )}>
                     {status.status === 'approved' ? (
                         <>
-                            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                                <CheckCircle className="w-6 h-6 text-green-600" />
+                            <div className="w-12 h-12 rounded-full bg-secondary-100 flex items-center justify-center shrink-0">
+                                <CheckCircle className="w-6 h-6 text-secondary-600" />
                             </div>
                             <div>
-                                <h3 className="font-bold text-green-900">{t('verify.alreadyVerified')}</h3>
-                                <p className="text-sm text-green-700">{t('verify.alreadyVerifiedDesc')}</p>
+                                <h3 className="font-bold text-secondary-900">{t('verify.alreadyVerified')}</h3>
+                                <p className="text-sm text-secondary-700">{t('verify.alreadyVerifiedDesc')}</p>
                             </div>
-                            <Shield className="w-8 h-8 text-green-500 ml-auto shrink-0" />
+                            <Shield className="w-8 h-8 text-secondary-500 ml-auto shrink-0" />
                         </>
                     ) : status.status === 'pending' ? (
                         <>
@@ -283,10 +308,10 @@ const VerificationPage: React.FC = () => {
                                     />
                                     <div className={cn(
                                         "border-2 border-dashed rounded-xl p-6 text-center transition-colors",
-                                        proofOfAddressFile ? "border-green-300 bg-green-50" : "border-gray-200 hover:border-primary-300"
+                                        proofOfAddressFile ? "border-secondary-300 bg-secondary-50" : "border-gray-200 hover:border-primary-300"
                                     )}>
                                         <div className="flex flex-col items-center gap-2">
-                                            <Upload className={cn("h-6 w-6", proofOfAddressFile ? "text-green-500" : "text-gray-400")} />
+                                            <Upload className={cn("h-6 w-6", proofOfAddressFile ? "text-secondary-500" : "text-gray-400")} />
                                             <span className="text-sm font-bold text-gray-600">
                                                 {proofOfAddressFile ? proofOfAddressFile.name : "Choose Address Document"}
                                             </span>
@@ -308,10 +333,10 @@ const VerificationPage: React.FC = () => {
                                     />
                                     <div className={cn(
                                         "border-2 border-dashed rounded-xl p-6 text-center transition-colors",
-                                        videoSelfieFile ? "border-green-300 bg-green-50" : "border-gray-200 hover:border-primary-300"
+                                        videoSelfieFile ? "border-secondary-300 bg-secondary-50" : "border-gray-200 hover:border-primary-300"
                                     )}>
                                         <div className="flex flex-col items-center gap-2">
-                                            <Camera className={cn("h-6 w-6", videoSelfieFile ? "text-green-500" : "text-gray-400")} />
+                                            <Camera className={cn("h-6 w-6", videoSelfieFile ? "text-secondary-500" : "text-gray-400")} />
                                             <span className="text-sm font-bold text-gray-600">
                                                 {videoSelfieFile ? videoSelfieFile.name : "Capture / Upload Video"}
                                             </span>
@@ -338,16 +363,16 @@ const VerificationPage: React.FC = () => {
                             <div className={cn(
                                 "border-2 border-dashed rounded-xl p-6 text-center transition-colors",
                                 documentFiles.length > 0
-                                    ? "border-green-300 bg-green-50"
+                                    ? "border-primary-300 bg-primary-50"
                                     : "border-gray-200 hover:border-primary-300 hover:bg-primary-50/30"
                             )}>
                                 {documentFiles.length > 0 ? (
                                     <div className="space-y-2">
-                                        <CheckCircle className="w-10 h-10 text-green-500 mx-auto" />
-                                        <p className="font-semibold text-green-800">
+                                        <CheckCircle className="w-10 h-10 text-primary-500 mx-auto" />
+                                        <p className="font-semibold text-primary-800">
                                             {documentFiles.length > 1 ? t('verify.filesSelected', { count: documentFiles.length }) : t('verify.fileSelected', { count: documentFiles.length })}
                                         </p>
-                                        <ul className="text-xs text-green-700 space-y-0.5">
+                                        <ul className="text-xs text-primary-700 space-y-0.5">
                                             {documentFiles.map((f, i) => <li key={i}>{f.name}</li>)}
                                         </ul>
                                         <div className="grid grid-cols-2 gap-3 mt-4 max-w-md mx-auto">
@@ -375,7 +400,7 @@ const VerificationPage: React.FC = () => {
                                                 );
                                             })}
                                         </div>
-                                        <p className="text-xs text-green-600 mt-2">{t('verify.clickToChange')}</p>
+                                        <p className="text-xs text-primary-600 mt-2">{t('verify.clickToChange')}</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-2">
@@ -418,15 +443,15 @@ const VerificationPage: React.FC = () => {
                                 <input type="file" accept="image/*" capture="user" onChange={handleSelfieFile} className="hidden" />
                                 <div className={cn(
                                     "border-2 border-dashed rounded-xl transition-colors overflow-hidden",
-                                    selfieCapture ? "border-green-300" : "border-gray-200 hover:border-primary-300"
+                                    selfieCapture ? "border-primary-300" : "border-gray-200 hover:border-primary-300"
                                 )}>
                                     {selfieCapture ? (
                                         <div className="relative">
                                             <img src={selfieCapture} alt="Selfie" className="w-full max-h-64 object-cover rounded-xl" />
-                                            <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                                            <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center">
                                                 <CheckCircle className="w-5 h-5 text-white" />
                                             </div>
-                                            <p className="text-center text-xs text-green-700 bg-green-50 py-2">{t('verify.tapToRetake')}</p>
+                                            <p className="text-center text-xs text-primary-700 bg-primary-50 py-2">{t('verify.tapToRetake')}</p>
                                         </div>
                                     ) : (
                                         <div className="p-8 text-center space-y-2">
@@ -483,7 +508,9 @@ const VerificationPage: React.FC = () => {
                         disabled={!canSubmit}
                         onClick={handleSubmit}
                     >
-                        {submitMutation.isPending ? (
+                        {isCompressing ? (
+                            <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Compressing images…</>
+                        ) : submitMutation.isPending ? (
                             <><Loader2 className="w-5 h-5 mr-2 animate-spin" />{t('verify.uploading')}</>
                         ) : (
                             <><Shield className="w-5 h-5 mr-2" />{t('verify.submit')}</>

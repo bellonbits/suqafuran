@@ -38,6 +38,46 @@ const AdminVerificationsPage: React.FC = () => {
     const [preview, setPreview] = useState<VerificationRequest | null>(null);
     const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
+    const [pdfLoading, setPdfLoading] = useState<Record<string, boolean>>({});
+
+    const handleViewPdf = async (url: string) => {
+        setPdfLoading(prev => ({ ...prev, [url]: true }));
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+            window.open(pdfUrl, '_blank');
+        } catch (err) {
+            console.error("Failed to view PDF", err);
+            window.open(url, '_blank');
+        } finally {
+            setPdfLoading(prev => ({ ...prev, [url]: false }));
+        }
+    };
+
+    const handleDownloadPdf = async (url: string, filename: string) => {
+        setPdfLoading(prev => ({ ...prev, [url]: true }));
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+            const link = document.createElement('a');
+            link.href = pdfUrl;
+            link.download = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(pdfUrl);
+        } catch (err) {
+            console.error("Failed to download PDF", err);
+            window.open(url, '_blank');
+        } finally {
+            setPdfLoading(prev => ({ ...prev, [url]: false }));
+        }
+    };
+
     const { data: requests = [], isLoading } = useQuery<VerificationRequest[]>({
         queryKey: ['admin-verifications'],
         queryFn: adminService.getVerificationRequests,
@@ -109,111 +149,210 @@ const AdminVerificationsPage: React.FC = () => {
                     <p>{t('admin.noRequests', { filter: filter === 'all' ? '' : TAB_LABELS[filter] })}</p>
                 </div>
             ) : (
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                    <table className="w-full text-sm">
-                        <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                            <tr>
-                                <th className="px-6 py-3 text-left">{t('admin.user')}</th>
-                                <th className="px-6 py-3 text-left">Tier</th>
-                                <th className="px-6 py-3 text-left">{t('admin.documentType')}</th>
-                                <th className="px-6 py-3 text-left">{t('admin.matchScore')}</th>
-                                <th className="px-6 py-3 text-left">{t('admin.submitted')}</th>
-                                <th className="px-6 py-3 text-left">{t('admin.status')}</th>
-                                <th className="px-6 py-3 text-left">{t('admin.actions')}</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                            {filtered.map((req) => (
-                                <tr key={req.id} className="hover:bg-gray-50/50 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center">
-                                                <User className="w-4 h-4 text-primary-600" />
-                                            </div>
-                                            <div>
-                                                <p className="font-medium text-gray-900">{req.user?.full_name || `User #${req.user_id}`}</p>
-                                                <p className="text-xs text-gray-400">{req.user?.phone || req.user?.email}</p>
-                                            </div>
+                <>
+                    {/* Mobile View: Cards */}
+                    <div className="block md:hidden space-y-4">
+                {filtered.map((req) => (
+                    <div key={req.id} className="bg-white rounded-3xl border border-gray-100/80 shadow-sm p-5 space-y-4">
+                        <div className="flex justify-between items-start gap-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-full bg-primary-50 flex items-center justify-center shrink-0">
+                                    <User className="w-5 h-5 text-primary-600" />
+                                </div>
+                                <div>
+                                    <p className="font-bold text-gray-900 text-sm">{req.user?.full_name || `User #${req.user_id}`}</p>
+                                    <p className="text-xs text-gray-400 font-bold mt-0.5">{req.user?.phone || req.user?.email}</p>
+                                </div>
+                            </div>
+                            <span className={cn("px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0", STATUS_COLORS[req.status])}>
+                                {TAB_LABELS[req.status] || req.status}
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 text-xs border-t border-b border-gray-50 py-3 text-gray-600">
+                            <div>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Tier</p>
+                                <span className={cn(
+                                    "px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest",
+                                    req.tier === 'premium' ? "bg-secondary-500 text-white" : "bg-gray-100 text-gray-500"
+                                )}>
+                                    {req.tier === 'premium' ? 'Premium' : 'Standard'}
+                                </span>
+                            </div>
+                            <div>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{t('admin.documentType')}</p>
+                                <span className="capitalize font-extrabold text-gray-800">{req.document_type}</span>
+                            </div>
+                            <div className="col-span-2">
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{t('admin.submitted')}</p>
+                                <p className="font-extrabold text-gray-800">{new Date(req.created_at).toLocaleDateString()}</p>
+                            </div>
+                            {req.facial_match_score !== undefined && (
+                                <div className="col-span-2">
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">{t('admin.matchScore')}</p>
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="flex-1 bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                                            <div 
+                                                className={cn(
+                                                    "h-full rounded-full transition-all duration-1000",
+                                                    req.facial_match_score >= 80 ? "bg-green-500" :
+                                                    req.facial_match_score >= 50 ? "bg-yellow-500" : "bg-red-500"
+                                                )}
+                                                style={{ width: `${req.facial_match_score}%` }}
+                                            />
                                         </div>
-                                    </td>
-                                    <td className="px-6 py-4">
                                         <span className={cn(
-                                            "px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest",
-                                            req.tier === 'premium' ? "bg-secondary-500 text-white" : "bg-gray-100 text-gray-500"
+                                            "text-xs font-black shrink-0",
+                                            req.facial_match_score >= 80 ? "text-green-600" :
+                                            req.facial_match_score >= 50 ? "text-yellow-600" : "text-red-600"
                                         )}>
-                                            {req.tier === 'premium' ? 'Premium' : 'Standard'}
+                                            {Math.round(req.facial_match_score)}%
                                         </span>
-                                    </td>
-                                    <td className="px-6 py-4 capitalize text-gray-600">{req.document_type}</td>
-                                    <td className="px-6 py-4">
-                                        {req.facial_match_score !== undefined ? (
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-12 bg-gray-100 h-1.5 rounded-full overflow-hidden">
-                                                    <div 
-                                                        className={cn(
-                                                            "h-full rounded-full transition-all duration-1000",
-                                                            req.facial_match_score >= 80 ? "bg-green-500" :
-                                                            req.facial_match_score >= 50 ? "bg-yellow-500" : "bg-red-500"
-                                                        )}
-                                                        style={{ width: `${req.facial_match_score}%` }}
-                                                    />
-                                                </div>
-                                                <span className={cn(
-                                                    "text-xs font-bold",
-                                                    req.facial_match_score >= 80 ? "text-green-600" :
-                                                    req.facial_match_score >= 50 ? "text-yellow-600" : "text-red-600"
-                                                )}>
-                                                    {Math.round(req.facial_match_score)}%
-                                                </span>
-                                            </div>
-                                        ) : (
-                                            <span className="text-gray-300 text-xs">—</span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 text-gray-500">
-                                        {new Date(req.created_at).toLocaleDateString()}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={cn("px-2 py-1 rounded-full text-xs font-semibold capitalize", STATUS_COLORS[req.status])}>
-                                            {TAB_LABELS[req.status] || req.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => setPreview(req)}
-                                                className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                                                title={t('admin.viewDocuments')}
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                            </button>
-                                            {req.status === 'pending' && (
-                                                <>
-                                                    <button
-                                                        onClick={() => moderateMutation.mutate({ id: req.id, status: 'approved' })}
-                                                        disabled={moderateMutation.isPending}
-                                                        className="p-1.5 rounded-lg text-green-600 hover:bg-green-50"
-                                                        title={t('admin.approve')}
-                                                    >
-                                                        <CheckCircle className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => moderateMutation.mutate({ id: req.id, status: 'rejected' })}
-                                                        disabled={moderateMutation.isPending}
-                                                        className="p-1.5 rounded-lg text-red-600 hover:bg-red-50"
-                                                        title={t('admin.reject')}
-                                                    >
-                                                        <XCircle className="w-4 h-4" />
-                                                    </button>
-                                                </>
-                                            )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1">
+                            <button
+                                onClick={() => setPreview(req)}
+                                className="flex-1 min-w-[80px] py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-extrabold rounded-xl border border-gray-200 transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                            >
+                                <Eye className="w-4 h-4 text-gray-500" />
+                                {t('admin.viewDocuments')}
+                            </button>
+                            {req.status === 'pending' && (
+                                <>
+                                    <button
+                                        onClick={() => moderateMutation.mutate({ id: req.id, status: 'approved' })}
+                                        disabled={moderateMutation.isPending}
+                                        className="flex-1 min-w-[80px] py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-xs font-extrabold rounded-xl transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                                    >
+                                        <CheckCircle className="w-4 h-4" />
+                                        {t('admin.approve')}
+                                    </button>
+                                    <button
+                                        onClick={() => moderateMutation.mutate({ id: req.id, status: 'rejected' })}
+                                        disabled={moderateMutation.isPending}
+                                        className="flex-1 min-w-[80px] py-2 bg-red-650 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-extrabold rounded-xl transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                                    >
+                                        <XCircle className="w-4 h-4" />
+                                        {t('admin.reject')}
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Desktop View: Table */}
+            <div className="hidden md:block bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
+                <table className="w-full text-sm">
+                    <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                        <tr>
+                            <th className="px-6 py-3 text-left">{t('admin.user')}</th>
+                            <th className="px-6 py-3 text-left">Tier</th>
+                            <th className="px-6 py-3 text-left">{t('admin.documentType')}</th>
+                            <th className="px-6 py-3 text-left">{t('admin.matchScore')}</th>
+                            <th className="px-6 py-3 text-left">{t('admin.submitted')}</th>
+                            <th className="px-6 py-3 text-left">{t('admin.status')}</th>
+                            <th className="px-6 py-3 text-left">{t('admin.actions')}</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                        {filtered.map((req) => (
+                            <tr key={req.id} className="hover:bg-gray-50/50 transition-colors">
+                                <td className="px-6 py-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center">
+                                            <User className="w-4 h-4 text-primary-600" />
                                         </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                                        <div>
+                                            <p className="font-medium text-gray-900">{req.user?.full_name || `User #${req.user_id}`}</p>
+                                            <p className="text-xs text-gray-400">{req.user?.phone || req.user?.email}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <span className={cn(
+                                        "px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest",
+                                        req.tier === 'premium' ? "bg-secondary-500 text-white" : "bg-gray-100 text-gray-500"
+                                    )}>
+                                        {req.tier === 'premium' ? 'Premium' : 'Standard'}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4 capitalize text-gray-600">{req.document_type}</td>
+                                <td className="px-6 py-4">
+                                    {req.facial_match_score !== undefined ? (
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-12 bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                                                <div 
+                                                    className={cn(
+                                                        "h-full rounded-full transition-all duration-1000",
+                                                        req.facial_match_score >= 80 ? "bg-green-500" :
+                                                        req.facial_match_score >= 50 ? "bg-yellow-500" : "bg-red-500"
+                                                    )}
+                                                    style={{ width: `${req.facial_match_score}%` }}
+                                                />
+                                            </div>
+                                            <span className={cn(
+                                                "text-xs font-bold",
+                                                req.facial_match_score >= 80 ? "text-green-600" :
+                                                req.facial_match_score >= 50 ? "text-yellow-600" : "text-red-600"
+                                            )}>
+                                                {Math.round(req.facial_match_score)}%
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <span className="text-gray-300 text-xs">—</span>
+                                    )}
+                                </td>
+                                <td className="px-6 py-4 text-gray-500">
+                                    {new Date(req.created_at).toLocaleDateString()}
+                                </td>
+                                <td className="px-6 py-4">
+                                    <span className={cn("px-2 py-1 rounded-full text-xs font-semibold capitalize", STATUS_COLORS[req.status])}>
+                                        {TAB_LABELS[req.status] || req.status}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => setPreview(req)}
+                                            className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                                            title={t('admin.viewDocuments')}
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                        </button>
+                                        {req.status === 'pending' && (
+                                            <>
+                                                <button
+                                                    onClick={() => moderateMutation.mutate({ id: req.id, status: 'approved' })}
+                                                    disabled={moderateMutation.isPending}
+                                                    className="p-1.5 rounded-lg text-green-600 hover:bg-green-50"
+                                                    title={t('admin.approve')}
+                                                >
+                                                    <CheckCircle className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => moderateMutation.mutate({ id: req.id, status: 'rejected' })}
+                                                    disabled={moderateMutation.isPending}
+                                                    className="p-1.5 rounded-lg text-red-600 hover:bg-red-50"
+                                                    title={t('admin.reject')}
+                                                >
+                                                    <XCircle className="w-4 h-4" />
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+                </>
             )}
 
             {/* Lightbox */}
@@ -251,6 +390,30 @@ const AdminVerificationsPage: React.FC = () => {
                             </button>
                         </div>
                         <div className="p-6 space-y-6">
+                            {/* User details card */}
+                            <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs animate-fade-in-up">
+                                <div>
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Phone Number</p>
+                                    <p className="text-gray-900 font-extrabold">{preview.user?.phone || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Email Address</p>
+                                    <p className="text-gray-900 font-extrabold truncate" title={preview.user?.email}>{preview.user?.email || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Tier Level</p>
+                                    <span className={cn(
+                                        "inline-block px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest leading-none mt-0.5",
+                                        preview.tier === 'premium' ? "bg-secondary-500 text-white" : "bg-gray-100 text-gray-500"
+                                    )}>
+                                        {preview.tier === 'premium' ? 'Premium' : 'Standard'}
+                                    </span>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Submitted On</p>
+                                    <p className="text-gray-900 font-extrabold">{new Date(preview.created_at).toLocaleDateString()}</p>
+                                </div>
+                            </div>
                             {preview.selfie_url && (
                                 <div className="flex gap-6">
                                     <div className="flex-1">
@@ -326,62 +489,110 @@ const AdminVerificationsPage: React.FC = () => {
                                         preview.document_urls.length === 2 ? "grid-cols-2" :
                                         "grid-cols-3"
                                     )}>
-                                        {preview.document_urls.map((url, i) => (
-                                            <div
-                                                key={i}
-                                                className="relative group cursor-zoom-in"
-                                                onClick={() => setLightboxUrl(getImageUrl(url))}
-                                            >
-                                                <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                                                    Doc {i + 1}
-                                                </div>
-                                                <img
-                                                    src={getImageUrl(url)}
-                                                    alt={`Doc ${i + 1}`}
-                                                    className="w-full rounded-xl border border-gray-100 shadow-sm object-cover aspect-[4/3] group-hover:brightness-90 transition-all"
-                                                    onError={e => { (e.target as HTMLImageElement).src = PLACEHOLDER; }}
-                                                />
-                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity mt-4">
-                                                    <div className="bg-black/50 rounded-full p-2">
-                                                        <ZoomIn className="w-4 h-4 text-white" />
+                                        {preview.document_urls.map((url, i) => {
+                                            const isRawDoc = url.toLowerCase().endsWith('.pdf') || url.includes('/raw/');
+                                            const docUrl = url;
+                                            return (
+                                                <div key={i} className="flex flex-col">
+                                                    <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                                                        Doc {i + 1}
                                                     </div>
+                                                    {isRawDoc ? (
+                                                        <div className="flex-1 flex flex-col justify-between p-4 bg-primary-50 border border-primary-100 rounded-3xl aspect-[4/3] relative group shadow-inner">
+                                                            <div className="flex flex-col items-center text-center mt-2">
+                                                                <FileText className="text-primary-500 w-8 h-8 mb-1.5 animate-float" />
+                                                                <span className="text-[11px] font-black text-primary-950">PDF Document</span>
+                                                                <span className="text-[9px] text-primary-600 font-bold truncate max-w-full leading-none">
+                                                                    {url.split('/').pop()?.slice(0, 12)}...
+                                                                </span>
+                                                            </div>
+                                                            <div className="grid grid-cols-2 gap-1.5 mt-4">
+                                                                <button 
+                                                                    onClick={() => handleViewPdf(docUrl)} 
+                                                                    disabled={pdfLoading[docUrl]}
+                                                                    className="flex items-center justify-center py-2 bg-primary-600 hover:bg-primary-700 active:scale-95 text-white font-extrabold text-[9px] rounded-xl transition-all shadow-sm shadow-primary-200 disabled:opacity-50"
+                                                                >
+                                                                    {pdfLoading[docUrl] ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "View"}
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => handleDownloadPdf(docUrl, `document_${i + 1}.pdf`)}
+                                                                    disabled={pdfLoading[docUrl]}
+                                                                    className="flex items-center justify-center py-2 bg-white hover:bg-primary-100 active:scale-95 text-primary-600 border border-primary-200 font-extrabold text-[9px] rounded-xl transition-all disabled:opacity-50"
+                                                                >
+                                                                    {pdfLoading[docUrl] ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Download"}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div
+                                                            className="relative group cursor-zoom-in"
+                                                            onClick={() => setLightboxUrl(getImageUrl(url))}
+                                                        >
+                                                            <img
+                                                                src={getImageUrl(url)}
+                                                                alt={`Doc ${i + 1}`}
+                                                                className="w-full rounded-xl border border-gray-100 shadow-sm object-cover aspect-[4/3] group-hover:brightness-90 transition-all"
+                                                                onError={e => { (e.target as HTMLImageElement).src = PLACEHOLDER; }}
+                                                            />
+                                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity mt-4">
+                                                                <div className="bg-black/50 rounded-full p-2">
+                                                                    <ZoomIn className="w-4 h-4 text-white" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
 
-                            {preview.proof_of_address_url && (
-                                <div>
-                                    <p className="text-xs font-bold text-secondary-600 uppercase tracking-wider mb-2">Proof of Address</p>
-                                    {/\.(jpg|jpeg|png|webp|gif)$/i.test(preview.proof_of_address_url) || preview.proof_of_address_url.includes('cloudinary') ? (
-                                        <div
-                                            className="relative group cursor-zoom-in"
-                                            onClick={() => setLightboxUrl(getImageUrl(preview.proof_of_address_url))}
-                                        >
-                                            <img
-                                                src={getImageUrl(preview.proof_of_address_url)}
-                                                alt="Proof of Address"
-                                                className="w-full rounded-xl border border-secondary-100 shadow-sm group-hover:brightness-90 transition-all"
-                                                onError={e => { (e.target as HTMLImageElement).src = PLACEHOLDER; }}
-                                            />
-                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <div className="bg-black/50 rounded-full p-2">
-                                                    <ZoomIn className="w-5 h-5 text-white" />
+                            {preview.proof_of_address_url && (() => {
+                                const isRawAddress = preview.proof_of_address_url.toLowerCase().endsWith('.pdf') || preview.proof_of_address_url.includes('/raw/');
+                                const addressUrl = preview.proof_of_address_url;
+                                return (
+                                    <div>
+                                        <p className="text-xs font-bold text-secondary-600 uppercase tracking-wider mb-2">Proof of Address</p>
+                                        {/\.(jpg|jpeg|png|webp|gif)$/i.test(preview.proof_of_address_url) && !isRawAddress ? (
+                                            <div
+                                                className="relative group cursor-zoom-in"
+                                                onClick={() => setLightboxUrl(getImageUrl(preview.proof_of_address_url))}
+                                            >
+                                                <img
+                                                    src={getImageUrl(preview.proof_of_address_url)}
+                                                    alt="Proof of Address"
+                                                    className="w-full rounded-xl border border-secondary-100 shadow-sm group-hover:brightness-90 transition-all"
+                                                    onError={e => { (e.target as HTMLImageElement).src = PLACEHOLDER; }}
+                                                />
+                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <div className="bg-black/50 rounded-full p-2">
+                                                        <ZoomIn className="w-5 h-5 text-white" />
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ) : (
-                                        <a href={getImageUrl(preview.proof_of_address_url)} target="_blank" rel="noreferrer" className="block p-4 bg-secondary-50 border border-secondary-100 rounded-xl hover:bg-secondary-100 transition-colors">
-                                            <div className="flex items-center gap-3">
-                                                <FileText className="text-secondary-600" />
-                                                <span className="text-sm font-bold text-secondary-900">View Address Document</span>
+                                        ) : (
+                                            <div className="flex gap-2">
+                                                <button 
+                                                    onClick={() => handleViewPdf(addressUrl)} 
+                                                    disabled={pdfLoading[addressUrl]}
+                                                    className="flex-1 flex items-center justify-center gap-2 p-3 bg-secondary-50 border border-secondary-100 rounded-xl hover:bg-secondary-100 transition-colors font-bold text-xs text-secondary-900 shadow-sm disabled:opacity-50"
+                                                >
+                                                    {pdfLoading[addressUrl] ? <Loader2 className="w-4 h-4 animate-spin text-secondary-600" /> : <FileText className="text-secondary-600 w-4 h-4 shrink-0" />}
+                                                    View Document
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDownloadPdf(addressUrl, 'proof_of_address.pdf')} 
+                                                    disabled={pdfLoading[addressUrl]}
+                                                    className="flex items-center justify-center px-4 py-3 bg-white border border-secondary-200 rounded-xl hover:bg-secondary-50 transition-colors font-bold text-xs text-secondary-600 disabled:opacity-50"
+                                                >
+                                                    {pdfLoading[addressUrl] ? <Loader2 className="w-4 h-4 animate-spin text-secondary-600" /> : "Download"}
+                                                </button>
                                             </div>
-                                        </a>
-                                    )}
-                                </div>
-                            )}
+                                        )}
+                                    </div>
+                                );
+                            })()}
 
                             {preview.video_selfie_url && (
                                 <div>

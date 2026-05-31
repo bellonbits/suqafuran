@@ -157,6 +157,7 @@ class EmailService:
             return False
 
         code = self.generate_otp()
+        print(f"[Email] Generated OTP for {email}: {code}")
 
         self._ensure_redis()
         if self.redis:
@@ -231,6 +232,7 @@ class EmailService:
         return False
 
     def send_reset_code(self, email: str, code: str) -> bool:
+        print(f"[Email] Generated Reset Code for {email}: {code}")
         reset_content = f"""
         <div style="background: #fff7ed; border-radius: 12px; padding: 32px; text-align: center; margin: 32px 0; border: 1px solid #ffedd5;">
           <span style="font-size: 42px; font-weight: 900; letter-spacing: 10px; color: #ea580c; font-family: monospace;">{code}</span>

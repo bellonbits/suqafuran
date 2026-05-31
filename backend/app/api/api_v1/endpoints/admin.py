@@ -1,5 +1,5 @@
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select, func
 from pydantic import BaseModel
 from app.api import deps
@@ -7,6 +7,7 @@ from app.models.listing import Listing, Category, ListingRead
 from app.models.user import User
 from app.models.promotion import Promotion, PromotionStatus
 from app.models.audit import AuditLog
+from app.models.business import Business
 
 router = APIRouter()
 
@@ -77,13 +78,49 @@ def read_users_admin(
     current_user: User = Depends(deps.get_current_active_superuser),
     skip: int = 0,
     limit: int = 100,
+    search: Optional[str] = Query(default=None, description="Search by name, email, or phone"),
 ) -> Any:
     """
-    List all users (Admin only).
+    List all users (Admin only) with optional search.
     """
-    statement = select(User).order_by(User.created_at.desc()).offset(skip).limit(limit)
+    statement = select(User)
+    if search:
+        pattern = f"%{search}%"
+        from sqlmodel import or_
+        statement = statement.where(
+            or_(
+                User.full_name.ilike(pattern),
+                User.email.ilike(pattern),
+                User.phone.ilike(pattern),
+            )
+        )
+    statement = statement.order_by(User.created_at.desc()).offset(skip).limit(limit)
     users = db.exec(statement).all()
     return users
+
+
+@router.get("/users/count")
+def count_users_admin(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+    search: Optional[str] = Query(default=None),
+) -> Any:
+    """
+    Count total users (for pagination).
+    """
+    statement = select(func.count(User.id))
+    if search:
+        pattern = f"%{search}%"
+        from sqlmodel import or_
+        statement = statement.where(
+            or_(
+                User.full_name.ilike(pattern),
+                User.email.ilike(pattern),
+                User.phone.ilike(pattern),
+            )
+        )
+    total = db.exec(statement).one()
+    return {"total": total}
 
 class AgentEmailIn(BaseModel):
     email: str
@@ -166,25 +203,222 @@ def delete_user_admin(
     user_id: int,
 ) -> Any:
     """
-    Permanently delete a user account.
+    Permanently delete a user account and all related data (cascade).
     """
+    from sqlalchemy import text
+
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+
+    # ── Cascade: delete all FK-linked records in dependency order ─────────────
+    # 1. Audit logs referencing this user
+    db.exec(text("DELETE FROM auditlog WHERE user_id = :uid").bindparams(uid=user_id))
+
+    # 2. Notifications
+    try:
+        db.exec(text("DELETE FROM notification WHERE user_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 3. Device tokens
+    try:
+        db.exec(text("DELETE FROM devicetoken WHERE user_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 4. Email logs
+    try:
+        db.exec(text("DELETE FROM emaillog WHERE user_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 5. Favorites (as owner or favoriting)
+    try:
+        db.exec(text("DELETE FROM favorite WHERE user_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 6. Follows
+    try:
+        db.exec(text("DELETE FROM follow WHERE follower_id = :uid OR following_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 7. Messages
+    try:
+        db.exec(text("DELETE FROM message WHERE sender_id = :uid OR recipient_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 8. Mobile money transactions
+    try:
+        db.exec(text("DELETE FROM mobilemoneytransaction WHERE user_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 9. Wallet
+    try:
+        db.exec(text("DELETE FROM wallet WHERE user_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 10. Trust / fraud records
+    try:
+        db.exec(text("DELETE FROM trustrecord WHERE user_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+    try:
+        db.exec(text("DELETE FROM fraudreport WHERE reporter_id = :uid OR reported_user_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 11. Meeting deals
+    try:
+        db.exec(text("DELETE FROM meetingdeal WHERE buyer_id = :uid OR seller_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 12. Verification requests
+    try:
+        db.exec(text("DELETE FROM verificationrequest WHERE user_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 13. Support tickets
+    try:
+        db.exec(text("DELETE FROM supportticket WHERE user_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 14. Promotions linked to user's listings
+    try:
+        db.exec(text(
+            "DELETE FROM promotion WHERE listing_id IN "
+            "(SELECT id FROM listing WHERE owner_id = :uid)"
+        ).bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 15. Listing interactions / views
+    try:
+        db.exec(text(
+            "DELETE FROM listinginteraction WHERE listing_id IN "
+            "(SELECT id FROM listing WHERE owner_id = :uid)"
+        ).bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 16. Listings themselves
+    try:
+        db.exec(text("DELETE FROM listing WHERE owner_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 17. Business profiles
+    try:
+        db.exec(text("DELETE FROM business WHERE owner_id = :uid").bindparams(uid=user_id))
+    except Exception:
+        pass
+
+    # 18. Finally delete the user
     db.delete(user)
-    
-    # Audit log
+
+    # Audit the deletion (attributed to the admin performing it)
     db.add(AuditLog(
         user_id=current_user.id,
         action="USER_DELETE",
         resource_type="user",
         resource_id=user_id,
-        details="User permanently deleted"
+        details=f"User #{user_id} ({user.email}) permanently deleted by admin"
     ))
-    
+
     db.commit()
-    return {"success": True}
+    return {"success": True, "deleted_user_id": user_id}
+
+
+# ── OTP Lookup (Agent Tool) ───────────────────────────────────────────────────
+
+def _redis_otp_lookup(redis_client, identifier: str) -> dict:
+    """
+    Shared helper: read an OTP code + TTL from Redis by identifier.
+    Both SMS and email OTPs are stored under the same key pattern: otp:{identifier}
+    """
+    key = f"otp:{identifier}"
+    code = redis_client.get(key)
+    ttl = redis_client.ttl(key)
+    return {"code": code, "ttl": ttl}
+
+
+@router.get("/otps")
+def lookup_otp(
+    phone: Optional[str] = Query(default=None, description="Phone number (SMS OTP lookup)"),
+    email: Optional[str] = Query(default=None, description="Email address (Resend/email OTP lookup)"),
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Unified OTP lookup for agents — supports both SMS (phone) and email (Resend) OTPs.
+    Both types are stored in Redis as otp:{identifier} with a 5-minute TTL.
+    Only available to admins/agents to help customers who didn't receive their code.
+    """
+    if not phone and not email:
+        raise HTTPException(status_code=400, detail="Provide either 'phone' or 'email' query parameter.")
+
+    from app.services.africastalking_service import africastalking_service
+    from app.services.email_service import email_service
+
+    # Resolve a Redis client — prefer email_service client (same Redis, just a healthier instance)
+    redis_client = africastalking_service.redis or email_service.redis
+    if not redis_client:
+        raise HTTPException(status_code=503, detail="Redis is not available")
+
+    # ── SMS / Phone OTP ───────────────────────────────────────────────────────
+    if phone:
+        try:
+            normalized = africastalking_service.normalize_phone(phone)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid phone number format. Use +254XXXXXXXXX or 07XXXXXXXX.")
+
+        result = _redis_otp_lookup(redis_client, normalized)
+        if not result["code"]:
+            return {
+                "found": False,
+                "channel": "sms",
+                "identifier": normalized,
+                "message": "No active SMS OTP found for this number. It may have expired or not been requested yet."
+            }
+        return {
+            "found": True,
+            "channel": "sms",
+            "identifier": normalized,
+            "code": result["code"],
+            "expires_in_seconds": result["ttl"],
+            "message": f"Active SMS OTP found. Expires in {result['ttl']}s."
+        }
+
+    # ── Email OTP (Resend / SMTP) ─────────────────────────────────────────────
+    if email:
+        normalized_email = email.strip().lower()
+        result = _redis_otp_lookup(redis_client, normalized_email)
+        if not result["code"]:
+            return {
+                "found": False,
+                "channel": "email",
+                "identifier": normalized_email,
+                "message": "No active email OTP found for this address. It may have expired or not been requested yet."
+            }
+        return {
+            "found": True,
+            "channel": "email",
+            "identifier": normalized_email,
+            "code": result["code"],
+            "expires_in_seconds": result["ttl"],
+            "message": f"Active email OTP found. Expires in {result['ttl']}s."
+        }
 
 
 @router.get("/email/analytics", response_model=dict)
@@ -402,4 +636,75 @@ def send_broadcast_email(
         count += 1
         
     return {"success": True, "message": f"Broadcast successfully queued for {count} active customers."}
+
+
+@router.get("/businesses/queue", response_model=List[Business])
+def read_businesses_moderation_queue(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+    skip: int = 0,
+    limit: int = 100,
+) -> Any:
+    """
+    Get businesses that have opted in for the nearby section.
+    """
+    statement = select(Business).where(
+        Business.show_in_nearby == True
+    ).order_by(Business.is_approved.asc(), Business.created_at.desc()).offset(skip).limit(limit)
+    return db.exec(statement).all()
+
+
+@router.post("/businesses/{business_id}/approve", response_model=Business)
+def approve_business(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+    business_id: str,
+) -> Any:
+    """
+    Approve a business for the nearby section.
+    """
+    import uuid as uuid_pkg
+    try:
+        b_id = uuid_pkg.UUID(business_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid business ID format")
+        
+    business = db.get(Business, b_id)
+    if not business:
+        raise HTTPException(status_code=404, detail="Business not found")
+    
+    business.is_approved = True
+    db.add(business)
+    db.commit()
+    db.refresh(business)
+    return business
+
+
+@router.post("/businesses/{business_id}/disapprove", response_model=Business)
+def disapprove_business(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+    business_id: str,
+) -> Any:
+    """
+    Reject/Revoke approval of a business for the nearby section.
+    """
+    import uuid as uuid_pkg
+    try:
+        b_id = uuid_pkg.UUID(business_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid business ID format")
+        
+    business = db.get(Business, b_id)
+    if not business:
+        raise HTTPException(status_code=404, detail="Business not found")
+    
+    business.is_approved = False
+    db.add(business)
+    db.commit()
+    db.refresh(business)
+    return business
+
 

@@ -16,6 +16,8 @@ export interface Business {
     email?: string;
     website?: string;
     is_verified: boolean;
+    show_in_nearby?: boolean;
+    is_approved?: boolean;
     opening_hours?: Record<string, any>;
     rating: number;
     trust_score: number;
@@ -381,8 +383,8 @@ export const businessService = {
     },
 
     // Public Storefront methods
-    getPublicShop: async (slug: string): Promise<{ business: Business; products: BusinessProduct[] }> => {
-        const { data } = await api.get<{ business: Business; products: BusinessProduct[] }>(`/businesses/public/${slug}`);
+    getPublicShop: async (slug: string): Promise<{ business: Business; products: BusinessProduct[]; listings: any[] }> => {
+        const { data } = await api.get<{ business: Business; products: BusinessProduct[]; listings: any[] }>(`/businesses/public/${slug}`);
         return data;
     },
 

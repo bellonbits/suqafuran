@@ -96,6 +96,24 @@ def read_user_public(
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    # Query for associated active business storefront
+    from app.models.business import Business
+    from sqlmodel import select
+    business = db.exec(select(Business).where(Business.owner_id == user.id, Business.is_active == True)).first()
+    business_dict = None
+    if business:
+        business_dict = {
+            "name": business.name,
+            "slug": business.slug,
+            "logo_url": business.logo_url,
+            "banner_url": business.banner_url,
+            "category": business.category,
+            "is_verified": business.is_verified,
+            "brand_color": business.brand_color,
+            "tagline": business.tagline
+        }
+
     return {
         "full_name": user.full_name, 
         "id": user.id, 
@@ -104,7 +122,8 @@ def read_user_public(
         "phone": user.phone, # Adding phone for the profile call button
         "response_time": user.response_time,
         "trust_score": user.trust_score,
-        "trust_level": user.trust_level
+        "trust_level": user.trust_level,
+        "business": business_dict
     }
 
 

@@ -35,6 +35,8 @@ class Business(SQLModel, table=True):
     email: Optional[str] = None
     website: Optional[str] = None
     is_verified: bool = Field(default=False)
+    show_in_nearby: bool = Field(default=False, index=True)
+    is_approved: bool = Field(default=False, index=True)
     opening_hours: Optional[dict] = Field(default={}, sa_column=Column(JSON))
     is_active: bool = Field(default=True, index=True)
     rating: float = Field(default=0.0)

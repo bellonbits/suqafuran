@@ -16,3 +16,4 @@ class OwnerRead(SQLModel):
     verified_level: Optional[str] = None
     avatar_url: Optional[str] = None
     response_time: Optional[str] = None
+    business: Optional[dict] = None

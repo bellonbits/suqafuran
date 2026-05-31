@@ -11,7 +11,7 @@ import { Button } from '../components/Button';
 import {
     ShieldCheck, MapPin, Clock, Phone,
     Share2, Flag, Loader2, ChevronLeft,
-    UserPlus, UserCheck, Users
+    UserPlus, UserCheck, Users, ExternalLink, ShoppingBag
 } from 'lucide-react';
 import type { Listing } from '../types/listing';
 import { useTranslation } from 'react-i18next';
@@ -174,6 +174,22 @@ const SellerProfilePage: React.FC = () => {
                                         <span>Mogadishu</span>
                                     </div>
                                 </div>
+
+                                {seller.business && (
+                                    <Link 
+                                        to={`/shop/${seller.business.slug}`} 
+                                        className="w-full block bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white rounded-2xl p-4 text-center shadow-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] border border-sky-400/20 group relative overflow-hidden mt-6"
+                                    >
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-sky-100 block mb-0.5">Official Storefront</span>
+                                        <h3 className="font-extrabold text-sm tracking-tight leading-tight flex items-center justify-center gap-1.5">
+                                            Visit {seller.business.name}
+                                            <ExternalLink className="h-4 w-4 text-white/90" />
+                                        </h3>
+                                        {seller.business.tagline && (
+                                            <p className="text-[10px] text-sky-100/90 mt-1 italic line-clamp-1">"{seller.business.tagline}"</p>
+                                        )}
+                                    </Link>
+                                )}
 
                                 <div className="w-full mt-6 space-y-3">
                                     {/* Follow / Unfollow button — only for logged-in non-own profiles */}

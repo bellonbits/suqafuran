@@ -28,8 +28,18 @@ export const adminService = {
         return response.data;
     },
 
-    async getUsers(): Promise<User[]> {
-        const response = await api.get('/admin/users');
+    async getUsers(params?: { skip?: number; limit?: number; search?: string }): Promise<User[]> {
+        const response = await api.get('/admin/users', { params });
+        return response.data;
+    },
+
+    async getUserCount(search?: string): Promise<number> {
+        const response = await api.get('/admin/users/count', { params: search ? { search } : {} });
+        return response.data.total;
+    },
+
+    async getOtp(params: { phone?: string; email?: string }): Promise<{ found: boolean; channel?: string; identifier?: string; code?: string; expires_in_seconds?: number; message: string }> {
+        const response = await api.get('/admin/otps', { params });
         return response.data;
     },
 
@@ -120,6 +130,21 @@ export const adminService = {
         campaign_id?: string;
     }): Promise<any> {
         const response = await api.post('/admin/email/broadcast', data);
+        return response.data;
+    },
+
+    async getBusinessesQueue(): Promise<any[]> {
+        const response = await api.get('/admin/businesses/queue');
+        return response.data;
+    },
+
+    async approveBusiness(businessId: string): Promise<any> {
+        const response = await api.post(`/admin/businesses/${businessId}/approve`);
+        return response.data;
+    },
+
+    async disapproveBusiness(businessId: string): Promise<any> {
+        const response = await api.post(`/admin/businesses/${businessId}/disapprove`);
         return response.data;
     }
 };

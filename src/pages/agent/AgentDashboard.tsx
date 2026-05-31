@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { auditService } from '../../services/auditService';
 import type { AuditLogEntry } from '../../services/auditService';
@@ -10,12 +10,15 @@ import {
     CheckCircle, Clock, Search, RefreshCw, Shield, Activity,
     User, ShoppingBag, Wallet, Zap, AlertTriangle,
     TrendingUp, Users, BarChart2, MapPin, XCircle,
-    CreditCard, Eye, PhoneCall, Mail, Check, LifeBuoy, Bot, Send
+    CreditCard, Eye, PhoneCall, Mail, Check, LifeBuoy, Bot, Send,
+    FileText, KeyRound, Phone, Loader2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useLanguageField } from '../../hooks/useLanguageField';
 import { cn } from '../../utils/cn';
+import { getImageUrl } from '../../utils/imageUtils';
+import { Button } from '../../components/Button';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface ConversionStats {
@@ -79,7 +82,7 @@ const STATUS_STYLES: Record<string, string> = {
     sold:     'bg-blue-100 text-blue-700',
 };
 
-type Tab = 'marketing' | 'signups' | 'listings' | 'verifications' | 'chats' | 'history';
+type Tab = 'marketing' | 'signups' | 'listings' | 'verifications' | 'chats' | 'history' | 'otp_lookup';
 
 // ── Small stat card ─────────────────────────────────────────────────────────
 const Stat: React.FC<{ label: string; value: string | number; icon: React.ElementType; color: string }> = ({ label, value, icon: Icon, color }) => (
@@ -101,6 +104,29 @@ const AgentDashboard: React.FC = () => {
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const { getField } = useLanguageField();
+
+    // OTP Lookup state
+    const [otpMode, setOtpMode] = useState<'phone' | 'email'>('phone');
+    const [otpQuery, setOtpQuery] = useState('');
+    const [otpResult, setOtpResult] = useState<{ found: boolean; code?: string; expires_in_seconds?: number; message: string } | null>(null);
+    const [otpLoading, setOtpLoading] = useState(false);
+
+    const handleOtpLookup = useCallback(async () => {
+        if (!otpQuery.trim()) return;
+        setOtpLoading(true);
+        setOtpResult(null);
+        try {
+            const params = otpMode === 'phone'
+                ? { phone: otpQuery.trim() }
+                : { email: otpQuery.trim() };
+            const result = await adminService.getOtp(params);
+            setOtpResult(result);
+        } catch (err: any) {
+            setOtpResult({ found: false, message: err?.response?.data?.detail || 'Lookup failed' });
+        } finally {
+            setOtpLoading(false);
+        }
+    }, [otpMode, otpQuery]);
 
     // ── Queries ─────────────────────────────────────────────────────────────
     const { data: stats, isLoading: statsLoading } = useQuery<ConversionStats>({
@@ -250,6 +276,7 @@ const AgentDashboard: React.FC = () => {
         { id: 'verifications', label: 'Verifications', icon: Shield },
         { id: 'chats',     label: 'Support Chat', icon: LifeBuoy },
         { id: 'history',   label: 'History',      icon: CheckCircle },
+        { id: 'otp_lookup', label: 'OTP Lookup',  icon: KeyRound },
     ];
 
     const statusOptions = ['', 'active', 'ended', 'pending', 'rejected', 'sold'];
@@ -551,83 +578,169 @@ const AgentDashboard: React.FC = () => {
                             ) : verificationRequests.length === 0 ? (
                                 <div className="p-16 text-center text-gray-400 text-sm">No verification requests</div>
                             ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full min-w-[700px] text-sm table-fixed">
-                                        <colgroup>
-                                            <col style={{width: '32%'}} />
-                                            <col style={{width: '18%'}} />
-                                            <col style={{width: '15%'}} />
-                                            <col style={{width: '13%'}} />
-                                            <col style={{width: '22%'}} />
-                                        </colgroup>
-                                        <thead className="bg-gray-50 text-gray-400 text-[11px] font-bold uppercase tracking-wider">
-                                            <tr>
-                                                <th className="px-6 py-3.5 text-left">User</th>
-                                                <th className="px-6 py-3.5 text-left">Doc Type</th>
-                                                <th className="px-6 py-3.5 text-left">Date</th>
-                                                <th className="px-6 py-3.5 text-left">Status</th>
-                                                <th className="px-6 py-3.5 text-left">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-gray-50">
-                                            {verificationRequests.map((req: any) => (
-                                                <tr key={req.id} className="hover:bg-gray-50/60 transition-colors">
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-9 h-9 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 font-black text-sm">
-                                                                {(req.user?.full_name || 'U')[0].toUpperCase()}
-                                                            </div>
-                                                            <div>
-                                                                <p className="font-semibold text-gray-900 text-sm leading-tight">{req.user?.full_name || `User #${req.user_id}`}</p>
-                                                                <p className="text-[11px] text-gray-400 truncate">{req.user?.phone || req.user?.email || ''}</p>
-                                                            </div>
+                                <>
+                                    {/* Mobile Card View */}
+                                    <div className="block md:hidden p-4 space-y-4">
+                                        {verificationRequests.map((req: any) => (
+                                            <div key={req.id} className="bg-white rounded-2xl border border-gray-100/85 shadow-sm p-4 space-y-3">
+                                                <div className="flex justify-between items-start gap-2">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 font-black text-sm">
+                                                            {(req.user?.full_name || 'U')[0].toUpperCase()}
                                                         </div>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <span className="inline-block bg-gray-100 text-gray-600 px-3 py-1 rounded-lg font-bold text-[11px] uppercase tracking-wide whitespace-nowrap">
+                                                        <div className="min-w-0">
+                                                            <p className="font-bold text-gray-900 text-sm leading-tight truncate">{req.user?.full_name || `User #${req.user_id}`}</p>
+                                                            <p className="text-xs text-gray-400 font-medium truncate mt-0.5">{req.user?.phone || req.user?.email || ''}</p>
+                                                        </div>
+                                                    </div>
+                                                    <span className={cn(
+                                                        "px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0",
+                                                        req.status === 'approved' ? "bg-green-100 text-green-700" :
+                                                        req.status === 'rejected' ? "bg-red-100 text-red-650" :
+                                                        "bg-amber-100 text-amber-700"
+                                                    )}>
+                                                        {req.status}
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex justify-between items-center text-xs border-t border-b border-gray-50/80 py-2.5 text-gray-600">
+                                                    <div>
+                                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Doc Type</p>
+                                                        <span className="inline-block bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-bold text-[10px] uppercase tracking-wide">
                                                             {req.document_type?.replace(/_/g, ' ')}
                                                         </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-gray-500 text-xs whitespace-nowrap">
-                                                        {format(new Date(req.created_at), 'MMM d, yyyy')}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <span className={cn(
-                                                            "inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide whitespace-nowrap",
-                                                            req.status === 'approved' ? "bg-green-100 text-green-700" :
-                                                            req.status === 'rejected' ? "bg-red-100 text-red-600" :
-                                                            "bg-amber-100 text-amber-700"
-                                                        )}>
-                                                            {req.status}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        {req.status === 'pending' ? (
-                                                            <div className="flex items-center gap-2">
-                                                                <button
-                                                                    onClick={() => verifyMutation.mutate({ id: req.id, status: 'approved' })}
-                                                                    disabled={verifyMutation.isPending}
-                                                                    className="px-5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition-all active:scale-95 disabled:opacity-50 shadow-sm shadow-green-200 whitespace-nowrap"
-                                                                >
-                                                                    Approve
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => verifyMutation.mutate({ id: req.id, status: 'rejected' })}
-                                                                    disabled={verifyMutation.isPending}
-                                                                    className="px-5 py-1.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs font-bold transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
-                                                                >
-                                                                    Reject
-                                                                </button>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Submitted</p>
+                                                        <p className="font-bold text-gray-800 text-[11px]">{format(new Date(req.created_at), 'MMM d, yyyy')}</p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Previews if available */}
+                                                {(req.selfie_url || (req.document_urls && req.document_urls.length > 0)) && (
+                                                    <div className="flex gap-2 py-1 overflow-x-auto">
+                                                        {req.selfie_url && (
+                                                            <div className="relative w-14 h-14 rounded-xl overflow-hidden border border-gray-100 shrink-0">
+                                                                <img src={getImageUrl(req.selfie_url)} alt="Selfie" className="w-full h-full object-cover" />
                                                             </div>
-                                                        ) : (
-                                                            <span className="text-gray-300 text-xs font-medium">—</span>
                                                         )}
-                                                    </td>
+                                                        {req.document_urls?.map((url: string, idx: number) => (
+                                                            <div key={idx} className="relative w-14 h-14 rounded-xl overflow-hidden border border-gray-100 shrink-0 bg-gray-50 flex items-center justify-center">
+                                                                {url.toLowerCase().endsWith('.pdf') || url.includes('/raw/') ? (
+                                                                    <FileText className="w-5 h-5 text-primary-500" />
+                                                                ) : (
+                                                                    <img src={getImageUrl(url)} alt={`Doc ${idx+1}`} className="w-full h-full object-cover" />
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {req.status === 'pending' ? (
+                                                    <div className="flex gap-2 pt-1">
+                                                        <button
+                                                            onClick={() => verifyMutation.mutate({ id: req.id, status: 'approved' })}
+                                                            disabled={verifyMutation.isPending}
+                                                            className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-50 shadow-sm shadow-green-200 flex items-center justify-center gap-1"
+                                                        >
+                                                            <Check className="w-3.5 h-3.5" /> Approve
+                                                        </button>
+                                                        <button
+                                                            onClick={() => verifyMutation.mutate({ id: req.id, status: 'rejected' })}
+                                                            disabled={verifyMutation.isPending}
+                                                            className="flex-1 py-2.5 bg-white border border-red-200 text-red-650 hover:bg-red-50 rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1"
+                                                        >
+                                                            <XCircle className="w-3.5 h-3.5" /> Reject
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-center py-1 text-xs text-gray-400 italic">
+                                                        Processed
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Desktop View: Table */}
+                                    <div className="hidden md:block overflow-x-auto">
+                                        <table className="w-full min-w-[700px] text-sm table-fixed">
+                                            <colgroup>
+                                                <col style={{width: '32%'}} />
+                                                <col style={{width: '18%'}} />
+                                                <col style={{width: '15%'}} />
+                                                <col style={{width: '13%'}} />
+                                                <col style={{width: '22%'}} />
+                                            </colgroup>
+                                            <thead className="bg-gray-50 text-gray-400 text-[11px] font-bold uppercase tracking-wider">
+                                                <tr>
+                                                    <th className="px-6 py-3.5 text-left">User</th>
+                                                    <th className="px-6 py-3.5 text-left">Doc Type</th>
+                                                    <th className="px-6 py-3.5 text-left">Date</th>
+                                                    <th className="px-6 py-3.5 text-left">Status</th>
+                                                    <th className="px-6 py-3.5 text-left">Actions</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-50">
+                                                {verificationRequests.map((req: any) => (
+                                                    <tr key={req.id} className="hover:bg-gray-50/60 transition-colors">
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-9 h-9 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 font-black text-sm">
+                                                                    {(req.user?.full_name || 'U')[0].toUpperCase()}
+                                                                </div>
+                                                                <div>
+                                                                    <p className="font-semibold text-gray-900 text-sm leading-tight">{req.user?.full_name || `User #${req.user_id}`}</p>
+                                                                    <p className="text-[11px] text-gray-400 truncate">{req.user?.phone || req.user?.email || ''}</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <span className="inline-block bg-gray-100 text-gray-600 px-3 py-1 rounded-lg font-bold text-[11px] uppercase tracking-wide whitespace-nowrap">
+                                                                {req.document_type?.replace(/_/g, ' ')}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-gray-500 text-xs whitespace-nowrap">
+                                                            {format(new Date(req.created_at), 'MMM d, yyyy')}
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <span className={cn(
+                                                                "inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide whitespace-nowrap",
+                                                                req.status === 'approved' ? "bg-green-100 text-green-700" :
+                                                                req.status === 'rejected' ? "bg-red-100 text-red-650" :
+                                                                "bg-amber-100 text-amber-700"
+                                                            )}>
+                                                                {req.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            {req.status === 'pending' ? (
+                                                                <div className="flex items-center gap-2">
+                                                                    <button
+                                                                        onClick={() => verifyMutation.mutate({ id: req.id, status: 'approved' })}
+                                                                        disabled={verifyMutation.isPending}
+                                                                        className="px-5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition-all active:scale-95 disabled:opacity-50 shadow-sm shadow-green-200 whitespace-nowrap"
+                                                                    >
+                                                                        Approve
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => verifyMutation.mutate({ id: req.id, status: 'rejected' })}
+                                                                        disabled={verifyMutation.isPending}
+                                                                        className="px-5 py-1.5 bg-white border border-red-200 text-red-650 hover:bg-red-50 rounded-lg text-xs font-bold transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
+                                                                    >
+                                                                        Reject
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                <span className="text-gray-300 text-xs font-medium">—</span>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </>
                             )}
                         </div>
                     )}
@@ -874,6 +987,102 @@ const AgentDashboard: React.FC = () => {
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                    )}
+
+                    {/* OTP LOOKUP */}
+                    {activeTab === 'otp_lookup' && (
+                        <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl border border-amber-200 shadow-sm p-8">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2.5 bg-amber-100 rounded-xl">
+                                        <KeyRound className="h-5 w-5 text-amber-700" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-base font-bold text-gray-900">OTP Lookup Tool</h3>
+                                        <p className="text-xs text-gray-500">Help customers who didn't receive their verification code</p>
+                                    </div>
+                                </div>
+                                <div className="flex bg-amber-100/60 p-0.5 rounded-xl border border-amber-200 self-start sm:self-center">
+                                    <button
+                                        type="button"
+                                        onClick={() => { setOtpMode('phone'); setOtpQuery(''); setOtpResult(null); }}
+                                        className={cn(
+                                            "px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5",
+                                            otpMode === 'phone'
+                                                ? "bg-white text-amber-800 shadow-sm"
+                                                : "text-amber-700 hover:text-amber-900"
+                                        )}
+                                    >
+                                        <Phone className="h-3.5 w-3.5" />
+                                        Phone
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setOtpMode('email'); setOtpQuery(''); setOtpResult(null); }}
+                                        className={cn(
+                                            "px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5",
+                                            otpMode === 'email'
+                                                ? "bg-white text-amber-800 shadow-sm"
+                                                : "text-amber-700 hover:text-amber-900"
+                                        )}
+                                    >
+                                        <Mail className="h-3.5 w-3.5" />
+                                        Email
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="flex gap-3">
+                                <div className="flex-1 flex items-center gap-2 border border-amber-200 bg-white rounded-xl px-3 py-2.5 focus-within:border-amber-400 transition-colors">
+                                    {otpMode === 'phone' ? (
+                                        <Phone className="h-4 w-4 text-gray-400 shrink-0" />
+                                    ) : (
+                                        <Mail className="h-4 w-4 text-gray-400 shrink-0" />
+                                    )}
+                                    <input
+                                        type={otpMode === 'phone' ? "tel" : "email"}
+                                        value={otpQuery}
+                                        onChange={e => { setOtpQuery(e.target.value); setOtpResult(null); }}
+                                        onKeyDown={e => e.key === 'Enter' && handleOtpLookup()}
+                                        placeholder={otpMode === 'phone' ? "+254712345678 or 0712345678" : "customer@email.com"}
+                                        className="bg-transparent text-sm outline-none w-full text-gray-700 placeholder-gray-400"
+                                    />
+                                </div>
+                                <Button
+                                    className="rounded-xl bg-amber-600 hover:bg-amber-700 text-white px-5"
+                                    disabled={!otpQuery.trim() || otpLoading}
+                                    onClick={handleOtpLookup}
+                                >
+                                    {otpLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Look Up'}
+                                </Button>
+                            </div>
+
+                            {otpResult && (
+                                <div className={cn(
+                                    "mt-4 p-4 rounded-xl border text-sm",
+                                    otpResult.found
+                                        ? "bg-green-50 border-green-200 text-green-800"
+                                        : "bg-red-50 border-red-200 text-red-700"
+                                )}>
+                                    {otpResult.found ? (
+                                        <div className="flex items-center gap-4">
+                                            <div>
+                                                <p className="text-xs font-bold uppercase tracking-wider text-green-600 mb-0.5">Active OTP Code</p>
+                                                <p className="text-3xl font-black font-mono tracking-widest text-green-900">{otpResult.code}</p>
+                                            </div>
+                                            <div className="ml-auto text-right">
+                                                <p className="text-xs text-green-600">Expires in</p>
+                                                <p className="text-lg font-bold text-green-800">{otpResult.expires_in_seconds}s</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-2">
+                                            <AlertTriangle className="h-4 w-4 shrink-0" />
+                                            <p>{otpResult.message}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
