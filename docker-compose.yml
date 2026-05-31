@@ -95,7 +95,7 @@ services:
     volumes:
       - ./backend:/app
     command: >
-      celery -A app.tasks.celery_app beat --loglevel=info
+      sh -c "rm -f /app/celerybeat-schedule /app/celerybeat-schedule.db && celery -A app.tasks.celery_app beat --loglevel=info"
 
   nginx:
     image: nginx:alpine
