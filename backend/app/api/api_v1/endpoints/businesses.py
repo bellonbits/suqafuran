@@ -41,7 +41,8 @@ router = APIRouter()
 
 # Try initializing Redis Client for fast analytics cache
 try:
-    redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+    from app.utils.redis import from_url_safe
+    redis_client = from_url_safe(settings.REDIS_URL, decode_responses=True)
 except Exception as e:
     logger.warning(f"Failed to connect to Redis for analytics caching: {e}")
     redis_client = None

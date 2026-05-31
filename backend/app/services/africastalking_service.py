@@ -31,7 +31,8 @@ class AfricasTalkingService:
             
         # Initialize Redis for OTP storage
         try:
-            self.redis = redis.from_url(settings.REDIS_URL, decode_responses=True)
+            from app.utils.redis import from_url_safe
+            self.redis = from_url_safe(settings.REDIS_URL, decode_responses=True)
             print("[AT Init] Redis connected successfully")
         except Exception as e:
             print(f"[AT Init] Redis connection error: {e}")

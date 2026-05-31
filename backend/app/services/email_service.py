@@ -15,7 +15,8 @@ class EmailService:
 
     def _connect(self):
         try:
-            client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+            from app.utils.redis import from_url_safe
+            client = from_url_safe(settings.REDIS_URL, decode_responses=True)
             client.ping()
             self.redis = client
             print("[Email] Redis connected OK")
@@ -140,6 +141,7 @@ class EmailService:
         return str(secrets.randbelow(900000) + 100000)
 
     def check_rate_limit(self, email: str) -> bool:
+        email = email.strip().lower()
         self._ensure_redis()
         if not self.redis:
             return True  # allow if Redis is down
@@ -149,9 +151,11 @@ class EmailService:
         return True
 
     def increment_rate_limit(self, email: str):
+        email = email.strip().lower()
         self._redis_incr(f"otp_attempts:{email}", ex=300)
 
     def send_verification_code(self, email: str) -> bool:
+        email = email.strip().lower()
         if not self.check_rate_limit(email):
             print(f"[Email] Rate limit exceeded for {email}")
             return False
@@ -1745,6 +1749,7 @@ class EmailService:
         return self._send_and_log(email, subject, html_body, f"crm_manual_{campaign_id or 'custom'}", user_id, campaign_id=campaign_id)
 
     def check_verification_code(self, email: str, code: str) -> bool:
+        email = email.strip().lower()
         self._ensure_redis()
         if not self.redis:
             if settings.ENVIRONMENT != "production":
@@ -1758,6 +1763,7 @@ class EmailService:
         return False
 
     def store_pending_signup(self, email: str, signup_data: dict) -> bool:
+        email = email.strip().lower()
         if not self.redis:
             if settings.ENVIRONMENT != "production":
                 # In dev without Redis, skip storage (OTP is 000000 anyway)
@@ -1766,10 +1772,12 @@ class EmailService:
         return self._redis_set(f"signup:{email}", json.dumps(signup_data), ex=600)
 
     def get_pending_signup(self, email: str) -> Optional[dict]:
+        email = email.strip().lower()
         data = self._redis_get(f"signup:{email}")
         return json.loads(data) if data else None
 
     def delete_pending_signup(self, email: str):
+        email = email.strip().lower()
         self._redis_delete(f"signup:{email}")
 
 

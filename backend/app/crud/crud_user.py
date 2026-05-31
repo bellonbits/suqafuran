@@ -6,7 +6,7 @@ from app.models.user import User, UserCreate, UserUpdate
 
 
 def get_user_by_email(db: Session, email: str) -> Optional[User]:
-    statement = select(User).where(User.email == email)
+    statement = select(User).where(User.email == email.strip().lower())
     return db.exec(statement).first()
 
 
@@ -17,7 +17,7 @@ def get_user_by_phone(db: Session, phone: str) -> Optional[User]:
 
 def create_user(db: Session, email: str, password: str, full_name: Optional[str] = None, phone: Optional[str] = None) -> User:
     db_obj = User(
-        email=email,
+        email=email.strip().lower(),
         phone=phone,
         full_name=full_name,
         hashed_password=get_password_hash(password),
@@ -73,7 +73,7 @@ def create_social_user(db: Session, email: str, full_name: str, provider: str) -
     dummy_password = str(uuid.uuid4())
     db_obj = User(
         full_name=full_name,
-        email=email,
+        email=email.strip().lower(),
         hashed_password=get_password_hash(dummy_password),
         is_active=True,
         is_verified=False, # Verify them? Usually social is trusted.

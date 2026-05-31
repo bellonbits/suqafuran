@@ -15,7 +15,8 @@ ALGORITHM = settings.JWT_ALGORITHM
 # Redis connection for custom rate limiting
 # In production, use the URL from settings
 try:
-    redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+    from app.utils.redis import from_url_safe
+    redis_client = from_url_safe(settings.REDIS_URL, decode_responses=True)
 except Exception:
     # Fallback for local dev if URL is not set
     redis_client = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB, decode_responses=True)
