@@ -37,19 +37,25 @@ def from_url_safe(url: str, **kwargs) -> redis.Redis:
 redis_client = from_url_safe(settings.REDIS_URL, decode_responses=True)
 
 def set_verification_code(email: str, code: str, expire_hours: int = 24):
+    email = email.strip().lower()
     redis_client.setex(f"verify:{email}", expire_hours * 3600, code)
 
 def get_verification_code(email: str) -> str:
+    email = email.strip().lower()
     return redis_client.get(f"verify:{email}")
 
 def delete_verification_code(email: str):
+    email = email.strip().lower()
     redis_client.delete(f"verify:{email}")
 
 def set_reset_token(email: str, token: str, expire_hours: int = 1):
+    email = email.strip().lower()
     redis_client.setex(f"reset:{email}", expire_hours * 3600, token)
 
 def get_reset_token(email: str) -> str:
+    email = email.strip().lower()
     return redis_client.get(f"reset:{email}")
 
 def delete_reset_token(email: str):
+    email = email.strip().lower()
     redis_client.delete(f"reset:{email}")
