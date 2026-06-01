@@ -31,10 +31,13 @@ import {
     AlertCircle,
     ExternalLink,
     Image as ImageIcon,
-    Tag
+    Tag,
+    Camera,
+    Loader2
 } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { cn } from '../../utils/cn';
+import { getImageUrl } from '../../utils/imageUtils';
 import type { Business, Employee, BusinessProduct, BusinessCustomer, Order, BusinessMessage, TeamMessage, BusinessTask } from '../../services/businessService';
 import { businessService } from '../../services/businessService';
 import { API_BASE_URL } from '../../services/api';
@@ -124,6 +127,10 @@ export function BusinessDashboard() {
     // Storefront link copy & settings saving states
     const [copiedLink, setCopiedLink] = useState(false);
     const [savingStorefront, setSavingStorefront] = useState(false);
+    const [uploadingLogo, setUploadingLogo] = useState(false);
+    const [uploadingBanner, setUploadingBanner] = useState(false);
+    const logoInputRef = useRef<HTMLInputElement>(null);
+    const bannerInputRef = useRef<HTMLInputElement>(null);
 
     const handleCopyStorefrontLink = async () => {
         if (!activeBusiness) return;
@@ -155,6 +162,40 @@ export function BusinessDashboard() {
             toast.error(err.response?.data?.detail || 'Failed to update storefront settings');
         } finally {
             setSavingStorefront(false);
+        }
+    };
+
+    const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!activeBusiness || !e.target.files?.[0]) return;
+        setUploadingLogo(true);
+        try {
+            const { url } = await listingService.uploadImage(e.target.files[0]);
+            const updated = await businessService.updateBusiness(activeBusiness.id, { logo_url: url });
+            setActiveBusiness(updated);
+            setBusinesses(prev => prev.map(b => b.id === updated.id ? updated : b));
+            toast.success('Shop logo updated!');
+        } catch {
+            toast.error('Failed to upload logo');
+        } finally {
+            setUploadingLogo(false);
+            if (logoInputRef.current) logoInputRef.current.value = '';
+        }
+    };
+
+    const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!activeBusiness || !e.target.files?.[0]) return;
+        setUploadingBanner(true);
+        try {
+            const { url } = await listingService.uploadImage(e.target.files[0]);
+            const updated = await businessService.updateBusiness(activeBusiness.id, { banner_url: url });
+            setActiveBusiness(updated);
+            setBusinesses(prev => prev.map(b => b.id === updated.id ? updated : b));
+            toast.success('Shop banner updated!');
+        } catch {
+            toast.error('Failed to upload banner');
+        } finally {
+            setUploadingBanner(false);
+            if (bannerInputRef.current) bannerInputRef.current.value = '';
         }
     };
 
@@ -1090,7 +1131,61 @@ export function BusinessDashboard() {
                                         Public Store Settings
                                     </span>
                                 </div>
-                                
+
+                                {/* Profile Picture & Banner Upload */}
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Shop Profile Picture & Banner</label>
+                                    <div className="flex items-center gap-4">
+                                        {/* Logo */}
+                                        <div className="relative shrink-0">
+                                            <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-slate-200 bg-slate-100 flex items-center justify-center">
+                                                {activeBusiness?.logo_url ? (
+                                                    <img src={getImageUrl(activeBusiness.logo_url)} alt="logo" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full text-white font-black text-2xl uppercase flex items-center justify-center" style={{ backgroundColor: activeBusiness?.brand_color || '#2563eb' }}>
+                                                        {activeBusiness?.name?.charAt(0)}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => logoInputRef.current?.click()}
+                                                disabled={uploadingLogo}
+                                                className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-full bg-orange-500 hover:bg-orange-600 border-2 border-white text-white flex items-center justify-center shadow-md active:scale-90 transition-all disabled:opacity-60"
+                                            >
+                                                {uploadingLogo ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+                                            </button>
+                                            <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                                            <p className="text-[9px] text-slate-400 font-bold text-center mt-2">Logo</p>
+                                        </div>
+
+                                        {/* Banner */}
+                                        <div className="relative flex-1">
+                                            <div className="w-full h-20 rounded-2xl overflow-hidden border-2 border-slate-200 bg-slate-100 flex items-center justify-center">
+                                                {activeBusiness?.banner_url ? (
+                                                    <img src={getImageUrl(activeBusiness.banner_url)} alt="banner" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="flex flex-col items-center gap-1 text-slate-300">
+                                                        <ImageIcon className="h-6 w-6" />
+                                                        <span className="text-[9px] font-bold">No banner set</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => bannerInputRef.current?.click()}
+                                                disabled={uploadingBanner}
+                                                className="absolute bottom-2 right-2 flex items-center gap-1 bg-black/50 hover:bg-black/70 text-white text-[9px] font-black px-2 py-1 rounded-lg active:scale-95 transition-all disabled:opacity-60"
+                                            >
+                                                {uploadingBanner ? <Loader2 className="h-3 w-3 animate-spin" /> : <Camera className="h-3 w-3" />}
+                                                {uploadingBanner ? 'Uploading...' : 'Change Banner'}
+                                            </button>
+                                            <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleBannerUpload} />
+                                            <p className="text-[9px] text-slate-400 font-bold mt-2">Banner (shown at top of your shop page)</p>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div className="grid grid-cols-2 gap-6">
                                     <div className="space-y-4">
                                         <div>

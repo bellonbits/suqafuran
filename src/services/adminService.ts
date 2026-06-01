@@ -2,6 +2,18 @@ import api from './api';
 import type { Listing } from '../types/listing';
 import type { User } from '../types/auth';
 
+export interface OtpLogEntry {
+    id: number;
+    identifier: string;
+    channel: string;
+    event_type: string;
+    status: string;
+    attempt_count: number;
+    expires_at: string | null;
+    created_at: string;
+    meta: Record<string, any> | null;
+}
+
 export interface AdminStats {
     total_users: number;
     total_listings: number;
@@ -40,6 +52,19 @@ export const adminService = {
 
     async getOtp(params: { phone?: string; email?: string }): Promise<{ found: boolean; channel?: string; identifier?: string; code?: string; expires_in_seconds?: number; message: string }> {
         const response = await api.get('/admin/otps', { params });
+        return response.data;
+    },
+
+    async getOtpLogs(params: {
+        identifier?: string;
+        event_type?: string;
+        channel?: string;
+        date_from?: string;
+        date_to?: string;
+        limit?: number;
+        offset?: number;
+    }): Promise<{ total: number; results: OtpLogEntry[] }> {
+        const response = await api.get('/admin/otp-logs', { params });
         return response.data;
     },
 

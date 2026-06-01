@@ -97,6 +97,29 @@ async def upload_multiple_images(
     return results
 
 
+@router.post("/upload-video")
+async def upload_video(
+    *,
+    file: UploadFile = File(...),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """Upload a video for a listing (up to 100 MB)."""
+    extension = file.filename.split(".")[-1].lower()
+    if extension not in settings.ALLOWED_VIDEO_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="Video format not supported. Use mp4, webm, or mov.")
+
+    contents = await file.read(settings.MAX_VIDEO_SIZE + 1)
+    if len(contents) > settings.MAX_VIDEO_SIZE:
+        raise HTTPException(status_code=400, detail="Video too large. Max 100 MB.")
+
+    filename = f"vid_{uuid.uuid4()}.{extension}"
+    try:
+        url, _ = await storage_service.upload_file(contents, filename)
+        return {"filename": filename, "url": url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload video: {str(e)}")
+
+
 @router.get("/categories", response_model=List[Any])
 @cache.cached(prefix="categories", ttl=3600)
 def read_categories(

@@ -154,10 +154,13 @@ class EmailService:
         email = email.strip().lower()
         self._redis_incr(f"otp_attempts:{email}", ex=300)
 
-    def send_verification_code(self, email: str) -> bool:
+    def send_verification_code(self, email: str, is_resend: bool = False) -> bool:
+        from app.services.otp_log_service import otp_log
         email = email.strip().lower()
         if not self.check_rate_limit(email):
             print(f"[Email] Rate limit exceeded for {email}")
+            otp_log.record("failed", identifier=email, channel="email",
+                           meta={"reason": "rate_limit_exceeded"})
             return False
 
         code = self.generate_otp()
@@ -167,10 +170,14 @@ class EmailService:
         if self.redis:
             ok = self._redis_set(f"otp:{email}", code, ex=300)
             if not ok and settings.ENVIRONMENT == "production":
+                otp_log.record("failed", identifier=email, channel="email",
+                               meta={"reason": "redis_set_failed"})
                 return False
         else:
             if settings.ENVIRONMENT == "production":
                 print(f"[Email] Redis unavailable in production — cannot store OTP for {email}")
+                otp_log.record("failed", identifier=email, channel="email",
+                               meta={"reason": "redis_unavailable"})
                 return False
             code = "000000"
         self.increment_rate_limit(email)
@@ -187,6 +194,8 @@ class EmailService:
             content=otp_content
         )
 
+        _event = "resent" if is_resend else "sent"
+
         # Try Resend first
         if settings.RESEND_API_KEY:
             try:
@@ -199,9 +208,13 @@ class EmailService:
                     "html": html_body,
                 })
                 print(f"[Email] OTP sent via Resend to {email}")
+                otp_log.record(_event, identifier=email, channel="email",
+                                expires_in=300, meta={"provider": "resend"})
                 return True
             except Exception as e:
                 print(f"[Email] Resend failed ({e}), trying SMTP fallback...")
+                otp_log.record("failed", identifier=email, channel="email",
+                                meta={"provider": "resend", "reason": str(e)[:200]})
 
         # SMTP fallback
         if settings.SMTP_HOST and settings.SMTP_USER and settings.SMTP_PASSWORD:
@@ -225,14 +238,22 @@ class EmailService:
                         server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
                         server.sendmail(settings.SMTP_USER, email, msg.as_string())
                 print(f"[Email] OTP sent via SMTP to {email}")
+                otp_log.record(_event, identifier=email, channel="email",
+                                expires_in=300, meta={"provider": "smtp"})
                 return True
             except Exception as e:
                 print(f"[Email] SMTP failed: {e}")
+                otp_log.record("failed", identifier=email, channel="email",
+                                meta={"provider": "smtp", "reason": str(e)[:200]})
 
         if settings.ENVIRONMENT != "production":
             print(f"[Email] Dev fallback OTP for {email}: {code}")
+            otp_log.record(_event, identifier=email, channel="email",
+                            expires_in=300, meta={"mode": "development"})
             return True
 
+        otp_log.record("failed", identifier=email, channel="email",
+                        meta={"reason": "no_provider_configured"})
         return False
 
     def send_reset_code(self, email: str, code: str) -> bool:
@@ -1749,17 +1770,42 @@ class EmailService:
         return self._send_and_log(email, subject, html_body, f"crm_manual_{campaign_id or 'custom'}", user_id, campaign_id=campaign_id)
 
     def check_verification_code(self, email: str, code: str) -> bool:
+        from app.services.otp_log_service import otp_log
         email = email.strip().lower()
         self._ensure_redis()
         if not self.redis:
             if settings.ENVIRONMENT != "production":
-                return code == "000000"
+                if code == "000000":
+                    otp_log.record("verified", identifier=email, channel="email",
+                                   meta={"mode": "development"})
+                    return True
+                otp_log.record("attempt_failed", identifier=email, channel="email",
+                               meta={"mode": "development"})
+                return False
             return False
+
+        # Track attempt count
+        attempt_key = f"otp_verify_attempts:{email}"
+        attempt_count = int(self.redis.incr(attempt_key) if self.redis else 1)
+        if self.redis:
+            self.redis.expire(attempt_key, 600)
 
         stored = self._redis_get(f"otp:{email}")
         if stored and stored == code:
             self._redis_delete(f"otp:{email}")
+            if self.redis:
+                self.redis.delete(attempt_key)
+            otp_log.record("verified", identifier=email, channel="email",
+                           attempt_count=attempt_count)
             return True
+
+        otp_log.record(
+            "expired" if not stored else "attempt_failed",
+            identifier=email,
+            channel="email",
+            status="failed",
+            attempt_count=attempt_count,
+        )
         return False
 
     def store_pending_signup(self, email: str, signup_data: dict) -> bool:

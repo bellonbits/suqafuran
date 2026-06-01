@@ -1113,7 +1113,7 @@ const ProductDetailPage: React.FC = () => {
                                                             </div>
                                                         )}
                                                     </div>
-                                                    {ad.owner?.business && (
+                                                    {(ad.owner as any)?.business && (
                                                         <div className="mt-1">
                                                             <span className="inline-flex items-center gap-1 bg-gradient-to-r from-sky-50 to-indigo-50 border border-sky-100/80 text-sky-700 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">
                                                                 <ShoppingBag className="w-2.5 h-2.5 text-sky-600" />
@@ -1144,9 +1144,9 @@ const ProductDetailPage: React.FC = () => {
                                                 </button>
 
                                                 {/* Visit Official Shop */}
-                                                {ad.owner?.business && (
+                                                {(ad.owner as any)?.business && (
                                                     <Link
-                                                        to={`/shop/${ad.owner.business.slug}`}
+                                                        to={`/shop/${(ad.owner as any).business.slug}`}
                                                         className="w-full h-11 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-extrabold text-sm flex items-center justify-center gap-2 shadow-md transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
                                                     >
                                                         <ShoppingBag className="h-4 w-4" />

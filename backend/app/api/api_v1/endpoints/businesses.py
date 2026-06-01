@@ -168,11 +168,16 @@ def get_public_business(
         Listing.status == "active"
     ).order_by(Listing.created_at.desc())
     listings = db.exec(listings_stmt).all()
-    
+
+    # Include owner avatar so the storefront can fall back to it when no logo is set
+    owner = db.get(User, business.owner_id)
+    owner_avatar_url = owner.avatar_url if owner else None
+
     return {
         "business": business,
         "products": products,
-        "listings": [l.model_dump() for l in listings]
+        "listings": [l.model_dump() for l in listings],
+        "owner_avatar_url": owner_avatar_url,
     }
 
 

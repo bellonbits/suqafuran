@@ -17,6 +17,7 @@ from app.models.support import SupportTicket
 from app.models.device import Device, UserDeviceLink
 from app.models.fraud import FraudEvent, RiskHistory
 from app.models.email_log import EmailLog
+from app.models.otp_log import OTPLog
 from app.models.business import (
     Business,
     Employee,
@@ -69,4 +70,5 @@ __all__ = [
     "TeamMessage",
     "BusinessTask",
     "BusinessRole",
+    "OTPLog",
 ]

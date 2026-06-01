@@ -15,7 +15,6 @@ import { useAuthStore } from '../store/useAuthStore';
 import { cn } from '../utils/cn';
 import { aiService } from '../services/aiService';
 import { promotionService } from '../services/promotionService';
-import { ImageCropperModal } from '../components/ImageCropperModal';
 
 const KES_RATE = 130; // 1 USD = 130 KES
 
@@ -82,7 +81,7 @@ const PostAdPage: React.FC = () => {
     const [showCategoryPicker, setShowCategoryPicker] = useState(false);
     const [categorySearch, setCategorySearch] = useState('');
     const [isLocationOpen, setIsLocationOpen] = useState(false);
-    const [uploading, setUploading] = useState(false);
+
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const { getField } = useLanguageField();
@@ -91,12 +90,8 @@ const PostAdPage: React.FC = () => {
     const [createdListingTitle, setCreatedListingTitle] = useState('');
     const [aiLoading, setAiLoading] = useState(false);
     const [isDragOver, setIsDragOver] = useState(false);
-    
-    // Image Cropper State
-    const [queuedFiles, setQueuedFiles] = useState<File[]>([]);
-    const [currentCropFile, setCurrentCropFile] = useState<File | null>(null);
-    const [currentCropUrl, setCurrentCropUrl] = useState<string | null>(null);
-    const [editingImageIndex, setEditingImageIndex] = useState<number | null>(null);
+    // localPreviews: { localUrl, serverUrl|null, isVideo }
+    const [localPreviews, setLocalPreviews] = useState<{ localUrl: string; serverUrl: string | null; isVideo: boolean }[]>([]);
 
 
     const { data: verificationStatus } = useQuery({
@@ -133,6 +128,7 @@ const PostAdPage: React.FC = () => {
         if (isEditMode && id) {
             listingService.getListing(Number(id))
                 .then(listing => {
+                    const imgs: string[] = listing.images || [];
                     setForm({
                         title_en: listing.title_en || '',
                         title_so: listing.title_so || '',
@@ -140,7 +136,7 @@ const PostAdPage: React.FC = () => {
                         subcategoryId: listing.subcategory_id || null,
                         subsubcategoryId: listing.subsubcategory_id || null,
                         location: listing.location || '',
-                        images: listing.images || [],
+                        images: imgs,
                         image_hashes: listing.image_hashes || [],
                         youtubeLink: listing.youtube_link || '',
                         description_en: listing.description_en || '',
@@ -153,6 +149,7 @@ const PostAdPage: React.FC = () => {
                         attributes: listing.attributes || {},
                         lang_available: (listing.title_en && listing.title_so) ? 'both' : (listing.title_so ? 'so' : 'en'),
                     });
+                    setLocalPreviews(imgs.map(url => ({ localUrl: url, serverUrl: url, isVideo: /\.(mp4|webm|mov|avi|mkv)(\?|$)/i.test(url) || url.includes('vid_') })));
                 })
                 .catch(e => console.error("Failed to load listing for editing", e));
         }
@@ -223,119 +220,110 @@ const PostAdPage: React.FC = () => {
             img.src = url;
         });
 
+    const isVideoFile = (file: File) => file.type.startsWith('video/');
+
     const handleImageUpload = async (files: FileList | null) => {
         if (!files || files.length === 0) return;
         setImageWarning(null);
 
+        const fileArray = Array.from(files);
+
+        // Quality warnings only for images (non-blocking)
         const warnings: string[] = [];
-        for (const file of Array.from(files)) {
+        for (const file of fileArray.filter(f => !isVideoFile(f))) {
             const w = await checkImageQuality(file);
             if (w) warnings.push(w);
         }
         if (warnings.length) setImageWarning(warnings.join(' '));
 
-        const fileArray = Array.from(files);
-        setQueuedFiles(fileArray.slice(1));
-        setCurrentCropFile(fileArray[0]);
-        setCurrentCropUrl(URL.createObjectURL(fileArray[0]));
-    };
+        // Instant local previews
+        const previews = fileArray.map(file => ({
+            localUrl: URL.createObjectURL(file),
+            serverUrl: null as string | null,
+            isVideo: isVideoFile(file),
+        }));
+        setLocalPreviews(prev => [...prev, ...previews]);
 
-    const processUpload = async (file: File) => {
-        setUploading(true);
-        try {
-            const options = {
-                maxSizeMB: 1,
-                maxWidthOrHeight: 1920,
-                useWebWorker: true,
-            };
-            const compressedBlob = await imageCompression(file, options);
-            const compressedFile = new File([compressedBlob], file.name, { type: compressedBlob.type || file.type });
-            const result = await listingService.uploadImage(compressedFile);
-            setForm(f => ({ 
-                ...f, 
-                images: [...f.images, result.url],
-                image_hashes: [...f.image_hashes, result.phash || '']
-            }));
-        } catch {
-            // silently skip failed uploads
-        } finally {
-            setUploading(false);
-            processNextInQueue();
-        }
-    };
-
-    const processNextInQueue = () => {
-        if (currentCropUrl) URL.revokeObjectURL(currentCropUrl);
-        if (queuedFiles.length > 0) {
-            const nextFile = queuedFiles[0];
-            setQueuedFiles(prev => prev.slice(1));
-            setCurrentCropFile(nextFile);
-            setCurrentCropUrl(URL.createObjectURL(nextFile));
-        } else {
-            setCurrentCropFile(null);
-            setCurrentCropUrl(null);
-        }
-    };
-
-    const handleCropComplete = (croppedFile: File) => {
-        if (editingImageIndex !== null) {
-            // Replace existing image at this index
-            processReplaceUpload(croppedFile, editingImageIndex);
-        } else {
-            processUpload(croppedFile);
-        }
+        // Upload all files in parallel
+        await Promise.all(fileArray.map(async (file, idx) => {
+            try {
+                let url: string;
+                let phash = '';
+                if (isVideoFile(file)) {
+                    const result = await listingService.uploadVideo(file);
+                    url = result.url;
+                } else {
+                    const options = { maxSizeMB: 0.8, maxWidthOrHeight: 1920, useWebWorker: true };
+                    const compressed = file.size > 500_000
+                        ? new File([await imageCompression(file, options)], file.name, { type: file.type })
+                        : file;
+                    const result = await listingService.uploadImage(compressed);
+                    url = result.url;
+                    phash = result.phash || '';
+                }
+                setLocalPreviews(prev => {
+                    const offset = prev.length - fileArray.length;
+                    const updated = [...prev];
+                    updated[offset + idx] = { ...updated[offset + idx], serverUrl: url };
+                    return updated;
+                });
+                setForm(f => ({
+                    ...f,
+                    images: [...f.images, url],
+                    image_hashes: [...f.image_hashes, phash],
+                }));
+            } catch {
+                setLocalPreviews(prev => {
+                    const offset = prev.length - fileArray.length;
+                    return prev.filter((_, i) => i !== offset + idx);
+                });
+            }
+        }));
     };
 
     const processReplaceUpload = async (file: File, index: number) => {
-        setUploading(true);
         try {
-            const options = { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true };
-            const compressedBlob = await imageCompression(file, options);
-            const compressedFile = new File([compressedBlob], file.name, { type: compressedBlob.type || file.type });
-            const result = await listingService.uploadImage(compressedFile);
+            let url: string;
+            let phash = '';
+            if (isVideoFile(file)) {
+                const result = await listingService.uploadVideo(file);
+                url = result.url;
+            } else {
+                const options = { maxSizeMB: 0.8, maxWidthOrHeight: 1920, useWebWorker: true };
+                const compressed = file.size > 500_000
+                    ? new File([await imageCompression(file, options)], file.name, { type: file.type })
+                    : file;
+                const result = await listingService.uploadImage(compressed);
+                url = result.url;
+                phash = result.phash || '';
+            }
+            setLocalPreviews(prev => {
+                const updated = [...prev];
+                updated[index] = { ...updated[index], serverUrl: url, isVideo: isVideoFile(file) };
+                return updated;
+            });
             setForm(f => {
                 const newImages = [...f.images];
                 const newHashes = [...f.image_hashes];
-                newImages[index] = result.url;
-                newHashes[index] = result.phash || '';
+                newImages[index] = url;
+                newHashes[index] = phash;
                 return { ...f, images: newImages, image_hashes: newHashes };
             });
         } catch {
             // silently skip
-        } finally {
-            setUploading(false);
-            setEditingImageIndex(null);
-            if (currentCropUrl) URL.revokeObjectURL(currentCropUrl);
-            setCurrentCropFile(null);
-            setCurrentCropUrl(null);
-        }
-    };
-
-    const editImage = (idx: number, url: string) => {
-        setEditingImageIndex(idx);
-        setCurrentCropUrl(url);
-        setCurrentCropFile(null); // no local file, editing an existing hosted image
-    };
-
-    const handleCropSkip = () => {
-        if (editingImageIndex !== null) {
-            // Skip = keep original, just close
-            setEditingImageIndex(null);
-            if (currentCropUrl) URL.revokeObjectURL(currentCropUrl);
-            setCurrentCropFile(null);
-            setCurrentCropUrl(null);
-        } else if (currentCropFile) {
-            processUpload(currentCropFile);
-        } else {
-            processNextInQueue();
         }
     };
 
     const removeImage = (idx: number) => {
-        setForm(f => ({ 
-            ...f, 
+        setLocalPreviews(prev => {
+            const removed = prev[idx];
+            if (removed?.localUrl) URL.revokeObjectURL(removed.localUrl);
+            return prev.filter((_, i) => i !== idx);
+        });
+        setForm(f => ({
+            ...f,
             images: f.images.filter((_, i) => i !== idx),
-            image_hashes: f.image_hashes.filter((_, i) => i !== idx)
+            image_hashes: f.image_hashes.filter((_, i) => i !== idx),
         }));
     };
 
@@ -352,7 +340,7 @@ const PostAdPage: React.FC = () => {
 
         if (!form.categoryId) e.categoryId = 'Please select a category';
         if (!form.location) e.location = 'Please select a location';
-        if (form.images.length < 1) e.images = 'Please upload at least 1 photo';
+        if (localPreviews.filter(p => p.serverUrl).length < 1) e.images = 'Please upload at least 1 photo or video';
         return e;
     };
 
@@ -952,11 +940,11 @@ const PostAdPage: React.FC = () => {
                             {errors.location && <p className="text-[11px] text-red-500 mt-1 pl-1">{errors.location}</p>}
                         </div>
 
-                        {/* Photos section — drag & drop */}
+                        {/* Photos & Videos section — drag & drop */}
                         <div className="mt-8 mb-6">
                             <div className="flex items-center justify-between mb-2">
-                                <h3 className="font-bold text-gray-900 text-[15px]">Add photos</h3>
-                                <span className="text-[11px] text-gray-400 font-medium">{form.images.length}/10 photos</span>
+                                <h3 className="font-bold text-gray-900 text-[15px]">Photos & Videos</h3>
+                                <span className="text-[11px] text-gray-400 font-medium">{localPreviews.length}/10</span>
                             </div>
                             <p className="text-[12px] text-gray-500 mb-3 pl-0.5">
                                 <span className="text-primary-500 font-bold">First photo is the cover.</span> Min 1 required.
@@ -971,39 +959,47 @@ const PostAdPage: React.FC = () => {
                                 className={cn(
                                     "border-2 border-dashed rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer transition-all mb-3 select-none",
                                     isDragOver ? "border-primary-500 bg-primary-50 scale-[1.01]" : "border-gray-200 hover:border-primary-300 hover:bg-gray-50",
-                                    uploading && "opacity-60 pointer-events-none"
                                 )}
                             >
-                                {uploading ? (
-                                    <Loader2 className="w-7 h-7 text-primary-500 animate-spin mb-2" />
-                                ) : (
-                                    <Plus strokeWidth={2} className="w-7 h-7 text-primary-400 mb-2" />
-                                )}
+                                <Plus strokeWidth={2} className="w-7 h-7 text-primary-400 mb-2" />
                                 <p className="text-sm font-bold text-gray-600">
-                                    {isDragOver ? "Drop images here" : "Drag & drop or tap to upload"}
+                                    {isDragOver ? "Drop files here" : "Tap to add photos or videos"}
                                 </p>
-                                <p className="text-[11px] text-gray-400 mt-0.5">JPG, PNG — up to 10 photos</p>
+                                <p className="text-[11px] text-gray-400 mt-0.5">JPG, PNG · MP4, MOV — up to 10 files</p>
                             </div>
-                            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png" multiple className="hidden" onChange={e => handleImageUpload(e.target.files)} />
+                            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime" multiple className="hidden" onChange={e => handleImageUpload(e.target.files)} />
 
-                            {/* Image grid preview */}
-                            {form.images.length > 0 && (
+                            {/* Media grid — shows local previews instantly, spinner while server URL pending */}
+                            {localPreviews.length > 0 && (
                                 <div className="grid grid-cols-4 gap-2 mt-2">
-                                    {form.images.map((url, i) => (
-                                        <div key={i} className="relative aspect-square group/img">
-                                            <img src={getImageUrl(url)} alt="" className="w-full h-full object-cover rounded-lg border border-gray-200" />
-                                            {i === 0 && (
+                                    {localPreviews.map((item, i) => (
+                                        <div key={i} className="relative aspect-square group/img bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                                            {item.isVideo ? (
+                                                <video src={item.localUrl} className="w-full h-full object-cover" muted playsInline />
+                                            ) : (
+                                                <img src={item.localUrl} alt="" className="w-full h-full object-cover" />
+                                            )}
+                                            {/* Uploading spinner overlay */}
+                                            {!item.serverUrl && (
+                                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-lg">
+                                                    <Loader2 className="w-5 h-5 text-white animate-spin" />
+                                                </div>
+                                            )}
+                                            {/* Video badge */}
+                                            {item.isVideo && item.serverUrl && (
+                                                <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[8px] font-bold px-1.5 py-0.5 rounded">VIDEO</span>
+                                            )}
+                                            {i === 0 && item.serverUrl && (
                                                 <span className="absolute bottom-1 left-1 bg-primary-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">Cover</span>
                                             )}
-                                            {/* Edit overlay on hover/tap */}
-                                            <button
-                                                type="button"
-                                                onClick={() => editImage(i, getImageUrl(url))}
-                                                className="absolute inset-0 bg-black/40 rounded-lg hidden sm:flex flex-col items-center justify-center gap-1 opacity-0 group-hover/img:opacity-100 transition-opacity"
-                                            >
-                                                <Pencil size={18} color="white" />
-                                                <span className="text-white text-[10px] font-bold">Edit</span>
-                                            </button>
+                                            {/* Replace overlay */}
+                                            {item.serverUrl && (
+                                                <label className="absolute inset-0 bg-black/40 rounded-lg hidden sm:flex flex-col items-center justify-center gap-1 opacity-0 group-hover/img:opacity-100 transition-opacity cursor-pointer">
+                                                    <input type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime" className="hidden" onChange={e => { if (e.target.files?.[0]) processReplaceUpload(e.target.files[0], i); e.target.value = ''; }} />
+                                                    <Pencil size={18} color="white" />
+                                                    <span className="text-white text-[10px] font-bold">Replace</span>
+                                                </label>
+                                            )}
                                             <button
                                                 type="button"
                                                 onClick={() => removeImage(i)}
@@ -1403,25 +1399,6 @@ const PostAdPage: React.FC = () => {
                 listingTitle={createdListingTitle}
             />
 
-            {/* Image Cropper Modal */}
-            <ImageCropperModal
-                isOpen={!!(currentCropFile || currentCropUrl)}
-                onClose={() => {
-                    if (editingImageIndex !== null) {
-                        // Cancelled editing existing image
-                        setEditingImageIndex(null);
-                    } else {
-                        setQueuedFiles([]); // cancel remaining queue
-                    }
-                    if (currentCropUrl && !currentCropUrl.startsWith('http')) URL.revokeObjectURL(currentCropUrl);
-                    setCurrentCropFile(null);
-                    setCurrentCropUrl(null);
-                }}
-                imageSrc={currentCropUrl}
-                onCropComplete={handleCropComplete}
-                onSkip={handleCropSkip}
-                fileName={currentCropFile?.name || 'cropped.jpg'}
-            />
         </div>
     );
 };

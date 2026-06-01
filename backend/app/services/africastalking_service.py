@@ -95,24 +95,30 @@ class AfricasTalkingService:
         self.redis.incr(key)
         self.redis.expire(key, 300)  # 5 minutes
 
-    def send_verification_code(self, phone: str) -> bool:
+    def send_verification_code(self, phone: str, is_resend: bool = False) -> bool:
         """
         Generate, store and send a verification code via Premium SMS.
         """
+        from app.services.otp_log_service import otp_log
+
         try:
             # Normalize phone number
             normalized_phone = self.normalize_phone(phone)
         except ValueError as e:
             print(f"[AT] Phone normalization error: {e}")
+            otp_log.record("failed", identifier=phone, channel="sms",
+                           meta={"reason": f"phone_normalization_error: {e}"})
             return False
-        
+
         # Check rate limit
         if not self.check_rate_limit(normalized_phone):
+            otp_log.record("failed", identifier=normalized_phone, channel="sms",
+                           meta={"reason": "rate_limit_exceeded"})
             return False
-        
+
         # Generate secure OTP
         code = self.generate_otp()
-        
+
         # Store in Redis with 5 minute expiry
         if self.redis:
             self.redis.set(f"otp:{normalized_phone}", code, ex=300)
@@ -120,94 +126,128 @@ class AfricasTalkingService:
         else:
             print(f"[AT] CRITICAL: Redis not available")
             if self.environment == "production":
-                return False  # Fail in production if Redis is down
-            code = "000000"  # Fallback for development
-        
+                otp_log.record("failed", identifier=normalized_phone, channel="sms",
+                               meta={"reason": "redis_unavailable"})
+                return False
+            code = "000000"
+
         # Increment rate limit
         self.increment_rate_limit(normalized_phone)
-        
+
         # Development mode: skip SMS
         if not self.sms:
             print(f"[AT] Development mode. Phone: {normalized_phone}, Code: {code}")
+            event = "resent" if is_resend else "sent"
+            otp_log.record(event, identifier=normalized_phone, channel="sms",
+                           expires_in=300, meta={"mode": "development"})
             return True
-            
+
         try:
             message = f"Your Suqafuran verification code is: {code}"
-            
+
             print(f"[AT] Sending Premium SMS to {normalized_phone}")
-            print(f"[AT] Username: {self.username}")
-            print(f"[AT] Sender ID (from): {self.sender_id}")
-            
-            # For sandbox, don't use sender_id as it may cause auth issues
+
             if self.username == "sandbox":
-                print(f"[AT] Sandbox mode - sending without sender ID")
                 response = self.sms.send(message, [normalized_phone])
             else:
-                # Premium SMS - use sender ID for production
                 response = self.sms.send(
                     message,
                     [normalized_phone],
                     sender_id=self.sender_id
                 )
-            
+
             print(f"[AT] SMS Response: {response}")
-            
-            # Check response for success
+
             if response and 'SMSMessageData' in response:
                 recipients = response['SMSMessageData'].get('Recipients', [])
                 if recipients:
                     status_code = recipients[0].get('statusCode', 0)
-                    if status_code in [100, 101, 102]:  # Processed, Sent, Queued
+                    if status_code in [100, 101, 102]:
                         print(f"[AT] SMS sent successfully. Status: {status_code}")
+                        event = "resent" if is_resend else "sent"
+                        otp_log.record(event, identifier=normalized_phone, channel="sms",
+                                       expires_in=300,
+                                       meta={"provider_status": status_code})
                         return True
                     else:
                         print(f"[AT] SMS failed. Status code: {status_code}")
+                        otp_log.record("failed", identifier=normalized_phone, channel="sms",
+                                       meta={"provider_status": status_code})
                         if self.environment == "production":
                             return False
-            
+
+            event = "resent" if is_resend else "sent"
+            otp_log.record(event, identifier=normalized_phone, channel="sms",
+                           expires_in=300, meta={"provider_response": str(response)[:200]})
             return True
-            
+
         except Exception as e:
             print(f"\n[AT] SMS SENDING FAILED: {e}")
-            print(f"[AT] Error type: {type(e).__name__}")
-            
-            # In production, fail hard
+            otp_log.record("failed", identifier=normalized_phone, channel="sms",
+                           meta={"reason": str(e)[:300]})
+
             if self.environment == "production":
                 return False
-            
-            # In development, allow fallback with prominent logging
+
             print("\n" + "="*40)
             print(f"  DEVELOPMENT OTP FALLBACK")
             print(f"  Phone: {normalized_phone}")
             print(f"  Code:  {code}")
             print("="*40 + "\n")
+            event = "resent" if is_resend else "sent"
+            otp_log.record(event, identifier=normalized_phone, channel="sms",
+                           expires_in=300, meta={"mode": "development_fallback"})
             return True
 
     def check_verification_code(self, phone: str, code: str) -> bool:
         """
         Check if the provided code matches the one in Redis.
         """
+        from app.services.otp_log_service import otp_log
+
         try:
             normalized_phone = self.normalize_phone(phone)
         except ValueError as e:
             print(f"[AT] Phone normalization error: {e}")
+            otp_log.record("attempt_failed", identifier=phone, channel="sms",
+                           meta={"reason": f"phone_normalization_error: {e}"})
             return False
-            
+
         if not self.redis:
-            # Development fallback
             if self.environment == "development":
-                return code == "000000"
+                if code == "000000":
+                    otp_log.record("verified", identifier=normalized_phone, channel="sms",
+                                   meta={"mode": "development"})
+                    return True
+                otp_log.record("attempt_failed", identifier=normalized_phone, channel="sms",
+                               meta={"mode": "development"})
+                return False
             return False
-            
+
         stored_code = self.redis.get(f"otp:{normalized_phone}")
-        
+
+        # Track attempt count via a separate Redis counter
+        attempt_key = f"otp_verify_attempts:{normalized_phone}"
+        attempt_count = int(self.redis.incr(attempt_key))
+        self.redis.expire(attempt_key, 600)
+
         if stored_code and stored_code == code:
-            # Delete code after successful verification
             self.redis.delete(f"otp:{normalized_phone}")
+            self.redis.delete(attempt_key)
             print(f"[AT] OTP verified for {normalized_phone}")
+            otp_log.record("verified", identifier=normalized_phone, channel="sms",
+                           attempt_count=attempt_count)
             return True
-        
+
+        # Wrong code
         print(f"[AT] OTP verification failed for {normalized_phone}")
+        otp_log.record(
+            "expired" if not stored_code else "attempt_failed",
+            identifier=normalized_phone,
+            channel="sms",
+            status="failed",
+            attempt_count=attempt_count,
+        )
         return False
 
     def store_pending_signup(self, phone: str, signup_data: dict) -> bool:

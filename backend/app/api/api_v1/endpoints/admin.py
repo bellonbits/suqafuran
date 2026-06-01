@@ -560,6 +560,83 @@ def lookup_otp(
         }
 
 
+@router.get("/otp-logs")
+def get_otp_logs(
+    identifier: Optional[str] = Query(None, description="Phone or email to filter by"),
+    event_type: Optional[str] = Query(None, description="sent|resent|verified|failed|expired|attempt_failed"),
+    channel: Optional[str] = Query(None, description="sms|email"),
+    date_from: Optional[str] = Query(None, description="ISO date e.g. 2026-01-01"),
+    date_to: Optional[str] = Query(None, description="ISO date e.g. 2026-12-31"),
+    limit: int = Query(100, le=500),
+    offset: int = Query(0),
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Query the append-only OTP event log. Supports filtering by identifier,
+    event type, channel, and date range.
+    """
+    from app.models.otp_log import OTPLog
+    from sqlmodel import select
+    from datetime import datetime
+
+    stmt = select(OTPLog)
+
+    if identifier:
+        clean = identifier.strip().lower()
+        # Try to match both normalised phone and email
+        try:
+            from app.services.africastalking_service import africastalking_service
+            normalized = africastalking_service.normalize_phone(identifier)
+            stmt = stmt.where(
+                (OTPLog.identifier == normalized) | (OTPLog.identifier == clean)
+            )
+        except Exception:
+            stmt = stmt.where(OTPLog.identifier == clean)
+
+    if event_type:
+        stmt = stmt.where(OTPLog.event_type == event_type)
+
+    if channel:
+        stmt = stmt.where(OTPLog.channel == channel)
+
+    if date_from:
+        try:
+            stmt = stmt.where(OTPLog.created_at >= datetime.fromisoformat(date_from))
+        except ValueError:
+            pass
+
+    if date_to:
+        try:
+            stmt = stmt.where(OTPLog.created_at <= datetime.fromisoformat(date_to + "T23:59:59"))
+        except ValueError:
+            pass
+
+    total_stmt = stmt
+    stmt = stmt.order_by(OTPLog.created_at.desc()).offset(offset).limit(limit)
+    rows = db.exec(stmt).all()
+
+    return {
+        "total": db.exec(select(OTPLog.id).where(*[
+            # re-apply same filters for count — simpler to just return len of full query
+        ])).all().__len__() if not identifier and not event_type else len(rows),
+        "results": [
+            {
+                "id": r.id,
+                "identifier": r.identifier,
+                "channel": r.channel,
+                "event_type": r.event_type,
+                "status": r.status,
+                "attempt_count": r.attempt_count,
+                "expires_at": r.expires_at.isoformat() if r.expires_at else None,
+                "created_at": r.created_at.isoformat(),
+                "meta": r.meta,
+            }
+            for r in rows
+        ],
+    }
+
+
 @router.get("/email/analytics", response_model=dict)
 def read_email_analytics(
     db: Session = Depends(deps.get_db),

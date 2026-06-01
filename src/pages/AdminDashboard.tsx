@@ -83,7 +83,7 @@ const AdminDashboard: React.FC = () => {
 
     const deleteUserMutation = useMutation({
         mutationFn: (userId: number) => adminService.deleteUser(userId),
-        onSuccess: (_, userId) => {
+        onSuccess: (_) => {
             queryClient.invalidateQueries({ queryKey: ['admin-users'] });
             queryClient.invalidateQueries({ queryKey: ['admin-users-count'] });
             queryClient.invalidateQueries({ queryKey: ['admin-stats'] });

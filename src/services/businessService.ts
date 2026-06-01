@@ -383,8 +383,8 @@ export const businessService = {
     },
 
     // Public Storefront methods
-    getPublicShop: async (slug: string): Promise<{ business: Business; products: BusinessProduct[]; listings: any[] }> => {
-        const { data } = await api.get<{ business: Business; products: BusinessProduct[]; listings: any[] }>(`/businesses/public/${slug}`);
+    getPublicShop: async (slug: string): Promise<{ business: Business; products: BusinessProduct[]; listings: any[]; owner_avatar_url?: string }> => {
+        const { data } = await api.get<{ business: Business; products: BusinessProduct[]; listings: any[]; owner_avatar_url?: string }>(`/businesses/public/${slug}`);
         return data;
     },
 

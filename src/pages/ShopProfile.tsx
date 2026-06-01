@@ -8,7 +8,7 @@ import { Button } from '../components/Button';
 import {
     ShieldCheck, MapPin, Phone, Mail, Globe, 
     MessageCircle, Sparkles, Loader2, ChevronLeft, ShoppingBag, 
-    AlertCircle, Check, Copy, Heart, Eye, ExternalLink, Tag
+    AlertCircle, Check, Copy, Heart, Eye, ExternalLink
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../utils/cn';
@@ -83,7 +83,7 @@ const ShopProfile: React.FC = () => {
         );
     }
 
-    const { business, products, listings = [] } = data;
+    const { business, products, listings = [], owner_avatar_url } = data;
     const brandColor = business.brand_color || '#2563eb';
     const totalItems = listings.length + products.length;
 
@@ -142,9 +142,9 @@ const ShopProfile: React.FC = () => {
                             <div className="flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
                                 {/* Logo Overlay */}
                                 <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-white border-4 border-white shadow-md overflow-hidden flex items-center justify-center shrink-0">
-                                    {business.logo_url ? (
+                                    {(business.logo_url || owner_avatar_url) ? (
                                         <img
-                                            src={getImageUrl(business.logo_url)}
+                                            src={getImageUrl(business.logo_url || owner_avatar_url)}
                                             alt={business.name}
                                             className="w-full h-full object-cover"
                                         />

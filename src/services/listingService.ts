@@ -50,6 +50,16 @@ export const listingService = {
         return response.data;
     },
 
+    async uploadVideo(file: File): Promise<{ filename: string; url: string }> {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await api.post('/listings/upload-video', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            timeout: 300000, // 5 minutes for large video
+        });
+        return response.data;
+    },
+
     async uploadMultipleImages(files: File[]): Promise<{ filename: string; url: string; phash?: string }[]> {
         const formData = new FormData();
         files.forEach(file => formData.append('files', file));
