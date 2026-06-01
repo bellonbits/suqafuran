@@ -3,6 +3,8 @@ services:
     image: redis:7-alpine
     container_name: suqafuran_redis
     restart: always
+    security_opt:
+      - seccomp:unconfined
     env_file:
       - ./backend/.env
     command: >
@@ -23,6 +25,8 @@ services:
       dockerfile: Dockerfile
     container_name: suqafuran_api
     restart: always
+    security_opt:
+      - seccomp:unconfined
     dns:
       - 8.8.8.8
       - 1.1.1.1
@@ -54,6 +58,8 @@ services:
       dockerfile: Dockerfile.worker
     container_name: suqafuran_worker
     restart: always
+    security_opt:
+      - seccomp:unconfined
     dns:
       - 8.8.8.8
       - 1.1.1.1
@@ -79,6 +85,8 @@ services:
       dockerfile: Dockerfile.worker
     container_name: suqafuran_beat
     restart: always
+    security_opt:
+      - seccomp:unconfined
     dns:
       - 8.8.8.8
       - 1.1.1.1
@@ -101,6 +109,8 @@ services:
     image: nginx:alpine
     container_name: suqafuran_nginx
     restart: always
+    security_opt:
+      - seccomp:unconfined
     depends_on:
       - api
     ports:
@@ -115,6 +125,8 @@ services:
   certbot:
     image: certbot/certbot
     container_name: suqafuran_certbot
+    security_opt:
+      - seccomp:unconfined
     dns:
       - 8.8.8.8
       - 1.1.1.1
