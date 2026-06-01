@@ -55,6 +55,14 @@ export const adminService = {
         return response.data;
     },
 
+    async getVerificationAttempts(identifier: string): Promise<{
+        user: { id: number; full_name: string; email: string; phone: string; is_verified: boolean } | null;
+        attempts: { id: number; document_type: string; status: string; created_at: string; auto_verification_status: string | null }[];
+    }> {
+        const response = await api.get('/admin/verification-attempts', { params: { identifier } });
+        return response.data;
+    },
+
     async getOtpLogs(params: {
         identifier?: string;
         event_type?: string;

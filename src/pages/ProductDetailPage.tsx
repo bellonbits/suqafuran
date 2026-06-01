@@ -90,14 +90,21 @@ const ProductDetailPage: React.FC = () => {
 
     // Use cached listing from the home/search page as instant placeholder
     const id = Number(listingId);
+
+    const findInCache = (data: unknown): Listing | undefined => {
+        if (Array.isArray(data)) return data.find((l: Listing) => l.id === id);
+        if (data && typeof data === 'object' && Array.isArray((data as any).results))
+            return (data as any).results.find((l: Listing) => l.id === id);
+        return undefined;
+    };
+
     const cachedListing =
-        queryClient.getQueryData<Listing[]>(['featured-ads'])?.find(l => l.id === id)
-        ?? queryClient.getQueryData<Listing[]>(['listings'])?.find(l => l.id === id)
+        findInCache(queryClient.getQueryData(['featured-ads']))
+        ?? findInCache(queryClient.getQueryData(['listings']))
         ?? (() => {
-            // Also search any category/search page caches
-            const allCaches = queryClient.getQueriesData<Listing[]>({ queryKey: ['listings'] });
+            const allCaches = queryClient.getQueriesData<unknown>({ queryKey: ['listings'] });
             for (const [, data] of allCaches) {
-                const found = data?.find(l => l.id === id);
+                const found = findInCache(data);
                 if (found) return found;
             }
             return undefined;

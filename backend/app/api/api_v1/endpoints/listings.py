@@ -484,11 +484,12 @@ def create_listing(
     """
     Create new listing.
     """
-    # Prevent duplicated products from the same user account
+    # Prevent duplicated active listings from the same user (allow reposting sold/closed/deleted ones)
     existing_duplicate = db.exec(
         select(Listing).where(
             Listing.owner_id == current_user.id,
-            Listing.title_en == listing_in.title_en
+            Listing.title_en == listing_in.title_en,
+            Listing.status.in_(["active", "pending"])
         )
     ).first()
     if existing_duplicate:
@@ -686,10 +687,19 @@ def patch_listing(
     if not current_user.is_admin and (listing.owner_id != current_user.id):
         raise HTTPException(status_code=400, detail="Not enough privileges")
     
+    from datetime import datetime as dt
     for field, value in listing_in.items():
         if hasattr(listing, field):
             setattr(listing, field, value)
-    
+
+    # Auto-set sold_at when is_sold becomes True
+    if listing_in.get('is_sold') is True and not listing.sold_at:
+        listing.sold_at = dt.utcnow()
+    # Keep status in sync: marking sold → status = "sold"
+    if listing_in.get('is_sold') is True:
+        listing.status = 'sold'
+
+    listing.updated_at = dt.utcnow()
     db.add(listing)
     db.commit()
     db.refresh(listing)

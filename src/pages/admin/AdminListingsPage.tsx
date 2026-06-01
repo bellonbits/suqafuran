@@ -189,6 +189,7 @@ const AdminListingsPage: React.FC = () => {
                                     <th className="text-left px-4 py-3 font-semibold text-gray-600">{t('admin.price')}</th>
                                     <th className="text-left px-4 py-3 font-semibold text-gray-600">{t('admin.status')}</th>
                                     <th className="text-left px-4 py-3 font-semibold text-gray-600">{t('admin.views')}</th>
+                                    <th className="text-left px-4 py-3 font-semibold text-gray-600">Sold</th>
                                     <th className="text-left px-4 py-3 font-semibold text-gray-600">{t('admin.posted')}</th>
                                     <th className="text-right px-4 py-3 font-semibold text-gray-600">{t('admin.actions')}</th>
                                 </tr>
@@ -232,6 +233,20 @@ const AdminListingsPage: React.FC = () => {
                                             </select>
                                         </td>
                                         <td className="px-4 py-3 text-gray-500">{listing.views ?? 0}</td>
+                                        <td className="px-4 py-3">
+                                            {(listing as any).is_sold ? (
+                                                <div>
+                                                    <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
+                                                        ✓ Sold
+                                                    </span>
+                                                    {(listing as any).sold_via && (
+                                                        <p className="text-[10px] text-gray-400 mt-0.5 capitalize">{(listing as any).sold_via}</p>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <span className="text-[10px] text-gray-300 font-medium">Not sold</span>
+                                            )}
+                                        </td>
                                         <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">
                                             {listing.created_at ? new Date(listing.created_at).toLocaleDateString() : '—'}
                                         </td>

@@ -33,7 +33,12 @@ class ListingBase(SQLModel):
     rejection_reason: Optional[str] = Field(default=None)
     admin_notes: Optional[dict] = Field(default={}, sa_column=Column(JSON))
     is_negotiable: bool = Field(default=False)
-    
+
+    # Sale tracking
+    is_sold: bool = Field(default=False, index=True)
+    sold_at: Optional[datetime] = Field(default=None)
+    sold_via: Optional[str] = Field(default=None)  # "platform" | "external" | "other"
+
     # Security & Fraud Fields
     image_hashes: Optional[List[str]] = Field(default=[], sa_column=Column(JSON)) # Perceptual hashes for duplicate detection
     fraud_risk_score: int = Field(default=0, index=True) # 0-100 calculated by AI

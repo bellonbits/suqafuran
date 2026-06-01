@@ -637,6 +637,70 @@ def get_otp_logs(
     }
 
 
+@router.get("/verification-attempts")
+def get_verification_attempts(
+    identifier: str = Query(..., description="Email or phone of the user to look up"),
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Return all identity verification requests submitted by a user, looked up by
+    their email or phone number.
+    """
+    from app.models.verification import VerificationRequest
+    from app.models.user import User as UserModel
+    from sqlmodel import select, or_
+
+    clean = identifier.strip().lower()
+
+    # Resolve user by email or phone
+    user = db.exec(
+        select(UserModel).where(
+            or_(UserModel.email == clean, UserModel.phone == clean)
+        )
+    ).first()
+
+    # Try normalised phone if not found
+    if not user:
+        try:
+            from app.services.africastalking_service import africastalking_service
+            normalized = africastalking_service.normalize_phone(identifier)
+            user = db.exec(
+                select(UserModel).where(UserModel.phone == normalized)
+            ).first()
+        except Exception:
+            pass
+
+    if not user:
+        return {"user": None, "attempts": []}
+
+    attempts = db.exec(
+        select(VerificationRequest)
+        .where(VerificationRequest.user_id == user.id)
+        .order_by(VerificationRequest.created_at.desc())
+    ).all()
+
+    return {
+        "user": {
+            "id": user.id,
+            "full_name": user.full_name,
+            "email": user.email,
+            "phone": user.phone,
+            "is_verified": user.is_verified,
+        },
+        "attempts": [
+            {
+                "id": a.id,
+                "document_type": a.document_type,
+                "status": a.status,
+                "created_at": a.created_at.isoformat(),
+                "auto_verification_status": getattr(a, "auto_verification_status", None),
+            }
+            for a in attempts
+        ],
+    }
+
+
 @router.get("/email/analytics", response_model=dict)
 def read_email_analytics(
     db: Session = Depends(deps.get_db),

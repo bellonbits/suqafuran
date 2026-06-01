@@ -6,15 +6,12 @@ import { listingService } from '../services/listingService';
 import { getImageUrl } from '../utils/imageUtils';
 import {
     AlertTriangle, X, PlusCircle,
-    Eye, Loader2, ShoppingBag, CheckCircle
+    Eye, Loader2, ShoppingBag, CheckCircle, HelpCircle
 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { cn } from '../utils/cn';
 import { useLanguageField } from '../hooks/useLanguageField';
 import type { Listing } from '../types/listing';
-
-
-
 
 const MyAdsPage: React.FC = () => {
     const navigate = useNavigate();
@@ -23,6 +20,14 @@ const MyAdsPage: React.FC = () => {
     const { getField } = useLanguageField();
     const [deletingId, setDeletingId] = React.useState<number | null>(null);
 
+    // "Was it sold?" modal state
+    const [soldModal, setSoldModal] = React.useState<{ listingId: number; action: 'delete' | 'close' } | null>(null);
+
+    const invalidate = () => {
+        queryClient.invalidateQueries({ queryKey: ['my-listings'] });
+        queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    };
+
     const { data: myAds, isLoading } = useQuery<Listing[]>({
         queryKey: ['my-listings'],
         queryFn: listingService.getMyListings,
@@ -30,20 +35,39 @@ const MyAdsPage: React.FC = () => {
 
     const deleteMutation = useMutation({
         mutationFn: (id: number) => listingService.deleteListing(id),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['my-listings'] });
-            queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-            setDeletingId(null);
-        },
+        onSuccess: () => { invalidate(); setDeletingId(null); },
     });
 
     const markAsSoldMutation = useMutation({
-        mutationFn: (id: number) => listingService.patchListing(id, { status: 'sold' }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['my-listings'] });
-            queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-        },
+        mutationFn: ({ id, via }: { id: number; via: string }) =>
+            listingService.patchListing(id, { is_sold: true, sold_via: via, status: 'sold' }),
+        onSuccess: () => invalidate(),
     });
+
+    const markNotSoldDeleteMutation = useMutation({
+        mutationFn: (id: number) => listingService.patchListing(id, { is_sold: false, status: 'closed' }),
+        onSuccess: () => invalidate(),
+    });
+
+    // Called when seller clicks Delete or Close on an active listing
+    const promptSoldCheck = (listingId: number) => {
+        setSoldModal({ listingId, action: 'delete' });
+    };
+
+    const handleSoldAnswer = (wasSold: boolean, via?: string) => {
+        if (!soldModal) return;
+        const { listingId } = soldModal;
+        if (wasSold) {
+            markAsSoldMutation.mutate({ id: listingId, via: via || 'platform' });
+        } else {
+            if (soldModal.action === 'delete') {
+                deleteMutation.mutate(listingId);
+            } else {
+                markNotSoldDeleteMutation.mutate(listingId);
+            }
+        }
+        setSoldModal(null);
+    };
 
     const [filter, setFilter] = React.useState<'all' | 'active' | 'pending' | 'declined' | 'sold'>('all');
 
@@ -214,9 +238,14 @@ const MyAdsPage: React.FC = () => {
                                                             Under Review
                                                         </div>
                                                     )}
-                                                    {(ad.status === 'sold' || ad.status === 'closed') && (
-                                                        <div className="inline-flex items-center px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 text-[10px] font-bold border border-gray-200">
-                                                            Sold / Closed
+                                                    {ad.status === 'sold' && (
+                                                        <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-50 text-green-700 text-[10px] font-bold border border-green-100">
+                                                            <CheckCircle className="h-3 w-3" /> Sold
+                                                        </div>
+                                                    )}
+                                                    {ad.status === 'closed' && (
+                                                        <div className="inline-flex items-center px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 text-[10px] font-bold border border-gray-200">
+                                                            Closed
                                                         </div>
                                                     )}
                                                 </div>
@@ -230,18 +259,20 @@ const MyAdsPage: React.FC = () => {
                                                             Edit
                                                         </button>
                                                         <button
-                                                            onClick={() => setDeletingId(ad.id)}
+                                                            onClick={() => {
+                                                                if (ad.status === 'active') {
+                                                                    promptSoldCheck(ad.id);
+                                                                } else {
+                                                                    setDeletingId(ad.id);
+                                                                }
+                                                            }}
                                                             className="text-red-500 text-xs font-bold hover:underline"
                                                         >
                                                             Delete
                                                         </button>
                                                         {ad.status === 'active' && (
                                                             <button
-                                                                onClick={() => {
-                                                                    if (window.confirm('Mark this item as sold? It will be hidden from search.')) {
-                                                                        markAsSoldMutation.mutate(ad.id);
-                                                                    }
-                                                                }}
+                                                                onClick={() => promptSoldCheck(ad.id)}
                                                                 className="text-green-600 text-xs font-bold hover:underline flex items-center gap-1"
                                                             >
                                                                 <CheckCircle className="h-3 w-3" />
@@ -274,6 +305,52 @@ const MyAdsPage: React.FC = () => {
                 </div>
             </div>
         </div>
+
+        {/* ── "Was it sold?" Modal ── */}
+        {soldModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 animate-fade-in-up">
+                    <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-50 border border-amber-100 mx-auto mb-4">
+                        <HelpCircle className="w-7 h-7 text-amber-500" />
+                    </div>
+                    <h3 className="text-base font-black text-gray-900 text-center mb-1">Was this item sold?</h3>
+                    <p className="text-xs text-gray-500 text-center mb-5">
+                        This helps us track sales. Please let us know how the sale went.
+                    </p>
+
+                    <div className="space-y-2 mb-4">
+                        <button
+                            onClick={() => handleSoldAnswer(true, 'platform')}
+                            className="w-full py-3 px-4 rounded-2xl bg-green-50 border border-green-200 text-green-700 text-sm font-bold hover:bg-green-100 active:scale-95 transition-all text-left flex items-center gap-3"
+                        >
+                            <CheckCircle className="h-4 w-4 shrink-0" />
+                            Yes — sold through Suqafuran
+                        </button>
+                        <button
+                            onClick={() => handleSoldAnswer(true, 'external')}
+                            className="w-full py-3 px-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-700 text-sm font-bold hover:bg-blue-100 active:scale-95 transition-all text-left flex items-center gap-3"
+                        >
+                            <CheckCircle className="h-4 w-4 shrink-0" />
+                            Yes — sold outside the platform
+                        </button>
+                        <button
+                            onClick={() => handleSoldAnswer(false)}
+                            className="w-full py-3 px-4 rounded-2xl bg-gray-50 border border-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-100 active:scale-95 transition-all text-left flex items-center gap-3"
+                        >
+                            <X className="h-4 w-4 shrink-0" />
+                            No — just removing the listing
+                        </button>
+                    </div>
+
+                    <button
+                        onClick={() => setSoldModal(null)}
+                        className="w-full text-xs text-gray-400 hover:text-gray-600 font-medium py-1"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        )}
     );
 };
 

@@ -111,6 +111,9 @@ const AgentDashboard: React.FC = () => {
     const [otpLoading, setOtpLoading] = useState(false);
     const [otpLogs, setOtpLogs] = useState<import('../../services/adminService').OtpLogEntry[]>([]);
     const [otpLogsLoading, setOtpLogsLoading] = useState(false);
+    const [verifAttempts, setVerifAttempts] = useState<{ id: number; document_type: string; status: string; created_at: string; auto_verification_status: string | null }[]>([]);
+    const [verifUser, setVerifUser] = useState<{ id: number; full_name: string; email: string; phone: string; is_verified: boolean } | null>(null);
+    const [verifLoading, setVerifLoading] = useState(false);
     const [otpFilterEvent, setOtpFilterEvent] = useState('');
     const [otpFilterChannel, setOtpFilterChannel] = useState('');
     const [otpDateFrom, setOtpDateFrom] = useState('');
@@ -149,9 +152,25 @@ const AgentDashboard: React.FC = () => {
         } finally {
             setOtpLoading(false);
         }
-        // Also fetch full history for this identifier
+        // Also fetch full OTP history and verification attempts for this identifier
         fetchOtpLogs(otpQuery.trim());
+        fetchVerifAttempts(otpQuery.trim());
     }, [otpMode, otpQuery, fetchOtpLogs]);
+
+    const fetchVerifAttempts = useCallback(async (identifier: string) => {
+        if (!identifier) return;
+        setVerifLoading(true);
+        try {
+            const res = await adminService.getVerificationAttempts(identifier);
+            setVerifUser(res.user);
+            setVerifAttempts(res.attempts);
+        } catch {
+            setVerifAttempts([]);
+            setVerifUser(null);
+        } finally {
+            setVerifLoading(false);
+        }
+    }, []);
 
     // ── Queries ─────────────────────────────────────────────────────────────
     const { data: stats, isLoading: statsLoading } = useQuery<ConversionStats>({
@@ -1117,6 +1136,75 @@ const AgentDashboard: React.FC = () => {
                                                 </div>
                                             );
                                         })}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* ── Verification Attempts ── */}
+                            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                                <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
+                                    <h4 className="text-sm font-bold text-gray-900">Identity Verification Attempts</h4>
+                                    {verifUser && (
+                                        <span className={cn(
+                                            "text-[10px] font-black px-2.5 py-1 rounded-full",
+                                            verifUser.is_verified ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                                        )}>
+                                            {verifUser.is_verified ? '✓ Verified Account' : 'Not Verified'}
+                                        </span>
+                                    )}
+                                </div>
+
+                                {verifLoading ? (
+                                    <div className="py-10 flex items-center justify-center gap-2 text-gray-400">
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        <span className="text-xs">Loading...</span>
+                                    </div>
+                                ) : !verifUser ? (
+                                    <div className="py-10 text-center text-gray-400">
+                                        <Shield className="h-7 w-7 mx-auto mb-2 opacity-30" />
+                                        <p className="text-xs">Search above to see verification history</p>
+                                    </div>
+                                ) : verifAttempts.length === 0 ? (
+                                    <div className="px-5 py-6 text-xs text-gray-400">
+                                        <p className="font-semibold text-gray-700">{verifUser.full_name}</p>
+                                        <p className="mt-0.5">{verifUser.email} · {verifUser.phone || 'no phone'}</p>
+                                        <p className="mt-3 italic">No verification requests submitted.</p>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <div className="px-5 py-3 border-b border-gray-50 bg-gray-50/50">
+                                            <p className="text-xs font-semibold text-gray-700">{verifUser.full_name}</p>
+                                            <p className="text-[11px] text-gray-400 mt-0.5">{verifUser.email} · {verifUser.phone || 'no phone'}</p>
+                                        </div>
+                                        <div className="divide-y divide-gray-50">
+                                            {verifAttempts.map(a => (
+                                                <div key={a.id} className="px-5 py-3.5 flex items-center gap-3">
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            <span className="bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-lg font-bold text-[10px] uppercase tracking-wide">
+                                                                {a.document_type?.replace(/_/g, ' ')}
+                                                            </span>
+                                                            <span className={cn(
+                                                                "px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider",
+                                                                a.status === 'approved' ? "bg-green-100 text-green-700" :
+                                                                a.status === 'rejected' ? "bg-red-100 text-red-600" :
+                                                                "bg-amber-100 text-amber-700"
+                                                            )}>
+                                                                {a.status}
+                                                            </span>
+                                                            {a.auto_verification_status && (
+                                                                <span className="text-[10px] text-gray-400 font-medium">
+                                                                    Auto: {a.auto_verification_status}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-[10px] text-gray-400 mt-1">
+                                                            {format(new Date(a.created_at), 'MMM d, yyyy · HH:mm')}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
                             </div>
