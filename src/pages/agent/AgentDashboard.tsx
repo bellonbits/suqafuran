@@ -11,13 +11,12 @@ import {
     User, ShoppingBag, Wallet, Zap, AlertTriangle,
     TrendingUp, Users, BarChart2, MapPin, XCircle,
     CreditCard, Eye, PhoneCall, Mail, Check, LifeBuoy, Bot, Send,
-    FileText, KeyRound, Phone, Loader2
+    KeyRound, Phone, Loader2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useLanguageField } from '../../hooks/useLanguageField';
 import { cn } from '../../utils/cn';
-import { getImageUrl } from '../../utils/imageUtils';
 import { Button } from '../../components/Button';
 
 // ── Types ──────────────────────────────────────────────────────────────────

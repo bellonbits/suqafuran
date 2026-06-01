@@ -14,7 +14,7 @@ from typing import Optional
 
 from sqlmodel import Session
 
-from app.core.db import engine
+from app.db.session import engine
 from app.models.otp_log import OTPLog
 
 log = logging.getLogger(__name__)
