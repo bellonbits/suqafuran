@@ -1,7 +1,7 @@
 import { getCloudinaryUrl } from '../lib/cloudinary';
 
 export const getImageUrl = (path: string | undefined, options?: { width?: number; height?: number; quality?: 'auto' | 'eco' | 'low' }): string => {
-    if (!path) return 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=300';
+    if (!path) return '';
     if (path.includes('res.cloudinary.com')) return getCloudinaryUrl(path, options);
     if (path.startsWith('http') || path.startsWith('data:')) return path;
 

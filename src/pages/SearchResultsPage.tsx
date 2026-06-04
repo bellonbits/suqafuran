@@ -115,7 +115,7 @@ const SearchResultsPage: React.FC = () => {
                                             price={ad.price}
                                             currency={ad.currency}
                                             location={ad.location}
-                                            imageUrl={ad.images?.[0] || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=400'}
+                                            imageUrl={ad.images?.[0] || ''}
                                             isVerified={ad.owner?.is_verified}
                                             verifiedLevel={ad.owner?.verified_level}
                                             isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}

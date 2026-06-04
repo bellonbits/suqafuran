@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  base: './',
   server: {
     proxy: {
       '/api': {
@@ -15,11 +16,19 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
+    // Raise the warning threshold — individual async page chunks are expected to be small
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash][extname]',
+        manualChunks: (id) => {
+          // Icon library — large, own chunk
+          if (id.includes('node_modules/lucide-react')) return 'icons';
+          // Animation — only used in agent dashboard
+          if (id.includes('node_modules/framer-motion')) return 'motion';
+        },
       },
     },
   },
@@ -34,6 +43,9 @@ export default defineConfig({
         clientsClaim: true,
         navigateFallback: null,
         navigateFallbackDenylist: [/./],
+        // Only pre-cache the HTML shell — NOT the JS chunks.
+        // Pre-caching all 100 chunks upfront caused OOM kills on low-RAM Android devices.
+        globPatterns: ['**/*.{html,webmanifest}'],
         runtimeCaching: [
           {
             urlPattern: /res\.cloudinary\.com/,
@@ -59,6 +71,15 @@ export default defineConfig({
             options: {
               cacheName: 'api-listings',
               expiration: { maxEntries: 50, maxAgeSeconds: 60 * 5 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            urlPattern: /\/api\/v1\/categories/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'api-categories',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },

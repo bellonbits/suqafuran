@@ -125,15 +125,18 @@ const ProductCard = React.memo(function ProductCard({
         >
             {/* Image — shorter aspect ratio */}
             <div className="relative aspect-[16/9] overflow-hidden bg-gray-100">
-                <img
-                    src={getImageUrl(imageUrl, { width: 400, quality: 'eco' })}
-                    alt={displayTitle}
-                    width="400"
-                    height="225"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                    decoding="async"
-                />
+                {getImageUrl(imageUrl, { width: 400, quality: 'eco' }) && (
+                    <img
+                        src={getImageUrl(imageUrl, { width: 400, quality: 'eco' })}
+                        alt={displayTitle}
+                        width="400"
+                        height="225"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                        decoding="async"
+                        onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                )}
 
                 {/* Top-left badges */}
                 <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 pointer-events-none">

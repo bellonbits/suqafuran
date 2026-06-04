@@ -1,15 +1,31 @@
-import React, { lazy, Suspense, useState, useCallback, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import React, { lazy, Suspense, useState, useCallback, useEffect, Component } from 'react';
+
+class AppErrorBoundary extends Component<{ children: React.ReactNode }, { crashed: boolean }> {
+  state = { crashed: false };
+  static getDerivedStateFromError() { return { crashed: true }; }
+  render() {
+    if (this.state.crashed) {
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#ffffff', gap: 16, padding: 24 }}>
+          <p style={{ color: '#374151', fontWeight: 700, fontSize: 16, textAlign: 'center' }}>Something went wrong. Please reload the app.</p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{ background: '#0ea5e9', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 28px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
+          >
+            Reload
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+import { BrowserRouter, HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { RefreshCw } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
-function ScrollToTop() {
-    const { pathname } = useLocation();
-    useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
-    return null;
-}
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { AdminLayout } from './layouts/AdminLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -21,6 +37,12 @@ import { detectGeoFromIP } from './utils/detectCurrency';
 import { useLocationStore } from './store/useLocationStore';
 import { NotificationPoller } from './components/NotificationPoller';
 import { SplashScreen } from './components/SplashScreen';
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+}
 
 // Helper for named exports
 const lazyNamed = (importFn: () => Promise<any>, name: string) =>
@@ -37,7 +59,6 @@ const CategoryListingPage = lazyNamed(() => import('./pages/CategoryListingPage'
 const PostAdPage = lazyNamed(() => import('./pages/PostAdPage'), 'PostAdPage');
 const ProductDetailPage = lazyNamed(() => import('./pages/ProductDetailPage'), 'ProductDetailPage'); // Was ListingDetailsPage
 const MyAdsPage = lazyNamed(() => import('./pages/MyAdsPage'), 'MyAdsPage');
-const WalletPage = lazyNamed(() => import('./pages/WalletPage'), 'WalletPage');
 const SettingsPage = lazyNamed(() => import('./pages/SettingsPage'), 'SettingsPage'); // Was ProfilePage
 const NotificationsPage = lazyNamed(() => import('./pages/NotificationsPage'), 'NotificationsPage');
 const FavoritesPage = lazyNamed(() => import('./pages/FavoritesPage'), 'FavoritesPage'); // Was SavedAdsPage
@@ -65,7 +86,6 @@ const SocialAuthCallback = lazyNamed(() => import('./pages/SocialAuthCallback'),
 const FeedbackPage = lazyNamed(() => import('./pages/FeedbackPage'), 'FeedbackPage');
 const FollowersPage = lazyNamed(() => import('./pages/FollowersPage'), 'FollowersPage');
 const PerformancePage = lazyNamed(() => import('./pages/PerformancePage'), 'PerformancePage');
-const ProSalesPage = lazyNamed(() => import('./pages/ProSalesPage'), 'ProSalesPage');
 const PremiumPage = lazyNamed(() => import('./pages/PremiumPage'), 'PremiumPage');
 const DiscoveryFeedPage = lazy(() => import('./pages/DiscoveryFeedPage'));
 const BusinessDashboard = lazyNamed(() => import('./pages/business/BusinessDashboard'), 'BusinessDashboard');
@@ -89,24 +109,86 @@ const ProgrammaticSEOPage = lazy(() => import('./pages/ProgrammaticSEOPage'));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60_000,
-      gcTime: 5 * 60_000,
-      // Never retry on 401/403/404 — retrying auth failures just floods the console
+      staleTime: 5 * 60_000,   // 5 min — avoids refetching on every navigation
+      gcTime: 30 * 60_000,     // 30 min — keep cache alive across the session
       retry: (failureCount, error: any) => {
         const status = error?.response?.status;
         if (status === 401 || status === 403 || status === 404) return false;
         return failureCount < 1;
       },
       refetchOnWindowFocus: false,
+      refetchOnReconnect: false, // don't blast the API every time Android reconnects
     },
   },
 });
 
 type AppPhase = 'splash' | 'onboarding' | 'app';
 
+const Router = Capacitor.isNativePlatform() ? HashRouter : BrowserRouter;
+
+const ServiceWorkerRegister: React.FC = () => {
+  const {
+    needRefresh: [needRefresh, setNeedRefresh],
+    updateServiceWorker,
+  } = useRegisterSW({
+    onRegisteredSW(_, r) {
+      if (r) {
+        // Automatically check for updates every 3 minutes (180,000 ms)
+        setInterval(() => {
+          r.update().catch(() => {});
+        }, 180_000);
+      }
+    }
+  });
+
+  useEffect(() => {
+    const handleFocus = () => {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(registration => {
+          registration.update().catch(() => {});
+        });
+      }
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
+  if (!needRefresh) return null;
+
+  return (
+    <div className="fixed bottom-6 left-6 right-6 md:left-auto md:w-96 bg-white/95 backdrop-blur-xl border border-sky-100 shadow-2xl rounded-3xl p-5 z-[99999] flex flex-col gap-3 animate-bounce">
+      <div className="flex items-start gap-3">
+        <div className="p-2 bg-sky-50 text-sky-600 rounded-2xl shrink-0">
+          <RefreshCw className="w-5 h-5 animate-spin" style={{ animationDuration: '3s' }} />
+        </div>
+        <div>
+          <h4 className="text-sm font-black text-gray-900 leading-tight">New Update Available!</h4>
+          <p className="text-xs text-gray-500 font-medium mt-1 leading-relaxed">
+            We've upgraded the platform with awesome new features and fixes. Reload to see them now!
+          </p>
+        </div>
+      </div>
+      <div className="flex gap-2.5">
+        <button
+          onClick={() => updateServiceWorker(true)}
+          className="flex-1 bg-sky-600 hover:bg-sky-700 active:scale-98 text-white text-xs font-black py-2.5 px-4 rounded-xl shadow-md shadow-sky-100 transition-all cursor-pointer"
+        >
+          Update Now
+        </button>
+        <button
+          onClick={() => setNeedRefresh(false)}
+          className="px-4 py-2.5 bg-gray-50 hover:bg-gray-100 active:scale-98 text-gray-500 text-xs font-black rounded-xl transition-all cursor-pointer"
+        >
+          Later
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const App: React.FC = () => {
   const onboardingSeen = localStorage.getItem('suqafuran-onboarding-seen') === '1';
-  const [phase, setPhase] = useState<AppPhase>(Capacitor.isNativePlatform() ? 'splash' : 'app');
+  const [phase, setPhase] = useState<AppPhase>(onboardingSeen ? 'app' : 'onboarding');
   const { autoDetected, setAutoDetected, setCurrency } = useCurrencyStore();
   const { permissionAsked, setPermissionAsked, setLocation, setCountryCode } = useLocationStore();
   const [storeUpdate, setStoreUpdate] = useState<{
@@ -150,40 +232,7 @@ const App: React.FC = () => {
       });
     }
   }, []);
-  const {
-    needRefresh: [needRefresh, setNeedRefresh],
-    updateServiceWorker,
-  } = useRegisterSW({
-    onRegisteredSW(_, r) {
-      if (r) {
-        // Automatically check for updates every 3 minutes (180,000 ms)
-        setInterval(() => {
-          r.update().catch(() => {});
-        }, 180_000);
-      }
-    }
-  });
-
-  useEffect(() => {
-    const handleFocus = () => {
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then(registration => {
-          registration.update().catch(() => {});
-        });
-      }
-    };
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, []);
   
-  useEffect(() => {
-    if (phase !== 'splash') {
-      document.body.style.backgroundColor = '#ffffff';
-    } else {
-      document.body.style.backgroundColor = '#0c4a6e';
-    }
-  }, [phase]);
-
   useEffect(() => {
     if (Capacitor.getPlatform() === 'ios') {
       setCurrency('KES');
@@ -212,17 +261,20 @@ const App: React.FC = () => {
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
         const { latitude: lat, longitude: lng } = coords;
+        // Store coords immediately so map/proximity features work without waiting for reverse geocode
+        setLocation(null, lat, lng);
         try {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 5000);
           const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
-            { headers: { 'Accept-Language': 'en' } }
+            { headers: { 'Accept-Language': 'en' }, signal: controller.signal }
           );
+          clearTimeout(timer);
           const data = await res.json();
           const countryCode = data.address?.country_code?.toUpperCase();
           if (countryCode) {
             setCountryCode(countryCode);
-            // Geolocation is more precise than IP — let it override the auto-detected currency
-            // on first run, but never clobber a manual user choice (autoDetected gates that).
             if (!autoDetected) {
               setCurrency(countryCode === 'KE' ? 'KES' : 'USD');
               setAutoDetected(true);
@@ -236,11 +288,11 @@ const App: React.FC = () => {
             null;
           setLocation(city, lat, lng);
         } catch {
-          setLocation(null, lat, lng);
+          // Nominatim timed out or failed — coords are already stored, just no city name
         }
       },
       () => { /* user denied — do nothing */ },
-      { timeout: 8000 }
+      { timeout: 6000, maximumAge: 5 * 60_000 } // accept 5-min cached GPS fix — faster on Android
     );
   }, []);
 
@@ -252,15 +304,22 @@ const App: React.FC = () => {
     setPhase('app');
   }, []);
 
+  useEffect(() => {
+    const color = phase === 'splash' ? '#0c4a6e' : '#ffffff';
+    document.body.style.backgroundColor = color;
+    document.documentElement.style.backgroundColor = color;
+  }, [phase]);
+
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <Router>
         {phase === 'splash' && <SplashScreen onDone={handleSplashDone} />}
         {phase === 'onboarding' && <OnboardingScreen onDone={handleOnboardingDone} />}
         <Toaster position="top-center" reverseOrder={false} />
         <ScrollToTop />
         <CookieBanner />
         <NotificationPoller />
+        <AppErrorBoundary>
         <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
@@ -276,19 +335,16 @@ const App: React.FC = () => {
             <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
               <Route path="/dashboard" element={<OverviewDashboard />} />
               <Route path="/post-ad" element={<PostAdPage />} />
-              <Route path="/edit-ad/:id" element={<PostAdPage />} />
+              <Route path="/edit-ad/:id" element={<EditAdPage />} />
               <Route path="/my-ads" element={<MyAdsPage />} />
-              <Route path="/wallet" element={<WalletPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/favorites" element={<FavoritesPage />} />
               <Route path="/help" element={<HelpCenterPage />} />
-              <Route path="/edit-ad/:id" element={<EditAdPage />} />
               <Route path="/promote/:adId" element={<PromotionPage />} />
               <Route path="/dashboard/verify" element={<VerificationPage />} />
               <Route path="/feedback" element={<FeedbackPage />} />
               <Route path="/performance" element={<PerformancePage />} />
-              <Route path="/pro-sales" element={<ProSalesPage />} />
               <Route path="/premium" element={<PremiumPage />} />
               <Route path="/followers" element={<FollowersPage />} />
               <Route path="/agent-dashboard" element={<ProtectedRoute requireAgent><AgentDashboard /></ProtectedRoute>} />
@@ -338,36 +394,9 @@ const App: React.FC = () => {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
-      </BrowserRouter>
-      {needRefresh && (
-        <div className="fixed bottom-6 left-6 right-6 md:left-auto md:w-96 bg-white/95 backdrop-blur-xl border border-sky-100 shadow-2xl rounded-3xl p-5 z-[99999] flex flex-col gap-3 animate-bounce">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-sky-50 text-sky-600 rounded-2xl shrink-0">
-              <RefreshCw className="w-5 h-5 animate-spin" style={{ animationDuration: '3s' }} />
-            </div>
-            <div>
-              <h4 className="text-sm font-black text-gray-900 leading-tight">New Update Available!</h4>
-              <p className="text-xs text-gray-500 font-medium mt-1 leading-relaxed">
-                We've upgraded the platform with awesome new features and fixes. Reload to see them now!
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-2.5">
-            <button
-              onClick={() => updateServiceWorker(true)}
-              className="flex-1 bg-sky-600 hover:bg-sky-700 active:scale-98 text-white text-xs font-black py-2.5 px-4 rounded-xl shadow-md shadow-sky-100 transition-all cursor-pointer"
-            >
-              Update Now
-            </button>
-            <button
-              onClick={() => setNeedRefresh(false)}
-              className="px-4 py-2.5 bg-gray-50 hover:bg-gray-100 active:scale-98 text-gray-500 text-xs font-black rounded-xl transition-all cursor-pointer"
-            >
-              Later
-            </button>
-          </div>
-        </div>
-      )}
+        </AppErrorBoundary>
+      </Router>
+      {!Capacitor.isNativePlatform() && <ServiceWorkerRegister />}
       {storeUpdate.needed && (
         <div className="fixed inset-0 bg-sky-950/40 backdrop-blur-md z-[999999] flex items-center justify-center p-4">
           <div className="bg-white rounded-[32px] max-w-sm w-full p-6 shadow-2xl border border-sky-100/50 flex flex-col items-center text-center gap-5 relative overflow-hidden animate-bounce" style={{ animationDuration: '2s' }}>

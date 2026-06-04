@@ -1,5 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { Capacitor } from '@capacitor/core'
+import { StatusBar, Style } from '@capacitor/status-bar'
+import { App as CapApp } from '@capacitor/app'
 import './index.css'
 import './i18n'
 import { loadOverrides } from './i18n'
@@ -8,11 +11,21 @@ import App from './App.tsx'
 // Load dynamic site content overrides from backend
 loadOverrides();
 
-import { Capacitor } from '@capacitor/core'
-import { StatusBar, Style } from '@capacitor/status-bar'
-import { App as CapApp } from '@capacitor/app'
-
 if (Capacitor.isNativePlatform()) {
+  // Clear any active Service Workers registered by previous versions in native webview
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (const registration of registrations) {
+        registration.unregister().then((success) => {
+          if (success) {
+            console.log('Stale service worker unregistered on native platform');
+            window.location.reload();
+          }
+        });
+      }
+    });
+  }
+
   const isAndroid = Capacitor.getPlatform() === 'android';
   
   // Detect Android version from User Agent

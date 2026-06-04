@@ -35,6 +35,9 @@ import { useAuthStore } from '../store/useAuthStore';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { CurrencySwitcher } from '../components/CurrencySwitcher';
 import { AISupportChat } from '../components/AISupportChat';
+import { Capacitor } from '@capacitor/core';
+
+const isNative = Capacitor.isNativePlatform();
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -162,8 +165,8 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
             <nav
                 className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white border-t border-gray-100 bottom-nav-safe"
                 style={{
-                    backdropFilter: 'blur(16px)',
-                    WebkitBackdropFilter: 'blur(16px)',
+                    // backdrop-filter is GPU-expensive on Android WebView — skip it on native
+                    ...(isNative ? {} : { backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }),
                     boxShadow: '0 -1px 16px rgba(0,0,0,0.08)',
                 }}
             >

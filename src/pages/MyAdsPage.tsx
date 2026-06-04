@@ -83,6 +83,7 @@ const MyAdsPage: React.FC = () => {
     const declinedCount = myAds?.filter(a => a.status === 'reported').length || 0;
 
     return (
+        <>
         <div className="space-y-6">
             {/* Delete Confirmation Modal */}
             {deletingId && (
@@ -351,6 +352,7 @@ const MyAdsPage: React.FC = () => {
                 </div>
             </div>
         )}
+        </>
     );
 };
 

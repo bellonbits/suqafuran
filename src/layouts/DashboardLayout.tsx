@@ -6,8 +6,8 @@ import { notificationService } from '../services/notificationService';
 import {
     ShoppingBag,
     Heart, Settings, LogOut,
-    PlusCircle, Bell, HelpCircle, Shield, Wallet, Folder,
-    Menu, X, TrendingUp, MessageSquare, Zap, Target,
+    PlusCircle, Bell, HelpCircle, Shield, Folder,
+    Menu, X, MessageSquare, Zap, Target,
     LifeBuoy,
     MessageCircle, Users, Globe, House, Megaphone, Flag, Send
 } from 'lucide-react';
@@ -49,12 +49,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     ];
 
     const secondaryItems = [
-        { labelKey: 'dashboard.proSales', label: 'Pro Sales', icon: TrendingUp, path: '/pro-sales' },
         { labelKey: 'dashboard.premiumServices', label: 'Premium Services', icon: Shield, path: '/premium' },
-        { labelKey: 'dashboard.myBalance', label: 'My Balance', icon: Wallet, path: '/wallet', detail: user?.wallet?.balance ? `${user.wallet.balance.toLocaleString()} tokens` : '0 tokens' },
         { labelKey: 'dashboard.followers', label: 'Followers', icon: Users, path: '/followers' },
         { labelKey: 'dashboard.requestHelp', label: 'Request help', icon: HelpCircle, path: '/help' },
-        { labelKey: 'dashboard.faq', label: 'FAQ', icon: HelpCircle, path: '/help' },
     ];
 
     return (
@@ -179,12 +176,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                                 )}
                             >
                                 <item.icon className="h-5 w-5 text-gray-400" />
-                                <div className="flex-1 flex items-center justify-between">
-                                    <span>{t(item.labelKey, item.label)}</span>
-                                    {item.detail && (
-                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-tight">{item.detail}</span>
-                                    )}
-                                </div>
+                                <span className="flex-1">{t(item.labelKey, item.label)}</span>
                             </Link>
                         ))}
                     </div>

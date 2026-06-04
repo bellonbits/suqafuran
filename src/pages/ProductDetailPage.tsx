@@ -267,7 +267,7 @@ const ProductDetailPage: React.FC = () => {
 
     const images = ad?.images && ad.images.length > 0
         ? ad.images
-        : ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800'];
+        : [];
 
     const isNegotiable = ad?.is_negotiable || ad?.attributes?.negotiable === 'yes' || ad?.attributes?.negotiable === true;
     const negotiationStatus = ad?.attributes?.negotiable; // 'yes', 'no', 'not_sure'
@@ -302,14 +302,36 @@ const ProductDetailPage: React.FC = () => {
 
                 {/* ── Full-width hero image ── */}
                 <div className="relative w-full bg-black" style={{ aspectRatio: '4/3' }}>
-                    <img
-                        src={getImageUrl(images[activeImage], { width: 800, quality: 'auto' })}
-                        alt={effectiveTitle ?? ''}
-                        className="w-full h-full object-cover cursor-pointer"
-                        loading="eager"
-                        fetchPriority="high"
-                        onClick={() => setShowFullImage(true)}
-                    />
+                    {images.length > 0 ? (
+                        <img
+                            src={getImageUrl(images[activeImage], { width: 800, quality: 'auto' })}
+                            alt={effectiveTitle ?? ''}
+                            className="w-full h-full object-cover cursor-pointer"
+                            loading="eager"
+                            fetchpriority="high"
+                            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                            onClick={() => setShowFullImage(true)}
+                            onTouchStart={(e) => {
+                                const touch = e.touches[0];
+                                (e.currentTarget as any)._swipeStartX = touch.clientX;
+                            }}
+                            onTouchEnd={(e) => {
+                                const startX = (e.currentTarget as any)._swipeStartX;
+                                if (startX === undefined) return;
+                                const endX = e.changedTouches[0].clientX;
+                                const diff = startX - endX;
+                                if (Math.abs(diff) > 50 && images.length > 1) {
+                                    if (diff > 0) nextImage();
+                                    else prevImage();
+                                }
+                                delete (e.currentTarget as any)._swipeStartX;
+                            }}
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                            <Camera className="h-12 w-12 text-gray-400" />
+                        </div>
+                    )}
 
                     {/* Top nav overlay */}
                     <div className="absolute top-0 inset-x-0 flex items-center justify-between px-3 pt-10">
@@ -332,29 +354,6 @@ const ProductDetailPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Left / Right tap zones */}
-                    {images.length > 1 && (
-                        <>
-                            <button
-                                onClick={prevImage}
-                                className="absolute left-0 top-0 w-1/3 h-full flex items-center justify-start pl-2 opacity-0 active:opacity-100"
-                                aria-label="Previous image"
-                            >
-                                <div className="w-8 h-8 rounded-full bg-black/40 flex items-center justify-center">
-                                    <ChevronLeft className="h-5 w-5 text-white" />
-                                </div>
-                            </button>
-                            <button
-                                onClick={nextImage}
-                                className="absolute right-0 top-0 w-1/3 h-full flex items-center justify-end pr-2 opacity-0 active:opacity-100"
-                                aria-label="Next image"
-                            >
-                                <div className="w-8 h-8 rounded-full bg-black/40 flex items-center justify-center">
-                                    <ChevronRight className="h-5 w-5 text-white" />
-                                </div>
-                            </button>
-                        </>
-                    )}
 
                     {/* Photo count badge */}
                     <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-black/55 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
@@ -844,12 +843,19 @@ const ProductDetailPage: React.FC = () => {
                             {/* Gallery */}
                             <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
                                 <div className="relative bg-gray-100 group" style={{ aspectRatio: '16/9' }}>
-                                    <img 
-                                        src={getImageUrl(images[activeImage], { width: 800, quality: 'auto' })} 
-                                        alt={effectiveTitle ?? ''} 
-                                        className="w-full h-full object-contain cursor-zoom-in" 
-                                        onClick={() => setShowFullImage(true)}
-                                    />
+                                    {images.length > 0 ? (
+                                        <img 
+                                            src={getImageUrl(images[activeImage], { width: 800, quality: 'auto' })} 
+                                            alt={effectiveTitle ?? ''} 
+                                            className="w-full h-full object-contain cursor-zoom-in" 
+                                            onClick={() => setShowFullImage(true)}
+                                            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <Camera className="h-16 w-16 text-gray-300" />
+                                        </div>
+                                    )}
                                     {images.length > 1 && (
                                         <>
                                             <button onClick={prevImage} className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 flex items-center justify-center hover:bg-black/60 transition-colors">
@@ -1512,47 +1518,82 @@ const ProductDetailPage: React.FC = () => {
             )}
 
             {/* ── Full Image Zoom Modal ── */}
-            {showFullImage && (
-                <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col animate-in fade-in duration-200">
-                    <div className="flex items-center justify-between p-4 absolute top-0 inset-x-0 z-10 bg-gradient-to-b from-black/60 to-transparent pointer-events-none">
-                        <span className="text-white text-sm font-semibold tracking-wider pointer-events-auto">
+            {showFullImage && images.length > 0 && (
+                <div 
+                    className="fixed inset-0 z-[100] bg-black flex flex-col animate-in fade-in duration-200"
+                    onClick={() => setShowFullImage(false)}
+                >
+                    {/* Top bar */}
+                    <div className="absolute top-0 inset-x-0 z-10 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top),12px)] pb-3 bg-gradient-to-b from-black/80 to-transparent">
+                        <span className="text-white text-sm font-semibold tracking-wider">
                             {activeImage + 1} / {images.length}
                         </span>
                         <button 
-                            onClick={() => setShowFullImage(false)}
-                            className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-colors pointer-events-auto shadow-sm"
+                            onClick={(e) => { e.stopPropagation(); setShowFullImage(false); }}
+                            className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-colors active:scale-90"
                         >
-                            <XCircle className="w-7 h-7" />
+                            <XCircle className="w-6 h-6" />
                         </button>
                     </div>
                     
+                    {/* Image area — pinch/zoom friendly */}
                     <div 
-                        className="flex-1 w-full h-full overflow-auto flex items-center justify-center touch-pan-x touch-pan-y"
-                        onClick={() => setShowFullImage(false)}
+                        className="flex-1 flex items-center justify-center overflow-hidden"
+                        onTouchStart={(e) => {
+                            const touch = e.touches[0];
+                            (e.currentTarget as any)._swipeStartX = touch.clientX;
+                        }}
+                        onTouchEnd={(e) => {
+                            const startX = (e.currentTarget as any)._swipeStartX;
+                            if (startX === undefined) return;
+                            const endX = e.changedTouches[0].clientX;
+                            const diff = startX - endX;
+                            if (Math.abs(diff) > 60 && images.length > 1) {
+                                if (diff > 0) nextImage();
+                                else prevImage();
+                            }
+                            delete (e.currentTarget as any)._swipeStartX;
+                        }}
+                        onClick={(e) => e.stopPropagation()}
                     >
                         <img 
                             src={getImageUrl(images[activeImage])} 
                             alt={effectiveTitle ?? 'Full image'}
-                            className="max-w-none max-h-none md:max-w-full md:max-h-full object-contain cursor-zoom-out min-w-full min-h-full"
-                            style={{ objectFit: 'contain' }}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setShowFullImage(false);
-                            }}
+                            className="max-w-full max-h-full object-contain select-none"
+                            draggable={false}
+                            onClick={() => setShowFullImage(false)}
                         />
                     </div>
 
+                    {/* Bottom nav buttons */}
                     {images.length > 1 && (
-                        <div className="absolute bottom-10 inset-x-0 flex justify-center gap-6 pointer-events-none">
+                        <div className="absolute bottom-0 inset-x-0 z-10 flex items-center justify-center gap-8 pb-[max(env(safe-area-inset-bottom),20px)] pt-4 bg-gradient-to-t from-black/80 to-transparent">
                             <button 
                                 onClick={(e) => { e.stopPropagation(); prevImage(); }}
-                                className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center text-white pointer-events-auto hover:bg-white/20 active:scale-95 transition-all border border-white/10 shadow-xl"
+                                className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 active:scale-90 transition-all border border-white/10"
                             >
                                 <ChevronLeft className="w-6 h-6" />
                             </button>
+
+                            {/* Dot indicators */}
+                            <div className="flex items-center gap-1.5">
+                                {images.map((_: string, i: number) => (
+                                    <button
+                                        key={i}
+                                        onClick={(e) => { e.stopPropagation(); setActiveImage(i); }}
+                                        className={cn(
+                                            'rounded-full transition-all',
+                                            i === activeImage
+                                                ? 'w-5 h-2 bg-white'
+                                                : 'w-2 h-2 bg-white/40 hover:bg-white/60'
+                                        )}
+                                    />
+                                ))}
+                            </div>
+
                             <button 
                                 onClick={(e) => { e.stopPropagation(); nextImage(); }}
-                                className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center text-white pointer-events-auto hover:bg-white/20 active:scale-95 transition-all border border-white/10 shadow-xl"
+                                className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 active:scale-90 transition-all border border-white/10"
                             >
                                 <ChevronRight className="w-6 h-6" />
                             </button>

@@ -343,13 +343,14 @@ const AgentDashboard: React.FC = () => {
             </div>
 
             {/* Tab Bar */}
-            <div className="flex bg-gray-100 p-1 rounded-xl border border-gray-200 overflow-x-auto mb-8 w-fit gap-0.5">
+            <div className="w-full overflow-x-auto mb-8 hide-scrollbar">
+            <div className="flex bg-gray-100 p-1 rounded-xl border border-gray-200 gap-0.5 min-w-max md:min-w-0 md:w-full">
                 {tabs.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => { setActiveTab(tab.id); setSearch(''); setStatusFilter(''); }}
                         className={cn(
-                            'px-5 py-2 rounded-lg text-[11px] font-bold transition-all flex items-center gap-2 whitespace-nowrap',
+                            'flex-1 px-3 md:px-5 py-2 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap',
                             activeTab === tab.id
                                 ? 'bg-white text-primary-600 shadow-sm'
                                 : 'text-gray-500 hover:text-gray-700'
@@ -359,6 +360,7 @@ const AgentDashboard: React.FC = () => {
                         {tab.label}
                     </button>
                 ))}
+            </div>
             </div>
 
             <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">

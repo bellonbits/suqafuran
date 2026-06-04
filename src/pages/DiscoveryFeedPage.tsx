@@ -128,7 +128,7 @@ const DiscoveryFeedPage: React.FC = () => {
                                 initial={{ scale: 1.1 }}
                                 animate={{ scale: activeIndex === i ? 1 : 1.1 }}
                                 transition={{ duration: 10, ease: "linear" }}
-                                src={getImageUrl(listing.images?.[0] || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc')} 
+                                src={getImageUrl(listing.images?.[0] || '')} 
                                 alt="" 
                                 className="w-full h-full object-cover"
                             />

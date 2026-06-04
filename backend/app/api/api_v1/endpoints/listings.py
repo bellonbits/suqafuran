@@ -633,12 +633,13 @@ def read_listing(
     db.refresh(listing)
     
     # Query for owner's active business storefront and attach it
-    if listing.owner:
+    listing_data = ListingRead.model_validate(listing)
+    if listing_data.owner:
         from app.models.business import Business
         from sqlmodel import select
         business = db.exec(select(Business).where(Business.owner_id == listing.owner_id, Business.is_active == True)).first()
         if business:
-            listing.owner.business = {
+            listing_data.owner.business = {
                 "name": business.name,
                 "slug": business.slug,
                 "logo_url": business.logo_url,
@@ -647,7 +648,8 @@ def read_listing(
                 "is_verified": business.is_verified,
             }
     
-    return listing
+    return listing_data
+
 
 
 @router.put("/{id}", response_model=ListingRead)

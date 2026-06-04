@@ -2,7 +2,7 @@ export function getCloudinaryUrl(
     url: string | undefined,
     options?: { width?: number; height?: number; quality?: 'auto' | 'eco' | 'low' }
 ): string {
-    if (!url) return 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=300';
+    if (!url) return '';
     if (!url.includes('res.cloudinary.com')) return url;
 
     // Inject transformations into the Cloudinary URL

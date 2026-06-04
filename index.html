@@ -3,6 +3,29 @@
 
 <head>
   <meta charset="UTF-8" />
+  <script>
+    // Immediate service worker cleanup on Capacitor native platforms to prevent blank screens
+    if (
+      (window.location.hostname === 'localhost' && !window.location.port) ||
+      window.location.protocol === 'capacitor:'
+    ) {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+          if (regs.length > 0) {
+            for (var i = 0; i < regs.length; i++) {
+              regs[i].unregister();
+            }
+            if ('caches' in window) {
+              caches.keys().then(function(keys) {
+                keys.forEach(function(key) { caches.delete(key); });
+              });
+            }
+            window.location.reload();
+          }
+        });
+      }
+    }
+  </script>
   <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -171,7 +194,7 @@
 
   <style>
     html, body {
-      background: #0c4a6e;
+      background: #ffffff;
       margin: 0;
       padding: 0;
       touch-action: pan-x pan-y;

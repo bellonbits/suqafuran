@@ -1,6 +1,10 @@
 import React, { useEffect, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useAuthStore } from '../store/useAuthStore';
 import { notificationService } from '../services/notificationService';
+
+// 60s on web, 90s on native (native push handles real-time; polling is just a fallback)
+const POLL_INTERVAL = Capacitor.isNativePlatform() ? 90_000 : 60_000;
 
 export const NotificationPoller: React.FC = () => {
     const { isAuthenticated } = useAuthStore();
@@ -65,8 +69,7 @@ export const NotificationPoller: React.FC = () => {
         // Initial fetch
         fetchNotifications();
 
-        // Poll every 10 seconds for more active real-time feel
-        const interval = setInterval(fetchNotifications, 10000);
+        const interval = setInterval(fetchNotifications, POLL_INTERVAL);
 
         return () => clearInterval(interval);
     }, [isAuthenticated]);

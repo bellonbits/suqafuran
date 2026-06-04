@@ -6,12 +6,14 @@ import { businessService } from '../services/businessService';
 import { getImageUrl } from '../utils/imageUtils';
 import { Button } from '../components/Button';
 import {
-    ShieldCheck, MapPin, Phone, Mail, Globe, 
-    MessageCircle, Sparkles, Loader2, ChevronLeft, ShoppingBag, 
+    ShieldCheck, MapPin, Phone, Mail, Globe,
+    MessageCircle, Sparkles, Loader2, ChevronLeft, ShoppingBag,
     AlertCircle, Check, Copy, Heart, Eye, ExternalLink
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../utils/cn';
+import { useCurrencyStore } from '../store/useCurrencyStore';
+import { formatConvertedPrice } from '../utils/currencyUtils';
 
 const ShopProfile: React.FC = () => {
     const { t } = useTranslation();
@@ -19,6 +21,7 @@ const ShopProfile: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'products' | 'about' | 'contact'>('products');
     const [copied, setCopied] = useState(false);
     const [favorites, setFavorites] = useState<Record<number, boolean>>({});
+    const { currency: targetCurrency } = useCurrencyStore();
 
     const { data, isLoading, error } = useQuery({
         queryKey: ['public-shop', slug],
@@ -341,7 +344,7 @@ const ShopProfile: React.FC = () => {
                                                     <div className="mt-3 pt-3 border-t border-sky-100/60">
                                                         <div className="flex items-baseline gap-2">
                                                             <span className="text-base font-extrabold text-slate-900">
-                                                                {listing.currency} {listing.price.toLocaleString()}
+                                                                {formatConvertedPrice(listing.price, listing.currency, targetCurrency)}
                                                             </span>
                                                         </div>
                                                         <div className="flex items-center gap-3 mt-1.5 text-[10px] text-slate-400 font-medium">
@@ -426,11 +429,11 @@ const ShopProfile: React.FC = () => {
                                                         <div className="mt-4 pt-3 border-t border-sky-100/60">
                                                             <div className="flex items-baseline gap-2">
                                                                 <span className="text-base font-extrabold text-slate-900">
-                                                                    ${(product.discount_price || product.price).toFixed(2)}
+                                                                    {formatConvertedPrice(product.discount_price || product.price, 'USD', targetCurrency)}
                                                                 </span>
                                                                 {product.discount_price && (
                                                                     <span className="text-xs text-slate-400 line-through">
-                                                                        ${product.price.toFixed(2)}
+                                                                        {formatConvertedPrice(product.price, 'USD', targetCurrency)}
                                                                     </span>
                                                                 )}
                                                             </div>
