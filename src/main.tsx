@@ -12,18 +12,12 @@ import App from './App.tsx'
 loadOverrides();
 
 if (Capacitor.isNativePlatform()) {
-  // Clear any active Service Workers registered by previous versions in native webview
+  // Unregister service workers and purge their caches — they cause OOM kills on low-RAM devices
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then((registrations) => {
-      for (const registration of registrations) {
-        registration.unregister().then((success) => {
-          if (success) {
-            console.log('Stale service worker unregistered on native platform');
-            window.location.reload();
-          }
-        });
-      }
-    });
+    navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+  }
+  if ('caches' in window) {
+    caches.keys().then(names => names.forEach(name => caches.delete(name)));
   }
 
   const isAndroid = Capacitor.getPlatform() === 'android';

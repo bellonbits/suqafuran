@@ -3,8 +3,13 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// Capacitor native builds need relative paths ('./')
+// Web deployments need absolute paths ('/') so deep-linked routes
+// (e.g. /admin, /messages/123) don't resolve assets relative to the sub-path.
+const isCapacitorBuild = process.env.CAPACITOR_BUILD === 'true';
+
 export default defineConfig({
-  base: './',
+  base: isCapacitorBuild ? './' : '/',
   server: {
     proxy: {
       '/api': {

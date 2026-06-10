@@ -24,8 +24,8 @@ import { ProductCard } from '../components/ProductCard';
 import { cn } from '../utils/cn';
 import { getImageUrl } from '../utils/imageUtils';
 import { Capacitor } from '@capacitor/core';
-import { useCurrencyStore } from '../store/useCurrencyStore';
-import { formatConvertedPrice } from '../utils/currencyUtils';
+import { useCurrencyStore, type Currency } from '../store/useCurrencyStore';
+import { formatConvertedPrice, CURRENCY_INFO } from '../utils/currencyUtils';
 import { useLanguageField } from '../hooks/useLanguageField';
 import type { Listing } from '../types/listing';
 import { favoriteService } from '../services/favoriteService';
@@ -308,7 +308,7 @@ const ProductDetailPage: React.FC = () => {
                             alt={effectiveTitle ?? ''}
                             className="w-full h-full object-cover cursor-pointer"
                             loading="eager"
-                            fetchpriority="high"
+                            fetchPriority="high"
                             onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
                             onClick={() => setShowFullImage(true)}
                             onTouchStart={(e) => {
@@ -470,32 +470,15 @@ const ProductDetailPage: React.FC = () => {
                             <span className="text-[22px] font-black text-secondary-500">
                                 {formatConvertedPrice(ad.price, ad.currency, targetCurrency)}
                             </span>
-                            {Capacitor.getPlatform() === 'ios' && (
-                                <div className="inline-flex p-0.5 bg-gray-100/80 rounded-lg border border-gray-200/50 shadow-sm shrink-0 items-center">
-                                    <button
-                                        onClick={() => setCurrency('KES')}
-                                        className={cn(
-                                            "px-1.5 py-0.5 text-[9px] font-black rounded-md transition-all cursor-pointer",
-                                            targetCurrency === 'KES'
-                                                ? "bg-white text-secondary-500 shadow-xs"
-                                                : "text-gray-400 hover:text-gray-600"
-                                        )}
-                                    >
-                                        KES
-                                    </button>
-                                    <button
-                                        onClick={() => setCurrency('USD')}
-                                        className={cn(
-                                            "px-1.5 py-0.5 text-[9px] font-black rounded-md transition-all cursor-pointer",
-                                            targetCurrency === 'USD'
-                                                ? "bg-white text-secondary-500 shadow-xs"
-                                                : "text-gray-400 hover:text-gray-600"
-                                        )}
-                                    >
-                                        USD
-                                    </button>
-                                </div>
-                            )}
+                            <select
+                                value={targetCurrency}
+                                onChange={e => setCurrency(e.target.value as Currency)}
+                                className="text-[10px] font-black bg-gray-100 border border-gray-200 rounded-lg px-1.5 py-1 outline-none cursor-pointer text-gray-600 hover:border-secondary-400 transition-colors"
+                            >
+                                {(Object.entries(CURRENCY_INFO) as [string, { symbol: string }][]).map(([code, info]) => (
+                                    <option key={code} value={code}>{code} ({info.symbol})</option>
+                                ))}
+                            </select>
                             {isNegotiable && (
                                 <span className="text-[11px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100 uppercase tracking-wide">
                                     {t('common.negotiable')}

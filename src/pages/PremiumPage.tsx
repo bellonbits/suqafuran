@@ -14,6 +14,8 @@ import { ListingSelectorModal } from '../components/ListingSelectorModal';
 import { LipanaPaymentModal } from '../components/LipanaPaymentModal';
 import type { Listing } from '../types/listing';
 import { useTranslation } from 'react-i18next';
+import { useCurrencyStore } from '../store/useCurrencyStore';
+import { formatConvertedPrice, CURRENCY_INFO } from '../utils/currencyUtils';
 
 interface PromotionPlan {
     id: number;
@@ -27,7 +29,6 @@ interface PromotionPlan {
 }
 
 const PLAN_ICONS = [Target, Gem, Crown];
-const KES_RATE = 130; // approximate USD to KES
 
 export const PremiumPage: React.FC = () => {
     const [selectedPlan, setSelectedPlan] = useState<PromotionPlan | null>(null);
@@ -36,6 +37,7 @@ export const PremiumPage: React.FC = () => {
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const { getField } = useLanguageField();
     const { t } = useTranslation();
+    const { currency: targetCurrency } = useCurrencyStore();
 
     const { data: plans = [], isLoading } = useQuery<PromotionPlan[]>({
         queryKey: ['promotionPlans'],
@@ -120,7 +122,6 @@ export const PremiumPage: React.FC = () => {
                         {(plans.length > 0 ? plans : []).map((plan, idx) => {
                             const Icon = PLAN_ICONS[idx % PLAN_ICONS.length];
                             const isPopular = idx === 1;
-                            const amountKes = Math.round(plan.price_usd * KES_RATE);
                             const features = [
                                 `${plan.duration_days}-day visibility boost`,
                                 'Priority placement in search',
@@ -156,10 +157,12 @@ export const PremiumPage: React.FC = () => {
 
                                     <div className="mb-8">
                                         <div className="flex items-baseline gap-1">
-                                            <span className="text-4xl font-black text-gray-900">KSh {amountKes.toLocaleString()}</span>
+                                            <span className="text-4xl font-black text-gray-900">{formatConvertedPrice(plan.price_usd, 'USD', targetCurrency)}</span>
                                             <span className="text-gray-400 font-bold ml-1 text-sm">/ {plan.duration_days} days</span>
                                         </div>
-                                        <p className="text-xs text-gray-400 mt-1">≈ ${plan.price_usd} USD</p>
+                                        {targetCurrency !== 'USD' && (
+                                            <p className="text-xs text-gray-400 mt-1">≈ ${plan.price_usd} USD</p>
+                                        )}
                                     </div>
 
                                     <ul className="space-y-4 mb-10 flex-1">
@@ -268,7 +271,7 @@ export const PremiumPage: React.FC = () => {
                 onClose={() => { setShowPaymentModal(false); setSelectedListing(null); setSelectedPlan(null); }}
                 onConfirm={handlePaymentConfirm}
                 onPollStatus={handlePollStatus}
-                amount={selectedPlan ? Math.round(selectedPlan.price_usd * KES_RATE) : 0}
+                amount={selectedPlan ? Math.round(selectedPlan.price_usd * CURRENCY_INFO.KES.rate) : 0}
                 planName={selectedPlan ? getField(selectedPlan, 'name') : ''}
                 listingTitle={selectedListing ? getField(selectedListing, 'title') : undefined}
             />

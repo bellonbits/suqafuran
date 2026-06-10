@@ -589,7 +589,7 @@ def create_listing(
     db.commit()
     db.refresh(listing)
 
-    # Trigger active in-app notification for ad posting
+    # In-app notification for ad posting
     from app.crud.crud_notification import crud_notification
     try:
         crud_notification.create(
@@ -607,6 +607,16 @@ def create_listing(
         )
     except Exception:
         pass
+
+    # Push notification for ad posted
+    from app.utils.push import send_push_to_user
+    send_push_to_user(
+        db,
+        user_id=effective_owner_id,
+        title="Ad Posted Successfully!",
+        body=f"'{listing.title_en}' is now {status} on Suqafuran.",
+        data={"type": "ad_posted", "listing_id": str(listing.id), "path": f"/listing/{listing.id}"}
+    )
 
     return listing
 

@@ -38,7 +38,10 @@ def send_message(
 
     msg = crud_message.create(db, obj_in=message_in.model_dump(), sender_id=current_user.id)
 
-    # Trigger active in-app notification for incoming message
+    sender_name = current_user.full_name or "Someone"
+    preview = msg.content[:80]
+
+    # In-app notification
     from app.crud.crud_notification import crud_notification
     try:
         crud_notification.create(
@@ -48,16 +51,31 @@ def send_message(
                 "data": {
                     "message_id": msg.id,
                     "sender_id": current_user.id,
-                    "sender_name": current_user.full_name or "Someone",
+                    "sender_name": sender_name,
                     "content": msg.content,
                     "listing_id": msg.listing_id,
-                    "message": f"New message from {current_user.full_name or 'Someone'}: \"{msg.content[:60]}\""
+                    "message": f"New message from {sender_name}: \"{preview}\""
                 }
             },
             user_id=message_in.receiver_id
         )
     except Exception:
         pass
+
+    # Push notification
+    from app.utils.push import send_push_to_user
+    send_push_to_user(
+        db,
+        user_id=message_in.receiver_id,
+        title=f"New message from {sender_name}",
+        body=preview,
+        data={
+            "type": "message",
+            "sender_id": str(current_user.id),
+            "listing_id": str(msg.listing_id or ""),
+            "path": f"/messages/{current_user.id}",
+        }
+    )
 
     return msg
 

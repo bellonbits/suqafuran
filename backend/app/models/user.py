@@ -48,6 +48,7 @@ class UserBase(SQLModel):
     location: Optional[str] = Field(default=None)                        # city / region set from profile
     device_fingerprint: Optional[str] = Field(default=None, index=True)
     last_ip: Optional[str] = Field(default=None)
+    fcm_token: Optional[str] = Field(default=None)  # Firebase push notification token
     
     # Trust & Security Fields
     trust_score: int = Field(default=0)

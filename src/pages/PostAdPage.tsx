@@ -15,8 +15,11 @@ import { useAuthStore } from '../store/useAuthStore';
 import { cn } from '../utils/cn';
 import { aiService } from '../services/aiService';
 import { promotionService } from '../services/promotionService';
+import { useCurrencyStore, type Currency } from '../store/useCurrencyStore';
+import { CURRENCY_INFO, convertPrice, formatConvertedPrice } from '../utils/currencyUtils';
 
-const KES_RATE = 130; // 1 USD = 130 KES
+// KES is required by Lipana M-Pesa payment gateway — keep separate from display currency
+const LIPANA_KES_RATE = CURRENCY_INFO.KES.rate;
 
 
 const TITLE_MAX = 70;
@@ -74,7 +77,9 @@ const PostAdPage: React.FC = () => {
     const [formTab, setFormTab] = useState<'en' | 'so'>((i18n.language as any) === 'so' ? 'so' : 'en');
 
     const [step, setStep] = useState<1 | 2>(1);
-    const [currency, setCurrency] = useState<'USD' | 'KES'>('USD');
+    const { currency: globalCurrency } = useCurrencyStore();
+    const [currency, setCurrency] = useState<Currency>(globalCurrency);
+    const ALL_CURRENCIES = Object.keys(CURRENCY_INFO) as Currency[];
     const [showBulkPrice, setShowBulkPrice] = useState(false);
     const [promoPlanId, setPromoPlanId] = useState<number>(0);
     const [errors, setErrors] = useState<Record<string, string | undefined>>({});
@@ -92,6 +97,7 @@ const PostAdPage: React.FC = () => {
     const [isDragOver, setIsDragOver] = useState(false);
     // localPreviews: { localUrl, serverUrl|null, isVideo }
     const [localPreviews, setLocalPreviews] = useState<{ localUrl: string; serverUrl: string | null; isVideo: boolean }[]>([]);
+    const dragIndexRef = useRef<number | null>(null);
 
 
     const { data: verificationStatus } = useQuery({
@@ -161,10 +167,17 @@ const PostAdPage: React.FC = () => {
     });
 
     const { data: promotionPlans = [] } = useQuery({
-
         queryKey: ['promotionPlans'],
         queryFn: promotionService.getPlans,
     });
+
+    // Pre-select the middle (most popular) plan once loaded
+    useEffect(() => {
+        if (promotionPlans.length > 0 && promoPlanId === 0) {
+            const mid = promotionPlans[Math.floor((promotionPlans.length - 1) / 2)] as any;
+            if (mid) setPromoPlanId(mid.id);
+        }
+    }, [promotionPlans]);
 
     const set = <K extends keyof FormValues>(key: K, value: FormValues[K]) => {
         setForm(f => ({ ...f, [key]: value }));
@@ -253,11 +266,7 @@ const PostAdPage: React.FC = () => {
                     const result = await listingService.uploadVideo(file);
                     url = result.url;
                 } else {
-                    const options = { maxSizeMB: 0.8, maxWidthOrHeight: 1920, useWebWorker: true };
-                    const compressed = file.size > 500_000
-                        ? new File([await imageCompression(file, options)], file.name, { type: file.type })
-                        : file;
-                    const result = await listingService.uploadImage(compressed);
+                    const result = await listingService.uploadImage(file);
                     url = result.url;
                     phash = result.phash || '';
                 }
@@ -289,11 +298,7 @@ const PostAdPage: React.FC = () => {
                 const result = await listingService.uploadVideo(file);
                 url = result.url;
             } else {
-                const options = { maxSizeMB: 0.8, maxWidthOrHeight: 1920, useWebWorker: true };
-                const compressed = file.size > 500_000
-                    ? new File([await imageCompression(file, options)], file.name, { type: file.type })
-                    : file;
-                const result = await listingService.uploadImage(compressed);
+                const result = await listingService.uploadImage(file);
                 url = result.url;
                 phash = result.phash || '';
             }
@@ -969,15 +974,42 @@ const PostAdPage: React.FC = () => {
                             </div>
                             <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime" multiple className="hidden" onChange={e => handleImageUpload(e.target.files)} />
 
-                            {/* Media grid — shows local previews instantly, spinner while server URL pending */}
+                            {/* Media grid — drag to reorder, spinner while uploading */}
                             {localPreviews.length > 0 && (
                                 <div className="grid grid-cols-4 gap-2 mt-2">
                                     {localPreviews.map((item, i) => (
-                                        <div key={i} className="relative aspect-square group/img bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                                        <div
+                                            key={i}
+                                            draggable
+                                            onDragStart={() => { dragIndexRef.current = i; }}
+                                            onDragOver={e => e.preventDefault()}
+                                            onDrop={() => {
+                                                const from = dragIndexRef.current;
+                                                if (from === null || from === i) return;
+                                                setLocalPreviews(prev => {
+                                                    const next = [...prev];
+                                                    const [moved] = next.splice(from, 1);
+                                                    next.splice(i, 0, moved);
+                                                    return next;
+                                                });
+                                                setForm(f => {
+                                                    const imgs = [...f.images];
+                                                    const hashes = [...f.image_hashes];
+                                                    const [mi] = imgs.splice(from, 1);
+                                                    const [mh] = hashes.splice(from, 1);
+                                                    imgs.splice(i, 0, mi);
+                                                    hashes.splice(i, 0, mh);
+                                                    return { ...f, images: imgs, image_hashes: hashes };
+                                                });
+                                                dragIndexRef.current = null;
+                                            }}
+                                            onDragEnd={() => { dragIndexRef.current = null; }}
+                                            className="relative aspect-square group/img bg-gray-100 rounded-lg overflow-hidden border border-gray-200 cursor-grab active:cursor-grabbing select-none"
+                                        >
                                             {item.isVideo ? (
                                                 <video src={item.localUrl} className="w-full h-full object-cover" muted playsInline />
                                             ) : (
-                                                <img src={item.localUrl} alt="" className="w-full h-full object-cover" />
+                                                <img src={item.localUrl} alt="" className="w-full h-full object-cover pointer-events-none" />
                                             )}
                                             {/* Uploading spinner overlay */}
                                             {!item.serverUrl && (
@@ -1149,28 +1181,25 @@ const PostAdPage: React.FC = () => {
                                     <div className="absolute left-2 top-0 -translate-y-1/2 bg-white px-1 text-[11px] text-gray-500 font-medium pointer-events-none z-10 hidden sm:block">
                                         Price*
                                     </div>
-                                    {/* Currency Toggle */}
+                                    {/* Currency Toggle — cycles through all supported currencies */}
                                     <div className="flex border-r border-gray-200 shrink-0">
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                if (currency === 'KES') {
-                                                    // Convert KES → USD
-                                                    const usd = form.price ? Math.round((Number(form.price) / KES_RATE) * 100) / 100 : '';
-                                                    set('price', String(usd));
-                                                    setCurrency('USD');
-                                                } else {
-                                                    // Convert USD → KES
-                                                    const kes = form.price ? Math.round(Number(form.price) * KES_RATE) : '';
-                                                    set('price', String(kes));
-                                                    setCurrency('KES');
+                                                const idx = ALL_CURRENCIES.indexOf(currency);
+                                                const next = ALL_CURRENCIES[(idx + 1) % ALL_CURRENCIES.length];
+                                                if (form.price) {
+                                                    const converted = convertPrice(Number(form.price), currency, next);
+                                                    const decimals = CURRENCY_INFO[next].decimals;
+                                                    set('price', decimals > 0 ? converted.toFixed(decimals) : String(Math.round(converted)));
                                                 }
+                                                setCurrency(next);
                                             }}
                                             className="flex items-center gap-1 px-3 py-3 bg-gray-50 hover:bg-gray-100 transition-colors rounded-l-md"
-                                            title="Switch currency"
+                                            title="Tap to cycle currency"
                                         >
                                             <span className="text-sm font-bold text-gray-700">
-                                                {currency === 'USD' ? '$ USD' : 'KSh'}
+                                                {CURRENCY_INFO[currency].symbol} {currency}
                                             </span>
                                             <svg className="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
@@ -1181,16 +1210,18 @@ const PostAdPage: React.FC = () => {
                                         type="number"
                                         value={form.price}
                                         onChange={e => set('price', e.target.value)}
-                                        placeholder={currency === 'USD' ? '0.00' : '0'}
+                                        placeholder={CURRENCY_INFO[currency].decimals > 0 ? '0.00' : '0'}
                                         className="flex-1 w-full px-3 py-3 text-sm bg-transparent outline-none text-gray-900 font-medium"
                                         min="0"
-                                        step={currency === 'USD' ? '0.01' : '1'}
+                                        step={CURRENCY_INFO[currency].decimals > 0 ? '0.01' : '1'}
                                     />
                                 </div>
                                 <p className="text-[11px] text-gray-400 mt-1.5 pl-1">
-                                    {currency === 'USD'
-                                        ? form.price ? `≈ KSh ${Math.round(Number(form.price) * KES_RATE).toLocaleString()}` : 'Tap currency label to switch to KSh'
-                                        : form.price ? `≈ $${(Number(form.price) / KES_RATE).toFixed(2)} USD` : 'Tap currency label to switch to USD'
+                                    {form.price
+                                        ? currency !== 'USD'
+                                            ? `≈ ${formatConvertedPrice(Number(form.price), currency, 'USD')} USD`
+                                            : `≈ ${formatConvertedPrice(Number(form.price), 'USD', 'KES')}`
+                                        : 'Tap currency label to cycle currencies'
                                     }
                                 </p>
                                 {errors.price && <p className="text-[11px] text-red-500 mt-1 pl-1">{errors.price}</p>}
@@ -1243,13 +1274,13 @@ const PostAdPage: React.FC = () => {
                                                 <label className="block text-[11px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Price per unit</label>
                                                 <div className="flex border border-gray-300 rounded-md overflow-hidden focus-within:border-primary-500 bg-white">
                                                     <span className="bg-gray-50 border-r border-gray-200 px-3 py-2.5 text-sm font-bold text-gray-700 whitespace-nowrap">
-                                                        {currency === 'USD' ? '$ USD' : 'KSh'}
+                                                        {CURRENCY_INFO[currency].symbol} {currency}
                                                     </span>
                                                     <input
                                                         type="number"
                                                         min="0"
-                                                        step={currency === 'USD' ? '0.01' : '1'}
-                                                        placeholder={currency === 'USD' ? '0.00' : '0'}
+                                                        step={CURRENCY_INFO[currency].decimals > 0 ? '0.01' : '1'}
+                                                        placeholder={CURRENCY_INFO[currency].decimals > 0 ? '0.00' : '0'}
                                                         value={form.attributes.bulk_price || ''}
                                                         onChange={e => setAttribute('bulk_price', e.target.value)}
                                                         className="flex-1 px-3 py-2.5 text-sm bg-transparent outline-none text-gray-900"
@@ -1257,9 +1288,9 @@ const PostAdPage: React.FC = () => {
                                                 </div>
                                                 {form.attributes.bulk_price && (
                                                     <p className="text-[11px] text-gray-400 mt-1">
-                                                        {currency === 'USD'
-                                                            ? `≈ KSh ${Math.round(Number(form.attributes.bulk_price) * KES_RATE).toLocaleString()}`
-                                                            : `≈ $${(Number(form.attributes.bulk_price) / KES_RATE).toFixed(2)} USD`
+                                                        {currency !== 'USD'
+                                                            ? `≈ ${formatConvertedPrice(Number(form.attributes.bulk_price), currency, 'USD')} USD`
+                                                            : `≈ ${formatConvertedPrice(Number(form.attributes.bulk_price), 'USD', 'KES')}`
                                                         }
                                                     </p>
                                                 )}
@@ -1268,7 +1299,7 @@ const PostAdPage: React.FC = () => {
                                         {form.attributes.bulk_quantity && form.attributes.bulk_price && (
                                             <div className="mt-3 p-2.5 bg-primary-50 rounded-md border border-primary-100">
                                                 <p className="text-[12px] text-primary-700 font-semibold">
-                                                    ✓ Buy {form.attributes.bulk_quantity}+ units at {currency === 'USD' ? `$${form.attributes.bulk_price}` : `KSh ${Number(form.attributes.bulk_price).toLocaleString()}`} each
+                                                    ✓ Buy {form.attributes.bulk_quantity}+ units at {CURRENCY_INFO[currency].symbol} {Number(form.attributes.bulk_price).toLocaleString()} each
                                                 </p>
                                             </div>
                                         )}
@@ -1324,59 +1355,91 @@ const PostAdPage: React.FC = () => {
 
 
                     {/* CARD 3: Promote */}
-                    <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6 mb-5 flex flex-col items-center">
-                        <div className="w-full sm:w-4/5 flex flex-col">
-                            <h3 className="font-bold text-[19px] mb-1 text-gray-900">Promote your ad</h3>
-                            <p className="text-[13px] text-primary-500 mb-6 font-medium">Boost with M-Pesa (Lipana) — instant activation after payment</p>
+                    <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6 mb-5">
+                        <h3 className="font-bold text-[19px] text-gray-900 mb-1">Promote your ad</h3>
+                        <p className="text-[13px] text-gray-500 mb-5">Choose a promotion type for your ad to post it</p>
 
-                            {/* No promo option */}
-                            <label className={`border border-gray-200 rounded-md p-4 mb-3 flex justify-between items-center cursor-pointer transition-colors ${promoPlanId === 0 ? 'bg-primary-50/40 border-primary-500 shadow-sm' : 'hover:bg-gray-50'}`}>
-                                <div className="flex items-center gap-3">
-                                    <input type="radio" name="promo" checked={promoPlanId === 0} onChange={() => setPromoPlanId(0)} className="w-4 h-4 text-primary-500 focus:ring-primary-500 accent-primary-500" />
-                                    <span className="font-bold text-[15px] text-gray-900">No promo</span>
-                                </div>
-                                <span className="text-gray-400 text-sm font-medium">free</span>
-                            </label>
+                        {/* No promo */}
+                        <label className={cn(
+                            'border-2 rounded-xl p-4 mb-3 flex items-center justify-between cursor-pointer transition-all',
+                            promoPlanId === 0 ? 'border-sky-500 bg-sky-50/30' : 'border-gray-100 hover:border-gray-200'
+                        )}>
+                            <input type="radio" name="promo" checked={promoPlanId === 0} onChange={() => setPromoPlanId(0)} className="hidden" />
+                            <span className="font-bold text-[16px] text-gray-900">No promo</span>
+                            <span className="text-gray-400 text-[14px]">free</span>
+                        </label>
 
-                            {/* Dynamic plans from API */}
-                            {promotionPlans.map((plan: any) => (
-                                <label
-                                    key={plan.id}
-                                    className={`border border-gray-200 rounded-md p-4 mb-3 flex justify-between items-center cursor-pointer transition-colors ${promoPlanId === plan.id ? 'bg-primary-50/40 border-primary-500 shadow-sm' : 'hover:bg-gray-50'}`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <input
-                                            type="radio"
-                                            name="promo"
-                                            checked={promoPlanId === plan.id}
-                                            onChange={() => setPromoPlanId(plan.id)}
-                                            className="w-4 h-4 text-primary-500 focus:ring-primary-500 accent-primary-500"
-                                        />
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <Zap size={13} className="text-primary-500 fill-primary-500" />
-                                                <span className="font-bold text-[15px] text-gray-900">{plan.name}</span>
-                                            </div>
-                                            <span className="bg-[#eef8ff] text-primary-500 px-3 py-0.5 rounded-full text-[11px] font-bold">{plan.duration_days} days</span>
+                        {/* Group plans by name so same-named plans show as duration pills */}
+                        {(() => {
+                            const groups: Record<string, any[]> = {};
+                            (promotionPlans as any[]).forEach(plan => {
+                                const name = plan.name_en || plan.name || '';
+                                if (!groups[name]) groups[name] = [];
+                                groups[name].push(plan);
+                            });
+                            return Object.entries(groups).map(([groupName, groupPlans]) => {
+                                const isGroupSelected = groupPlans.some(p => p.id === promoPlanId);
+                                const activePlan = isGroupSelected
+                                    ? groupPlans.find(p => p.id === promoPlanId)!
+                                    : null;
+                                return (
+                                    <div
+                                        key={groupName}
+                                        onClick={() => {
+                                            if (!isGroupSelected) setPromoPlanId(groupPlans[0].id);
+                                        }}
+                                        className={cn(
+                                            'border-2 rounded-xl p-4 mb-3 cursor-pointer transition-all',
+                                            isGroupSelected ? 'border-sky-500 bg-sky-50/30' : 'border-gray-100 hover:border-gray-200'
+                                        )}
+                                    >
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="font-bold text-[16px] text-gray-900">{groupName}</span>
+                                            <span className="font-bold text-[16px] text-gray-900">
+                                                {activePlan ? formatConvertedPrice(activePlan.price_usd, 'USD', globalCurrency) : formatConvertedPrice(groupPlans[0].price_usd, 'USD', globalCurrency)}
+                                            </span>
+                                        </div>
+                                        <div className="flex gap-2 flex-wrap">
+                                            {groupPlans.map(plan => {
+                                                const label = plan.duration_days >= 28
+                                                    ? `${Math.round(plan.duration_days / 30)} month`
+                                                    : `${plan.duration_days} days`;
+                                                const isActive = plan.id === promoPlanId;
+                                                return (
+                                                    <button
+                                                        key={plan.id}
+                                                        type="button"
+                                                        onClick={e => { e.stopPropagation(); setPromoPlanId(plan.id); }}
+                                                        className={cn(
+                                                            'px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all border',
+                                                            isActive
+                                                                ? 'bg-sky-500 text-white border-sky-500'
+                                                                : 'bg-white text-sky-600 border-sky-400 hover:bg-sky-50'
+                                                        )}
+                                                    >
+                                                        {label}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     </div>
-                                    <span className="font-bold text-gray-900">KSh {Math.round(plan.price_usd * KES_RATE).toLocaleString()}</span>
-                                </label>
-                            ))}
+                                );
+                            });
+                        })()}
 
-                            <button
-                                type="submit"
-                                disabled={submitting}
-                                className="w-full bg-primary-500 hover:bg-primary-600 active:scale-[0.98] text-white font-bold text-[17px] py-3.5 rounded-md transition-all flex items-center justify-center gap-2 shadow-sm mt-3"
-                            >
-                                {submitting && <Loader2 size={20} className="animate-spin" />}
-                                {promoPlanId > 0 ? 'Post & Boost with M-Pesa' : 'Post ad'}
-                            </button>
+                        {/* Submit */}
+                        <button
+                            type="submit"
+                            disabled={submitting}
+                            className="w-full bg-sky-500 hover:bg-sky-600 active:scale-[0.98] text-white font-bold text-[17px] py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 mt-2 shadow-sm"
+                        >
+                            {submitting && <Loader2 size={20} className="animate-spin" />}
+                            Post ad
+                        </button>
 
-                            <p className="text-[10px] text-gray-500 mt-5 leading-relaxed text-center px-4">
-                                By clicking on Post Ad, you accept the <a href="#" className="text-primary-500 hover:underline">Terms of Use</a>, confirm that you will abide by the Safety Tips, and declare that this posting does not include any Prohibited Items.
-                            </p>
-                        </div>
+                        <p className="text-[11px] text-gray-500 mt-4 leading-relaxed text-center">
+                            By clicking on Post Ad, you accept the <a href="#" className="text-sky-600 hover:underline">Terms of Use</a>, confirm that you will abide by the Safety Tips, and declare that this posting does not include any Prohibited Items.
+                        </p>
                     </div>
                 </div>
             </form>
@@ -1394,7 +1457,7 @@ const PostAdPage: React.FC = () => {
                 onClose={handleLipanaClose}
                 onConfirm={handleLipanaConfirm}
                 onPollStatus={handleLipanaPollStatus}
-                amount={promoPlanId > 0 ? Math.round((promotionPlans.find((p: any) => p.id === promoPlanId)?.price_usd || 0) * KES_RATE) : 0}
+                amount={promoPlanId > 0 ? Math.round((promotionPlans.find((p: any) => p.id === promoPlanId)?.price_usd || 0) * LIPANA_KES_RATE) : 0}
                 planName={promoPlanId > 0 ? getField(promotionPlans.find((p: any) => p.id === promoPlanId) || {}, 'name') : ''}
                 listingTitle={createdListingTitle}
             />

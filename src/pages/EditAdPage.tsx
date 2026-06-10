@@ -12,7 +12,7 @@ import { LocationPickerModal } from '../components/LocationPickerModal';
 import { useLanguageField } from '../hooks/useLanguageField';
 import { useAuthStore } from '../store/useAuthStore';
 import { cn } from '../utils/cn';
-import { ImageCropperModal } from '../components/ImageCropperModal';
+import { CURRENCY_INFO } from '../utils/currencyUtils';
 
 const TITLE_MAX = 70;
 
@@ -45,6 +45,7 @@ const EditAdPage: React.FC = () => {
     const { i18n } = useTranslation();
     const { user } = useAuthStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const dragIndexRef = useRef<number | null>(null);
 
     const [form, setForm] = useState<FormValues>({
         title_en: '',
@@ -78,10 +79,7 @@ const EditAdPage: React.FC = () => {
     const { getField } = useLanguageField();
 
     // Image Cropper State
-    const [queuedFiles, setQueuedFiles] = useState<File[]>([]);
-    const [currentCropFile, setCurrentCropFile] = useState<File | null>(null);
-    const [currentCropUrl, setCurrentCropUrl] = useState<string | null>(null);
-    const [editingImageIndex, setEditingImageIndex] = useState<number | null>(null);
+    const [uploadingImages, setUploadingImages] = useState(false);
 
 
     // Fetch existing listing
@@ -151,90 +149,25 @@ const EditAdPage: React.FC = () => {
 
     const handleImageUpload = async (files: FileList | null) => {
         if (!files || files.length === 0) return;
-        
-        const fileArray = Array.from(files);
-        setQueuedFiles(fileArray.slice(1));
-        setCurrentCropFile(fileArray[0]);
-        setCurrentCropUrl(URL.createObjectURL(fileArray[0]));
-    };
-
-    const processUpload = async (file: File) => {
-        try {
-            const options = {
-                maxSizeMB: 1,
-                maxWidthOrHeight: 1920,
-                useWebWorker: true,
-            };
-            const compressedBlob = await imageCompression(file, options);
-            const compressedFile = new File([compressedBlob], file.name, { type: compressedBlob.type || file.type });
-            const result = await listingService.uploadImage(compressedFile);
-            setForm(f => ({ ...f, images: [...f.images, result.url] }));
-        } catch { 
-            /* skip */ 
-        } finally {
-            processNextInQueue();
-        }
-    };
-
-    const processNextInQueue = () => {
-        if (currentCropUrl) URL.revokeObjectURL(currentCropUrl);
-        if (queuedFiles.length > 0) {
-            const nextFile = queuedFiles[0];
-            setQueuedFiles(prev => prev.slice(1));
-            setCurrentCropFile(nextFile);
-            setCurrentCropUrl(URL.createObjectURL(nextFile));
-        } else {
-            setCurrentCropFile(null);
-            setCurrentCropUrl(null);
-        }
-    };
-
-    const handleCropComplete = (croppedFile: File) => {
-        if (editingImageIndex !== null) {
-            processReplaceUpload(croppedFile, editingImageIndex);
-        } else {
-            processUpload(croppedFile);
-        }
+        setUploadingImages(true);
+        await Promise.all(Array.from(files).map(async file => {
+            try {
+                const result = await listingService.uploadImage(file);
+                setForm(f => ({ ...f, images: [...f.images, result.url] }));
+            } catch { /* skip */ }
+        }));
+        setUploadingImages(false);
     };
 
     const processReplaceUpload = async (file: File, index: number) => {
         try {
-            const options = { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true };
-            const compressedBlob = await imageCompression(file, options);
-            const compressedFile = new File([compressedBlob], file.name, { type: compressedBlob.type || file.type });
-            const result = await listingService.uploadImage(compressedFile);
+            const result = await listingService.uploadImage(file);
             setForm(f => {
                 const newImages = [...f.images];
                 newImages[index] = result.url;
                 return { ...f, images: newImages };
             });
-        } catch {
-            /* skip */
-        } finally {
-            setEditingImageIndex(null);
-            if (currentCropUrl && !currentCropUrl.startsWith('http')) URL.revokeObjectURL(currentCropUrl);
-            setCurrentCropFile(null);
-            setCurrentCropUrl(null);
-        }
-    };
-
-    const editImage = (idx: number, url: string) => {
-        setEditingImageIndex(idx);
-        setCurrentCropUrl(url);
-        setCurrentCropFile(null);
-    };
-
-    const handleCropSkip = () => {
-        if (editingImageIndex !== null) {
-            setEditingImageIndex(null);
-            if (currentCropUrl && !currentCropUrl.startsWith('http')) URL.revokeObjectURL(currentCropUrl);
-            setCurrentCropFile(null);
-            setCurrentCropUrl(null);
-        } else if (currentCropFile) {
-            processUpload(currentCropFile);
-        } else {
-            processNextInQueue();
-        }
+        } catch { /* skip */ }
     };
 
     const removeImage = (idx: number) => {
@@ -462,24 +395,45 @@ const EditAdPage: React.FC = () => {
                         </div>
 
                         <div>
-                            <p className="text-[13px] font-bold text-gray-900 mb-2">Photos*</p>
+                            <div className="flex items-center justify-between mb-2">
+                                <p className="text-[13px] font-bold text-gray-900">Photos*</p>
+                                {uploadingImages && <span className="flex items-center gap-1 text-[11px] text-primary-500"><Loader2 size={12} className="animate-spin" />Uploading…</span>}
+                            </div>
                             <div className="grid grid-cols-4 gap-2">
                                 <button type="button" onClick={() => fileInputRef.current?.click()} className="aspect-square border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center hover:bg-primary-50 hover:border-primary-300 transition-all">
                                     <Plus className="text-gray-400" />
                                     <span className="text-[10px] text-gray-400">Add Photo</span>
                                 </button>
                                 {form.images.map((img, i) => (
-                                    <div key={i} className="aspect-square rounded-lg bg-gray-50 relative group/img overflow-hidden">
-                                        <img src={getImageUrl(img)} alt="" className="w-full h-full object-cover" />
-                                        {/* Edit overlay on hover/tap */}
-                                        <button
-                                            type="button"
-                                            onClick={() => editImage(i, getImageUrl(img))}
-                                            className="absolute inset-0 bg-black/40 rounded-lg hidden sm:flex flex-col items-center justify-center gap-1 opacity-0 group-hover/img:opacity-100 transition-opacity"
-                                        >
+                                    <div
+                                        key={i}
+                                        draggable
+                                        onDragStart={() => { dragIndexRef.current = i; }}
+                                        onDragOver={e => e.preventDefault()}
+                                        onDrop={() => {
+                                            const from = dragIndexRef.current;
+                                            if (from === null || from === i) return;
+                                            setForm(f => {
+                                                const imgs = [...f.images];
+                                                const [moved] = imgs.splice(from, 1);
+                                                imgs.splice(i, 0, moved);
+                                                return { ...f, images: imgs };
+                                            });
+                                            dragIndexRef.current = null;
+                                        }}
+                                        onDragEnd={() => { dragIndexRef.current = null; }}
+                                        className="aspect-square rounded-lg bg-gray-50 relative group/img overflow-hidden cursor-grab active:cursor-grabbing select-none"
+                                    >
+                                        <img src={getImageUrl(img)} alt="" className="w-full h-full object-cover pointer-events-none" />
+                                        {i === 0 && (
+                                            <span className="absolute bottom-1 left-1 bg-primary-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">Cover</span>
+                                        )}
+                                        {/* Replace overlay */}
+                                        <label className="absolute inset-0 bg-black/40 rounded-lg hidden sm:flex flex-col items-center justify-center gap-1 opacity-0 group-hover/img:opacity-100 transition-opacity cursor-pointer">
+                                            <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={e => { if (e.target.files?.[0]) processReplaceUpload(e.target.files[0], i); e.target.value = ''; }} />
                                             <Pencil size={18} color="white" />
-                                            <span className="text-white text-[10px] font-bold">Edit</span>
-                                        </button>
+                                            <span className="text-white text-[10px] font-bold">Replace</span>
+                                        </label>
                                         <button onClick={() => removeImage(i)} className="absolute top-1 right-1 bg-red-500 text-white p-0.5 rounded-full opacity-0 group-hover/img:opacity-100 transition-opacity z-10"><X size={12} /></button>
                                     </div>
                                 ))}
@@ -511,9 +465,9 @@ const EditAdPage: React.FC = () => {
                         <div className="flex gap-2">
                             <div className="w-24 shrink-0 relative">
                                 <select value={form.currency} onChange={e => set('currency', e.target.value as any)} className="w-full border border-gray-300 rounded-md p-3 text-sm appearance-none outline-none focus:border-primary-500">
-                                    <option value="USD">USD ($)</option>
-                                    <option value="KES">KES (KSh)</option>
-                                    <option value="SOS">SOS (Sh)</option>
+                                    {(Object.entries(CURRENCY_INFO) as [string, { symbol: string }][]).map(([code, info]) => (
+                                        <option key={code} value={code}>{code} ({info.symbol})</option>
+                                    ))}
                                 </select>
                                 <ChevronRight className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 rotate-90" />
                             </div>
@@ -540,24 +494,6 @@ const EditAdPage: React.FC = () => {
 
             <LocationPickerModal isOpen={isLocationOpen} onClose={() => setIsLocationOpen(false)} onSelect={loc => set('location', loc)} />
 
-            {/* Image Cropper Modal */}
-            <ImageCropperModal
-                isOpen={!!(currentCropFile || currentCropUrl)}
-                onClose={() => {
-                    if (editingImageIndex !== null) {
-                        setEditingImageIndex(null);
-                    } else {
-                        setQueuedFiles([]);
-                    }
-                    if (currentCropUrl && !currentCropUrl.startsWith('http')) URL.revokeObjectURL(currentCropUrl);
-                    setCurrentCropFile(null);
-                    setCurrentCropUrl(null);
-                }}
-                imageSrc={currentCropUrl}
-                onCropComplete={handleCropComplete}
-                onSkip={handleCropSkip}
-                fileName={currentCropFile?.name || 'cropped.jpg'}
-            />
         </div>
     );
 };

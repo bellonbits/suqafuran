@@ -159,6 +159,33 @@ def update_user_me(
     return user
 
 
+@router.put("/me/device-token")
+def update_device_token(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    device_token: str = Body(..., embed=True),
+) -> Any:
+    """Save or update the FCM push notification token for the current user's device."""
+    current_user.fcm_token = device_token
+    db.add(current_user)
+    db.commit()
+    return {"status": "ok"}
+
+
+@router.delete("/me/device-token")
+def remove_device_token(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """Remove FCM token on logout so the user stops receiving push notifications."""
+    current_user.fcm_token = None
+    db.add(current_user)
+    db.commit()
+    return {"status": "ok"}
+
+
 from fastapi import UploadFile, File
 import shutil
 import os

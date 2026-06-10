@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, MapPin, Tag, Search, ListFilter } from 'lucide-react';
@@ -10,7 +11,7 @@ interface AuthLayoutProps {
     imageCaption?: string;
 }
 
-const AuthLayout: React.FC<AuthLayoutProps> = ({
+const AuthLayout: React.FC<AuthLayoutProps> = memo(({
     children,
     title,
     subtitle,
@@ -94,6 +95,6 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
             </div>
         </div>
     );
-};
+}) as React.FC<AuthLayoutProps>;
 
 export { AuthLayout };

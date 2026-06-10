@@ -20,7 +20,7 @@ class AppErrorBoundary extends Component<{ children: React.ReactNode }, { crashe
     return this.props.children;
   }
 }
-import { BrowserRouter, HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { RefreshCw } from 'lucide-react';
@@ -37,10 +37,25 @@ import { detectGeoFromIP } from './utils/detectCurrency';
 import { useLocationStore } from './store/useLocationStore';
 import { NotificationPoller } from './components/NotificationPoller';
 import { SplashScreen } from './components/SplashScreen';
+import { pushNotificationService } from './services/pushNotificationService';
+import { useAuthStore } from './store/useAuthStore';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+}
+
+function PushSetup() {
+  const token = useAuthStore(s => s.token);
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (token) {
+      pushNotificationService.setup(navigate);
+    } else {
+      pushNotificationService.clearToken();
+    }
+  }, [token]);
   return null;
 }
 
@@ -188,7 +203,8 @@ const ServiceWorkerRegister: React.FC = () => {
 
 const App: React.FC = () => {
   const onboardingSeen = localStorage.getItem('suqafuran-onboarding-seen') === '1';
-  const [phase, setPhase] = useState<AppPhase>(onboardingSeen ? 'app' : 'onboarding');
+  const isNative = Capacitor.isNativePlatform();
+  const [phase, setPhase] = useState<AppPhase>((!isNative || onboardingSeen) ? 'app' : 'onboarding');
   const { autoDetected, setAutoDetected, setCurrency } = useCurrencyStore();
   const { permissionAsked, setPermissionAsked, setLocation, setCountryCode } = useLocationStore();
   const [storeUpdate, setStoreUpdate] = useState<{
@@ -297,8 +313,8 @@ const App: React.FC = () => {
   }, []);
 
   const handleSplashDone = useCallback(() => {
-    setPhase(onboardingSeen ? 'app' : 'onboarding');
-  }, [onboardingSeen]);
+    setPhase((!isNative || onboardingSeen) ? 'app' : 'onboarding');
+  }, [isNative, onboardingSeen]);
 
   const handleOnboardingDone = useCallback(() => {
     setPhase('app');
@@ -317,6 +333,7 @@ const App: React.FC = () => {
         {phase === 'onboarding' && <OnboardingScreen onDone={handleOnboardingDone} />}
         <Toaster position="top-center" reverseOrder={false} />
         <ScrollToTop />
+        <PushSetup />
         <CookieBanner />
         <NotificationPoller />
         <AppErrorBoundary>

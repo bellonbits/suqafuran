@@ -298,7 +298,7 @@ const ShopProfile: React.FC = () => {
                                         return (
                                             <Link
                                                 key={listing.id}
-                                                to={`/listings/${listing.id}`}
+                                                to={`/listing/${listing.id}`}
                                                 className="group bg-white rounded-3xl overflow-hidden border border-sky-100/70 shadow-sm hover:shadow-xl hover:border-sky-300 transition-all duration-300 relative flex flex-col"
                                             >
                                                 {/* Boost badge */}

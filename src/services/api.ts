@@ -9,7 +9,9 @@ const api = axios.create({
         'Content-Type': 'application/json',
     },
     timeout: 15000,
-    withCredentials: true,
+    // withCredentials intentionally omitted — auth uses JWT Bearer tokens,
+    // not cookies. Setting this to true breaks CORS on Android WebView when
+    // the server uses Access-Control-Allow-Origin: *.
 });
 
 // Attach token to every request

@@ -69,6 +69,26 @@ def moderate_listing(
     db.add(listing)
     db.commit()
     db.refresh(listing)
+
+    # Push notification to listing owner
+    from app.utils.push import send_push_to_user
+    if approve:
+        send_push_to_user(
+            db,
+            user_id=listing.owner_id,
+            title="Your ad is live!",
+            body=f"'{listing.title_en}' has been approved and is now visible to buyers.",
+            data={"type": "ad_approved", "listing_id": str(listing.id), "path": f"/listing/{listing.id}"}
+        )
+    else:
+        send_push_to_user(
+            db,
+            user_id=listing.owner_id,
+            title="Ad not approved",
+            body=f"'{listing.title_en}' was not approved. Please review and repost.",
+            data={"type": "ad_rejected", "listing_id": str(listing.id), "path": "/dashboard"}
+        )
+
     return listing
 
 

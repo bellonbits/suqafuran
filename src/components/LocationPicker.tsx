@@ -5,8 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 
-// What3Words API Key - Ideally this should be in an env variable
-const W3W_API_KEY = 'YOUR_W3W_API_KEY'; // User will need to provide this or I'll use a placeholder/mock if not available
+const W3W_API_KEY = import.meta.env.VITE_W3W_API_KEY || '';
 
 interface LocationPickerProps {
     onLocationSelect: (lat: number, lng: number, words?: string) => void;

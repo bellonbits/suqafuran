@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Mail, CheckCircle, Loader2, RefreshCw } from 'lucide-react';
@@ -20,17 +20,27 @@ const EmailVerificationPage: React.FC = () => {
     const [resendLoading, setResendLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [resent, setResent] = useState(false);
+    const [resendCooldown, setResendCooldown] = useState(0);
+    const isVerifying = useRef(false);
 
     useEffect(() => {
         if (!email) navigate('/signup');
     }, [email, navigate]);
 
-    const handleVerify = async (e: React.FormEvent) => {
-        e.preventDefault();
+    // Tick down resend cooldown every second
+    useEffect(() => {
+        if (resendCooldown <= 0) return;
+        const id = setTimeout(() => setResendCooldown(c => c - 1), 1000);
+        return () => clearTimeout(id);
+    }, [resendCooldown]);
+
+    const doVerify = useCallback(async (code: string) => {
+        if (isVerifying.current) return;
+        isVerifying.current = true;
         setError(null);
         setIsLoading(true);
         try {
-            const response = await authService.verifyOTP(email, otp);
+            const response = await authService.verifyOTP(email, code);
             useAuthStore.setState({ token: response.access_token });
             const user = await authService.getMe();
             login(user, response.access_token);
@@ -38,18 +48,32 @@ const EmailVerificationPage: React.FC = () => {
         } catch (err: any) {
             const detail = err.response?.data?.detail;
             setError(typeof detail === 'string' ? detail : t('auth.otp') + ' invalid');
+            isVerifying.current = false;
         } finally {
             setIsLoading(false);
         }
+    }, [email, login, navigate, t]);
+
+    const handleVerify = (e: React.FormEvent) => {
+        e.preventDefault();
+        doVerify(otp);
+    };
+
+    const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+        setOtp(val);
+        if (val.length === 6) doVerify(val);
     };
 
     const handleResend = async () => {
+        if (resendCooldown > 0 || resendLoading) return;
         setResendLoading(true);
         setError(null);
         setResent(false);
         try {
             await authService.requestOTP(email);
             setResent(true);
+            setResendCooldown(30);
         } catch (err: any) {
             const detail = err.response?.data?.detail;
             setError(typeof detail === 'string' ? detail : t('common.error'));
@@ -85,11 +109,14 @@ const EmailVerificationPage: React.FC = () => {
                 <AuthInput
                     id="otp"
                     type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    pattern="[0-9]*"
                     label={t('auth.verificationCode')}
                     placeholder={t('auth.enter6DigitCode')}
                     icon={<CheckCircle className="w-5 h-5" />}
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    onChange={handleOtpChange}
                     required
                 />
 
@@ -113,11 +140,11 @@ const EmailVerificationPage: React.FC = () => {
                     <button
                         type="button"
                         onClick={handleResend}
-                        disabled={resendLoading}
+                        disabled={resendLoading || resendCooldown > 0}
                         className="flex items-center gap-1 mx-auto text-sm font-bold text-primary-600 hover:text-primary-700 hover:underline disabled:opacity-50"
                     >
                         {resendLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                        {t('auth.resendCode')}
+                        {resendCooldown > 0 ? `${t('auth.resendCode')} (${resendCooldown}s)` : t('auth.resendCode')}
                     </button>
                     <button
                         type="button"

@@ -25,7 +25,6 @@ import {
     Clock,
     RefreshCw,
     X,
-    Filter,
     ShieldCheck,
     Copy,
     AlertCircle,
@@ -33,7 +32,8 @@ import {
     Image as ImageIcon,
     Tag,
     Camera,
-    Loader2
+    Loader2,
+    Menu
 } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { cn } from '../../utils/cn';
@@ -124,6 +124,25 @@ export function BusinessDashboard() {
     const [aiSummaryText, setAiSummaryText] = useState('');
     const [aiSuggestedReplyList, setAiSuggestedReplyList] = useState<string[]>([]);
 
+    // AI Copilot standalone tool state
+    const [copilotDescName, setCopilotDescName] = useState('');
+    const [copilotDescContext, setCopilotDescContext] = useState('');
+    const [copilotDescOutput, setCopilotDescOutput] = useState('');
+    const [copilotDescLoading, setCopilotDescLoading] = useState(false);
+    const [copilotPriceName, setCopilotPriceName] = useState('');
+    const [copilotPriceCategory, setCopilotPriceCategory] = useState('shop');
+    const [copilotPriceOutput, setCopilotPriceOutput] = useState<number | null>(null);
+    const [copilotPriceLoading, setCopilotPriceLoading] = useState(false);
+
+    // Mobile sidebar toggle
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    // CRM & global search state
+    const [activeCrmCustomer, setActiveCrmCustomer] = useState<BusinessCustomer | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [crmNotes, setCrmNotes] = useState('');
+    const [savingCrmNotes, setSavingCrmNotes] = useState(false);
+
     // Storefront link copy & settings saving states
     const [copiedLink, setCopiedLink] = useState(false);
     const [savingStorefront, setSavingStorefront] = useState(false);
@@ -153,7 +172,11 @@ export function BusinessDashboard() {
         try {
             const updated = await businessService.updateBusiness(activeBusiness.id, {
                 name: storefrontData.name,
-                show_in_nearby: storefrontData.show_in_nearby
+                show_in_nearby: storefrontData.show_in_nearby,
+                description: storefrontData.description,
+                phone: storefrontData.phone,
+                email: storefrontData.email,
+                address: storefrontData.address,
             });
             setActiveBusiness(updated);
             setBusinesses(prev => prev.map(b => b.id === updated.id ? updated : b));
@@ -204,10 +227,22 @@ export function BusinessDashboard() {
         if (activeBusiness) {
             setStorefrontData({
                 name: activeBusiness.name,
-                show_in_nearby: activeBusiness.show_in_nearby
+                show_in_nearby: activeBusiness.show_in_nearby,
+                description: activeBusiness.description,
+                phone: activeBusiness.phone,
+                email: activeBusiness.email,
+                address: activeBusiness.address,
             });
         }
     }, [activeBusiness]);
+
+    useEffect(() => {
+        setCrmNotes(activeCrmCustomer?.notes || '');
+    }, [activeCrmCustomer]);
+
+    useEffect(() => {
+        setSearchQuery('');
+    }, [activeTab]);
 
     // Fetch initial list of user's businesses
     useEffect(() => {
@@ -669,6 +704,48 @@ export function BusinessDashboard() {
         }
     };
 
+    // AI Copilot — standalone description generator
+    const handleCopilotGenerateDesc = async () => {
+        if (!activeBusiness || !copilotDescName.trim()) { toast.error('Enter a product name first'); return; }
+        setCopilotDescLoading(true);
+        try {
+            const text = await businessService.aiGenerateDescription(
+                activeBusiness.id,
+                `Write a compelling product description for: ${copilotDescName}.${copilotDescContext ? ' Additional context: ' + copilotDescContext : ''}`
+            );
+            setCopilotDescOutput(text);
+        } catch { toast.error('AI description generator offline'); }
+        finally { setCopilotDescLoading(false); }
+    };
+
+    // AI Copilot — standalone price advisor
+    const handleCopilotSuggestPrice = async () => {
+        if (!activeBusiness || !copilotPriceName.trim()) { toast.error('Enter a product name first'); return; }
+        setCopilotPriceLoading(true);
+        try {
+            const result = await businessService.aiSuggestPrice(activeBusiness.id, copilotPriceName, copilotPriceCategory);
+            if (result?.suggested_price) { setCopilotPriceOutput(result.suggested_price); }
+            else { toast.error('AI could not estimate a price for this item'); }
+        } catch { toast.error('Price advisor offline'); }
+        finally { setCopilotPriceLoading(false); }
+    };
+
+    // Save CRM customer notes
+    const handleSaveCrmNotes = async () => {
+        if (!activeBusiness || !activeCrmCustomer) return;
+        setSavingCrmNotes(true);
+        try {
+            const updated = await businessService.updateCustomerNotes(activeBusiness.id, activeCrmCustomer.id, crmNotes);
+            setCustomers(prev => prev.map(c => c.id === updated.id ? updated : c));
+            setActiveCrmCustomer(updated);
+            toast.success('Customer notes saved!');
+        } catch {
+            toast.error('Failed to save notes');
+        } finally {
+            setSavingCrmNotes(false);
+        }
+    };
+
     // Update Kanban column of a task
     const handleMoveTask = async (taskId: number, newCol: 'todo' | 'in_progress' | 'review' | 'done') => {
         if (!activeBusiness) return;
@@ -742,9 +819,20 @@ export function BusinessDashboard() {
 
     return (
         <div className="h-screen flex bg-[#f8f9fa] text-[#1a1a1a] overflow-hidden font-sans">
-            
+
+            {/* Mobile sidebar overlay */}
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 z-40 bg-black/30 md:hidden"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+
             {/* 1. SAAS MASTER SIDEBAR */}
-            <aside className="w-64 bg-white border-r border-[#f0f0ee] flex flex-col shrink-0">
+            <aside className={cn(
+                "fixed md:relative inset-y-0 left-0 z-50 w-64 bg-white border-r border-[#f0f0ee] flex flex-col shrink-0 transition-transform duration-300",
+                sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+            )}>
                 {/* Brand Header */}
                 <div className="p-6 border-b border-[#f0f0ee]">
                     <Link to="/" className="flex items-center gap-3">
@@ -890,10 +978,18 @@ export function BusinessDashboard() {
             <main className="flex-1 flex flex-col min-w-0 bg-[#f8f9fa] h-full overflow-hidden">
                 
                 {/* 2.1 HEADER */}
-                <header className="h-16 shrink-0 border-b border-[#f0f0ee] bg-white flex items-center justify-between px-8">
-                    {/* Left Search Bar */}
-                    <div className="flex items-center gap-3 w-80 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-100 hover:border-orange-250 transition-all duration-200">
-                        <svg className="h-4 w-4 text-[#7d7d7d]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <header className="h-14 md:h-16 shrink-0 border-b border-[#f0f0ee] bg-white flex items-center justify-between px-3 md:px-6 gap-3">
+                    {/* Hamburger (mobile only) */}
+                    <button
+                        className="md:hidden p-2 rounded-lg text-[#7d7d7d] hover:bg-slate-50 active:scale-95 shrink-0"
+                        onClick={() => setSidebarOpen(v => !v)}
+                    >
+                        <Menu className="h-5 w-5" />
+                    </button>
+
+                    {/* Search Bar */}
+                    <div className="hidden md:flex items-center gap-3 w-72 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-100 transition-all duration-200">
+                        <svg className="h-4 w-4 text-[#7d7d7d] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                         <input
@@ -902,35 +998,28 @@ export function BusinessDashboard() {
                                 activeTab === 'crm' ? "Search customer..." :
                                 activeTab === 'inventory' ? "Search products..." : "Search workspace..."
                             }
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
                             className="bg-transparent border-none outline-none text-xs font-bold text-[#1a1a1a] placeholder-[#7d7d7d] w-full"
                         />
                     </div>
 
-                    {/* Right Controls */}
-                    <div className="flex items-center gap-4.5">
-                        <div className="flex items-center gap-3.5 text-xs font-bold text-[#7d7d7d]">
-                            <button className="flex items-center gap-1 hover:text-orange-500 transition-all duration-150 active:scale-95">
-                                <Filter className="h-3.5 w-3.5" /> Sort by
-                            </button>
-                            <button className="flex items-center gap-1 hover:text-orange-500 transition-all duration-150 active:scale-95">
-                                Filters
-                            </button>
-                            {activeBusiness && (
-                                <span className="text-[10px] font-black uppercase bg-orange-50 border border-orange-100 text-orange-600 px-3 py-1 rounded-full">
-                                    slug: /{activeBusiness.slug}
-                                </span>
-                            )}
-                        </div>
+                    {/* Active tab label on mobile */}
+                    <span className="md:hidden text-sm font-black text-[#1a1a1a] capitalize truncate flex-1">
+                        {activeTab.replace('_', ' ')}
+                    </span>
 
-                        {/* Live Socket Status LED indicator */}
+                    {/* Right Controls */}
+                    <div className="flex items-center gap-2 md:gap-4">
+                        {/* Live Socket Status LED */}
                         <div className={cn(
-                            "flex items-center gap-2 px-3 py-1 rounded-full border",
-                            wsConnected 
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-100/50" 
+                            "flex items-center gap-1.5 px-2 md:px-3 py-1 rounded-full border",
+                            wsConnected
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-100/50"
                                 : "bg-rose-50 text-rose-700 border-rose-100/50"
                         )}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${wsConnected ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-                            <span className="text-[9px] font-black uppercase tracking-widest">
+                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${wsConnected ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+                            <span className="hidden md:inline text-[9px] font-black uppercase tracking-widest">
                                 {wsConnected ? 'Broker Online' : 'Syncing'}
                             </span>
                         </div>
@@ -938,22 +1027,22 @@ export function BusinessDashboard() {
                         {/* Marketplace Redirect */}
                         <Link
                             to="/dashboard"
-                            className="bg-orange-50 hover:bg-orange-100 text-orange-600 text-[10px] font-black uppercase tracking-widest py-1.5 px-3.5 rounded-xl border border-orange-100/50 transition-all duration-200 active:scale-95 shadow-sm"
+                            className="bg-orange-50 hover:bg-orange-100 text-orange-600 text-[10px] font-black uppercase tracking-widest py-1.5 px-2.5 md:px-3.5 rounded-xl border border-orange-100/50 transition-all duration-200 active:scale-95 shadow-sm whitespace-nowrap"
                         >
-                            ← Marketplace
+                            ← Market
                         </Link>
                     </div>
                 </header>
 
                 {/* 2.2 CONTENT BODY SCROLLER */}
-                <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
-                    <div className="w-full space-y-6">
+                <div className="flex-1 overflow-y-auto p-3 md:p-6 bg-slate-50">
+                    <div className="w-full space-y-4 md:space-y-6">
 
                         {/* --- TAB: OVERVIEW --- */}
                         {activeTab === 'overview' && (
                             <div className="space-y-6">
                                 {/* Stats Metrics Cards Grid */}
-                                <div className="grid grid-cols-4 gap-5">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
                                     {[
                                         { label: 'Workspace Revenue', value: `$${analytics?.revenue || '0.00'}`, trend: '+8.4%', trendColor: 'text-[#15803d] bg-[#ebf8f2]', icon: DollarSign, colorBg: 'bg-[#ebf8f2] border border-[#d1f2e1]/40', colorText: 'text-[#15803d]' },
                                         { label: 'Completed Orders', value: analytics?.completed_orders || 0, trend: '+2.1%', trendColor: 'text-[#b45309] bg-[#fff6e0]', icon: ShoppingCart, colorBg: 'bg-[#fff6e0] border border-[#feebd1]/40', colorText: 'text-[#b45309]' },
@@ -1003,9 +1092,9 @@ export function BusinessDashboard() {
                                 )}
 
                                 {/* Main overview details */}
-                                <div className="grid grid-cols-3 gap-6">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
                                     {/* Quick Order Logging Widget */}
-                                    <div className="col-span-1 bg-white border border-[#f0f0ee] rounded-[24px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.015)] space-y-5">
+                                    <div className="lg:col-span-1 bg-white border border-[#f0f0ee] rounded-[24px] p-4 md:p-6 shadow-[0_8px_30px_rgba(0,0,0,0.015)] space-y-5">
                                         <h3 className="text-xs font-bold uppercase tracking-wider text-[#1a1a1a]">Log Manual Sale</h3>
                                         <form onSubmit={handleRecordOrder} className="space-y-4">
                                             <div>
@@ -1059,7 +1148,7 @@ export function BusinessDashboard() {
                                     </div>
 
                                     {/* Workspace activity lists */}
-                                    <div className="col-span-2 bg-white border border-[#f0f0ee] rounded-[24px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.015)] space-y-5">
+                                    <div className="lg:col-span-2 bg-white border border-[#f0f0ee] rounded-[24px] p-4 md:p-6 shadow-[0_8px_30px_rgba(0,0,0,0.015)] space-y-5">
                                         <div className="flex justify-between items-center">
                                             <h3 className="text-xs font-bold uppercase tracking-wider text-[#1a1a1a]">Recent Workspace Orders</h3>
                                             <button
@@ -1086,7 +1175,7 @@ export function BusinessDashboard() {
                                                         <tr key={o.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                                                             <td className="py-3.5 font-bold">#{o.id}</td>
                                                             <td>Customer #{o.customer_id}</td>
-                                                            <td className="font-bold text-[#1a1a1a]">${o.total_amount}</td>
+                                                            <td className="font-bold text-[#1a1a1a]">${Number(o.total_amount).toFixed(2)}</td>
                                                             <td className="capitalize text-[#7d7d7d]">{o.payment_method}</td>
                                                             <td>
                                                                 <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
@@ -1186,7 +1275,7 @@ export function BusinessDashboard() {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                                     <div className="space-y-4">
                                         <div>
                                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Business Title</label>
@@ -1200,10 +1289,11 @@ export function BusinessDashboard() {
                                         <div>
                                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Workspace Bio / Description</label>
                                             <textarea
-                                                disabled
+                                                value={storefrontData.description ?? ''}
+                                                onChange={e => setStorefrontData(prev => ({ ...prev, description: e.target.value }))}
                                                 rows={3}
-                                                className="w-full bg-slate-50 border border-slate-200 text-xs py-2 px-3 rounded-xl text-slate-400 mt-1.5 cursor-not-allowed font-medium"
-                                                placeholder={activeBusiness?.description || "Workspace biography..."}
+                                                placeholder="Describe your business..."
+                                                className="w-full bg-slate-50 border border-slate-200 text-xs py-2 px-3 rounded-xl text-slate-800 mt-1.5 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all font-medium resize-none"
                                             />
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
@@ -1211,20 +1301,32 @@ export function BusinessDashboard() {
                                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Contact Phone</label>
                                                 <input
                                                     type="text"
-                                                    value={activeBusiness?.phone || ''}
-                                                    disabled
-                                                    className="w-full bg-slate-50 border border-slate-200 text-xs py-2 px-3 rounded-xl text-slate-400 mt-1.5 cursor-not-allowed font-medium"
+                                                    value={storefrontData.phone ?? ''}
+                                                    onChange={e => setStorefrontData(prev => ({ ...prev, phone: e.target.value }))}
+                                                    placeholder="+252..."
+                                                    className="w-full bg-slate-50 border border-slate-200 text-xs py-2 px-3 rounded-xl text-slate-800 mt-1.5 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all font-medium"
                                                 />
                                             </div>
                                             <div>
                                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Contact Email</label>
                                                 <input
-                                                    type="text"
-                                                    value={activeBusiness?.email || ''}
-                                                    disabled
-                                                    className="w-full bg-slate-50 border border-slate-200 text-xs py-2 px-3 rounded-xl text-slate-400 mt-1.5 cursor-not-allowed font-medium"
+                                                    type="email"
+                                                    value={storefrontData.email ?? ''}
+                                                    onChange={e => setStorefrontData(prev => ({ ...prev, email: e.target.value }))}
+                                                    placeholder="shop@example.com"
+                                                    className="w-full bg-slate-50 border border-slate-200 text-xs py-2 px-3 rounded-xl text-slate-800 mt-1.5 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all font-medium"
                                                 />
                                             </div>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Physical Address</label>
+                                            <input
+                                                type="text"
+                                                value={storefrontData.address ?? ''}
+                                                onChange={e => setStorefrontData(prev => ({ ...prev, address: e.target.value }))}
+                                                placeholder="Street, City, Country"
+                                                className="w-full bg-slate-50 border border-slate-200 text-xs py-2 px-3 rounded-xl text-slate-800 mt-1.5 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all font-medium"
+                                            />
                                         </div>
 
                                         {/* Neary Directory Opt-in toggle */}
@@ -1274,7 +1376,7 @@ export function BusinessDashboard() {
                                         <button
                                             type="button"
                                             onClick={handleSaveStorefront}
-                                            disabled={savingStorefront || (storefrontData.name === activeBusiness?.name && storefrontData.show_in_nearby === activeBusiness?.show_in_nearby)}
+                                            disabled={savingStorefront}
                                             className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 disabled:bg-slate-100 disabled:text-slate-400 disabled:border-none border border-orange-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-200 shadow-md shadow-orange-100/80 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
                                         >
                                             {savingStorefront ? 'Saving settings...' : 'Save Storefront Settings'}
@@ -1369,7 +1471,7 @@ export function BusinessDashboard() {
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                                            {myListings.map(listing => {
+                                            {myListings.filter(l => !searchQuery || l.title_en?.toLowerCase().includes(searchQuery.toLowerCase()) || l.title_so?.toLowerCase().includes(searchQuery.toLowerCase())).map(listing => {
                                                 const thumb = listing.images?.[0];
                                                 const statusColor = listing.status === 'active'
                                                     ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
@@ -1379,7 +1481,7 @@ export function BusinessDashboard() {
                                                 return (
                                                     <Link
                                                         key={listing.id}
-                                                        to={`/listings/${listing.id}`}
+                                                        to={`/listing/${listing.id}`}
                                                         className="group relative bg-white border border-[#eef0f2] rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-orange-200 transition-all duration-200 flex flex-col"
                                                     >
                                                         {/* Thumbnail */}
@@ -1431,9 +1533,9 @@ export function BusinessDashboard() {
                                 </div>
 
                                 {/* ── BUSINESS PRODUCT CATALOG ── */}
-                                <div className="grid grid-cols-3 gap-6">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
                                 {/* Create catalog item card */}
-                                <div className="col-span-1 bg-white border border-[#eef0f2] shadow-[0_8px_30px_rgba(0,0,0,0.015)] rounded-3xl p-6 space-y-5">
+                                <div className="lg:col-span-1 bg-white border border-[#eef0f2] shadow-[0_8px_30px_rgba(0,0,0,0.015)] rounded-3xl p-4 md:p-6 space-y-5">
                                     <div className="pb-2 border-b border-slate-100">
                                         <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">Add Product Entry</h3>
                                         <p className="text-[10px] text-slate-400 font-medium mt-0.5">Track inventory stock levels for offline/in-store products.</p>
@@ -1530,7 +1632,7 @@ export function BusinessDashboard() {
                                 </div>
 
                                 {/* Catalog grid */}
-                                <div className="col-span-2 bg-white border border-[#eef0f2] shadow-[0_8px_30px_rgba(0,0,0,0.015)] rounded-3xl p-6 space-y-5">
+                                <div className="lg:col-span-2 bg-white border border-[#eef0f2] shadow-[0_8px_30px_rgba(0,0,0,0.015)] rounded-3xl p-4 md:p-6 space-y-5">
                                     <div className="pb-2 border-b border-slate-100">
                                         <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">Stock Catalog</h3>
                                         <p className="text-[10px] text-slate-400 font-medium mt-0.5">Manage in-store or offline product stock levels.</p>
@@ -1548,7 +1650,7 @@ export function BusinessDashboard() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {products.map(p => {
+                                                {products.filter(p => !searchQuery || p.name_en.toLowerCase().includes(searchQuery.toLowerCase()) || (p.sku || '').toLowerCase().includes(searchQuery.toLowerCase())).map(p => {
                                                     const isLow = p.stock_level <= p.low_stock_threshold;
                                                     return (
                                                         <tr key={p.id} className="border-b border-slate-50 hover:bg-orange-50/10 text-slate-700 font-semibold transition-colors">
@@ -1621,7 +1723,7 @@ export function BusinessDashboard() {
                                                             ))}
                                                         </div>
                                                     </td>
-                                                    <td className="font-extrabold text-slate-950">${o.total_amount}</td>
+                                                    <td className="font-extrabold text-slate-950">${Number(o.total_amount).toFixed(2)}</td>
                                                     <td className="capitalize text-slate-500">{o.payment_method}</td>
                                                     <td>
                                                         <span className={cn(
@@ -1672,11 +1774,172 @@ export function BusinessDashboard() {
                             </div>
                         )}
 
+                        {/* --- TAB: CRM / CUSTOMERS --- */}
+                        {activeTab === 'crm' && (
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 animate-fade-in-up">
+                                {/* Customer list panel */}
+                                <div className="bg-white border border-[#eef0f2] shadow-[0_8px_30px_rgba(0,0,0,0.015)] rounded-3xl flex flex-col overflow-hidden" style={{ maxHeight: 'calc(100vh - 12rem)' }}>
+                                    <div className="p-4 border-b border-slate-100 shrink-0">
+                                        <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">Customer Profiles</h3>
+                                        <p className="text-[10px] text-slate-400 mt-0.5">{customers.length} registered</p>
+                                    </div>
+                                    <div className="flex-1 overflow-y-auto divide-y divide-slate-50">
+                                        {customers
+                                            .filter(c => !searchQuery ||
+                                                String(c.user_id).includes(searchQuery) ||
+                                                c.segmentation.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                                (c.notes || '').toLowerCase().includes(searchQuery.toLowerCase()))
+                                            .map(c => {
+                                                const segColors: Record<string, string> = {
+                                                    new: 'bg-sky-50 text-sky-700 border-sky-100',
+                                                    regular: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                                                    VIP: 'bg-amber-50 text-amber-700 border-amber-100',
+                                                    inactive: 'bg-slate-100 text-slate-500 border-slate-200',
+                                                };
+                                                const isSel = activeCrmCustomer?.id === c.id;
+                                                return (
+                                                    <button
+                                                        key={c.id}
+                                                        onClick={() => setActiveCrmCustomer(c)}
+                                                        className={`w-full text-left p-4 transition-all duration-150 border-l-2 ${isSel ? 'bg-orange-50/80 border-l-orange-400' : 'hover:bg-slate-50 border-l-transparent'}`}
+                                                    >
+                                                        <div className="flex items-center justify-between gap-2">
+                                                            <span className="text-xs font-black text-slate-900 truncate">Customer #{c.user_id}</span>
+                                                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md border shrink-0 ${segColors[c.segmentation] || segColors.new}`}>
+                                                                {c.segmentation}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex gap-2 mt-1.5 text-[10px] text-slate-500 font-semibold">
+                                                            <span>{c.total_orders} orders</span>
+                                                            <span>·</span>
+                                                            <span>${c.total_spent.toFixed(2)} spent</span>
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        {customers.length === 0 && (
+                                            <div className="py-16 text-center text-slate-400 text-[11px] font-bold italic px-4">
+                                                No customers yet. They appear here after their first order.
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Customer detail panel */}
+                                <div className="lg:col-span-2 space-y-4">
+                                    {activeCrmCustomer ? (
+                                        <>
+                                            {/* Header */}
+                                            <div className="bg-white border border-[#eef0f2] rounded-2xl p-4 md:p-5 flex items-center justify-between shadow-sm">
+                                                <div>
+                                                    <h3 className="text-sm font-black text-slate-900">Customer #{activeCrmCustomer.user_id}</h3>
+                                                    <p className="text-[10px] text-slate-400 mt-0.5">
+                                                        Joined {new Date(activeCrmCustomer.created_at).toLocaleDateString()}
+                                                        {activeCrmCustomer.last_purchase_at && ` · Last purchase ${new Date(activeCrmCustomer.last_purchase_at).toLocaleDateString()}`}
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={() => { setActiveCustomerId(activeCrmCustomer.user_id); setActiveTab('messages'); }}
+                                                    className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-all shadow-md shadow-orange-100 active:scale-95 cursor-pointer"
+                                                >
+                                                    <MessageSquare className="h-3.5 w-3.5" /> Open Chat
+                                                </button>
+                                            </div>
+
+                                            {/* Stats */}
+                                            <div className="grid grid-cols-3 gap-3">
+                                                {[
+                                                    { label: 'Total Orders', value: activeCrmCustomer.total_orders, color: 'text-orange-600' },
+                                                    { label: 'Total Spent', value: `$${activeCrmCustomer.total_spent.toFixed(2)}`, color: 'text-emerald-600' },
+                                                    { label: 'Loyalty Score', value: activeCrmCustomer.loyalty_score, color: 'text-sky-600' },
+                                                ].map(({ label, value, color }) => (
+                                                    <div key={label} className="bg-white border border-[#eef0f2] rounded-2xl p-4 shadow-sm text-center">
+                                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
+                                                        <p className={`text-xl font-black mt-1 ${color}`}>{value}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {/* Notes */}
+                                            <div className="bg-white border border-[#eef0f2] rounded-2xl p-4 shadow-sm space-y-3">
+                                                <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">Internal Notes</h4>
+                                                <textarea
+                                                    value={crmNotes}
+                                                    onChange={e => setCrmNotes(e.target.value)}
+                                                    rows={3}
+                                                    placeholder="Add private notes about this customer..."
+                                                    className="w-full bg-slate-50 border border-slate-200 text-xs py-2.5 px-3.5 rounded-xl text-slate-800 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 font-medium resize-none transition-all"
+                                                />
+                                                <button
+                                                    onClick={handleSaveCrmNotes}
+                                                    disabled={savingCrmNotes}
+                                                    className="flex items-center gap-1.5 bg-slate-900 hover:bg-black text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                                                >
+                                                    {savingCrmNotes && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                                                    Save Notes
+                                                </button>
+                                            </div>
+
+                                            {/* Order history */}
+                                            <div className="bg-white border border-[#eef0f2] rounded-2xl p-4 shadow-sm space-y-3">
+                                                <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">Order History</h4>
+                                                {orders.filter(o => o.customer_id === activeCrmCustomer.user_id).length === 0 ? (
+                                                    <p className="text-[11px] text-slate-400 italic py-4 text-center">No orders from this customer yet.</p>
+                                                ) : (
+                                                    <div className="overflow-x-auto">
+                                                        <table className="w-full text-left text-xs">
+                                                            <thead>
+                                                                <tr className="border-b border-slate-100 text-slate-400 font-black uppercase tracking-wider text-[10px]">
+                                                                    <th className="pb-2">Order</th>
+                                                                    <th>Status</th>
+                                                                    <th>Amount</th>
+                                                                    <th>Payment</th>
+                                                                    <th>Date</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {orders
+                                                                    .filter(o => o.customer_id === activeCrmCustomer.user_id)
+                                                                    .map(o => (
+                                                                        <tr key={o.id} className="border-b border-slate-50 hover:bg-orange-50/10 text-slate-700 transition-colors">
+                                                                            <td className="py-2.5 font-bold text-slate-900">#{o.id}</td>
+                                                                            <td>
+                                                                                <span className={cn(
+                                                                                    "px-2 py-0.5 rounded-md text-[9px] font-black uppercase border",
+                                                                                    o.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                                                                                    o.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                                                                                    o.status === 'processing' ? 'bg-sky-50 text-sky-700 border-sky-100' :
+                                                                                    'bg-slate-100 text-slate-500 border-slate-200'
+                                                                                )}>
+                                                                                    {o.status}
+                                                                                </span>
+                                                                            </td>
+                                                                            <td className="font-extrabold text-slate-900">${o.total_amount.toFixed(2)}</td>
+                                                                            <td className="text-slate-500 font-medium capitalize">{o.payment_method}</td>
+                                                                            <td className="text-slate-400 text-[10px]">{new Date(o.created_at).toLocaleDateString()}</td>
+                                                                        </tr>
+                                                                    ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="bg-white border border-[#eef0f2] rounded-3xl h-64 flex flex-col items-center justify-center text-slate-400 shadow-sm gap-3">
+                                            <Users className="h-8 w-8 text-slate-200" />
+                                            <p className="text-sm font-bold">Select a customer to view their profile</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                         {/* --- TAB: TEAM ROSTER --- */}
                         {activeTab === 'team' && (
-                            <div className="grid grid-cols-3 gap-6 animate-fade-in-up">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 animate-fade-in-up">
                                 {/* Invite employee card */}
-                                <div className="col-span-1 bg-white border border-[#eef0f2] shadow-[0_8px_30px_rgba(0,0,0,0.015)] rounded-3xl p-6 space-y-5 text-slate-800">
+                                <div className="lg:col-span-1 bg-white border border-[#eef0f2] shadow-[0_8px_30px_rgba(0,0,0,0.015)] rounded-3xl p-4 md:p-6 space-y-5 text-slate-800">
                                     <div className="pb-2 border-b border-slate-100">
                                         <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">Invite Workspace Worker</h3>
                                     </div>
@@ -1724,7 +1987,7 @@ export function BusinessDashboard() {
                                 </div>
 
                                 {/* Active roster list */}
-                                <div className="col-span-2 bg-white border border-[#eef0f2] shadow-[0_8px_30px_rgba(0,0,0,0.015)] rounded-3xl p-6 space-y-5 text-slate-800">
+                                <div className="lg:col-span-2 bg-white border border-[#eef0f2] shadow-[0_8px_30px_rgba(0,0,0,0.015)] rounded-3xl p-4 md:p-6 space-y-5 text-slate-800">
                                     <div className="pb-2 border-b border-slate-100">
                                         <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">Active Roster & Performance</h3>
                                     </div>
@@ -1817,7 +2080,7 @@ export function BusinessDashboard() {
                                 </div>
 
                                 {/* Kanban Layout Columns */}
-                                <div className="grid grid-cols-4 gap-4">
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                                     {(['todo', 'in_progress', 'review', 'done'] as const).map(col => {
                                         const list = tasks.filter(t => t.status === col);
                                         return (
@@ -2019,105 +2282,249 @@ export function BusinessDashboard() {
 
                         {/* --- TAB: ANALYTICS --- */}
                         {activeTab === 'analytics' && (
-                            <div className="space-y-6">
-                                <h3 className="text-sm font-black uppercase tracking-wider text-slate-200">SaaS Metrics Workspace</h3>
+                            <div className="space-y-5 animate-fade-in-up">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">Analytics & Metrics</h3>
+                                    <button
+                                        onClick={() => businessService.getAnalytics(activeBusiness!.id).then(setAnalytics).catch(() => null)}
+                                        className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-800 px-3 py-1.5 bg-white border border-slate-200 rounded-xl transition-all"
+                                    >
+                                        <RefreshCw className="h-3.5 w-3.5" /> Refresh
+                                    </button>
+                                </div>
 
-                                <div className="grid grid-cols-3 gap-6">
-                                    <div className="col-span-2 bg-slate-950/30 border border-slate-800/80 rounded-2xl p-5 space-y-4">
-                                        <h4 className="text-xs font-black uppercase text-slate-300">Sales Trend Last 7 Days</h4>
-                                        
-                                        {/* Pure CSS/Grid visual Bar Chart representation */}
-                                        <div className="h-64 flex items-end gap-6 border-b border-slate-800 pb-2.5 px-5">
+                                {/* KPI summary row */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    {[
+                                        { label: 'Total Revenue', value: `$${Number(analytics?.revenue || 0).toFixed(2)}`, color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-100' },
+                                        { label: 'Completed Orders', value: analytics?.completed_orders ?? 0, color: 'text-orange-600', bg: 'bg-orange-50 border-orange-100' },
+                                        { label: 'Avg. Basket', value: `$${analytics?.completed_orders > 0 ? (analytics.revenue / analytics.completed_orders).toFixed(2) : '0.00'}`, color: 'text-sky-600', bg: 'bg-sky-50 border-sky-100' },
+                                        { label: 'Customers', value: analytics?.customer_count ?? 0, color: 'text-violet-600', bg: 'bg-violet-50 border-violet-100' },
+                                    ].map(({ label, value, color, bg }) => (
+                                        <div key={label} className={`${bg} border rounded-2xl p-4 text-center`}>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{label}</p>
+                                            <p className={`text-xl font-black mt-1 ${color}`}>{value}</p>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Sales chart + stock alert */}
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
+                                    <div className="lg:col-span-2 bg-white border border-[#eef0f2] rounded-2xl p-5 space-y-4 shadow-sm">
+                                        <h4 className="text-xs font-black uppercase text-slate-700">Revenue Trend — Last 7 Days</h4>
+                                        <div className="h-56 flex items-end gap-3 border-b border-slate-100 pb-2 px-2">
                                             {analytics?.sales_trends_7d?.map((t: any, idx: number) => {
-                                                const maxRev = Math.max(...(analytics.sales_trends_7d.map((x: any) => x.revenue) || [100]));
-                                                const htPct = maxRev > 0 ? (t.revenue / maxRev) * 80 : 0;
+                                                const maxRev = Math.max(...analytics.sales_trends_7d.map((x: any) => x.revenue), 1);
+                                                const htPct = (t.revenue / maxRev) * 85;
                                                 return (
-                                                    <div key={idx} className="flex-1 flex flex-col items-center gap-2 group relative">
-                                                        <div className="text-[10px] font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity absolute -top-6 bg-slate-950 border border-slate-800 px-2 py-0.5 rounded shadow">
-                                                            ${t.revenue}
+                                                    <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 group relative">
+                                                        <div className="text-[10px] font-black text-slate-700 opacity-0 group-hover:opacity-100 transition-opacity absolute -top-7 bg-white border border-slate-200 px-2 py-0.5 rounded-lg shadow-sm whitespace-nowrap">
+                                                            ${Number(t.revenue).toFixed(2)}
                                                         </div>
                                                         <div
-                                                            className="w-full bg-gradient-to-t from-sky-600 to-indigo-500 hover:from-sky-500 hover:to-indigo-400 rounded-t-lg transition-all"
-                                                            style={{ height: `${Math.max(10, htPct)}%` }}
+                                                            className="w-full bg-gradient-to-t from-orange-500 to-orange-300 hover:from-orange-600 hover:to-orange-400 rounded-t-xl transition-all"
+                                                            style={{ height: `${Math.max(8, htPct)}%` }}
                                                         />
-                                                        <span className="text-[9px] font-black uppercase tracking-wider text-slate-500">
+                                                        <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">
                                                             {t.date.split('-').slice(1).join('/')}
                                                         </span>
                                                     </div>
                                                 );
                                             })}
                                             {(!analytics?.sales_trends_7d || analytics.sales_trends_7d.length === 0) && (
-                                                <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-650">No completed orders logged recently</div>
+                                                <div className="w-full h-full flex items-center justify-center text-[11px] text-slate-400 font-bold italic">No completed orders in the last 7 days</div>
                                             )}
                                         </div>
                                     </div>
 
-                                    {/* Metrics summary card */}
-                                    <div className="col-span-1 bg-slate-950/30 border border-slate-800/80 rounded-2xl p-5 space-y-4">
-                                        <h4 className="text-xs font-black uppercase text-slate-300">Fast Redis Analytics</h4>
-                                        <p className="text-[10px] text-slate-400 leading-relaxed">Workspace sales, CRM segments, low stock counts, and performance charts are dynamically compiled from Confluent Kafka events and cached inside the Redis cluster with a 5-minute TTL.</p>
-                                        
-                                        <div className="space-y-2 border-t border-slate-850 pt-4">
-                                            <div className="flex justify-between text-xs font-semibold text-slate-300">
-                                                <span>Total Workspace Revenue</span>
-                                                <span className="text-white font-bold">${analytics?.revenue || '0.00'}</span>
-                                            </div>
-                                            <div className="flex justify-between text-xs font-semibold text-slate-300">
-                                                <span>Average Basket Amount</span>
-                                                <span className="text-white font-bold">
-                                                    ${analytics?.completed_orders > 0 ? (analytics.revenue / analytics.completed_orders).toFixed(2) : '0.00'}
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between text-xs font-semibold text-slate-300">
-                                                <span>Total Customer Retention</span>
-                                                <span className="text-white font-bold">{analytics?.customer_count} unique profiles</span>
-                                            </div>
+                                    <div className="space-y-3">
+                                        {/* Low stock alert */}
+                                        <div className={`border rounded-2xl p-4 space-y-2 ${(analytics?.low_stock_count ?? 0) > 0 ? 'bg-amber-50 border-amber-100' : 'bg-white border-[#eef0f2]'} shadow-sm`}>
+                                            <h4 className="text-xs font-black uppercase text-slate-700">Stock Health</h4>
+                                            {(analytics?.low_stock_count ?? 0) > 0 ? (
+                                                <>
+                                                    <p className="text-2xl font-black text-amber-600">{analytics.low_stock_count} low</p>
+                                                    <p className="text-[10px] text-amber-700 font-semibold">products below min threshold</p>
+                                                    <button onClick={() => setActiveTab('inventory')} className="text-[10px] font-black uppercase tracking-widest text-amber-700 hover:text-amber-900 flex items-center gap-1">
+                                                        Restock now <ArrowRight className="h-3 w-3" />
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <p className="text-2xl font-black text-emerald-600">{analytics?.product_count ?? 0}</p>
+                                                    <p className="text-[10px] text-emerald-700 font-semibold">products, all in stock</p>
+                                                </>
+                                            )}
+                                        </div>
+
+                                        {/* CRM segments */}
+                                        <div className="bg-white border border-[#eef0f2] rounded-2xl p-4 space-y-3 shadow-sm">
+                                            <h4 className="text-xs font-black uppercase text-slate-700">Customer Segments</h4>
+                                            {(['VIP', 'regular', 'new', 'inactive'] as const).map(seg => {
+                                                const count = customers.filter(c => c.segmentation === seg).length;
+                                                const segColor: Record<string, string> = { VIP: 'bg-amber-400', regular: 'bg-emerald-400', new: 'bg-sky-400', inactive: 'bg-slate-300' };
+                                                const pct = customers.length > 0 ? (count / customers.length) * 100 : 0;
+                                                return (
+                                                    <div key={seg} className="space-y-1">
+                                                        <div className="flex justify-between text-[10px] font-black text-slate-600 uppercase">
+                                                            <span>{seg}</span><span>{count}</span>
+                                                        </div>
+                                                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                                            <div className={`h-full rounded-full transition-all ${segColor[seg]}`} style={{ width: `${pct}%` }} />
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         )}
 
-                        {/* --- TAB: AI WORKSPACE --- */}
+                        {/* --- TAB: AI COPILOT --- */}
                         {activeTab === 'ai' && (
-                            <div className="bg-white border border-[#eef0f2] rounded-3xl p-6 space-y-6 shadow-sm">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-400 to-sky-600 flex items-center justify-center text-white shrink-0 shadow">
-                                        <Bot className="h-6 w-6" />
+                            <div className="space-y-5 animate-fade-in-up">
+                                {/* Header */}
+                                <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-5 md:p-6 flex items-center gap-4 shadow-lg">
+                                    <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+                                        <Bot className="h-7 w-7 text-white" />
                                     </div>
                                     <div>
-                                        <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">Groq AI Workspace Assistants</h3>
-                                        <p className="text-[11px] text-slate-500 font-bold">Generate copywriting, analyze local prices, translate profiles, and write marketing pitches.</p>
+                                        <h3 className="text-sm font-black uppercase tracking-wider text-white">Groq AI Copilot</h3>
+                                        <p className="text-[11px] text-slate-400 font-medium mt-0.5">Powered by Groq LLM — generate product descriptions, get pricing advice, and draft customer replies.</p>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-6 pt-4 border-t border-slate-100">
-                                    <div className="space-y-4 bg-white border border-sky-100/70 p-5 rounded-2xl shadow-sm hover:border-sky-300 transition-all duration-200">
-                                        <h4 className="text-xs font-black uppercase text-sky-600 tracking-wider">Interactive Copywriting Generator</h4>
-                                        <p className="text-[10px] text-slate-500 font-semibold leading-relaxed">Submit parameters to auto-generate highly engaging Somali or English description paragraphs for new catalog items.</p>
-                                        <button
-                                            onClick={() => {
-                                                setActiveTab('inventory');
-                                                toast('AI generators can be tested inside the Inventory page forms!');
-                                            }}
-                                            className="px-4 py-2 bg-slate-50 border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-650 rounded-xl hover:border-slate-400 transition-all flex items-center gap-1.5 cursor-pointer"
-                                        >
-                                            Go to Product Catalog <ArrowRight className="h-4 w-4" />
-                                        </button>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+                                    {/* Tool 1: Description Generator */}
+                                    <div className="bg-white border border-[#eef0f2] rounded-3xl p-5 space-y-4 shadow-sm">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-8 h-8 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center shrink-0">
+                                                <Sparkles className="h-4 w-4 text-sky-600" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider">Product Description Generator</h4>
+                                                <p className="text-[10px] text-slate-400 font-medium">AI writes compelling copy for your products</p>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <div>
+                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Product Name *</label>
+                                                <input
+                                                    type="text"
+                                                    value={copilotDescName}
+                                                    onChange={e => setCopilotDescName(e.target.value)}
+                                                    placeholder="e.g. Leather Office Chair"
+                                                    className="w-full bg-slate-50 border border-slate-200 text-xs py-2.5 px-3.5 rounded-xl text-slate-800 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500 mt-1.5 font-bold transition-all"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Additional Context (optional)</label>
+                                                <input
+                                                    type="text"
+                                                    value={copilotDescContext}
+                                                    onChange={e => setCopilotDescContext(e.target.value)}
+                                                    placeholder="e.g. ergonomic, adjustable height, black"
+                                                    className="w-full bg-slate-50 border border-slate-200 text-xs py-2.5 px-3.5 rounded-xl text-slate-800 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500 mt-1.5 font-medium transition-all"
+                                                />
+                                            </div>
+                                            <button
+                                                onClick={handleCopilotGenerateDesc}
+                                                disabled={copilotDescLoading || !activeBusiness}
+                                                className="w-full py-2.5 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-sky-100"
+                                            >
+                                                {copilotDescLoading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Generating...</> : <><Sparkles className="h-3.5 w-3.5" /> Generate Description</>}
+                                            </button>
+                                            {copilotDescOutput && (
+                                                <div className="bg-sky-50 border border-sky-100 rounded-2xl p-4 space-y-2">
+                                                    <p className="text-[10px] font-black uppercase text-sky-600 tracking-widest">Generated Copy</p>
+                                                    <p className="text-xs text-slate-700 font-medium leading-relaxed">{copilotDescOutput}</p>
+                                                    <button
+                                                        onClick={() => { navigator.clipboard?.writeText(copilotDescOutput); toast.success('Copied to clipboard!'); }}
+                                                        className="text-[10px] font-black uppercase text-sky-600 hover:text-sky-800 flex items-center gap-1 transition-colors"
+                                                    >
+                                                        <Copy className="h-3 w-3" /> Copy Text
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
-                                    <div className="space-y-4 bg-white border border-violet-100/70 p-5 rounded-2xl shadow-sm hover:border-violet-300 transition-all duration-200">
-                                        <h4 className="text-xs font-black uppercase text-violet-600 tracking-wider">AI Customer Conversation Summarizer</h4>
-                                        <p className="text-[10px] text-slate-500 font-semibold leading-relaxed">Summarize long messaging histories down to single paragraphs highlighting status and customer requirements.</p>
-                                        <button
-                                            onClick={() => {
-                                                setActiveTab('messages');
-                                                toast('Chat summarization is built directly into Customer Thread Chats!');
-                                            }}
-                                            className="px-4 py-2 bg-slate-50 border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-650 rounded-xl hover:border-slate-400 transition-all flex items-center gap-1.5 cursor-pointer"
-                                        >
-                                            Go to Unified Chat Hub <ArrowRight className="h-4 w-4" />
-                                        </button>
+                                    {/* Tool 2: Price Advisor */}
+                                    <div className="bg-white border border-[#eef0f2] rounded-3xl p-5 space-y-4 shadow-sm">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                                                <DollarSign className="h-4 w-4 text-emerald-600" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider">AI Pricing Advisor</h4>
+                                                <p className="text-[10px] text-slate-400 font-medium">Get market-aware price suggestions</p>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <div>
+                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Product Name *</label>
+                                                <input
+                                                    type="text"
+                                                    value={copilotPriceName}
+                                                    onChange={e => setCopilotPriceName(e.target.value)}
+                                                    placeholder="e.g. Samsung Galaxy A54"
+                                                    className="w-full bg-slate-50 border border-slate-200 text-xs py-2.5 px-3.5 rounded-xl text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 mt-1.5 font-bold transition-all"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Category</label>
+                                                <select
+                                                    value={copilotPriceCategory}
+                                                    onChange={e => setCopilotPriceCategory(e.target.value)}
+                                                    className="w-full bg-slate-50 border border-slate-200 text-xs py-2.5 px-3 rounded-xl text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 mt-1.5 font-bold transition-all cursor-pointer"
+                                                >
+                                                    <option value="shop">Shop / Retail</option>
+                                                    <option value="electronics">Electronics</option>
+                                                    <option value="fashion">Fashion & Clothing</option>
+                                                    <option value="food">Food & Groceries</option>
+                                                    <option value="furniture">Furniture & Home</option>
+                                                    <option value="service">Service</option>
+                                                    <option value="vehicles">Vehicles</option>
+                                                    <option value="other">Other</option>
+                                                </select>
+                                            </div>
+                                            <button
+                                                onClick={handleCopilotSuggestPrice}
+                                                disabled={copilotPriceLoading || !activeBusiness}
+                                                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-emerald-100"
+                                            >
+                                                {copilotPriceLoading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Advising...</> : <><DollarSign className="h-3.5 w-3.5" /> Suggest Price</>}
+                                            </button>
+                                            {copilotPriceOutput !== null && (
+                                                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 text-center">
+                                                    <p className="text-[10px] font-black uppercase text-emerald-600 tracking-widest">AI Suggested Price</p>
+                                                    <p className="text-3xl font-black text-emerald-700 mt-1">${copilotPriceOutput.toFixed(2)}</p>
+                                                    <p className="text-[10px] text-emerald-600 font-medium mt-1">Estimated market rate for this category</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Quick-access shortcuts */}
+                                <div className="bg-white border border-[#eef0f2] rounded-2xl p-4 shadow-sm">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">More AI Features In Other Tabs</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {[
+                                            { label: 'AI Reply Suggestions', tab: 'messages' as TabType, desc: 'in Chat' },
+                                            { label: 'AI Chat Summarizer', tab: 'messages' as TabType, desc: 'in Chat' },
+                                            { label: 'AI Product Copy', tab: 'inventory' as TabType, desc: 'in Inventory' },
+                                            { label: 'AI Price for Products', tab: 'inventory' as TabType, desc: 'in Inventory' },
+                                        ].map(({ label, tab, desc }) => (
+                                            <button
+                                                key={label}
+                                                onClick={() => setActiveTab(tab)}
+                                                className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-orange-600 bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-200 px-3 py-1.5 rounded-xl transition-all"
+                                            >
+                                                {label} <span className="text-slate-400 normal-case font-medium">({desc})</span>
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
@@ -2146,7 +2553,7 @@ export function BusinessDashboard() {
                         </div>
 
                         <form onSubmit={handleRegisterBusiness} className="space-y-3 text-xs">
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Business Title</label>
                                     <input
