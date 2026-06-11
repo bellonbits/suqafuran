@@ -5,7 +5,6 @@ import { Link, useParams } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, Plus, X, Shield, ShieldAlert, Clock, CheckCircle2, Loader2, Zap, Sparkles, Pencil } from 'lucide-react';
 
 import { listingService } from '../services/listingService';
-import imageCompression from 'browser-image-compression';
 import { getImageUrl } from '../utils/imageUtils';
 import { getCategoryIcon } from '../utils/categoryIcons';
 import { LocationPickerModal } from '../components/LocationPickerModal';
