@@ -91,19 +91,20 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     </Link>
                 </div>
 
-                <div className="p-5 border-b border-gray-50 flex justify-center md:hidden">
+                {/* Mobile sidebar header: logo + close button side by side */}
+                <div className="md:hidden flex items-center justify-between px-5 py-3 border-b border-gray-50">
                     <Logo size="md" className="brightness-0" />
+                    <button
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        onTouchEnd={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); }}
+                        className="w-9 h-9 rounded-full bg-gray-100 active:bg-gray-300 flex items-center justify-center text-gray-600 touch-manipulation"
+                        aria-label="Close menu"
+                    >
+                        <X className="h-5 w-5 stroke-[2.5]" />
+                    </button>
                 </div>
 
                 <div className="p-5 flex flex-col items-center gap-2 border-b border-gray-50 bg-white">
-                    {/* Close button — mobile only, top-right of sidebar */}
-                    <button
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="md:hidden absolute top-3 right-3 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 flex items-center justify-center text-gray-600 transition-colors z-10"
-                        aria-label="Close menu"
-                    >
-                        <X className="h-4 w-4 stroke-[2.5]" />
-                    </button>
 
                     <div className="w-20 h-20 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 font-bold border-2 border-primary-100 overflow-hidden shadow-sm">
                         {getAvatarUrl(user?.avatar_url) ? (
@@ -123,6 +124,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     {/* Settings — below profile info */}
                     <Link
                         to="/settings"
+                        onClick={() => setIsMobileMenuOpen(false)}
                         className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-primary-600 bg-gray-50 hover:bg-primary-50 rounded-full px-3 py-1.5 transition-colors mt-1"
                     >
                         <Settings className="h-3.5 w-3.5" />
@@ -131,7 +133,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 </div>
 
                 <div className="px-4 py-2">
-                    <Link to="/notifications" className="bg-orange-500 rounded-lg p-3 text-white flex items-center justify-between shadow-sm hover:bg-orange-600 transition-colors w-full">
+                    <Link to="/notifications" onClick={() => setIsMobileMenuOpen(false)} className="bg-orange-500 rounded-lg p-3 text-white flex items-center justify-between shadow-sm hover:bg-orange-600 transition-colors w-full">
                         <div className="flex items-center gap-3">
                             <Bell className="h-5 w-5" />
                             <span className="text-sm font-bold">Alerts</span>
@@ -143,7 +145,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 </div>
 
                 <nav className="flex-1 p-4 pt-1 space-y-1 overflow-y-auto custom-scrollbar min-h-0">
-                    <Link to="/" className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all active:scale-95 mb-1">
+                    <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all active:scale-95 mb-1">
                         <House className="h-5 w-5 text-gray-400" />
                         {t('nav.backToHome', 'Back to Home')}
                     </Link>
@@ -153,6 +155,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             <Link
                                 key={item.path}
                                 to={item.path}
+                                onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all",
                                     isActive
@@ -171,6 +174,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             <Link
                                 key={item.label}
                                 to={item.path}
+                                onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-gray-700 hover:bg-gray-50"
                                 )}
@@ -186,6 +190,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('dashboard.agentTools', 'Agent Tools')}</p>
                             <Link
                                 to="/agent-dashboard"
+                                onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
                                     location.pathname === '/agent-dashboard' && "bg-primary-50 shadow-sm"
@@ -202,6 +207,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('dashboard.adminTools', 'Admin Tools')}</p>
                             <Link
                                 to="/admin"
+                                onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-secondary-600 hover:bg-secondary-50",
                                     location.pathname === '/admin' && "bg-secondary-50 shadow-sm"
@@ -212,6 +218,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             </Link>
                             <Link
                                 to="/admin/users"
+                                onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-secondary-600 hover:bg-secondary-50",
                                     location.pathname === '/admin/users' && "bg-secondary-50 shadow-sm"
@@ -222,6 +229,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             </Link>
                             <Link
                                 to="/admin/users"
+                                onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-orange-600 hover:bg-orange-50",
                                     location.pathname === '/admin/users' && "bg-orange-50 shadow-sm"
@@ -232,6 +240,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             </Link>
                             <Link
                                 to="/admin/listings"
+                                onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
                                     location.pathname === '/admin/listings' && "bg-primary-50 shadow-sm"
@@ -242,6 +251,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             </Link>
                             <Link
                                 to="/admin/promotions"
+                                onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
                                     location.pathname === '/admin/promotions' && "bg-primary-50 shadow-sm"
@@ -252,6 +262,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             </Link>
                             <Link
                                 to="/admin/categories"
+                                onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-secondary-600 hover:bg-secondary-50",
                                     location.pathname === '/admin/categories' && "bg-secondary-50 shadow-sm"
@@ -262,6 +273,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             </Link>
                             <Link
                                 to="/admin/verifications"
+                                onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-amber-600 hover:bg-amber-50",
                                     location.pathname === '/admin/verifications' && "bg-amber-50 shadow-sm"
@@ -272,6 +284,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             </Link>
                             <Link
                                 to="/admin/marketing"
+                                onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
                                     location.pathname === '/admin/marketing' && "bg-primary-50 shadow-sm"
@@ -282,6 +295,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             </Link>
                             <Link
                                 to="/admin/reports"
+                                onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-red-600 hover:bg-red-50",
                                     location.pathname === '/admin/reports' && "bg-red-50 shadow-sm"
@@ -292,6 +306,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             </Link>
                             <Link
                                 to="/admin/support"
+                                onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
                                     location.pathname === '/admin/support' && "bg-primary-50 shadow-sm"
@@ -302,6 +317,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                             </Link>
                             <Link
                                 to="/admin/editor"
+                                onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-indigo-600 hover:bg-indigo-50",
                                     location.pathname === '/admin/editor' && "bg-indigo-50 shadow-sm"
@@ -317,7 +333,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 {/* ── Sidebar Footer — always pinned at the bottom ── */}
                 <div className="shrink-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-gray-100 bg-white space-y-2">
 
-                    <Link to="/post-ad" className="block">
+                    <Link to="/post-ad" onClick={() => setIsMobileMenuOpen(false)} className="block">
                         <Button className="w-full rounded-xl gap-2 font-bold shadow-sm">
                             <PlusCircle className="h-5 w-5" />
                             {t('listing.postAd')}
