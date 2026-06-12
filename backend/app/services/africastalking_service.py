@@ -149,8 +149,14 @@ class AfricasTalkingService:
 
             print(f"[AT] Sending Premium SMS to {normalized_phone}")
 
-            # Sender ID omitted until Safaricom Promotional→Transactional migration completes
-            response = self.sms.send(message, [normalized_phone])
+            if self.username == "sandbox":
+                response = self.sms.send(message, [normalized_phone])
+            else:
+                response = self.sms.send(
+                    message,
+                    [normalized_phone],
+                    sender_id=self.sender_id
+                )
 
             print(f"[AT] SMS Response: {response}")
 
