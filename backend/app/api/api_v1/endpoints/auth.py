@@ -11,6 +11,7 @@ from app.models.user import User, UserVerifiedLevel
 from app.models.audit import AuditLog
 from app.models.marketing_code import MarketingCode
 from app.services.email_service import email_service
+from app.services.africastalking_service import africastalking_service
 from pydantic import BaseModel
 from app.core.metrics import USER_REGISTRATIONS_TOTAL, SUCCESSFUL_LOGINS_TOTAL
 
@@ -165,6 +166,82 @@ def verify_otp(
         samesite="lax", secure=True,
     )
 
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {"id": user.id, "name": user.full_name, "email": user.email, "verified_level": user.verified_level}
+    }
+
+
+# ─── Phone OTP (Africa's Talking SMS) ───────────────────────────────────────
+
+class RequestPhoneOtpIn(BaseModel):
+    phone: str
+
+class VerifyPhoneOtpIn(BaseModel):
+    phone: str
+    otp: str
+
+
+@router.post("/request-phone-otp", response_model=RequestOtpOut)
+@deps.limiter.limit("5/minute")
+def request_phone_otp(
+    request: Request,
+    payload: RequestPhoneOtpIn,
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    try:
+        phone = africastalking_service.normalize_phone(payload.phone)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid phone number format.")
+
+    success = africastalking_service.send_verification_code(phone)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to send SMS. Please try again.")
+    return {"success": True, "cooldown_seconds": 60}
+
+
+@router.post("/verify-phone-otp", response_model=AuthOut)
+def verify_phone_otp(
+    response: Response,
+    payload: VerifyPhoneOtpIn,
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    try:
+        phone = africastalking_service.normalize_phone(payload.phone)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid phone number format.")
+
+    is_valid = africastalking_service.check_verification_code(phone, payload.otp)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail="Invalid or expired code.")
+
+    user = db.exec(select(User).where(User.phone == phone)).first()
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="No account found with this number. Please sign up first."
+        )
+
+    user.phone_verified = True
+    db.add(user)
+    db.add(AuditLog(
+        user_id=user.id, action="USER_LOGIN", resource_type="user",
+        resource_id=user.id, details=f"Phone OTP login: {phone}"
+    ))
+    db.commit()
+    db.refresh(user)
+    SUCCESSFUL_LOGINS_TOTAL.inc()
+
+    access_token = security.create_access_token(
+        user.id, expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    response.set_cookie(
+        key="access_token", value=access_token, httponly=True,
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        expires=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        samesite="lax", secure=True,
+    )
     return {
         "access_token": access_token,
         "token_type": "bearer",

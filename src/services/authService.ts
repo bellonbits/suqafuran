@@ -91,5 +91,15 @@ export const authService = {
 
     async trackProfileView(userId: number): Promise<void> {
         await api.post(`/users/public/${userId}/view`);
-    }
+    },
+
+    async requestPhoneOTP(phone: string): Promise<{ success: boolean; cooldown_seconds: number }> {
+        const response = await api.post('/auth/request-phone-otp', { phone });
+        return response.data;
+    },
+
+    async verifyPhoneOTP(phone: string, otp: string): Promise<any> {
+        const response = await api.post('/auth/verify-phone-otp', { phone, otp });
+        return response.data;
+    },
 };
