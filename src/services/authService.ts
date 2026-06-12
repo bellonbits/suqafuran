@@ -102,4 +102,9 @@ export const authService = {
         const response = await api.post('/auth/verify-phone-otp', { phone, otp });
         return response.data;
     },
+
+    async signupPhone(data: { full_name: string; phone: string; promo_code?: string }): Promise<{ success: boolean; cooldown_seconds: number }> {
+        const response = await api.post('/auth/signup-phone', data);
+        return response.data;
+    },
 };

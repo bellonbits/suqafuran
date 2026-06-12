@@ -178,9 +178,38 @@ def verify_otp(
 class RequestPhoneOtpIn(BaseModel):
     phone: str
 
+class SignupPhoneIn(BaseModel):
+    full_name: str
+    phone: str
+    promo_code: str | None = None
+
 class VerifyPhoneOtpIn(BaseModel):
     phone: str
     otp: str
+
+
+@router.post("/signup-phone", response_model=RequestOtpOut)
+@deps.limiter.limit("3/minute")
+def signup_phone(
+    request: Request,
+    payload: SignupPhoneIn,
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    try:
+        phone = africastalking_service.normalize_phone(payload.phone)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid phone number format.")
+
+    existing = db.exec(select(User).where(User.phone == phone)).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="An account with this phone number already exists.")
+
+    signup_data = {"full_name": payload.full_name, "phone": phone, "promo_code": payload.promo_code}
+    africastalking_service.store_pending_signup(phone, signup_data)
+    success = africastalking_service.send_verification_code(phone)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to send SMS. Please try again.")
+    return {"success": True, "cooldown_seconds": 60}
 
 
 @router.post("/request-phone-otp", response_model=RequestOtpOut)
@@ -217,21 +246,60 @@ def verify_phone_otp(
         raise HTTPException(status_code=400, detail="Invalid or expired code.")
 
     user = db.exec(select(User).where(User.phone == phone)).first()
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="No account found with this number. Please sign up first."
-        )
 
-    user.phone_verified = True
-    db.add(user)
-    db.add(AuditLog(
-        user_id=user.id, action="USER_LOGIN", resource_type="user",
-        resource_id=user.id, details=f"Phone OTP login: {phone}"
-    ))
-    db.commit()
-    db.refresh(user)
-    SUCCESSFUL_LOGINS_TOTAL.inc()
+    if not user:
+        # Check for a pending phone signup
+        signup_data = africastalking_service.get_pending_signup(phone)
+        if not signup_data:
+            raise HTTPException(
+                status_code=404,
+                detail="No account found with this number. Please sign up first."
+            )
+        try:
+            import secrets as _secrets
+            phone_digits = phone.lstrip("+")
+            placeholder_email = f"sms_{phone_digits}@suqafuran.local"
+            user = crud_user.create_user(
+                db,
+                email=placeholder_email,
+                password=_secrets.token_hex(24),
+                full_name=signup_data["full_name"],
+                phone=phone,
+            )
+            user.phone_verified = True
+            user.verified_level = UserVerifiedLevel.tier1
+
+            promo_code_val = signup_data.get("promo_code")
+            if promo_code_val:
+                code_upper = promo_code_val.strip().upper()
+                mc = db.exec(select(MarketingCode).where(MarketingCode.code == code_upper)).first()
+                if mc and mc.is_active and (mc.max_uses is None or mc.uses_count < mc.max_uses):
+                    user.referral_code = code_upper
+                    mc.uses_count += 1
+                    db.add(mc)
+
+            db.add(user)
+            db.add(AuditLog(
+                user_id=user.id, action="USER_SIGNUP", resource_type="user",
+                resource_id=user.id, details=f"Phone signup: {phone}"
+            ))
+            db.commit()
+            db.refresh(user)
+            africastalking_service.delete_pending_signup(phone)
+            USER_REGISTRATIONS_TOTAL.labels(method="phone_otp").inc()
+        except IntegrityError:
+            db.rollback()
+            raise HTTPException(status_code=400, detail="Account creation failed. Please try again.")
+    else:
+        user.phone_verified = True
+        db.add(user)
+        db.add(AuditLog(
+            user_id=user.id, action="USER_LOGIN", resource_type="user",
+            resource_id=user.id, details=f"Phone OTP login: {phone}"
+        ))
+        db.commit()
+        db.refresh(user)
+        SUCCESSFUL_LOGINS_TOTAL.inc()
 
     access_token = security.create_access_token(
         user.id, expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
