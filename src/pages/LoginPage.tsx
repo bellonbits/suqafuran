@@ -390,7 +390,7 @@ const LoginPage: React.FC = () => {
 
                             <div className="text-center">
                                 <button type="button"
-                                    onClick={(e) => { setOtpSent(false); setOtp(''); setError(null); }}
+                                    onClick={() => { setOtpSent(false); setOtp(''); setError(null); }}
                                     className="text-sm text-gray-500 hover:text-gray-700 underline"
                                 >
                                     Change number
