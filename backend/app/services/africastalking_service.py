@@ -39,25 +39,27 @@ class AfricasTalkingService:
             self.redis = None
 
     def normalize_phone(self, phone: str) -> str:
-        """
-        Normalize phone number to E.164 format (+254XXXXXXXXX).
-        Handles Kenyan numbers.
-        """
+        """Normalize to E.164. Supports Somalia (+252) and Kenya (+254)."""
         phone = phone.strip().replace(" ", "").replace("-", "")
-        
-        # Already in E.164 format
-        if phone.startswith("+254"):
+
+        # Already E.164
+        if phone.startswith("+"):
             return phone
-        
-        # Starts with country code without +
-        if phone.startswith("254"):
+
+        # Country code without +
+        if phone.startswith("252") and len(phone) >= 12:
             return "+" + phone
-        
-        # Starts with 0 (local format)
-        if phone.startswith("0"):
+        if phone.startswith("254") and len(phone) >= 12:
+            return "+" + phone
+
+        # Somali local: 06x / 07x / 09x
+        if phone.startswith("0") and len(phone) == 9:
+            return "+252" + phone[1:]
+
+        # Kenyan local: 07x / 01x (10 digits)
+        if phone.startswith("0") and len(phone) == 10:
             return "+254" + phone[1:]
-        
-        # Invalid format
+
         raise ValueError(f"Invalid phone number format: {phone}")
 
     def generate_otp(self) -> str:
