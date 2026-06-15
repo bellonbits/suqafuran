@@ -63,7 +63,7 @@ const VerificationPage: React.FC = () => {
             setIsCompressing(true);
             try {
                 // Compress document images before upload
-                const docOptions = { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true };
+                const docOptions = { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: false };
                 for (const file of documentFiles) {
                     const isPdf = file.type === 'application/pdf' || file.name.endsWith('.pdf');
                     if (isPdf) {
@@ -90,7 +90,7 @@ const VerificationPage: React.FC = () => {
                 }
 
                 // Compress selfie
-                const selfieOptions = { maxSizeMB: 0.5, maxWidthOrHeight: 1280, useWebWorker: true };
+                const selfieOptions = { maxSizeMB: 0.5, maxWidthOrHeight: 1280, useWebWorker: false };
                 if (selfieFile) {
                     const compressed = await imageCompression(selfieFile, selfieOptions);
                     formData.append('selfie_file', new File([compressed], selfieFile.name, { type: compressed.type || selfieFile.type }));
