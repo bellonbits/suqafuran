@@ -28,9 +28,7 @@ services:
     security_opt:
       - seccomp:unconfined
       - apparmor:unconfined
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
+
     depends_on:
       redis:
         condition: service_healthy
@@ -61,9 +59,7 @@ services:
     restart: always
     security_opt:
       - seccomp:unconfined
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
+
     depends_on:
       redis:
         condition: service_healthy
@@ -88,9 +84,7 @@ services:
     restart: always
     security_opt:
       - seccomp:unconfined
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
+
     depends_on:
       redis:
         condition: service_healthy
@@ -128,9 +122,7 @@ services:
     container_name: suqafuran_certbot
     security_opt:
       - seccomp:unconfined
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
+
     volumes:
       - certs:/etc/letsencrypt
       - certbot_webroot:/var/www/certbot
