@@ -5,6 +5,7 @@ services:
     restart: always
     security_opt:
       - seccomp:unconfined
+      - apparmor:unconfined
     env_file:
       - ./backend/.env
     command: >
@@ -106,6 +107,7 @@ services:
     restart: always
     security_opt:
       - seccomp:unconfined
+      - apparmor:unconfined
     depends_on:
       - api
     ports:
