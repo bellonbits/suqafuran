@@ -80,8 +80,14 @@ class CacheService:
         except Exception:
             return False  # On Redis error, allow processing (fail open)
 
-    def cached(self, prefix: str, ttl: int = 60):
-        """Decorator that caches function return value in Redis."""
+    def cached(self, prefix: str, ttl: int = 60, should_cache=None):
+        """Decorator that caches function return value in Redis.
+
+        `should_cache`, if given, is called with the function's result before
+        writing to Redis. Returning False skips the write, so a one-off bad
+        result (e.g. a relationship that failed to eager-load) self-heals on
+        the next request instead of getting served from cache for the full ttl.
+        """
         def decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
@@ -97,7 +103,8 @@ class CacheService:
                     return cached_value
 
                 result = func(*args, **kwargs)
-                self.set(cache_key, result, ttl=ttl)
+                if should_cache is None or should_cache(result):
+                    self.set(cache_key, result, ttl=ttl)
                 return result
             return wrapper
         return decorator

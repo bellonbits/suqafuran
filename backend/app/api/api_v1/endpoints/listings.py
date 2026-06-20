@@ -413,8 +413,15 @@ def read_my_listings(
     return crud_listing.get_listings(db, skip=skip, limit=limit, owner_id=current_user.id)
 
 
+def _listings_fully_loaded(listings: List[Listing]) -> bool:
+    """Guards against caching a result where the owner relationship failed to
+    eager-load for a listing that has an owner_id (intermittent DB/pool race),
+    which would otherwise hide the seller verification badge for the full ttl."""
+    return all(l.owner is not None for l in listings if l.owner_id)
+
+
 @router.get("/", response_model=List[ListingRead])
-@cache.cached(prefix="listings", ttl=60)
+@cache.cached(prefix="listings", ttl=60, should_cache=_listings_fully_loaded)
 def read_listings(
     db: Session = Depends(deps.get_db),
     skip: int = 0,
