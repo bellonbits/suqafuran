@@ -86,9 +86,9 @@ export default function CategoryPage({ params }: PageProps) {
                         if (l.owner && !uniqueSellersMap.has(l.owner_id)) {
                             const trustScoreVal = l.owner.trust_score || 95;
                             uniqueSellersMap.set(l.owner_id, {
-                                id: l.owner.id.toString(),
+                                id: l.owner_id.toString(),
                                 name: l.owner.full_name || "Local Seller",
-                                slug: l.owner.id.toString(),
+                                slug: l.owner_id.toString(),
                                 image: l.owner.avatar_url || "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=400",
                                 rating: `${(trustScoreVal / 20).toFixed(1)}`,
                                 time: "25-35 min",

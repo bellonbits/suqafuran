@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { useCartStore } from '../../store/useCart';
 import { listingsService } from '../../services/listings';
+import { StoreCard } from '../../components/shared/StoreCard';
 import type { Listing } from '../../types';
 
 interface Store {
@@ -17,6 +18,7 @@ interface Store {
     distance?: string;
     tags: string[];
     note?: string;
+    isVerified?: boolean;
 }
 
 interface DealProduct {
@@ -81,13 +83,14 @@ export default function GroceryPage() {
         if (l.owner && !uniqueSellersMap.has(l.owner_id)) {
             const trustScoreVal = l.owner.trust_score || 95;
             uniqueSellersMap.set(l.owner_id, {
-                id: l.owner.id.toString(),
+                id: l.owner_id.toString(),
                 name: l.owner.full_name || "Local Seller",
-                slug: l.owner.id.toString(),
+                slug: l.owner_id.toString(),
                 image: l.owner.avatar_url || "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=400&auto=format&fit=crop",
                 time: "30-40 min",
                 distance: l.location ? l.location.split(',')[0] : "Nearby",
-                tags: l.owner.trust_level ? [l.owner.trust_level] : ["In-store prices"]
+                tags: l.owner.trust_level ? [l.owner.trust_level] : ["In-store prices"],
+                isVerified: l.owner.is_verified || false
             });
         }
     });
@@ -253,32 +256,18 @@ export default function GroceryPage() {
                 </div>
 
                 {popularStores.length > 0 ? (
-                    <div className="flex gap-5 overflow-x-auto pb-4 scrollbar-none hide-scrollbar">
+                    <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-none hide-scrollbar">
                         {popularStores.map((store) => (
-                            <Link 
-                                key={store.id}
-                                href={`/shop/${store.slug}`}
-                                className="w-64 shrink-0 space-y-2 group cursor-pointer"
-                            >
-                               <div className="aspect-video rounded-3xl overflow-hidden border border-gray-100 dark:border-slate-800 relative bg-slate-50 shadow-sm">
-                                    <img src={store.image} alt={store.name} className="h-full w-full object-cover group-hover:scale-103 transition-transform duration-300" />
-                                </div>
-                                <div className="space-y-0.5 px-0.5">
-                                    <h4 className="text-xs font-black text-gray-900 dark:text-slate-100 truncate">{store.name}</h4>
-                                    <div className="flex items-center gap-1.5 text-[10px] text-gray-500 dark:text-slate-400 font-semibold">
-                                        {store.distance && <span>{store.distance}</span>}
-                                        {store.distance && <span>•</span>}
-                                        <span>{store.time}</span>
-                                    </div>
-                                    <div className="flex flex-wrap gap-1 mt-1">
-                                        {store.tags.map((tag, tIdx) => (
-                                            <span key={tIdx} className="text-[9px] font-extrabold text-red-500 bg-red-50 dark:bg-red-950/20 px-2 py-0.5 rounded-full">
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </Link>
+                            <div key={store.id} className="w-64 shrink-0">
+                                <StoreCard
+                                    slug={store.slug}
+                                    name={store.name}
+                                    image={store.image}
+                                    time={store.time}
+                                    distance={store.distance}
+                                    isVerified={store.isVerified}
+                                />
+                            </div>
                         ))}
                     </div>
                 ) : (

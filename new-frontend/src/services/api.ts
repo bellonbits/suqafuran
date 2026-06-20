@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/useAuth';
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:8000/api/v1' : 'https://api.suqafuran.com/api/v1');
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.suqafuran.com/api/v1';
 
 const api = axios.create({
     baseURL: API_BASE_URL,

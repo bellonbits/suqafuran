@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { listingsService } from '../services/listings';
+import { StoreCard } from '../components/shared/StoreCard';
 import type { Listing, Category as DbCategory } from '../types';
 
 interface DealCard {
@@ -84,13 +85,14 @@ export default function HomePage() {
         if (l.owner && !uniqueSellersMap.has(l.owner_id)) {
             const trustScoreVal = l.owner.trust_score || 95;
             uniqueSellersMap.set(l.owner_id, {
-                id: l.owner.id,
+                id: l.owner_id,
                 name: l.owner.full_name || "Local Seller",
-                image: l.owner.avatar_url || "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=400&auto=format&fit=crop",
+                image: l.owner.avatar_url || null,
                 rating: `${(trustScoreVal / 20).toFixed(1)} (${trustScoreVal}%)`,
                 dist: l.location ? l.location.split(',')[0] : "Nearby",
                 time: "20-30 min",
                 note: l.owner.trust_level || "Verified Seller",
+                isVerified: l.owner.is_verified || false,
                 slug: l.owner_id.toString()
             });
         }
@@ -275,39 +277,18 @@ export default function HomePage() {
                 </div>
 
                 {fastestList.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         {fastestList.map((shop) => (
-                            <Link 
-                                href={`/shop/${shop.slug}`}
-                                key={shop.id} 
-                                className="space-y-2 group cursor-pointer block"
-                            >
-                                <div className="aspect-video rounded-3xl overflow-hidden border border-gray-100 dark:border-slate-800 relative bg-slate-50">
-                                    <img
-                                        src={shop.image}
-                                        alt={shop.name}
-                                        className="h-full w-full object-cover group-hover:scale-103 transition-transform duration-300"
-                                    />
-                                </div>
-                                <div className="space-y-0.5 px-0.5">
-                                     <h4 className="text-sm font-black text-gray-900 dark:text-slate-100 truncate line-clamp-1">
-                                         {shop.name}
-                                     </h4>
-                                     <div className="flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-slate-400 font-semibold">
-                                         <span>{shop.rating}</span>
-                                         <span>•</span>
-                                         <span>{shop.dist}</span>
-                                         <span>•</span>
-                                         <span>{shop.time}</span>
-                                     </div>
-                                     <div className="text-[11px] font-extrabold text-red-500">
-                                         Lower fees
-                                     </div>
-                                     <div className="text-[11px] font-black text-red-500">
-                                         {shop.note}
-                                     </div>
-                                </div>
-                            </Link>
+                            <StoreCard
+                                key={shop.id}
+                                slug={shop.slug}
+                                name={shop.name}
+                                image={shop.image}
+                                time={shop.time}
+                                distance={shop.dist}
+                                isVerified={shop.isVerified}
+                                responseTime={shop.note}
+                            />
                         ))}
                     </div>
                 ) : (

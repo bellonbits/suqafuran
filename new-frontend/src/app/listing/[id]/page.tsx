@@ -287,7 +287,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                                 <div className="pt-4 border-t border-gray-100 dark:border-slate-800 flex gap-3">
                                     {/* Contact Options */}
                                     <Link 
-                                        href={`/messages?userId=${listing.owner.id}`}
+                                        href={`/messages?userId=${listing.owner_id}`}
                                         className="btn-premium flex-1 bg-primary text-white py-2.5 text-xs shadow shadow-primary/10 hover:bg-primary-dark"
                                     >
                                         <MessageSquare className="h-4 w-4" />

@@ -44,7 +44,7 @@ export default function ShopProfilePage({ params }: PageProps) {
                 } else if (fetchedListings.length > 0 && fetchedListings[0].owner) {
                     const owner = fetchedListings[0].owner;
                     setShopDetails({
-                        id: owner.id,
+                        id: fetchedListings[0].owner_id,
                         full_name: owner.full_name,
                         email: owner.email || '',
                         phone: owner.phone || '',
