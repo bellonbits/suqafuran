@@ -27,6 +27,7 @@ services:
     restart: always
     security_opt:
       - seccomp:unconfined
+      - apparmor:unconfined
     dns:
       - 8.8.8.8
       - 1.1.1.1
