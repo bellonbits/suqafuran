@@ -413,10 +413,9 @@ def read_my_listings(
     return crud_listing.get_listings(db, skip=skip, limit=limit, owner_id=current_user.id)
 
 
-def _listings_fully_loaded(listings: List[Listing]) -> bool:
-    """Guards against caching a result where the owner relationship failed to
-    eager-load for a listing that has an owner_id (intermittent DB/pool race),
-    which would otherwise hide the seller verification badge for the full ttl."""
+def _listings_fully_loaded(listings: List[ListingRead]) -> bool:
+    """Guards against caching a result where the owner relationship is missing
+    for a listing that has an owner_id."""
     return all(l.owner is not None for l in listings if l.owner_id)
 
 
@@ -457,6 +456,10 @@ def read_listings(
             category = crud_listing.get_category_by_slug(db, slug=category_id)
             if category:
                 resolved_category_id = category.id
+            else:
+                # Unknown category slug: return no results rather than
+                # silently dropping the filter and returning everything.
+                return []
 
     # Security: Only admins can filter by non-active statuses or see all statuses
     effective_status = status
@@ -464,19 +467,26 @@ def read_listings(
         effective_status = "active"
 
     listings = crud_listing.get_listings(
-        db, 
-        skip=skip, 
-        limit=limit, 
-        category_id=resolved_category_id, 
+        db,
+        skip=skip,
+        limit=limit,
+        category_id=resolved_category_id,
         search=q,
         status=effective_status,
-        location=location, 
-        attributes=attributes, 
+        location=location,
+        attributes=attributes,
         owner_id=owner_id,
-        min_price=min_price, 
+        min_price=min_price,
         max_price=max_price,
     )
-    return listings
+    # Convert to the read schema here (rather than relying on response_model to do it
+    # after the fact) so the cache decorator stores/replays the same shape. `owner` is
+    # a SQLAlchemy Relationship() on the raw Listing table model, not a Pydantic field,
+    # so jsonable_encoder silently drops it when caching raw ORM objects — every cache
+    # *write* was correct in memory but lost `owner` on serialization, then every cache
+    # *hit* served it back as null. ListingRead declares `owner` as a real field, so
+    # encoding it (for cache storage) round-trips correctly.
+    return [ListingRead.model_validate(l) for l in listings]
 
 
 @router.post("/", response_model=Listing)
