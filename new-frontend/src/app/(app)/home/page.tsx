@@ -101,14 +101,102 @@ export default function HomePage() {
 
     const storeGrid = deriveStoresFromListings(filteredListings);
 
-    // Filter listings specifically for the Grocery section
-    const groceryListings = listings.filter(l => {
-        const cat = dbCategories.find(c => c.id === l.category_id);
-        return cat?.slug === 'food-groceries' || cat?.slug === 'grocery';
+    // Derived popular stores
+    const popularStores = deriveStoresFromListings(filteredListings);
+
+    const filteredPopularStores = popularStores.filter(store => {
+        if (verifiedOnly && !store.isVerified) return false;
+        return true;
     });
 
-    // Filter listings specifically for the Deals section
-    const dealsListings = listings.filter(l => l.is_negotiable);
+    // Grocery Stores Filter & Mock fallback
+    const groceryStores = nearbyBusinesses.length > 0 
+        ? nearbyBusinesses.filter(b => b.category?.toLowerCase() === 'grocery' || b.category?.toLowerCase() === 'food' || b.name.toLowerCase().includes('grocery') || b.name.toLowerCase().includes('hub'))
+        : storeGrid.filter(s => s.name.toLowerCase().includes('agri') || s.name.toLowerCase().includes('pantry') || s.name.toLowerCase().includes('market'));
+
+    const displayGroceryStores = groceryStores.length > 0 ? groceryStores.map(s => {
+        const isBusiness = 'logo_url' in s;
+        return {
+            id: s.id,
+            slug: s.slug || 'grocery-store',
+            name: s.name,
+            image: isBusiness 
+                ? ((s as Business).logo_url ? resolveMediaUrl((s as Business).logo_url!) : '/categories/grocery.jpg')
+                : ((s as any).image || '/categories/grocery.jpg'),
+            isVerified: isBusiness ? (s as Business).is_verified : (s as any).isVerified,
+            trustScore: isBusiness ? (s as Business).trust_score : 500,
+            distance: isBusiness ? ((s as Business).address ? (s as Business).address!.split(',')[0] : '0.5 km') : ((s as any).distance || '0.5 km'),
+            deliveryFee: '$0.00 delivery fee',
+            rating: '4.5 (80+)',
+            time: '30-40 min'
+        };
+    }) : [
+        {
+            id: 'mock-g1',
+            slug: 'mogadishu-fresh',
+            name: 'Mogadishu Fresh Food Market',
+            image: '/categories/grocery.jpg',
+            isVerified: true,
+            trustScore: 980,
+            distance: '1.2 km',
+            deliveryFee: '$0.00 delivery fee',
+            rating: '4.8 (120+)',
+            time: '25-35 min'
+        },
+        {
+            id: 'mock-g2',
+            slug: 'somali-agri-hub',
+            name: 'Somali Agriculture Hub',
+            image: '/categories/grocery.jpg',
+            isVerified: true,
+            trustScore: 960,
+            distance: '2.4 km',
+            deliveryFee: '$1.50 delivery fee',
+            rating: '4.6 (90+)',
+            time: '35-45 min'
+        },
+        {
+            id: 'mock-g3',
+            slug: 'nairobi-greens',
+            name: 'Nairobi Green Grocers',
+            image: '/categories/grocery.jpg',
+            isVerified: true,
+            trustScore: 940,
+            distance: '3.1 km',
+            deliveryFee: '$0.00 delivery fee',
+            rating: '4.5 (60+)',
+            time: '20-30 min'
+        }
+    ];
+
+    // Promoted deal stores
+    const dealStores = storeGrid.slice(0, 4).map(s => ({
+        id: s.id,
+        slug: s.slug,
+        name: s.name,
+        image: s.image || '/categories/skincare.jpg',
+        promoText: 'Buy 1, get 1 free',
+        promoSubtext: 'Selected items'
+    }));
+
+    const displayDealStores = dealStores.length > 0 ? dealStores : [
+        {
+            id: 'deal-1',
+            slug: 'amaan-electronics',
+            name: 'Amaan Electronics',
+            image: '/categories/sport.jpg',
+            promoText: 'Buy 1, get 1 free',
+            promoSubtext: 'On select accessories'
+        },
+        {
+            id: 'deal-2',
+            slug: 'hargeisa-fashion',
+            name: 'Hargeisa Fashion Outlet',
+            image: '/categories/skincare.jpg',
+            promoText: '40% off select items',
+            promoSubtext: 'Summer clothing sale'
+        }
+    ];
 
     // Determine brands to display in the colored banner store cards (fallback to P2P sellers if DB is empty)
     const displayBrands = nearbyBusinesses.length > 0
@@ -670,126 +758,157 @@ export default function HomePage() {
                 </section>
             )}
 
-            {/* Section 7: "Grocery & Essentials" Slider */}
-            {groceryListings.length > 0 && (
-                <section className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="text-xl font-black text-gray-950 dark:text-slate-100 font-poppins tracking-tight">
-                                Grocery
-                            </h2>
-                            <p className="text-xs text-gray-500 font-bold dark:text-slate-400 mt-0.5">
-                                Fresh produce, household items, and direct pantry supplies
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Link
-                                href="/grocery"
-                                className="text-xs font-black text-gray-600 hover:text-sky-500 dark:text-slate-400 cursor-pointer"
+            {/* Section 7: "Grocery" Slider (Displays Grocery Stores) */}
+            <section className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-xl font-black text-gray-950 dark:text-slate-100 font-poppins tracking-tight">
+                            Grocery
+                        </h2>
+                        <p className="text-xs text-gray-500 font-bold dark:text-slate-400 mt-0.5">
+                            Fresh produce, household items, and direct farm storefronts
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <Link
+                            href="/grocery"
+                            className="text-xs font-black text-gray-600 hover:text-sky-500 dark:text-slate-400 cursor-pointer"
+                        >
+                            See All
+                        </Link>
+                        <div className="flex gap-1.5">
+                            <button
+                                onClick={() => handleScroll(grocerySliderRef, 'left')}
+                                className="p-1.5 rounded-full border border-gray-200 bg-white hover:bg-slate-50 text-gray-500 dark:border-slate-800 dark:bg-slate-900 cursor-pointer"
                             >
-                                See All
-                            </Link>
-                            <div className="flex gap-1.5">
-                                <button
-                                    onClick={() => handleScroll(grocerySliderRef, 'left')}
-                                    className="p-1.5 rounded-full border border-gray-200 bg-white hover:bg-slate-50 text-gray-500 dark:border-slate-800 dark:bg-slate-900 cursor-pointer"
-                                >
-                                    <ChevronLeft className="h-4 w-4" />
-                                </button>
-                                <button
-                                    onClick={() => handleScroll(grocerySliderRef, 'right')}
-                                    className="p-1.5 rounded-full border border-gray-200 bg-white hover:bg-slate-50 text-gray-500 dark:border-slate-800 dark:bg-slate-900 cursor-pointer"
-                                >
-                                    <ChevronRight className="h-4 w-4" />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div
-                        ref={grocerySliderRef}
-                        className="flex gap-4 overflow-x-auto pb-4 scrollbar-none hide-scrollbar scroll-smooth"
-                    >
-                        {groceryListings.map((listing) => (
-                            <div key={listing.id} className="w-48 shrink-0">
-                                <ProductCard listing={listing} showSeller />
-                            </div>
-                        ))}
-                    </div>
-                </section>
-            )}
-
-            {/* Section 8: "Deals for you" (Negotiable items slider) */}
-            {dealsListings.length > 0 && (
-                <section className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="text-xl font-black text-gray-950 dark:text-slate-100 font-poppins tracking-tight">
-                                Deals for you
-                            </h2>
-                            <p className="text-xs text-gray-500 font-bold dark:text-slate-400 mt-0.5">
-                                Special negotiable offers direct from verified sellers
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Link
-                                href="/deals"
-                                className="text-xs font-black text-gray-600 hover:text-sky-500 dark:text-slate-400 cursor-pointer"
+                                <ChevronLeft className="h-4 w-4" />
+                            </button>
+                            <button
+                                onClick={() => handleScroll(grocerySliderRef, 'right')}
+                                className="p-1.5 rounded-full border border-gray-200 bg-white hover:bg-slate-50 text-gray-500 dark:border-slate-800 dark:bg-slate-900 cursor-pointer"
                             >
-                                See All
-                            </Link>
-                            <div className="flex gap-1.5">
-                                <button
-                                    onClick={() => handleScroll(dealsSliderRef, 'left')}
-                                    className="p-1.5 rounded-full border border-gray-200 bg-white hover:bg-slate-50 text-gray-500 dark:border-slate-800 dark:bg-slate-900 cursor-pointer"
-                                >
-                                    <ChevronLeft className="h-4 w-4" />
-                                </button>
-                                <button
-                                    onClick={() => handleScroll(dealsSliderRef, 'right')}
-                                    className="p-1.5 rounded-full border border-gray-200 bg-white hover:bg-slate-50 text-gray-500 dark:border-slate-800 dark:bg-slate-900 cursor-pointer"
-                                >
-                                    <ChevronRight className="h-4 w-4" />
-                                </button>
-                            </div>
+                                <ChevronRight className="h-4 w-4" />
+                            </button>
                         </div>
                     </div>
+                </div>
 
-                    <div
-                        ref={dealsSliderRef}
-                        className="flex gap-4 overflow-x-auto pb-4 scrollbar-none hide-scrollbar scroll-smooth"
-                    >
-                        {dealsListings.map((listing) => (
-                            <div key={listing.id} className="w-48 shrink-0">
-                                <ProductCard listing={listing} showSeller />
+                <div
+                    ref={grocerySliderRef}
+                    className="flex gap-4 overflow-x-auto pb-4 scrollbar-none hide-scrollbar scroll-smooth"
+                >
+                    {displayGroceryStores.map((store) => (
+                        <Link
+                            key={store.id}
+                            href={`/shop/${store.slug}`}
+                            className="w-80 shrink-0 bg-white dark:bg-slate-800 rounded-2xl border border-gray-150 dark:border-slate-700/60 overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer"
+                        >
+                            <div className="h-40 bg-slate-105 dark:bg-slate-700 relative">
+                                <img
+                                    src={store.image}
+                                    alt={store.name}
+                                    className="w-full h-full object-cover"
+                                />
+                                {store.isVerified && (
+                                    <span className="absolute top-3 left-3 bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                                        <ShieldCheck className="h-3 w-3" /> Verified
+                                    </span>
+                                )}
                             </div>
-                        ))}
-                    </div>
-                </section>
-            )}
+                            <div className="p-4 space-y-1">
+                                <h3 className="font-black text-slate-900 dark:text-slate-100 text-sm truncate">{store.name}</h3>
+                                <div className="flex items-center gap-1 text-[11px] text-gray-500 font-bold">
+                                    <Star className="h-3 w-3 text-orange-400 fill-orange-400" />
+                                    <span>{store.rating}</span>
+                                    <span>·</span>
+                                    <span>{store.time}</span>
+                                    <span>·</span>
+                                    <span>{store.distance}</span>
+                                </div>
+                                <div className="text-[11px] font-black text-sky-600 dark:text-sky-400 mt-1">
+                                    {store.deliveryFee}
+                                </div>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+            </section>
 
-            {/* Section 9: "Most popular in [City]" (Filtered Grid layout) */}
+            {/* Section 8: "Deals for you" (Displays Promoted Deal Stores) */}
+            <section className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-xl font-black text-gray-950 dark:text-slate-100 font-poppins tracking-tight">
+                            Deals for you
+                        </h2>
+                        <p className="text-xs text-gray-500 font-bold dark:text-slate-400 mt-0.5">
+                            Special promotions direct from storefront partners
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <Link
+                            href="/deals"
+                            className="text-xs font-black text-gray-600 hover:text-sky-500 dark:text-slate-400 cursor-pointer"
+                        >
+                            See All
+                        </Link>
+                        <div className="flex gap-1.5">
+                            <button
+                                onClick={() => handleScroll(dealsSliderRef, 'left')}
+                                className="p-1.5 rounded-full border border-gray-200 bg-white hover:bg-slate-50 text-gray-500 dark:border-slate-800 dark:bg-slate-900 cursor-pointer"
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                            </button>
+                            <button
+                                onClick={() => handleScroll(dealsSliderRef, 'right')}
+                                className="p-1.5 rounded-full border border-gray-200 bg-white hover:bg-slate-50 text-gray-500 dark:border-slate-800 dark:bg-slate-900 cursor-pointer"
+                            >
+                                <ChevronRight className="h-4 w-4" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    ref={dealsSliderRef}
+                    className="flex gap-4 overflow-x-auto pb-4 scrollbar-none hide-scrollbar scroll-smooth"
+                >
+                    {displayDealStores.map((deal) => (
+                        <Link
+                            key={deal.id}
+                            href={`/shop/${deal.slug}`}
+                            className="w-64 shrink-0 bg-white dark:bg-slate-800 rounded-2xl border border-gray-150 dark:border-slate-700/60 overflow-hidden shadow-sm hover:shadow-md transition-all p-3"
+                        >
+                            <div className="h-32 bg-slate-100 dark:bg-slate-700 rounded-xl overflow-hidden mb-3">
+                                <img
+                                    src={deal.image}
+                                    alt={deal.name}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <span className="text-[9px] font-black text-white bg-orange-500 px-2 py-0.5 rounded-full">{deal.promoText}</span>
+                                <h3 className="font-black text-slate-900 dark:text-slate-100 text-xs truncate mt-1">{deal.name}</h3>
+                                <p className="text-[10px] text-gray-500 font-semibold">{deal.promoSubtext}</p>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+            </section>
+
+            {/* Section 9: "Most popular in [City]" (Filtered Stores Grid layout) */}
             <section id="popular-section" className="space-y-4 pt-4 border-t border-gray-100 dark:border-slate-800">
                 <div>
                     <h2 className="text-xl font-black text-gray-950 dark:text-slate-100 font-poppins tracking-tight">
                         Most popular in {cityFilter || 'Nairobi'}
                     </h2>
                     <p className="text-xs text-gray-500 font-bold dark:text-slate-400 mt-0.5">
-                        Trending items and local offers matching your criteria
+                        Trending local storefronts and brand partners matching your criteria
                     </p>
                 </div>
 
                 {/* Filter chips inside section to refine grid search */}
                 <div className="flex gap-2.5">
-                    <button
-                        onClick={() => setDealsOnly(v => !v)}
-                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full border text-xs font-bold shrink-0 transition-all cursor-pointer ${
-                            dealsOnly ? 'bg-slate-900 text-white border-transparent dark:bg-slate-100 dark:text-slate-900' : 'bg-white border-gray-200 text-gray-700 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 hover:bg-slate-50'
-                        }`}
-                    >
-                        <Tag className="h-3.5 w-3.5" />
-                        Negotiable Deals
-                    </button>
                     <button
                         onClick={() => setVerifiedOnly(v => !v)}
                         className={`flex items-center gap-1.5 px-4 py-2 rounded-full border text-xs font-bold shrink-0 transition-all cursor-pointer ${
@@ -797,19 +916,19 @@ export default function HomePage() {
                         }`}
                     >
                         <ShieldCheck className="h-3.5 w-3.5" />
-                        Verified Sellers
+                        Verified Shops
                     </button>
                 </div>
 
-                {filteredListings.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 pt-2">
-                        {filteredListings.map((listing) => (
-                            <ProductCard key={listing.id} listing={listing} showSeller />
+                {filteredPopularStores.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-2">
+                        {filteredPopularStores.map((store) => (
+                            <StoreListingCard key={store.id} store={store} />
                         ))}
                     </div>
                 ) : (
                     <div className="py-12 text-center text-sm font-semibold text-gray-400 border border-dashed border-gray-200 dark:border-slate-800 rounded-3xl">
-                        No active items match these filters yet
+                        No active shops match these filters yet
                     </div>
                 )}
             </section>
