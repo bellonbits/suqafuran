@@ -379,11 +379,11 @@ export default function LandingPage() {
               </div>
             </div>
             {/* Photo right */}
-            <div className="relative order-1 md:order-2 overflow-hidden min-h-[320px] md:min-h-0">
+            <div className="relative order-1 md:order-2 flex items-center justify-center min-h-[350px] md:min-h-0 py-6">
               <img
-                src="/seller_hero.png"
+                src="/seller_hero_removebg.png"
                 alt="African marketplace seller"
-                className="absolute inset-0 w-full h-full object-cover object-center"
+                className="max-h-[380px] w-auto object-contain transition-transform duration-300 hover:scale-105"
               />
             </div>
           </div>
@@ -392,16 +392,16 @@ export default function LandingPage() {
 
       {/* ══════════════════════════════════════════════════════
           SECTION B — "Grow your business"  (mint bg)
-      ══════════════════════════════════════════════════════ */}
+          ══════════════════════════════════════════════════════ */}
       <section className="bg-[#F0FFF4]">
         <div className="max-w-6xl mx-auto px-4 sm:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 items-stretch min-h-[420px]">
+          <div className="grid grid-cols-1 md:grid-cols-2 items-center min-h-[420px]">
             {/* Photo left */}
-            <div className="relative overflow-hidden min-h-[320px] md:min-h-0">
+            <div className="relative flex items-center justify-center min-h-[350px] md:min-h-0 py-6">
               <img
-                src="/business_hero.png"
+                src="/business_hero_removebg.png"
                 alt="African business owner"
-                className="absolute inset-0 w-full h-full object-cover object-center"
+                className="max-h-[380px] w-auto object-contain transition-transform duration-300 hover:scale-105"
               />
             </div>
             {/* Text right */}
