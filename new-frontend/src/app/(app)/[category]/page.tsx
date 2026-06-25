@@ -10,6 +10,7 @@ import { useCurrencyStore } from '../../../store/useCurrency';
 import { formatConvertedPrice } from '../../../lib/currency';
 import { useLocalizedField } from '../../../lib/i18n';
 import type { Listing } from '../../../types';
+import { CANONICAL_CATEGORIES } from '../../../components/shared/Sidebar';
 
 interface Store {
     id: string;
@@ -36,6 +37,32 @@ interface PageProps {
     params: Promise<{ category: string }>;
 }
 
+const FALLBACK: Record<string, string> = {
+    'food-groceries':        '/categories/grocery.jpg',
+    'beauty-personal-care':  '/categories/skincare.jpg',
+    'health-beauty':         '/categories/skincare.jpg',
+    'leisure-sports':        '/categories/sport.jpg',
+    'clothing-shoes':        '/categories/fashion.jpg',
+    'electronics':           '/categories/electronics.jpg',
+    'household-items':       '/categories/furniture.jpg',
+    'vehicles':              '/categories/vehicles.jpg',
+    'livestock':             '/categories/livestock.jpg',
+    'property':              '/categories/property.jpg',
+    'services':              '/categories/services.jpg',
+    'commercial-equipment':  '/categories/commercial.jpg',
+    'land-farms':            '/categories/land.jpg',
+    'repair-construction':   '/categories/repair.jpg',
+    'jobs':                  '/categories/jobs.jpg',
+    'agriculture-food':      '/categories/grocery.jpg',
+    'phones':                '/categories/electronics.jpg',
+    'mobiles':               '/categories/electronics.jpg',
+    'babies-kids':           '/categories/babies.jpg',
+};
+
+function getFallbackImage(slug: string): string {
+    return FALLBACK[slug] || '/categories/grocery.jpg';
+}
+
 const categorySlugMap: Record<string, string> = {
     'grocery': 'food-groceries',
     'food-groceries': 'food-groceries',
@@ -50,8 +77,22 @@ const categorySlugMap: Record<string, string> = {
     'land-farms': 'land-farms',
     'services': 'services',
     'health-beauty': 'health-beauty',
+    'beauty-personal-care': 'health-beauty',
     'property': 'property',
-    'jobs': 'jobs'
+    'jobs': 'jobs',
+    'commercial': 'commercial-equipment',
+    'commercial-equipment': 'commercial-equipment',
+    'leisure': 'leisure-sports',
+    'leisure-sports': 'leisure-sports',
+    'sports': 'leisure-sports',
+    'repair': 'repair-construction',
+    'repair-construction': 'repair-construction',
+    'agriculture': 'agriculture-food',
+    'agriculture-food': 'agriculture-food',
+    'phones': 'mobiles',
+    'mobiles': 'mobiles',
+    'babies': 'babies-kids',
+    'babies-kids': 'babies-kids'
 };
 
 export default function CategoryPage({ params }: PageProps) {
@@ -74,7 +115,9 @@ export default function CategoryPage({ params }: PageProps) {
     const isDealsPage = category === 'deals';
 
     useEffect(() => {
-        const catName = formatCategoryName(category);
+        const targetSlug = categorySlugMap[category] || category;
+        const canonicalCat = CANONICAL_CATEGORIES.find(c => c.slug === targetSlug);
+        const catName = canonicalCat ? canonicalCat.name : formatCategoryName(category);
         setTitle(isDealsPage ? 'Deals Near You' : `${catName} Stores Near You`);
 
         async function loadCategoryData() {
@@ -100,7 +143,9 @@ export default function CategoryPage({ params }: PageProps) {
                                 id: l.owner_id.toString(),
                                 name: l.owner.full_name || "Local Seller",
                                 slug: l.owner_id.toString(),
-                                image: resolveMediaUrl(l.owner.avatar_url) || "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=400",
+                                image: l.images?.[0]
+                                    ? resolveMediaUrl(l.images[0])
+                                    : resolveMediaUrl(l.owner.avatar_url) || getFallbackImage(dbCategorySlug),
                                 rating: `${(trustScoreVal / 20).toFixed(1)}`,
                                 time: "25-35 min",
                                 distance: l.location ? l.location.split(',')[0] : "Nearby",

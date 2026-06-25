@@ -12,26 +12,54 @@ import { resolveMediaUrl } from '../../../services/api';
 import { deriveStoresFromListings } from '../../../lib/deriveStores';
 import { StoreListingCard } from '../../../components/shared/StoreListingCard';
 import { getCategoryIcon } from '../../../lib/categoryIcons';
+import { CANONICAL_CATEGORIES } from '../../../components/shared/Sidebar';
 import { useLocationStore } from '../../../store/useLocation';
-import { useLocalizedField, useT } from '../../../lib/i18n';
+import { useT, useLocalizedField } from '../../../lib/i18n';
 import { LocationPickerModal } from '../../../components/shared/LocationPickerModal';
-import type { Listing, Category as DbCategory, Business } from '../../../types';
+import type { Listing, Business } from '../../../types';
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   CATEGORY → fallback shop thumbnail
-   Drop your own into /public/categories/<filename>.jpg whenever ready.
+   FALLBACK THUMBNAILS — keyed by canonical category name
+   Drop /public/categories/<slug>.jpg and they auto-apply.
 ───────────────────────────────────────────────────────────────────────────── */
 const FALLBACK: Record<string, string> = {
-    'Food & Groceries': '/categories/grocery.jpg',
-    'Health & Beauty':  '/categories/skincare.jpg',
-    'Sports & Fitness': '/categories/sport.jpg',
-    Fashion:            '/categories/fashion.jpg',
-    Electronics:        '/categories/electronics.jpg',
-    'Home & Furniture': '/categories/furniture.jpg',
-    Vehicles:           '/categories/vehicles.jpg',
-    Livestock:          '/categories/livestock.jpg',
-    'Real Estate':      '/categories/property.jpg',
-    Services:           '/categories/services.jpg',
+    'Food & Groceries':     '/categories/grocery.jpg',
+    'Beauty & Personal Care': '/categories/skincare.jpg',
+    'Leisure & Sports':     '/categories/sport.jpg',
+    'Clothing & Shoes':     '/categories/fashion.jpg',
+    Electronics:            '/categories/electronics.jpg',
+    'Household Items':      '/categories/furniture.jpg',
+    Vehicles:               '/categories/vehicles.jpg',
+    Livestock:              '/categories/livestock.jpg',
+    Property:               '/categories/property.jpg',
+    Services:               '/categories/services.jpg',
+    'Commercial Equipment': '/categories/commercial.jpg',
+    'Land & Farms':         '/categories/land.jpg',
+    'Repair & Construction':'/categories/repair.jpg',
+    Jobs:                   '/categories/jobs.jpg',
+    'Agriculture & Food':   '/categories/grocery.jpg',
+    Phones:                 '/categories/electronics.jpg',
+    'Babies & Kids':        '/categories/babies.jpg',
+};
+
+const ID_TO_CANONICAL: Record<number, string> = {
+    14: 'Commercial Equipment',
+    4: 'Electronics',
+    7: 'Land & Farms',
+    13: 'Leisure & Sports',
+    15: 'Repair & Construction',
+    1: 'Food & Groceries',
+    11: 'Beauty & Personal Care',
+    2: 'Clothing & Shoes',
+    3: 'Household Items',
+    5: 'Vehicles',
+    6: 'Livestock',
+    8: 'Property',
+    9: 'Services',
+    10: 'Jobs',
+    17: 'Agriculture & Food',
+    16: 'Phones',
+    12: 'Babies & Kids',
 };
 
 function groupFallback(key: string) {
@@ -39,35 +67,53 @@ function groupFallback(key: string) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   CATEGORY NORMALISER
+   CANONICAL NORMALISER — maps any raw business.category → one of the 17 labels
 ───────────────────────────────────────────────────────────────────────────── */
-function normalizeGroup(cat: string): string {
-    const lc = (cat || '').toLowerCase().trim();
-    if (!lc) return 'Other';
-    if (lc.includes('food') || lc.includes('grocer') || lc.includes('farm') || lc.includes('agri') || lc.includes('vegetable') || lc.includes('market')) return 'Food & Groceries';
-    if (lc.includes('sport') || lc.includes('fitness') || lc.includes('gym')) return 'Sports & Fitness';
-    if (lc.includes('beauty') || lc.includes('health') || lc.includes('skin') || lc.includes('cosmet') || lc.includes('personal care')) return 'Health & Beauty';
-    if (lc.includes('cloth') || lc.includes('fashion') || lc.includes('shoe') || lc.includes('apparel') || lc.includes('dress')) return 'Fashion';
-    if (lc.includes('electron') || lc.includes('tech') || lc.includes('gadget') || lc.includes('phone') || lc.includes('computer')) return 'Electronics';
-    if (lc.includes('home') || lc.includes('furniture') || lc.includes('household') || lc.includes('sofa') || lc.includes('decor')) return 'Home & Furniture';
-    if (lc.includes('vehicle') || lc.includes('car') || lc.includes('auto') || lc.includes('motor') || lc.includes('bike')) return 'Vehicles';
-    if (lc.includes('livestock') || lc.includes('animal') || lc.includes('camel') || lc.includes('goat')) return 'Livestock';
-    if (lc.includes('real estate') || lc.includes('property') || lc.includes('land')) return 'Real Estate';
-    if (lc.includes('service') || lc.includes('consult') || lc.includes('repair')) return 'Services';
-    return cat.charAt(0).toUpperCase() + cat.slice(1);
+function normalizeGroup(category: string, name?: string): string {
+    const lc = ((category || '') + ' ' + (name || '')).toLowerCase().trim();
+    if (!lc) return 'Services';
+    if (lc.includes('phone') || lc.includes('mobile') || lc.includes('sim') || lc.includes('handset')) return 'Phones';
+    if (lc.includes('baby') || lc.includes('kid') || lc.includes('child') || lc.includes('infant') || lc.includes('toddler')) return 'Babies & Kids';
+    if (lc.includes('spice') || lc.includes('nut') || lc.includes('food') || lc.includes('grocer') || lc.includes('supermarket') || lc.includes('restaurant') || lc.includes('cafe')) return 'Food & Groceries';
+    if (lc.includes('agriculture') || lc.includes('agri')) return 'Agriculture & Food';
+    if (lc.includes('perfume') || lc.includes('amara') || lc.includes('beauty') || lc.includes('personal care') || lc.includes('skin') || lc.includes('cosmet') || lc.includes('salon') || lc.includes('hair') || lc.includes('makeup')) return 'Beauty & Personal Care';
+    if (lc.includes('sport') || lc.includes('arena') || lc.includes('fitness') || lc.includes('gym') || lc.includes('leisure') || lc.includes('outdoor') || lc.includes('recreation')) return 'Leisure & Sports';
+    if (lc.includes('cloth') || lc.includes('fashion') || lc.includes('shoe') || lc.includes('apparel') || lc.includes('dress') || lc.includes('boutique') || lc.includes('tailor')) return 'Clothing & Shoes';
+    if (lc.includes('household') || lc.includes('home') || lc.includes('furniture') || lc.includes('sofa') || lc.includes('decor') || lc.includes('kitchen') || lc.includes('appliance')) return 'Household Items';
+    if (lc.includes('electron') || lc.includes('tech') || lc.includes('gadget') || lc.includes('computer') || lc.includes('laptop') || lc.includes('tv')) return 'Electronics';
+    if (lc.includes('vehicle') || lc.includes('car') || lc.includes('auto') || lc.includes('motor') || lc.includes('bike') || lc.includes('truck') || lc.includes('automotive')) return 'Vehicles';
+    if (lc.includes('livestock') || lc.includes('animal') || lc.includes('camel') || lc.includes('goat') || lc.includes('cattle') || lc.includes('poultry') || lc.includes('sheep')) return 'Livestock';
+    if (lc.includes('land') || lc.includes('farm')) return 'Land & Farms';
+    if (lc.includes('property') || lc.includes('real estate') || lc.includes('apartment') || lc.includes('plot')) return 'Property';
+    if (lc.includes('repair') || lc.includes('construction') || lc.includes('contractor') || lc.includes('plumb') || lc.includes('build')) return 'Repair & Construction';
+    if (lc.includes('commercial') || lc.includes('equipment') || lc.includes('machinery') || lc.includes('industrial')) return 'Commercial Equipment';
+    if (lc.includes('job') || lc.includes('hiring') || lc.includes('vacancy') || lc.includes('career') || lc.includes('employ')) return 'Jobs';
+    if (lc.includes('service') || lc.includes('consult') || lc.includes('delivery') || lc.includes('cleaning') || lc.includes('freelance') || lc.includes('gatitu')) return 'Services';
+    if (lc.includes('suqafuran')) return 'Food & Groceries';
+    return 'Services';
 }
 
-const GROUP_ORDER = ['Food & Groceries','Health & Beauty','Sports & Fitness','Fashion','Electronics','Home & Furniture','Vehicles','Livestock','Real Estate','Services'];
+/** Display order mirrors the sidebar */
+const GROUP_ORDER: readonly string[] = CANONICAL_CATEGORIES.map(c => c.name);
 
 function sortGroups(keys: string[]) {
-    return [...GROUP_ORDER.filter(g => keys.includes(g)), ...keys.filter(g => !GROUP_ORDER.includes(g)).sort()];
+    const ordered = GROUP_ORDER.filter(g => keys.includes(g));
+    const rest = keys.filter(g => !GROUP_ORDER.includes(g)).sort();
+    return [...ordered, ...rest];
 }
+
+/** Route for each canonical category */
+function groupRoute(name: string): string {
+    const cat = CANONICAL_CATEGORIES.find(c => c.name === name);
+    return cat ? `/${cat.slug}` : `/search?q=${encodeURIComponent(name)}`;
+}
+
 
 /* ─────────────────────────────────────────────────────────────────────────────
    SHOP THUMBNAIL — prefer logo, else category fallback
 ───────────────────────────────────────────────────────────────────────────── */
 function shopImg(biz: Business, group: string) {
-    if (biz.logo_url) { const r = resolveMediaUrl(biz.logo_url); if (r) return r; }
+    if (biz.logo_url)   { const r = resolveMediaUrl(biz.logo_url);   if (r) return r; }
     if (biz.banner_url) { const r = resolveMediaUrl(biz.banner_url); if (r) return r; }
     return groupFallback(group);
 }
@@ -220,25 +266,6 @@ function Skeleton() {
     );
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   GROUP → ROUTE SLUG
-───────────────────────────────────────────────────────────────────────────── */
-const GROUP_ROUTES: Record<string, string> = {
-    'Food & Groceries': '/food-groceries',
-    'Health & Beauty':  '/health-beauty',
-    'Sports & Fitness': '/sports',
-    Fashion:            '/clothing-shoes',
-    Electronics:        '/electronics',
-    'Home & Furniture': '/household-items',
-    Vehicles:           '/vehicles',
-    Livestock:          '/livestock',
-    'Real Estate':      '/property',
-    Services:           '/services',
-};
-
-function groupRoute(key: string) {
-    return GROUP_ROUTES[key] ?? `/search?q=${encodeURIComponent(key)}`;
-}
 
 /* ─────────────────────────────────────────────────────────────────────────────
    MAIN HOME PAGE
@@ -248,7 +275,6 @@ export default function HomePage() {
     const t = useT();
     const field = useLocalizedField();
 
-    const [dbCategories, setDbCategories] = useState<DbCategory[]>([]);
     const [allBusinesses, setAllBusinesses] = useState<Business[]>([]);
     const [dealListings, setDealListings] = useState<Listing[]>([]);
     const [p2pListings, setP2pListings] = useState<Listing[]>([]);
@@ -268,12 +294,10 @@ export default function HomePage() {
     useEffect(() => {
         async function load() {
             try {
-                const [cats, bizzes, listings] = await Promise.all([
-                    listingsService.getCategories(),
+                const [bizzes, listings] = await Promise.all([
                     businessService.getNearbyShops(lat && lng ? { lat, lng, limit: 200 } : { limit: 200 }),
                     listingsService.getListings(cityLabel ? { location: cityLabel } : undefined),
                 ]);
-                setDbCategories(cats || []);
                 setAllBusinesses((bizzes || []).filter(b => b.is_active !== false));
                 const ls = listings || [];
                 setDealListings(ls.filter(l => l.is_negotiable));
@@ -287,36 +311,89 @@ export default function HomePage() {
         load();
     }, [cityLabel, lat, lng]);
 
-    // ── Group businesses ─────────────────────────────────────────────────────
+    // ── Group shops derived from listings + businesses ────────────────────────
     const groups = useMemo(() => {
         const map = new Map<string, Business[]>();
-        for (const biz of allBusinesses) {
-            const key = normalizeGroup(biz.category || '');
-            if (!map.has(key)) map.set(key, []);
-            map.get(key)!.push(biz);
+
+        // 1. Initialize map keys for all 17 categories to guarantee grouping can exist
+        for (const cat of CANONICAL_CATEGORIES) {
+            map.set(cat.name, []);
         }
+
+        // 2. Add P2P sellers derived from listings
+        for (const listing of p2pListings) {
+            if (!listing.owner) continue;
+
+            const categoryName = ID_TO_CANONICAL[listing.category_id] || 'Services';
+            const listForCategory = map.get(categoryName) || [];
+            if (!map.has(categoryName)) {
+                map.set(categoryName, listForCategory);
+            }
+
+            const existing = listForCategory.find(b => b.id === listing.owner_id.toString());
+            if (!existing) {
+                const owner = listing.owner;
+                const ratingValue = owner.trust_score ? (owner.trust_score / 200) : 4.5;
+                const businessObj: Business = {
+                    id: listing.owner_id.toString(),
+                    owner_id: listing.owner_id,
+                    name: owner.full_name || 'Local Seller',
+                    slug: listing.owner_id.toString(),
+                    logo_url: owner.avatar_url ? resolveMediaUrl(owner.avatar_url) || undefined : undefined,
+                    banner_url: listing.images?.[0] ? resolveMediaUrl(listing.images[0]) || undefined : undefined,
+                    is_verified: owner.is_verified || false,
+                    rating: ratingValue,
+                    trust_score: owner.trust_score || 900,
+                    address: listing.location,
+                    is_active: true,
+                    category: categoryName,
+                };
+                listForCategory.push(businessObj);
+            } else {
+                if (!existing.banner_url && listing.images?.[0]) {
+                    existing.banner_url = resolveMediaUrl(listing.images[0]) || undefined;
+                }
+            }
+        }
+
+        // 3. Add registered businesses from allBusinesses
+        for (const biz of allBusinesses) {
+            const categoryName = normalizeGroup(biz.category || '', biz.name);
+            const listForCategory = map.get(categoryName) || [];
+            if (!map.has(categoryName)) {
+                map.set(categoryName, listForCategory);
+            }
+            const existing = listForCategory.find(b => b.slug === biz.slug || b.owner_id === biz.owner_id);
+            if (!existing) {
+                listForCategory.push(biz);
+            }
+        }
+
+        // 4. Remove empty categories from the map so we only show sections with active shops
+        for (const [key, val] of map.entries()) {
+            if (val.length === 0) {
+                map.delete(key);
+            }
+        }
+
         return map;
-    }, [allBusinesses]);
+    }, [p2pListings, allBusinesses]);
 
     const sortedKeys = sortGroups(Array.from(groups.keys()));
 
-    // ── Pill categories ──────────────────────────────────────────────────────
+    // ── Pill categories — always from the 17 canonical list ──────────────────
     const pills = [
         { name: 'All', slug: 'all' },
-        ...dbCategories.map(c => ({ name: field(c.name_en, c.name_so).split(' (')[0], slug: c.slug })),
+        ...CANONICAL_CATEGORIES.map(c => ({ name: c.name, slug: c.slug })),
     ];
 
     // ── Filtered businesses for single-pill view ─────────────────────────────
     const pillFiltered = useMemo(() => {
         if (activePill === 'all') return [];
-        const dbCat = dbCategories.find(c => c.slug === activePill);
-        if (!dbCat) return [];
-        const label = field(dbCat.name_en, dbCat.name_so).split(' (')[0].toLowerCase();
-        return allBusinesses.filter(biz => {
-            const grp = normalizeGroup(biz.category || '').toLowerCase();
-            return grp.includes(label) || label.includes(grp) || (biz.category || '').toLowerCase().includes(label);
-        });
-    }, [activePill, allBusinesses, dbCategories, field]);
+        const cat = CANONICAL_CATEGORIES.find(c => c.slug === activePill);
+        if (!cat) return [];
+        return groups.get(cat.name) || [];
+    }, [activePill, groups]);
 
     // ── Scroll helpers ───────────────────────────────────────────────────────
     const scroll = (key: string, dir: 'left' | 'right') => {
@@ -331,6 +408,9 @@ export default function HomePage() {
     const p2pStores = useMemo(() => deriveStoresFromListings(p2pListings), [p2pListings]);
 
     if (loading) return <Skeleton />;
+
+    // Alias so CategorySection calls still work
+    const groupRouteFn = groupRoute;
 
     return (
         <div className="py-6 px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-900 min-h-screen space-y-8">
@@ -374,7 +454,7 @@ export default function HomePage() {
                     {pillFiltered.length > 0 ? (
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                             {pillFiltered.map(biz => (
-                                <ShopCard key={biz.id} biz={biz} group={normalizeGroup(biz.category || '')} />
+                                <ShopCard key={biz.id} biz={biz} group={normalizeGroup(biz.category || '', biz.name)} />
                             ))}
                         </div>
                     ) : (
@@ -395,7 +475,7 @@ export default function HomePage() {
                                 key={groupKey}
                                 group={groupKey}
                                 businesses={groups.get(groupKey) || []}
-                                seeAllHref={groupRoute(groupKey)}
+                                seeAllHref={groupRouteFn(groupKey)}
                                 sliderRef={el => sliderRefs.current.set(groupKey, el)}
                                 onLeft={() => scroll(groupKey, 'left')}
                                 onRight={() => scroll(groupKey, 'right')}
