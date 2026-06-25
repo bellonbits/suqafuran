@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LogIn } from 'lucide-react';
+import { Home, Tag, LogIn } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuth';
 import { useAuthModal } from '../../store/useAuthModal';
 import { useSidebarStore } from '../../store/useSidebar';
@@ -27,11 +27,18 @@ export const Sidebar: React.FC = () => {
 
     const field = useLocalizedField();
 
-    const menuItems = categories.map(cat => ({
+    const staticItems = [
+        { name: 'Home', path: '/home', icon: Home },
+        { name: 'Deals', path: '/deals', icon: Tag },
+    ];
+
+    const dynamicItems = categories.map(cat => ({
         name: field(cat.name_en, cat.name_so).split(' (')[0],
         path: `/${cat.slug}`,
         icon: getCategoryIcon(cat.slug),
     }));
+
+    const menuItems = [...staticItems, ...dynamicItems];
 
     // Admin, agent, and seller dashboards are full-focus workspaces — the
     // marketplace browsing sidebar competes for attention there, so hide it.
@@ -43,9 +50,7 @@ export const Sidebar: React.FC = () => {
             <div className="py-4 space-y-1">
                 {menuItems.map((item, idx) => {
                     const Icon = item.icon;
-                    const isActive = item.path === '/'
-                        ? pathname === '/'
-                        : pathname === item.path;
+                    const isActive = pathname === item.path;
 
                     return (
                         <Link
