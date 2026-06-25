@@ -130,28 +130,68 @@ export default function LandingPage() {
           Food images bleed in from both sides, content centered
       ══════════════════════════════════════════════════════ */}
       <section className="relative bg-[#0EA5E9] overflow-hidden">
-        {/* Left bleed photo */}
-        <div className="absolute inset-y-0 left-0 w-[30%] overflow-hidden pointer-events-none">
+        {/* Style tag for custom floating animations */}
+        <style>{`
+          @keyframes float-card-1 {
+            0%, 100% { transform: translateY(0) rotate(3deg); }
+            50% { transform: translateY(-10px) rotate(4deg); }
+          }
+          @keyframes float-card-2 {
+            0%, 100% { transform: translateY(0) rotate(-3deg); }
+            50% { transform: translateY(10px) rotate(-2deg); }
+          }
+          .animate-float-card-1 {
+            animation: float-card-1 6s ease-in-out infinite;
+          }
+          .animate-float-card-2 {
+            animation: float-card-2 7s ease-in-out infinite;
+          }
+        `}</style>
+
+        {/* Left side decoration — phone with icons, basket, coffee beans on solid #0EA5E9 background */}
+        <div className="absolute inset-y-0 left-0 w-[32%] hidden xl:block pointer-events-none">
           <img
-            src="/seller_hero.png"
+            src="/left_hero_decor.png"
             alt=""
-            className="absolute inset-0 w-full h-full object-cover object-right opacity-90"
-            style={{ maskImage: 'linear-gradient(to right, black 60%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to right, black 60%, transparent 100%)' }}
+            className="w-full h-full object-cover object-left"
           />
         </div>
 
-        {/* Right bleed photo */}
-        <div className="absolute inset-y-0 right-0 w-[30%] overflow-hidden pointer-events-none">
-          <img
-            src="/business_hero.png"
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover object-left opacity-90"
-            style={{ maskImage: 'linear-gradient(to left, black 60%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to left, black 60%, transparent 100%)' }}
-          />
+        {/* Right side floating marketplace cards — showcasing real marketplace listings */}
+        <div className="absolute inset-y-0 right-0 w-[32%] hidden xl:flex flex-col justify-center items-center gap-8 pr-12 pointer-events-none">
+          {/* Listing Card 1 */}
+          <div className="bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-white/20 transform rotate-3 max-w-[250px] animate-float-card-1">
+            <img
+              src="/categories/grocery.jpg"
+              alt="Fresh Organic Vegetables"
+              className="w-full h-28 object-cover rounded-xl mb-3"
+            />
+            <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Verified Listing</span>
+            <h4 className="font-black text-xs text-slate-800 mt-1.5 font-sans">Fresh Organic Vegetables</h4>
+            <div className="flex justify-between items-center text-[10px] text-slate-500 font-bold mt-1">
+              <span>Mogadishu, SO</span>
+              <span className="text-[#0EA5E9] font-black">$4.50 / kg</span>
+            </div>
+          </div>
+
+          {/* Listing Card 2 */}
+          <div className="bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-white/20 transform -rotate-3 max-w-[250px] animate-float-card-2">
+            <img
+              src="/categories/sport.jpg"
+              alt="Advanced Sport Sneakers"
+              className="w-full h-28 object-cover rounded-xl mb-3"
+            />
+            <span className="text-[10px] font-black text-[#0EA5E9] bg-sky-50 px-2 py-0.5 rounded-full">Secure Escrow</span>
+            <h4 className="font-black text-xs text-slate-800 mt-1.5 font-sans">Advanced Sport Sneakers</h4>
+            <div className="flex justify-between items-center text-[10px] text-slate-500 font-bold mt-1">
+              <span>Nairobi, KE</span>
+              <span className="text-emerald-500 font-black">$35.00</span>
+            </div>
+          </div>
         </div>
 
         {/* Center content */}
-        <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 pt-24 pb-20 min-h-[420px]">
+        <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 pt-44 pb-36 min-h-[600px]">
           {/* Logo — white */}
           <img
             src="/icon1.png"
@@ -160,7 +200,7 @@ export default function LandingPage() {
           />
 
           {/* Headline */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight mb-2 max-w-xl">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight mb-2 max-w-2xl">
             Africa&apos;s Marketplace for Everything
           </h1>
           <p className="text-white/80 text-sm font-semibold mb-8">
@@ -170,7 +210,7 @@ export default function LandingPage() {
           {/* Search bar — exact DoorDash pill style */}
           <form
             onSubmit={handleSearch}
-            className="relative flex items-center bg-white rounded-full shadow-xl w-full max-w-md mx-auto px-5 py-1"
+            className="relative flex items-center bg-white rounded-full shadow-xl w-full max-w-xl mx-auto px-5 py-1"
           >
             <MapPin className="h-4 w-4 text-gray-400 shrink-0 mr-3" />
             <input
@@ -211,74 +251,92 @@ export default function LandingPage() {
 
       {/* ══════════════════════════════════════════════════════
           THREE VALUE-PROP TILES — exactly like DoorDash below the hero
-          No emojis, all lucide icons, pastel bubbles
+          Using the newly generated illustrations & clean text link CTAs
       ══════════════════════════════════════════════════════ */}
       <section className="bg-white py-16">
         <div className="max-w-5xl mx-auto px-4 sm:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
 
-            {/* Tile 1 — Start Selling */}
-            <div className="flex flex-col items-center gap-5">
-              <div className="w-28 h-28 rounded-full bg-sky-50 flex items-center justify-center">
-                <ShoppingBag className="h-12 w-12 text-sky-500" strokeWidth={1.5} />
+            {/* Tile 1 — Become a Seller */}
+            <Link
+              href={isAuthenticated ? '/dashboard' : '/?auth=signup'}
+              onClick={(e) => {
+                if (!isAuthenticated) {
+                  e.preventDefault();
+                  openAuthModal('signup');
+                }
+              }}
+              className="group flex flex-col items-center bg-white p-8 rounded-3xl border border-gray-100 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full text-center"
+            >
+              <div className="h-36 w-full flex items-center justify-center mb-6">
+                <img
+                  src="/tile_seller.png"
+                  alt="Become a Seller"
+                  className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                />
               </div>
-              <div className="space-y-2">
-                <h3 className="text-xl font-black text-[#1B1B1B] leading-tight">
-                  Become a<br />Seller
-                </h3>
-                <p className="text-sm text-gray-500 leading-relaxed max-w-[220px] mx-auto">
-                  Post ads for free in minutes and reach thousands of verified buyers across Africa.
-                </p>
-              </div>
-              <button
-                onClick={() => isAuthenticated ? router.push('/dashboard') : openAuthModal('signup')}
-                className="text-sm font-black text-white bg-[#0EA5E9] hover:bg-sky-600 px-7 py-3 rounded-full transition-all shadow-md shadow-sky-500/20"
-              >
+              <h3 className="text-xl font-black text-[#1B1B1B] mb-2 leading-tight">
                 Become a Seller
-              </button>
-            </div>
+              </h3>
+              <p className="text-sm text-gray-500 leading-relaxed mb-6 max-w-[240px] mx-auto flex-grow">
+                Post ads for free in minutes and reach thousands of verified buyers across Africa.
+              </p>
+              <span className="inline-flex items-center gap-2 text-sm font-black text-[#0EA5E9] group-hover:text-sky-600 transition-colors mt-auto">
+                Start selling <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </span>
+            </Link>
 
-            {/* Tile 2 — Grow Business */}
-            <div className="flex flex-col items-center gap-5">
-              <div className="w-28 h-28 rounded-full bg-emerald-50 flex items-center justify-center">
-                <Store className="h-12 w-12 text-emerald-500" strokeWidth={1.5} />
+            {/* Tile 2 — Become a Partner */}
+            <Link
+              href={isAuthenticated ? '/dashboard' : '/?auth=signup'}
+              onClick={(e) => {
+                if (!isAuthenticated) {
+                  e.preventDefault();
+                  openAuthModal('signup');
+                }
+              }}
+              className="group flex flex-col items-center bg-white p-8 rounded-3xl border border-gray-100 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full text-center"
+            >
+              <div className="h-36 w-full flex items-center justify-center mb-6">
+                <img
+                  src="/tile_business.png"
+                  alt="Become a Partner"
+                  className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                />
               </div>
-              <div className="space-y-2">
-                <h3 className="text-xl font-black text-[#1B1B1B] leading-tight">
-                  Become a<br />Business Partner
-                </h3>
-                <p className="text-sm text-gray-500 leading-relaxed max-w-[220px] mx-auto">
-                  Create a storefront, manage products, track orders, and grow your customer base.
-                </p>
-              </div>
-              <button
-                onClick={() => isAuthenticated ? router.push('/dashboard') : openAuthModal('signup')}
-                className="text-sm font-black text-white bg-emerald-500 hover:bg-emerald-600 px-7 py-3 rounded-full transition-all shadow-md shadow-emerald-500/20"
-              >
-                List Your Business
-              </button>
-            </div>
+              <h3 className="text-xl font-black text-[#1B1B1B] mb-2 leading-tight">
+                Become a Partner
+              </h3>
+              <p className="text-sm text-gray-500 leading-relaxed mb-6 max-w-[240px] mx-auto flex-grow">
+                Create a digital storefront, manage products, and grow your customer base with ease.
+              </p>
+              <span className="inline-flex items-center gap-2 text-sm font-black text-emerald-500 group-hover:text-emerald-600 transition-colors mt-auto">
+                Sign up your business <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </span>
+            </Link>
 
-            {/* Tile 3 — Get App */}
-            <div className="flex flex-col items-center gap-5">
-              <div className="w-28 h-28 rounded-full bg-slate-100 flex items-center justify-center">
-                <Smartphone className="h-12 w-12 text-slate-600" strokeWidth={1.5} />
+            {/* Tile 3 — Get the App */}
+            <Link
+              href="/home"
+              className="group flex flex-col items-center bg-white p-8 rounded-3xl border border-gray-100 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 h-full text-center"
+            >
+              <div className="h-36 w-full flex items-center justify-center mb-6">
+                <img
+                  src="/tile_app.png"
+                  alt="Get the App"
+                  className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                />
               </div>
-              <div className="space-y-2">
-                <h3 className="text-xl font-black text-[#1B1B1B] leading-tight">
-                  Get the best<br />experience
-                </h3>
-                <p className="text-sm text-gray-500 leading-relaxed max-w-[220px] mx-auto">
-                  Download the Suqafuran app for live chat, offline sync, and push notifications.
-                </p>
-              </div>
-              <button
-                onClick={() => router.push('/home')}
-                className="text-sm font-black text-[#1B1B1B] border border-[#1B1B1B] px-7 py-3 rounded-full hover:bg-gray-50 transition-all"
-              >
+              <h3 className="text-xl font-black text-[#1B1B1B] mb-2 leading-tight">
                 Get the App
-              </button>
-            </div>
+              </h3>
+              <p className="text-sm text-gray-500 leading-relaxed mb-6 max-w-[240px] mx-auto flex-grow">
+                Download the Suqafuran app for live chat, offline sync, and push notifications.
+              </p>
+              <span className="inline-flex items-center gap-2 text-sm font-black text-slate-700 group-hover:text-slate-900 transition-colors mt-auto">
+                Get the app <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </span>
+            </Link>
 
           </div>
         </div>
