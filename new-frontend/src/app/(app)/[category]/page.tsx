@@ -1,11 +1,11 @@
 "use client";
 
-import React, { use, useState, useEffect } from 'react';
+import React, { use, useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
-import { ChevronRight, ChevronLeft, Star } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Star, ShieldCheck, ShoppingBag } from 'lucide-react';
 import { useCartStore } from '../../../store/useCart';
 import { listingsService } from '../../../services/listings';
-import { resolveMediaUrl } from '../../../services/api';
+import api, { resolveMediaUrl } from '../../../services/api';
 import { useCurrencyStore } from '../../../store/useCurrency';
 import { formatConvertedPrice } from '../../../lib/currency';
 import { useLocalizedField } from '../../../lib/i18n';
@@ -16,21 +16,13 @@ interface Store {
     id: string;
     name: string;
     slug: string;
-    image: string;
-    rating?: string;
+    logo_url?: string;
+    image?: string;
+    rating: number;
     time: string;
-    distance?: string;
-    tags: string[];
-}
-
-interface DealProduct {
-    id: number;
-    name: string;
-    image: string;
-    price: number;
-    currency: string;
-    badge?: string;
-    views?: number;
+    distance: string;
+    isVerified: boolean;
+    trust_score: number;
 }
 
 interface PageProps {
@@ -95,6 +87,109 @@ const categorySlugMap: Record<string, string> = {
     'babies-kids': 'babies-kids'
 };
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   STORE CARD — Circular Logo + Delivery Info (Row format)
+───────────────────────────────────────────────────────────────────────────── */
+function CategoryStoreCard({ store }: { store: Store }) {
+    return (
+        <Link 
+            href={`/shop/${store.slug}`}
+            className="flex items-center gap-3 p-4 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl hover:shadow-md transition-all duration-200 cursor-pointer"
+        >
+            {/* Circular Logo */}
+            <div className="h-12 w-12 rounded-full border border-gray-100 dark:border-slate-800 flex items-center justify-center bg-white dark:bg-slate-950 shrink-0 overflow-hidden shadow-sm">
+                <img 
+                    src={store.logo_url || store.image} 
+                    alt={store.name} 
+                    className="h-full w-full object-cover" 
+                />
+            </div>
+            
+            {/* Meta details */}
+            <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-slate-100 truncate leading-tight">
+                        {store.name}
+                    </h3>
+                    {store.isVerified && (
+                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                    )}
+                </div>
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                    {store.time}
+                </p>
+                <p className="text-[10px] text-gray-400 dark:text-slate-500 font-medium">
+                    {store.distance} · Free escrow
+                </p>
+            </div>
+        </Link>
+    );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PRODUCT CARD — Landscape/Square + Bottom Add Button
+───────────────────────────────────────────────────────────────────────────── */
+function CategoryProductCard({ listing, onAddToCart }: { listing: Listing; onAddToCart: () => void }) {
+    const img = listing.images?.[0] ? resolveMediaUrl(listing.images[0]) || '/categories/grocery.jpg' : '/categories/grocery.jpg';
+    const displayCurrency = useCurrencyStore((s) => s.currency);
+    const field = useLocalizedField();
+
+    return (
+        <Link 
+            href={`/listings/${listing.id}`}
+            className="shrink-0 w-[140px] sm:w-[150px] group cursor-pointer flex flex-col justify-between"
+        >
+            <div className="space-y-2">
+                {/* Image Box */}
+                <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-800 flex items-center justify-center p-2">
+                    <img 
+                        src={img} 
+                        alt={field(listing.title_en, listing.title_so)} 
+                        className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105" 
+                    />
+                    
+                    {/* Add to Cart circle button */}
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onAddToCart();
+                        }}
+                        className="absolute bottom-2.5 right-2.5 h-7 w-7 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-200 rounded-full flex items-center justify-center font-bold text-sm shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer z-10"
+                    >
+                        +
+                    </button>
+                    
+                    {listing.is_negotiable && (
+                        <span className="absolute top-2 left-2 bg-orange-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full">
+                            Negotiable
+                        </span>
+                    )}
+                </div>
+                
+                {/* Text meta */}
+                <div className="space-y-0.5 px-0.5">
+                    <span className="text-xs font-extrabold text-gray-900 dark:text-slate-100">
+                        {formatConvertedPrice(listing.price, listing.currency, displayCurrency)}
+                    </span>
+                    <h4 className="text-xs font-semibold text-gray-800 dark:text-slate-200 line-clamp-2 mt-0.5 leading-snug">
+                        {field(listing.title_en, listing.title_so)}
+                    </h4>
+                </div>
+            </div>
+            
+            <div className="px-0.5 mt-1">
+                <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-1.5 py-0.5 rounded block w-max">
+                    In stock
+                </span>
+            </div>
+        </Link>
+    );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MAIN PAGE COMPONENT
+───────────────────────────────────────────────────────────────────────────── */
 export default function CategoryPage({ params }: PageProps) {
     const { category } = use(params);
     const { addToCart } = useCartStore();
@@ -102,28 +197,27 @@ export default function CategoryPage({ params }: PageProps) {
     const field = useLocalizedField();
 
     const [title, setTitle] = useState('');
-    const [popularStores, setPopularStores] = useState<Store[]>([]);
-    const [savingsCols, setSavingsCols] = useState<{ name: string; products: DealProduct[] }[]>([]);
-    const [topStores, setTopStores] = useState<Store[]>([]);
+    const [stores, setStores] = useState<Store[]>([]);
+    const [listingsByStore, setListingsByStore] = useState<{ store: Store; listings: Listing[] }[]>([]);
     const [loading, setLoading] = useState(true);
-    
-    // Capitalize helper
+    const [activeFilters, setActiveFilters] = useState<string[]>([]);
+
+    const sliderRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
+
+    const isDealsPage = category === 'deals';
+
     const formatCategoryName = (slug: string) => {
         return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     };
-
-    const isDealsPage = category === 'deals';
 
     useEffect(() => {
         const targetSlug = categorySlugMap[category] || category;
         const canonicalCat = CANONICAL_CATEGORIES.find(c => c.slug === targetSlug);
         const catName = canonicalCat ? canonicalCat.name : formatCategoryName(category);
-        setTitle(isDealsPage ? 'Deals Near You' : `${catName} Stores Near You`);
+        setTitle(catName);
 
         async function loadCategoryData() {
             try {
-                // "Deals" isn't a real category — it's a cross-category filter
-                // on negotiable listings, fetched unfiltered then narrowed client-side.
                 const dbCategorySlug = categorySlugMap[category] || category;
                 const rawListings = isDealsPage
                     ? await listingsService.getListings()
@@ -132,10 +226,8 @@ export default function CategoryPage({ params }: PageProps) {
                     ? rawListings.filter(l => l.is_negotiable)
                     : rawListings;
 
-                // Map listings/products
                 if (fetchedListings && fetchedListings.length > 0) {
-                    // Extract unique sellers from listings
-                    const uniqueSellersMap = new Map<number, any>();
+                    const uniqueSellersMap = new Map<number, Store>();
                     fetchedListings.forEach(l => {
                         if (l.owner && !uniqueSellersMap.has(l.owner_id)) {
                             const trustScoreVal = l.owner.trust_score || 95;
@@ -143,62 +235,39 @@ export default function CategoryPage({ params }: PageProps) {
                                 id: l.owner_id.toString(),
                                 name: l.owner.full_name || "Local Seller",
                                 slug: l.owner_id.toString(),
+                                logo_url: l.owner.avatar_url ? resolveMediaUrl(l.owner.avatar_url) || undefined : undefined,
                                 image: l.images?.[0]
-                                    ? resolveMediaUrl(l.images[0])
+                                    ? resolveMediaUrl(l.images[0]) || undefined
                                     : resolveMediaUrl(l.owner.avatar_url) || getFallbackImage(dbCategorySlug),
-                                rating: `${(trustScoreVal / 20).toFixed(1)}`,
+                                rating: trustScoreVal / 200,
                                 time: "25-35 min",
                                 distance: l.location ? l.location.split(',')[0] : "Nearby",
-                                tags: l.owner.trust_level ? [l.owner.trust_level] : ["Verified Seller"]
+                                isVerified: l.owner.is_verified || false,
+                                trust_score: trustScoreVal
                             });
                         }
                     });
 
                     const derivedStores = Array.from(uniqueSellersMap.values());
-                    setPopularStores(derivedStores);
-                    setTopStores(derivedStores);
+                    setStores(derivedStores);
 
-                    // Partition listings into creative categories (e.g. Featured, Hot Savings)
-                    const featuredList = fetchedListings.slice(0, 4).map(l => ({
-                        id: l.id,
-                        name: field(l.title_en, l.title_so) || "Product",
-                        image: l.images?.[0] || "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=200",
-                        price: l.price,
-                        currency: l.currency,
-                        badge: l.condition || "New",
-                        views: l.views
-                    }));
-
-                    const savingsList = fetchedListings.filter(l => l.is_negotiable).slice(0, 4).map(l => ({
-                        id: l.id,
-                        name: field(l.title_en, l.title_so) || "Product",
-                        image: l.images?.[0] || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=200",
-                        price: l.price,
-                        currency: l.currency,
-                        badge: "Negotiable",
-                        views: l.views
-                    }));
-
-                    const cols = [];
-                    if (featuredList.length > 0) {
-                        cols.push({ name: 'Featured Listings', products: featuredList });
-                    }
-                    if (savingsList.length > 0) {
-                        cols.push({ name: 'Negotiable Listings', products: savingsList });
-                    }
-
-                    setSavingsCols(cols);
+                    const grouped: { store: Store; listings: Listing[] }[] = [];
+                    derivedStores.forEach(store => {
+                        const storeListings = fetchedListings.filter(l => l.owner_id.toString() === store.id);
+                        grouped.push({
+                            store,
+                            listings: storeListings
+                        });
+                    });
+                    setListingsByStore(grouped);
                 } else {
-                    setPopularStores([]);
-                    setTopStores([]);
-                    setSavingsCols([]);
+                    setStores([]);
+                    setListingsByStore([]);
                 }
-
             } catch (err) {
-                console.error("Failed loading category data from backend:", err);
-                setPopularStores([]);
-                setTopStores([]);
-                setSavingsCols([]);
+                console.error("Failed loading category data:", err);
+                setStores([]);
+                setListingsByStore([]);
             } finally {
                 setLoading(false);
             }
@@ -207,216 +276,186 @@ export default function CategoryPage({ params }: PageProps) {
         loadCategoryData();
     }, [category]);
 
-    const renderSavingCard = (product: DealProduct) => (
-        <div key={product.id} className="p-3 bg-slate-50 border border-gray-100 rounded-2xl flex gap-3 relative dark:bg-slate-950 dark:border-slate-800">
-            <div className="h-16 w-16 rounded-xl overflow-hidden relative shrink-0">
-                <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
-                <button
-                    onClick={() => addToCart({ id: product.id, name: product.name, price: product.price, currency: product.currency, image: product.image })}
-                    className="absolute bottom-1 right-1 h-6 w-6 bg-white border border-gray-200 text-gray-800 rounded-full flex items-center justify-center font-bold text-sm shadow-md hover:bg-slate-50 active:scale-90 cursor-pointer shrink-0 z-10"
-                >
-                    +
-                </button>
-            </div>
-            <div className="overflow-hidden flex-1 flex flex-col justify-between py-0.5">
-                <div>
-                    <h4 className="text-[11px] font-black text-gray-900 dark:text-slate-100 truncate">{product.name}</h4>
-                    {!!product.views && (
-                        <span className="text-[9px] text-gray-400 font-bold">{product.views} views</span>
-                    )}
-                </div>
-                <div className="space-y-0.5">
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-xs font-black text-gray-900 dark:text-slate-100">{formatConvertedPrice(product.price, product.currency, displayCurrency)}</span>
-                    </div>
-                    {product.badge && (
-                        <span className="text-[9px] font-extrabold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 px-1.5 py-0.5 rounded block w-max">
-                            {product.badge}
-                        </span>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
+    // ── Filter handling ──────────────────────────────────────────────────────
+    const filteredStores = useMemo(() => {
+        let results = [...stores];
+        if (activeFilters.includes('Over 4.5★')) {
+            results = results.filter(s => s.rating >= 4.5);
+        }
+        if (activeFilters.includes('Verified Only')) {
+            results = results.filter(s => s.isVerified);
+        }
+        return results;
+    }, [stores, activeFilters]);
+
+    const filteredListingsByStore = useMemo(() => {
+        let results = [...listingsByStore];
+        if (activeFilters.includes('Over 4.5★')) {
+            results = results.filter(item => item.store.rating >= 4.5);
+        }
+        if (activeFilters.includes('Verified Only')) {
+            results = results.filter(item => item.store.isVerified);
+        }
+        return results;
+    }, [listingsByStore, activeFilters]);
+
+    const scroll = (key: string, dir: 'left' | 'right') => {
+        const el = sliderRefs.current.get(key);
+        if (el) el.scrollBy({ left: dir === 'left' ? -480 : 480, behavior: 'smooth' });
+    };
+
+    const toggleFilter = (filter: string) => {
+        setActiveFilters(prev => 
+            prev.includes(filter) ? prev.filter(f => f !== filter) : [...prev, filter]
+        );
+    };
 
     if (loading) {
         return (
-            <div className="py-6 px-4 sm:px-6 lg:px-8 space-y-8 bg-white dark:bg-slate-900 min-h-screen">
-                <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-full animate-pulse" />
-                <div className="flex gap-2.5 overflow-x-auto pb-2">
-                    {[1, 2, 3, 4, 5].map(i => (
-                        <div key={i} className="h-10 w-24 bg-slate-100 dark:bg-slate-800 rounded-full animate-pulse shrink-0" />
-                    ))}
+            <div className="py-6 px-4 sm:px-6 lg:px-8 space-y-10 bg-white dark:bg-slate-900 min-h-screen animate-pulse">
+                <div className="h-8 w-52 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+                <div className="flex gap-2">
+                    {[1, 2, 3, 4].map(i => <div key={i} className="h-9 w-24 bg-slate-100 dark:bg-slate-800 rounded-full" />)}
                 </div>
-                <div className="space-y-6 animate-pulse">
-                    <div className="h-40 bg-slate-100 dark:bg-slate-800 rounded-3xl" />
-                    <div className="h-6 w-48 bg-slate-200 dark:bg-slate-800 rounded-full" />
-                    <div className="flex gap-5 overflow-x-auto">
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className="w-64 h-36 bg-slate-100 dark:bg-slate-800 rounded-3xl shrink-0" />
-                        ))}
-                    </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {[1, 2, 3, 4].map(i => <div key={i} className="h-20 bg-slate-100 dark:bg-slate-800 rounded-2xl" />)}
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="py-6 px-4 sm:px-6 lg:px-8 space-y-8 bg-white dark:bg-slate-900 min-h-screen">
+        <div className="py-6 px-4 sm:px-6 lg:px-8 space-y-10 bg-white dark:bg-slate-900 min-h-screen">
             
             {/* Title Header */}
             <div>
-                <h1 className="text-2xl font-black text-gray-950 dark:text-slate-100 font-poppins">
-                    {title}
+                <h1 className="text-3xl font-black text-gray-950 dark:text-slate-100 font-poppins tracking-tight">
+                    {title} Stores Near You
                 </h1>
             </div>
 
-            {/* Filter Pills row */}
-            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none hide-scrollbar">
-                {['SNAP', 'HSA/FSA', 'Over 4.5', 'Under 30 min', 'Price', 'SuqaPass'].map((filter, idx) => (
-                    <button
-                        key={idx}
-                        className="px-4 py-2 rounded-full border border-gray-200 text-gray-700 bg-white hover:bg-slate-50 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 text-xs font-bold shrink-0 transition-all cursor-pointer"
-                    >
-                        {filter === 'Over 4.5' ? (
-                            <span className="flex items-center gap-1">
-                                <Star className="h-3 w-3 fill-current" />
-                                {filter}
-                            </span>
-                        ) : filter}
-                    </button>
-                ))}
+            {/* DoorDash Style Filter Pills */}
+            <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none hide-scrollbar">
+                {['Over 4.5★', 'Verified Only', 'Under 30 min', 'Fastest'].map((filter) => {
+                    const active = activeFilters.includes(filter);
+                    return (
+                        <button
+                            key={filter}
+                            onClick={() => toggleFilter(filter)}
+                            className={`px-4 py-2 rounded-full border text-xs font-semibold shrink-0 transition-all cursor-pointer ${
+                                active
+                                    ? 'bg-[#FF3008] border-transparent text-white shadow-sm'
+                                    : 'bg-white border-gray-200 text-gray-700 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200'
+                            }`}
+                        >
+                            {filter === 'Over 4.5★' ? (
+                                <span className="flex items-center gap-1">
+                                    <Star className={`h-3 w-3 ${active ? 'fill-current' : 'fill-amber-400 text-amber-400'}`} />
+                                    {filter}
+                                </span>
+                            ) : filter}
+                        </button>
+                    );
+                })}
             </div>
 
-            {/* Banners grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="rounded-3xl bg-amber-500 text-white p-6 shadow flex justify-between items-center relative overflow-hidden">
-                    <div className="space-y-4 max-w-xs">
-                        <span className="h-10 w-24 bg-white/20 rounded-xl flex items-center justify-center font-black text-xs">Coupon</span>
-                        <h3 className="text-base font-black font-poppins leading-tight">Apply coupons and enjoy 15% discount.</h3>
-                        <button className="btn-premium bg-red-600 text-white px-5 py-2 text-xs hover:bg-red-700">
-                            Apply now
-                        </button>
-                    </div>
-                </div>
-
-                <div className="rounded-3xl bg-blue-900 text-white p-6 shadow flex justify-between items-center relative overflow-hidden">
-                    <div className="space-y-4 max-w-xs">
-                        <span className="h-10 w-20 bg-white/20 rounded-xl flex items-center justify-center font-black text-xs">SuqaPass</span>
-                        <h3 className="text-base font-black font-poppins leading-tight">Unlock free delivery and escrow protection.</h3>
-                        <button className="btn-premium bg-white text-blue-900 px-5 py-2 text-xs hover:bg-slate-50">
-                            Unlock now
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Popular Near You */}
-            {popularStores.length > 0 ? (
+            {/* STORES NEAR YOU GRID */}
+            {filteredStores.length > 0 ? (
                 <section className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-black text-gray-950 dark:text-slate-100 font-poppins">
-                            Popular Near You
-                        </h2>
-                        <div className="flex items-center gap-3">
-                            <Link href="/stores" className="text-xs font-bold text-gray-500 hover:text-primary cursor-pointer">See All</Link>
-                            <div className="flex gap-1">
-                                <button className="p-1.5 rounded-full border border-gray-200 bg-white hover:bg-slate-50 text-gray-400 dark:border-slate-800 dark:bg-slate-900"><ChevronLeft className="h-4 w-4" /></button>
-                                <button className="p-1.5 rounded-full border border-gray-200 bg-white hover:bg-slate-50 text-gray-400 dark:border-slate-800 dark:bg-slate-900"><ChevronRight className="h-4 w-4" /></button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-5 overflow-x-auto pb-4 scrollbar-none hide-scrollbar">
-                        {popularStores.map((store) => (
-                            <Link 
-                                key={store.id}
-                                href={`/shop/${store.slug}`}
-                                className="w-64 shrink-0 space-y-2 group cursor-pointer"
-                            >
-                                <div className="aspect-video rounded-3xl overflow-hidden border border-gray-100 dark:border-slate-800 relative bg-slate-50 shadow-sm">
-                                    <img src={store.image} alt={store.name} className="h-full w-full object-cover group-hover:scale-103 transition-transform duration-300" />
-                                </div>
-                                <div className="space-y-0.5 px-0.5">
-                                    <h4 className="text-xs font-black text-gray-900 dark:text-slate-100 truncate">{store.name}</h4>
-                                    <div className="flex items-center gap-1.5 text-[10px] text-gray-500 dark:text-slate-400 font-semibold">
-                                        {store.distance && <span>{store.distance}</span>}
-                                        {store.distance && <span>•</span>}
-                                        <span>{store.time}</span>
-                                    </div>
-                                    <div className="flex flex-wrap gap-1 mt-1">
-                                        {store.tags.map((tag, tIdx) => (
-                                            <span key={tIdx} className="text-[9px] font-extrabold text-red-500 bg-red-50 dark:bg-red-950/20 px-2 py-0.5 rounded-full">
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </Link>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">Stores Near You</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                        {filteredStores.map(store => (
+                            <CategoryStoreCard key={store.id} store={store} />
                         ))}
                     </div>
                 </section>
             ) : (
-                <div className="py-8 text-center text-sm font-semibold text-gray-400 border border-dashed border-gray-200 dark:border-slate-800 rounded-3xl">
-                    No active seller accounts found in this category
+                <div className="py-14 text-center border border-dashed border-gray-200 dark:border-slate-800 rounded-2xl text-gray-400">
+                    No stores found in this category matching your filters.
                 </div>
             )}
 
-            {/* Savings Columns */}
-            {savingsCols.length > 0 ? (
-                <section className="space-y-4">
-                    <h2 className="text-lg font-black text-gray-950 dark:text-slate-100 font-poppins">
-                        Top savings
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {savingsCols.map((col, idx) => (
-                            <div key={idx} className="space-y-3">
-                                <h3 className="text-xs font-black text-gray-900 dark:text-slate-100 border-b border-gray-100 dark:border-slate-800 pb-2 flex items-center justify-between">
-                                    <span>{col.name}</span>
-                                    <ChevronRight className="h-4 w-4 text-gray-400" />
-                                </h3>
-                                {col.products.map(renderSavingCard)}
-                            </div>
-                        ))}
-                    </div>
-                </section>
-            ) : (
-                <div className="py-8 text-center text-sm font-semibold text-gray-400 border border-dashed border-gray-200 dark:border-slate-800 rounded-3xl">
-                    No active listings found in this category
+            {/* PROMO BANNER */}
+            <div className="rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 text-white p-6 shadow-sm flex flex-col sm:flex-row justify-between sm:items-center gap-4 relative overflow-hidden">
+                <div className="space-y-2 max-w-xl z-10">
+                    <span className="inline-block px-3 py-1 bg-white/20 rounded-lg font-black text-xs uppercase tracking-wide">Promo Deal</span>
+                    <h3 className="text-lg sm:text-xl font-black font-poppins leading-tight">Secure Trade Escrow Protection enabled for all local purchases.</h3>
+                    <p className="text-xs text-amber-50/90 font-medium">Verify your items with the driver before payouts are finalized.</p>
                 </div>
-            )}
+                <button className="sm:self-center shrink-0 w-max bg-white text-orange-600 font-extrabold px-6 py-2.5 rounded-xl hover:bg-slate-50 transition-all active:scale-95 shadow-sm text-xs cursor-pointer z-10">
+                    Browse escrow details
+                </button>
+                <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-white/10 skew-x-12 translate-x-20 hidden md:block" />
+            </div>
 
-            {/* Top Stores List Grid */}
-            {topStores.length > 0 && (
-                <section className="space-y-6 pt-4">
-                    <h2 className="text-lg font-black text-gray-950 dark:text-slate-100 font-poppins">
-                        Top Stores
-                    </h2>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {topStores.map((store) => (
-                            <Link 
-                                key={store.id}
-                                href={`/shop/${store.slug}`}
-                                className="p-5 bg-white border border-gray-100 rounded-3xl card-shadow dark:bg-slate-900 dark:border-slate-800 flex gap-4 hover:shadow-lg transition-shadow duration-300"
-                            >
-                                <div className="h-16 w-16 bg-red-500 rounded-full flex items-center justify-center text-white text-base font-black shrink-0 relative overflow-hidden">
-                                    {store.name.charAt(0)}
-                                </div>
-                                <div className="overflow-hidden flex-1 flex flex-col justify-between py-0.5">
+            {/* STORE SHOWCASE SLIDERS (Snacks / Items from stores) */}
+            {filteredListingsByStore.length > 0 && (
+                <div className="space-y-12">
+                    {filteredListingsByStore.map(({ store, listings }) => {
+                        const sliderKey = `${store.id}-slider`;
+                        return (
+                            <section key={store.id} className="space-y-4">
+                                {/* Header with slider controls */}
+                                <div className="flex items-center justify-between">
                                     <div>
-                                        <h4 className="text-xs font-black text-gray-900 dark:text-slate-100 truncate">{store.name}</h4>
-                                        <p className="text-[10px] text-gray-400 dark:text-slate-500 font-semibold">{store.time}</p>
+                                        <h3 className="text-lg font-extrabold text-gray-900 dark:text-slate-100 leading-tight">
+                                            Featured from {store.name}
+                                        </h3>
+                                        <p className="text-xs text-gray-500 mt-0.5">
+                                            From {store.name} · {store.time}
+                                        </p>
                                     </div>
-                                    <div className="flex flex-wrap gap-1 mt-1">
-                                        {store.tags.map((tag, tIdx) => (
-                                            <span key={tIdx} className="text-[9px] font-extrabold text-red-500 bg-red-50 dark:bg-red-950/20 px-2 py-0.5 rounded-full">
-                                                {tag}
-                                            </span>
-                                        ))}
+                                    <div className="flex items-center gap-2">
+                                        <Link href={`/shop/${store.slug}`} className="text-xs font-bold text-[#FF3008] hover:underline mr-2">
+                                            See All
+                                        </Link>
+                                        <button 
+                                            onClick={() => scroll(sliderKey, 'left')}
+                                            className="h-7 w-7 flex items-center justify-center rounded-full border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                        >
+                                            <ChevronLeft className="h-4 w-4" />
+                                        </button>
+                                        <button 
+                                            onClick={() => scroll(sliderKey, 'right')}
+                                            className="h-7 w-7 flex items-center justify-center rounded-full border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                        >
+                                            <ChevronRight className="h-4 w-4" />
+                                        </button>
                                     </div>
                                 </div>
-                            </Link>
+
+                                {/* Product slider list */}
+                                <div 
+                                    ref={el => { sliderRefs.current.set(sliderKey, el); }}
+                                    className="flex gap-4 overflow-x-auto pb-2 scrollbar-none hide-scrollbar scroll-smooth"
+                                >
+                                    {listings.map(listing => (
+                                        <CategoryProductCard 
+                                            key={listing.id}
+                                            listing={listing}
+                                            onAddToCart={() => addToCart({
+                                                id: listing.id,
+                                                name: field(listing.title_en, listing.title_so) || 'Product',
+                                                price: listing.price,
+                                                currency: listing.currency,
+                                                image: listing.images?.[0] ? resolveMediaUrl(listing.images[0]) || '/categories/grocery.jpg' : '/categories/grocery.jpg'
+                                            })}
+                                        />
+                                    ))}
+                                </div>
+                            </section>
+                        );
+                    })}
+                </div>
+            )}
+
+            {/* ALL STORES SECTION */}
+            {filteredStores.length > 0 && (
+                <section className="space-y-4 pt-6 border-t border-gray-100 dark:border-slate-800">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">All Stores</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                        {filteredStores.map(store => (
+                            <CategoryStoreCard key={store.id} store={store} />
                         ))}
                     </div>
                 </section>
