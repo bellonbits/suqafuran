@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -43,10 +43,26 @@ export default function LandingPage() {
   const openAuthModal = useAuthModal((s) => s.open);
 
   const [heroQuery, setHeroQuery] = useState('');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDetecting, setIsDetecting] = useState(false);
   const [dirTab, setDirTab] = useState<DirectoryTab>('cities');
   const [dirExpanded, setDirExpanded] = useState(false);
+
+  // Mobile layout state variables
+  const [showStickyHeader, setShowStickyHeader] = useState(false);
+  const [showSmartBanner, setShowSmartBanner] = useState(true);
+  const [showBottomBanner, setShowBottomBanner] = useState(true);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 400) {
+        setShowStickyHeader(true);
+      } else {
+        setShowStickyHeader(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const dirData = { cities: TOP_CITIES, categories: TOP_CATEGORIES, stores: TOP_STORES };
   const visibleItems = dirExpanded ? dirData[dirTab] : dirData[dirTab].slice(0, 8);
@@ -72,9 +88,124 @@ export default function LandingPage() {
       <AuthModal />
 
       {/* ══════════════════════════════════════════════════════
+          MOBILE SMART APP BANNER (at the very top)
+      ══════════════════════════════════════════════════════ */}
+      {showSmartBanner && (
+        <div className="bg-white border-b border-gray-100 px-4 py-2 flex items-center justify-between gap-3 sm:hidden relative z-50">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <button
+              onClick={() => setShowSmartBanner(false)}
+              className="p-1 text-gray-400 hover:text-gray-600 shrink-0"
+              aria-label="Dismiss banner"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            {/* App Icon */}
+            <div className="w-8 h-8 rounded-lg bg-sky-50 flex items-center justify-center border border-sky-100 shrink-0 overflow-hidden p-1.5">
+              <img src="/icon1.png" alt="Suqafuran App" className="w-full h-full object-contain" />
+            </div>
+            {/* App Details */}
+            <div className="min-w-0">
+              <h4 className="text-[11px] font-black text-gray-900 leading-tight truncate">Browse faster in the app</h4>
+              <p className="text-[9px] text-gray-400 font-bold leading-tight truncate">Secure Escrow · Real-Time Chat</p>
+              <div className="flex items-center gap-0.5 mt-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-2 w-2 text-orange-400 fill-orange-400" />
+                ))}
+                <span className="text-[7.5px] text-gray-400 font-bold ml-1">20M ratings</span>
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => router.push('/home')}
+            className="bg-[#0EA5E9] hover:bg-sky-600 text-white text-[10px] font-black px-4 py-1.5 rounded-full shrink-0 shadow-sm"
+          >
+            Open
+          </button>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════
+          STICKY MOBILE HEADER — appears on scroll (DoorDash style)
+      ══════════════════════════════════════════════════════ */}
+      <div className={`fixed top-0 inset-x-0 z-50 bg-white border-b border-gray-100 shadow-sm px-4 py-2.5 flex items-center justify-between gap-3 transition-transform duration-300 sm:hidden ${showStickyHeader ? 'translate-y-0' : '-translate-y-full'}`}>
+        <button
+          onClick={() => {
+            const form = document.querySelector('form');
+            if (form) {
+              form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              const input = form.querySelector('input');
+              if (input) input.focus();
+            }
+          }}
+          className="flex-1 flex items-center bg-gray-50 rounded-full px-3 py-1.5 border border-gray-200/50 text-left min-w-0"
+        >
+          <MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0 mr-2" />
+          <span className="text-[11px] font-semibold text-gray-400 truncate flex-grow">Enter delivery address...</span>
+          <div className="shrink-0 bg-[#0EA5E9] text-white p-1 rounded-full flex items-center justify-center">
+            <ArrowRight className="h-3 w-3" />
+          </div>
+        </button>
+
+        <button
+          onClick={() => openAuthModal('signin')}
+          className="text-xs font-black text-gray-700 whitespace-nowrap px-1"
+        >
+          Login
+        </button>
+
+        <button
+          onClick={() => router.push('/home')}
+          className="text-xs font-black text-white bg-[#0EA5E9] hover:bg-sky-600 px-4 py-2 rounded-full whitespace-nowrap shadow-sm"
+        >
+          Open App
+        </button>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════
+          MOBILE BOTTOM FLOATING APP PROMO BANNER
+      ══════════════════════════════════════════════════════ */}
+      {showBottomBanner && (
+        <div className="fixed bottom-4 inset-x-4 z-50 bg-white rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 flex items-center justify-between gap-3 sm:hidden animate-fade-in-up">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            {/* App Icon */}
+            <div className="w-9 h-9 rounded-xl bg-sky-50 flex items-center justify-center border border-sky-100 shrink-0 p-1.5">
+              <img src="/icon1.png" alt="Suqafuran" className="w-full h-full object-contain" />
+            </div>
+            {/* Text */}
+            <div className="min-w-0">
+              <h4 className="text-xs font-black text-gray-900 leading-tight">Browse faster in the app</h4>
+              <p className="text-[10px] text-gray-500 font-semibold leading-tight truncate">Secure escrow & instant updates</p>
+              <div className="flex items-center gap-0.5 mt-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-2.5 w-2.5 text-orange-400 fill-orange-400" />
+                ))}
+                <span className="text-[8.5px] text-gray-400 font-bold ml-1">20M ratings</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => router.push('/home')}
+              className="bg-[#0EA5E9] hover:bg-sky-600 text-white text-[11px] font-black px-3.5 py-2 rounded-full shadow-md shadow-sky-500/20 whitespace-nowrap"
+            >
+              Continue in app
+            </button>
+            <button
+              onClick={() => setShowBottomBanner(false)}
+              className="p-1.5 text-gray-400 hover:text-gray-600 bg-gray-50 rounded-full border border-gray-100 shrink-0"
+              aria-label="Close app promotion"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════
           NAV — logo left, Sign In + Sign Up right
       ══════════════════════════════════════════════════════ */}
-      <nav className="absolute top-0 inset-x-0 z-50">
+      <nav className={`absolute inset-x-0 z-40 transition-all ${showSmartBanner ? 'top-12' : 'top-0'}`}>
         <div className="max-w-full px-6 lg:px-10 h-16 flex items-center justify-between">
           {/* Real Suqafuran logo — white version on the colored hero */}
           <Link href="/" className="shrink-0">
@@ -101,28 +232,22 @@ export default function LandingPage() {
             </button>
           </div>
 
-          {/* Mobile burger */}
-          <button
-            className="sm:hidden p-2 text-white"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
-
-        {/* Mobile dropdown */}
-        {mobileMenuOpen && (
-          <div className="sm:hidden bg-sky-600 px-6 py-4 flex flex-col gap-3">
+          {/* Mobile top-right auth (exactly like DoorDash Login & Open App) */}
+          <div className="flex sm:hidden items-center gap-2">
             <button
-              onClick={() => { openAuthModal('signin'); setMobileMenuOpen(false); }}
-              className="w-full text-sm font-black text-white py-3 rounded-full border border-white/50 hover:bg-white/10"
-            >Sign In</button>
+              onClick={() => openAuthModal('signin')}
+              className="text-xs font-black text-white bg-white/15 hover:bg-white/25 px-4 py-2 rounded-full transition-colors border border-white/20"
+            >
+              Login
+            </button>
             <button
-              onClick={() => { openAuthModal('signup'); setMobileMenuOpen(false); }}
-              className="w-full text-sm font-black text-sky-600 bg-white py-3 rounded-full hover:bg-sky-50"
-            >Sign Up</button>
+              onClick={() => router.push('/home')}
+              className="text-xs font-black text-[#0EA5E9] bg-white hover:bg-sky-50 px-4 py-2 rounded-full transition-colors shadow-sm"
+            >
+              Open App
+            </button>
           </div>
-        )}
+        </div>
       </nav>
 
       {/* ══════════════════════════════════════════════════════
