@@ -36,8 +36,15 @@ export const businessService = {
         return data;
     },
 
-    async addProduct(businessId: string, productData: any): Promise<BusinessProduct> {
-        const { data } = await api.post<BusinessProduct>(`/businesses/${businessId}/products`, productData);
+    async addProduct(businessId: string, productData: {
+        name_en: string;
+        price: number;
+        stock_level?: number;
+        description_en?: string;
+        sku?: string;
+    }): Promise<BusinessProduct> {
+        // The backend declares these as plain function params (query string), not a body model.
+        const { data } = await api.post<BusinessProduct>(`/businesses/${businessId}/products`, null, { params: productData });
         return data;
     },
 
@@ -64,7 +71,15 @@ export const businessService = {
     },
 
     async updateOrder(businessId: string, orderId: number, updateData: { status: string }): Promise<Order> {
-        const { data } = await api.put<Order>(`/businesses/${businessId}/orders/${orderId}`, updateData);
+        // `status` is a plain function param on the backend (query string), not a body model.
+        const { data } = await api.put<Order>(`/businesses/${businessId}/orders/${orderId}`, null, { params: updateData });
+        return data;
+    },
+
+    async getOrder(businessId: string, orderId: number): Promise<Order> {
+        // Open to the buyer who placed the order OR a seller-side employee —
+        // unlike the list/update endpoints above, which are seller-only.
+        const { data } = await api.get<Order>(`/businesses/${businessId}/orders/${orderId}/view`);
         return data;
     },
 

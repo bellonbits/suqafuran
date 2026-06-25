@@ -18,6 +18,7 @@ KAFKA_AVAILABLE = False
 class ConnectionManager:
     def __init__(self):
         self.active_connections: Dict[str, List[WebSocket]] = {}  # business_id -> websockets
+        self.user_connections: Dict[int, List[WebSocket]] = {}  # user_id -> websockets (personal channel)
         self.loop: Optional[asyncio.AbstractEventLoop] = None
 
     def set_event_loop(self, loop: asyncio.AbstractEventLoop):
@@ -54,6 +55,36 @@ class ConnectionManager:
             )
         else:
             logger.warning("Event loop is not running. Cannot broadcast WebSocket message from consumer thread.")
+
+    # --- Personal (per-user) channel — supports multiple tabs/devices per user ---
+    async def connect_user(self, user_id: int, websocket: WebSocket):
+        await websocket.accept()
+        self.user_connections.setdefault(user_id, []).append(websocket)
+        logger.info(f"WebSocket connected for user {user_id}. Active: {len(self.user_connections[user_id])}")
+
+    def disconnect_user(self, user_id: int, websocket: WebSocket):
+        if user_id in self.user_connections:
+            if websocket in self.user_connections[user_id]:
+                self.user_connections[user_id].remove(websocket)
+            if not self.user_connections[user_id]:
+                del self.user_connections[user_id]
+        logger.info(f"WebSocket disconnected for user {user_id}")
+
+    async def broadcast_to_user(self, user_id: int, message: dict):
+        for connection in self.user_connections.get(user_id, []):
+            try:
+                await connection.send_json(message)
+            except Exception as e:
+                logger.error(f"Error sending socket message to user {user_id}: {e}")
+
+    def broadcast_to_user_from_thread(self, user_id: int, message: dict):
+        if self.loop and self.loop.is_running():
+            asyncio.run_coroutine_threadsafe(
+                self.broadcast_to_user(user_id, message),
+                self.loop
+            )
+        else:
+            logger.warning("Event loop is not running. Cannot broadcast user WebSocket message from consumer thread.")
 
 
 ws_manager = ConnectionManager()
@@ -270,6 +301,13 @@ class KafkaService:
         }
         ws_manager.broadcast_from_thread(business_id_str, socket_message)
 
+        # 1b. Personal push — if this event names a customer, also deliver it
+        # straight to that buyer's own WebSocket channel (not just the
+        # business's internal room), so their UI updates with no refresh.
+        customer_id = payload.get("customer_id")
+        if customer_id:
+            ws_manager.broadcast_to_user_from_thread(int(customer_id), socket_message)
+
         # 2. Database actions (requires DB session)
         with db_session_factory() as db:
             try:
@@ -279,6 +317,8 @@ class KafkaService:
                     self._handle_db_stock_low(db, payload)
                 elif event_type == "EMPLOYEE_ADDED":
                     self._handle_db_employee_added(db, payload)
+                elif event_type == "ORDER_STATUS_UPDATED":
+                    self._handle_db_order_status_updated(db, payload)
             except Exception as e:
                 logger.error(f"Error executing DB actions for event {event_type}: {e}")
                 db.rollback()
@@ -359,6 +399,30 @@ class KafkaService:
 
     def _handle_db_employee_added(self, db, payload):
         pass
+
+    def _handle_db_order_status_updated(self, db, payload):
+        from app.models.notification import Notification
+
+        customer_id = payload.get("customer_id")
+        if not customer_id:
+            return
+
+        order_id = payload.get("order_id")
+        status = payload.get("status")
+        business_name = payload.get("business_name") or "Your seller"
+
+        notif = Notification(
+            user_id=int(customer_id),
+            type="order_status",
+            data={
+                "business_id": payload.get("business_id"),
+                "order_id": order_id,
+                "status": status,
+                "message": f"{business_name} updated order #{order_id} to '{status}'."
+            }
+        )
+        db.add(notif)
+        db.commit()
 
 
 kafka_service = KafkaService()

@@ -458,6 +458,31 @@ def change_order_status(
     return crud_business.update_order_status(db, order, status, employee_id)
 
 
+@router.get("/{business_id}/orders/{order_id}/view", response_model=Order)
+def view_order(
+    business_id: uuid_pkg.UUID,
+    order_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> Any:
+    """
+    Read a single order — open to the buyer who placed it OR an employee of
+    the selling business (unlike the list/update endpoints above, which are
+    seller-only). This is what the customer-facing order tracking page polls
+    and uses for its initial load before the WebSocket takes over.
+    """
+    order = crud_business.get_order(db, order_id)
+    if not order or order.business_id != business_id:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    is_buyer = order.customer_id == current_user.id
+    is_seller_side = crud_business.get_employee_by_user(db, business_id, current_user.id) is not None
+    if not is_buyer and not is_seller_side:
+        raise HTTPException(status_code=403, detail="Not authorized to view this order")
+
+    return order
+
+
 # --- CRM Customer Management ---
 @router.get("/{business_id}/customers", response_model=List[BusinessCustomer])
 def get_crm_customers(

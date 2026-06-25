@@ -30,5 +30,14 @@ export const listingsService = {
     async getCategoryAttributes(slug: string): Promise<any> {
         const response = await api.get(`/listings/categories/${slug}/attributes`);
         return response.data;
-    }
+    },
+
+    async uploadImage(file: File): Promise<{ filename: string; url: string }> {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await api.post('/listings/upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return response.data;
+    },
 };

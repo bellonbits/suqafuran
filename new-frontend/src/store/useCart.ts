@@ -4,13 +4,16 @@ interface CartItem {
     id: number;
     name: string;
     price: number;
+    currency: string;
+    image?: string;
     quantity: number;
 }
 
 interface CartState {
     items: CartItem[];
-    addToCart: (item: { id: number; name: string; price: number }) => void;
+    addToCart: (item: { id: number; name: string; price: number; currency: string; image?: string }) => void;
     removeFromCart: (id: number) => void;
+    setQuantity: (id: number, quantity: number) => void;
     clearCart: () => void;
     getCartCount: () => number;
 }
@@ -30,6 +33,11 @@ export const useCartStore = create<CartState>((set, get) => ({
     }),
     removeFromCart: (id) => set((state) => ({
         items: state.items.filter(i => i.id !== id)
+    })),
+    setQuantity: (id, quantity) => set((state) => ({
+        items: quantity <= 0
+            ? state.items.filter(i => i.id !== id)
+            : state.items.map(i => i.id === id ? { ...i, quantity } : i)
     })),
     clearCart: () => set({ items: [] }),
     getCartCount: () => {

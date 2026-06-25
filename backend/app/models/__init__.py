@@ -18,6 +18,7 @@ from app.models.device import Device, UserDeviceLink
 from app.models.fraud import FraudEvent, RiskHistory
 from app.models.email_log import EmailLog
 from app.models.otp_log import OTPLog
+from app.models.saved_address import SavedAddress
 from app.models.business import (
     Business,
     Employee,
@@ -71,4 +72,5 @@ __all__ = [
     "BusinessTask",
     "BusinessRole",
     "OTPLog",
+    "SavedAddress",
 ]

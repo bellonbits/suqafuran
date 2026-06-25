@@ -62,8 +62,18 @@ class CloudinaryStorage:
         ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
         is_video = ext in ["mp4", "mov", "avi", "3gp", "webm", "mpeg", "mkv"]
         is_pdf = ext == "pdf"
+        is_gif = ext == "gif"
 
-        if not is_video and not is_pdf:
+        if is_gif:
+            # Skip the PIL resize/re-encode path entirely — Image.save() without
+            # save_all=True collapses an animated GIF to its first frame. Upload
+            # the original bytes untouched so Cloudinary preserves the animation.
+            resized = file_content
+            phash_task = asyncio.create_task(asyncio.to_thread(calculate_phash, file_content))
+            resource_type = "image"
+            upload_format = None
+            transformation = None
+        elif not is_video and not is_pdf:
             # Resize in thread pool — CPU-bound
             resized = await asyncio.to_thread(_resize_to_bytes, file_content)
             # phash runs in background after we return — don't block the response
@@ -108,22 +118,31 @@ class LocalStorage:
         os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 
     async def upload_file(self, file_content: bytes, filename: str) -> tuple[str, str]:
-        unique_name = f"{uuid.uuid4()}.webp"
-        dest = os.path.join(settings.UPLOAD_DIR, unique_name)
-        try:
-            from PIL import Image, ImageOps
-            img = Image.open(io.BytesIO(file_content))
-            img = ImageOps.exif_transpose(img)
-            if img.mode in ("RGBA", "P", "LA"):
-                img = img.convert("RGB")
-            img.thumbnail((MAX_WIDTH, MAX_HEIGHT), Image.BILINEAR)
-            img.save(dest, format="WEBP", quality=JPEG_QUALITY, method=0)  # method=0 is fastest
-        except Exception:
-            ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
-            unique_name = f"{uuid.uuid4()}.{ext}"
+        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
+
+        if ext == "gif":
+            # Write the original bytes untouched — re-encoding through PIL
+            # without save_all=True would collapse the animation to one frame.
+            unique_name = f"{uuid.uuid4()}.gif"
             dest = os.path.join(settings.UPLOAD_DIR, unique_name)
             with open(dest, "wb") as f:
                 f.write(file_content)
+        else:
+            unique_name = f"{uuid.uuid4()}.webp"
+            dest = os.path.join(settings.UPLOAD_DIR, unique_name)
+            try:
+                from PIL import Image, ImageOps
+                img = Image.open(io.BytesIO(file_content))
+                img = ImageOps.exif_transpose(img)
+                if img.mode in ("RGBA", "P", "LA"):
+                    img = img.convert("RGB")
+                img.thumbnail((MAX_WIDTH, MAX_HEIGHT), Image.BILINEAR)
+                img.save(dest, format="WEBP", quality=JPEG_QUALITY, method=0)  # method=0 is fastest
+            except Exception:
+                unique_name = f"{uuid.uuid4()}.{ext}"
+                dest = os.path.join(settings.UPLOAD_DIR, unique_name)
+                with open(dest, "wb") as f:
+                    f.write(file_content)
 
         phash = await asyncio.to_thread(calculate_phash, file_content)
         return f"/api/v1/listings/images/{unique_name}", phash

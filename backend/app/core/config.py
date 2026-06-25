@@ -121,7 +121,7 @@ class Settings(BaseSettings):
     # FILE UPLOAD
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB (images)
     MAX_VIDEO_SIZE: int = 100 * 1024 * 1024  # 100MB (videos)
-    ALLOWED_EXTENSIONS: Any = ["jpg", "jpeg", "png", "webp", "svg", "pdf"]
+    ALLOWED_EXTENSIONS: Any = ["jpg", "jpeg", "png", "webp", "svg", "pdf", "gif"]
     ALLOWED_VIDEO_EXTENSIONS: Any = ["mp4", "webm", "mov", "avi", "mkv"]
     UPLOAD_DIR: str = "./uploads"
 

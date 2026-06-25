@@ -251,10 +251,15 @@ class CRUDBusiness:
         db.commit()
         db.refresh(order)
 
-        # Dispatch status update event
+        business = db.get(Business, order.business_id)
+
+        # Dispatch status update event — includes customer_id so the consumer
+        # can push this directly to the buyer (not just the business's own room).
         kafka_service.send_event("ORDER_STATUS_UPDATED", {
             "business_id": str(order.business_id),
+            "business_name": business.name if business else None,
             "order_id": order.id,
+            "customer_id": order.customer_id,
             "status": status,
             "employee_id": employee_id
         }, key=str(order.business_id))

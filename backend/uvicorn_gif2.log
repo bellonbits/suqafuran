@@ -1,0 +1,117 @@
+Redis password authentication failed (server password mismatch). Falling back to passwordless connection.
+Redis password authentication failed (server password mismatch). Falling back to passwordless connection.
+Redis password authentication failed (server password mismatch). Falling back to passwordless connection.
+Redis password authentication failed (server password mismatch). Falling back to passwordless connection.
+Redis password authentication failed (server password mismatch). Falling back to passwordless connection.
+INFO:     Started server process [31725]
+INFO:     Waiting for application startup.
+[Email] Redis connected OK
+[AT Init] Username: suqafuran
+[AT Init] API Key present: True
+[AT Init] API Key length: 77
+[AT Init] Sender ID: SUQAFURAN
+[AT Init] Environment: production
+[AT Init] Successfully initialized with username: suqafuran
+[AT Init] Redis connected successfully
+Initialized Mock Kafka Consumer.
+Mock Consumer subscribed to: ['suqafuran-business-events']
+Started Kafka Background Consumer Thread.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:50003 - "WebSocket /api/v1/notifications/ws?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTM2ODY1MTAsInN1YiI6IjEifQ.meHRda9EuWWGyBcdXhgduxyVk_-lz4-gnc4FtU1TPXc" [accepted]
+WebSocket connected for user 1. Active: 1
+INFO:     connection open
+{"status_code": 200, "latency_ms": 0.85, "event": "http_request", "trace_id": null, "path": "/docs", "client_ip": "127.0.0.1", "method": "GET", "request_id": "ae0118aa-db29-4627-ba1b-c4cc5ab2d0ad", "level": "info", "timestamp": "2026-06-22T18:39:30.621140Z"}
+INFO:     127.0.0.1:50007 - "GET /docs HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 11492.49, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/upload", "client_ip": "127.0.0.1", "method": "POST", "request_id": "b2947391-dde6-45d4-95d4-4ffba7f0662b", "level": "info", "timestamp": "2026-06-22T18:39:42.155566Z"}
+INFO:     127.0.0.1:50009 - "POST /api/v1/listings/upload HTTP/1.1" 200 OK
+HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+Vision AI Error: Error code: 401 - {'error': {'message': 'Invalid API Key', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+WebSocket disconnected for user 1
+INFO:     connection closed
+{"status_code": 200, "latency_ms": 9565.74, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/categories", "client_ip": "127.0.0.1", "method": "GET", "request_id": "0c043b47-05e2-40d0-baea-bd1f78b45ac6", "level": "info", "timestamp": "2026-06-22T19:01:50.066561Z"}
+INFO:     127.0.0.1:50476 - "GET /api/v1/listings/categories HTTP/1.1" 200 OK
+[Email] Generated OTP for admin@suqafuran.com: 102306
+[Email] OTP sent via Resend to admin@suqafuran.com
+{"status_code": 200, "latency_ms": 2258.4, "event": "http_request", "trace_id": null, "path": "/api/v1/auth/request-otp", "client_ip": "127.0.0.1", "method": "POST", "request_id": "d7630b6d-6483-450d-9a8a-1ce4c77f3f78", "level": "info", "timestamp": "2026-06-22T19:03:14.528249Z"}
+INFO:     127.0.0.1:50497 - "POST /api/v1/auth/request-otp HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 4600.36, "event": "http_request", "trace_id": null, "path": "/api/v1/auth/verify-otp", "client_ip": "127.0.0.1", "method": "POST", "request_id": "edf0be06-36bf-4b25-8488-294ef7b12416", "level": "info", "timestamp": "2026-06-22T19:03:20.177904Z"}
+INFO:     127.0.0.1:50501 - "POST /api/v1/auth/verify-otp HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 6626.3, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/categories/13", "client_ip": "127.0.0.1", "method": "PATCH", "request_id": "87a15ccf-93d0-4bc3-aa2b-d087566e162f", "level": "info", "timestamp": "2026-06-22T19:03:26.829853Z"}
+INFO:     127.0.0.1:50505 - "PATCH /api/v1/listings/categories/13 HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 3206.11, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/categories/1", "client_ip": "127.0.0.1", "method": "PATCH", "request_id": "ad70d5b4-9f2e-47da-a16f-f5c0b37212a3", "level": "info", "timestamp": "2026-06-22T19:03:30.055476Z"}
+INFO:     127.0.0.1:50509 - "PATCH /api/v1/listings/categories/1 HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 4229.06, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/categories/11", "client_ip": "127.0.0.1", "method": "PATCH", "request_id": "fb12a6ac-b2fc-430b-94df-bcb651bfd67a", "level": "info", "timestamp": "2026-06-22T19:03:34.303762Z"}
+INFO:     127.0.0.1:50512 - "PATCH /api/v1/listings/categories/11 HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 6568.87, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/categories", "client_ip": "127.0.0.1", "method": "GET", "request_id": "dc3238c0-3f62-463a-807d-f1a6425cc92d", "level": "info", "timestamp": "2026-06-22T19:04:06.062183Z"}
+INFO:     127.0.0.1:50515 - "GET /api/v1/listings/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51091 - "OPTIONS /api/v1/listings/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51093 - "OPTIONS /api/v1/listings/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51095 - "OPTIONS /api/v1/listings/categories HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 3690.69, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/", "client_ip": "127.0.0.1", "method": "GET", "request_id": "09852381-874c-4290-aacc-40ac529cbb2a", "level": "info", "timestamp": "2026-06-22T23:19:10.863764Z"}
+INFO:     127.0.0.1:51093 - "GET /api/v1/listings/ HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 4095.95, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/categories", "client_ip": "127.0.0.1", "method": "GET", "request_id": "f8fe1484-936e-4a0a-9eb2-7ff123606c64", "level": "info", "timestamp": "2026-06-22T23:19:11.261836Z"}
+INFO:     127.0.0.1:51091 - "GET /api/v1/listings/categories HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 1936.35, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/categories", "client_ip": "127.0.0.1", "method": "GET", "request_id": "885c3e46-bf2d-4e35-bda7-ea995fc17d65", "level": "info", "timestamp": "2026-06-22T23:19:13.213895Z"}
+INFO:     127.0.0.1:51093 - "GET /api/v1/listings/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51140 - "OPTIONS /api/v1/listings/?category_id=food-groceries HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51144 - "OPTIONS /api/v1/listings/?category_id=food-groceries HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 2665.85, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/", "client_ip": "127.0.0.1", "method": "GET", "request_id": "ecb36626-563a-425e-95fe-59ebf2409c93", "level": "info", "timestamp": "2026-06-22T23:19:25.239176Z"}
+INFO:     127.0.0.1:51140 - "GET /api/v1/listings/?category_id=food-groceries HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 3259.12, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/categories", "client_ip": "127.0.0.1", "method": "GET", "request_id": "abc19805-be1a-47e7-8f74-296089243dab", "level": "info", "timestamp": "2026-06-22T23:19:25.805326Z"}
+INFO:     127.0.0.1:51143 - "GET /api/v1/listings/categories HTTP/1.1" 200 OK
+{"status_code": 404, "latency_ms": 3.77, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/images/avatars/avatar_1.png", "client_ip": "127.0.0.1", "method": "GET", "request_id": "54fc1a29-3dae-4805-ab53-04746f3b2ff0", "level": "info", "timestamp": "2026-06-22T23:19:25.895243Z"}
+INFO:     127.0.0.1:51153 - "GET /api/v1/listings/images/avatars/avatar_1.png HTTP/1.1" 404 Not Found
+{"status_code": 200, "latency_ms": 3074.77, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/categories", "client_ip": "127.0.0.1", "method": "GET", "request_id": "5e9a4928-a1f8-4021-8d74-06e39111fb4f", "level": "info", "timestamp": "2026-06-22T23:19:28.895545Z"}
+INFO:     127.0.0.1:51140 - "GET /api/v1/listings/categories HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 3961.39, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/", "client_ip": "127.0.0.1", "method": "GET", "request_id": "b63208cb-4d67-4fba-890f-a72ac92934b5", "level": "info", "timestamp": "2026-06-22T23:19:29.204352Z"}
+INFO:     127.0.0.1:51144 - "GET /api/v1/listings/?category_id=food-groceries HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 2204.32, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/", "client_ip": "127.0.0.1", "method": "GET", "request_id": "acb9d316-9389-4620-be31-7474477496b6", "level": "info", "timestamp": "2026-06-22T23:19:34.180466Z"}
+INFO:     127.0.0.1:51144 - "GET /api/v1/listings/ HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 2072.72, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/", "client_ip": "127.0.0.1", "method": "GET", "request_id": "e3918f8d-b480-42bf-ae3f-cd4a3a8dc6e6", "level": "info", "timestamp": "2026-06-22T23:19:36.262466Z"}
+INFO:     127.0.0.1:51162 - "GET /api/v1/listings/ HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 2463.9, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/categories", "client_ip": "127.0.0.1", "method": "GET", "request_id": "81069814-d689-4a36-afa6-f3e2c8f166a0", "level": "info", "timestamp": "2026-06-22T23:20:53.457097Z"}
+INFO:     127.0.0.1:51176 - "GET /api/v1/listings/categories HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 2161.2, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/", "client_ip": "127.0.0.1", "method": "GET", "request_id": "42e0227a-d5de-493a-8a1b-2e785b5285db", "level": "info", "timestamp": "2026-06-22T23:22:55.301442Z"}
+INFO:     127.0.0.1:51198 - "GET /api/v1/listings/ HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 2378.37, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/categories", "client_ip": "127.0.0.1", "method": "GET", "request_id": "feea91b2-5ec9-464c-a378-c26e8530fe42", "level": "info", "timestamp": "2026-06-22T23:22:55.517450Z"}
+INFO:     127.0.0.1:51196 - "GET /api/v1/listings/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51207 - "OPTIONS /api/v1/businesses/nearby?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51209 - "OPTIONS /api/v1/businesses/nearby?limit=100 HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 900.77, "event": "http_request", "trace_id": null, "path": "/api/v1/businesses/nearby", "client_ip": "127.0.0.1", "method": "GET", "request_id": "70bec022-3559-4601-9196-def6dd51ef9b", "level": "info", "timestamp": "2026-06-22T23:23:10.032628Z"}
+INFO:     127.0.0.1:51207 - "GET /api/v1/businesses/nearby?limit=100 HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 858.24, "event": "http_request", "trace_id": null, "path": "/api/v1/businesses/nearby", "client_ip": "127.0.0.1", "method": "GET", "request_id": "634f0499-8753-4d0a-bf66-514819f1ff16", "level": "info", "timestamp": "2026-06-22T23:23:10.893003Z"}
+INFO:     127.0.0.1:51209 - "GET /api/v1/businesses/nearby?limit=100 HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 2877.87, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/categories", "client_ip": "127.0.0.1", "method": "GET", "request_id": "990a75aa-8880-4ba0-8605-852fbe7becd8", "level": "info", "timestamp": "2026-06-22T23:23:30.542534Z"}
+INFO:     127.0.0.1:51218 - "GET /api/v1/listings/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51218 - "OPTIONS /api/v1/listings/?owner_id=NaN HTTP/1.1" 200 OK
+{"status_code": 422, "latency_ms": 6.3, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/", "client_ip": "127.0.0.1", "method": "GET", "request_id": "68a0a58d-4d41-4e7b-b9b5-ef12f1673da2", "level": "info", "timestamp": "2026-06-22T23:23:30.579798Z"}
+INFO:     127.0.0.1:51218 - "GET /api/v1/listings/?owner_id=NaN HTTP/1.1" 422 Unprocessable Entity
+{"status_code": 200, "latency_ms": 3255.9, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/categories", "client_ip": "127.0.0.1", "method": "GET", "request_id": "3083bcbc-f23c-4a22-80fd-8912dae63796", "level": "info", "timestamp": "2026-06-22T23:23:33.816363Z"}
+INFO:     127.0.0.1:51222 - "GET /api/v1/listings/categories HTTP/1.1" 200 OK
+{"status_code": 422, "latency_ms": 2.62, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/", "client_ip": "127.0.0.1", "method": "GET", "request_id": "26582a92-9027-427a-9a8f-a9ea304e2d7b", "level": "info", "timestamp": "2026-06-22T23:23:33.846620Z"}
+INFO:     127.0.0.1:51222 - "GET /api/v1/listings/?owner_id=NaN HTTP/1.1" 422 Unprocessable Entity
+{"status_code": 200, "latency_ms": 2451.34, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/", "client_ip": "127.0.0.1", "method": "GET", "request_id": "241cf454-34f3-4a16-a5ff-9d429cf9b3e8", "level": "info", "timestamp": "2026-06-22T23:23:35.769535Z"}
+INFO:     127.0.0.1:51218 - "GET /api/v1/listings/ HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 2563.28, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/categories", "client_ip": "127.0.0.1", "method": "GET", "request_id": "b7f473d1-63bb-47ea-ada8-29169c9fe913", "level": "info", "timestamp": "2026-06-22T23:23:36.398650Z"}
+INFO:     127.0.0.1:51227 - "GET /api/v1/listings/categories HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 2216.61, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/", "client_ip": "127.0.0.1", "method": "GET", "request_id": "b3bf68f4-e8dd-4050-8ae4-a6ac1be2ee57", "level": "info", "timestamp": "2026-06-22T23:23:37.994892Z"}
+INFO:     127.0.0.1:51222 - "GET /api/v1/listings/ HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 1878.43, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/categories", "client_ip": "127.0.0.1", "method": "GET", "request_id": "34238ad0-5fa5-480c-afbf-aad1126b1d66", "level": "info", "timestamp": "2026-06-22T23:23:38.295565Z"}
+INFO:     127.0.0.1:51218 - "GET /api/v1/listings/categories HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 2625.47, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/categories", "client_ip": "127.0.0.1", "method": "GET", "request_id": "9a25d4c5-5d11-4cfe-b29e-95b924ad9bfc", "level": "info", "timestamp": "2026-06-22T23:23:40.941746Z"}
+INFO:     127.0.0.1:51222 - "GET /api/v1/listings/categories HTTP/1.1" 200 OK
+{"status_code": 422, "latency_ms": 9.24, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/", "client_ip": "127.0.0.1", "method": "GET", "request_id": "b528f339-8d6e-46e9-95ce-c80342ed5bd5", "level": "info", "timestamp": "2026-06-22T23:23:40.979213Z"}
+INFO:     127.0.0.1:51222 - "GET /api/v1/listings/?owner_id=NaN HTTP/1.1" 422 Unprocessable Entity
+{"status_code": 200, "latency_ms": 2902.08, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/categories", "client_ip": "127.0.0.1", "method": "GET", "request_id": "df878124-bd7e-40c4-b64b-9d4c42766a75", "level": "info", "timestamp": "2026-06-22T23:23:43.861535Z"}
+INFO:     127.0.0.1:51218 - "GET /api/v1/listings/categories HTTP/1.1" 200 OK
+{"status_code": 422, "latency_ms": 5.49, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/", "client_ip": "127.0.0.1", "method": "GET", "request_id": "0df0837c-35a4-4dac-af27-7432ee5eba24", "level": "info", "timestamp": "2026-06-22T23:23:43.895829Z"}
+INFO:     127.0.0.1:51218 - "GET /api/v1/listings/?owner_id=NaN HTTP/1.1" 422 Unprocessable Entity
+{"status_code": 200, "latency_ms": 2008.45, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/", "client_ip": "127.0.0.1", "method": "GET", "request_id": "52364a68-6bd4-4bb5-950a-049837562be3", "level": "info", "timestamp": "2026-06-22T23:23:46.024117Z"}
+INFO:     127.0.0.1:51218 - "GET /api/v1/listings/ HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 2201.13, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/categories", "client_ip": "127.0.0.1", "method": "GET", "request_id": "1f6479c0-9193-4dc9-be5f-1e827acd3193", "level": "info", "timestamp": "2026-06-22T23:23:46.218464Z"}
+INFO:     127.0.0.1:51222 - "GET /api/v1/listings/categories HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 2042.82, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/", "client_ip": "127.0.0.1", "method": "GET", "request_id": "1276c19b-337c-441f-bd48-57e5ef720b87", "level": "info", "timestamp": "2026-06-22T23:23:48.075031Z"}
+INFO:     127.0.0.1:51245 - "GET /api/v1/listings/ HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 3552.5, "event": "http_request", "trace_id": null, "path": "/api/v1/listings/categories", "client_ip": "127.0.0.1", "method": "GET", "request_id": "a6920a7e-d655-4638-ad2f-099559f2d4a5", "level": "info", "timestamp": "2026-06-22T23:23:49.791321Z"}
+INFO:     127.0.0.1:51218 - "GET /api/v1/listings/categories HTTP/1.1" 200 OK

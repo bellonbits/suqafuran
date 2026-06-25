@@ -15,6 +15,8 @@ import structlog
 from app.core.logging_config import setup_logging, get_logger
 from app.core.tracing import setup_tracing
 from app.tasks.celery_app import celery_app
+import asyncio
+from app.services.kafka_service import kafka_service, ws_manager
 
 # Initialize structured logging
 setup_logging()
@@ -96,6 +98,19 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 
 # Monitoring
 Instrumentator().instrument(app).expose(app)
+
+
+@app.on_event("startup")
+async def start_background_event_consumer():
+    """
+    Starts the background thread that processes business/order events (stock
+    alerts, CRM updates, order-status pushes, WebSocket broadcasts). Without
+    this, kafka_service.send_event() calls are queued but never drained —
+    notifications and realtime sockets silently never fire.
+    """
+    from app.db.session import SessionLocal
+    ws_manager.set_event_loop(asyncio.get_event_loop())
+    kafka_service.start_consumer(SessionLocal)
 
 
 

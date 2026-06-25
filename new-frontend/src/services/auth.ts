@@ -1,19 +1,59 @@
 import api from './api';
 import type { User } from '../types';
 
+interface OtpAck {
+    success: boolean;
+    cooldown_seconds: number;
+}
+
 export const authService = {
-    async login(credentials: { email: string; password?: string }): Promise<{ access_token: string; token_type: string }> {
-        const response = await api.post('/auth/login', credentials);
-        return response.data;
+    /** Real backend: OAuth2PasswordRequestForm — form-encoded `username`/`password`, not JSON. */
+    async loginWithPassword(email: string, password: string): Promise<{ access_token: string }> {
+        const form = new URLSearchParams();
+        form.set('username', email);
+        form.set('password', password);
+        const { data } = await api.post('/login/access-token', form, {
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        });
+        return data;
     },
 
-    async signup(credentials: { full_name: string; email: string; phone?: string; password?: string }): Promise<User> {
-        const response = await api.post('/auth/signup', credentials);
-        return response.data;
+    async getMe(token: string): Promise<User> {
+        const { data } = await api.get<User>('/users/me', {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return data;
     },
 
-    async getCurrentUser(): Promise<User> {
-        const response = await api.get('/auth/me');
-        return response.data;
-    }
+    // --- Email OTP (signup and passwordless sign-in) ---
+    async requestEmailOtp(email: string): Promise<OtpAck> {
+        const { data } = await api.post('/auth/request-otp', { email });
+        return data;
+    },
+
+    async signupEmail(payload: { full_name: string; email: string; password: string; phone?: string; promo_code?: string }): Promise<OtpAck> {
+        const { data } = await api.post('/auth/signup', payload);
+        return data;
+    },
+
+    async verifyEmailOtp(email: string, otp: string): Promise<{ access_token: string; token_type: string }> {
+        const { data } = await api.post('/auth/verify-otp', { email, otp });
+        return data;
+    },
+
+    // --- Phone OTP (SMS via Africa's Talking) ---
+    async requestPhoneOtp(phone: string): Promise<OtpAck> {
+        const { data } = await api.post('/auth/request-phone-otp', { phone });
+        return data;
+    },
+
+    async signupPhone(payload: { full_name: string; phone: string; promo_code?: string }): Promise<OtpAck> {
+        const { data } = await api.post('/auth/signup-phone', payload);
+        return data;
+    },
+
+    async verifyPhoneOtp(phone: string, otp: string): Promise<{ access_token: string; token_type: string }> {
+        const { data } = await api.post('/auth/verify-phone-otp', { phone, otp });
+        return data;
+    },
 };
