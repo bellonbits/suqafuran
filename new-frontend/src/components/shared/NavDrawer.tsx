@@ -55,7 +55,6 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({ isOpen, onClose, darkMode,
                 <nav className="flex-1">
                     {navLink('/', <Home className="h-4.5 w-4.5 text-gray-400" />, t('Home'))}
                     {navLink('/stores', <Store className="h-4.5 w-4.5 text-gray-400" />, 'Browse Stores')}
-                    {navLink('/grocery', <ShoppingBag className="h-4.5 w-4.5 text-gray-400" />, t('Grocery'))}
                     {isAuthenticated ? (
                         navLink('/dashboard?tab=products', <PlusCircle className="h-4.5 w-4.5 text-gray-400" />, t('Sell'))
                     ) : (

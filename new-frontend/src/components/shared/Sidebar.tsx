@@ -3,12 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ShoppingBag, Tag, LogIn } from 'lucide-react';
+import { LogIn } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuth';
 import { useAuthModal } from '../../store/useAuthModal';
 import { useSidebarStore } from '../../store/useSidebar';
 import { listingsService } from '../../services/listings';
 import { getCategoryIcon } from '../../lib/categoryIcons';
+import { useLocalizedField } from '../../lib/i18n';
 import type { Category } from '../../types';
 
 export const Sidebar: React.FC = () => {
@@ -24,22 +25,13 @@ export const Sidebar: React.FC = () => {
             .catch(() => setCategories([]));
     }, []);
 
-    const staticItems = [
-        { name: 'Home', path: '/', icon: Home },
-        { name: 'Grocery', path: '/grocery', icon: ShoppingBag },
-        { name: 'Deals', path: '/deals', icon: Tag },
-    ];
+    const field = useLocalizedField();
 
-    // Grocery already has its own dedicated page, so skip it here to avoid a duplicate entry.
-    const dynamicItems = categories
-        .filter(cat => cat.slug !== 'food-groceries')
-        .map(cat => ({
-            name: cat.name_en.split(' (')[0],
-            path: `/${cat.slug}`,
-            icon: getCategoryIcon(cat.slug),
-        }));
-
-    const menuItems = [...staticItems, ...dynamicItems];
+    const menuItems = categories.map(cat => ({
+        name: field(cat.name_en, cat.name_so).split(' (')[0],
+        path: `/${cat.slug}`,
+        icon: getCategoryIcon(cat.slug),
+    }));
 
     // Admin, agent, and seller dashboards are full-focus workspaces — the
     // marketplace browsing sidebar competes for attention there, so hide it.
