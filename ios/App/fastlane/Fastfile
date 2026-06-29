@@ -5,9 +5,9 @@ platform :ios do
   desc "Build IPA only (no upload)"
   lane :build do
     api_key = app_store_connect_api_key(
-      key_id: "258G883X8A",
-      issuer_id: "13e1bb92-bfb0-43fa-804d-cc88a754587e",
-      key_filepath: "#{ENV['HOME']}/Downloads/AuthKey_258G883X8A.p8",
+      key_id: ENV['APP_STORE_CONNECT_API_KEY_ID'] || "258G883X8A",
+      issuer_id: ENV['APP_STORE_CONNECT_ISSUER_ID'] || "13e1bb92-bfb0-43fa-804d-cc88a754587e",
+      key_data: ENV['APP_STORE_CONNECT_API_KEY'],
       duration: 1200,
       in_house: false
     )
@@ -90,9 +90,9 @@ platform :ios do
   desc "Build and upload to TestFlight"
   lane :beta do
     api_key = app_store_connect_api_key(
-      key_id: "258G883X8A",
-      issuer_id: "13e1bb92-bfb0-43fa-804d-cc88a754587e",
-      key_filepath: "#{ENV['HOME']}/Downloads/AuthKey_258G883X8A.p8",
+      key_id: ENV['APP_STORE_CONNECT_API_KEY_ID'] || "258G883X8A",
+      issuer_id: ENV['APP_STORE_CONNECT_ISSUER_ID'] || "13e1bb92-bfb0-43fa-804d-cc88a754587e",
+      key_data: ENV['APP_STORE_CONNECT_API_KEY'],
       duration: 1200,
       in_house: false
     )
