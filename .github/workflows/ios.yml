@@ -53,11 +53,6 @@ jobs:
       - name: Install Fastlane
         run: gem install fastlane
 
-      - name: Write App Store Connect API key
-        run: |
-          mkdir -p ~/Downloads
-          echo "${{ secrets.APP_STORE_CONNECT_API_KEY }}" > ~/Downloads/AuthKey_C8V4ZN3UG9.p8
-
       - name: Create output directory
         run: mkdir -p ~/Desktop/SuqafuranIPA
 
@@ -65,6 +60,9 @@ jobs:
         working-directory: ios/App
         run: fastlane build
         env:
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           DISTRIBUTION_CERT_P12: ${{ secrets.DISTRIBUTION_CERT_P12 }}
           DISTRIBUTION_CERT_PASSWORD: ${{ secrets.DISTRIBUTION_CERT_PASSWORD }}
 
