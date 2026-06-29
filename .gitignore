@@ -61,3 +61,4 @@ venv.bak/
 # Celery
 backend/celerybeat-schedule
 celerybeat-schedule*
+new-frontend/
