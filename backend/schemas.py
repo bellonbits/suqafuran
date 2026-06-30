@@ -238,3 +238,63 @@ class NotificationPreferenceUpdate(BaseModel):
     delivery_updates: Optional[bool] = None
     promotions: Optional[bool] = None
     system_alerts: Optional[bool] = None
+
+# WebSocket & Real-time Schemas
+class DeviceTokenRegister(BaseModel):
+    token: str
+    device_type: str  # ios, android, web
+    device_name: Optional[str] = None
+
+class DeviceTokenResponse(BaseModel):
+    id: str
+    user_id: str
+    device_type: str
+    device_name: Optional[str]
+    is_active: bool
+    created_at: datetime
+
+# Real-time Event Schemas
+class OrderUpdateEvent(BaseModel):
+    event_type: str = "order_update"
+    order_id: str
+    status: str
+    message: Optional[str] = None
+    data: Optional[dict] = None
+    timestamp: datetime
+
+class DeliveryUpdateEvent(BaseModel):
+    event_type: str = "delivery_update"
+    order_id: str
+    rider_id: str
+    latitude: float
+    longitude: float
+    eta_minutes: Optional[int] = None
+    status: str
+    timestamp: datetime
+
+class NotificationEventSchema(BaseModel):
+    event_type: str = "notification"
+    notification_id: str
+    type: str
+    title: str
+    message: str
+    action_url: Optional[str] = None
+    action_label: Optional[str] = None
+    created_at: datetime
+
+class PaymentUpdateEvent(BaseModel):
+    event_type: str = "payment_update"
+    order_id: str
+    status: str
+    amount: float
+    message: Optional[str] = None
+    timestamp: datetime
+
+class RealtimeEventLog(BaseModel):
+    id: str
+    user_id: str
+    event_type: str
+    event_data: dict
+    order_id: Optional[str]
+    created_at: datetime
+    processed: bool

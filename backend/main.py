@@ -11,9 +11,9 @@ from schemas import (
     OrderCreate, OrderResponse, OrderStatusUpdate, RatingSubmit, IssueReport,
     SellerRegister, SellerResponse
 )
-from routers import payments, sellers, riders, notifications
+from routers import payments, sellers, riders, notifications, websocket_routes
 from utils.security import get_current_user, hash_password, verify_password, create_access_token
-from models import Order, OrderItem, Issue
+from models import Order, OrderItem, Issue, Seller
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -39,6 +39,7 @@ app.include_router(payments.router, prefix="/api/v1")
 app.include_router(sellers.router, prefix="/api/v1")
 app.include_router(riders.router, prefix="/api/v1")
 app.include_router(notifications.router)
+app.include_router(websocket_routes.router)
 
 
 # Auth Routes

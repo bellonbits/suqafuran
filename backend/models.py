@@ -265,3 +265,33 @@ class NotificationLog(Base):
     max_retries = Column(Integer, default=3)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+# Device Token Model (for push notifications)
+class DeviceToken(Base):
+    __tablename__ = "device_tokens"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    token = Column(String, nullable=False, unique=True, index=True)
+    device_type = Column(String)  # ios, android, web
+    device_name = Column(String)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_used = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User")
+
+# Real-time Event Log Model
+class RealtimeEvent(Base):
+    __tablename__ = "realtime_events"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    event_type = Column(String, nullable=False)  # order_update, delivery_update, notification, connection, etc.
+    event_data = Column(JSON, nullable=False)
+    order_id = Column(String, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    processed = Column(Boolean, default=False)
+
+    user = relationship("User")
