@@ -1,0 +1,268 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║              SUQAFURAN NOTIFICATION SYSTEM - QUICK START                   ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+STEP 1: RUN AUTOMATED SETUP SCRIPT
+──────────────────────────────────────────────────────────────────────────────
+
+cd /Users/mac/suqafuran
+bash setup_services.sh
+
+This will:
+  ✓ Check prerequisites (Docker, Python, pip)
+  ✓ Start PostgreSQL (Docker)
+  ✓ Start Redis (Docker)
+  ✓ Create database tables
+  ✓ Install Python dependencies
+  ✓ Create .env file from template
+
+
+STEP 2: CONFIGURE CREDENTIALS
+──────────────────────────────────────────────────────────────────────────────
+
+Edit backend/.env with your credentials:
+
+  nano backend/.env
+
+Required:
+  RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxx
+    → Get from https://resend.com (free)
+
+  AFRICASTALKING_USERNAME=your_username
+  AFRICASTALKING_API_KEY=your_api_key
+    → Get from https://africastalking.com (free)
+
+Optional (for push notifications):
+  FIREBASE_PROJECT_ID=your-project-id
+  FIREBASE_CREDENTIALS_JSON={...}
+    → Get from https://firebase.google.com (free)
+
+
+STEP 3: START SERVICES (3 TERMINALS)
+──────────────────────────────────────────────────────────────────────────────
+
+TERMINAL 1 - Celery Worker:
+  cd /Users/mac/suqafuran/backend
+  source venv/bin/activate
+  celery -A celery_app worker --loglevel=info --queues=notifications
+
+TERMINAL 2 - FastAPI Backend:
+  cd /Users/mac/suqafuran/backend
+  source venv/bin/activate
+  python main.py
+  # Or: uvicorn main:app --reload --port 8000
+
+TERMINAL 3 - Testing:
+  # Test API is running
+  curl http://localhost:8000/health
+  # Expected: {"status":"ok"}
+
+
+STEP 4: AUTHENTICATE & GET TOKEN
+──────────────────────────────────────────────────────────────────────────────
+
+Sign up:
+  curl -X POST http://localhost:8000/api/v1/auth/signup \
+    -H "Content-Type: application/json" \
+    -d '{
+      "email": "test@example.com",
+      "phone": "+254712345678",
+      "full_name": "Test User",
+      "password": "password123"
+    }'
+
+Save token:
+  TOKEN="your_access_token_from_response"
+
+
+STEP 5: TEST NOTIFICATION ENDPOINTS
+──────────────────────────────────────────────────────────────────────────────
+
+Send in-app notification:
+  curl -X POST http://localhost:8000/api/v1/notifications/send \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "type": "order",
+      "title": "Test Notification",
+      "message": "This is a test",
+      "channels": ["in-app"]
+    }'
+
+List notifications:
+  curl http://localhost:8000/api/v1/notifications \
+    -H "Authorization: Bearer $TOKEN"
+
+Get preferences:
+  curl http://localhost:8000/api/v1/notifications/preferences \
+    -H "Authorization: Bearer $TOKEN"
+
+Update preferences:
+  curl -X PATCH http://localhost:8000/api/v1/notifications/preferences \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "email_notifications": false,
+      "sms_notifications": true,
+      "promotions": false
+    }'
+
+
+STEP 6: TEST EMAIL DELIVERY
+──────────────────────────────────────────────────────────────────────────────
+
+Send email notification:
+  curl -X POST http://localhost:8000/api/v1/notifications/send \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "type": "order",
+      "title": "Order Confirmed",
+      "message": "Your order has been confirmed",
+      "channels": ["email"]
+    }'
+
+Check Celery worker terminal - should show:
+  [2026-07-01 12:00:00,000: INFO/MainProcess] Task succeeded
+
+Check email (30 seconds) - should arrive from:
+  notifications@suqafuran.resend.dev
+
+
+STEP 7: TEST SMS DELIVERY
+──────────────────────────────────────────────────────────────────────────────
+
+Update user phone (optional):
+  # First, get your Africastalking test number from dashboard
+
+Send SMS notification:
+  curl -X POST http://localhost:8000/api/v1/notifications/send \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "type": "order",
+      "title": "Order Ready",
+      "message": "Your order is ready for pickup",
+      "channels": ["sms"]
+    }'
+
+Check SMS (1-2 minutes) - should arrive on your Africastalking test number
+
+
+STEP 8: TEST WEBSOCKET
+──────────────────────────────────────────────────────────────────────────────
+
+Check WebSocket status:
+  curl http://localhost:8000/api/v1/websocket/status \
+    -H "Authorization: Bearer $TOKEN"
+
+In browser console:
+  const token = "$TOKEN"
+  const ws = new WebSocket(`ws://localhost:8000/api/v1/ws/${token}`)
+  
+  ws.onopen = () => console.log('Connected')
+  ws.onmessage = (e) => console.log('Message:', e.data)
+  
+  // Subscribe to order
+  ws.send(JSON.stringify({
+    action: 'subscribe',
+    channels: ['order_123']
+  }))
+
+
+TROUBLESHOOTING
+──────────────────────────────────────────────────────────────────────────────
+
+PostgreSQL not running?
+  docker start suqafuran-postgres
+  psql -U postgres -h localhost -d suqafuran -c "SELECT 1"
+
+Redis not running?
+  docker start suqafuran-redis
+  redis-cli ping  # Should return PONG
+
+Celery not picking up tasks?
+  1. Check Redis is running: redis-cli ping
+  2. Check Celery logs for errors
+  3. Verify CELERY_BROKER_URL in .env
+
+API not responding?
+  1. Check backend is running: curl http://localhost:8000/health
+  2. Check port 8000 is not in use: lsof -i :8000
+  3. Check error logs in backend terminal
+
+Email not sending?
+  1. Verify RESEND_API_KEY in .env
+  2. Check Celery worker is running
+  3. Verify sender email is configured in Resend
+
+SMS not sending?
+  1. Verify AFRICASTALKING_USERNAME and API_KEY in .env
+  2. Check phone number is test number from dashboard
+  3. Check Celery worker logs
+
+
+USEFUL COMMANDS
+──────────────────────────────────────────────────────────────────────────────
+
+# Check all services
+docker ps
+
+# View logs
+docker logs suqafuran-postgres
+docker logs suqafuran-redis
+
+# Monitor Celery
+celery -A celery_app inspect active
+celery -A celery_app inspect stats
+
+# Database commands
+psql -U postgres -h localhost -d suqafuran -c "SELECT COUNT(*) FROM notifications"
+
+# Redis commands
+redis-cli KEYS "*"
+redis-cli DBSIZE
+
+# Test API endpoints
+curl http://localhost:8000/health
+curl -H "Authorization: Bearer $TOKEN" http://localhost:8000/api/v1/notifications
+curl http://localhost:8000/api/v1/websocket/stats
+
+
+NEXT: STAGING DEPLOYMENT (Week 2)
+──────────────────────────────────────────────────────────────────────────────
+
+Once everything works locally:
+
+1. Deploy backend to staging server
+2. Update frontend WebSocket URL to staging
+3. Run full integration tests
+4. Test with real devices for push notifications
+5. Performance load testing
+6. Deploy to production
+
+See: WEEK1_DEPLOYMENT_GUIDE.md for detailed instructions
+
+
+DOCUMENTATION
+──────────────────────────────────────────────────────────────────────────────
+
+Quick start: QUICK_START.txt (this file)
+Full setup guide: WEEK1_DEPLOYMENT_GUIDE.md
+Phase 4 frontend: PHASE4_NOTIFICATIONS_SUMMARY.md
+Phase 4.1 backend: PHASE4_1_BACKEND_NOTIFICATIONS.md
+Phase 5 websocket: PHASE5_REALTIME_WEBSOCKET.md
+Integration guide: NOTIFICATIONS_INTEGRATION_GUIDE.md
+
+
+SUPPORT
+──────────────────────────────────────────────────────────────────────────────
+
+GitHub Issues: Create issue with error logs
+Slack Channel: #notifications-system
+Docs: https://suqafuran.docs.io
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Ready to deploy? Let's go! 🚀
+
