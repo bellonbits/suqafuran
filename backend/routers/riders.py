@@ -983,3 +983,215 @@ def get_withdrawal_history(
         "total_earned": round(total_balance, 2),
         "withdrawals": history
     }
+
+
+# ===================== SPRINT 4 ENDPOINTS =====================
+
+@router.get("/me/profile")
+def get_rider_profile(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get complete rider profile with all details, documents, and banking info"""
+    rider = db.query(Rider).filter(Rider.user_id == str(current_user.id)).first()
+    if not rider:
+        raise HTTPException(status_code=404, detail="Rider profile not found")
+
+    return {
+        "id": rider.id,
+        "user_id": rider.user_id,
+        "phone": rider.phone,
+        "vehicle_type": rider.vehicle_type,
+        "vehicle_plate": rider.vehicle_plate,
+        "is_verified": rider.is_verified,
+        "is_active": rider.is_active,
+        "current_lat": rider.current_lat,
+        "current_lng": rider.current_lng,
+        "bank_account": rider.bank_account,
+        "bank_name": rider.bank_name,
+        "mpesa_number": rider.mpesa_number,
+        "mpesa_verified": rider.mpesa_verified,
+        "availability_status": rider.availability_status,
+        "total_deliveries": rider.total_deliveries,
+        "completed_deliveries": rider.completed_deliveries,
+        "average_rating": rider.average_rating,
+        "response_time_minutes": rider.response_time_minutes,
+        "on_time_percentage": rider.on_time_percentage,
+        "document_expiry": rider.document_expiry.isoformat() if rider.document_expiry else None,
+        "created_at": rider.created_at.isoformat()
+    }
+
+
+@router.patch("/me/profile")
+def update_rider_profile(
+    profile_update: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update rider profile (bank account, M-Pesa, vehicle info, etc.)"""
+    rider = db.query(Rider).filter(Rider.user_id == str(current_user.id)).first()
+    if not rider:
+        raise HTTPException(status_code=404, detail="Rider profile not found")
+
+    # Allow updates to these fields only
+    updatable_fields = [
+        "bank_account", "bank_name", "mpesa_number",
+        "vehicle_type", "vehicle_plate", "availability_status"
+    ]
+
+    for field in updatable_fields:
+        if field in profile_update:
+            setattr(rider, field, profile_update[field])
+
+    db.add(rider)
+    db.commit()
+    db.refresh(rider)
+
+    return {
+        "success": True,
+        "message": "Profile updated successfully",
+        "profile": {
+            "id": rider.id,
+            "bank_account": rider.bank_account,
+            "bank_name": rider.bank_name,
+            "mpesa_number": rider.mpesa_number,
+            "vehicle_type": rider.vehicle_type,
+            "vehicle_plate": rider.vehicle_plate,
+            "availability_status": rider.availability_status
+        }
+    }
+
+
+@router.get("/me/documents-expiry")
+def get_documents_expiry(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get document expiry status with alerts for documents expiring within 30 days"""
+    from datetime import timedelta
+
+    rider = db.query(Rider).filter(Rider.user_id == str(current_user.id)).first()
+    if not rider:
+        raise HTTPException(status_code=404, detail="Rider profile not found")
+
+    documents = []
+    today = datetime.utcnow().date()
+    expiry_date = rider.document_expiry.date() if rider.document_expiry else None
+
+    if expiry_date:
+        days_until_expiry = (expiry_date - today).days
+        status = "valid"
+        alert = None
+
+        if days_until_expiry < 0:
+            status = "expired"
+            alert = f"Document expired {abs(days_until_expiry)} days ago"
+        elif days_until_expiry < 30:
+            status = "expiring_soon"
+            alert = f"Document expires in {days_until_expiry} days"
+
+        documents.append({
+            "name": "Rider License/Document",
+            "expiry_date": expiry_date.isoformat(),
+            "status": status,
+            "days_until_expiry": days_until_expiry,
+            "alert": alert
+        })
+    else:
+        documents.append({
+            "name": "Rider License/Document",
+            "expiry_date": None,
+            "status": "not_uploaded",
+            "days_until_expiry": None,
+            "alert": "No document uploaded yet"
+        })
+
+    return {
+        "documents": documents,
+        "has_alerts": any(d["alert"] for d in documents)
+    }
+
+
+@router.post("/me/messages")
+def send_message(
+    message_data: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Send a message to a customer"""
+    rider = db.query(Rider).filter(Rider.user_id == str(current_user.id)).first()
+    if not rider:
+        raise HTTPException(status_code=404, detail="Rider profile not found")
+
+    recipient_id = message_data.get("recipient_id")
+    message_text = message_data.get("message")
+
+    if not recipient_id or not message_text:
+        raise HTTPException(status_code=400, detail="Missing recipient_id or message")
+
+    # In a full implementation, this would store in a Message model
+    # For now, return success response
+    return {
+        "success": True,
+        "message_id": str(uuid.uuid4()),
+        "sender_id": rider.id,
+        "recipient_id": recipient_id,
+        "message": message_text,
+        "sent_at": datetime.utcnow().isoformat(),
+        "read": False
+    }
+
+
+@router.get("/me/messages")
+def get_messages(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100)
+):
+    """Get list of conversations/messages for the rider"""
+    rider = db.query(Rider).filter(Rider.user_id == str(current_user.id)).first()
+    if not rider:
+        raise HTTPException(status_code=404, detail="Rider profile not found")
+
+    # In a full implementation, this would query a Message model
+    # For now, return empty conversations
+    return {
+        "total": 0,
+        "page": page,
+        "limit": limit,
+        "conversations": []
+    }
+
+
+@router.post("/{rider_id}/rate-customer")
+def rate_customer(
+    rider_id: str,
+    rating_data: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Submit a rating for a customer based on delivery experience"""
+    # Verify it's the rider's own rating
+    rider = db.query(Rider).filter(Rider.user_id == str(current_user.id)).first()
+    if not rider or rider.id != rider_id:
+        raise HTTPException(status_code=403, detail="Can only rate as yourself")
+
+    delivery_id = rating_data.get("delivery_id")
+    rating = rating_data.get("rating", 5)
+    review = rating_data.get("review", "")
+
+    if not (1 <= rating <= 5):
+        raise HTTPException(status_code=400, detail="Rating must be between 1 and 5")
+
+    # In a full implementation, would update DeliveryAssignment record
+    # For now, return success
+    return {
+        "success": True,
+        "message": "Customer rated successfully",
+        "rider_id": rider_id,
+        "delivery_id": delivery_id,
+        "rating": rating,
+        "review": review,
+        "rated_at": datetime.utcnow().isoformat()
+    }

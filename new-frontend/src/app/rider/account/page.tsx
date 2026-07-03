@@ -14,6 +14,11 @@ export default function RiderAccount() {
         queryFn: riderService.getProfile
     });
 
+    const { data: documentsData } = useQuery({
+        queryKey: ['documentsExpiry'],
+        queryFn: riderService.getDocumentsExpiry
+    });
+
     const updateMutation = useMutation({
         mutationFn: (data: any) => riderService.updateProfile(data),
         onSuccess: () => {
@@ -226,23 +231,31 @@ export default function RiderAccount() {
 
             <div className="documents-section">
                 <h2>Document Status</h2>
-                <div className="document-item">
-                    <div className="doc-info">
-                        <h4>License/Document</h4>
-                        <p className="doc-status">
-                            {profile?.document_expiry
-                                ? new Date(profile.document_expiry) > new Date()
-                                    ? '✓ Valid'
-                                    : '✗ Expired'
-                                : 'Not uploaded'}
-                        </p>
-                    </div>
-                    {profile?.document_expiry && (
-                        <div className="doc-expiry">
-                            Expires: {new Date(profile.document_expiry).toLocaleDateString()}
+                {documentsData && documentsData.documents.map((doc: any, idx: number) => (
+                    <div key={idx} className={`document-item ${doc.status}`}>
+                        <div className="doc-info">
+                            <div className="doc-header">
+                                <h4>{doc.name}</h4>
+                                <span className={`status-badge ${doc.status}`}>
+                                    {doc.status === 'valid' ? '✓ Valid' : doc.status === 'expired' ? '✗ Expired' : doc.status === 'expiring_soon' ? '⚠️ Expiring Soon' : '⚪ Not Uploaded'}
+                                </span>
+                            </div>
+                            {doc.alert && (
+                                <p className="doc-alert">{doc.alert}</p>
+                            )}
                         </div>
-                    )}
-                </div>
+                        {doc.expiry_date && (
+                            <div className="doc-expiry">
+                                Expires: {new Date(doc.expiry_date).toLocaleDateString()}
+                            </div>
+                        )}
+                    </div>
+                ))}
+                {documentsData?.has_alerts && (
+                    <div className="alert-banner">
+                        ⚠️ Some documents need attention. Please update them to continue delivering.
+                    </div>
+                )}
             </div>
 
             <div className="preferences-section">
