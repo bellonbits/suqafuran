@@ -11,12 +11,13 @@ from schemas import (
     OrderCreate, OrderResponse, OrderStatusUpdate, RatingSubmit, IssueReport,
     SellerRegister, SellerResponse
 )
-from routers import payments, sellers, riders, notifications, websocket_routes
+from routers import payments, sellers, riders, notifications, websocket_routes, ratings
 from utils.security import get_current_user, hash_password, verify_password, create_access_token
 from models import Order, OrderItem, Issue, Seller
+from app.api.api_v1.api import api_router
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+# Create tables (comment out if database already set up)
+# Base.metadata.create_all(bind=engine)
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -35,9 +36,11 @@ app.add_middleware(
 )
 
 # Register routers
+app.include_router(api_router, prefix="/api/v1")
 app.include_router(payments.router, prefix="/api/v1")
 app.include_router(sellers.router, prefix="/api/v1")
 app.include_router(riders.router, prefix="/api/v1")
+app.include_router(ratings.router, prefix="/api/v1")
 app.include_router(notifications.router)
 app.include_router(websocket_routes.router)
 

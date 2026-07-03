@@ -20,7 +20,7 @@ from database import get_db
 from utils.security import get_current_user
 from services.notification_service import send_notification_async
 
-router = APIRouter(prefix="/api/v1/notifications", tags=["notifications"])
+router = APIRouter(prefix="/notifications", tags=["notifications"])
 
 
 @router.post("/send", response_model=dict)

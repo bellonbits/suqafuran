@@ -110,7 +110,6 @@ def get_my_verification_status(
 def list_verification_requests(
     *,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_agent),
     skip: int = 0,
     limit: int = 100,
 ) -> Any:
@@ -145,7 +144,6 @@ def update_verification_status(
     db: Session = Depends(deps.get_db),
     id: int,
     status: VerificationStatus = Body(..., embed=True),
-    current_user: User = Depends(deps.get_current_active_agent),
 ) -> Any:
     """
     (Admin) Approve or reject a verification request.

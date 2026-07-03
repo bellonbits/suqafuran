@@ -73,7 +73,16 @@ async def logging_middleware(request: Request, call_next):
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
-# Set all CORS enabled origins
+# GZip Compression (added first, so it executes last/innermost)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Session middleware
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.SECRET_KEY,
+)
+
+# Set all CORS enabled origins (added last, so it executes first/outermost)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -81,14 +90,6 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With", "X-Device-Fingerprint"],
 )
-
-app.add_middleware(
-    SessionMiddleware,
-    secret_key=settings.SECRET_KEY,
-)
-
-# GZip Compression
-app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Serve uploaded files
 if Path(settings.UPLOAD_DIR).exists():

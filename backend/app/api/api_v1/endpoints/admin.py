@@ -9,7 +9,68 @@ from app.models.promotion import Promotion, PromotionStatus
 from app.models.audit import AuditLog
 from app.models.business import Business
 
+# Try importing Seller from routers (Phase 4)
+try:
+    from models import Seller
+except ImportError:
+    Seller = None
+
 router = APIRouter()
+
+
+@router.get("/test")
+def test_endpoint() -> dict:
+    """Test endpoint - no auth required."""
+    return {"message": "Admin endpoint is working!"}
+
+
+@router.get("/orders")
+def list_all_orders() -> Any:
+    """
+    List all orders with customer information (Admin endpoint).
+    """
+    try:
+        from database import engine
+        from sqlalchemy import text
+
+        with engine.connect() as conn:
+            # Use raw SQL to avoid ORM schema mismatch
+            result = conn.execute(text("""
+                SELECT
+                    o.id, o.user_id, o.seller_id, o.status, o.delivery_option,
+                    o.delivery_address, o.phone_number, o.total_amount, o.platform_fee,
+                    o.seller_amount, o.courier_tip, o.payment_status, o.payment_reference,
+                    o.created_at, o.updated_at,
+                    u.full_name, u.email
+                FROM orders o
+                LEFT JOIN "user" u ON o.user_id = CAST(u.id AS VARCHAR)
+                ORDER BY o.created_at DESC
+                LIMIT 100
+            """))
+
+            order_data = []
+            for row in result:
+                order_info = {
+                    "id": str(row[0]),
+                    "customer": {
+                        "id": str(row[1]),
+                        "full_name": str(row[15]) if row[15] else "Unknown",
+                        "email": str(row[16]) if row[16] else "",
+                    },
+                    "status": str(row[3]),
+                    "total_amount": float(row[8]) if row[8] else 0,
+                    "platform_fee": float(row[9]) if row[9] else 0,
+                    "seller_amount": float(row[10]) if row[10] else 0,
+                    "payment_status": str(row[11]),
+                    "delivery_option": str(row[4]),
+                    "created_at": str(row[13]),
+                    "updated_at": str(row[14]),
+                }
+                order_data.append(order_info)
+
+            return order_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 
 @router.get("/stats", response_model=dict)
@@ -182,6 +243,50 @@ def remove_agent(
     db.add(user)
     db.commit()
     return {"success": True}
+
+@router.get("/sellers")
+def list_sellers():
+    """
+    List all verified sellers (Public endpoint - no auth required).
+    """
+    try:
+        from database import SessionLocal
+        from models import Seller as SellerModel
+
+        db = SessionLocal()
+
+        # Query sellers with verification_status = 'verified'
+        sellers = db.query(SellerModel).filter(
+            SellerModel.verification_status == "verified"
+        ).order_by(SellerModel.created_at.desc()).all()
+
+        seller_data = []
+        for s in sellers:
+            # Don't access relationships due to schema mismatch - just use defaults
+            order_count = 0
+            avg_rating = 0.0
+
+            seller_info = {
+                "id": str(s.id),
+                "shop_name": str(s.shop_name),
+                "owner_name": str(s.owner_name),
+                "email": str(s.email),
+                "phone": str(s.phone),
+                "category": str(s.category),
+                "is_active": bool(s.is_active),
+                "verification_status": str(s.verification_status),
+                "rating": float(round(avg_rating, 1)),
+                "listings_count": int(order_count),
+                "created_at": str(s.created_at),
+            }
+            seller_data.append(seller_info)
+
+        db.close()
+        return seller_data
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 @router.post("/users/{user_id}/status")
 def update_user_status(

@@ -9,13 +9,13 @@ from datetime import datetime
 
 from database import get_db
 from models import DeviceToken, User, RealtimeEvent
-from schemas_websocket import DeviceTokenRegister, DeviceTokenResponse, RealtimeEventLog
+from schemas import DeviceTokenRegister, DeviceTokenResponse, RealtimeEventLog
 from utils.security import get_current_user
 from services.websocket_service import manager
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1", tags=["websocket"])
+router = APIRouter(tags=["websocket"])
 
 
 # Device Token Routes

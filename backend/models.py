@@ -20,6 +20,10 @@ class PaymentStatus(str, enum.Enum):
     COMPLETED = "completed"
     FAILED = "failed"
 
+class PaymentMethod(str, enum.Enum):
+    MPESA = "mpesa"
+    CASH_ON_DELIVERY = "cash_on_delivery"
+
 class DeliveryOption(str, enum.Enum):
     DELIVERY = "delivery"
     PICKUP = "pickup"
@@ -79,6 +83,7 @@ class Seller(Base):
     
     orders = relationship("Order", back_populates="seller")
     withdrawals = relationship("Withdrawal", back_populates="seller")
+    ratings = relationship("Rating", back_populates="seller")
 
 # Order Model
 class Order(Base):
@@ -96,6 +101,7 @@ class Order(Base):
     seller_amount = Column(Float, nullable=False)
     courier_tip = Column(Float, default=0)
     payment_status = Column(String, default=PaymentStatus.PENDING)
+    payment_method = Column(String, default=PaymentMethod.MPESA)
     payment_reference = Column(String)
     location_lat = Column(Float, nullable=False)
     location_lng = Column(Float, nullable=False)
@@ -107,6 +113,8 @@ class Order(Base):
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
     payment = relationship("Payment", back_populates="order", uselist=False)
     issue = relationship("Issue", back_populates="order", uselist=False)
+    refund = relationship("Refund", back_populates="order", uselist=False)
+    rating = relationship("Rating", back_populates="order", uselist=False)
 
 # Order Item Model
 class OrderItem(Base):
@@ -137,6 +145,21 @@ class Payment(Base):
     
     order = relationship("Order", back_populates="payment")
 
+# Refund Model
+class Refund(Base):
+    __tablename__ = "refunds"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    order_id = Column(String, ForeignKey("orders.id"), nullable=False, unique=True)
+    amount = Column(Float, nullable=False)
+    reason = Column(String)  # cancellation reason
+    status = Column(String, default="pending")  # pending, processing, completed, failed
+    refund_reference = Column(String)  # M-Pesa refund reference
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    order = relationship("Order", back_populates="refund")
+
 # Issue Model
 class Issue(Base):
     __tablename__ = "issues"
@@ -152,6 +175,25 @@ class Issue(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     order = relationship("Order", back_populates="issue")
+
+# Rating Model
+class Rating(Base):
+    __tablename__ = "ratings"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    order_id = Column(String, ForeignKey("orders.id"), nullable=False, unique=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    seller_id = Column(String, ForeignKey("sellers.id"), nullable=False)
+    rating = Column(Integer, nullable=False)  # 1-5 stars
+    review_text = Column(Text)  # Optional detailed review
+    is_verified_purchase = Column(Boolean, default=True)
+    helpful_count = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    order = relationship("Order", back_populates="rating")
+    user = relationship("User")
+    seller = relationship("Seller", back_populates="ratings")
 
 # Withdrawal Model
 class Withdrawal(Base):
@@ -295,3 +337,91 @@ class RealtimeEvent(Base):
     processed = Column(Boolean, default=False)
 
     user = relationship("User")
+
+# Rider-related enums
+class RiderAvailabilityStatus(str, enum.Enum):
+    ONLINE = "online"
+    OFFLINE = "offline"
+    ON_DELIVERY = "on_delivery"
+
+class WithdrawalMethod(str, enum.Enum):
+    MPESA = "mpesa"
+    BANK = "bank"
+
+class WithdrawalStatus(str, enum.Enum):
+    PENDING = "pending"
+    COMPLETED = "completed"
+    REJECTED = "rejected"
+
+class RiderDeliveryStatus(str, enum.Enum):
+    ASSIGNED = "assigned"
+    PICKED_UP = "picked_up"
+    IN_TRANSIT = "in_transit"
+    DELIVERED = "delivered"
+    CANCELLED = "cancelled"
+
+# Rider Model
+class Rider(Base):
+    __tablename__ = "riders"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    phone = Column(String, nullable=False)
+    vehicle_type = Column(String)
+    vehicle_plate = Column(String)
+    is_verified = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    current_lat = Column(Float)
+    current_lng = Column(Float)
+    bank_account = Column(String)
+    bank_name = Column(String)
+    mpesa_number = Column(String)
+    mpesa_verified = Column(Boolean, default=False)
+    availability_status = Column(String, default=RiderAvailabilityStatus.OFFLINE)
+    total_deliveries = Column(Integer, default=0)
+    completed_deliveries = Column(Integer, default=0)
+    average_rating = Column(Float, default=5.0)
+    response_time_minutes = Column(Integer, default=0)
+    on_time_percentage = Column(Float, default=100.0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User")
+    earnings = relationship("RiderEarnings", back_populates="rider")
+    withdrawals = relationship("RiderWithdrawal", back_populates="rider")
+
+# Rider Earnings Model
+class RiderEarnings(Base):
+    __tablename__ = "rider_earnings"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    rider_id = Column(String, ForeignKey("riders.id"), nullable=False)
+    delivery_id = Column(String, nullable=False)
+    base_fee = Column(Float, nullable=False)
+    distance_bonus = Column(Float, default=0.0)
+    speed_bonus = Column(Float, default=0.0)
+    rating_bonus = Column(Float, default=0.0)
+    total_earned = Column(Float, nullable=False)
+    date = Column(DateTime, default=datetime.utcnow, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    rider = relationship("Rider", back_populates="earnings")
+
+# Rider Withdrawal Model
+class RiderWithdrawal(Base):
+    __tablename__ = "rider_withdrawals"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    rider_id = Column(String, ForeignKey("riders.id"), nullable=False)
+    amount = Column(Float, nullable=False)
+    method = Column(String, nullable=False)
+    status = Column(String, default=WithdrawalStatus.PENDING)
+    requested_date = Column(DateTime, default=datetime.utcnow, index=True)
+    completed_date = Column(DateTime)
+    transaction_id = Column(String)
+    reason_rejected = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    rider = relationship("Rider", back_populates="withdrawals")

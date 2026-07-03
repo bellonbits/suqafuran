@@ -3,7 +3,8 @@ Celery configuration for async task processing
 Handles email, SMS, and push notifications asynchronously
 """
 from celery import Celery
-from core.config import settings
+from kombu import Queue
+from config import settings
 import logging
 
 logger = logging.getLogger(__name__)
@@ -41,13 +42,6 @@ celery_app.conf.task_routes = {
 }
 
 # Configure queues
-celery_app.conf.task_queues = (
-    {
-        "name": "notifications",
-        "exchange": "notifications",
-        "routing_key": "notification.*",
-        "queue_arguments": {
-            "x-message-ttl": 3600000,  # 1 hour TTL
-        },
-    },
-)
+celery_app.conf.task_queues = [
+    Queue("notifications", routing_key="notification.*"),
+]

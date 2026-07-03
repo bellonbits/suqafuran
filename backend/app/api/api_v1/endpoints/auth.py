@@ -162,14 +162,13 @@ def verify_otp(
     response.set_cookie(
         key="access_token", value=access_token, httponly=True,
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        expires=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        samesite="lax", secure=True,
+        samesite="lax", secure=False,
     )
 
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": {"id": user.id, "name": user.full_name, "email": user.email, "verified_level": user.verified_level}
+        "user": {"id": user.id, "name": user.full_name, "email": user.email}
     }
 
 

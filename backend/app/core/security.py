@@ -7,8 +7,8 @@ from app.core.config import settings
 from app.models.user import User, TrustLevel
 import redis
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing - support both bcrypt (existing) and argon2 (new)
+pwd_context = CryptContext(schemes=["bcrypt", "argon2"], deprecated="auto")
 
 ALGORITHM = settings.JWT_ALGORITHM
 
