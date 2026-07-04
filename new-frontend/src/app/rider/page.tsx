@@ -1,30 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { useQuery } from '@tanstack/react-query';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
 import { riderService } from '@/services/riderService';
-import { useAuthStore } from '@/store/useAuthStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 import './dashboard.css';
 
-const riderIcon = new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-});
+const GoogleMap = dynamic(() => import('./GoogleMap'), { ssr: false });
+const DeliveryMessaging = dynamic(() => import('./DeliveryMessaging'), { ssr: false });
+const EarningsDashboard = dynamic(() => import('./EarningsDashboard'), { ssr: false });
+const CompletionAnalytics = dynamic(() => import('./CompletionAnalytics'), { ssr: false });
 
-const deliveryIcon = new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-});
+import DeliveryTracker from './DeliveryTracker';
+import LiveDeliveryTracker from './LiveDeliveryTracker';
 
 interface DashboardData {
     today_earnings: number;
@@ -51,6 +40,12 @@ export default function RiderDashboard() {
     const user = useAuthStore((state) => state.user);
     const [selectedDelivery, setSelectedDelivery] = useState<AvailableDelivery | null>(null);
     const [riderLocation, setRiderLocation] = useState({ lat: -1.286389, lng: 36.817223 });
+    const [routeInfo, setRouteInfo] = useState<{ [key: string]: { distance: string; duration: string } }>({});
+    const [showTracker, setShowTracker] = useState(false);
+    const [liveDeliveryLocation, setLiveDeliveryLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+    const [showMessaging, setShowMessaging] = useState(false);
+    const [showEarnings, setShowEarnings] = useState(false);
+    const [showAnalytics, setShowAnalytics] = useState(false);
 
     const { data: dashboard, isLoading: dashboardLoading } = useQuery({
         queryKey: ['riderDashboard'],
@@ -65,19 +60,19 @@ export default function RiderDashboard() {
     });
 
     useEffect(() => {
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(
-                (position) => {
-                    const { latitude, longitude } = position.coords;
-                    setRiderLocation({ lat: latitude, lng: longitude });
-                    riderService.updateLocation(latitude, longitude).catch(err =>
-                        console.error('Error updating location:', err)
-                    );
-                },
-                (error) => console.error('Error getting location:', error?.message || 'Unknown error'),
-                { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
-            );
-        }
+        if (typeof window === 'undefined' || !navigator?.geolocation) return;
+
+        navigator.geolocation.watchPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                setRiderLocation({ lat: latitude, lng: longitude });
+                riderService.updateLocation(latitude, longitude).catch(err =>
+                    console.error('Error updating location:', err)
+                );
+            },
+            (error) => console.error('Error getting location:', error?.message || 'Unknown error'),
+            { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+        );
     }, []);
 
     const handleAcceptDelivery = async (orderId: string) => {
@@ -92,8 +87,35 @@ export default function RiderDashboard() {
     return (
         <div className="rider-dashboard">
             <header className="dashboard-header">
-                <h1>Rider Dashboard</h1>
-                <p className="user-name">{user?.full_name || 'Rider'}</p>
+                <div className="header-content">
+                    <div>
+                        <h1>Rider Dashboard</h1>
+                        <p className="user-name">{user?.full_name || 'Rider'}</p>
+                    </div>
+                    <div className="header-buttons">
+                        <button
+                            className={`feature-btn ${showMessaging ? 'active' : ''}`}
+                            onClick={() => setShowMessaging(!showMessaging)}
+                            title="Customer Messaging"
+                        >
+                            💬
+                        </button>
+                        <button
+                            className={`feature-btn ${showEarnings ? 'active' : ''}`}
+                            onClick={() => setShowEarnings(!showEarnings)}
+                            title="Earnings Dashboard"
+                        >
+                            💰
+                        </button>
+                        <button
+                            className={`feature-btn ${showAnalytics ? 'active' : ''}`}
+                            onClick={() => setShowAnalytics(!showAnalytics)}
+                            title="Performance Analytics"
+                        >
+                            📊
+                        </button>
+                    </div>
+                </div>
             </header>
 
             <div className="stats-grid">
@@ -153,38 +175,18 @@ export default function RiderDashboard() {
             <div className="map-section">
                 <h2>Available Orders Nearby</h2>
                 <div className="map-container">
-                    <MapContainer
-                        center={[riderLocation.lat, riderLocation.lng]}
-                        zoom={13}
-                        scrollWheelZoom={true}
-                        className="rider-map"
-                    >
-                        <TileLayer
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    <Suspense fallback={<div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading map...</div>}>
+                        <GoogleMap
+                            riderLocation={liveDeliveryLocation ? { lat: liveDeliveryLocation.latitude, lng: liveDeliveryLocation.longitude } : riderLocation}
+                            deliveries={(deliveriesData?.deliveries || []).map((d: any) => ({
+                                ...d,
+                                location: { lat: 0, lng: 0 }, // Will be updated with real coordinates
+                            }))}
+                            selectedDelivery={selectedDelivery}
+                            liveDeliveryLocation={liveDeliveryLocation}
+                            onDeliverySelect={setSelectedDelivery}
                         />
-
-                        <Marker position={[riderLocation.lat, riderLocation.lng]} icon={riderIcon}>
-                            <Popup>Your Location</Popup>
-                        </Marker>
-
-                        {deliveriesData?.deliveries.map((delivery) => (
-                            <Marker
-                                key={delivery.order_id}
-                                position={[0, 0]}
-                                icon={deliveryIcon}
-                                onClick={() => setSelectedDelivery(delivery)}
-                            >
-                                <Popup>
-                                    <div>
-                                        <p><strong>{delivery.delivery_address}</strong></p>
-                                        <p>Distance: {delivery.distance_km} km</p>
-                                        <p>Fee: KSh {delivery.delivery_fee}</p>
-                                    </div>
-                                </Popup>
-                            </Marker>
-                        ))}
-                    </MapContainer>
+                    </Suspense>
                 </div>
             </div>
 
@@ -207,37 +209,119 @@ export default function RiderDashboard() {
                             >
                                 <div className="delivery-header">
                                     <h3>{delivery.delivery_address}</h3>
-                                    <span className="distance">{delivery.distance_km} km away</span>
+                                    <span className="distance">
+                                        {routeInfo[delivery.order_id]?.distance || `${delivery.distance_km} km`}
+                                    </span>
                                 </div>
                                 <div className="delivery-info">
+                                    <span className="info-item">
+                                        ⏱️ {routeInfo[delivery.order_id]?.duration || '-- mins'}
+                                    </span>
                                     <span className="info-item">
                                         📦 {delivery.items_count} item{delivery.items_count !== 1 ? 's' : ''}
                                     </span>
                                     <span className="info-item">
                                         ⭐ {delivery.customer_rating}
                                     </span>
-                                    <span className="info-item">
-                                        KSh {delivery.total_amount}
-                                    </span>
+                                </div>
+                                <div className="delivery-route">
+                                    <div className="pickup-info">
+                                        <span className="label">Pickup:</span>
+                                        <span className="address">{delivery.pickup_location}</span>
+                                    </div>
+                                    <div className="delivery-info-route">
+                                        <span className="label">Delivery:</span>
+                                        <span className="address">{delivery.delivery_address}</span>
+                                    </div>
                                 </div>
                                 <div className="delivery-fee">
                                     <span className="fee-label">Delivery Fee:</span>
                                     <span className="fee-amount">KSh {delivery.delivery_fee}</span>
+                                    <span className="total-label">Total Order:</span>
+                                    <span className="total-amount">KSh {delivery.total_amount}</span>
                                 </div>
                                 <div className="delivery-actions">
-                                    <button
-                                        className="accept-btn"
-                                        onClick={() => handleAcceptDelivery(delivery.order_id)}
-                                    >
-                                        Accept
-                                    </button>
-                                    <button className="decline-btn">Decline</button>
+                                    {selectedDelivery?.order_id === delivery.order_id ? (
+                                        <>
+                                            <button
+                                                className="accept-btn"
+                                                onClick={() => {
+                                                    handleAcceptDelivery(delivery.order_id);
+                                                    setShowTracker(true);
+                                                }}
+                                            >
+                                                Accept Delivery
+                                            </button>
+                                            <button
+                                                className="track-btn"
+                                                onClick={() => setShowTracker(true)}
+                                            >
+                                                Track
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <button
+                                                className="accept-btn"
+                                                onClick={() => {
+                                                    setSelectedDelivery(delivery);
+                                                    handleAcceptDelivery(delivery.order_id);
+                                                }}
+                                            >
+                                                Accept
+                                            </button>
+                                            <button className="decline-btn">Decline</button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         ))
                     )}
                 </div>
             </div>
+
+            {showTracker && selectedDelivery && (
+                <>
+                    <LiveDeliveryTracker
+                        orderId={selectedDelivery.order_id}
+                        onLocationUpdate={(status) => {
+                            if (status.current_location) {
+                                setLiveDeliveryLocation({
+                                    latitude: status.current_location.latitude,
+                                    longitude: status.current_location.longitude,
+                                });
+                            }
+                        }}
+                    />
+                    <DeliveryTracker
+                        delivery={selectedDelivery}
+                        routeInfo={selectedDelivery ? routeInfo[selectedDelivery.order_id] : undefined}
+                        onClose={() => setShowTracker(false)}
+                    />
+                </>
+            )}
+
+            {showMessaging && selectedDelivery && (
+                <div className="feature-panel messaging-panel">
+                    <DeliveryMessaging
+                        orderId={selectedDelivery.order_id}
+                        customerName="Customer"
+                        onClose={() => setShowMessaging(false)}
+                    />
+                </div>
+            )}
+
+            {showEarnings && (
+                <div className="feature-panel earnings-panel">
+                    <EarningsDashboard onClose={() => setShowEarnings(false)} />
+                </div>
+            )}
+
+            {showAnalytics && (
+                <div className="feature-panel analytics-panel">
+                    <CompletionAnalytics onClose={() => setShowAnalytics(false)} />
+                </div>
+            )}
         </div>
     );
 }
