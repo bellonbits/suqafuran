@@ -80,7 +80,8 @@ export default function MessagesPage() {
             setMessageText('');
         },
         onError: (error: any) => {
-            alert(`Error sending message: ${error.message}`);
+            console.error('Message send error:', error);
+            alert(`Error sending message: ${error?.message || 'Unknown error'}`);
         }
     });
 

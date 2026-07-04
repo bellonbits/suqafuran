@@ -74,7 +74,7 @@ export default function RiderDashboard() {
                         console.error('Error updating location:', err)
                     );
                 },
-                (error) => console.error('Error getting location:', error),
+                (error) => console.error('Error getting location:', error?.message || 'Unknown error'),
                 { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
             );
         }

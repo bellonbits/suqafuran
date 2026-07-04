@@ -27,7 +27,8 @@ export default function RiderAccount() {
             refetch();
         },
         onError: (error: any) => {
-            alert(`Error: ${error.response?.data?.detail || 'Failed to update profile'}`);
+            console.error('Profile update error:', error);
+            alert(`Error: ${error?.response?.data?.detail || error?.message || 'Failed to update profile'}`);
         }
     });
 
