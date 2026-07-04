@@ -1125,7 +1125,7 @@ def upload_shop_banners(
     user_id: int,
     banner_data: ShopBannersUpdate,
     *,
-    db: Session = Depends(get_db),
+    db: Session = Depends(deps.get_db),
 ) -> Any:
     """Upload/update shop banners for a specific user/shop."""
     try:
