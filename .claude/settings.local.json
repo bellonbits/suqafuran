@@ -191,7 +191,9 @@
       "Bash(curl -s \"http://localhost:8000/api/v1/verifications/?limit=5\")",
       "Bash(curl -s \"http://localhost:8000/api/v1/listings/?limit=500&owner_id=470\")",
       "Bash(grep -E \"\\\\.py$\")",
-      "Bash(git sparse-checkout *)"
+      "Bash(git sparse-checkout *)",
+      "Bash(curl -s http://localhost:3000/rider)",
+      "Bash(curl -s http://localhost:3001/rider)"
     ],
     "additionalDirectories": [
       "C:\\Users\\learn\\Desktop\\suqafuran\\src",
