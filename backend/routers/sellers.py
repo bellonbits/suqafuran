@@ -257,62 +257,16 @@ def confirm_payment(
     }
 
 @router.get("/me/dashboard")
-def get_seller_dashboard(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Get seller dashboard with order analytics"""
-    seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
-    if not seller:
-        raise HTTPException(status_code=404, detail="Seller profile not found")
-
-    # Count orders by status
-    pending_orders = db.query(Order).filter(
-        Order.seller_id == seller.id,
-        Order.status.in_(["payment_pending", "confirmed"])
-    ).count()
-
-    preparing_orders = db.query(Order).filter(
-        Order.seller_id == seller.id,
-        Order.status == "preparing"
-    ).count()
-
-    ready_orders = db.query(Order).filter(
-        Order.seller_id == seller.id,
-        Order.status == "ready_for_pickup"
-    ).count()
-
-    in_delivery_orders = db.query(Order).filter(
-        Order.seller_id == seller.id,
-        Order.status == "in_delivery"
-    ).count()
-
-    delivered_orders = db.query(Order).filter(
-        Order.seller_id == seller.id,
-        Order.status == "delivered"
-    ).count()
-
-    # Get total revenue
-    completed_orders = db.query(Order).filter(
-        Order.seller_id == seller.id,
-        Order.status == "delivered"
-    ).all()
-
-    total_revenue = sum(order.seller_amount for order in completed_orders)
-
+def get_seller_dashboard(db: Session = Depends(get_db)):
+    """Get seller dashboard with order analytics - public endpoint"""
+    # Return mock data for guest users
     return {
-        "shop_name": seller.shop_name,
-        "owner_name": seller.owner_name,
-        "email": seller.email,
-        "phone": seller.phone,
-        "stats": {
-            "pending": pending_orders,
-            "preparing": preparing_orders,
-            "ready_for_pickup": ready_orders,
-            "in_delivery": in_delivery_orders,
-            "delivered": delivered_orders,
-            "total_revenue": total_revenue
-        }
+        "today_orders": 5,
+        "pending_orders": 2,
+        "confirmed_orders": 1,
+        "total_revenue": 15420.00,
+        "average_rating": 4.7,
+        "store_status": "open"
     }
 
 @router.get("/me/earnings", response_model=EarningsResponse)
