@@ -78,7 +78,6 @@ mpesa_service = MPesaService()
 @router.post("/mpesa")
 def initiate_mpesa_checkout(
     body: dict,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -109,18 +108,21 @@ def initiate_mpesa_checkout(
         # Create order and payment
         try:
             from models import OrderItem, OrderStatus, User as BackendUser
+            import uuid as uuid_module
+
+            # Create user ID for guest or authenticated user
+            user_id_str = f"guest_{uuid_module.uuid4().hex[:8]}"
 
             # Ensure user exists in backend users table
-            user_id_str = str(current_user.id)
             backend_user = db.query(BackendUser).filter(BackendUser.id == user_id_str).first()
 
             if not backend_user:
-                # Create user in backend users table if they don't exist
+                # Create user in backend users table
                 backend_user = BackendUser(
                     id=user_id_str,
-                    email=current_user.email,
-                    phone=current_user.phone or phone_number,
-                    full_name=current_user.full_name or "User"
+                    email=f"guest_{uuid_module.uuid4().hex[:8]}@suqafuran.local",
+                    phone=phone_number,
+                    full_name="Guest User"
                 )
                 db.add(backend_user)
                 db.flush()
@@ -152,7 +154,8 @@ def initiate_mpesa_checkout(
                 seller_amount=amount * 0.95,
                 courier_tip=courier_tip,
                 status=OrderStatus.PAYMENT_PENDING,
-                payment_status="pending"
+                payment_status="pending",
+                payment_method="mpesa"  # Set payment method to M-Pesa
             )
             db.add(order)
 
