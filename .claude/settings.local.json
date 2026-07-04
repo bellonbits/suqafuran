@@ -193,7 +193,10 @@
       "Bash(grep -E \"\\\\.py$\")",
       "Bash(git sparse-checkout *)",
       "Bash(curl -s http://localhost:3000/rider)",
-      "Bash(curl -s http://localhost:3001/rider)"
+      "Bash(curl -s http://localhost:3001/rider)",
+      "Bash(curl -I http://localhost:3000/rider)",
+      "Bash(python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000)",
+      "Bash(curl -s http://localhost:8000/api/v1/docs)"
     ],
     "additionalDirectories": [
       "C:\\Users\\learn\\Desktop\\suqafuran\\src",

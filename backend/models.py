@@ -209,22 +209,6 @@ class Withdrawal(Base):
     
     seller = relationship("Seller", back_populates="withdrawals")
 
-# Rider Model
-class Rider(Base):
-    __tablename__ = "riders"
-    
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String, ForeignKey("users.id"), nullable=False)
-    phone = Column(String, nullable=False)
-    vehicle_type = Column(String)  # motorcycle, car, bicycle
-    vehicle_plate = Column(String)
-    is_verified = Column(Boolean, default=False)
-    is_active = Column(Boolean, default=True)
-    current_lat = Column(Float)
-    current_lng = Column(Float)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
 # Delivery Assignment Model
 class DeliveryAssignment(Base):
     __tablename__ = "delivery_assignments"
