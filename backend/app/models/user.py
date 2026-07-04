@@ -57,7 +57,7 @@ class UserBase(SQLModel):
     is_suspended: bool = Field(default=False)
 
 
-class User(UserBase, table=True):
+class User(UserBase, table=True, tablename="users"):
     id: Optional[int] = Field(default=None, primary_key=True)
     hashed_password: Optional[str] = Field(default=None)  # Keep optional for backward compat/admin
     created_at: datetime = Field(default_factory=datetime.utcnow)

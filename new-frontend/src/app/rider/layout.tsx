@@ -1,9 +1,8 @@
-import RiderHeader from './RiderHeader';
+'use client';
 
-export const metadata = {
-    title: 'Rider - Suqafuran',
-    description: 'Rider dashboard and delivery management',
-};
+import dynamic from 'next/dynamic';
+
+const RiderHeader = dynamic(() => import('./RiderHeader'), { ssr: false });
 
 export default function RiderLayout({
     children,
@@ -13,15 +12,12 @@ export default function RiderLayout({
     return (
         <>
             <RiderHeader />
-            <main className="rider-main">
+            <main className="rider-main" style={{
+                minHeight: 'calc(100vh - 70px)',
+                background: '#f9fafb',
+            }}>
                 {children}
             </main>
-            <style jsx>{`
-                .rider-main {
-                    min-height: calc(100vh - 70px);
-                    background: #f9fafb;
-                }
-            `}</style>
         </>
     );
 }
