@@ -56,6 +56,10 @@ class UserBase(SQLModel):
     is_flagged: bool = Field(default=False)
     is_suspended: bool = Field(default=False)
 
+    # Shop Banner Fields
+    shop_page_banner: Optional[str] = Field(default=None)  # Banner for shops listing page
+    shop_detail_banner: Optional[str] = Field(default=None)  # Banner for shop detail page
+
 
 class User(UserBase, table=True, tablename="users"):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -84,6 +88,8 @@ class UserUpdate(SQLModel):
     email_notifications: Optional[bool] = None
     sms_notifications: Optional[bool] = None
     location: Optional[str] = None
+    shop_page_banner: Optional[str] = None
+    shop_detail_banner: Optional[str] = None
 
 
 class PasswordChange(SQLModel):

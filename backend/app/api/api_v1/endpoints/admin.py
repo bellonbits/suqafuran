@@ -18,6 +18,12 @@ except ImportError:
 router = APIRouter()
 
 
+# --- Pydantic Models ---
+class ShopBannersUpdate(BaseModel):
+    shop_page_banner: Optional[str] = None
+    shop_detail_banner: Optional[str] = None
+
+
 @router.get("/test")
 def test_endpoint() -> dict:
     """Test endpoint - no auth required."""
@@ -1111,5 +1117,41 @@ def disapprove_business(
     db.commit()
     db.refresh(business)
     return business
+
+
+# --- Shop Banner Management ---
+@router.post("/shops/{user_id}/banners")
+def upload_shop_banners(
+    user_id: int,
+    banner_data: ShopBannersUpdate,
+    *,
+    db: Session = Depends(get_db),
+) -> Any:
+    """Upload/update shop banners for a specific user/shop."""
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        if banner_data.shop_page_banner:
+            user.shop_page_banner = banner_data.shop_page_banner
+
+        if banner_data.shop_detail_banner:
+            user.shop_detail_banner = banner_data.shop_detail_banner
+
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        return {
+            "id": user.id,
+            "full_name": user.full_name,
+            "shop_page_banner": user.shop_page_banner,
+            "shop_detail_banner": user.shop_detail_banner,
+            "message": "Shop banners updated successfully"
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
 
 
