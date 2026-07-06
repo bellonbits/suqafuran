@@ -1,7 +1,10 @@
 from datetime import datetime
-from typing import Optional
-from sqlmodel import Field, SQLModel
+from typing import Optional, TYPE_CHECKING
+from sqlmodel import Field, SQLModel, Relationship
 import enum
+
+if TYPE_CHECKING:
+    from app.models.order import Order
 
 class DeliveryStatus(str, enum.Enum):
     pending = "pending"
@@ -18,3 +21,5 @@ class Delivery(SQLModel, table=True):
     tracking_number: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    order: Optional["Order"] = Relationship(back_populates="delivery")
