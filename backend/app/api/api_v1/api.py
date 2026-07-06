@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.api_v1.endpoints import auth, users, listings, admin, favorites, notifications, dashboard, verifications, wallet, boosts, interactions, meetings, deals, trust_ops, promotions, login, mobile_money, audit, kh, messages, translate, feedback, follows, content, ai, marketing, support, verification_check, seo, businesses, addresses
+from app.api.api_v1.endpoints import auth, users, listings, admin, favorites, notifications, dashboard, verifications, wallet, boosts, interactions, meetings, deals, trust_ops, promotions, login, mobile_money, audit, kh, messages, translate, feedback, follows, content, ai, marketing, support, verification_check, seo, businesses, addresses, payments
 
 # Import Phase 4 routers from root routers directory
 import sys
@@ -36,6 +36,7 @@ if phase2_seller_endpoints:
 # Comprehensive API Endpoints
 api_router.include_router(login.router, tags=["login"])
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
+api_router.include_router(payments.router, tags=["payments"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(listings.router, prefix="/listings", tags=["listings"])
 api_router.include_router(admin.router, prefix="/admin", tags=["admin"])

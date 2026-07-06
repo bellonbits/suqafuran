@@ -361,7 +361,8 @@
       "Bash(curl -s \"http://localhost:8000/health\")",
       "Bash(curl -s \"http://localhost:8000/api/v1/cart\" -H \"Authorization: Bearer test\")",
       "Bash(curl -s -X OPTIONS http://localhost:8000/api/v1/payments/mpesa -H \"Origin: http://localhost:3000\" -v)",
-      "Bash(curl -s -X POST http://localhost:8000/api/v1/payments/mpesa -H 'Content-Type: application/json' -d '{\"phoneNumber\":\"254712345678\",\"amount\":1000}')"
+      "Bash(curl -s -X POST http://localhost:8000/api/v1/payments/mpesa -H 'Content-Type: application/json' -d '{\"phoneNumber\":\"254712345678\",\"amount\":1000}')",
+      "Bash(curl -s -X POST http://localhost:8000/api/v1/payments/mpesa -H 'Content-Type: application/json' -d '{\"phoneNumber\":\"254712345678\",\"amount\":1000,\"orderId\":\"ORD-12345\"}')"
     ],
     "additionalDirectories": [
       "C:\\Users\\learn\\Desktop\\suqafuran\\src",
