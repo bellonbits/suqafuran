@@ -11,7 +11,7 @@ from schemas import (
     OrderCreate, OrderResponse, OrderStatusUpdate, RatingSubmit, IssueReport,
     SellerRegister, SellerResponse
 )
-from routers import payments, sellers, riders, notifications, websocket_routes, ratings, delivery_tracking, rider_endpoints, seller_endpoints, delivery_endpoints
+from routers import payments, sellers, riders, notifications, websocket_routes, ratings, delivery_tracking, rider_endpoints, seller_endpoints, delivery_endpoints, cart, order_endpoints, category_endpoints
 from utils.security import get_current_user, hash_password, verify_password, create_access_token
 from models import Order, OrderItem, Issue, Seller
 from app.api.api_v1.api import api_router
@@ -37,6 +37,13 @@ app.add_middleware(
 
 # Register routers (new endpoints before old ones to avoid auth conflicts)
 app.include_router(api_router, prefix="/api/v1")
+
+# Phase 2: New modular routers
+app.include_router(cart.router, prefix="/api/v1")
+app.include_router(order_endpoints.router, prefix="/api/v1")
+app.include_router(category_endpoints.router, prefix="/api/v1")
+
+# Legacy routers
 app.include_router(payments.router, prefix="/api/v1")
 app.include_router(rider_endpoints.router)
 app.include_router(seller_endpoints.router)
@@ -45,8 +52,8 @@ app.include_router(sellers.router, prefix="/api/v1")
 app.include_router(riders.router, prefix="/api/v1")
 app.include_router(ratings.router, prefix="/api/v1")
 app.include_router(delivery_tracking.router)
-app.include_router(notifications.router)
-app.include_router(websocket_routes.router)
+app.include_router(notifications.router, prefix="/api/v1")
+app.include_router(websocket_routes.router, prefix="/api/v1")
 
 
 # Auth Routes

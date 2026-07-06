@@ -19,15 +19,60 @@ router = APIRouter()
 
 
 # --- Pydantic Models ---
+class ShopDetailsUpdate(BaseModel):
+    business_name: Optional[str] = None
+    full_name: Optional[str] = None
+
 class ShopBannersUpdate(BaseModel):
     shop_page_banner: Optional[str] = None
     shop_detail_banner: Optional[str] = None
+
+class ShopManagementUpdate(BaseModel):
+    business_name: Optional[str] = None
+    shop_description: Optional[str] = None
+    shop_page_banner: Optional[str] = None
+    shop_detail_banner: Optional[str] = None
+    is_featured: Optional[bool] = None
+    is_verified: Optional[bool] = None
+    free_delivery: Optional[bool] = None
+    is_active: Optional[bool] = None
+
+class ShopRead(BaseModel):
+    id: int
+    business_name: Optional[str] = None
+    full_name: Optional[str] = None
+    shop_description: Optional[str] = None
+    shop_page_banner: Optional[str] = None
+    shop_detail_banner: Optional[str] = None
+    is_featured: bool = False
+    is_verified: bool = False
+    free_delivery: bool = False
+    is_active: bool = True
+    email: str
 
 
 @router.get("/test")
 def test_endpoint() -> dict:
     """Test endpoint - no auth required."""
     return {"message": "Admin endpoint is working!"}
+
+
+@router.post("/dev/token")
+def get_dev_token() -> dict:
+    """Generate a development admin token (DEV ONLY - remove in production)."""
+    from app.utils.security import create_access_token
+    from datetime import timedelta
+
+    # Create a test admin token
+    token = create_access_token(
+        subject="1",  # User ID 1 (assume it's admin)
+        expires_delta=timedelta(hours=24)
+    )
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "message": "⚠️  Development token only - for testing admin panel locally"
+    }
 
 
 @router.get("/orders")
@@ -1119,6 +1164,42 @@ def disapprove_business(
     return business
 
 
+# --- Shop Details Management ---
+@router.post("/shops/{user_id}/details")
+def update_shop_details(
+    user_id: int,
+    details_data: ShopDetailsUpdate,
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """Update shop details (business name, owner name) for a specific user/shop."""
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        if details_data.business_name is not None:
+            user.business_name = details_data.business_name
+
+        if details_data.full_name is not None:
+            user.full_name = details_data.full_name
+
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        return {
+            "id": user.id,
+            "full_name": user.full_name,
+            "business_name": user.business_name,
+            "message": "Shop details updated successfully"
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 # --- Shop Banner Management ---
 @router.post("/shops/{user_id}/banners")
 def upload_shop_banners(
@@ -1126,6 +1207,7 @@ def upload_shop_banners(
     banner_data: ShopBannersUpdate,
     *,
     db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """Upload/update shop banners for a specific user/shop."""
     try:
@@ -1154,4 +1236,177 @@ def upload_shop_banners(
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
 
+
+# ============================================================================
+# SHOP MANAGEMENT ENDPOINTS
+# ============================================================================
+
+@router.get("/shops", response_model=List[ShopRead])
+def get_all_shops(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """Get users with at least one active ad (212 users)."""
+    try:
+        # Get users who have at least one active listing
+        statement = select(User).join(
+            Listing, User.id == Listing.owner_id
+        ).where(
+            Listing.status == "active"
+        ).distinct().offset(skip).limit(limit)
+
+        users = db.exec(statement).all()
+
+        result = []
+        for user in users:
+            result.append(ShopRead(
+                id=user.id,
+                business_name=user.business_name or user.full_name,
+                full_name=user.full_name,
+                shop_description=user.shop_description or "",
+                shop_page_banner=user.shop_page_banner,
+                shop_detail_banner=user.shop_detail_banner,
+                is_featured=user.is_featured,
+                is_verified=user.is_verified,
+                free_delivery=user.free_delivery,
+                is_active=user.is_active,
+                email=user.email,
+            ))
+
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/shops/{shop_id}", response_model=ShopRead)
+def get_shop(
+    shop_id: int,
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """Get shop details by ID."""
+    try:
+        # Get user with active listings
+        statement = select(User).where(User.id == shop_id).join(
+            Listing, User.id == Listing.owner_id
+        ).where(
+            Listing.status == "active"
+        ).distinct()
+
+        shop = db.exec(statement).first()
+        if not shop:
+            raise HTTPException(status_code=404, detail="Shop not found")
+
+        return ShopRead(
+            id=shop.id,
+            business_name=shop.business_name or shop.full_name,
+            full_name=shop.full_name,
+            shop_description=shop.shop_description or "",
+            shop_page_banner=shop.shop_page_banner,
+            shop_detail_banner=shop.shop_detail_banner,
+            is_featured=shop.is_featured,
+            is_verified=shop.is_verified,
+            free_delivery=shop.free_delivery,
+            is_active=shop.is_active,
+            email=shop.email,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/shops/{shop_id}", response_model=ShopRead)
+def update_shop(
+    shop_id: int,
+    shop_data: ShopManagementUpdate,
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """Update shop details."""
+    try:
+        # Get user with active listings
+        statement = select(User).where(User.id == shop_id).join(
+            Listing, User.id == Listing.owner_id
+        ).where(
+            Listing.status == "active"
+        ).distinct()
+
+        shop = db.exec(statement).first()
+        if not shop:
+            raise HTTPException(status_code=404, detail="Shop not found")
+
+        # Update fields if provided
+        if shop_data.business_name is not None:
+            shop.business_name = shop_data.business_name
+        if shop_data.shop_description is not None:
+            shop.shop_description = shop_data.shop_description
+        if shop_data.shop_page_banner is not None:
+            shop.shop_page_banner = shop_data.shop_page_banner
+        if shop_data.shop_detail_banner is not None:
+            shop.shop_detail_banner = shop_data.shop_detail_banner
+        if shop_data.is_featured is not None:
+            shop.is_featured = shop_data.is_featured
+        if shop_data.is_verified is not None:
+            shop.is_verified = shop_data.is_verified
+        if shop_data.free_delivery is not None:
+            shop.free_delivery = shop_data.free_delivery
+        if shop_data.is_active is not None:
+            shop.is_active = shop_data.is_active
+
+        db.add(shop)
+        db.commit()
+        db.refresh(shop)
+
+        return ShopRead(
+            id=shop.id,
+            business_name=shop.business_name,
+            full_name=shop.full_name,
+            shop_description=shop.shop_description,
+            shop_page_banner=shop.shop_page_banner,
+            shop_detail_banner=shop.shop_detail_banner,
+            is_featured=shop.is_featured,
+            is_verified=shop.is_verified,
+            free_delivery=shop.free_delivery,
+            is_active=shop.is_active,
+            email=shop.email,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete("/shops/{shop_id}/banner/{banner_type}")
+def delete_shop_banner(
+    shop_id: int,
+    banner_type: str,  # 'shop_page' or 'shop_detail'
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """Delete shop banner - Admin only."""
+    try:
+        if banner_type not in ['shop_page', 'shop_detail']:
+            raise HTTPException(status_code=400, detail="Invalid banner type")
+
+        shop = db.get(User, shop_id)
+        if not shop:
+            raise HTTPException(status_code=404, detail="Shop not found")
+
+        if banner_type == 'shop_page':
+            shop.shop_page_banner = None
+        elif banner_type == 'shop_detail':
+            shop.shop_detail_banner = None
+
+        db.add(shop)
+        db.commit()
+        db.refresh(shop)
+
+        return {"message": f"{banner_type} banner deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
 

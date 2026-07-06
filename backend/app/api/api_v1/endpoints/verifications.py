@@ -116,6 +116,9 @@ def list_verification_requests(
     """
     (Admin) List all verification requests.
     """
+    from sqlmodel import select, join
+
+    # Optimized: Fetch verifications with joined user data in one query
     requests = db.exec(
         select(VerificationRequest)
         .order_by(VerificationRequest.created_at.desc())
@@ -123,13 +126,21 @@ def list_verification_requests(
         .limit(limit)
     ).all()
 
+    # Fetch all user IDs at once instead of N+1 queries
+    user_ids = [req.user_id for req in requests]
+    users = {}
+    if user_ids:
+        user_list = db.exec(select(User).where(User.id.in_(user_ids))).all()
+        users = {u.id: u for u in user_list}
+
     result = []
     for req in requests:
-        user = db.get(User, req.user_id)
+        user = users.get(req.user_id)
         data = req.dict()
         if user:
             data["user"] = {
                 "full_name": user.full_name,
+                "business_name": user.business_name,
                 "phone": user.phone,
                 "email": user.email,
                 "is_verified": user.is_verified,

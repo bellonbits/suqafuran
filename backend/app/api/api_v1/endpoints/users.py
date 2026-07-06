@@ -116,10 +116,11 @@ def read_user_public(
 
     return {
         "full_name": user.full_name,
+        "business_name": user.business_name,
         "id": user.id,
         "is_verified": user.is_verified,
         "avatar_url": user.avatar_url,
-        "phone": user.phone, # Adding phone for the profile call button
+        "phone": user.phone,
         "response_time": user.response_time,
         "trust_score": user.trust_score,
         "trust_level": user.trust_level,

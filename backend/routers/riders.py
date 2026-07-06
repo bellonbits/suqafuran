@@ -590,7 +590,7 @@ def upload_proof_of_delivery(
 def get_earnings(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-    period: str = Query("daily", regex="^(daily|weekly|monthly)$"),
+    period: str = Query("daily", pattern="^(daily|weekly|monthly)$"),
     start_date: str = Query(None, description="ISO format date YYYY-MM-DD"),
     end_date: str = Query(None, description="ISO format date YYYY-MM-DD"),
 ):

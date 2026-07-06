@@ -19,12 +19,13 @@ from app.models.fraud import FraudEvent, RiskHistory
 from app.models.email_log import EmailLog
 from app.models.otp_log import OTPLog
 from app.models.saved_address import SavedAddress
+from app.models.order import Order, OrderItem, OrderStatus, FulfillmentType
+from app.models.cart import Cart, CartItem
 from app.models.business import (
     Business,
     Employee,
     BusinessProduct,
     BusinessCustomer,
-    Order,
     BusinessMessage,
     TeamMessage,
     BusinessTask,
@@ -67,6 +68,11 @@ __all__ = [
     "BusinessProduct",
     "BusinessCustomer",
     "Order",
+    "OrderItem",
+    "OrderStatus",
+    "FulfillmentType",
+    "Cart",
+    "CartItem",
     "BusinessMessage",
     "TeamMessage",
     "BusinessTask",

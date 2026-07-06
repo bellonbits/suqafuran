@@ -257,16 +257,90 @@ def confirm_payment(
     }
 
 @router.get("/me/dashboard")
-def get_seller_dashboard(db: Session = Depends(get_db)):
-    """Get seller dashboard with order analytics - public endpoint"""
-    # Return mock data for guest users
+def get_seller_dashboard(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get seller dashboard with comprehensive analytics"""
+    from models import Listing, OrderItem
+    from datetime import datetime, timedelta
+
+    seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
+    if not seller:
+        raise HTTPException(status_code=404, detail="Seller profile not found")
+
+    # Get today's orders
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_orders = db.query(Order).filter(
+        Order.seller_id == seller.id,
+        Order.created_at >= today_start
+    ).all()
+
+    # Get all orders for analytics
+    all_orders = db.query(Order).filter(Order.seller_id == seller.id).all()
+
+    # Calculate metrics
+    today_sales = sum(order.total_amount for order in today_orders)
+    today_orders_count = len(today_orders)
+
+    pending_orders = len([o for o in all_orders if o.status in ["pending", "confirmed", "preparing"]])
+    completed_orders = len([o for o in all_orders if o.status == "delivered"])
+    cancelled_orders = len([o for o in all_orders if o.status == "cancelled"])
+
+    total_revenue = sum(order.seller_amount for order in all_orders if order.status == "delivered")
+
+    # Get product count
+    products = db.query(Listing).filter(Listing.owner_id == current_user.id).all()
+    product_count = len(products)
+
+    # Get most sold items
+    order_items = db.query(OrderItem).join(Order).filter(
+        Order.seller_id == seller.id
+    ).all()
+
+    product_sales = {}
+    for item in order_items:
+        if item.product_id not in product_sales:
+            product_sales[item.product_id] = {
+                "title": item.title,
+                "quantity": 0,
+                "revenue": 0
+            }
+        product_sales[item.product_id]["quantity"] += item.quantity
+        product_sales[item.product_id]["revenue"] += item.price * item.quantity
+
+    top_products = sorted(
+        product_sales.items(),
+        key=lambda x: x[1]["quantity"],
+        reverse=True
+    )[:5]
+
+    # Calculate average rating (from User model trust_score)
+    average_rating = (current_user.trust_score / 20) if current_user.trust_score else 0
+
+    # Calculate response time (in hours - mock for now)
+    response_time = 2  # Average response time in hours
+
     return {
-        "today_orders": 5,
-        "pending_orders": 2,
-        "confirmed_orders": 1,
-        "total_revenue": 15420.00,
-        "average_rating": 4.7,
-        "store_status": "open"
+        "today_sales": today_sales,
+        "today_orders_count": today_orders_count,
+        "pending_orders": pending_orders,
+        "completed_orders": completed_orders,
+        "cancelled_orders": cancelled_orders,
+        "total_revenue": total_revenue,
+        "average_rating": round(average_rating, 1),
+        "response_time": response_time,
+        "product_count": product_count,
+        "top_products": [
+            {
+                "product_id": pid,
+                "title": data["title"],
+                "quantity_sold": data["quantity"],
+                "revenue": data["revenue"]
+            }
+            for pid, data in top_products
+        ],
+        "store_status": "open" if seller.is_active else "closed"
     }
 
 @router.get("/me/earnings", response_model=EarningsResponse)

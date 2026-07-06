@@ -1,4 +1,4 @@
-# 🏪 Suqafuran Marketplace - Complete User Roles & Features Guide
+# Suqafuran Marketplace - Complete User Roles & Features Guide
 
 ## 📋 Table of Contents
 1. [System Overview](#system-overview)
@@ -113,7 +113,7 @@ Order Confirmed
 - Request refunds
 
 #### 5. **Payment Methods** 💳
-- ✅ M-Pesa (Lipana STK Push)
+- ✅ M-Pesa (daraja)
   - Phone validation
   - STK prompt on customer phone
   - Automatic order confirmation

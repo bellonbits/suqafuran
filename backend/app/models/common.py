@@ -10,6 +10,7 @@ class TimestampModel(SQLModel):
 
 class OwnerRead(SQLModel):
     full_name: str
+    business_name: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[str] = None
     is_verified: bool = False

@@ -7,6 +7,8 @@ if TYPE_CHECKING:
     from app.models.listing import Listing
     from app.models.verification import VerificationRequest
     from app.models.wallet import Wallet
+    from app.models.order import Order
+    from app.models.cart import Cart
 
 
 class UserVerifiedLevel(str, enum.Enum):
@@ -56,9 +58,13 @@ class UserBase(SQLModel):
     is_flagged: bool = Field(default=False)
     is_suspended: bool = Field(default=False)
 
-    # Shop Banner Fields
+    # Shop/Business Fields
+    business_name: Optional[str] = Field(default=None)  # Business/shop name
+    shop_description: Optional[str] = Field(default=None)  # Shop description
     shop_page_banner: Optional[str] = Field(default=None)  # Banner for shops listing page
     shop_detail_banner: Optional[str] = Field(default=None)  # Banner for shop detail page
+    is_featured: bool = Field(default=False)  # Featured shop status
+    free_delivery: bool = Field(default=False)  # Free delivery badge
 
 
 class User(UserBase, table=True, tablename="users"):
@@ -70,6 +76,23 @@ class User(UserBase, table=True, tablename="users"):
     listings: List["Listing"] = Relationship(back_populates="owner")
     verification_requests: List["VerificationRequest"] = Relationship(back_populates="user")
     wallet: Optional["Wallet"] = Relationship(back_populates="user")
+
+    # Order relationships
+    orders_as_customer: List["Order"] = Relationship(
+        back_populates="customer",
+        sa_relationship_kwargs={"foreign_keys": "Order.customer_id"}
+    )
+    orders_as_seller: List["Order"] = Relationship(
+        back_populates="seller",
+        sa_relationship_kwargs={"foreign_keys": "Order.seller_id"}
+    )
+    orders_as_rider: List["Order"] = Relationship(
+        back_populates="rider",
+        sa_relationship_kwargs={"foreign_keys": "Order.rider_id"}
+    )
+
+    # Cart relationship
+    cart: Optional["Cart"] = Relationship(back_populates="user")
 
 
 class UserCreate(SQLModel):
@@ -88,8 +111,13 @@ class UserUpdate(SQLModel):
     email_notifications: Optional[bool] = None
     sms_notifications: Optional[bool] = None
     location: Optional[str] = None
+    business_name: Optional[str] = None
+    shop_description: Optional[str] = None
     shop_page_banner: Optional[str] = None
     shop_detail_banner: Optional[str] = None
+    is_featured: Optional[bool] = None
+    free_delivery: Optional[bool] = None
+    is_verified: Optional[bool] = None
 
 
 class PasswordChange(SQLModel):

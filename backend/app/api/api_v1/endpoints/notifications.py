@@ -84,14 +84,18 @@ async def notifications_websocket(websocket: WebSocket):
     if token:
         try:
             decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=[security.ALGORITHM])
-            user_id = int(decoded.get("sub"))
-        except Exception:
+            sub = decoded.get("sub")
+            # Handle both string and int user IDs
+            user_id = int(sub) if sub else None
+        except Exception as e:
+            logger.error(f"WebSocket token decode failed: {str(e)}, token: {token[:20] if token else 'None'}...")
             user_id = None
 
     if not user_id:
         await websocket.accept()
         await websocket.send_json({"error": "Unauthorized: invalid or missing token"})
         await websocket.close(code=4401)
+        logger.warning(f"WebSocket auth rejected - no token or user_id")
         return
 
     await ws_manager.connect_user(user_id, websocket)
