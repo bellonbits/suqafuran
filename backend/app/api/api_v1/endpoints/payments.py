@@ -166,6 +166,23 @@ def initiate_mpesa_checkout(
 
         # CREATE ORDER FIRST (before M-Pesa service initialization)
         try:
+            # Ensure user exists in database (for foreign key constraint)
+            from models import User
+            existing_user = db.query(User).filter(User.id == user_id).first()
+            if not existing_user:
+                # Create user automatically if not exists
+                new_user = User(
+                    id=user_id,
+                    email=f"{user_id}@suqafuran.local",
+                    phone=phone_number,
+                    full_name="User" if user_id.startswith("guest_") else f"User {user_id}",
+                    is_active=True,
+                    is_verified=False
+                )
+                db.add(new_user)
+                db.flush()
+                logger.info(f"[M-Pesa] Created user {user_id}")
+
             order = Order(
                 id=order_id,
                 user_id=user_id,
