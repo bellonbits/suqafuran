@@ -366,7 +366,9 @@
       "Bash(kill 4330)",
       "Bash(echo \"Backend restarting... PID: $!\")",
       "Bash(echo \"Backend restarted at PID: $!\")",
-      "Bash(curl -X POST http://localhost:8000/api/v1/payments/mpesa -H 'Content-Type: application/json' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTQ4NjM5ODUsInN1YiI6IjEifQ.Pvamhni7DksLWTgFkthg3ejUaERSKOgAkO3KGAwJUak' -d '{ *)"
+      "Bash(curl -X POST http://localhost:8000/api/v1/payments/mpesa -H 'Content-Type: application/json' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTQ4NjM5ODUsInN1YiI6IjEifQ.Pvamhni7DksLWTgFkthg3ejUaERSKOgAkO3KGAwJUak' -d '{ *)",
+      "Bash(python -c \"from main import app; print\\('✅ Backend imports successful'\\)\")",
+      "Bash(echo \"Backend restarting from app/main.py... PID: $!\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\learn\\Desktop\\suqafuran\\src",

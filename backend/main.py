@@ -14,8 +14,15 @@ from schemas import (
 from routers import payments, sellers, riders, notifications, websocket_routes, ratings, delivery_tracking, rider_endpoints, seller_endpoints, delivery_endpoints
 from utils.security import get_current_user, hash_password, verify_password, create_access_token
 from models import Order, OrderItem, Issue, Seller
-from app.api.api_v1.api import api_router
-from app.services.background_tasks import init_background_tasks
+
+try:
+    from app.api.api_v1.api import api_router
+    from app.services.background_tasks import init_background_tasks
+    HAS_APP_MODULE = True
+except ImportError:
+    api_router = None
+    init_background_tasks = None
+    HAS_APP_MODULE = False
 
 # Create tables (comment out if database already set up)
 # Base.metadata.create_all(bind=engine)
@@ -41,19 +48,15 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     """Initialize background tasks for notifications and cleanup"""
-    try:
-        init_background_tasks()
-    except Exception as e:
-        print(f"Warning: Failed to initialize background tasks: {str(e)}")
+    if HAS_APP_MODULE and init_background_tasks:
+        try:
+            init_background_tasks()
+        except Exception as e:
+            print(f"Warning: Failed to initialize background tasks: {str(e)}")
 
 # Register routers (new endpoints before old ones to avoid auth conflicts)
-app.include_router(api_router, prefix="/api/v1")
-
-# Phase 2: New modular routers
-app.include_router(cart.router, prefix="/api/v1")
-app.include_router(order_endpoints.router, prefix="/api/v1")
-app.include_router(category_endpoints.router, prefix="/api/v1")
-app.include_router(seller_endpoints.router, prefix="/api/v1")
+if HAS_APP_MODULE and api_router:
+    app.include_router(api_router, prefix="/api/v1")
 
 # Legacy routers
 app.include_router(payments.router, prefix="/api/v1")
