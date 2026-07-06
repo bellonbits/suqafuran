@@ -11,7 +11,7 @@ from schemas import (
     OrderCreate, OrderResponse, OrderStatusUpdate, RatingSubmit, IssueReport,
     SellerRegister, SellerResponse
 )
-from routers import payments, sellers, riders, notifications, websocket_routes, ratings, delivery_tracking, rider_endpoints, seller_endpoints, delivery_endpoints, cart, order_endpoints, category_endpoints
+from routers import payments, sellers, riders, notifications, websocket_routes, ratings, delivery_tracking, rider_endpoints, seller_endpoints, delivery_endpoints
 from utils.security import get_current_user, hash_password, verify_password, create_access_token
 from models import Order, OrderItem, Issue, Seller
 from app.api.api_v1.api import api_router
