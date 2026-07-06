@@ -16,11 +16,15 @@ class MPesaService:
     """M-Pesa Daraja API Integration"""
 
     def __init__(self):
+        # Check if credentials are configured
+        if not hasattr(settings, 'MPESA_CONSUMER_KEY') or not settings.MPESA_CONSUMER_KEY:
+            raise ValueError("M-Pesa credentials not configured")
+
         self.consumer_key = settings.MPESA_CONSUMER_KEY
         self.consumer_secret = settings.MPESA_CONSUMER_SECRET
         self.business_shortcode = settings.MPESA_BUSINESS_SHORTCODE
         self.passkey = settings.MPESA_PASSKEY
-        self.environment = settings.MPESA_ENVIRONMENT
+        self.environment = getattr(settings, 'MPESA_ENVIRONMENT', 'sandbox')
         self.callback_url = settings.MPESA_CALLBACK_URL
         self.base_url = "https://sandbox.safaricom.co.ke" if self.environment == "sandbox" else "https://api.safaricom.co.ke"
 
@@ -102,7 +106,7 @@ def initiate_mpesa_checkout(body: dict = Body(...)):
         # Initialize service on demand
         try:
             service = MPesaService()
-        except AttributeError as e:
+        except (AttributeError, ValueError) as e:
             logger.warning(f"[M-Pesa] M-Pesa credentials not configured: {str(e)}")
             raise HTTPException(
                 status_code=503,

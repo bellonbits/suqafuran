@@ -104,13 +104,11 @@ async def notifications_websocket(websocket: WebSocket):
         return
 
     try:
-        await websocket.accept()
+        await ws_manager.connect_user(user_id, websocket)
         logger.info(f"[WebSocket] Accepted connection for user {user_id}")
     except Exception as e:
         logger.error(f"[WebSocket] Failed to accept connection for user {user_id}: {e}")
         return
-
-    await ws_manager.connect_user(user_id, websocket)
     if ws_manager.loop is None:
         ws_manager.set_event_loop(asyncio.get_event_loop())
 

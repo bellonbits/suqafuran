@@ -365,7 +365,8 @@
       "Bash(curl -s -X POST http://localhost:8000/api/v1/payments/mpesa -H 'Content-Type: application/json' -d '{\"phoneNumber\":\"254712345678\",\"amount\":1000,\"orderId\":\"ORD-12345\"}')",
       "Bash(kill 4330)",
       "Bash(echo \"Backend restarting... PID: $!\")",
-      "Bash(echo \"Backend restarted at PID: $!\")"
+      "Bash(echo \"Backend restarted at PID: $!\")",
+      "Bash(curl -X POST http://localhost:8000/api/v1/payments/mpesa -H 'Content-Type: application/json' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTQ4NjM5ODUsInN1YiI6IjEifQ.Pvamhni7DksLWTgFkthg3ejUaERSKOgAkO3KGAwJUak' -d '{ *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\learn\\Desktop\\suqafuran\\src",
