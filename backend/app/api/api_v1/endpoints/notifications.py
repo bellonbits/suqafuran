@@ -79,6 +79,7 @@ async def notifications_websocket(websocket: WebSocket):
     Once connected, the server pushes any event addressed to this user_id
     (e.g. an order status change from a seller) with no polling required.
     """
+    logger.info(f"[WebSocket] Connection attempt from {websocket.client}")
     token = websocket.query_params.get("token")
     user_id = None
 
@@ -88,10 +89,12 @@ async def notifications_websocket(websocket: WebSocket):
             sub = decoded.get("sub")
             # Handle both string and int user IDs
             user_id = int(sub) if sub else None
-            logger.info(f"[WebSocket] Token decoded successfully for user {user_id}")
+            logger.info(f"[WebSocket] ✅ Token decoded successfully for user {user_id}")
         except Exception as e:
-            logger.error(f"[WebSocket] Token decode failed: {str(e)}, token: {token[:20] if token else 'None'}...")
+            logger.error(f"[WebSocket] ❌ Token decode failed: {str(e)}, token: {token[:20] if token else 'None'}...")
             user_id = None
+    else:
+        logger.warning(f"[WebSocket] ⚠️ No token provided in query params")
 
     if not user_id:
         try:
