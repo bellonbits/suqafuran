@@ -1249,12 +1249,18 @@ def get_all_shops(
 ) -> Any:
     """Get users with at least one active ad (212 users)."""
     try:
-        # Get users who have at least one active listing
-        statement = select(User).join(
-            Listing, User.id == Listing.owner_id
-        ).where(
+        # Use subquery for better performance on large datasets
+        # Instead of: SELECT DISTINCT User WHERE ... JOIN Listing
+        # We do: SELECT User WHERE User.id IN (SELECT owner_id FROM Listing)
+        from sqlmodel import and_
+
+        active_sellers = select(Listing.owner_id).where(
             Listing.status == "active"
-        ).distinct().offset(skip).limit(limit)
+        ).distinct()
+
+        statement = select(User).where(
+            User.id.in_(active_sellers)
+        ).order_by(User.created_at.desc()).offset(skip).limit(limit)
 
         users = db.exec(statement).all()
 

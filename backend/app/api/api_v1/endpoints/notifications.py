@@ -81,21 +81,33 @@ async def notifications_websocket(websocket: WebSocket):
     """
     token = websocket.query_params.get("token")
     user_id = None
+
     if token:
         try:
             decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=[security.ALGORITHM])
             sub = decoded.get("sub")
             # Handle both string and int user IDs
             user_id = int(sub) if sub else None
+            logger.info(f"[WebSocket] Token decoded successfully for user {user_id}")
         except Exception as e:
-            logger.error(f"WebSocket token decode failed: {str(e)}, token: {token[:20] if token else 'None'}...")
+            logger.error(f"[WebSocket] Token decode failed: {str(e)}, token: {token[:20] if token else 'None'}...")
             user_id = None
 
     if not user_id:
+        try:
+            await websocket.accept()
+            await websocket.send_json({"error": "Unauthorized: invalid or missing token"})
+            await websocket.close(code=4401, reason="Invalid token")
+        except Exception as e:
+            logger.warning(f"[WebSocket] Error rejecting auth: {e}")
+        logger.warning(f"[WebSocket] Auth rejected - no token or user_id")
+        return
+
+    try:
         await websocket.accept()
-        await websocket.send_json({"error": "Unauthorized: invalid or missing token"})
-        await websocket.close(code=4401)
-        logger.warning(f"WebSocket auth rejected - no token or user_id")
+        logger.info(f"[WebSocket] Accepted connection for user {user_id}")
+    except Exception as e:
+        logger.error(f"[WebSocket] Failed to accept connection for user {user_id}: {e}")
         return
 
     await ws_manager.connect_user(user_id, websocket)
@@ -103,14 +115,25 @@ async def notifications_websocket(websocket: WebSocket):
         ws_manager.set_event_loop(asyncio.get_event_loop())
 
     try:
+        logger.info(f"[WebSocket] User {user_id} connected, listening for messages...")
         while True:
             # This channel is push-only from the server; we just keep the
             # socket open and detect disconnects. Any inbound text (e.g. a
             # client ping) is read and discarded.
-            await websocket.receive_text()
+            try:
+                await asyncio.wait_for(websocket.receive_text(), timeout=120)
+            except asyncio.TimeoutError:
+                # No message for 2 minutes, send a ping to keep alive
+                try:
+                    await websocket.send_json({"type": "ping"})
+                except Exception:
+                    break
+            except Exception:
+                break
     except WebSocketDisconnect:
+        logger.info(f"[WebSocket] User {user_id} disconnected normally")
         ws_manager.disconnect_user(user_id, websocket)
     except Exception as e:
-        logger.error(f"Notifications WebSocket error for user {user_id}: {e}")
+        logger.error(f"[WebSocket] Error for user {user_id}: {e}")
         ws_manager.disconnect_user(user_id, websocket)
 
