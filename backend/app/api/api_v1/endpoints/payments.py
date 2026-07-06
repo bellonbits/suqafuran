@@ -102,8 +102,8 @@ def initiate_mpesa_checkout(body: dict = Body(...)):
         # Initialize service on demand
         try:
             service = MPesaService()
-        except AttributeError:
-            logger.warning("[M-Pesa] M-Pesa credentials not configured")
+        except AttributeError as e:
+            logger.warning(f"[M-Pesa] M-Pesa credentials not configured: {str(e)}")
             raise HTTPException(
                 status_code=503,
                 detail="Payment service not configured. Please check M-Pesa settings."
