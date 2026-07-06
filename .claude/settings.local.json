@@ -347,7 +347,21 @@
       "Bash(grep \"\\\\.py$\")",
       "Bash(grep \".py$\")",
       "Bash(python -m py_compile app/models/order.py app/models/cart.py routers/cart.py routers/order_endpoints.py routers/category_endpoints.py)",
-      "Bash(python -m py_compile app/services/notification_integration.py app/services/background_tasks.py)"
+      "Bash(python -m py_compile app/services/notification_integration.py app/services/background_tasks.py)",
+      "Bash(python3 -m py_compile backend/main.py backend/routers/seller_endpoints.py)",
+      "Bash(curl -s \"http://localhost:8000/api/v1/sellers/me/orders?limit=5\")",
+      "Bash(python3 -m py_compile /Users/mac/suqafuran/backend/app/api/api_v1/api.py)",
+      "Bash(sed -i 's/response_model=Order/response_model=BusinessOrder/g' /Users/mac/suqafuran/backend/app/api/api_v1/endpoints/businesses.py)",
+      "Bash(sed -i 's/Order\\\\./BusinessOrder./g' /Users/mac/suqafuran/backend/app/api/api_v1/endpoints/businesses.py)",
+      "Bash(curl -s \"http://localhost:8000/api/v1/sellers/me/orders?limit=2\")",
+      "Bash(curl -s \"http://localhost:8000/api/v1/sellers/me/dashboard\")",
+      "Bash(curl -s \"http://localhost:8000/api/v1/health\")",
+      "Bash(curl -s \"http://localhost:8000/api/v1/listings\")",
+      "Bash(curl -v \"http://localhost:8000/health\")",
+      "Bash(curl -s \"http://localhost:8000/health\")",
+      "Bash(curl -s \"http://localhost:8000/api/v1/cart\" -H \"Authorization: Bearer test\")",
+      "Bash(curl -s -X OPTIONS http://localhost:8000/api/v1/payments/mpesa -H \"Origin: http://localhost:3000\" -v)",
+      "Bash(curl -s -X POST http://localhost:8000/api/v1/payments/mpesa -H 'Content-Type: application/json' -d '{\"phoneNumber\":\"254712345678\",\"amount\":1000}')"
     ],
     "additionalDirectories": [
       "C:\\Users\\learn\\Desktop\\suqafuran\\src",
