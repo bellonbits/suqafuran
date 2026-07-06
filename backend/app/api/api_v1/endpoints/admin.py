@@ -60,7 +60,7 @@ def test_endpoint() -> dict:
 @router.post("/dev/token")
 def get_dev_token() -> dict:
     """Generate a development admin token (DEV ONLY - remove in production)."""
-    from app.utils.security import create_access_token
+    from app.core.security import create_access_token
     from datetime import timedelta
 
     # Create a test admin token
