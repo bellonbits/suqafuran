@@ -7,7 +7,7 @@ from app.models.business import (
     Employee,
     BusinessProduct,
     BusinessCustomer,
-    Order,
+    BusinessOrder,
     BusinessMessage,
     TeamMessage,
     BusinessTask,
@@ -208,8 +208,8 @@ class CRUDBusiness:
     # --- Orders ---
     def create_order(
         self, db: Session, business_id: uuid_pkg.UUID, customer_id: int, items: List[dict], total_amount: float, **kwargs
-    ) -> Order:
-        order = Order(
+    ) -> BusinessOrder:
+        order = BusinessOrder(
             business_id=business_id,
             customer_id=customer_id,
             items=items,
@@ -235,14 +235,14 @@ class CRUDBusiness:
 
         return order
 
-    def get_order(self, db: Session, order_id: int) -> Optional[Order]:
-        return db.get(Order, order_id)
+    def get_order(self, db: Session, order_id: int) -> Optional[BusinessOrder]:
+        return db.get(BusinessOrder, order_id)
 
-    def list_orders(self, db: Session, business_id: uuid_pkg.UUID) -> List[Order]:
-        stmt = select(Order).where(Order.business_id == business_id).order_by(Order.created_at.desc())
+    def list_orders(self, db: Session, business_id: uuid_pkg.UUID) -> List[BusinessOrder]:
+        stmt = select(BusinessOrder).where(BusinessOrder.business_id == business_id).order_by(BusinessOrder.created_at.desc())
         return db.exec(stmt).all()
 
-    def update_order_status(self, db: Session, order: Order, status: str, employee_id: Optional[int] = None) -> Order:
+    def update_order_status(self, db: Session, order: BusinessOrder, status: str, employee_id: Optional[int] = None) -> BusinessOrder:
         order.status = status
         if employee_id:
             order.employee_id = employee_id

@@ -25,7 +25,7 @@ from app.models.business import (
     Employee,
     BusinessProduct,
     BusinessCustomer,
-    Order,
+    BusinessOrder,
     BusinessMessage,
     TeamMessage,
     BusinessTask,
@@ -404,7 +404,7 @@ def update_business_product_details(
 
 
 # --- Order Processing ---
-@router.get("/{business_id}/orders", response_model=List[Order])
+@router.get("/{business_id}/orders", response_model=List[BusinessOrder])
 def list_business_orders(
     business_id: uuid_pkg.UUID,
     db: Session = Depends(get_db),
@@ -414,7 +414,7 @@ def list_business_orders(
     return crud_business.list_orders(db, business_id)
 
 
-@router.post("/{business_id}/orders", response_model=Order)
+@router.post("/{business_id}/orders", response_model=BusinessOrder)
 def record_order_entry(
     business_id: uuid_pkg.UUID,
     *,
@@ -440,7 +440,7 @@ def record_order_entry(
     )
 
 
-@router.put("/{business_id}/orders/{order_id}", response_model=Order)
+@router.put("/{business_id}/orders/{order_id}", response_model=BusinessOrder)
 def change_order_status(
     business_id: uuid_pkg.UUID,
     order_id: int,
@@ -458,7 +458,7 @@ def change_order_status(
     return crud_business.update_order_status(db, order, status, employee_id)
 
 
-@router.get("/{business_id}/orders/{order_id}/view", response_model=Order)
+@router.get("/{business_id}/orders/{order_id}/view", response_model=BusinessOrder)
 def view_order(
     business_id: uuid_pkg.UUID,
     order_id: int,
@@ -654,11 +654,11 @@ def get_dashboard_analytics(
     # Recalculate metrics manually
     # 1. Total Revenue & order counts
     order_stmt = select(
-        func.sum(Order.total_amount),
-        func.count(Order.id)
+        func.sum(BusinessOrder.total_amount),
+        func.count(BusinessOrder.id)
     ).where(
-        Order.business_id == business_id,
-        Order.status == "completed"
+        BusinessOrder.business_id == business_id,
+        BusinessOrder.status == "completed"
     )
     revenue, completed_orders = db.exec(order_stmt).first()
     revenue = float(revenue or 0.0)
@@ -687,12 +687,12 @@ def get_dashboard_analytics(
     # 5. Sales trends last 7 days
     date_seven_days_ago = datetime.utcnow() - timedelta(days=7)
     trend_stmt = select(
-        func.date_trunc('day', Order.created_at).label('day'),
-        func.sum(Order.total_amount).label('total')
+        func.date_trunc('day', BusinessOrder.created_at).label('day'),
+        func.sum(BusinessOrder.total_amount).label('total')
     ).where(
-        Order.business_id == business_id,
-        Order.status == "completed",
-        Order.created_at >= date_seven_days_ago
+        BusinessOrder.business_id == business_id,
+        BusinessOrder.status == "completed",
+        BusinessOrder.created_at >= date_seven_days_ago
     ).group_by('day').order_by('day')
     
     trends = []

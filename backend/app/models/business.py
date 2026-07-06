@@ -98,7 +98,8 @@ class BusinessCustomer(SQLModel, table=True):
     last_purchase_at: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-class Order(SQLModel, table=True):
+class BusinessOrder(SQLModel, table=True):
+    __tablename__ = "businessorder"
     id: Optional[int] = Field(default=None, primary_key=True)
     business_id: uuid_pkg.UUID = Field(foreign_key="business.id", index=True)
     customer_id: int = Field(foreign_key="user.id", index=True)
