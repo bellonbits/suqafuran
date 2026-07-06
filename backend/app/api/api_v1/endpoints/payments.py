@@ -1,11 +1,18 @@
-"""M-Pesa Payment Integration"""
+"""M-Pesa Payment Integration with Order Creation"""
 import logging
 import requests
 import base64
 from datetime import datetime
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Body, Header
+from jose import jwt
+from sqlalchemy.orm import Session
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
 from app.core.config import settings
+from app.core import security
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +23,6 @@ class MPesaService:
     """M-Pesa Daraja API Integration"""
 
     def __init__(self):
-        # Check if credentials are configured
         if not hasattr(settings, 'MPESA_CONSUMER_KEY') or not settings.MPESA_CONSUMER_KEY:
             raise ValueError("M-Pesa credentials not configured")
 
@@ -88,40 +94,41 @@ class MPesaService:
             raise HTTPException(status_code=500, detail=f"Payment initiation failed: {str(e)}")
 
 
+def extract_user_id_from_token(authorization: Optional[str]) -> Optional[str]:
+    """Extract user ID from JWT token in Authorization header"""
+    if not authorization:
+        return None
+
+    try:
+        # Format: "Bearer <token>"
+        parts = authorization.split()
+        if len(parts) != 2 or parts[0].lower() != "bearer":
+            return None
+
+        token = parts[1]
+        decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=[security.ALGORITHM])
+        user_id = decoded.get("sub")
+        return str(user_id) if user_id else None
+    except Exception as e:
+        logger.warning(f"Failed to extract user ID from token: {str(e)}")
+        return None
+
+
 @router.post("/mpesa")
-def initiate_mpesa_checkout(body: dict = Body(...)):
+def initiate_mpesa_checkout(body: dict = Body(...), authorization: Optional[str] = Header(None)):
     """
     Initiate M-Pesa payment from checkout
 
     Body parameters:
     - phoneNumber: Customer phone number (required)
     - amount: Payment amount in KES (required)
-    - orderId: Order ID (required) - if not provided, generates new one
+    - orderId: Order ID (required, generated if not provided)
     - items: Order items list
     - fulfillmentType: delivery or pickup
     - deliveryAddress: Delivery address
     - courierTip: Optional tip amount
-    - userId: Authenticated user ID (optional - for guest checkout, a guest ID will be generated)
     """
     try:
-        # Initialize database
-        from app.core.config import settings
-        from sqlalchemy import create_engine
-        from sqlalchemy.orm import Session, sessionmaker
-        from app.models.order import Order, OrderItem
-        from app.models.user import User
-        from datetime import datetime
-        import uuid
-
-        # Get database session
-        try:
-            engine = create_engine(settings.DATABASE_URL)
-            SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-            db = SessionLocal()
-        except Exception as e:
-            logger.error(f"[M-Pesa] Database connection failed: {str(e)}")
-            db = None
-
         # Initialize service on demand
         try:
             service = MPesaService()
@@ -142,13 +149,18 @@ def initiate_mpesa_checkout(body: dict = Body(...)):
         courier_tip = body.get('courierTip', 0)
 
         # Validation
-        if not phone_number or not amount or not order_id:
-            raise HTTPException(status_code=400, detail="Missing required fields: phoneNumber, amount, orderId")
+        if not phone_number or not amount:
+            raise HTTPException(status_code=400, detail="Missing required fields: phoneNumber, amount")
 
         if amount <= 0:
             raise HTTPException(status_code=400, detail="Amount must be greater than 0")
 
-        logger.info(f"[M-Pesa] Processing checkout: phone={phone_number}, amount={amount}, order={order_id}")
+        # Extract authenticated user ID from JWT token
+        user_id = extract_user_id_from_token(authorization)
+        if not order_id:
+            order_id = f"ORD-{uuid.uuid4().hex[:12]}"
+
+        logger.info(f"[M-Pesa] Processing checkout: phone={phone_number}, amount={amount}, order={order_id}, user={user_id}")
 
         # Initiate STK push
         result = service.initiate_stk_push(
