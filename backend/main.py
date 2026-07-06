@@ -53,11 +53,11 @@ app.include_router(api_router, prefix="/api/v1")
 app.include_router(cart.router, prefix="/api/v1")
 app.include_router(order_endpoints.router, prefix="/api/v1")
 app.include_router(category_endpoints.router, prefix="/api/v1")
+app.include_router(seller_endpoints.router, prefix="/api/v1")
 
 # Legacy routers
 app.include_router(payments.router, prefix="/api/v1")
 app.include_router(rider_endpoints.router)
-app.include_router(seller_endpoints.router)
 app.include_router(delivery_endpoints.router)
 app.include_router(sellers.router, prefix="/api/v1")
 app.include_router(riders.router, prefix="/api/v1")

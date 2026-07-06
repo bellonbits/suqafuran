@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from datetime import datetime
 
-router = APIRouter(prefix="/api/v1/sellers", tags=["sellers"])
+router = APIRouter(prefix="/sellers", tags=["sellers"])
 
 
 @router.get("/me/dashboard")
