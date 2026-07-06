@@ -393,7 +393,11 @@
       "Bash(chmod +x /tmp/test_full_payment.sh)",
       "Bash(/tmp/test_full_payment.sh)",
       "Bash(timeout 5 curl -s \"http://localhost:8000/api/v1/listings/?limit=500\")",
-      "Bash(curl -s -m 5 \"http://localhost:8000/api/v1/listings/?limit=500\")"
+      "Bash(curl -s -m 5 \"http://localhost:8000/api/v1/listings/?limit=500\")",
+      "Bash(chmod +x /tmp/test_multiple_orders.sh)",
+      "Bash(/tmp/test_multiple_orders.sh)",
+      "Bash(curl -s 'http://localhost:8000/api/v1/orders/?skip=0&limit=10' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODM0NDc0MDUsInN1YiI6IjEifQ.YAJTAf1vzXAxSVyUbjAvU5wOErVI19SHvA1N4sJrrdg')",
+      "Bash(curl -v http://localhost:8000/api/v1/admin/test)"
     ],
     "additionalDirectories": [
       "C:\\Users\\learn\\Desktop\\suqafuran\\src",
