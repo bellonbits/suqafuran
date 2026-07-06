@@ -79,7 +79,8 @@ async def notifications_websocket(websocket: WebSocket):
     Once connected, the server pushes any event addressed to this user_id
     (e.g. an order status change from a seller) with no polling required.
     """
-    logger.info(f"[WebSocket] Connection attempt from {websocket.client}")
+    print(f"[WebSocket] 🔌 ENDPOINT HIT from {websocket.client}")
+    logger.info(f"[WebSocket] 🔌 Connection attempt from {websocket.client}")
     token = websocket.query_params.get("token")
     user_id = None
 

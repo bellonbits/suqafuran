@@ -96,13 +96,32 @@ def initiate_mpesa_checkout(body: dict = Body(...)):
     Body parameters:
     - phoneNumber: Customer phone number (required)
     - amount: Payment amount in KES (required)
-    - orderId: Order ID (required)
+    - orderId: Order ID (required) - if not provided, generates new one
     - items: Order items list
     - fulfillmentType: delivery or pickup
     - deliveryAddress: Delivery address
     - courierTip: Optional tip amount
+    - userId: Authenticated user ID (optional - for guest checkout, a guest ID will be generated)
     """
     try:
+        # Initialize database
+        from app.core.config import settings
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import Session, sessionmaker
+        from app.models.order import Order, OrderItem
+        from app.models.user import User
+        from datetime import datetime
+        import uuid
+
+        # Get database session
+        try:
+            engine = create_engine(settings.DATABASE_URL)
+            SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+            db = SessionLocal()
+        except Exception as e:
+            logger.error(f"[M-Pesa] Database connection failed: {str(e)}")
+            db = None
+
         # Initialize service on demand
         try:
             service = MPesaService()

@@ -11,7 +11,9 @@ from schemas import MPesaPaymentRequest, PaymentStatusResponse, RefundRequest
 from config import settings
 from app.api.deps import get_current_user
 
-router = APIRouter(prefix="/payments", tags=["payments"])
+# DISABLED: This router creates guest users. Use app/api/api_v1/endpoints/payments.py instead
+# router = APIRouter(prefix="/payments", tags=["payments"])
+router = APIRouter(prefix="/payments-disabled", tags=["payments"])
 
 # M-Pesa Daraja Integration
 class MPesaService:
