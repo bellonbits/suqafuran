@@ -387,7 +387,11 @@
       "Bash(curl -s http://localhost:8000/api/v1/admin/dev/token)",
       "Bash(curl -s -X POST http://localhost:8000/api/v1/admin/dev/token)",
       "Bash(curl -s http://localhost:8000/api/v1/addresses/ -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODM0NDc0MDUsInN1YiI6IjEifQ.YAJTAf1vzXAxSVyUbjAvU5wOErVI19SHvA1N4sJrrdg')",
-      "Bash(curl -s -X POST http://localhost:8000/api/v1/payments/mpesa -H 'Content-Type: application/json' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODM0NDc0MDUsInN1YiI6IjEifQ.YAJTAf1vzXAxSVyUbjAvU5wOErVI19SHvA1N4sJrrdg' -d '{ *)"
+      "Bash(curl -s -X POST http://localhost:8000/api/v1/payments/mpesa -H 'Content-Type: application/json' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODM0NDc0MDUsInN1YiI6IjEifQ.YAJTAf1vzXAxSVyUbjAvU5wOErVI19SHvA1N4sJrrdg' -d '{ *)",
+      "Bash(chmod +x /tmp/test_payment_flow.sh)",
+      "Bash(/tmp/test_payment_flow.sh)",
+      "Bash(chmod +x /tmp/test_full_payment.sh)",
+      "Bash(/tmp/test_full_payment.sh)"
     ],
     "additionalDirectories": [
       "C:\\Users\\learn\\Desktop\\suqafuran\\src",

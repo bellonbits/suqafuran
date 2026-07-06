@@ -309,30 +309,70 @@ def mpesa_callback_post(body: dict = Body(...)):
 
 
 @router.post("/mpesa/simulate")
-def simulate_mpesa_payment(body: dict = Body(...)):
+def simulate_mpesa_payment(body: dict = Body(...), db: Session = Depends(deps.get_db)):
     """
     Simulate M-Pesa payment (for testing)
 
-    This endpoint simulates an M-Pesa payment by generating a callback
+    Body parameters:
+    - order_id: The order ID to simulate payment for (required)
+    - success: True to simulate successful payment, False for failure (default: True)
     """
     try:
-        checkout_request_id = body.get("CheckoutRequestID")
-        result_code = body.get("ResultCode", 0)
+        order_id = body.get("order_id") or body.get("CheckoutRequestID")
+        success = body.get("success", True)
 
-        if not checkout_request_id:
-            raise HTTPException(status_code=400, detail="CheckoutRequestID required")
+        if not order_id:
+            raise HTTPException(status_code=400, detail="order_id or CheckoutRequestID required")
 
-        logger.info(f"[M-Pesa Simulate] Simulating payment: {checkout_request_id}")
+        logger.info(f"[M-Pesa Simulate] Simulating {'successful' if success else 'failed'} payment for order: {order_id}")
 
-        # Return mock response
+        # Find the order
+        order = db.query(Order).filter(Order.id == order_id).first()
+        if not order:
+            raise HTTPException(status_code=404, detail=f"Order {order_id} not found")
+
+        # Find or create payment record
+        payment = db.query(Payment).filter(Payment.order_id == order_id).first()
+        if not payment:
+            payment = Payment(
+                id=str(uuid.uuid4()),
+                order_id=order_id,
+                amount=order.total_amount,
+                status="pending",
+                mpesa_reference=None,
+                merchant_request_id=None,
+                checkout_request_id=None
+            )
+            db.add(payment)
+
+        if success:
+            # Simulate successful payment
+            payment.status = "completed"
+            payment.mpesa_reference = f"SIM{order_id[:8].upper()}"
+            order.payment_status = "completed"
+            order.payment_reference = payment.mpesa_reference
+            order.status = OrderStatus.CONFIRMED
+            logger.info(f"[M-Pesa Simulate] ✅ Order {order_id} payment marked as completed")
+        else:
+            # Simulate failed payment
+            payment.status = "failed"
+            order.payment_status = "failed"
+            order.status = OrderStatus.CANCELLED
+            logger.info(f"[M-Pesa Simulate] ❌ Order {order_id} payment marked as failed")
+
+        db.commit()
+
         return {
-            "success": True,
-            "message": "Payment simulation initiated",
-            "checkout_request_id": checkout_request_id,
-            "result_code": result_code
+            "success": success,
+            "message": f"Payment {'completed' if success else 'failed'} for order {order_id}",
+            "order_id": order_id,
+            "order_status": order.status,
+            "payment_status": payment.status,
+            "mpesa_reference": payment.mpesa_reference if success else None
         }
     except HTTPException:
         raise
     except Exception as e:
+        db.rollback()
         logger.error(f"[M-Pesa Simulate] Error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Payment simulation error")
+        raise HTTPException(status_code=500, detail=f"Payment simulation error: {str(e)}")
