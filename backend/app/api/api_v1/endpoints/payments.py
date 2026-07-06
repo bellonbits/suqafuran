@@ -4,7 +4,7 @@ import requests
 import base64
 from datetime import datetime
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Body, Header
+from fastapi import APIRouter, HTTPException, Body, Header, Depends
 from jose import jwt
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
@@ -12,6 +12,12 @@ from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
 from app.core import security
+from app.api import deps
+
+# Import models from legacy structure
+import sys
+sys.path.insert(0, '/Users/mac/suqafuran/backend')
+from models import Order, OrderItem, OrderStatus, Payment
 import uuid
 
 logger = logging.getLogger(__name__)
@@ -115,33 +121,26 @@ def extract_user_id_from_token(authorization: Optional[str]) -> Optional[str]:
 
 
 @router.post("/mpesa")
-def initiate_mpesa_checkout(body: dict = Body(...), authorization: Optional[str] = Header(None)):
+def initiate_mpesa_checkout(
+    body: dict = Body(...),
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(deps.get_db)
+):
     """
-    Initiate M-Pesa payment from checkout
+    Initiate M-Pesa payment from checkout and create order
 
     Body parameters:
     - phoneNumber: Customer phone number (required)
     - amount: Payment amount in KES (required)
-    - orderId: Order ID (required, generated if not provided)
     - items: Order items list
     - fulfillmentType: delivery or pickup
     - deliveryAddress: Delivery address
     - courierTip: Optional tip amount
     """
     try:
-        # Initialize service on demand
-        try:
-            service = MPesaService()
-        except (AttributeError, ValueError) as e:
-            logger.warning(f"[M-Pesa] M-Pesa credentials not configured: {str(e)}")
-            raise HTTPException(
-                status_code=503,
-                detail="Payment service not configured. Please check M-Pesa settings."
-            )
-
+        # Extract parameters first
         phone_number = body.get('phoneNumber') or body.get('phone_number')
         amount = body.get('amount')
-        order_id = body.get('orderId') or body.get('order_id')
         items = body.get('items', [])
         location = body.get('location')
         delivery_address = body.get('deliveryAddress', location)
@@ -157,10 +156,80 @@ def initiate_mpesa_checkout(body: dict = Body(...), authorization: Optional[str]
 
         # Extract authenticated user ID from JWT token
         user_id = extract_user_id_from_token(authorization)
-        if not order_id:
-            order_id = f"ORD-{uuid.uuid4().hex[:12]}"
+        if not user_id:
+            user_id = f"guest_{uuid.uuid4().hex[:8]}"
+
+        # Generate order ID
+        order_id = f"ORD-{uuid.uuid4().hex[:12]}"
 
         logger.info(f"[M-Pesa] Processing checkout: phone={phone_number}, amount={amount}, order={order_id}, user={user_id}")
+
+        # CREATE ORDER FIRST (before M-Pesa service initialization)
+        try:
+            order = Order(
+                id=order_id,
+                user_id=user_id,
+                seller_id="guest-seller",
+                status=OrderStatus.PAYMENT_PENDING,
+                delivery_option=fulfillment_type,
+                delivery_address=delivery_address or "Current Location",
+                phone_number=phone_number,
+                total_amount=amount,
+                platform_fee=amount * 0.1,
+                seller_amount=amount * 0.9,
+                courier_tip=courier_tip,
+                payment_status="pending",
+                payment_method="mpesa",
+                location_lat=0.0,
+                location_lng=0.0
+            )
+            db.add(order)
+            db.flush()
+
+            # Add order items
+            for item in items:
+                order_item = OrderItem(
+                    id=str(uuid.uuid4()),
+                    order_id=order_id,
+                    product_id=str(item.get('id', '')),
+                    title=item.get('title', ''),
+                    quantity=item.get('quantity', 1),
+                    price=float(item.get('price', 0))
+                )
+                db.add(order_item)
+
+            # Create payment record
+            payment = Payment(
+                id=str(uuid.uuid4()),
+                order_id=order_id,
+                amount=amount,
+                status="pending",
+                mpesa_reference=None,
+                merchant_request_id=None,
+                checkout_request_id=None
+            )
+            db.add(payment)
+            db.commit()
+
+            logger.info(f"[M-Pesa] ✅ Order created: {order_id} for user {user_id}")
+
+        except Exception as db_error:
+            db.rollback()
+            logger.error(f"[M-Pesa] Error creating order: {str(db_error)}")
+            raise HTTPException(status_code=500, detail=f"Error creating order: {str(db_error)}")
+
+        # NOW try to initialize M-Pesa service
+        try:
+            service = MPesaService()
+        except (AttributeError, ValueError) as e:
+            logger.warning(f"[M-Pesa] M-Pesa credentials not configured: {str(e)}")
+            # Order was created, but M-Pesa service unavailable
+            return {
+                "success": False,
+                "message": "Order created but payment service unavailable",
+                "order_id": order_id,
+                "detail": "Payment service not configured. Please check M-Pesa settings."
+            }
 
         # Initiate STK push
         result = service.initiate_stk_push(
