@@ -6,13 +6,14 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 try:
-    from routers import payments as phase4_payments, sellers as phase4_sellers, riders as phase4_riders, orders as phase4_orders, websocket_routes
+    from routers import payments as phase4_payments, sellers as phase4_sellers, riders as phase4_riders, orders as phase4_orders, websocket_routes, seller_endpoints as phase2_seller_endpoints
 except ImportError:
     phase4_payments = None
     phase4_sellers = None
     phase4_riders = None
     phase4_orders = None
     websocket_routes = None
+    phase2_seller_endpoints = None
 
 api_router = APIRouter()
 
@@ -27,6 +28,10 @@ if phase4_riders:
     api_router.include_router(phase4_riders.router, tags=["riders"])
 if websocket_routes:
     api_router.include_router(websocket_routes.router, tags=["websocket"])
+
+# Phase 2 Seller Endpoints (mock data for seller dashboard)
+if phase2_seller_endpoints:
+    api_router.include_router(phase2_seller_endpoints.router, tags=["sellers"])
 
 # Comprehensive API Endpoints
 api_router.include_router(login.router, tags=["login"])
