@@ -95,9 +95,18 @@ def get_seller_orders(
     db: Session = Depends(get_db)
 ):
     """Get all orders for the authenticated seller"""
+    from models import SellerVerificationStatus
+
     seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
     if not seller:
         raise HTTPException(status_code=404, detail="Seller profile not found")
+
+    # Check if seller is verified
+    if seller.verification_status != SellerVerificationStatus.VERIFIED:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Seller account is {seller.verification_status}. Please complete verification to access orders."
+        )
 
     query = db.query(Order).filter(Order.seller_id == seller.id)
     if status:
@@ -191,9 +200,18 @@ def update_seller_order_status(
     db: Session = Depends(get_db)
 ):
     """Update order status - seller can move between CONFIRMED → PREPARING → READY_FOR_PICKUP"""
+    from models import SellerVerificationStatus
+
     seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
     if not seller:
         raise HTTPException(status_code=404, detail="Seller profile not found")
+
+    # Check if seller is verified
+    if seller.verification_status != SellerVerificationStatus.VERIFIED:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Seller account is {seller.verification_status}. Please complete verification to manage orders."
+        )
 
     order = db.query(Order).filter(
         Order.id == order_id,
@@ -262,12 +280,19 @@ def get_seller_dashboard(
     db: Session = Depends(get_db)
 ):
     """Get seller dashboard with comprehensive analytics"""
-    from models import Listing, OrderItem
+    from models import Listing, OrderItem, SellerVerificationStatus
     from datetime import datetime, timedelta
 
     seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
     if not seller:
         raise HTTPException(status_code=404, detail="Seller profile not found")
+
+    # Check if seller is verified
+    if seller.verification_status != SellerVerificationStatus.VERIFIED:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Seller account is {seller.verification_status}. Please complete verification to access dashboard."
+        )
 
     # Get today's orders
     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
