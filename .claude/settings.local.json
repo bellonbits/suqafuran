@@ -378,14 +378,17 @@
       "Bash(curl -s -X POST http://localhost:8000/api/v1/payments/mpesa -H 'Content-Type: application/json' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTQ4NjM5ODUsInN1YiI6IjEifQ.Pvamhni7DksLWTgFkthg3ejUaERSKOgAkO3KGAwJUak' -d '{\"phoneNumber\":\"254712345678\",\"amount\":500,\"orderId\":\"TEST-001\"}')",
       "Bash(curl -s -X POST http://localhost:8000/api/v1/payments/mpesa -H 'Content-Type: application/json' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTQ4NjM5ODUsInN1YiI6IjEifQ.Pvamhni7DksLWTgFkthg3ejUaERSKOgAkO3KGAwJUak' -d '{ *)",
       "Bash(sqlite3 /Users/mac/suqafuran/backend/app.db \"INSERT OR IGNORE INTO users \\(id, email, phone, full_name, is_active, is_verified, created_at, updated_at\\) VALUES \\('1', 'user1@suqafuran.local', '254712345678', 'Test User', true, true, datetime\\('now'\\), datetime\\('now'\\)\\);\")",
-      "Bash(sqlite3 /Users/mac/suqafuran/backend/app.db \"SELECT id, full_name, email FROM users WHERE id='1';\")"
+      "Bash(sqlite3 /Users/mac/suqafuran/backend/app.db \"SELECT id, full_name, email FROM users WHERE id='1';\")",
+      "Bash(sed -i '' 's/limit: 10000/limit: 500/g' \"/Users/mac/suqafuran/new-frontend/src/app/\\(app\\)/shops/[id]/page.tsx\" && \\\\ *)",
+      "Bash(sed -i '' 's/limit: 10000/limit: 500/g' \"/Users/mac/suqafuran/new-frontend/src/app/\\(app\\)/shops/[id]/page-old.tsx\" && \\\\ *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\learn\\Desktop\\suqafuran\\src",
       "\\Users\\learn\\Desktop\\suqafuran\\ios\\App\\App",
       "c:\\Users\\learn\\Desktop\\suqafuran\\ios\\App\\App",
       "/Users/mac/suqafuran/backend",
-      "/Users/mac/suqafuran/new-frontend/src/app/rider/delivery/[id]"
+      "/Users/mac/suqafuran/new-frontend/src/app/rider/delivery/[id]",
+      "/Users/mac/suqafuran/new-frontend/src/app/(app)/shops/[id]"
     ]
   }
 }
