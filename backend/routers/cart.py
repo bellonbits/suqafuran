@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select, func
 from typing import Optional, List
+import asyncio
 
 from app.models.cart import Cart, CartItem, CartItemRead, CartRead, CartSummaryRead, AddToCartRequest, UpdateCartItemRequest, ApplyPromoRequest
 from app.models.listing import Listing
@@ -8,6 +9,7 @@ from app.models.marketing_code import MarketingCode
 from app.models.user import User
 from app.db import get_session
 from app.utils.security import get_current_user
+from app.services.notification_integration import NotificationIntegrationService
 
 router = APIRouter(prefix="/cart", tags=["cart"])
 
@@ -269,4 +271,33 @@ async def validate_cart(
         "valid": True,
         "message": "Cart is valid and ready for checkout",
         "item_count": len(cart.items)
+    }
+
+
+@router.post("/check-abandoned", response_model=dict, tags=["admin"])
+async def check_abandoned_carts(
+    hours_threshold: int = 2,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    """
+    Check and send notifications for abandoned carts (admin endpoint)
+    Sends email and SMS reminders to users with items in cart for >N hours
+    """
+    # TODO: Add admin permission check
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Only admins can trigger abandoned cart checks")
+
+    # Run notification check in background
+    asyncio.create_task(
+        NotificationIntegrationService.check_and_notify_abandoned_carts(
+            session=session,
+            hours_threshold=hours_threshold,
+        )
+    )
+
+    return {
+        "status": "success",
+        "message": f"Abandoned cart check initiated for carts untouched for {hours_threshold} hours",
+        "notification": "Check will run asynchronously"
     }

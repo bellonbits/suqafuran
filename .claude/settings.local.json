@@ -346,7 +346,8 @@
       "Bash(grep -E \"\\\\.\\(sql|py\\)$\")",
       "Bash(grep \"\\\\.py$\")",
       "Bash(grep \".py$\")",
-      "Bash(python -m py_compile app/models/order.py app/models/cart.py routers/cart.py routers/order_endpoints.py routers/category_endpoints.py)"
+      "Bash(python -m py_compile app/models/order.py app/models/cart.py routers/cart.py routers/order_endpoints.py routers/category_endpoints.py)",
+      "Bash(python -m py_compile app/services/notification_integration.py app/services/background_tasks.py)"
     ],
     "additionalDirectories": [
       "C:\\Users\\learn\\Desktop\\suqafuran\\src",

@@ -15,6 +15,7 @@ from routers import payments, sellers, riders, notifications, websocket_routes, 
 from utils.security import get_current_user, hash_password, verify_password, create_access_token
 from models import Order, OrderItem, Issue, Seller
 from app.api.api_v1.api import api_router
+from app.services.background_tasks import init_background_tasks
 
 # Create tables (comment out if database already set up)
 # Base.metadata.create_all(bind=engine)
@@ -34,6 +35,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Initialize background tasks on startup
+@app.on_event("startup")
+async def startup_event():
+    """Initialize background tasks for notifications and cleanup"""
+    try:
+        init_background_tasks()
+    except Exception as e:
+        print(f"Warning: Failed to initialize background tasks: {str(e)}")
 
 # Register routers (new endpoints before old ones to avoid auth conflicts)
 app.include_router(api_router, prefix="/api/v1")

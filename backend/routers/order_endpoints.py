@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlmodel import Session, select
 from datetime import datetime, timedelta
 from typing import List, Optional
+import asyncio
 
 from app.models.order import Order, OrderItem, OrderRead, OrderDetailRead, CreateOrderRequest, UpdateOrderStatusRequest, OrderStatus, FulfillmentType
 from app.models.cart import Cart, CartItem
@@ -10,6 +11,7 @@ from app.models.listing import Listing
 from app.models.saved_address import SavedAddress
 from app.db import get_session
 from app.utils.security import get_current_user
+from app.services.notification_integration import NotificationIntegrationService
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -102,6 +104,17 @@ async def create_order(
 
     session.commit()
     session.refresh(orders[0])
+
+    # Send notification for order creation (async, don't wait)
+    for order in orders:
+        asyncio.create_task(
+            NotificationIntegrationService.send_order_notification(
+                order=order,
+                notification_type="order_created",
+                session=session,
+            )
+        )
+
     return orders[0]
 
 
@@ -179,6 +192,7 @@ async def update_order_status(
     else:
         raise HTTPException(status_code=403, detail="Not authorized for this status update")
 
+    old_status = order.status
     order.status = request.status
     if request.notes:
         order.notes = request.notes
@@ -194,6 +208,37 @@ async def update_order_status(
     session.add(order)
     session.commit()
     session.refresh(order)
+
+    # Send notification based on status change
+    status_to_notification = {
+        OrderStatus.confirmed: "order_confirmed",
+        OrderStatus.packed: "order_packed",
+        OrderStatus.in_transit: "order_in_transit",
+        OrderStatus.delivered: "order_delivered",
+        OrderStatus.ready_for_pickup: "order_packed",  # Same as packed for pickup
+    }
+
+    if order.status in status_to_notification:
+        notification_type = status_to_notification[order.status]
+        extra_data = {}
+
+        # Add rider info if assigned
+        if order.rider_id:
+            rider = session.exec(select(User).where(User.id == order.rider_id)).first()
+            if rider:
+                extra_data["rider_name"] = rider.full_name or "Your Rider"
+                extra_data["rider_phone"] = rider.phone
+                extra_data["estimated_time"] = 30  # Placeholder
+
+        asyncio.create_task(
+            NotificationIntegrationService.send_order_notification(
+                order=order,
+                notification_type=notification_type,
+                session=session,
+                extra_data=extra_data if extra_data else None,
+            )
+        )
+
     return order
 
 
