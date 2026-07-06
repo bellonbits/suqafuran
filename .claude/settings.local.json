@@ -391,7 +391,9 @@
       "Bash(chmod +x /tmp/test_payment_flow.sh)",
       "Bash(/tmp/test_payment_flow.sh)",
       "Bash(chmod +x /tmp/test_full_payment.sh)",
-      "Bash(/tmp/test_full_payment.sh)"
+      "Bash(/tmp/test_full_payment.sh)",
+      "Bash(timeout 5 curl -s \"http://localhost:8000/api/v1/listings/?limit=500\")",
+      "Bash(curl -s -m 5 \"http://localhost:8000/api/v1/listings/?limit=500\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\learn\\Desktop\\suqafuran\\src",
