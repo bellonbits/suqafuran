@@ -745,6 +745,20 @@ def get_public_shops(
                 except Exception:
                     cover_image = first_listing_res[0]
 
+            # Get banner URL - from sellers table or fallback to user table
+            shop_page_banner = row[11]  # Banner from sellers table
+            if not shop_page_banner:
+                # If not in sellers table, try to fetch from user table
+                try:
+                    user_id_int = int(row[1])
+                    user_banner_res = db.execute(text(
+                        "SELECT shop_page_banner FROM \"user\" WHERE id = :user_id LIMIT 1"
+                    ), {"user_id": user_id_int}).first()
+                    if user_banner_res and user_banner_res[0]:
+                        shop_page_banner = user_banner_res[0]
+                except Exception:
+                    pass
+
             # Use cover_image from first listing (or category fallback)
             shops.append({
                 "id": str(row[0]),
@@ -760,7 +774,7 @@ def get_public_shops(
                 "listing_count": None,
                 "category_ids": [],
                 "cover_image": cover_image,
-                "shop_page_banner": row[11],  # Cloudinary banner URL
+                "shop_page_banner": shop_page_banner,
                 "slug": str(row[0]),
                 "created_at": row[10].isoformat() if row[10] else None,
             })
