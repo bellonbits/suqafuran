@@ -364,8 +364,10 @@ const App: React.FC = () => {
               <Route path="/performance" element={<PerformancePage />} />
               <Route path="/premium" element={<PremiumPage />} />
               <Route path="/followers" element={<FollowersPage />} />
-              <Route path="/agent-dashboard" element={<ProtectedRoute requireAgent><AgentDashboard /></ProtectedRoute>} />
             </Route>
+
+            {/* Agent Dashboard — standalone, not nested in user DashboardLayout */}
+            <Route path="/agent-dashboard" element={<ProtectedRoute requireAgent><AgentDashboard /></ProtectedRoute>} />
 
             {/* Messages — accessible to all, guards internally */}
             <Route path="/messages" element={<MessagesPage />} />
@@ -391,8 +393,8 @@ const App: React.FC = () => {
             <Route path="/discovery" element={<DiscoveryFeedPage />} />
             <Route path="/discover" element={<ProgrammaticSEOPage />} />
 
-            {/* Admin Routes */}
-            <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminLayout /></ProtectedRoute>}>
+            {/* Admin Routes — all under /admin-dashboard */}
+            <Route path="/admin-dashboard" element={<ProtectedRoute requireAdmin><AdminLayout /></ProtectedRoute>}>
               <Route index element={<AdminDashboard />} />
               <Route path="listings" element={<AdminListingsPage />} />
               <Route path="categories" element={<AdminCategoriesPage />} />

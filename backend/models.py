@@ -85,6 +85,35 @@ class Seller(Base):
     withdrawals = relationship("Withdrawal", back_populates="seller")
     ratings = relationship("Rating", back_populates="seller")
 
+# Category Model
+class Category(Base):
+    __tablename__ = "category"
+
+    id = Column(Integer, primary_key=True)
+    name_en = Column(String, nullable=False)
+    name_so = Column(String, nullable=False)
+    slug = Column(String, unique=True, nullable=False)
+    icon_name = Column(String)
+    image_url = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+# Listing Model
+class Listing(Base):
+    __tablename__ = "listing"
+
+    id = Column(Integer, primary_key=True)
+    title_en = Column(String, nullable=False)
+    title_so = Column(String, nullable=False)
+    description_en = Column(Text)
+    description_so = Column(Text)
+    price = Column(Float, nullable=False)
+    images = Column(String)  # JSON array as string
+    status = Column(String, default="active")
+    category_id = Column(Integer, ForeignKey("category.id"))
+    owner_id = Column(Integer)  # Reference to User id
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 # Order Model
 class Order(Base):
     __tablename__ = "orders"

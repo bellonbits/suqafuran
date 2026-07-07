@@ -22,8 +22,9 @@ if phase4_payments:
     api_router.include_router(phase4_payments.router, tags=["payments"])
 if phase4_orders:
     api_router.include_router(phase4_orders.router, tags=["orders"])
-if phase4_sellers:
-    api_router.include_router(phase4_sellers.router, tags=["sellers"])
+# Skip phase4_sellers - uses incompatible database schema
+# if phase4_sellers:
+#     api_router.include_router(phase4_sellers.router, tags=["sellers"])
 if phase4_riders:
     api_router.include_router(phase4_riders.router, tags=["riders"])
 if websocket_routes:

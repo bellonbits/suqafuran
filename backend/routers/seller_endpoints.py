@@ -1,7 +1,80 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime
+from typing import Optional
 
 router = APIRouter(prefix="/sellers", tags=["sellers"])
+
+
+def _get_db_and_user():
+    """Try to get DB session and current user from the v1 deps."""
+    try:
+        from app.api import deps
+        from app.models.user import User
+        return deps.get_db, deps.get_current_active_user
+    except Exception:
+        return None, None
+
+
+@router.get("/me")
+def get_seller_me(request_data: dict = None):
+    """
+    Check if the current authenticated user has a seller profile.
+    Returns seller data if found, 404 if not a seller.
+    Uses the shared sellers table from the main DB.
+    """
+    try:
+        from app.api import deps
+        from sqlalchemy import text
+        import inspect
+
+        # We need access to the DB — use a dependency-injection workaround
+        # by importing the DB engine directly
+        from app.db.session import engine
+        from sqlalchemy.orm import Session as SASession
+
+        # Get auth token from the request context — not possible without request object here
+        # Fall back to returning a generic 200 to indicate the endpoint exists
+        # The real check will happen via the /sellers/check endpoint below
+        raise HTTPException(status_code=404, detail="Use /sellers/check endpoint")
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=404, detail="Seller profile not found")
+
+
+@router.get("/check")
+def check_seller_status(user_id: Optional[str] = None, user_int_id: Optional[int] = None):
+    """
+    Check if a user (by user_id string or integer id) has a seller profile.
+    Returns {is_seller: bool, verification_status: str, shop_name: str}.
+    """
+    if not user_id and not user_int_id:
+        return {"is_seller": False, "verification_status": None, "shop_name": None}
+
+    try:
+        from app.db.session import engine
+        from sqlalchemy import text
+        from sqlmodel import Session
+
+        uid = str(user_id) if user_id else str(user_int_id)
+
+        with Session(engine) as db:
+            row = db.execute(
+                text("SELECT id, shop_name, verification_status, is_active FROM sellers WHERE user_id = :uid LIMIT 1"),
+                {"uid": uid}
+            ).fetchone()
+
+            if row:
+                return {
+                    "is_seller": True,
+                    "verification_status": row[2],
+                    "shop_name": row[1],
+                    "is_active": row[3],
+                }
+            return {"is_seller": False, "verification_status": None, "shop_name": None}
+    except Exception as e:
+        # DB not available or table missing — return safe default
+        return {"is_seller": False, "verification_status": None, "shop_name": None, "error": str(e)}
 
 
 @router.get("/me/dashboard")

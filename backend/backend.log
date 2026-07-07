@@ -1,0 +1,25 @@
+[Email] Redis connected OK
+[AT Init] Username: suqafuran
+[AT Init] API Key present: True
+[AT Init] API Key length: 77
+[AT Init] Sender ID: SUQAFURAN
+[AT Init] Environment: production
+[AT Init] Successfully initialized with username: suqafuran
+[AT Init] Redis connected successfully
+INFO:     Started server process [15353]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:54230 - "WebSocket /api/v1/notifications/ws?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTQ5ODU0OTYsInN1YiI6IjEifQ.6zAAQtMnoUKmoF_ItNJZHnQvMEpXKI3ucyTfXK1RJz8" [accepted]
+INFO:     connection open
+[WebSocket] 🔌 ENDPOINT HIT from Address(host='127.0.0.1', port=54230)
+INFO:     127.0.0.1:54227 - "GET /api/v1/users/public/394 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54234 - "GET /api/v1/users/public/394 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54236 - "GET /api/v1/users/public/394 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54239 - "GET /api/v1/users/public/394 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54261 - "GET /api/v1/users/public/394 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54263 - "GET /api/v1/users/public/394 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54266 - "GET /api/v1/users/public/394 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54277 - "GET /api/v1/users/public/394 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54280 - "GET /api/v1/users/public/394 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54283 - "GET /api/v1/users/public/394 HTTP/1.1" 200 OK

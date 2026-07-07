@@ -97,6 +97,11 @@ if Path(settings.UPLOAD_DIR).exists():
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
+# Catch-all OPTIONS handler for CORS preflight requests
+@app.options("/{full_path:path}", include_in_schema=False)
+async def options_handler(full_path: str):
+    return {"message": "OK"}
+
 # Monitoring
 Instrumentator().instrument(app).expose(app)
 

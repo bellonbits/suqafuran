@@ -9,7 +9,7 @@ import {
     PlusCircle, Bell, HelpCircle, Shield, Folder,
     Menu, X, MessageSquare, Zap, Target,
     LifeBuoy,
-    MessageCircle, Users, Globe, House, Megaphone, Flag, Send
+    MessageCircle, Users, Globe, House, Megaphone, Flag
 } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { getAvatarUrl } from '../utils/imageUtils';
@@ -206,121 +206,110 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                         <div className="pt-4 mt-4 border-t border-gray-100">
                             <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('dashboard.adminTools', 'Admin Tools')}</p>
                             <Link
-                                to="/admin"
+                                to="/admin-dashboard"
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-secondary-600 hover:bg-secondary-50",
-                                    location.pathname === '/admin' && "bg-secondary-50 shadow-sm"
+                                    location.pathname === '/admin-dashboard' && "bg-secondary-50 shadow-sm"
                                 )}
                             >
                                 <Shield className="h-5 w-5" />
                                 {t('dashboard.adminPanel', 'Admin Panel')}
                             </Link>
                             <Link
-                                to="/admin/users"
+                                to="/admin-dashboard/users"
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-secondary-600 hover:bg-secondary-50",
-                                    location.pathname === '/admin/users' && "bg-secondary-50 shadow-sm"
+                                    location.pathname === '/admin-dashboard/users' && "bg-secondary-50 shadow-sm"
                                 )}
                             >
                                 <Users className="h-5 w-5" />
                                 {t('dashboard.users', 'User Management')}
                             </Link>
                             <Link
-                                to="/admin/users"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className={cn(
-                                    "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-orange-600 hover:bg-orange-50",
-                                    location.pathname === '/admin/users' && "bg-orange-50 shadow-sm"
-                                )}
-                            >
-                                <Send className="h-5 w-5" />
-                                CRM & Email campaigns
-                            </Link>
-                            <Link
-                                to="/admin/listings"
+                                to="/admin-dashboard/listings"
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
-                                    location.pathname === '/admin/listings' && "bg-primary-50 shadow-sm"
+                                    location.pathname === '/admin-dashboard/listings' && "bg-primary-50 shadow-sm"
                                 )}
                             >
                                 <ShoppingBag className="h-5 w-5" />
                                 {t('dashboard.allListings', 'All Listings')}
                             </Link>
                             <Link
-                                to="/admin/promotions"
+                                to="/admin-dashboard/promotions"
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
-                                    location.pathname === '/admin/promotions' && "bg-primary-50 shadow-sm"
+                                    location.pathname === '/admin-dashboard/promotions' && "bg-primary-50 shadow-sm"
                                 )}
                             >
                                 <Folder className="h-5 w-5" />
                                 {t('dashboard.promotions', 'Promotions')}
                             </Link>
                             <Link
-                                to="/admin/categories"
+                                to="/admin-dashboard/categories"
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-secondary-600 hover:bg-secondary-50",
-                                    location.pathname === '/admin/categories' && "bg-secondary-50 shadow-sm"
+                                    location.pathname === '/admin-dashboard/categories' && "bg-secondary-50 shadow-sm"
                                 )}
                             >
                                 <Folder className="h-5 w-5" />
                                 {t('dashboard.categories', 'Categories')}
                             </Link>
                             <Link
-                                to="/admin/verifications"
+                                to="/admin-dashboard/verifications"
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-amber-600 hover:bg-amber-50",
-                                    location.pathname === '/admin/verifications' && "bg-amber-50 shadow-sm"
+                                    location.pathname === '/admin-dashboard/verifications' && "bg-amber-50 shadow-sm"
                                 )}
                             >
                                 <Shield className="h-5 w-5" />
                                 {t('dashboard.verifications', 'Verifications')}
                             </Link>
                             <Link
-                                to="/admin/marketing"
+                                to="/admin-dashboard/marketing"
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
-                                    location.pathname === '/admin/marketing' && "bg-primary-50 shadow-sm"
+                                    location.pathname === '/admin-dashboard/marketing' && "bg-primary-50 shadow-sm"
                                 )}
                             >
                                 <Megaphone className="h-5 w-5" />
                                 Marketing Codes
                             </Link>
                             <Link
-                                to="/admin/reports"
+                                to="/admin-dashboard/reports"
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-red-600 hover:bg-red-50",
-                                    location.pathname === '/admin/reports' && "bg-red-50 shadow-sm"
+                                    location.pathname === '/admin-dashboard/reports' && "bg-red-50 shadow-sm"
                                 )}
                             >
                                 <Flag className="h-5 w-5" />
                                 Abuse Reports
                             </Link>
                             <Link
-                                to="/admin/support"
+                                to="/admin-dashboard/support"
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-primary-600 hover:bg-primary-50",
-                                    location.pathname === '/admin/support' && "bg-primary-50 shadow-sm"
+                                    location.pathname === '/admin-dashboard/support' && "bg-primary-50 shadow-sm"
                                 )}
                             >
                                 <LifeBuoy className="h-5 w-5" />
                                 {t('dashboard.supportManagement', 'Support Management')}
                             </Link>
                             <Link
-                                to="/admin/editor"
+                                to="/admin-dashboard/editor"
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-indigo-600 hover:bg-indigo-50",
-                                    location.pathname === '/admin/editor' && "bg-indigo-50 shadow-sm"
+                                    location.pathname === '/admin-dashboard/editor' && "bg-indigo-50 shadow-sm"
                                 )}
                             >
                                 <Globe className="h-5 w-5" />

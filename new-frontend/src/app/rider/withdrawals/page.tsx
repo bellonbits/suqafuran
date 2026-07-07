@@ -7,9 +7,12 @@ import '../common-pages.css';
 
 export default function RiderWithdrawals() {
     const [showModal, setShowModal] = useState(false);
-    const [withdrawalData, setWithdrawalData] = useState({
+    const [withdrawalData, setWithdrawalData] = useState<{
+        amount: number;
+        method: 'mpesa' | 'bank';
+    }>({
         amount: 500,
-        method: 'mpesa' as const
+        method: 'mpesa'
     });
 
     const { data: historyData, isLoading: historyLoading, refetch } = useQuery({

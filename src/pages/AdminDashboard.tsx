@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
+import { useNavigate, Link } from 'react-router-dom';
 import { useLanguageField } from '../hooks/useLanguageField';
 import { toast } from 'react-hot-toast';
 import api from '../services/api';
@@ -8,28 +8,116 @@ import api from '../services/api';
 import { adminService, type AdminStats } from '../services/adminService';
 import {
     Check, X, AlertOctagon, Users,
-    BarChart3, ShieldCheck, Loader2, Banknote,
+    BarChart3, ShieldCheck, Loader2,
     UserCog, Plus, Trash2, Mail, Store, Globe,
-    Search, ChevronLeft, ChevronRight, Phone, KeyRound,
-    UserCheck, UserX, AlertTriangle
+    Phone, KeyRound, AlertTriangle,
+    ShoppingBag, Megaphone, Flag, LifeBuoy, Layers,
+    ArrowRight, Activity, Zap, Edit3
 } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { Button } from '../components/Button';
 import { getImageUrl } from '../utils/imageUtils';
 
+// ── Quick-nav hub cards ──────────────────────────────────────────────────────
+const HUB_ITEMS = [
+    {
+        label: 'User Management',
+        desc: 'Edit accounts, shop details & banners',
+        icon: Users,
+        color: 'from-violet-500 to-indigo-600',
+        bg: 'bg-violet-50',
+        iconColor: 'text-violet-600',
+        path: '/admin-dashboard/users',
+        badge: null,
+    },
+    {
+        label: 'Listings',
+        desc: 'Review & moderate all marketplace ads',
+        icon: ShoppingBag,
+        color: 'from-sky-500 to-cyan-600',
+        bg: 'bg-sky-50',
+        iconColor: 'text-sky-600',
+        path: '/admin-dashboard/listings',
+        badge: null,
+    },
+    {
+        label: 'Verifications',
+        desc: 'ID & document verification queue',
+        icon: ShieldCheck,
+        color: 'from-amber-500 to-orange-600',
+        bg: 'bg-amber-50',
+        iconColor: 'text-amber-600',
+        path: '/admin-dashboard/verifications',
+        badge: 'pending',
+    },
+    {
+        label: 'Promotions',
+        desc: 'Manage boost packages & upgrades',
+        icon: Zap,
+        color: 'from-green-500 to-emerald-600',
+        bg: 'bg-green-50',
+        iconColor: 'text-green-600',
+        path: '/admin-dashboard/promotions',
+        badge: 'promotions',
+    },
+    {
+        label: 'Categories',
+        desc: 'Manage marketplace categories',
+        icon: Layers,
+        color: 'from-pink-500 to-rose-600',
+        bg: 'bg-pink-50',
+        iconColor: 'text-pink-600',
+        path: '/admin-dashboard/categories',
+        badge: null,
+    },
+    {
+        label: 'Marketing',
+        desc: 'Vouchers, promo codes & campaigns',
+        icon: Megaphone,
+        color: 'from-orange-500 to-amber-600',
+        bg: 'bg-orange-50',
+        iconColor: 'text-orange-600',
+        path: '/admin-dashboard/marketing',
+        badge: null,
+    },
+    {
+        label: 'Abuse Reports',
+        desc: 'Review flagged users & listings',
+        icon: Flag,
+        color: 'from-red-500 to-rose-600',
+        bg: 'bg-red-50',
+        iconColor: 'text-red-600',
+        path: '/admin-dashboard/reports',
+        badge: null,
+    },
+    {
+        label: 'Support',
+        desc: 'Manage customer support tickets',
+        icon: LifeBuoy,
+        color: 'from-teal-500 to-cyan-600',
+        bg: 'bg-teal-50',
+        iconColor: 'text-teal-600',
+        path: '/admin-dashboard/support',
+        badge: null,
+    },
+    {
+        label: 'Web Editor',
+        desc: 'Edit site content & landing pages',
+        icon: Globe,
+        color: 'from-indigo-500 to-violet-600',
+        bg: 'bg-indigo-50',
+        iconColor: 'text-indigo-600',
+        path: '/admin-dashboard/editor',
+        badge: null,
+    },
+];
+
 const AdminDashboard: React.FC = () => {
-    const { t } = useTranslation();
+    const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { getField } = useLanguageField();
     const [agentEmail, setAgentEmail] = useState('');
     const [agentError, setAgentError] = useState<string | null>(null);
-
-    // Users management state
-    const [userSearch, setUserSearch] = useState('');
-    const [userSearchInput, setUserSearchInput] = useState('');
-    const [userPage, setUserPage] = useState(0);
-    const USER_PAGE_SIZE = 50;
-    const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
     // OTP Lookup state
     const [otpMode, setOtpMode] = useState<'phone' | 'email'>('phone');
@@ -52,15 +140,9 @@ const AdminDashboard: React.FC = () => {
         queryFn: adminService.getVerificationRequests,
     });
 
-    const { data: users, isLoading: usersLoading } = useQuery({
-        queryKey: ['admin-users', userSearch, userPage],
-        queryFn: () => adminService.getUsers({ skip: userPage * USER_PAGE_SIZE, limit: USER_PAGE_SIZE, search: userSearch || undefined }),
-        placeholderData: (prev) => prev,
-    });
-
     const { data: userTotal = 0 } = useQuery({
-        queryKey: ['admin-users-count', userSearch],
-        queryFn: () => adminService.getUserCount(userSearch || undefined),
+        queryKey: ['admin-users-count'],
+        queryFn: () => adminService.getUserCount(),
     });
 
     const verifyMutation = useMutation({
@@ -79,28 +161,6 @@ const AdminDashboard: React.FC = () => {
             queryClient.invalidateQueries({ queryKey: ['admin-queue'] });
             queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
         }
-    });
-
-    const deleteUserMutation = useMutation({
-        mutationFn: (userId: number) => adminService.deleteUser(userId),
-        onSuccess: (_) => {
-            queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-            queryClient.invalidateQueries({ queryKey: ['admin-users-count'] });
-            queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-            setConfirmDeleteId(null);
-            toast.success('User permanently deleted');
-        },
-        onError: () => toast.error('Failed to delete user'),
-    });
-
-    const updateStatusMutation = useMutation({
-        mutationFn: ({ userId, isActive }: { userId: number; isActive: boolean }) =>
-            adminService.updateUserStatus(userId, isActive),
-        onSuccess: (_, { isActive }) => {
-            queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-            toast.success(isActive ? 'User activated' : 'User deactivated');
-        },
-        onError: () => toast.error('Failed to update user status'),
     });
 
     const handleOtpLookup = useCallback(async () => {
@@ -131,6 +191,7 @@ const AdminDashboard: React.FC = () => {
             queryClient.invalidateQueries({ queryKey: ['admin-agents'] });
             setAgentEmail('');
             setAgentError(null);
+            toast.success('Agent access granted');
         },
         onError: (err: any) => {
             setAgentError(err.response?.data?.detail || 'Failed to add agent');
@@ -139,7 +200,10 @@ const AdminDashboard: React.FC = () => {
 
     const removeAgentMutation = useMutation({
         mutationFn: (email: string) => api.post('/admin/agents/remove', { email }),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-agents'] }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-agents'] });
+            toast.success('Agent access revoked');
+        },
     });
 
     const { data: businessQueue, isLoading: businessQueueLoading } = useQuery({
@@ -149,350 +213,433 @@ const AdminDashboard: React.FC = () => {
 
     const moderateBusinessMutation = useMutation({
         mutationFn: ({ id, approve }: { id: string; approve: boolean }) =>
-            approve 
-                ? adminService.approveBusiness(id) 
+            approve
+                ? adminService.approveBusiness(id)
                 : adminService.disapproveBusiness(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin-businesses-queue'] });
             queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-            toast.success('Business nearby status updated successfully!');
+            toast.success('Business nearby status updated!');
         },
-        onError: () => {
-            toast.error('Failed to update business nearby status');
-        }
+        onError: () => toast.error('Failed to update business status'),
     });
 
+    const pendingVerifs = verificationRequests?.filter((r: any) => r.status === 'pending').length || 0;
+    const pendingBiz = businessQueue?.filter((b: any) => !b.is_approved).length || 0;
+
+    // Stat cards data
+    const STAT_CARDS = [
+        {
+            label: 'Total Users',
+            value: statsLoading ? '…' : (stats?.total_users ?? 0).toLocaleString(),
+            icon: Users,
+            gradient: 'from-violet-500 to-indigo-600',
+            bg: 'bg-violet-500/10',
+            color: 'text-violet-600',
+        },
+        {
+            label: 'Active Listings',
+            value: statsLoading ? '…' : (stats?.active_listings ?? 0).toLocaleString(),
+            icon: ShoppingBag,
+            gradient: 'from-sky-500 to-cyan-600',
+            bg: 'bg-sky-500/10',
+            color: 'text-sky-600',
+        },
+        {
+            label: 'Total Listings',
+            value: statsLoading ? '…' : (stats?.total_listings ?? 0).toLocaleString(),
+            icon: BarChart3,
+            gradient: 'from-teal-500 to-emerald-600',
+            bg: 'bg-teal-500/10',
+            color: 'text-teal-600',
+        },
+        {
+            label: 'Pending Ads',
+            value: statsLoading ? '…' : (stats?.pending_listings ?? 0).toLocaleString(),
+            icon: AlertOctagon,
+            gradient: 'from-amber-500 to-orange-600',
+            bg: 'bg-amber-500/10',
+            color: 'text-amber-600',
+        },
+        {
+            label: 'Pending Promos',
+            value: statsLoading ? '…' : (stats?.pending_promotions ?? 0).toLocaleString(),
+            icon: Zap,
+            gradient: 'from-green-500 to-emerald-600',
+            bg: 'bg-green-500/10',
+            color: 'text-green-600',
+        },
+    ];
+
     return (
-        <div className="space-y-10">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">{t('admin.title')}</h1>
-                    <p className="text-gray-500 mt-1 italic">{t('admin.subtitle')}</p>
-                </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" className="rounded-xl border-2">{t('admin.exportData')}</Button>
-                    <Button className="rounded-xl">{t('admin.systemSettings')}</Button>
+        <div className="space-y-8 pb-10 px-4 md:px-0">
+
+            {/* ── PREMIUM Hero Header ─────────────────────────────────────────────── */}
+            <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-violet-950 p-8 md:p-12 text-white shadow-2xl">
+                {/* Animated decorative elements */}
+                <div className="absolute -top-20 -right-20 w-72 h-72 bg-violet-500/20 rounded-full blur-3xl pointer-events-none animate-pulse" />
+                <div className="absolute -bottom-24 -left-16 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none animate-pulse" style={{ animationDelay: '1s' }} />
+                <div className="absolute top-1/2 right-1/4 w-40 h-40 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
+
+                <div className="relative space-y-6">
+                    <div>
+                        <div className="flex items-center gap-2 mb-3">
+                            <div className="w-1.5 h-8 bg-gradient-to-b from-violet-400 to-indigo-600 rounded-full" />
+                            <p className="text-xs font-bold uppercase tracking-widest text-indigo-300">Platform Control Center</p>
+                        </div>
+                        <h1 className="text-4xl md:text-5xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-violet-300">Admin Dashboard</h1>
+                        <p className="text-indigo-200/60 mt-4 text-sm md:text-base flex flex-wrap gap-4">
+                            <span>📊 {userTotal.toLocaleString()} Users</span>
+                            <span>📝 {statsLoading ? '…' : (stats?.total_listings ?? 0).toLocaleString()} Listings</span>
+                            <span>⚠️ {statsLoading ? '…' : (stats?.pending_listings ?? 0)} Pending</span>
+                        </p>
+                    </div>
+
+                    {/* Quick access buttons */}
+                    <div className="flex flex-wrap gap-3 pt-4">
+                        <Link to="/admin-dashboard/users" className="group flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-bold px-6 py-3 rounded-xl transition-all hover:shadow-lg hover:shadow-white/10">
+                            <Users className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                            Users & Shops
+                        </Link>
+                        <Link to="/agent-dashboard" className="group flex items-center gap-2 bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-400 hover:to-violet-500 text-white text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-lg shadow-violet-500/40 hover:shadow-xl hover:shadow-violet-400/50">
+                            <Activity className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                            Agent Portal
+                        </Link>
+                        <Link to="/admin-dashboard/verifications" className="group flex items-center gap-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/30 text-amber-100 text-sm font-bold px-6 py-3 rounded-xl transition-all">
+                            <ShieldCheck className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                            Verifications
+                        </Link>
+                    </div>
                 </div>
             </div>
 
-            {/* Admin Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-6">
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="w-10 h-10 bg-primary-50 text-primary-600 rounded-lg flex items-center justify-center">
-                            <Users className="h-5 w-5" />
+            {/* ── PREMIUM Stat Cards ──────────────────────────────────────────────── */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+                {STAT_CARDS.map((s) => (
+                    <div key={s.label} className={cn(
+                        "relative group rounded-2xl border bg-gradient-to-br p-5 md:p-6 overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1",
+                        "border-gradient-to-br",
+                        s.bg
+                    )}>
+                        {/* Background gradient */}
+                        <div className={cn("absolute inset-0 bg-gradient-to-br opacity-40 group-hover:opacity-60 transition-opacity", s.bg)} />
+                        <div className={cn("absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-20 group-hover:opacity-40 transition-opacity", s.bg)} />
+
+                        <div className="relative flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                                <p className="text-2xl md:text-3xl font-black text-gray-900 leading-none">{s.value}</p>
+                                <p className="text-xs md:text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-2">{s.label}</p>
+                            </div>
+                            <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm group-hover:shadow-md transition-all', s.bg)}>
+                                <s.icon className={cn('h-6 w-6 group-hover:scale-110 transition-transform', s.color)} />
+                            </div>
                         </div>
                     </div>
-                    <p className="text-2xl font-bold">{statsLoading ? '...' : stats?.total_users}</p>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">{t('admin.totalUsers')}</p>
-                </div>
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="w-10 h-10 bg-yellow-50 text-yellow-600 rounded-lg flex items-center justify-center">
-                            <AlertOctagon className="h-5 w-5" />
-                        </div>
-                    </div>
-                    <p className="text-2xl font-bold text-secondary-600">{statsLoading ? '...' : stats?.pending_listings}</p>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">{t('admin.pendingAds')}</p>
-                </div>
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 border-l-primary-500 cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => window.location.href = '/admin/promotions'}>
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="w-10 h-10 bg-primary-50 text-primary-600 rounded-lg flex items-center justify-center">
-                            <BarChart3 className="h-5 w-5" />
-                        </div>
-                        <span className="text-[10px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full uppercase">Action</span>
-                    </div>
-                    <p className="text-2xl font-bold text-primary-600">{statsLoading ? '...' : stats?.pending_promotions || 0}</p>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">{t('dashboard.promotions')}</p>
-                </div>
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-l-4 border-l-green-500 cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => window.location.href = '/admin/vouchers'}>
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="w-10 h-10 bg-green-50 text-green-600 rounded-lg flex items-center justify-center">
-                            <Banknote className="h-5 w-5" />
-                        </div>
-                        <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full uppercase">Action</span>
-                    </div>
-                    <p className="text-xl font-bold text-green-600">{t('admin.vouchers')}</p>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">{t('admin.rechargeCodes')}</p>
-                </div>
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="w-10 h-10 bg-green-50 text-green-600 rounded-lg flex items-center justify-center">
-                            <ShieldCheck className="h-5 w-5" />
-                        </div>
-                    </div>
-                    <p className="text-2xl font-bold">{statsLoading ? '...' : stats?.active_listings}</p>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">{t('admin.activeListings')}</p>
-                </div>
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center">
-                            <BarChart3 className="h-5 w-5" />
-                        </div>
-                    </div>
-                    <p className="text-2xl font-bold">{statsLoading ? '...' : stats?.total_listings}</p>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">{t('admin.totalListings')}</p>
-                </div>
+                ))}
             </div>
 
-            {/* Moderation Queue */}
-            <section>
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                        <Check className="h-6 w-6 text-primary-600" />
-                        {t('admin.moderationQueue')}
-                    </h2>
-                    <button className="text-sm font-bold text-primary-600 hover:underline">
-                        {t('admin.viewAll')} ({pendingAds?.length || 0})
-                    </button>
-                </div>
-
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
-                    {adsLoading ? (
-                        <div className="flex justify-center py-10">
-                            <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-                        </div>
-                    ) : pendingAds?.length === 0 ? (
-                        <div className="py-20 text-center">
-                            <Check className="w-12 h-12 text-green-500 mx-auto mb-4 opacity-20" />
-                            <p className="text-gray-400 font-medium italic">{t('admin.queueClean')}</p>
-                        </div>
-                    ) : (
-                        <table className="w-full text-left">
-                            <thead className="bg-gray-50 border-b border-gray-100">
-                                <tr>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">{t('admin.adDetail')}</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">{t('admin.seller')}</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">{t('admin.status')}</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">{t('admin.actions')}</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {pendingAds?.map((ad) => (
-                                    <tr key={ad.id} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden shrink-0">
-                                                    {ad.images?.[0] ? (
-                                                        <img src={getImageUrl(ad.images[0])} alt="" className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-400">
-                                                            <BarChart3 className="h-4 w-4" />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="text-sm font-bold text-gray-900 truncate">{getField(ad, 'title')}</p>
-                                                    <p className="text-[10px] text-gray-500">$ {ad.price.toLocaleString()}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-900 font-medium">
-                                            {ad.owner?.full_name || `ID: ${ad.owner_id}`}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 uppercase">
-                                                {ad.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <div className="flex items-center justify-end gap-2">
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="h-8 w-8 p-0 rounded-lg text-red-500 bg-red-50 hover:bg-red-100 border-red-100"
-                                                    onClick={() => moderateMutation.mutate({ id: ad.id, approve: false })}
-                                                    disabled={moderateMutation.isPending}
-                                                >
-                                                    <X className="h-4 w-4" />
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    className="h-8 w-8 p-0 rounded-lg"
-                                                    onClick={() => moderateMutation.mutate({ id: ad.id, approve: true })}
-                                                    disabled={moderateMutation.isPending}
-                                                >
-                                                    <Check className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
-                </div>
-            </section>
-
-            {/* Verification Requests */}
-            <section>
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                        <ShieldCheck className="h-6 w-6 text-primary-600" />
-                        {t('admin.verificationRequests')}
-                    </h2>
-                    <span className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                        {verificationRequests?.filter((r: any) => r.status === 'pending').length || 0} {t('admin.pending')}
-                    </span>
-                </div>
-
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
-                    {verificationsLoading ? (
-                        <div className="flex justify-center py-10">
-                            <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-                        </div>
-                    ) : verificationRequests?.length === 0 ? (
-                        <div className="py-12 text-center text-gray-400 italic">
-                            {t('admin.noVerifications')}
-                        </div>
-                    ) : (
-                        <table className="w-full text-left">
-                            <thead className="bg-gray-50 border-b border-gray-100">
-                                <tr>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">{t('admin.user')}</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">{t('admin.docType')}</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">{t('admin.status')}</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">{t('admin.actions')}</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {verificationRequests?.map((req: any) => (
-                                    <tr key={req.id} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-6 py-4 text-sm font-bold text-gray-900">
-                                            {req.user?.full_name || `ID: #${req.user_id}`}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-500 uppercase">{req.document_type}</td>
-                                        <td className="px-6 py-4 text-sm">
-                                            <span className={cn(
-                                                "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase",
-                                                req.status === 'pending' ? "bg-yellow-100 text-yellow-700" :
-                                                    req.status === 'approved' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                                            )}>
-                                                {req.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            {req.status === 'pending' && (
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="h-8 px-3 rounded-lg text-red-500 border-red-100 hover:bg-red-50"
-                                                        onClick={() => verifyMutation.mutate({ id: req.id, status: 'rejected' })}
-                                                        disabled={verifyMutation.isPending}
-                                                    >
-                                                        {t('admin.reject')}
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        className="h-8 px-3 rounded-lg"
-                                                        onClick={() => verifyMutation.mutate({ id: req.id, status: 'approved' })}
-                                                        disabled={verifyMutation.isPending}
-                                                    >
-                                                        {t('admin.approve')}
-                                                    </Button>
-                                                </div>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
-                </div>
-            </section>
-
-            {/* Business Nearby Approvals */}
-            <section className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden p-8 space-y-6">
+            {/* ── PREMIUM Module Hub Grid ─────────────────────────────────────────── */}
+            <section className="space-y-6">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                        <Store className="h-6 w-6 text-primary-600" />
-                        Business Nearby Approvals
-                    </h2>
-                    <span className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                        {businessQueue?.filter((b: any) => !b.is_approved).length || 0} Pending
-                    </span>
+                    <div>
+                        <h2 className="text-2xl font-black text-gray-900 mb-1 flex items-center gap-3">
+                            <div className="w-1 h-8 bg-gradient-to-b from-indigo-500 to-violet-600 rounded-full" />
+                            Management Modules
+                        </h2>
+                        <p className="text-sm text-gray-500">Quick access to all admin tools and features</p>
+                    </div>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                    {HUB_ITEMS.map((item) => {
+                        const badgeCount =
+                            item.badge === 'pending' ? pendingVerifs
+                            : item.badge === 'promotions' ? (stats?.pending_promotions ?? 0)
+                            : 0;
+                        return (
+                            <Link
+                                key={item.path}
+                                to={item.path}
+                                className="group relative bg-white rounded-xl md:rounded-2xl border border-gray-200 hover:border-gray-300 p-5 md:p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col gap-3 overflow-hidden"
+                            >
+                                {/* Background gradient effect */}
+                                <div className={cn('absolute inset-0 bg-gradient-to-br opacity-5 group-hover:opacity-10 transition-opacity', item.bg)} />
+
+                                {/* Notification badge */}
+                                {badgeCount > 0 && (
+                                    <div className="absolute top-4 right-4">
+                                        <span className={cn(
+                                            "min-w-6 h-6 px-2 text-white text-[11px] font-black rounded-full flex items-center justify-center shadow-lg",
+                                            item.badge === 'pending' ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-amber-500 to-orange-600'
+                                        )}>
+                                            {badgeCount > 99 ? '99+' : badgeCount}
+                                        </span>
+                                    </div>
+                                )}
+
+                                <div className="relative">
+                                    <div className={cn('w-12 h-12 rounded-lg md:rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-all group-hover:scale-110', item.bg)}>
+                                        <item.icon className={cn('h-6 w-6 md:h-7 md:w-7', item.iconColor)} />
+                                    </div>
+                                </div>
+
+                                <div className="flex-1">
+                                    <p className="text-sm md:text-base font-black text-gray-900">{item.label}</p>
+                                    <p className="text-xs text-gray-500 mt-1 leading-snug line-clamp-2">{item.desc}</p>
+                                </div>
+
+                                <div className="flex items-center gap-2 text-gray-400 group-hover:text-gray-600 transition-all pt-2">
+                                    <span className="text-xs font-semibold">Enter</span>
+                                    <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+                                </div>
+                            </Link>
+                        );
+                    })}
+                </div>
+            </section>
+
+            {/* ── Shop & Account Edit Feature Banner ──────────────────────── */}
+            <div
+                onClick={() => navigate('/admin-dashboard/users')}
+                className="cursor-pointer group relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 p-6 md:p-8 text-white shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-200"
+            >
+                <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
+                <div className="relative flex flex-col md:flex-row items-start md:items-center gap-4">
+                    <div className="flex items-center gap-4 flex-1">
+                        <div className="w-14 h-14 bg-white/15 rounded-2xl flex items-center justify-center flex-shrink-0">
+                            <Store className="h-7 w-7 text-white" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-blue-200 mb-1">Admin Tool</p>
+                            <h3 className="text-xl font-black">Edit Customer Shop & Account Details</h3>
+                            <p className="text-blue-100/80 text-sm mt-1">Update shop banners, profile images, business info, trust scores and account status for any user.</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/20 px-5 py-2.5 rounded-xl text-sm font-bold transition-colors whitespace-nowrap flex-shrink-0">
+                        <Edit3 className="h-4 w-4" />
+                        Open User Manager
+                        <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                </div>
+                <div className="relative mt-4 flex flex-wrap gap-2">
+                    {['Shop Banner', 'Account Info', 'Product Images', 'Trust Score', 'Verified Status', 'Business Name'].map(tag => (
+                        <span key={tag} className="text-[10px] font-bold bg-white/15 px-2.5 py-1 rounded-full border border-white/20">
+                            {tag}
+                        </span>
+                    ))}
+                </div>
+            </div>
+
+            {/* ── Two-column: Moderation Queue + Verifications ─────────────── */}
+            <div className="grid lg:grid-cols-2 gap-6">
+
+                {/* Moderation Queue */}
+                <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-amber-50 rounded-xl flex items-center justify-center">
+                                <AlertOctagon className="h-4 w-4 text-amber-600" />
+                            </div>
+                            <div>
+                                <h2 className="text-sm font-black text-gray-900">Moderation Queue</h2>
+                                <p className="text-[10px] text-gray-400">{pendingAds?.length || 0} pending</p>
+                            </div>
+                        </div>
+                        <Link to="/admin-dashboard/listings" className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1">
+                            View all <ArrowRight className="h-3 w-3" />
+                        </Link>
+                    </div>
+                    <div className="overflow-x-auto">
+                        {adsLoading ? (
+                            <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-indigo-400" /></div>
+                        ) : !pendingAds?.length ? (
+                            <div className="py-12 text-center">
+                                <Check className="w-10 h-10 text-green-400 mx-auto mb-2 opacity-40" />
+                                <p className="text-sm text-gray-400 italic">Queue is clean ✓</p>
+                            </div>
+                        ) : (
+                            <table className="w-full text-left text-sm">
+                                <tbody className="divide-y divide-gray-50">
+                                    {pendingAds.slice(0, 6).map((ad: any) => (
+                                        <tr key={ad.id} className="hover:bg-gray-50/60 transition-colors">
+                                            <td className="px-5 py-3">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden shrink-0">
+                                                        {ad.images?.[0]
+                                                            ? <img src={getImageUrl(ad.images[0])} alt="" className="w-full h-full object-cover" />
+                                                            : <div className="w-full h-full flex items-center justify-center text-gray-300"><ShoppingBag className="h-4 w-4" /></div>
+                                                        }
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="text-xs font-bold text-gray-900 truncate max-w-[140px]">{getField(ad, 'title')}</p>
+                                                        <p className="text-[10px] text-gray-400">{ad.owner?.full_name || `#${ad.owner_id}`}</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-3 py-3 text-right">
+                                                <div className="flex items-center justify-end gap-1.5">
+                                                    <button
+                                                        onClick={() => moderateMutation.mutate({ id: ad.id, approve: false })}
+                                                        disabled={moderateMutation.isPending}
+                                                        className="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors"
+                                                    >
+                                                        <X className="h-3.5 w-3.5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => moderateMutation.mutate({ id: ad.id, approve: true })}
+                                                        disabled={moderateMutation.isPending}
+                                                        className="w-8 h-8 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 flex items-center justify-center transition-colors"
+                                                    >
+                                                        <Check className="h-3.5 w-3.5" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </section>
+
+                {/* Verification Requests */}
+                <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-green-50 rounded-xl flex items-center justify-center">
+                                <ShieldCheck className="h-4 w-4 text-green-600" />
+                            </div>
+                            <div>
+                                <h2 className="text-sm font-black text-gray-900">Verification Requests</h2>
+                                <p className="text-[10px] text-gray-400">{pendingVerifs} pending</p>
+                            </div>
+                        </div>
+                        <Link to="/admin-dashboard/verifications" className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1">
+                            View all <ArrowRight className="h-3 w-3" />
+                        </Link>
+                    </div>
+                    <div className="overflow-x-auto">
+                        {verificationsLoading ? (
+                            <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-indigo-400" /></div>
+                        ) : !verificationRequests?.length ? (
+                            <div className="py-12 text-center">
+                                <ShieldCheck className="w-10 h-10 text-green-400 mx-auto mb-2 opacity-40" />
+                                <p className="text-sm text-gray-400 italic">No pending verifications</p>
+                            </div>
+                        ) : (
+                            <table className="w-full text-left text-sm">
+                                <tbody className="divide-y divide-gray-50">
+                                    {verificationRequests.slice(0, 6).map((req: any) => (
+                                        <tr key={req.id} className="hover:bg-gray-50/60 transition-colors">
+                                            <td className="px-5 py-3">
+                                                <p className="text-xs font-bold text-gray-900">{req.user?.full_name || `#${req.user_id}`}</p>
+                                                <p className="text-[10px] text-gray-400 uppercase">{req.document_type}</p>
+                                            </td>
+                                            <td className="px-3 py-3">
+                                                <span className={cn(
+                                                    "px-2 py-0.5 rounded-full text-[10px] font-black uppercase",
+                                                    req.status === 'pending' ? "bg-amber-100 text-amber-700"
+                                                    : req.status === 'approved' ? "bg-green-100 text-green-700"
+                                                    : "bg-red-100 text-red-600"
+                                                )}>
+                                                    {req.status}
+                                                </span>
+                                            </td>
+                                            {req.status === 'pending' && (
+                                                <td className="px-3 py-3 text-right">
+                                                    <div className="flex items-center justify-end gap-1.5">
+                                                        <button
+                                                            onClick={() => verifyMutation.mutate({ id: req.id, status: 'rejected' })}
+                                                            disabled={verifyMutation.isPending}
+                                                            className="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors"
+                                                        >
+                                                            <X className="h-3.5 w-3.5" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => verifyMutation.mutate({ id: req.id, status: 'approved' })}
+                                                            disabled={verifyMutation.isPending}
+                                                            className="w-8 h-8 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 flex items-center justify-center transition-colors"
+                                                        >
+                                                            <Check className="h-3.5 w-3.5" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            )}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </section>
+            </div>
+
+            {/* ── Business Nearby Approvals ──────────────────────────────── */}
+            <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-indigo-50 rounded-xl flex items-center justify-center">
+                            <Store className="h-4 w-4 text-indigo-600" />
+                        </div>
+                        <div>
+                            <h2 className="text-sm font-black text-gray-900">Business Nearby Approvals</h2>
+                            <p className="text-[10px] text-gray-400">{pendingBiz} pending opt-in</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="overflow-x-auto">
                     {businessQueueLoading ? (
-                        <div className="flex justify-center py-10">
-                            <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-                        </div>
-                    ) : businessQueue?.length === 0 ? (
-                        <div className="py-12 text-center text-gray-400 italic">
-                            No opt-in requests found.
-                        </div>
+                        <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-indigo-400" /></div>
+                    ) : !businessQueue?.length ? (
+                        <div className="py-12 text-center text-gray-400 italic text-sm">No opt-in requests found.</div>
                     ) : (
                         <table className="w-full text-left">
                             <thead className="bg-gray-50 border-b border-gray-100">
                                 <tr>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Business Name / Link</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Category</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Address</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Trust Score</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Actions</th>
+                                    {['Business', 'Category', 'Address', 'Trust', 'Status', ''].map(h => (
+                                        <th key={h} className="px-5 py-3 text-[10px] font-black text-gray-400 uppercase tracking-wider">{h}</th>
+                                    ))}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {businessQueue?.map((b: any) => (
-                                    <tr key={b.id} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-6 py-4 text-sm font-bold text-gray-900">
-                                            <div className="flex flex-col gap-0.5">
-                                                <span>{b.name}</span>
-                                                <a 
-                                                    href={`/shop/${b.slug}`} 
-                                                    target="_blank" 
-                                                    rel="noopener noreferrer"
-                                                    className="text-[10px] text-primary-600 hover:underline flex items-center gap-0.5 font-semibold"
-                                                >
-                                                    <Globe className="h-3 w-3" /> /shop/{b.slug}
-                                                </a>
-                                            </div>
+                            <tbody className="divide-y divide-gray-50">
+                                {businessQueue.map((b: any) => (
+                                    <tr key={b.id} className="hover:bg-gray-50/60 transition-colors text-sm">
+                                        <td className="px-5 py-3">
+                                            <p className="font-bold text-gray-900">{b.name}</p>
+                                            <a href={`/shop/${b.slug}`} target="_blank" rel="noopener noreferrer" className="text-[10px] text-indigo-500 hover:underline">
+                                                /shop/{b.slug}
+                                            </a>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-500 capitalize">{b.category}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-500">{b.address || '—'}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-500 font-bold">{b.trust_score}/100</td>
-                                        <td className="px-6 py-4 text-sm">
+                                        <td className="px-5 py-3 text-gray-500 capitalize">{b.category}</td>
+                                        <td className="px-5 py-3 text-gray-500 text-xs">{b.address || '—'}</td>
+                                        <td className="px-5 py-3 font-bold text-gray-700">{b.trust_score}/100</td>
+                                        <td className="px-5 py-3">
                                             <span className={cn(
-                                                "px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider",
-                                                b.is_approved 
-                                                    ? "bg-green-100 text-green-700" 
-                                                    : "bg-yellow-100 text-yellow-700"
+                                                "px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase",
+                                                b.is_approved ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
                                             )}>
-                                                {b.is_approved ? 'Approved' : 'Pending Approval'}
+                                                {b.is_approved ? 'Approved' : 'Pending'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-right">
+                                        <td className="px-5 py-3 text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 {b.is_approved ? (
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="h-8 px-3 rounded-lg text-red-500 border-red-100 hover:bg-red-50"
+                                                    <Button size="sm" variant="outline" className="h-7 px-3 text-xs rounded-lg text-red-500 border-red-100 hover:bg-red-50"
                                                         onClick={() => moderateBusinessMutation.mutate({ id: b.id, approve: false })}
-                                                        disabled={moderateBusinessMutation.isPending}
-                                                    >
+                                                        disabled={moderateBusinessMutation.isPending}>
                                                         Revoke
                                                     </Button>
                                                 ) : (
                                                     <>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            className="h-8 px-3 rounded-lg text-red-500 border-red-100 hover:bg-red-50"
+                                                        <Button size="sm" variant="outline" className="h-7 px-3 text-xs rounded-lg text-red-500 border-red-100 hover:bg-red-50"
                                                             onClick={() => moderateBusinessMutation.mutate({ id: b.id, approve: false })}
-                                                            disabled={moderateBusinessMutation.isPending}
-                                                        >
+                                                            disabled={moderateBusinessMutation.isPending}>
                                                             Reject
                                                         </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            className="h-8 px-3 rounded-lg"
+                                                        <Button size="sm" className="h-7 px-3 text-xs rounded-lg"
                                                             onClick={() => moderateBusinessMutation.mutate({ id: b.id, approve: true })}
-                                                            disabled={moderateBusinessMutation.isPending}
-                                                        >
+                                                            disabled={moderateBusinessMutation.isPending}>
                                                             Approve
                                                         </Button>
                                                     </>
@@ -507,385 +654,160 @@ const AdminDashboard: React.FC = () => {
                 </div>
             </section>
 
-            {/* Agent Management */}
-            <section className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="px-8 py-5 border-b border-gray-50 flex items-center gap-3">
-                    <div className="p-2 bg-primary-50 rounded-xl">
-                        <UserCog className="h-4 w-4 text-primary-600" />
-                    </div>
-                    <div>
-                        <h3 className="text-base font-bold text-gray-900">Agent Management</h3>
-                        <p className="text-xs text-gray-400">Grant or revoke agent access by email</p>
-                    </div>
-                </div>
+            {/* ── Agent Management + OTP Lookup ─────────────────────────── */}
+            <div className="grid lg:grid-cols-2 gap-6">
 
-                <div className="p-8 grid md:grid-cols-2 gap-8">
-                    {/* Add agent form */}
-                    <div>
-                        <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Add Agent by Email</label>
-                        <div className="flex gap-2">
-                            <div className="flex items-center gap-2 flex-1 border border-gray-200 rounded-xl px-3 py-2 focus-within:border-primary-400 transition-colors">
-                                <Mail className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                                <input
-                                    type="email"
-                                    value={agentEmail}
-                                    onChange={e => { setAgentEmail(e.target.value); setAgentError(null); }}
-                                    placeholder="user@example.com"
-                                    className="bg-transparent text-sm outline-none w-full text-gray-700 placeholder-gray-400"
-                                    onKeyDown={e => e.key === 'Enter' && agentEmail && addAgentMutation.mutate(agentEmail)}
-                                />
-                            </div>
-                            <Button
-                                className="rounded-xl px-4 gap-1.5 flex-shrink-0"
-                                disabled={!agentEmail || addAgentMutation.isPending}
-                                onClick={() => addAgentMutation.mutate(agentEmail)}
-                            >
-                                {addAgentMutation.isPending
-                                    ? <Loader2 className="h-4 w-4 animate-spin" />
-                                    : <Plus className="h-4 w-4" />
-                                }
-                                Add
-                            </Button>
+                {/* Agent Management */}
+                <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-50 flex items-center gap-3">
+                        <div className="w-8 h-8 bg-violet-50 rounded-xl flex items-center justify-center">
+                            <UserCog className="h-4 w-4 text-violet-600" />
                         </div>
-                        {agentError && (
-                            <p className="text-xs text-red-500 font-medium mt-2">{agentError}</p>
-                        )}
-                        {addAgentMutation.isSuccess && (
-                            <p className="text-xs text-green-600 font-medium mt-2">Agent added successfully.</p>
-                        )}
-                    </div>
-
-                    {/* Current agents list */}
-                    <div>
-                        <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
-                            Current Agents ({agents.length})
-                        </label>
-                        {agentsLoading ? (
-                            <div className="flex justify-center py-4"><Loader2 className="h-5 w-5 animate-spin text-primary-400" /></div>
-                        ) : agents.length === 0 ? (
-                            <p className="text-sm text-gray-400 italic py-3">No agents yet.</p>
-                        ) : (
-                            <div className="space-y-2 max-h-64 overflow-y-auto">
-                                {agents.map((agent: any) => (
-                                    <div key={agent.id} className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <div className="w-8 h-8 rounded-xl bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
-                                                {(agent.full_name || 'A')[0].toUpperCase()}
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="text-sm font-bold text-gray-900 truncate">{agent.full_name || '—'}</p>
-                                                <p className="text-xs text-gray-400 truncate">{agent.email}</p>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={() => { if (window.confirm(`Remove agent access for ${agent.email}?`)) removeAgentMutation.mutate(agent.email); }}
-                                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
-                                            title="Remove agent"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </section>
-
-            {/* Users Management + OTP Lookup */}
-            <section className="space-y-6">
-
-                {/* OTP Lookup Tool */}
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl border border-amber-200 shadow-sm p-8">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-amber-100 rounded-xl">
-                                <KeyRound className="h-5 w-5 text-amber-700" />
-                            </div>
-                            <div>
-                                <h3 className="text-base font-bold text-gray-900">OTP Lookup Tool</h3>
-                                <p className="text-xs text-gray-500">Help customers who didn't receive their verification code</p>
-                            </div>
-                        </div>
-                        <div className="flex bg-amber-100/60 p-0.5 rounded-xl border border-amber-200 self-start sm:self-center">
-                            <button
-                                type="button"
-                                onClick={() => { setOtpMode('phone'); setOtpQuery(''); setOtpResult(null); }}
-                                className={cn(
-                                    "px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5",
-                                    otpMode === 'phone'
-                                        ? "bg-white text-amber-800 shadow-sm"
-                                        : "text-amber-700 hover:text-amber-900"
-                                )}
-                            >
-                                <Phone className="h-3.5 w-3.5" />
-                                Phone
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => { setOtpMode('email'); setOtpQuery(''); setOtpResult(null); }}
-                                className={cn(
-                                    "px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5",
-                                    otpMode === 'email'
-                                        ? "bg-white text-amber-800 shadow-sm"
-                                        : "text-amber-700 hover:text-amber-900"
-                                )}
-                            >
-                                <Mail className="h-3.5 w-3.5" />
-                                Email
-                            </button>
+                        <div>
+                            <h2 className="text-sm font-black text-gray-900">Agent Management</h2>
+                            <p className="text-[10px] text-gray-400">Grant / revoke agent access by email</p>
                         </div>
                     </div>
-                    <div className="flex gap-3">
-                        <div className="flex-1 flex items-center gap-2 border border-amber-200 bg-white rounded-xl px-3 py-2.5 focus-within:border-amber-400 transition-colors">
-                            {otpMode === 'phone' ? (
-                                <Phone className="h-4 w-4 text-gray-400 shrink-0" />
-                            ) : (
-                                <Mail className="h-4 w-4 text-gray-400 shrink-0" />
-                            )}
-                            <input
-                                type={otpMode === 'phone' ? "tel" : "email"}
-                                value={otpQuery}
-                                onChange={e => { setOtpQuery(e.target.value); setOtpResult(null); }}
-                                onKeyDown={e => e.key === 'Enter' && handleOtpLookup()}
-                                placeholder={otpMode === 'phone' ? "+254712345678 or 0712345678" : "customer@email.com"}
-                                className="bg-transparent text-sm outline-none w-full text-gray-700 placeholder-gray-400"
-                            />
-                        </div>
-                        <Button
-                            className="rounded-xl bg-amber-600 hover:bg-amber-700 text-white px-5"
-                            disabled={!otpQuery.trim() || otpLoading}
-                            onClick={handleOtpLookup}
-                        >
-                            {otpLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Look Up'}
-                        </Button>
-                    </div>
-
-                    {otpResult && (
-                        <div className={cn(
-                            "mt-4 p-4 rounded-xl border text-sm",
-                            otpResult.found
-                                ? "bg-green-50 border-green-200 text-green-800"
-                                : "bg-red-50 border-red-200 text-red-700"
-                        )}>
-                            {otpResult.found ? (
-                                <div className="flex items-center gap-4">
-                                    <div>
-                                        <p className="text-xs font-bold uppercase tracking-wider text-green-600 mb-0.5">Active OTP Code</p>
-                                        <p className="text-3xl font-black font-mono tracking-widest text-green-900">{otpResult.code}</p>
-                                    </div>
-                                    <div className="ml-auto text-right">
-                                        <p className="text-xs text-green-600">Expires in</p>
-                                        <p className="text-lg font-bold text-green-800">{otpResult.expires_in_seconds}s</p>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="flex items-center gap-2">
-                                    <AlertTriangle className="h-4 w-4 shrink-0" />
-                                    <p>{otpResult.message}</p>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                {/* Full Users Table */}
-                <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                    <div className="px-8 py-5 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center gap-4">
-                        <div className="flex items-center gap-3 flex-1">
-                            <div className="p-2 bg-primary-50 rounded-xl">
-                                <Users className="h-4 w-4 text-primary-600" />
-                            </div>
-                            <div>
-                                <h3 className="text-base font-bold text-gray-900">All Accounts</h3>
-                                <p className="text-xs text-gray-400">{userTotal.toLocaleString()} total users</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-2 focus-within:border-primary-400 transition-colors bg-gray-50">
-                                <Search className="h-4 w-4 text-gray-400 shrink-0" />
-                                <input
-                                    type="text"
-                                    value={userSearchInput}
-                                    onChange={e => setUserSearchInput(e.target.value)}
-                                    onKeyDown={e => {
-                                        if (e.key === 'Enter') { setUserSearch(userSearchInput); setUserPage(0); }
-                                    }}
-                                    placeholder="Search name, email, phone…"
-                                    className="bg-transparent text-sm outline-none w-48 text-gray-700 placeholder-gray-400"
-                                />
-                            </div>
-                            <Button
-                                size="sm"
-                                className="rounded-xl"
-                                onClick={() => { setUserSearch(userSearchInput); setUserPage(0); }}
-                            >
-                                Search
-                            </Button>
-                            {userSearch && (
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="rounded-xl"
-                                    onClick={() => { setUserSearch(''); setUserSearchInput(''); setUserPage(0); }}
-                                >
-                                    Clear
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Delete Confirmation Dialog */}
-                    {confirmDeleteId !== null && (
-                        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-                            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full">
-                                <div className="flex items-center justify-center w-14 h-14 bg-red-100 rounded-full mx-auto mb-4">
-                                    <AlertTriangle className="w-7 h-7 text-red-600" />
-                                </div>
-                                <h3 className="text-lg font-bold text-center text-gray-900 mb-2">Delete User?</h3>
-                                <p className="text-sm text-center text-gray-500 mb-6">
-                                    This will permanently delete the user and all their data (listings, messages, wallet, etc.). This action cannot be undone.
-                                </p>
-                                <div className="flex gap-3">
-                                    <Button
-                                        variant="outline"
-                                        className="flex-1 rounded-xl"
-                                        onClick={() => setConfirmDeleteId(null)}
-                                    >
-                                        Cancel
-                                    </Button>
-                                    <Button
-                                        className="flex-1 rounded-xl bg-red-600 hover:bg-red-700"
-                                        disabled={deleteUserMutation.isPending}
-                                        onClick={() => deleteUserMutation.mutate(confirmDeleteId)}
-                                    >
-                                        {deleteUserMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Delete'}
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="overflow-x-auto">
-                        {usersLoading ? (
-                            <div className="flex justify-center py-16">
-                                <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-                            </div>
-                        ) : users?.length === 0 ? (
-                            <div className="py-16 text-center text-gray-400 italic">No users found.</div>
-                        ) : (
-                            <table className="w-full text-left">
-                                <thead className="bg-gray-50 border-b border-gray-100">
-                                    <tr>
-                                        <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">User</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Contact</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Joined</th>
-                                        <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-50">
-                                    {users?.map((user: any) => (
-                                        <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-xl bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-xs shrink-0">
-                                                        {(user.full_name || user.email || 'U')[0].toUpperCase()}
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <p className="text-sm font-bold text-gray-900 truncate">{user.full_name || '—'}</p>
-                                                        <p className="text-[10px] text-gray-400">ID #{user.id}</p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <p className="text-xs text-gray-700 truncate max-w-[160px]">{user.email}</p>
-                                                <p className="text-[10px] text-gray-400">{user.phone || '—'}</p>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-col gap-1">
-                                                    <span className={cn(
-                                                        "inline-flex px-2 py-0.5 rounded-full text-[10px] font-black uppercase w-fit",
-                                                        user.is_active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
-                                                    )}>
-                                                        {user.is_active ? 'Active' : 'Inactive'}
-                                                    </span>
-                                                    {user.is_verified && (
-                                                        <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-blue-100 text-blue-700 w-fit">
-                                                            Verified
-                                                        </span>
-                                                    )}
-                                                    {user.is_agent && (
-                                                        <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-purple-100 text-purple-700 w-fit">
-                                                            Agent
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-xs text-gray-500">
-                                                {user.created_at ? new Date(user.created_at).toLocaleDateString() : '—'}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button
-                                                        onClick={() => updateStatusMutation.mutate({ userId: user.id, isActive: !user.is_active })}
-                                                        disabled={updateStatusMutation.isPending}
-                                                        title={user.is_active ? 'Deactivate user' : 'Activate user'}
-                                                        className={cn(
-                                                            "p-1.5 rounded-lg transition-colors",
-                                                            user.is_active
-                                                                ? "text-gray-400 hover:text-orange-600 hover:bg-orange-50"
-                                                                : "text-gray-400 hover:text-green-600 hover:bg-green-50"
-                                                        )}
-                                                    >
-                                                        {user.is_active ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setConfirmDeleteId(user.id)}
-                                                        title="Permanently delete user"
-                                                        className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
-                    </div>
-
-                    {/* Pagination */}
-                    {userTotal > USER_PAGE_SIZE && (
-                        <div className="px-8 py-4 border-t border-gray-50 flex items-center justify-between">
-                            <p className="text-xs text-gray-400">
-                                Showing {userPage * USER_PAGE_SIZE + 1}–{Math.min((userPage + 1) * USER_PAGE_SIZE, userTotal)} of {userTotal.toLocaleString()}
-                            </p>
+                    <div className="p-6 space-y-5">
+                        {/* Add form */}
+                        <div>
+                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2">Add Agent by Email</label>
                             <div className="flex gap-2">
+                                <div className="flex items-center gap-2 flex-1 border border-gray-200 rounded-xl px-3 py-2.5 focus-within:border-violet-400 transition-colors bg-gray-50">
+                                    <Mail className="h-4 w-4 text-gray-400 shrink-0" />
+                                    <input
+                                        type="email"
+                                        value={agentEmail}
+                                        onChange={e => { setAgentEmail(e.target.value); setAgentError(null); }}
+                                        placeholder="user@example.com"
+                                        className="bg-transparent text-sm outline-none w-full text-gray-700 placeholder-gray-400"
+                                        onKeyDown={e => e.key === 'Enter' && agentEmail && addAgentMutation.mutate(agentEmail)}
+                                    />
+                                </div>
                                 <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="rounded-xl h-8 w-8 p-0"
-                                    disabled={userPage === 0}
-                                    onClick={() => setUserPage(p => p - 1)}
+                                    className="rounded-xl px-4 gap-1.5 shrink-0 bg-violet-600 hover:bg-violet-700"
+                                    disabled={!agentEmail || addAgentMutation.isPending}
+                                    onClick={() => addAgentMutation.mutate(agentEmail)}
                                 >
-                                    <ChevronLeft className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="rounded-xl h-8 w-8 p-0"
-                                    disabled={(userPage + 1) * USER_PAGE_SIZE >= userTotal}
-                                    onClick={() => setUserPage(p => p + 1)}
-                                >
-                                    <ChevronRight className="h-4 w-4" />
+                                    {addAgentMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                                 </Button>
                             </div>
+                            {agentError && <p className="text-xs text-red-500 font-medium mt-1.5">{agentError}</p>}
                         </div>
-                    )}
-                </div>
-            </section>
+
+                        {/* Current agents */}
+                        <div>
+                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-2">
+                                Current Agents ({agents.length})
+                            </label>
+                            {agentsLoading ? (
+                                <div className="flex justify-center py-4"><Loader2 className="h-5 w-5 animate-spin text-violet-400" /></div>
+                            ) : !agents.length ? (
+                                <p className="text-sm text-gray-400 italic py-2">No agents configured yet.</p>
+                            ) : (
+                                <div className="space-y-2 max-h-52 overflow-y-auto">
+                                    {agents.map((agent: any) => (
+                                        <div key={agent.id} className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                            <div className="flex items-center gap-2.5 min-w-0">
+                                                <div className="w-8 h-8 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center font-black text-xs shrink-0">
+                                                    {(agent.full_name || 'A')[0].toUpperCase()}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-bold text-gray-900 truncate">{agent.full_name || '—'}</p>
+                                                    <p className="text-[10px] text-gray-400 truncate">{agent.email}</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => { if (window.confirm(`Remove agent access for ${agent.email}?`)) removeAgentMutation.mutate(agent.email); }}
+                                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors shrink-0"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </section>
+
+                {/* OTP Lookup */}
+                <section className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-amber-100 flex items-center gap-3">
+                        <div className="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center">
+                            <KeyRound className="h-4 w-4 text-amber-700" />
+                        </div>
+                        <div>
+                            <h2 className="text-sm font-black text-gray-900">OTP Lookup Tool</h2>
+                            <p className="text-[10px] text-gray-500">Help users who didn't receive their code</p>
+                        </div>
+                    </div>
+                    <div className="p-6 space-y-4">
+                        {/* Mode toggle */}
+                        <div className="flex bg-amber-100/60 p-0.5 rounded-xl border border-amber-200 self-start w-fit">
+                            {(['phone', 'email'] as const).map(mode => (
+                                <button
+                                    key={mode}
+                                    onClick={() => { setOtpMode(mode); setOtpQuery(''); setOtpResult(null); }}
+                                    className={cn(
+                                        "px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5",
+                                        otpMode === mode ? "bg-white text-amber-800 shadow-sm" : "text-amber-700 hover:text-amber-900"
+                                    )}
+                                >
+                                    {mode === 'phone' ? <Phone className="h-3.5 w-3.5" /> : <Mail className="h-3.5 w-3.5" />}
+                                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex gap-2">
+                            <div className="flex-1 flex items-center gap-2 border border-amber-200 bg-white rounded-xl px-3 py-2.5 focus-within:border-amber-400 transition-colors">
+                                {otpMode === 'phone' ? <Phone className="h-4 w-4 text-gray-400 shrink-0" /> : <Mail className="h-4 w-4 text-gray-400 shrink-0" />}
+                                <input
+                                    type={otpMode === 'phone' ? 'tel' : 'email'}
+                                    value={otpQuery}
+                                    onChange={e => { setOtpQuery(e.target.value); setOtpResult(null); }}
+                                    onKeyDown={e => e.key === 'Enter' && handleOtpLookup()}
+                                    placeholder={otpMode === 'phone' ? '+254712345678' : 'customer@email.com'}
+                                    className="bg-transparent text-sm outline-none w-full text-gray-700 placeholder-gray-400"
+                                />
+                            </div>
+                            <Button
+                                className="rounded-xl bg-amber-600 hover:bg-amber-700 text-white px-5 shrink-0"
+                                disabled={!otpQuery.trim() || otpLoading}
+                                onClick={handleOtpLookup}
+                            >
+                                {otpLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Look Up'}
+                            </Button>
+                        </div>
+
+                        {otpResult && (
+                            <div className={cn(
+                                "p-4 rounded-xl border text-sm",
+                                otpResult.found ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-700"
+                            )}>
+                                {otpResult.found ? (
+                                    <div className="flex items-center gap-4">
+                                        <div>
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-green-600 mb-0.5">Active OTP</p>
+                                            <p className="text-3xl font-black font-mono tracking-widest text-green-900">{otpResult.code}</p>
+                                        </div>
+                                        <div className="ml-auto text-right">
+                                            <p className="text-[10px] text-green-600">Expires in</p>
+                                            <p className="text-lg font-bold text-green-800">{otpResult.expires_in_seconds}s</p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2">
+                                        <AlertTriangle className="h-4 w-4 shrink-0" />
+                                        <p>{otpResult.message}</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </section>
+            </div>
         </div>
     );
 };

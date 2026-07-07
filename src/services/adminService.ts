@@ -179,5 +179,10 @@ export const adminService = {
     async disapproveBusiness(businessId: string): Promise<any> {
         const response = await api.post(`/admin/businesses/${businessId}/disapprove`);
         return response.data;
+    },
+
+    async updateUser(userId: number, data: any): Promise<User> {
+        const response = await api.put(`/admin/users/${userId}`, data);
+        return response.data;
     }
 };

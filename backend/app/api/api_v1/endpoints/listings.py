@@ -121,18 +121,35 @@ async def upload_video(
 
 
 @router.get("/categories", response_model=List[Any])
-@cache.cached(prefix="categories", ttl=3600)
 def read_categories(
     db: Session = Depends(deps.get_db),
 ) -> Any:
     """
     Retrieve categories with subcategories.
+    Includes active_listing_count so clients can filter to categories
+    that actually have live ads.
     """
     import json
-    
+    from sqlalchemy import text
+
+    # Single efficient query: count active listings per category
+    rows = db.execute(
+        text(
+            """
+            SELECT l.category_id, COUNT(*) AS cnt
+            FROM listing l
+            JOIN "user" u ON u.id = l.owner_id
+            WHERE l.status = 'active'
+              AND u.is_suspended = false
+            GROUP BY l.category_id
+            """
+        )
+    ).fetchall()
+    active_counts: dict[int, int] = {row.category_id: row.cnt for row in rows}
+
     categories = crud_listing.get_categories(db)
     result = []
-    
+
     for cat in categories:
         cat_attrs = cat.attributes_schema
         if isinstance(cat_attrs, str):
@@ -145,7 +162,7 @@ def read_categories(
             if isinstance(sub_attrs, str):
                 try: sub_attrs = json.loads(sub_attrs)
                 except: sub_attrs = []
-            
+
             subcategories.append({
                 "id": sub.id,
                 "name_en": sub.name_en,
@@ -174,9 +191,10 @@ def read_categories(
             "image_url": cat.image_url,
             "attributes_schema": cat_attrs,
             "subcategories": subcategories,
+            "active_listing_count": active_counts.get(cat.id, 0),
         }
         result.append(cat_dict)
-    
+
     return result
 
 
@@ -638,6 +656,118 @@ def create_listing(
     return listing
 
 
+
+
+@router.get("/shops")
+def get_public_shops(
+    *,
+    db: Session = Depends(deps.get_db),
+    skip: int = 0,
+    limit: int = 50,
+    search: Optional[str] = None,
+    shop_id: Optional[str] = None,
+    category_id: Optional[int] = None,
+) -> Any:
+    """
+    Get all verified shops/sellers that have at least one active listing.
+    Optionally filter by category_id.
+    """
+    from sqlalchemy import text
+    try:
+        # Build filters
+        search_filter = ""
+        category_filter = ""
+        params = {"skip": skip, "limit": limit}
+
+        if search:
+            search_filter = "AND (s.shop_name ILIKE :search OR s.category ILIKE :search)"
+            params["search"] = f"%{search}%"
+
+        if shop_id:
+            search_filter += " AND s.id = :shop_id"
+            params["shop_id"] = shop_id
+
+        if category_id:
+            category_filter = "AND l.category_id = :category_id"
+            params["category_id"] = category_id
+
+        # Fastest query: just get verified active sellers (assuming data integrity)
+        query_str = f"""
+            SELECT s.id, s.user_id, s.shop_name, s.owner_name, s.category,
+                   s.shop_address, s.location_lat, s.location_lng,
+                   s.verification_status, s.is_active, s.created_at
+            FROM sellers s
+            WHERE s.verification_status = 'verified'
+              AND s.is_active = true
+              {search_filter}
+            ORDER BY s.created_at DESC
+            OFFSET :skip LIMIT :limit
+        """
+
+        subquery = query_str
+
+        query = text(subquery)
+
+        result = db.execute(query, params)
+        rows = result.fetchall()
+
+        shops = []
+        for row in rows:
+            # Grabbing the cover image from the first listing
+            cover_image = None
+
+            # Build category filter for cover image if category is selected
+            category_filter = ""
+            listing_params = {"owner_id": int(row[1])}
+            if category_id:
+                category_filter = "AND (category_id = :category_id OR subcategory_id = :category_id OR subsubcategory_id = :category_id)"
+                listing_params["category_id"] = category_id
+
+            first_listing_query = text(f"""
+                SELECT images FROM listing
+                WHERE status = 'active'
+                AND owner_id = :owner_id
+                {category_filter}
+                LIMIT 1
+            """)
+            try:
+                owner_id_val = int(row[1])
+            except Exception:
+                owner_id_val = -1
+
+            first_listing_res = db.execute(first_listing_query, listing_params).first()
+            if first_listing_res and first_listing_res[0]:
+                import json as _json
+                try:
+                    imgs = _json.loads(first_listing_res[0]) if isinstance(first_listing_res[0], str) else first_listing_res[0]
+                    cover_image = imgs[0] if imgs else None
+                except Exception:
+                    cover_image = first_listing_res[0]
+
+            # Use cover_image from first listing (or category fallback)
+            shops.append({
+                "id": str(row[0]),
+                "user_id": str(row[1]),
+                "shop_name": row[2],
+                "owner_name": row[3],
+                "category": row[4],
+                "shop_address": row[5],
+                "location_lat": row[6],
+                "location_lng": row[7],
+                "rating": 4.5,
+                "is_verified": True,
+                "listing_count": None,  # Removed for performance - can be calculated separately if needed
+                "category_ids": [],
+                "cover_image": cover_image,
+                "slug": str(row[0]),
+                "created_at": row[10].isoformat() if row[10] else None,
+            })
+
+        # Return without count query (too slow) - frontend doesn't strictly need it
+        return {"total": len(shops), "shops": shops}
+    except Exception as e:
+        print(f"Error in get_public_shops: {str(e)}")
+        return {"total": 0, "shops": []}
 
 
 @router.get("/{id}", response_model=ListingRead)

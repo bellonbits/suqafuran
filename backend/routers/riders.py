@@ -70,6 +70,56 @@ def register_rider(
         "is_active": rider.is_active
     }
 
+
+@router.get("/available")
+def get_available_riders(
+    limit: int = Query(10, ge=1, le=50),
+    skip: int = Query(0, ge=0),
+    db: Session = Depends(get_db)
+):
+    """Get list of available riders for order assignment"""
+    try:
+        from sqlalchemy import text
+
+        result = db.execute(text("""
+            SELECT id, phone, is_active, is_verified, current_lat, current_lng
+            FROM riders
+            WHERE is_active = true AND is_verified = true
+            LIMIT :limit OFFSET :skip
+        """), {"limit": limit, "skip": skip})
+
+        available_riders = []
+        for row in result:
+            rider_id, phone, is_active, is_verified, lat, lng = row
+
+            try:
+                active_count = db.query(DeliveryAssignment).filter(
+                    DeliveryAssignment.rider_id == rider_id,
+                    DeliveryAssignment.status.in_(["assigned", "picked_up"])
+                ).count()
+            except:
+                active_count = 0
+
+            available_riders.append({
+                "id": str(rider_id),
+                "name": "Rider",
+                "phone": phone or "",
+                "rating": 5.0,
+                "active_deliveries": active_count,
+                "location": {
+                    "lat": float(lat or 0),
+                    "lng": float(lng or 0)
+                }
+            })
+
+        return {
+            "riders": available_riders,
+            "total": len(available_riders)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/{rider_id}", response_model=RiderResponse)
 def get_rider_profile(
     rider_id: str,
@@ -87,6 +137,7 @@ def get_rider_profile(
         "is_verified": rider.is_verified,
         "is_active": rider.is_active
     }
+
 
 @router.post("/{rider_id}/location")
 def update_rider_location(

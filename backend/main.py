@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import Optional
+from contextlib import asynccontextmanager
 
 from config import settings
 from database import engine, get_db, Base
@@ -11,27 +12,43 @@ from schemas import (
     OrderCreate, OrderResponse, OrderStatusUpdate, RatingSubmit, IssueReport,
     SellerRegister, SellerResponse
 )
-from routers import payments, sellers, riders, notifications, websocket_routes, ratings, delivery_tracking, rider_endpoints, seller_endpoints, delivery_endpoints
+from routers import payments, sellers, riders, notifications, websocket_routes, ratings, delivery_tracking, rider_endpoints, seller_endpoints, delivery_endpoints, marketplace, favorites, addresses, promotions
 from utils.security import get_current_user, hash_password, verify_password, create_access_token
 from models import Order, OrderItem, Issue, Seller
 
 try:
     from app.api.api_v1.api import api_router
-    from app.services.background_tasks import init_background_tasks
     HAS_APP_MODULE = True
 except ImportError:
     api_router = None
-    init_background_tasks = None
     HAS_APP_MODULE = False
+
+try:
+    from app.services.background_tasks import init_background_tasks
+except Exception:
+    init_background_tasks = None
 
 # Create tables (comment out if database already set up)
 # Base.metadata.create_all(bind=engine)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage app lifecycle - startup and shutdown"""
+    # Startup
+    if HAS_APP_MODULE and init_background_tasks:
+        try:
+            init_background_tasks()
+        except Exception as e:
+            print(f"Warning: Failed to initialize background tasks: {str(e)}")
+    yield
+    # Shutdown (if needed)
 
 # Initialize FastAPI app
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="Suqafuran Marketplace API"
+    description="Suqafuran Marketplace API",
+    lifespan=lifespan
 )
 
 # CORS
@@ -42,17 +59,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-# Initialize background tasks on startup
-@app.on_event("startup")
-async def startup_event():
-    """Initialize background tasks for notifications and cleanup"""
-    if HAS_APP_MODULE and init_background_tasks:
-        try:
-            init_background_tasks()
-        except Exception as e:
-            print(f"Warning: Failed to initialize background tasks: {str(e)}")
 
 # Register routers (new endpoints before old ones to avoid auth conflicts)
 if HAS_APP_MODULE and api_router:
@@ -68,6 +74,12 @@ app.include_router(ratings.router, prefix="/api/v1")
 app.include_router(delivery_tracking.router)
 app.include_router(notifications.router, prefix="/api/v1")
 app.include_router(websocket_routes.router, prefix="/api/v1")
+app.include_router(marketplace.listings_router, prefix="/api/v1")
+app.include_router(marketplace.admin_router, prefix="/api/v1")
+app.include_router(marketplace.notifications_router, prefix="/api/v1")
+app.include_router(favorites.router, prefix="/api/v1")
+app.include_router(addresses.router, prefix="/api/v1")
+app.include_router(promotions.router)
 
 
 # Auth Routes
@@ -103,7 +115,7 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == credentials.email).first()
     if not user or not verify_password(credentials.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    
+
     access_token = create_access_token(data={"sub": user.id})
     return {
         "access_token": access_token,
@@ -114,6 +126,86 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
             "full_name": user.full_name
         }
     }
+
+@app.post("/api/v1/auth/request-phone-otp")
+def request_phone_otp(payload: dict, db: Session = Depends(get_db)):
+    """Request OTP for phone number"""
+    try:
+        phone = payload.get("phone")
+        if not phone:
+            raise HTTPException(status_code=400, detail="Phone number required")
+
+        # Check if phone exists
+        user = db.query(User).filter(User.phone == phone).first()
+
+        # Generate mock OTP (in production, send via SMS)
+        import random
+        otp = str(random.randint(100000, 999999))
+
+        return {
+            "phone": phone,
+            "otp_sent": True,
+            "message": "OTP sent to phone",
+            "user_exists": user is not None,
+            "request_id": f"otp_{phone}_{int(__import__('time').time())}"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/v1/auth/signup-phone", response_model=TokenResponse)
+def signup_phone(payload: dict, db: Session = Depends(get_db)):
+    """Signup with phone number and OTP"""
+    try:
+        phone = payload.get("phone")
+        full_name = payload.get("full_name")
+        otp = payload.get("otp")
+
+        if not phone or not full_name:
+            raise HTTPException(status_code=400, detail="Phone and name required")
+
+        # Check if phone already registered
+        existing_user = db.query(User).filter(User.phone == phone).first()
+        if existing_user:
+            # Generate token for existing user
+            access_token = create_access_token(data={"sub": existing_user.id})
+            return {
+                "access_token": access_token,
+                "token_type": "bearer",
+                "user": {
+                    "id": existing_user.id,
+                    "email": existing_user.email,
+                    "full_name": existing_user.full_name
+                }
+            }
+
+        # Create new user
+        new_user = User(
+            phone=phone,
+            full_name=full_name,
+            email=f"{phone}@suqafuran.local",
+            hashed_password=hash_password("phone-auth")
+        )
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+
+        access_token = create_access_token(data={"sub": new_user.id})
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": {
+                "id": new_user.id,
+                "email": new_user.email,
+                "full_name": new_user.full_name
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
 
 # Order Routes
 @app.post("/api/v1/orders", response_model=OrderResponse)
@@ -295,10 +387,33 @@ def get_seller_profile(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    seller = db.query(Seller).filter(Seller.user_id == current_user.id).first()
-    if not seller:
+    try:
+        from sqlalchemy import text
+
+        seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
+        if not seller:
+            raise HTTPException(status_code=404, detail="Seller profile not found")
+
+        # Check if seller has at least 1 active listing using raw SQL
+        listing_count = db.execute(
+            text("""
+                SELECT COUNT(*) FROM listing
+                WHERE owner_id = :user_id AND status = 'active'
+            """),
+            {"user_id": current_user.id}
+        ).scalar()
+
+        # Only show as verified seller if they have at least 1 active listing
+        if seller.verification_status == "verified" and listing_count > 0:
+            return seller
+
+        # Otherwise, seller doesn't meet criteria
+        raise HTTPException(status_code=404, detail="Seller must be verified and have at least 1 active listing")
+
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(status_code=404, detail="Seller profile not found")
-    return seller
 
 # Health check
 @app.get("/health")

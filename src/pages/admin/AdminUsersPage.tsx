@@ -1,25 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
     Users, Search, Filter,
-    Trash2, Power, PowerOff, ExternalLink, 
+    Trash2, Power, PowerOff, ExternalLink,
     CheckCircle2, Ban, Send, Globe, Eye,
     Mail, Phone, Calendar, ShieldCheck,
-    Loader2, Info
+    Loader2, Info, Edit2, Upload, X
 } from 'lucide-react';
 import { adminService } from '../../services/adminService';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { listingService } from '../../services/listingService';
 
 interface User {
     id: number;
     email: string;
     full_name: string;
-    phone_number: string;
+    phone?: string | null;
     is_active: boolean;
     is_admin: boolean;
+    is_agent?: boolean;
     created_at: string;
-    verification_level?: number;
-    verification_status?: string;
+    verified_level?: 'guest' | 'phone' | 'id' | 'tier1' | 'tier2' | 'tier3' | 'premium' | 'trusted' | 'TRUSTED' | 'NEW';
+    trust_score?: number;
+    trust_level?: string;
+    is_flagged?: boolean;
+    is_suspended?: boolean;
+    
+    // Shop fields
+    business_name?: string | null;
+    shop_description?: string | null;
+    shop_page_banner?: string | null;
+    shop_detail_banner?: string | null;
+    is_featured?: boolean;
+    free_delivery?: boolean;
 }
 
 export const AdminUsersPage: React.FC = () => {
@@ -67,6 +80,95 @@ export const AdminUsersPage: React.FC = () => {
     useEffect(() => {
         loadUsers();
     }, []);
+
+    // Edit Modal States
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [updatingUser, setUpdatingUser] = useState(false);
+    const [editForm, setEditForm] = useState({
+        full_name: '',
+        email: '',
+        phone: '',
+        password: '',
+        is_active: true,
+        verified_level: 'guest' as any,
+        is_admin: false,
+        is_agent: false,
+        trust_score: 0,
+        trust_level: 'NEW',
+        is_flagged: false,
+        is_suspended: false,
+        business_name: '',
+        shop_description: '',
+        shop_page_banner: '',
+        shop_detail_banner: '',
+        is_featured: false,
+        free_delivery: false,
+    });
+    const [editModalTab, setEditModalTab] = useState<'account' | 'shop'>('account');
+    const [uploadingBanners, setUploadingBanners] = useState({ shop: false, detail: false });
+
+    const handleOpenEditModal = (user: User) => {
+        setEditingUser(user);
+        setEditForm({
+            full_name: user.full_name || '',
+            email: user.email || '',
+            phone: user.phone || '',
+            password: '',
+            is_active: user.is_active ?? true,
+            verified_level: user.verified_level || 'guest',
+            is_admin: user.is_admin ?? false,
+            is_agent: user.is_agent ?? false,
+            trust_score: user.trust_score ?? 0,
+            trust_level: user.trust_level || 'NEW',
+            is_flagged: user.is_flagged ?? false,
+            is_suspended: user.is_suspended ?? false,
+            business_name: user.business_name || '',
+            shop_description: user.shop_description || '',
+            shop_page_banner: user.shop_page_banner || '',
+            shop_detail_banner: user.shop_detail_banner || '',
+            is_featured: user.is_featured ?? false,
+            free_delivery: user.free_delivery ?? false,
+        });
+        setEditModalTab('account');
+        setShowEditModal(true);
+    };
+
+    const handleBannerUpload = async (file: File, type: 'shop' | 'detail') => {
+        setUploadingBanners(prev => ({ ...prev, [type]: true }));
+        try {
+            const res = await listingService.uploadImage(file);
+            setEditForm(prev => ({
+                ...prev,
+                [type === 'shop' ? 'shop_page_banner' : 'shop_detail_banner']: res.url
+            }));
+            toast.success('Banner uploaded successfully');
+        } catch (err) {
+            toast.error('Failed to upload banner');
+        } finally {
+            setUploadingBanners(prev => ({ ...prev, [type]: false }));
+        }
+    };
+
+    const handleUpdateUserSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingUser) return;
+        setUpdatingUser(true);
+        try {
+            const payload: any = { ...editForm };
+            if (!payload.password) {
+                delete payload.password;
+            }
+            await adminService.updateUser(editingUser.id, payload);
+            toast.success('Customer account & shop details updated successfully');
+            setShowEditModal(false);
+            loadUsers();
+        } catch (err: any) {
+            toast.error(err.response?.data?.detail || 'Failed to update customer details');
+        } finally {
+            setUpdatingUser(false);
+        }
+    };
 
     const loadUsers = async () => {
         try {
@@ -220,7 +322,7 @@ export const AdminUsersPage: React.FC = () => {
         const matchesSearch = 
             user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            user.phone_number?.includes(searchQuery);
+            user.phone?.includes(searchQuery);
         
         const matchesStatus = 
             filterStatus === 'all' || 
@@ -234,7 +336,7 @@ export const AdminUsersPage: React.FC = () => {
     const renderPreviewHtml = (title: string, subtitle: string, body: string, actionText?: string, actionUrl?: string) => {
         const name = selectedUser?.full_name || 'Customer';
         const email = selectedUser?.email || 'customer@example.com';
-        const phone = selectedUser?.phone_number || 'None';
+        const phone = selectedUser?.phone || 'None';
         const location = 'N/A';
         const date = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
@@ -449,7 +551,7 @@ export const AdminUsersPage: React.FC = () => {
                                                 <p className="text-sm font-bold text-gray-900">{user.full_name || 'Anonymous Profile'}</p>
                                                 <div className="flex flex-col gap-0.5 mt-0.5">
                                                     <span className="text-xs text-gray-500 flex items-center gap-1"><Mail size={12} /> {user.email}</span>
-                                                    {user.phone_number && <span className="text-xs text-gray-400 flex items-center gap-1"><Phone size={12} /> {user.phone_number}</span>}
+                                                    {user.phone && <span className="text-xs text-gray-400 flex items-center gap-1"><Phone size={12} /> {user.phone}</span>}
                                                 </div>
                                             </div>
                                         </div>
@@ -469,9 +571,9 @@ export const AdminUsersPage: React.FC = () => {
                                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded w-fit ${user.is_admin ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-700'}`}>
                                                 {user.is_admin ? 'ADMINISTRATOR' : 'CUSTOMER PROFILE'}
                                             </span>
-                                            {user.verification_level && (
+                                            {user.verified_level && (
                                                 <span className="text-[10px] text-gray-500 flex items-center gap-1">
-                                                    Level {user.verification_level} Verified
+                                                    Level {user.verified_level} Verified
                                                 </span>
                                             )}
                                         </div>
@@ -484,6 +586,15 @@ export const AdminUsersPage: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
+                                            {/* Edit Customer & Shop details */}
+                                            <button
+                                                onClick={() => handleOpenEditModal(user)}
+                                                className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                                                title="Edit Account & Shop details"
+                                            >
+                                                <Edit2 size={18} />
+                                            </button>
+
                                             {/* Send Manual Tracked Email Action */}
                                             <button
                                                 onClick={() => handleOpenManualModal(user)}
@@ -821,6 +932,343 @@ export const AdminUsersPage: React.FC = () => {
                                 />
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Customer Edit Modal */}
+            {showEditModal && editingUser && (
+                <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col h-[90vh] md:h-[80vh] max-h-[800px]">
+                        
+                        {/* Header */}
+                        <div className="px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-indigo-50 rounded-xl text-indigo-600">
+                                    <ShieldCheck size={22} />
+                                </div>
+                                <div>
+                                    <h3 className="font-extrabold text-gray-900 text-lg">Modify Client Credentials</h3>
+                                    <p className="text-gray-500 text-xs mt-0.5">Admin-override modifications for <strong>{editingUser.full_name || editingUser.email}</strong></p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setShowEditModal(false)}
+                                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Tabs */}
+                        <div className="flex border-b border-gray-100 bg-white">
+                            <button
+                                type="button"
+                                onClick={() => setEditModalTab('account')}
+                                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-all ${
+                                    editModalTab === 'account'
+                                        ? 'border-indigo-600 text-indigo-600'
+                                        : 'border-transparent text-gray-400 hover:text-gray-600'
+                                }`}
+                            >
+                                Account Settings & Security
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setEditModalTab('shop')}
+                                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-all ${
+                                    editModalTab === 'shop'
+                                        ? 'border-indigo-600 text-indigo-600'
+                                        : 'border-transparent text-gray-400 hover:text-gray-600'
+                                }`}
+                            >
+                                Shop Storefront & Banners
+                            </button>
+                        </div>
+
+                        {/* Content Form */}
+                        <form onSubmit={handleUpdateUserSubmit} className="flex-1 overflow-y-auto p-6 space-y-6 flex flex-col justify-between">
+                            <div className="space-y-6">
+                                {editModalTab === 'account' ? (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {/* Full Name */}
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">Full Name</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={editForm.full_name}
+                                                onChange={e => setEditForm({ ...editForm, full_name: e.target.value })}
+                                                className="w-full p-2.5 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 font-medium"
+                                            />
+                                        </div>
+
+                                        {/* Email */}
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">Email Address</label>
+                                            <input
+                                                type="email"
+                                                required
+                                                value={editForm.email}
+                                                onChange={e => setEditForm({ ...editForm, email: e.target.value })}
+                                                className="w-full p-2.5 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 font-medium"
+                                            />
+                                        </div>
+
+                                        {/* Phone */}
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">Phone Number</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.phone}
+                                                onChange={e => setEditForm({ ...editForm, phone: e.target.value })}
+                                                className="w-full p-2.5 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 font-medium"
+                                            />
+                                        </div>
+
+                                        {/* Reset Password */}
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">Change Password (Admin Reset)</label>
+                                            <input
+                                                type="password"
+                                                placeholder="Leave empty to keep unchanged"
+                                                value={editForm.password}
+                                                onChange={e => setEditForm({ ...editForm, password: e.target.value })}
+                                                className="w-full p-2.5 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 font-medium"
+                                            />
+                                        </div>
+
+                                        {/* Verified Level */}
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">Verification Level</label>
+                                            <select
+                                                value={editForm.verified_level}
+                                                onChange={e => setEditForm({ ...editForm, verified_level: e.target.value as any })}
+                                                className="w-full p-2.5 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 font-bold text-gray-700"
+                                            >
+                                                <option value="guest">Guest (Unverified)</option>
+                                                <option value="tier1">Tier 1 Minimal (Phone/Email)</option>
+                                                <option value="tier2">Tier 2 Standard (ID/Liveness)</option>
+                                                <option value="tier3">Tier 3 Enhanced (Video/Bank)</option>
+                                                <option value="premium">Premium (Gold Badge)</option>
+                                                <option value="trusted">Trusted Seller</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Trust Level */}
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">Trust Level Category</label>
+                                            <select
+                                                value={editForm.trust_level}
+                                                onChange={e => setEditForm({ ...editForm, trust_level: e.target.value })}
+                                                className="w-full p-2.5 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 font-bold text-gray-700"
+                                            >
+                                                <option value="NEW">Bronze (New)</option>
+                                                <option value="ESTABLISHED">Silver (Established)</option>
+                                                <option value="VERIFIED">Gold (Verified)</option>
+                                                <option value="TRUSTED">Platinum (Trusted)</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Trust Score */}
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">Trust Integrity Score</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                value={editForm.trust_score}
+                                                onChange={e => setEditForm({ ...editForm, trust_score: parseInt(e.target.value) || 0 })}
+                                                className="w-full p-2.5 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 font-medium"
+                                            />
+                                        </div>
+
+                                        {/* Permissions & Roles */}
+                                        <div className="flex flex-col justify-center space-y-3 p-3 bg-gray-50 rounded-2xl">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-xs font-extrabold text-gray-700 uppercase tracking-wide">Administrator Privileges</label>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={editForm.is_admin}
+                                                    onChange={e => setEditForm({ ...editForm, is_admin: e.target.checked })}
+                                                    className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500"
+                                                />
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-xs font-extrabold text-gray-700 uppercase tracking-wide">Verified Field Agent</label>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={editForm.is_agent}
+                                                    onChange={e => setEditForm({ ...editForm, is_agent: e.target.checked })}
+                                                    className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* System Flags */}
+                                        <div className="flex flex-col justify-center space-y-3 p-3 bg-red-50/50 rounded-2xl md:col-span-2">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex flex-col">
+                                                    <label className="text-xs font-extrabold text-red-800 uppercase tracking-wide">Flag Profile</label>
+                                                    <span className="text-[10px] text-red-500">Flags profile for closer moderation checks</span>
+                                                </div>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={editForm.is_flagged}
+                                                    onChange={e => setEditForm({ ...editForm, is_flagged: e.target.checked })}
+                                                    className="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500"
+                                                />
+                                            </div>
+                                            <div className="flex items-center justify-between border-t border-red-100/50 pt-2">
+                                                <div className="flex flex-col">
+                                                    <label className="text-xs font-extrabold text-red-800 uppercase tracking-wide">Suspend Credentials</label>
+                                                    <span className="text-[10px] text-red-500">Locks account out of marketplace login completely</span>
+                                                </div>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={editForm.is_suspended}
+                                                    onChange={e => setEditForm({ ...editForm, is_suspended: e.target.checked })}
+                                                    className="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {/* Business/Shop Name */}
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">Business Storefront Name</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.business_name}
+                                                onChange={e => setEditForm({ ...editForm, business_name: e.target.value })}
+                                                className="w-full p-2.5 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 font-medium"
+                                            />
+                                        </div>
+
+                                        {/* Shop Description */}
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">Storefront Description</label>
+                                            <textarea
+                                                rows={4}
+                                                value={editForm.shop_description}
+                                                onChange={e => setEditForm({ ...editForm, shop_description: e.target.value })}
+                                                className="w-full p-3 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 font-medium"
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {/* Featured shop & Free delivery */}
+                                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                                                <label className="text-xs font-extrabold text-gray-700 uppercase tracking-wide">Featured Shop Status</label>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={editForm.is_featured}
+                                                    onChange={e => setEditForm({ ...editForm, is_featured: e.target.checked })}
+                                                    className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500"
+                                                />
+                                            </div>
+                                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                                                <label className="text-xs font-extrabold text-gray-700 uppercase tracking-wide">Free Delivery Badge</label>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={editForm.free_delivery}
+                                                    onChange={e => setEditForm({ ...editForm, free_delivery: e.target.checked })}
+                                                    className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Shop Page Banner */}
+                                        <div className="p-4 border border-gray-100 rounded-2xl bg-gray-50/50 space-y-2">
+                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Shop Catalog Banner</label>
+                                            <div className="flex items-center gap-4">
+                                                {editForm.shop_page_banner && (
+                                                    <img
+                                                        src={editForm.shop_page_banner}
+                                                        alt="Shop Page Banner"
+                                                        className="w-24 h-12 object-cover rounded-lg border border-gray-200"
+                                                    />
+                                                )}
+                                                <div className="flex-1">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="https://..."
+                                                        value={editForm.shop_page_banner}
+                                                        onChange={e => setEditForm({ ...editForm, shop_page_banner: e.target.value })}
+                                                        className="w-full p-2.5 bg-white border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 font-mono mb-2"
+                                                    />
+                                                    <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-lg text-xs font-bold transition-all shadow-sm">
+                                                        {uploadingBanners.shop ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                                                        <span>Upload Banner File</span>
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            className="hidden"
+                                                            onChange={e => e.target.files && handleBannerUpload(e.target.files[0], 'shop')}
+                                                            disabled={uploadingBanners.shop}
+                                                        />
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Shop Detail Banner */}
+                                        <div className="p-4 border border-gray-100 rounded-2xl bg-gray-50/50 space-y-2">
+                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Shop Detail Page Banner</label>
+                                            <div className="flex items-center gap-4">
+                                                {editForm.shop_detail_banner && (
+                                                    <img
+                                                        src={editForm.shop_detail_banner}
+                                                        alt="Shop Detail Banner"
+                                                        className="w-24 h-12 object-cover rounded-lg border border-gray-200"
+                                                    />
+                                                )}
+                                                <div className="flex-1">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="https://..."
+                                                        value={editForm.shop_detail_banner}
+                                                        onChange={e => setEditForm({ ...editForm, shop_detail_banner: e.target.value })}
+                                                        className="w-full p-2.5 bg-white border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 font-mono mb-2"
+                                                    />
+                                                    <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-lg text-xs font-bold transition-all shadow-sm">
+                                                        {uploadingBanners.detail ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                                                        <span>Upload Banner File</span>
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            className="hidden"
+                                                            onChange={e => e.target.files && handleBannerUpload(e.target.files[0], 'detail')}
+                                                            disabled={uploadingBanners.detail}
+                                                        />
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Footer Buttons */}
+                            <div className="flex items-center gap-3 mt-6 pt-4 border-t border-gray-50">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowEditModal(false)}
+                                    className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-2xl text-sm transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={updatingUser}
+                                    className="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl text-sm shadow-lg shadow-indigo-500/10 transition-all flex items-center justify-center gap-1.5"
+                                >
+                                    {updatingUser ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
+                                    Apply Configuration
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

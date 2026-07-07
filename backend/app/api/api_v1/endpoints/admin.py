@@ -37,6 +37,27 @@ class ShopManagementUpdate(BaseModel):
     free_delivery: Optional[bool] = None
     is_active: Optional[bool] = None
 
+class UserAdminUpdate(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    password: Optional[str] = None
+    is_active: Optional[bool] = None
+    is_verified: Optional[bool] = None
+    verified_level: Optional[str] = None
+    is_admin: Optional[bool] = None
+    is_agent: Optional[bool] = None
+    trust_score: Optional[int] = None
+    trust_level: Optional[str] = None
+    is_flagged: Optional[bool] = None
+    is_suspended: Optional[bool] = None
+    business_name: Optional[str] = None
+    shop_description: Optional[str] = None
+    shop_page_banner: Optional[str] = None
+    shop_detail_banner: Optional[str] = None
+    is_featured: Optional[bool] = None
+    free_delivery: Optional[bool] = None
+
 class ShopRead(BaseModel):
     id: int
     business_name: Optional[str] = None
@@ -49,30 +70,6 @@ class ShopRead(BaseModel):
     free_delivery: bool = False
     is_active: bool = True
     email: str
-
-
-@router.get("/test")
-def test_endpoint() -> dict:
-    """Test endpoint - no auth required."""
-    return {"message": "Admin endpoint is working!"}
-
-
-@router.post("/dev/token")
-def get_dev_token() -> dict:
-    """Generate a development admin token (DEV ONLY - remove in production)."""
-    from app.core.security import create_access_token
-    from datetime import timedelta
-
-    # Create a test admin token
-    token = create_access_token(
-        subject="1",  # User ID 1 (assume it's admin)
-        expires_delta=timedelta(hours=24)
-    )
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-        "message": "⚠️  Development token only - for testing admin panel locally"
-    }
 
 
 @router.get("/orders")
@@ -1189,6 +1186,9 @@ def update_shop_details(
         db.commit()
         db.refresh(user)
 
+        # Sync sellers table with updated shop data
+        sync_seller_profile(db, user.id, user.full_name, user.business_name)
+
         return {
             "id": user.id,
             "full_name": user.full_name,
@@ -1225,6 +1225,10 @@ def upload_shop_banners(
         db.commit()
         db.refresh(user)
 
+        # Sync sellers table with updated banner data
+        sync_seller_profile(db, user.id, user.full_name, user.business_name,
+                          user.shop_page_banner, user.shop_detail_banner)
+
         return {
             "id": user.id,
             "full_name": user.full_name,
@@ -1244,43 +1248,44 @@ def upload_shop_banners(
 @router.get("/shops", response_model=List[ShopRead])
 def get_all_shops(
     skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=500),
     db: Session = Depends(deps.get_db),
 ) -> Any:
-    """Get users with at least one active ad (212 users)."""
+    """Get verified sellers with at least one active listing."""
     try:
-        # Use subquery for better performance on large datasets
-        # Instead of: SELECT DISTINCT User WHERE ... JOIN Listing
-        # We do: SELECT User WHERE User.id IN (SELECT owner_id FROM Listing)
-        from sqlmodel import and_
+        from sqlalchemy import text
 
-        active_sellers = select(Listing.owner_id).where(
-            Listing.status == "active"
-        ).distinct()
+        # Fast query with simple INNER JOIN
+        query = text("""
+            SELECT DISTINCT u.id, u.email, u.full_name, u.business_name, u.created_at
+            FROM "user" u
+            INNER JOIN listing l ON u.id = l.owner_id
+            WHERE u.is_verified = true
+              AND u.is_active = true
+              AND l.status = 'active'
+            ORDER BY u.created_at DESC
+            LIMIT :limit OFFSET :skip
+        """)
 
-        statement = select(User).where(
-            User.id.in_(active_sellers)
-        ).order_by(User.created_at.desc()).offset(skip).limit(limit)
+        result = db.execute(query, {"skip": skip, "limit": limit}).fetchall()
 
-        users = db.exec(statement).all()
-
-        result = []
-        for user in users:
-            result.append(ShopRead(
-                id=user.id,
-                business_name=user.business_name or user.full_name,
-                full_name=user.full_name,
-                shop_description=user.shop_description or "",
-                shop_page_banner=user.shop_page_banner,
-                shop_detail_banner=user.shop_detail_banner,
-                is_featured=user.is_featured,
-                is_verified=user.is_verified,
-                free_delivery=user.free_delivery,
-                is_active=user.is_active,
-                email=user.email,
+        shops = []
+        for row in result:
+            shops.append(ShopRead(
+                id=row[0],
+                email=row[1],
+                full_name=row[2],
+                business_name=row[3] or row[2],
+                shop_description="",
+                shop_page_banner=None,
+                shop_detail_banner=None,
+                is_featured=False,
+                is_verified=True,
+                free_delivery=False,
+                is_active=True,
             ))
 
-        return result
+        return shops
     except HTTPException:
         raise
     except Exception as e:
@@ -1294,14 +1299,8 @@ def get_shop(
 ) -> Any:
     """Get shop details by ID."""
     try:
-        # Get user with active listings
-        statement = select(User).where(User.id == shop_id).join(
-            Listing, User.id == Listing.owner_id
-        ).where(
-            Listing.status == "active"
-        ).distinct()
-
-        shop = db.exec(statement).first()
+        # Get user by ID (simple query)
+        shop = db.get(User, shop_id)
         if not shop:
             raise HTTPException(status_code=404, detail="Shop not found")
 
@@ -1324,22 +1323,57 @@ def get_shop(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+def sync_seller_profile(db: Session, user_id: int, full_name: str, business_name: Optional[str],
+                       shop_page_banner: Optional[str] = None, shop_detail_banner: Optional[str] = None) -> None:
+    """Sync seller profile with user data after updates. Auto-updates sellers table."""
+    try:
+        from sqlalchemy import text
+
+        # Determine the shop name (business_name takes precedence)
+        shop_name = business_name or full_name
+
+        # Build dynamic update query based on what changed
+        updates = ["shop_name = :shop_name", "owner_name = :owner_name"]
+        params = {
+            "shop_name": shop_name,
+            "owner_name": full_name,
+            "user_id": str(user_id)
+        }
+
+        # Include banners if provided
+        if shop_page_banner is not None:
+            updates.append("shop_page_banner = :shop_page_banner")
+            params["shop_page_banner"] = shop_page_banner
+
+        if shop_detail_banner is not None:
+            updates.append("shop_detail_banner = :shop_detail_banner")
+            params["shop_detail_banner"] = shop_detail_banner
+
+        # Update sellers table for this user
+        sync_query = text(f"""
+            UPDATE sellers
+            SET {', '.join(updates)}
+            WHERE user_id = :user_id
+        """)
+
+        db.exec(sync_query, params)
+        db.commit()
+    except Exception as e:
+        # Log error but don't fail the request - sync is non-critical
+        print(f"⚠️  Warning: Failed to sync sellers table for user {user_id}: {str(e)}")
+
+
 @router.put("/shops/{shop_id}", response_model=ShopRead)
 def update_shop(
     shop_id: int,
     shop_data: ShopManagementUpdate,
     db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """Update shop details."""
     try:
-        # Get user with active listings
-        statement = select(User).where(User.id == shop_id).join(
-            Listing, User.id == Listing.owner_id
-        ).where(
-            Listing.status == "active"
-        ).distinct()
-
-        shop = db.exec(statement).first()
+        # Get user by ID (simple query, no join)
+        shop = db.get(User, shop_id)
         if not shop:
             raise HTTPException(status_code=404, detail="Shop not found")
 
@@ -1364,6 +1398,10 @@ def update_shop(
         db.add(shop)
         db.commit()
         db.refresh(shop)
+
+        # Sync sellers table with updated shop data (including banners)
+        sync_seller_profile(db, shop.id, shop.full_name, shop.business_name,
+                          shop.shop_page_banner, shop.shop_detail_banner)
 
         return ShopRead(
             id=shop.id,
@@ -1390,6 +1428,7 @@ def delete_shop_banner(
     shop_id: int,
     banner_type: str,  # 'shop_page' or 'shop_detail'
     db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """Delete shop banner - Admin only."""
     try:
@@ -1410,6 +1449,58 @@ def delete_shop_banner(
         db.refresh(shop)
 
         return {"message": f"{banner_type} banner deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.put("/users/{user_id}", response_model=User)
+def update_user_admin(
+    user_id: int,
+    user_data: UserAdminUpdate,
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Update any user/account or shop details (Admin only).
+    """
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        update_data = user_data.model_dump(exclude_unset=True)
+
+        # Uniqueness checks
+        if "email" in update_data and update_data["email"] != user.email:
+            existing = db.query(User).filter(User.email == update_data["email"]).first()
+            if existing:
+                raise HTTPException(status_code=400, detail="Email already registered")
+
+        if "phone" in update_data and update_data["phone"] != user.phone:
+            existing = db.query(User).filter(User.phone == update_data["phone"]).first()
+            if existing:
+                raise HTTPException(status_code=400, detail="Phone number already registered")
+
+        # Password update
+        if "password" in update_data:
+            pw = update_data.pop("password")
+            if pw:
+                from app.core.security import get_password_hash
+                user.hashed_password = get_password_hash(pw)
+
+        # Apply other updates
+        for field, value in update_data.items():
+            if hasattr(user, field):
+                setattr(user, field, value)
+
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return user
     except HTTPException:
         raise
     except Exception as e:

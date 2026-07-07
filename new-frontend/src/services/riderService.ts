@@ -301,10 +301,5 @@ export const riderService = {
     getDocumentsExpiry: async (): Promise<any> => {
         const response = await api.get('/riders/me/documents-expiry');
         return response.data;
-    },
-
-    updateProfile: async (profileData: any): Promise<any> => {
-        const response = await api.patch('/riders/me/profile', profileData);
-        return response.data;
     }
 };
