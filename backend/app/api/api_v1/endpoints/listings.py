@@ -695,7 +695,8 @@ def get_public_shops(
         query_str = f"""
             SELECT s.id, s.user_id, s.shop_name, s.owner_name, s.category,
                    s.shop_address, s.location_lat, s.location_lng,
-                   s.verification_status, s.is_active, s.created_at
+                   s.verification_status, s.is_active, s.created_at,
+                   s.shop_page_banner
             FROM sellers s
             WHERE s.verification_status = 'verified'
               AND s.is_active = true
@@ -759,6 +760,7 @@ def get_public_shops(
                 "listing_count": None,
                 "category_ids": [],
                 "cover_image": cover_image,
+                "shop_page_banner": row[11],  # Cloudinary banner URL
                 "slug": str(row[0]),
                 "created_at": row[10].isoformat() if row[10] else None,
             })
