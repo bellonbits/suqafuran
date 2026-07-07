@@ -1,5 +1,5 @@
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, File, UploadFile
 from sqlmodel import Session, select, func
 from pydantic import BaseModel
 from app.api import deps
@@ -8,6 +8,7 @@ from app.models.user import User
 from app.models.promotion import Promotion, PromotionStatus
 from app.models.audit import AuditLog
 from app.models.business import Business
+from app.services.storage_service import storage_service
 
 # Try importing Seller from routers (Phase 4)
 try:
@@ -1201,6 +1202,59 @@ def update_shop_details(
 
 
 # --- Shop Banner Management ---
+@router.post("/shops/{user_id}/banners/upload")
+async def upload_shop_banner_file(
+    user_id: int,
+    banner_type: str,
+    file: UploadFile = File(...),
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """Upload banner file to Cloudinary and store URL."""
+    try:
+        if banner_type not in ["shop_page_banner", "shop_detail_banner"]:
+            raise HTTPException(status_code=400, detail="Invalid banner_type")
+
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Read file content
+        content = await file.read()
+        if len(content) > 10 * 1024 * 1024:  # 10MB limit
+            raise HTTPException(status_code=400, detail="File too large (max 10MB)")
+
+        # Upload to Cloudinary
+        url, _ = await storage_service.upload_file(content, file.filename or "banner.jpg")
+
+        # Store URL in database
+        if banner_type == "shop_page_banner":
+            user.shop_page_banner = url
+        else:
+            user.shop_detail_banner = url
+
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        # Sync sellers table with updated banner data
+        sync_seller_profile(db, user.id, user.full_name, user.business_name,
+                          user.shop_page_banner, user.shop_detail_banner)
+
+        return {
+            "id": user.id,
+            "banner_type": banner_type,
+            "url": url,
+            "message": f"{banner_type} uploaded successfully"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Failed to upload banner: {str(e)}")
+
+
 @router.post("/shops/{user_id}/banners")
 def upload_shop_banners(
     user_id: int,
@@ -1209,7 +1263,7 @@ def upload_shop_banners(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_superuser),
 ) -> Any:
-    """Upload/update shop banners for a specific user/shop."""
+    """Legacy endpoint: Update banner URLs directly (for backwards compatibility)."""
     try:
         user = db.query(User).filter(User.id == user_id).first()
         if not user:

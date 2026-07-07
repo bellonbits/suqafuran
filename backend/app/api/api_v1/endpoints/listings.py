@@ -756,7 +756,7 @@ def get_public_shops(
                 "location_lng": row[7],
                 "rating": 4.5,
                 "is_verified": True,
-                "listing_count": None,  # Removed for performance - can be calculated separately if needed
+                "listing_count": None,
                 "category_ids": [],
                 "cover_image": cover_image,
                 "slug": str(row[0]),
