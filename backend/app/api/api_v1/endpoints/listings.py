@@ -770,6 +770,32 @@ def get_public_shops(
         return {"total": 0, "shops": []}
 
 
+@router.get("/shops/{user_id}/banners")
+def get_shop_banners(
+    *,
+    user_id: int,
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Get shop banners for a specific user/shop.
+    Lightweight endpoint - returns only banner URLs (no auth required).
+    """
+    try:
+        user = db.get(User, user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="Shop not found")
+
+        return {
+            "user_id": user_id,
+            "shop_page_banner": user.shop_page_banner,
+            "shop_detail_banner": user.shop_detail_banner
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @router.get("/{id}", response_model=ListingRead)
 def read_listing(
     *,
