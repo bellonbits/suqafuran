@@ -99,6 +99,7 @@ services:
     networks:
       - suqafuran-network
 
+
   # Next.js Frontend
   frontend:
     build:
@@ -116,28 +117,6 @@ services:
     volumes:
       - ./new-frontend:/app
       - /app/.next
-    networks:
-      - suqafuran-network
-
-  # Celery Worker (Optional - for background tasks)
-  celery-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.backend
-    container_name: suqafuran-celery
-    depends_on:
-      - redis
-      - postgres
-    environment:
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-suqaredis}
-      POSTGRES_SERVER: postgres
-      POSTGRES_USER: ${POSTGRES_USER:-doadmin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-AVNS_n3l_adWBnU_ieYWiXYS}
-      POSTGRES_DB: ${POSTGRES_DB:-defaultdb}
-      SECRET_KEY: ${SECRET_KEY:-sqf-prod-2026-j8kXm!nP@qR4vW#zA9cE0hL5tY2uI7oF3bG6dN1sM}
-    command: celery -A app.tasks.celery_app worker --loglevel=info --queues=default,notifications
     networks:
       - suqafuran-network
 
