@@ -99,27 +99,6 @@ services:
     networks:
       - suqafuran-network
 
-
-  # Next.js Frontend
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-    container_name: suqafuran-frontend
-    depends_on:
-      - backend
-    environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
-      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-Suqafuran}
-      NEXT_PUBLIC_ENVIRONMENT: ${NEXT_PUBLIC_ENVIRONMENT:-development}
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./new-frontend:/app
-      - /app/.next
-    networks:
-      - suqafuran-network
-
 networks:
   suqafuran-network:
     driver: bridge
