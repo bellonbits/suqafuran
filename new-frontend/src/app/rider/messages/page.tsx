@@ -145,7 +145,7 @@ export default function MessagesPage() {
                     <div className="conversations">
                         {conversations.length === 0 ? (
                             <div className="empty-state">
-                                <p>📭</p>
+                                <p></p>
                                 <p>No conversations yet</p>
                             </div>
                         ) : (

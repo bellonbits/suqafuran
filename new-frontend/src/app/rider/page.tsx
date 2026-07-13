@@ -105,14 +105,14 @@ export default function RiderDashboard() {
                             onClick={() => setShowEarnings(!showEarnings)}
                             title="Earnings Dashboard"
                         >
-                            💰
+                            
                         </button>
                         <button
                             className={`feature-btn ${showAnalytics ? 'active' : ''}`}
                             onClick={() => setShowAnalytics(!showAnalytics)}
                             title="Performance Analytics"
                         >
-                            📊
+                            
                         </button>
                     </div>
                 </div>
@@ -142,7 +142,7 @@ export default function RiderDashboard() {
                 <div className="stat-card rating">
                     <div className="stat-label">Average Rating</div>
                     <div className="stat-value">
-                        {dashboardLoading ? '...' : dashboard?.average_rating.toFixed(1) || 0} ⭐
+                        {dashboardLoading ? '...' : dashboard?.average_rating.toFixed(1) || 0} 
                     </div>
                     <div className="stat-meta">
                         From {dashboard?.total_deliveries || 0} deliveries
@@ -215,13 +215,13 @@ export default function RiderDashboard() {
                                 </div>
                                 <div className="delivery-info">
                                     <span className="info-item">
-                                        ⏱️ {routeInfo[delivery.order_id]?.duration || '-- mins'}
+                                        {routeInfo[delivery.order_id]?.duration || '-- mins'}
                                     </span>
                                     <span className="info-item">
-                                        📦 {delivery.items_count} item{delivery.items_count !== 1 ? 's' : ''}
+                                        {delivery.items_count} item{delivery.items_count !== 1 ? 's' : ''}
                                     </span>
                                     <span className="info-item">
-                                        ⭐ {delivery.customer_rating}
+                                         {delivery.customer_rating}
                                     </span>
                                 </div>
                                 <div className="delivery-route">

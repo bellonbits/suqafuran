@@ -9,6 +9,7 @@ from app.models.promotion import Promotion, PromotionStatus
 from app.models.audit import AuditLog
 from app.models.business import Business
 from app.services.storage_service import storage_service
+from app.services.cache_service import cache
 
 # Try importing Seller from routers (Phase 4)
 try:
@@ -1190,6 +1191,15 @@ def update_shop_details(
         # Sync sellers table with updated shop data
         sync_seller_profile(db, user.id, user.full_name, user.business_name)
 
+        # Invalidate cache for this shop
+        try:
+            cache.delete(f"admin:shop:{user_id}")
+            # Also clear paginated list caches since shop name may have changed order
+            for skip in range(0, 1000, 24):
+                cache.delete(f"admin:shops:{skip}:24")
+        except Exception:
+            pass
+
         return {
             "id": user.id,
             "full_name": user.full_name,
@@ -1306,14 +1316,28 @@ def get_all_shops(
     db: Session = Depends(deps.get_db),
 ) -> Any:
     """Get verified sellers with at least one active listing."""
+    import json
+
+    # Try Redis cache first
+    cache_key = f"admin:shops:{skip}:{limit}"
+    try:
+        cached = cache.get(cache_key)
+        if cached:
+            return [ShopRead(**item) for item in json.loads(cached)]
+    except Exception:
+        pass
+
     try:
         from sqlalchemy import text
 
-        # Fast query with simple INNER JOIN
+        # Fast query with INNER JOIN to sellers for banners - only shops WITH active listings
         query = text("""
-            SELECT DISTINCT u.id, u.email, u.full_name, u.business_name, u.created_at
+            SELECT DISTINCT u.id, u.email, u.full_name, u.business_name, u.created_at,
+                   COALESCE(s.shop_page_banner, u.shop_page_banner) as shop_page_banner,
+                   COALESCE(s.shop_detail_banner, u.shop_detail_banner) as shop_detail_banner
             FROM "user" u
             INNER JOIN listing l ON u.id = l.owner_id
+            LEFT JOIN sellers s ON s.user_id = CAST(u.id AS VARCHAR)
             WHERE u.is_verified = true
               AND u.is_active = true
               AND l.status = 'active'
@@ -1325,19 +1349,26 @@ def get_all_shops(
 
         shops = []
         for row in result:
-            shops.append(ShopRead(
+            shop = ShopRead(
                 id=row[0],
                 email=row[1],
                 full_name=row[2],
                 business_name=row[3] or row[2],
                 shop_description="",
-                shop_page_banner=None,
-                shop_detail_banner=None,
+                shop_page_banner=row[5] if len(row) > 5 else None,
+                shop_detail_banner=row[6] if len(row) > 6 else None,
                 is_featured=False,
                 is_verified=True,
                 free_delivery=False,
                 is_active=True,
-            ))
+            )
+            shops.append(shop)
+
+        # Cache for 10 minutes
+        try:
+            cache.set(cache_key, json.dumps([shop.dict() for shop in shops], default=str), ttl=600)
+        except Exception:
+            pass
 
         return shops
     except HTTPException:
@@ -1352,13 +1383,24 @@ def get_shop(
     db: Session = Depends(deps.get_db),
 ) -> Any:
     """Get shop details by ID."""
+    import json
+
+    # Try Redis cache first
+    cache_key = f"admin:shop:{shop_id}"
+    try:
+        cached = cache.get(cache_key)
+        if cached:
+            return ShopRead(**json.loads(cached))
+    except Exception:
+        pass
+
     try:
         # Get user by ID (simple query)
         shop = db.get(User, shop_id)
         if not shop:
             raise HTTPException(status_code=404, detail="Shop not found")
 
-        return ShopRead(
+        result = ShopRead(
             id=shop.id,
             business_name=shop.business_name or shop.full_name,
             full_name=shop.full_name,
@@ -1371,6 +1413,14 @@ def get_shop(
             is_active=shop.is_active,
             email=shop.email,
         )
+
+        # Cache for 15 minutes
+        try:
+            cache.set(cache_key, json.dumps(result.dict(), default=str), ttl=900)
+        except Exception:
+            pass
+
+        return result
     except HTTPException:
         raise
     except Exception as e:
@@ -1457,6 +1507,18 @@ def update_shop(
         sync_seller_profile(db, shop.id, shop.full_name, shop.business_name,
                           shop.shop_page_banner, shop.shop_detail_banner)
 
+        # Invalidate cache for this shop
+        try:
+            cache.delete(f"admin:shop:{shop_id}")
+            # Also clear paginated list caches since shop data has changed
+            for skip in range(0, 1000, 24):
+                cache.delete(f"admin:shops:{skip}:24")
+            # Clear public shops cache as well
+            for skip in range(0, 1000, 24):
+                cache.delete(f"public_shops:{skip}:24:all")
+        except Exception:
+            pass
+
         return ShopRead(
             id=shop.id,
             business_name=shop.business_name,
@@ -1501,6 +1563,15 @@ def delete_shop_banner(
         db.add(shop)
         db.commit()
         db.refresh(shop)
+
+        # Invalidate cache for this shop
+        try:
+            cache.delete(f"admin:shop:{shop_id}")
+            # Clear paginated caches
+            for skip in range(0, 1000, 24):
+                cache.delete(f"admin:shops:{skip}:24")
+        except Exception:
+            pass
 
         return {"message": f"{banner_type} banner deleted successfully"}
     except HTTPException:

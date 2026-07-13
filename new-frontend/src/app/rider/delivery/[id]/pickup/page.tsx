@@ -86,7 +86,7 @@ export default function PickupPage() {
                 <div className="location-card">
                     <h3>Seller</h3>
                     <p className="address">123 Market Street, Nairobi</p>
-                    <p className="phone">📞 +254 712 345 678</p>
+                    <p className="phone">+254 712 345 678</p>
                     <button className="contact-btn">Call Seller</button>
                 </div>
             </div>
@@ -95,7 +95,7 @@ export default function PickupPage() {
                 <h2>Items ({1})</h2>
                 <div className="items-list">
                     <div className="item-card">
-                        <div className="item-image">📦</div>
+                        <div className="item-image"></div>
                         <div className="item-info">
                             <h4>Sample Item</h4>
                             <p>Qty: 1</p>
@@ -125,7 +125,7 @@ export default function PickupPage() {
                     <img src={photoUrl} alt="Package" className="package-photo" />
                 ) : (
                     <div className="photo-placeholder">
-                        <span>📷</span>
+                        <span></span>
                         <p>No photo yet</p>
                     </div>
                 )}

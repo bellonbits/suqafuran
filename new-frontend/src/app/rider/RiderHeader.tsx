@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Home, DollarSign, TrendingUp, MessageSquare, Wallet, User } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 
 export default function RiderHeader() {
@@ -10,12 +11,12 @@ export default function RiderHeader() {
     const user = useAuthStore((state) => state.user);
 
     const navItems = [
-        { href: '/rider', label: '🏠 Dashboard' },
-        { href: '/rider/earnings', label: '💰 Earnings' },
-        { href: '/rider/performance', label: '⭐ Performance' },
-        { href: '/rider/messages', label: '💬 Messages' },
-        { href: '/rider/withdrawals', label: '🏦 Withdrawals' },
-        { href: '/rider/account', label: '👤 Account' },
+        { href: '/rider', label: 'Dashboard', icon: Home },
+        { href: '/rider/earnings', label: 'Earnings', icon: DollarSign },
+        { href: '/rider/performance', label: 'Performance', icon: TrendingUp },
+        { href: '/rider/messages', label: 'Messages', icon: MessageSquare },
+        { href: '/rider/withdrawals', label: 'Withdrawals', icon: Wallet },
+        { href: '/rider/account', label: 'Account', icon: User },
     ];
 
     return (
@@ -23,20 +24,24 @@ export default function RiderHeader() {
             <div className="header-container">
                 <div className="header-left">
                     <Link href="/rider" className="logo">
-                        🏍️ Suqafuran Rider
+                        Suqafuran Rider
                     </Link>
                 </div>
 
                 <nav className="header-nav">
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className={`nav-link ${pathname === item.href ? 'active' : ''}`}
-                        >
-                            {item.label}
-                        </Link>
-                    ))}
+                    {navItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`nav-link ${pathname === item.href ? 'active' : ''}`}
+                            >
+                                <Icon size={18} />
+                                {item.label}
+                            </Link>
+                        );
+                    })}
                 </nav>
 
                 <div className="header-right">

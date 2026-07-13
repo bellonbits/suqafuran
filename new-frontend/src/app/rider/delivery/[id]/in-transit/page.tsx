@@ -101,7 +101,7 @@ export default function InTransitPage() {
                 <div className="location-card">
                     <h3>Customer Name</h3>
                     <p className="address">456 Customer Ave, Nairobi</p>
-                    <p className="phone">📞 +254 700 123 456</p>
+                    <p className="phone">+254 700 123 456</p>
                     <button className="contact-btn">Call Customer</button>
                 </div>
             </div>
@@ -124,7 +124,7 @@ export default function InTransitPage() {
                         </div>
                     </div>
                     <div className="status-item pending">
-                        <div className="status-icon">📦</div>
+                        <div className="status-icon"></div>
                         <div className="status-text">
                             <h4>Awaiting Delivery</h4>
                             <p>Will complete when you arrive</p>

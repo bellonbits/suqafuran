@@ -70,7 +70,7 @@ export default function DeliveryPage() {
     };
 
     const renderStars = (count: number) => {
-        return '⭐'.repeat(count);
+        return ''.repeat(count);
     };
 
     return (
@@ -106,7 +106,7 @@ export default function DeliveryPage() {
                 <div className="location-card">
                     <h3>Customer Name</h3>
                     <p className="address">456 Customer Ave, Nairobi</p>
-                    <p className="phone">📞 +254 700 123 456</p>
+                    <p className="phone">+254 700 123 456</p>
                     <button className="contact-btn">Call Customer</button>
                 </div>
             </div>
@@ -117,7 +117,7 @@ export default function DeliveryPage() {
                     <img src={photoUrl} alt="Delivery Proof" className="delivery-photo" />
                 ) : (
                     <div className="photo-placeholder">
-                        <span>📷</span>
+                        <span></span>
                         <p>No photo yet</p>
                     </div>
                 )}
@@ -188,7 +188,7 @@ export default function DeliveryPage() {
                                         className={`star-btn ${star <= rating ? 'active' : ''}`}
                                         onClick={() => setRating(star)}
                                     >
-                                        ⭐
+                                        
                                     </button>
                                 ))}
                             </div>

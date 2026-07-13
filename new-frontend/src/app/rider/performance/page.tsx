@@ -20,7 +20,7 @@ export default function RiderPerformance() {
     });
 
     const renderStars = (rating: number) => {
-        return '⭐'.repeat(Math.round(rating));
+        return ''.repeat(Math.round(rating));
     };
 
     return (
@@ -43,7 +43,7 @@ export default function RiderPerformance() {
                 </div>
 
                 <div className="metric-card">
-                    <div className="metric-icon">⭐</div>
+                    <div className="metric-icon"></div>
                     <h3>Average Rating</h3>
                     <div className="metric-value">
                         {performanceLoading ? '...' : performanceData?.average_rating.toFixed(1) || 0}
@@ -107,7 +107,7 @@ export default function RiderPerformance() {
                                 <div className="history-info">
                                     <h4>{item.delivery_location}</h4>
                                     <p className="history-meta">
-                                        📦 {item.items_count} items • {item.status}
+                                        {item.items_count} items • {item.status}
                                     </p>
                                     <p className="history-date">
                                         {new Date(item.completed_at).toLocaleDateString()}

@@ -673,6 +673,18 @@ def get_public_shops(
     Optionally filter by category_id.
     """
     from sqlalchemy import text
+    import json as _json
+
+    # Try cache first (except for searches)
+    cache_key = f"public_shops:{skip}:{limit}:{category_id or 'all'}"
+    if not search and not shop_id:
+        try:
+            cached = cache.get(cache_key)
+            if cached:
+                return _json.loads(cached)
+        except Exception:
+            pass
+
     try:
         # Build filters
         search_filter = ""
@@ -691,96 +703,73 @@ def get_public_shops(
             category_filter = "AND l.category_id = :category_id"
             params["category_id"] = category_id
 
-        # Fastest query: just get verified active sellers (assuming data integrity)
+        # Fast query: get only shops WITH active listings and their category IDs, ordered by product count
         query_str = f"""
-            SELECT s.id, s.user_id, s.shop_name, s.owner_name, s.category,
-                   s.shop_address, s.location_lat, s.location_lng,
-                   s.verification_status, s.is_active, s.created_at,
-                   s.shop_page_banner
-            FROM sellers s
-            WHERE s.verification_status = 'verified'
-              AND s.is_active = true
-              {search_filter}
-            ORDER BY s.created_at DESC
+            WITH shop_stats AS (
+                SELECT s.id, s.user_id, s.shop_name, s.owner_name,
+                       s.shop_address, s.location_lat, s.location_lng,
+                       s.verification_status, s.is_active, s.created_at,
+                       COALESCE(s.shop_page_banner, u.shop_page_banner) as shop_page_banner,
+                       array_agg(DISTINCT l.category_id) as category_ids,
+                       COUNT(DISTINCT l.id) as listing_count
+                FROM sellers s
+                INNER JOIN listing l ON CAST(l.owner_id AS VARCHAR) = s.user_id AND l.status = 'active' {category_filter}
+                LEFT JOIN "user" u ON CAST(u.id AS VARCHAR) = s.user_id
+                WHERE s.verification_status = 'verified'
+                  AND s.is_active = true
+                  {search_filter}
+                GROUP BY s.id, s.user_id, s.shop_name, s.owner_name,
+                         s.shop_address, s.location_lat, s.location_lng,
+                         s.verification_status, s.is_active, s.created_at,
+                         s.shop_page_banner, u.shop_page_banner
+            )
+            SELECT ss.*, (SELECT COUNT(*) FROM shop_stats) as total_count
+            FROM shop_stats ss
+            ORDER BY ss.listing_count DESC, ss.id DESC
             OFFSET :skip LIMIT :limit
         """
 
-        subquery = query_str
-
-        query = text(subquery)
-
+        query = text(query_str)
         result = db.execute(query, params)
         rows = result.fetchall()
 
+        total_shops = 0
         shops = []
         for row in rows:
-            # Grabbing the cover image from the first listing
-            cover_image = None
+            if total_shops == 0 and len(row) > 12:
+                total_shops = int(row[13])  # COUNT(*) OVER ()
 
-            # Build category filter for cover image if category is selected
-            category_filter = ""
-            listing_params = {"owner_id": int(row[1])}
-            if category_id:
-                category_filter = "AND (category_id = :category_id OR subcategory_id = :category_id OR subsubcategory_id = :category_id)"
-                listing_params["category_id"] = category_id
-
-            first_listing_query = text(f"""
-                SELECT images FROM listing
-                WHERE status = 'active'
-                AND owner_id = :owner_id
-                {category_filter}
-                LIMIT 1
-            """)
-            try:
-                owner_id_val = int(row[1])
-            except Exception:
-                owner_id_val = -1
-
-            first_listing_res = db.execute(first_listing_query, listing_params).first()
-            if first_listing_res and first_listing_res[0]:
-                import json as _json
-                try:
-                    imgs = _json.loads(first_listing_res[0]) if isinstance(first_listing_res[0], str) else first_listing_res[0]
-                    cover_image = imgs[0] if imgs else None
-                except Exception:
-                    cover_image = first_listing_res[0]
-
-            # Get banner URL - from sellers table or fallback to user table
-            shop_page_banner = row[11]  # Banner from sellers table
-            if not shop_page_banner:
-                # If not in sellers table, try to fetch from user table
-                try:
-                    user_id_int = int(row[1])
-                    user_banner_res = db.execute(text(
-                        "SELECT shop_page_banner FROM \"user\" WHERE id = :user_id LIMIT 1"
-                    ), {"user_id": user_id_int}).first()
-                    if user_banner_res and user_banner_res[0]:
-                        shop_page_banner = user_banner_res[0]
-                except Exception:
-                    pass
-
-            # Use cover_image from first listing (or category fallback)
+            category_ids = list(row[11]) if row[11] else []
+            listing_count = int(row[12]) if row[12] else 0
             shops.append({
                 "id": str(row[0]),
                 "user_id": str(row[1]),
                 "shop_name": row[2],
                 "owner_name": row[3],
-                "category": row[4],
-                "shop_address": row[5],
-                "location_lat": row[6],
-                "location_lng": row[7],
+                "category": None,
+                "shop_address": row[4],
+                "location_lat": row[5],
+                "location_lng": row[6],
                 "rating": 4.5,
                 "is_verified": True,
-                "listing_count": None,
-                "category_ids": [],
-                "cover_image": cover_image,
-                "shop_page_banner": shop_page_banner,
+                "listing_count": listing_count,
+                "category_ids": category_ids,
+                "cover_image": None,
+                "shop_page_banner": row[10],
                 "slug": str(row[0]),
-                "created_at": row[10].isoformat() if row[10] else None,
+                "created_at": row[9].isoformat() if row[9] else None,
             })
 
-        # Return without count query (too slow) - frontend doesn't strictly need it
-        return {"total": len(shops), "shops": shops}
+        result_data = {"total": total_shops or len(shops), "shops": shops}
+
+        # Cache result (5 minutes) - except for searches
+        if not search and not shop_id:
+            try:
+                cache.set(cache_key, _json.dumps(result_data, default=str), ttl=300)
+            except Exception:
+                pass
+
+        return result_data
     except Exception as e:
         print(f"Error in get_public_shops: {str(e)}")
         return {"total": 0, "shops": []}
