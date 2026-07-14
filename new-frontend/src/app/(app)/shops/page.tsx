@@ -241,7 +241,16 @@ function ShopsPageContent() {
         category_id: selectedCategoryId || undefined,
         _t: Date.now(),
       });
-      setShops(result.shops || []);
+
+      // Deduplicate shops by user_id to prevent showing same shop multiple times
+      const seenUsers = new Set<number>();
+      const uniqueShops = (result.shops || []).filter(shop => {
+        if (seenUsers.has(shop.user_id)) return false;
+        seenUsers.add(shop.user_id);
+        return true;
+      });
+
+      setShops(uniqueShops);
       setTotal(result.total || 0);
     } catch (err: any) {
       console.error('Failed to fetch shops:', err);
