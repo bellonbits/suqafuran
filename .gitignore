@@ -62,3 +62,8 @@ venv.bak/
 backend/celerybeat-schedule
 celerybeat-schedule*
 new-frontend/
+!new-frontend/package.json
+!new-frontend/package-lock.json
+!new-frontend/Dockerfile
+!new-frontend/tsconfig.json
+!new-frontend/next.config.js
