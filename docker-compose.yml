@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-doadmin}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-AVNS_n3l_adWBnU_ieYWiXYS}
-      POSTGRES_DB: ${POSTGRES_DB:-defaultdb}
+      POSTGRES_DB: ${POSTGRES_DB:-doadmin}
     ports:
       - "5433:5432"
     volumes:

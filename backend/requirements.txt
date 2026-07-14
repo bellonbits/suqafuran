@@ -24,3 +24,4 @@ resend>=2.30.0
 africastalking>=1.2.0
 firebase-admin>=6.0.0
 slowapi>=0.1.9
+groq>=0.4.1
