@@ -142,10 +142,11 @@ function CategoryProductCard({ listing, onAddToCart }: { listing: Listing; onAdd
             <div className="space-y-2">
                 {/* Image Box */}
                 <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-800 flex items-center justify-center p-2">
-                    <img 
-                        src={img} 
-                        alt={field(listing.title_en, listing.title_so)} 
-                        className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105" 
+                    <img
+                        src={img}
+                        alt={field(listing.title_en, listing.title_so)}
+                        loading="lazy"
+                        className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
                     />
                     
                     {/* Add to Cart circle button */}
@@ -205,6 +206,7 @@ export default function CategoryPage({ params }: PageProps) {
     const sliderRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
 
     const isDealsPage = category === 'deals';
+    const LISTINGS_LIMIT = 50;
 
     const formatCategoryName = (slug: string) => {
         return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
@@ -220,8 +222,8 @@ export default function CategoryPage({ params }: PageProps) {
             try {
                 const dbCategorySlug = categorySlugMap[category] || category;
                 const rawListings = isDealsPage
-                    ? await listingsService.getListings()
-                    : await listingsService.getListings({ category_id: dbCategorySlug });
+                    ? (await listingsService.getListings()).slice(0, LISTINGS_LIMIT)
+                    : await listingsService.getListings({ category_id: dbCategorySlug, limit: LISTINGS_LIMIT });
                 const fetchedListings = isDealsPage
                     ? rawListings.filter(l => l.is_negotiable)
                     : rawListings;
@@ -253,7 +255,7 @@ export default function CategoryPage({ params }: PageProps) {
 
                     const grouped: { store: Store; listings: Listing[] }[] = [];
                     derivedStores.forEach(store => {
-                        const storeListings = fetchedListings.filter(l => l.owner_id.toString() === store.id);
+                        const storeListings = fetchedListings.filter(l => l.owner_id.toString() === store.id).slice(0, 8);
                         grouped.push({
                             store,
                             listings: storeListings
