@@ -36,3 +36,6 @@ prometheus-fastapi-instrumentator>=5.11.0
 opentelemetry-api>=1.21.0
 opentelemetry-sdk>=1.21.0
 opentelemetry-exporter-jaeger>=1.21.0
+itsdangerous>=2.1.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
