@@ -224,9 +224,18 @@ export default function CategoryPage({ params }: PageProps) {
                 const rawListings = isDealsPage
                     ? (await listingsService.getListings()).slice(0, LISTINGS_LIMIT)
                     : await listingsService.getListings({ category_id: dbCategorySlug, limit: LISTINGS_LIMIT });
+
+                // Deduplicate listings by ID
+                const seenIds = new Set<number>();
+                const uniqueListings = rawListings.filter(l => {
+                    if (seenIds.has(l.id)) return false;
+                    seenIds.add(l.id);
+                    return true;
+                });
+
                 const fetchedListings = isDealsPage
-                    ? rawListings.filter(l => l.is_negotiable)
-                    : rawListings;
+                    ? uniqueListings.filter(l => l.is_negotiable)
+                    : uniqueListings;
 
                 if (fetchedListings && fetchedListings.length > 0) {
                     const uniqueSellersMap = new Map<number, Store>();
@@ -255,10 +264,21 @@ export default function CategoryPage({ params }: PageProps) {
 
                     const grouped: { store: Store; listings: Listing[] }[] = [];
                     derivedStores.forEach(store => {
-                        const storeListings = fetchedListings.filter(l => l.owner_id.toString() === store.id).slice(0, 8);
+                        const storeListings = fetchedListings
+                            .filter(l => l.owner_id.toString() === store.id)
+                            .slice(0, 8);
+
+                        // Double-check no duplicates per store
+                        const seenInStore = new Set<number>();
+                        const dedupedListings = storeListings.filter(l => {
+                            if (seenInStore.has(l.id)) return false;
+                            seenInStore.add(l.id);
+                            return true;
+                        });
+
                         grouped.push({
                             store,
-                            listings: storeListings
+                            listings: dedupedListings
                         });
                     });
                     setListingsByStore(grouped);
