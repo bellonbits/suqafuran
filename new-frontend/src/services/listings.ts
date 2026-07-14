@@ -1,6 +1,16 @@
 import api from './api';
 import type { Listing, Category } from '../types';
 
+// Utility function to deduplicate items by ID
+function deduplicateById<T extends { id: number | string }>(items: T[]): T[] {
+    const seen = new Set<number | string>();
+    return items.filter(item => {
+        if (seen.has(item.id)) return false;
+        seen.add(item.id);
+        return true;
+    });
+}
+
 export interface PublicShop {
     id: string;
     user_id: string;
@@ -47,11 +57,14 @@ export const listingsService = {
 
         const response = await api.get('/listings/', { params });
 
+        // Deduplicate listings by ID
+        const dedupedData = deduplicateById(response.data);
+
         // Cache the result
         if (typeof window !== 'undefined') {
             try {
                 localStorage.setItem(cacheKey, JSON.stringify({
-                    value: response.data,
+                    value: dedupedData,
                     timestamp: Date.now(),
                 }));
             } catch (e) {
@@ -59,7 +72,7 @@ export const listingsService = {
             }
         }
 
-        return response.data;
+        return dedupedData;
     },
 
     async getListing(id: number | string): Promise<Listing> {
@@ -135,12 +148,25 @@ export const listingsService = {
 
         const response = await api.get('/listings/shops', { params });
 
+        // Deduplicate shops by user_id to prevent showing same shop twice
+        const seenUsers = new Set<string>();
+        const dedupedShops = (response.data.shops || []).filter((shop: PublicShop) => {
+            if (seenUsers.has(shop.user_id)) return false;
+            seenUsers.add(shop.user_id);
+            return true;
+        });
+
+        const dedupedData = {
+            ...response.data,
+            shops: dedupedShops
+        };
+
         // Cache the result (only non-search queries)
         if (!params?.search && !params?.shop_id && typeof window !== 'undefined') {
             try {
                 const cacheKey = `shops:${params?.skip || 0}:${params?.limit || 50}:${params?.category_id || 'all'}`;
                 localStorage.setItem(cacheKey, JSON.stringify({
-                    value: response.data,
+                    value: dedupedData,
                     timestamp: Date.now(),
                 }));
             } catch (e) {
@@ -148,7 +174,7 @@ export const listingsService = {
             }
         }
 
-        return response.data;
+        return dedupedData;
     },
 
     async getTrendingListings(): Promise<Listing[]> {

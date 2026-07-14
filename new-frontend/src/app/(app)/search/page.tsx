@@ -29,7 +29,14 @@ function SearchPageContent() {
             setIsLoading(true);
             try {
                 const data = await listingsService.getListings();
-                setListings(data);
+                // Deduplication is now handled by the service, but double-check here
+                const seenIds = new Set<number>();
+                const unique = data.filter(l => {
+                    if (seenIds.has(l.id)) return false;
+                    seenIds.add(l.id);
+                    return true;
+                });
+                setListings(unique);
             } catch (err) {
                 console.error('Failed to search listings', err);
             } finally {

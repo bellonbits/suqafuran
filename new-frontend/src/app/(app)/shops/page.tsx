@@ -242,15 +242,8 @@ function ShopsPageContent() {
         _t: Date.now(),
       });
 
-      // Deduplicate shops by user_id to prevent showing same shop multiple times
-      const seenUsers = new Set<number>();
-      const uniqueShops = (result.shops || []).filter(shop => {
-        if (seenUsers.has(shop.user_id)) return false;
-        seenUsers.add(shop.user_id);
-        return true;
-      });
-
-      setShops(uniqueShops);
+      // Deduplication is now handled by the service
+      setShops(result.shops || []);
       setTotal(result.total || 0);
     } catch (err: any) {
       console.error('Failed to fetch shops:', err);
