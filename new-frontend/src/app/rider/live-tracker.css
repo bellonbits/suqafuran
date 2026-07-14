@@ -1,0 +1,255 @@
+.live-tracker-container {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.live-tracker-loading,
+.live-tracker-error {
+  padding: 2rem;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #666;
+}
+
+.live-tracker-error {
+  background: #ffebee;
+  color: #c62828;
+}
+
+/* Status Bar */
+.tracker-status-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.status-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.status-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
+  font-weight: 600;
+}
+
+.status-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  width: fit-content;
+}
+
+.status-badge.accepted {
+  background: rgba(33, 150, 243, 0.2);
+  border-color: rgba(33, 150, 243, 0.4);
+  color: #2196f3;
+}
+
+.status-badge.in_transit {
+  background: rgba(255, 152, 0, 0.2);
+  border-color: rgba(255, 152, 0, 0.4);
+  color: #ff9800;
+}
+
+.status-badge.completed {
+  background: rgba(76, 175, 80, 0.2);
+  border-color: rgba(76, 175, 80, 0.4);
+  color: #4caf50;
+}
+
+/* Rider Info Bar */
+.rider-info-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #f9f9f9;
+  border-bottom: 1px solid #eee;
+}
+
+.rider-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.rider-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rider-name {
+  font-weight: 700;
+  color: #1a1a1a;
+  font-size: 0.95rem;
+}
+
+.rider-phone {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.rider-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.action-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #ddd;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  border-color: #667eea;
+  background: #f0f4ff;
+  transform: scale(1.1);
+}
+
+.call-btn:hover {
+  border-color: #2ecc71;
+}
+
+.message-btn:hover {
+  border-color: #667eea;
+}
+
+/* Location Accuracy */
+.location-accuracy {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: #f0f4ff;
+  border-bottom: 1px solid #e8eaf6;
+  font-size: 0.85rem;
+}
+
+.accuracy-label {
+  color: #666;
+  font-weight: 600;
+}
+
+.accuracy-value {
+  background: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  color: #667eea;
+  font-weight: 700;
+}
+
+.last-update {
+  margin-left: auto;
+  color: #999;
+  font-size: 0.8rem;
+}
+
+/* Progress Indicator */
+.progress-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  background: white;
+  border-top: 1px solid #eee;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid #ddd;
+  background: white;
+  transition: all 0.3s;
+}
+
+.dot.active {
+  border-color: #667eea;
+  background: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.step span {
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 600;
+  text-align: center;
+}
+
+.line {
+  flex: 1;
+  height: 2px;
+  background: #ddd;
+  margin: 0 0.5rem;
+  transform: translateY(-8px);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .tracker-status-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .rider-info-bar {
+    flex-wrap: wrap;
+  }
+
+  .progress-indicator {
+    flex-wrap: wrap;
+  }
+
+  .step {
+    flex: 0 1 auto;
+  }
+
+  .line {
+    display: none;
+  }
+}

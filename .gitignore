@@ -66,4 +66,10 @@ new-frontend/
 !new-frontend/package-lock.json
 !new-frontend/Dockerfile
 !new-frontend/tsconfig.json
+!new-frontend/next.config.ts
 !new-frontend/next.config.js
+!new-frontend/.eslintrc.json
+!new-frontend/tailwind.config.ts
+!new-frontend/postcss.config.js
+!new-frontend/public/
+!new-frontend/src/
