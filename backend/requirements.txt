@@ -25,3 +25,5 @@ africastalking>=1.2.0
 firebase-admin>=6.0.0
 slowapi>=0.1.9
 groq>=0.4.1
+pillow>=10.0.0
+python-cloudinary>=1.30.0
