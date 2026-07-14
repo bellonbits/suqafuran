@@ -20,8 +20,8 @@ services:
   # Next.js Frontend
   frontend:
     build:
-      context: .
-      dockerfile: Dockerfile.frontend
+      context: ./new-frontend
+      dockerfile: Dockerfile
     container_name: suqafuran-frontend
     env_file: .env
     environment:

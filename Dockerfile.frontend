@@ -2,11 +2,14 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy entire frontend directory
-COPY new-frontend/ .
+# Copy package files
+COPY package*.json ./
 
 # Install dependencies
 RUN npm install --legacy-peer-deps
+
+# Copy source code
+COPY . .
 
 # Build the application
 RUN npm run build
