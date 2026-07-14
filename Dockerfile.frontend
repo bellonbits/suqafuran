@@ -2,14 +2,11 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY new-frontend/package*.json ./
+# Copy entire frontend directory
+COPY new-frontend/ .
 
 # Install dependencies
-RUN npm install
-
-# Copy source code
-COPY new-frontend/ .
+RUN npm install --legacy-peer-deps
 
 # Build the application
 RUN npm run build
@@ -19,13 +16,11 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY new-frontend/package*.json ./
-
 # Copy built application and node_modules from builder
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
 
 # Create .env.local file
 RUN echo "NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1" > .env.local && \
