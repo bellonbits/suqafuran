@@ -22,10 +22,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8011/api/v1}
     container_name: suqafuran-frontend
     env_file: .env
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8011/api/v1
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8011/api/v1}
       NEXT_PUBLIC_APP_NAME: Suqafuran
       NEXT_PUBLIC_ENVIRONMENT: production
     ports:
