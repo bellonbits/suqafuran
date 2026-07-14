@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/useAuth';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { authService } from '@/services/authService';
 import { Mail, Phone, MapPin, Shield, Calendar, LogOut, Loader2, AlertCircle, Copy, Check, Camera } from 'lucide-react';
 import api from '@/services/api';
