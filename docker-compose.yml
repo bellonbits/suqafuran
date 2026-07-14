@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-AVNS_n3l_adWBnU_ieYWiXYS}
       POSTGRES_DB: ${POSTGRES_DB:-defaultdb}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -28,7 +28,7 @@ services:
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-suqaredis}
     ports:
-      - "6379:6379"
+      - "6380:6379"
     command: redis-server --requirepass ${REDIS_PASSWORD:-suqaredis}
     volumes:
       - redis_data:/data
@@ -52,12 +52,8 @@ services:
       redis:
         condition: service_healthy
     environment:
-      # Database
-      POSTGRES_SERVER: postgres
-      POSTGRES_USER: ${POSTGRES_USER:-doadmin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-AVNS_n3l_adWBnU_ieYWiXYS}
-      POSTGRES_DB: ${POSTGRES_DB:-defaultdb}
-      POSTGRES_PORT: 5432
+      # Database Connection
+      DATABASE_URL: postgresql://${POSTGRES_USER:-doadmin}:${POSTGRES_PASSWORD:-AVNS_n3l_adWBnU_ieYWiXYS}@postgres:5432/${POSTGRES_DB:-defaultdb}
 
       # Redis
       REDIS_HOST: redis
@@ -92,7 +88,7 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:3001,http://localhost:3002}
 
     ports:
-      - "8000:8000"
+      - "8011:8000"
     volumes:
       - ./backend:/app
       - ./backend/uploads:/app/uploads
