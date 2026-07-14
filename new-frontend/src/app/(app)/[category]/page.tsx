@@ -238,13 +238,24 @@ export default function CategoryPage({ params }: PageProps) {
                     : uniqueListings;
 
                 if (fetchedListings && fetchedListings.length > 0) {
+                    // Deduplicate by owner_id, then by store name to catch similar names
                     const uniqueSellersMap = new Map<number, Store>();
+                    const seenNames = new Set<string>();
+
                     fetchedListings.forEach(l => {
                         if (l.owner && !uniqueSellersMap.has(l.owner_id)) {
+                            const storeName = l.owner.full_name || "Local Seller";
+                            const nameKey = storeName.toLowerCase().trim();
+
+                            // Skip if we already have a store with this name
+                            if (seenNames.has(nameKey)) {
+                                return;
+                            }
+
                             const trustScoreVal = l.owner.trust_score || 95;
                             uniqueSellersMap.set(l.owner_id, {
                                 id: l.owner_id.toString(),
-                                name: l.owner.full_name || "Local Seller",
+                                name: storeName,
                                 slug: l.owner_id.toString(),
                                 logo_url: l.owner.avatar_url ? resolveMediaUrl(l.owner.avatar_url) || undefined : undefined,
                                 image: l.images?.[0]
@@ -256,6 +267,7 @@ export default function CategoryPage({ params }: PageProps) {
                                 isVerified: l.owner.is_verified || false,
                                 trust_score: trustScoreVal
                             });
+                            seenNames.add(nameKey);
                         }
                     });
 
@@ -471,17 +483,6 @@ export default function CategoryPage({ params }: PageProps) {
                 </div>
             )}
 
-            {/* ALL STORES SECTION */}
-            {filteredStores.length > 0 && (
-                <section className="space-y-4 pt-6 border-t border-gray-100 dark:border-slate-800">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">All Stores</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {filteredStores.map(store => (
-                            <CategoryStoreCard key={store.id} store={store} />
-                        ))}
-                    </div>
-                </section>
-            )}
 
         </div>
     );
