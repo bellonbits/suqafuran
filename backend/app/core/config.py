@@ -80,7 +80,7 @@ class Settings(BaseSettings):
         return f"redis://{host}:{port}/{db}"
 
     # KAFKA
-    KAFKA_BOOTSTRAP_SERVERS: Optional[str] = None  # Set to broker address to enable Kafka
+    KAFKA_BOOTSTRAP_SERVERS: str = "kafka:9092"  # Kafka broker address
     KAFKA_SASL_USERNAME: Optional[str] = None
     KAFKA_SASL_PASSWORD: Optional[str] = None
     KAFKA_SECURITY_PROTOCOL: str = "PLAINTEXT"
