@@ -203,24 +203,26 @@ def get_shop_counts_by_category(
     db: Session = Depends(deps.get_db),
 ) -> Any:
     """
-    Get count of verified shops per category.
+    Get count of verified shops per category (by their active listings).
     Returns: { "category_id": shop_count, ... }
     """
     from sqlalchemy import text
 
     rows = db.execute(
         text("""
-            SELECT DISTINCT ON (s.user_id) s.category, COUNT(*) OVER (PARTITION BY s.category) as shop_count
+            SELECT l.category_id, COUNT(DISTINCT s.id) as shop_count
             FROM sellers s
+            INNER JOIN listing l ON CAST(l.owner_id AS VARCHAR) = s.user_id AND l.status = 'active'
             WHERE s.is_active = true
             AND s.verification_status = 'verified'
+            GROUP BY l.category_id
         """)
     ).fetchall()
 
-    shop_counts: dict[str, int] = {}
+    shop_counts: dict[int, int] = {}
     for row in rows:
-        if row.category:
-            shop_counts[row.category] = row.shop_count
+        if row[0]:
+            shop_counts[row[0]] = int(row[1])
 
     return shop_counts
 
@@ -831,7 +833,7 @@ def get_public_shops(
                 "location_lng": row[6],
                 "rating": 4.5,
                 "is_verified": True,
-                "listing_count": 0,
+                "listing_count": 1,
                 "category_ids": [],
                 "cover_image": None,
                 "shop_page_banner": row[10],
