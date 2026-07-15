@@ -778,24 +778,20 @@ def get_public_shops(
             category_filter = "AND l.category_id = :category_id"
             params["category_id"] = category_id
 
-        # Fast query: paginate first, then get stats (much faster for large categories)
+        # Fast query: use DISTINCT ON to avoid expensive GROUP BY
         query_str = f"""
-            SELECT s.id, s.user_id, s.shop_name, s.owner_name,
+            SELECT DISTINCT ON (s.id) s.id, s.user_id, s.shop_name, s.owner_name,
                    s.shop_address, s.location_lat, s.location_lng,
                    s.verification_status, s.is_active, s.created_at,
                    COALESCE(s.shop_page_banner, u.shop_page_banner) as shop_page_banner,
-                   COUNT(DISTINCT l.id) as listing_count
+                   l.created_at as latest_listing_date
             FROM sellers s
             INNER JOIN listing l ON CAST(l.owner_id AS VARCHAR) = s.user_id AND l.status = 'active' {category_filter}
             LEFT JOIN "user" u ON CAST(u.id AS VARCHAR) = s.user_id
             WHERE s.verification_status = 'verified'
               AND s.is_active = true
               {search_filter}
-            GROUP BY s.id, s.user_id, s.shop_name, s.owner_name,
-                     s.shop_address, s.location_lat, s.location_lng,
-                     s.verification_status, s.is_active, s.created_at,
-                     s.shop_page_banner, u.shop_page_banner
-            ORDER BY listing_count DESC, s.id DESC
+            ORDER BY s.id, l.created_at DESC
             OFFSET :skip LIMIT :limit
         """
 
@@ -820,7 +816,6 @@ def get_public_shops(
 
         shops = []
         for row in rows:
-            listing_count = int(row[11]) if row[11] else 0
             shops.append({
                 "id": str(row[0]),
                 "user_id": str(row[1]),
@@ -832,7 +827,7 @@ def get_public_shops(
                 "location_lng": row[6],
                 "rating": 4.5,
                 "is_verified": True,
-                "listing_count": listing_count,
+                "listing_count": 0,
                 "category_ids": [],
                 "cover_image": None,
                 "shop_page_banner": row[10],
@@ -842,10 +837,11 @@ def get_public_shops(
 
         result_data = {"total": total_shops, "shops": shops}
 
-        # Cache result (5 minutes) - except for searches
+        # Cache result - longer TTL for category-filtered (10 min) vs all shops (5 min)
         if not search and not shop_id:
             try:
-                cache.set(cache_key, _json.dumps(result_data, default=str), ttl=300)
+                ttl = 600 if category_id else 300  # 10 min for category, 5 min for all
+                cache.set(cache_key, _json.dumps(result_data, default=str), ttl=ttl)
             except Exception:
                 pass
 
