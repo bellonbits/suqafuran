@@ -778,20 +778,24 @@ def get_public_shops(
             category_filter = "AND l.category_id = :category_id"
             params["category_id"] = category_id
 
-        # Fast query: use DISTINCT ON to avoid expensive GROUP BY
+        # Fast query: minimal GROUP BY (no COUNT aggregation)
         query_str = f"""
-            SELECT DISTINCT ON (s.id) s.id, s.user_id, s.shop_name, s.owner_name,
+            SELECT s.id, s.user_id, s.shop_name, s.owner_name,
                    s.shop_address, s.location_lat, s.location_lng,
                    s.verification_status, s.is_active, s.created_at,
                    COALESCE(s.shop_page_banner, u.shop_page_banner) as shop_page_banner,
-                   l.created_at as latest_listing_date
+                   MAX(l.created_at) as latest_listing
             FROM sellers s
             INNER JOIN listing l ON CAST(l.owner_id AS VARCHAR) = s.user_id AND l.status = 'active' {category_filter}
             LEFT JOIN "user" u ON CAST(u.id AS VARCHAR) = s.user_id
             WHERE s.verification_status = 'verified'
               AND s.is_active = true
               {search_filter}
-            ORDER BY s.id, l.created_at DESC
+            GROUP BY s.id, s.user_id, s.shop_name, s.owner_name,
+                     s.shop_address, s.location_lat, s.location_lng,
+                     s.verification_status, s.is_active, s.created_at,
+                     s.shop_page_banner, u.shop_page_banner
+            ORDER BY latest_listing DESC, s.id DESC
             OFFSET :skip LIMIT :limit
         """
 
