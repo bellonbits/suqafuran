@@ -164,6 +164,7 @@ class KafkaService:
         # Setup Producer Config
         if KAFKA_AVAILABLE and settings.KAFKA_BOOTSTRAP_SERVERS:
             p_conf = {'bootstrap.servers': settings.KAFKA_BOOTSTRAP_SERVERS}
+            print(f"🔧🔧🔧 Producer config: {p_conf} 🔧🔧🔧")
             if settings.KAFKA_SASL_USERNAME:
                 p_conf.update({
                     'security.protocol': settings.KAFKA_SECURITY_PROTOCOL,
@@ -234,6 +235,7 @@ class KafkaService:
                 'auto.offset.reset': 'earliest',
                 'enable.auto.commit': True
             }
+            print(f"🔧🔧🔧 Consumer config: {c_conf} 🔧🔧🔧")
             if settings.KAFKA_SASL_USERNAME:
                 c_conf.update({
                     'security.protocol': settings.KAFKA_SECURITY_PROTOCOL,
