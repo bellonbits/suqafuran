@@ -198,6 +198,33 @@ def read_categories(
     return result
 
 
+@router.get("/categories/stats/shop-counts")
+def get_shop_counts_by_category(
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Get count of verified shops per category.
+    Returns: { "category_id": shop_count, ... }
+    """
+    from sqlalchemy import text
+
+    rows = db.execute(
+        text("""
+            SELECT DISTINCT ON (s.user_id) s.category, COUNT(*) OVER (PARTITION BY s.category) as shop_count
+            FROM sellers s
+            WHERE s.is_active = true
+            AND s.verification_status = 'verified'
+        """)
+    ).fetchall()
+
+    shop_counts: dict[str, int] = {}
+    for row in rows:
+        if row.category:
+            shop_counts[row.category] = row.shop_count
+
+    return shop_counts
+
+
 @router.post("/categories", response_model=Any)
 def create_category(
     *,

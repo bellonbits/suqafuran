@@ -212,6 +212,14 @@ function ShopsPageContent() {
         const cats = await listingsService.getCategories();
         setCategories(cats || []);
 
+        // Fetch shop counts per category
+        try {
+          const countsResponse = await api.get('/listings/categories/stats/shop-counts');
+          setShopCountsByCategory(countsResponse.data || {});
+        } catch (err) {
+          console.warn('Failed to load shop counts:', err);
+        }
+
         // If category param is provided, find matching category ID and select it
         if (categoryParam && cats && cats.length > 0) {
           const categorySlug = decodeURIComponent(categoryParam);
@@ -375,8 +383,9 @@ function ShopsPageContent() {
                     />
                   </div>
                 </div>
-                <span className="text-[11px] font-semibold text-gray-700 dark:text-slate-300 mt-2 tracking-tight text-center w-[72px] truncate">
-                  {cat.name_en}
+                <span className="text-[11px] font-semibold text-gray-700 dark:text-slate-300 mt-2 tracking-tight text-center w-[72px]">
+                  <div className="truncate">{cat.name_en}</div>
+                  <div className="text-[9px] font-normal text-gray-500 dark:text-slate-400">[{shopCountsByCategory[cat.name_en] || 0}]</div>
                 </span>
               </div>
             );

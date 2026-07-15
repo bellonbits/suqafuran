@@ -52,36 +52,8 @@ function getCategoryStickerIcon(slug: string): string {
   return '/icons/street-market.png';
 }
 
-// ─── Banner Images Fallbacks ──────────────────────────────────────────────────
-const CATEGORY_BANNER: Record<string, string> = {
-  'food': '/categories/grocery.jpg',
-  'grocery': '/categories/grocery.jpg',
-  'agriculture': '/categories/grocery.jpg',
-  'electronics': '/categories/electronics.png',
-  'clothing': '/categories/shoes.png',
-  'shoes': '/categories/shoes.png',
-  'fashion': '/categories/shoes.png',
-  'beauty': '/categories/skincare.jpg',
-  'health': '/categories/skincare.jpg',
-  'household': '/categories/house.png',
-  'home': '/categories/house.png',
-  'vehicles': '/categories/car.png',
-  'property': '/categories/house.png',
-  'land': '/categories/house.png',
-  'services': '/categories/services.png',
-  'construction': '/categories/services.png',
-  'equipment': '/categories/services.png',
-  'jobs': '/categories/services.png',
-  'phones': '/categories/phones.png',
-  'mobile': '/categories/phones.png',
-  'sport': '/categories/sport.jpg',
-  'leisure': '/categories/sport.jpg',
-  'livestock': '/categories/livestock.png',
-  'baby': '/categories/baby.png',
-  'kids': '/categories/baby.png',
-};
 
-function getShopBanner(shop: PublicShop): string {
+function getShopBanner(shop: PublicShop): string | null {
   // Prioritize custom shop page banner (Cloudinary URL)
   if (shop.shop_page_banner && typeof shop.shop_page_banner === 'string') {
     if (shop.shop_page_banner.startsWith('http')) return shop.shop_page_banner;
@@ -99,35 +71,16 @@ function getShopBanner(shop: PublicShop): string {
     if (resolved) return resolved;
   }
 
-  // Final fallback to category image
-  const cat = (shop.category || '').toLowerCase();
-  for (const [key, img] of Object.entries(CATEGORY_BANNER)) {
-    if (cat.includes(key)) return img;
-  }
-  return '/categories/grocery.jpg';
+  // No fallback — return null if no custom banner or cover image
+  return null;
 }
 
 // ─── Glovo Shop Card ────────────────────────────────────────────────────
 function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
   const [imgError, setImgError] = useState(false);
-  const [customBanner, setCustomBanner] = useState<string | null>(null);
 
-  // Fetch custom banner from dedicated endpoint
-  useEffect(() => {
-    const fetchBanner = async () => {
-      try {
-        const res = await api.get(`/listings/shops/${shop.user_id}/banners`);
-        if (res.data?.shop_page_banner) {
-          setCustomBanner(res.data.shop_page_banner);
-        }
-      } catch (err) {
-        console.debug('Banner fetch failed, using fallback');
-      }
-    };
-    fetchBanner();
-  }, [shop.user_id]);
-
-  const banner = imgError ? '/categories/grocery.jpg' : (customBanner || getShopBanner(shop));
+  // Use banner from shop data (already included in main response)
+  const banner = imgError ? null : getShopBanner(shop);
   const initial = shop.shop_name?.[0]?.toUpperCase() || 'S';
 
   // Deterministic mock Glovo metrics from shop data
@@ -149,15 +102,21 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
         {/* ─── Banner (16:9) ────────────────────────────────────── */}
         {/* Glovo uses rounded-lg (~8px) — not pill/2xl              */}
         <div className="relative aspect-[16/9] w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-800">
-          <img
-            src={banner}
-            alt={shop.shop_name}
-            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
-            onError={() => setImgError(true)}
-          />
-
-          {/* Subtle dark gradient at bottom for logo legibility */}
-          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/30 to-transparent" />
+          {banner ? (
+            <>
+              <img
+                src={banner}
+                alt={shop.shop_name}
+                className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                onError={() => setImgError(true)}
+              />
+              {/* Subtle dark gradient at bottom for logo legibility */}
+              <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/30 to-transparent" />
+            </>
+          ) : (
+            /* Placeholder when no banner */
+            <div className="w-full h-full bg-gray-100 dark:bg-slate-800" />
+          )}
 
           {/* Promo badge — top-left */}
           {promoText && (
@@ -200,7 +159,7 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
             <span className="text-gray-300 dark:text-slate-700">•</span>
             <span className="shrink-0">{delTime}</span>
             <span className="text-gray-300 dark:text-slate-700">•</span>
-            <span className="shrink-0">👍 {ratingPercent}% ({reviewCount})</span>
+            <span className="shrink-0">{ratingPercent}% ({reviewCount})</span>
           </div>
         </div>
 
@@ -238,6 +197,7 @@ function ShopsPageContent() {
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
+  const categoryParam = searchParams.get('category');
 
   // Debounce search
   useEffect(() => {
@@ -251,12 +211,24 @@ function ShopsPageContent() {
       try {
         const cats = await listingsService.getCategories();
         setCategories(cats || []);
+
+        // If category param is provided, find matching category ID and select it
+        if (categoryParam && cats && cats.length > 0) {
+          const categorySlug = decodeURIComponent(categoryParam);
+          const matchedCat = cats.find(c =>
+            c.slug === categorySlug ||
+            c.name_en?.toLowerCase().replace(/\s+/g, '-') === categorySlug.toLowerCase()
+          );
+          if (matchedCat) {
+            setSelectedCategoryId(matchedCat.id);
+          }
+        }
       } catch (err) {
         console.error('Failed to load categories:', err);
       }
     }
     loadCategories();
-  }, []);
+  }, [categoryParam]);
 
   // Reset to page 1 on search or category filter change
   useEffect(() => {
@@ -264,6 +236,14 @@ function ShopsPageContent() {
   }, [debouncedSearch, selectedCategoryId]);
 
   const fetchShops = useCallback(async () => {
+    // Clear browser cache to get fresh banners
+    if (typeof window !== 'undefined') {
+      Object.keys(localStorage).forEach(key => {
+        if (key.includes('banner') || key.includes('shop')) {
+          localStorage.removeItem(key);
+        }
+      });
+    }
     setLoading(true);
     setError(null);
     try {
@@ -272,7 +252,10 @@ function ShopsPageContent() {
         limit: SHOPS_PER_PAGE,
         search: debouncedSearch || undefined,
         category_id: selectedCategoryId || undefined,
+        _t: Date.now(),
       });
+
+      // Deduplication is now handled by the service
       setShops(result.shops || []);
       setTotal(result.total || 0);
     } catch (err: any) {
