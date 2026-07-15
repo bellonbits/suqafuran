@@ -197,6 +197,7 @@ function ShopsPageContent() {
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
+  const [shopCountsByCategory, setShopCountsByCategory] = useState<Record<string, number>>({});
   const categoryParam = searchParams.get('category');
 
   // Debounce search
