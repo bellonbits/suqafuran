@@ -157,14 +157,10 @@ class KafkaService:
         self.consumer_thread = None
         self.is_running = False
 
-        # Debug: Print what settings are loaded
-        print(f"🔧🔧🔧 KAFKA_BOOTSTRAP_SERVERS = '{settings.KAFKA_BOOTSTRAP_SERVERS}' 🔧🔧🔧")
-        print(f"🔧🔧🔧 KAFKA_AVAILABLE = {KAFKA_AVAILABLE} 🔧🔧🔧")
 
         # Setup Producer Config
         if KAFKA_AVAILABLE and settings.KAFKA_BOOTSTRAP_SERVERS:
             p_conf = {'bootstrap.servers': settings.KAFKA_BOOTSTRAP_SERVERS}
-            print(f"🔧🔧🔧 Producer config: {p_conf} 🔧🔧🔧")
             if settings.KAFKA_SASL_USERNAME:
                 p_conf.update({
                     'security.protocol': settings.KAFKA_SECURITY_PROTOCOL,
@@ -174,14 +170,11 @@ class KafkaService:
                 })
             try:
                 self.producer = ConfluentProducer(p_conf)
-                print("✅✅✅ Producer initialized successfully ✅✅✅")
                 logger.info("Successfully initialized Confluent Kafka Producer.")
             except Exception as e:
-                print(f"❌❌❌ Producer init failed: {e} ❌❌❌")
                 logger.error(f"Failed to initialize Confluent Kafka Producer: {e}. Falling back to Mock.")
                 self.producer = MockProducer(p_conf)
         else:
-            print("⚠️⚠️⚠️ KAFKA_AVAILABLE or KAFKA_BOOTSTRAP_SERVERS not set, using Mock Producer ⚠️⚠️⚠️")
             self.producer = MockProducer({})
 
     def _delivery_report(self, err, msg):
@@ -238,7 +231,6 @@ class KafkaService:
                 'auto.offset.reset': 'earliest',
                 'enable.auto.commit': True
             }
-            print(f"🔧🔧🔧 Consumer config: {c_conf} 🔧🔧🔧")
             if settings.KAFKA_SASL_USERNAME:
                 c_conf.update({
                     'security.protocol': settings.KAFKA_SECURITY_PROTOCOL,
