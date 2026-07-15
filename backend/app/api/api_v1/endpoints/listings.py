@@ -776,17 +776,18 @@ def get_public_shops(
             search_filter += " AND s.id = :shop_id"
             params["shop_id"] = shop_id
 
-        if category_id:
+        if category_id is not None:
             category_filter = "AND l.category_id = :category_id"
             params["category_id"] = category_id
 
-        # Fast query: minimal GROUP BY (no COUNT aggregation)
+        # Fast query: group shops with active listings
         query_str = f"""
             SELECT s.id, s.user_id, s.shop_name, s.owner_name,
                    s.shop_address, s.location_lat, s.location_lng,
                    s.verification_status, s.is_active, s.created_at,
                    COALESCE(s.shop_page_banner, u.shop_page_banner) as shop_page_banner,
-                   MAX(l.created_at) as latest_listing
+                   MAX(l.created_at) as latest_listing,
+                   COUNT(l.id) as listing_count
             FROM sellers s
             INNER JOIN listing l ON CAST(l.owner_id AS VARCHAR) = s.user_id AND l.status = 'active' {category_filter}
             LEFT JOIN "user" u ON CAST(u.id AS VARCHAR) = s.user_id
@@ -822,6 +823,7 @@ def get_public_shops(
 
         shops = []
         for row in rows:
+            listing_count = int(row[12]) if len(row) > 12 and row[12] else 1
             shops.append({
                 "id": str(row[0]),
                 "user_id": str(row[1]),
@@ -833,7 +835,7 @@ def get_public_shops(
                 "location_lng": row[6],
                 "rating": 4.5,
                 "is_verified": True,
-                "listing_count": 1,
+                "listing_count": listing_count,
                 "category_ids": [],
                 "cover_image": None,
                 "shop_page_banner": row[10],
