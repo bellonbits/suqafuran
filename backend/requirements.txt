@@ -40,3 +40,4 @@ itsdangerous>=2.1.0
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
 confluent-kafka>=2.3.0
+aiokafka>=0.10.0
