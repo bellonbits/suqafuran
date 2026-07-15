@@ -1,5 +1,23 @@
 services:
-  # FastAPI Backend - connects to DigitalOcean managed DB & Redis
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: suqafuran-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass suqaredis
+    volumes:
+      - redis_data:/data
+    networks:
+      - suqafuran-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # FastAPI Backend - connects to DigitalOcean managed DB & local Redis
   backend:
     build:
       context: .
@@ -14,6 +32,9 @@ services:
     networks:
       - suqafuran-network
     restart: always
+    depends_on:
+      redis:
+        condition: service_healthy
 
   # Next.js Frontend
   frontend:
@@ -94,3 +115,4 @@ networks:
 
 volumes:
   kafka_data:
+  redis_data:
