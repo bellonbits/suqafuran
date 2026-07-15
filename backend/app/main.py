@@ -18,6 +18,7 @@ from app.tasks.celery_app import celery_app
 import asyncio
 from app.services.kafka_service import kafka_service, ws_manager
 from app.services.kafka_websocket_integration import integrate_kafka_with_websocket
+from app.services.kafka_producer import kafka_producer
 
 # Initialize structured logging
 setup_logging()
@@ -123,8 +124,17 @@ async def start_background_event_consumer():
     # Enable Kafka + WebSocket integration
     integrate_kafka_with_websocket()
 
+    # Start Kafka producer (for publishing domain events)
+    await kafka_producer.start()
+
     # Start Kafka consumer
     kafka_service.start_consumer(SessionLocal)
+
+
+@app.on_event("shutdown")
+async def stop_kafka_producer():
+    """Gracefully shut down Kafka producer."""
+    await kafka_producer.stop()
 
 
 

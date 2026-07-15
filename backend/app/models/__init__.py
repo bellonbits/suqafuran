@@ -1,5 +1,6 @@
 from app.models.user import User
 from app.models.listing import Listing, Category
+from app.models.featured_listing import FeaturedListing
 from app.models.verification import VerificationRequest
 from app.models.wallet import Wallet, Transaction
 from app.models.favorite import Favorite
@@ -36,6 +37,7 @@ __all__ = [
     "User",
     "Listing",
     "Category",
+    "FeaturedListing",
     "VerificationRequest",
     "Wallet",
     "EmailLog",

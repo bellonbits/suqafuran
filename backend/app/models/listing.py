@@ -22,6 +22,7 @@ class ListingBase(SQLModel):
     subcategory_id: Optional[int] = Field(default=None, foreign_key="subcategory.id", index=True)
     subsubcategory_id: Optional[int] = Field(default=None, foreign_key="subsubcategory.id", index=True)
     status: str = Field(default="pending", index=True)  # pending, active, closed, reported, deleted
+    moderation_status: str = Field(default="pending", index=True)  # pending, approved, rejected
     boost_level: int = Field(default=0)  # 0: none, 1: basic, 2: vip, 3: diamond
     boost_expires_at: Optional[datetime] = None
     currency: str = Field(default="USD")
@@ -33,6 +34,11 @@ class ListingBase(SQLModel):
     rejection_reason: Optional[str] = Field(default=None)
     admin_notes: Optional[dict] = Field(default={}, sa_column=Column(JSON))
     is_negotiable: bool = Field(default=False)
+
+    # Moderation tracking
+    moderated_at: Optional[datetime] = Field(default=None)
+    moderator_id: Optional[int] = Field(default=None, foreign_key="user.id")
+    moderation_notes: Optional[str] = Field(default=None)
 
     # Sale tracking
     is_sold: bool = Field(default=False, index=True)

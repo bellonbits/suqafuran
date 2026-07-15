@@ -610,7 +610,8 @@ def create_listing(
         effective_owner_id = owner_id
 
     listing = crud_listing.create_listing(db, listing_in=listing_in, owner_id=effective_owner_id)
-    listing.status = status
+    listing.status = "pending"  # Draft status - not visible yet
+    listing.moderation_status = "pending"  # Waiting for admin review
     db.add(listing)
     db.commit()
     db.refresh(listing)
@@ -622,7 +623,7 @@ def create_listing(
             cat = db.get(Category, listing.category_id)
             if cat:
                 category_name = cat.name_en
-        
+
         LISTINGS_CREATED_TOTAL.labels(
             category=category_name,
             location=listing.location or "unknown"
@@ -636,7 +637,7 @@ def create_listing(
         action="CREATE_LISTING",
         resource_type="listing",
         resource_id=listing.id,
-        details=f"Listing created with status '{status}'"
+        details=f"Listing created with status 'pending' (moderation_status='pending')"
     ))
 
     # Track first-ad conversion for marketing referral codes
@@ -651,6 +652,53 @@ def create_listing(
     db.commit()
     db.refresh(listing)
 
+    # Publish Kafka event for moderation
+    try:
+        from app.services.kafka_producer import publish_catalog_event, publish_notification_dispatch
+
+        await publish_catalog_event(
+            event_type="product.created_pending_moderation",
+            payload={
+                "listing_id": str(listing.id),
+                "owner_id": str(effective_owner_id),
+                "title": listing.title_en,
+                "price": float(listing.price),
+                "category_id": listing.category_id,
+                "images": listing.images[:1] if listing.images else [],
+                "description": (listing.description_en or "")[:100],
+            },
+            seller_id=str(effective_owner_id),
+        )
+
+        # Notify admins about pending moderation
+        await publish_notification_dispatch(
+            user_id="admin_team",
+            event_type="catalog.product.pending_moderation",
+            channels=["email", "push"],
+            template="admin_listing_requires_moderation",
+            data={
+                "listing_id": str(listing.id),
+                "seller_name": current_user.full_name or current_user.phone or f"User {current_user.id}",
+                "title": listing.title_en,
+                "price": f"{listing.price} {listing.currency}",
+            },
+        )
+
+        # Notify seller of submission
+        await publish_notification_dispatch(
+            user_id=str(effective_owner_id),
+            event_type="catalog.product.created_pending_moderation",
+            channels=["push", "sms"],
+            template="listing_submitted_for_review",
+            data={
+                "listing_id": str(listing.id),
+                "title": listing.title_en,
+            },
+        )
+    except Exception as e:
+        import logging
+        logging.getLogger("listings_api").warning(f"Failed to publish listing creation event: {e}")
+
     # In-app notification for ad posting
     from app.crud.crud_notification import crud_notification
     try:
@@ -661,8 +709,8 @@ def create_listing(
                 "data": {
                     "listing_id": listing.id,
                     "title": listing.title_en,
-                    "status": status,
-                    "message": f"Your listing '{listing.title_en}' has been successfully created and is now {status}!"
+                    "status": "pending",
+                    "message": f"Your listing '{listing.title_en}' has been submitted for review. You'll be notified within 4 hours."
                 }
             },
             user_id=effective_owner_id
@@ -675,8 +723,8 @@ def create_listing(
     send_push_to_user(
         db,
         user_id=effective_owner_id,
-        title="Ad Posted Successfully!",
-        body=f"'{listing.title_en}' is now {status} on Suqafuran.",
+        title="Listing Submitted!",
+        body=f"'{listing.title_en}' is under review. We'll notify you soon.",
         data={"type": "ad_posted", "listing_id": str(listing.id), "path": f"/listing/{listing.id}"}
     )
 
@@ -1067,3 +1115,404 @@ def merge_duplicate_shops(
         db.rollback()
         print(f"Error merging shops: {str(e)}")
         return {"error": str(e)}
+
+
+# ============== MODERATION ENDPOINTS ==============
+
+@router.post("/{listing_id}/approve")
+async def approve_listing(
+    listing_id: int,
+    moderation_notes: Optional[str] = None,
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Admin approves a listing for visibility.
+
+    Published Events:
+    - catalog.product.approved → Update search index, notify seller
+    """
+    listing = db.get(Listing, listing_id)
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+
+    listing.moderation_status = "approved"
+    listing.status = "active"
+    listing.moderated_at = datetime.utcnow()
+    listing.moderator_id = current_user.id
+    listing.moderation_notes = moderation_notes
+
+    db.add(listing)
+    db.commit()
+    db.refresh(listing)
+
+    # Publish Kafka event
+    try:
+        from app.services.kafka_producer import publish_catalog_event, publish_notification_dispatch
+
+        await publish_catalog_event(
+            event_type="product.approved",
+            payload={
+                "listing_id": str(listing.id),
+                "owner_id": str(listing.owner_id),
+                "title": listing.title_en,
+                "approved_by": current_user.full_name or f"Admin {current_user.id}",
+            },
+            seller_id=str(listing.owner_id),
+        )
+
+        # Notify seller
+        await publish_notification_dispatch(
+            user_id=str(listing.owner_id),
+            event_type="catalog.product.approved",
+            channels=["email", "sms", "push"],
+            template="listing_approved",
+            data={
+                "listing_id": str(listing.id),
+                "title": listing.title_en,
+                "price": f"{listing.price} {listing.currency}",
+            },
+        )
+    except Exception as e:
+        # Kafka may not be available, log but don't fail
+        import logging
+        logging.getLogger("listings_api").warning(f"Failed to publish approval event: {e}")
+
+    return {"status": "approved", "listing_id": listing.id}
+
+
+@router.post("/{listing_id}/reject")
+async def reject_listing(
+    listing_id: int,
+    rejection_reason: str,
+    moderation_notes: Optional[str] = None,
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Admin rejects a listing.
+
+    Published Events:
+    - catalog.product.rejected → Hide from search, notify seller with reason
+    """
+    listing = db.get(Listing, listing_id)
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+
+    listing.moderation_status = "rejected"
+    listing.status = "deleted"
+    listing.rejection_reason = rejection_reason
+    listing.moderated_at = datetime.utcnow()
+    listing.moderator_id = current_user.id
+    listing.moderation_notes = moderation_notes
+
+    db.add(listing)
+    db.commit()
+    db.refresh(listing)
+
+    # Publish Kafka event
+    try:
+        from app.services.kafka_producer import publish_catalog_event, publish_notification_dispatch
+
+        await publish_catalog_event(
+            event_type="product.rejected",
+            payload={
+                "listing_id": str(listing.id),
+                "owner_id": str(listing.owner_id),
+                "rejection_reason": rejection_reason,
+                "rejected_by": current_user.full_name or f"Admin {current_user.id}",
+            },
+            seller_id=str(listing.owner_id),
+        )
+
+        # Notify seller
+        await publish_notification_dispatch(
+            user_id=str(listing.owner_id),
+            event_type="catalog.product.rejected",
+            channels=["email", "sms"],
+            template="listing_rejected",
+            data={
+                "listing_id": str(listing.id),
+                "title": listing.title_en,
+                "rejection_reason": rejection_reason,
+                "support_contact": "support@suqafuran.com",
+            },
+        )
+    except Exception as e:
+        import logging
+        logging.getLogger("listings_api").warning(f"Failed to publish rejection event: {e}")
+
+    return {"status": "rejected", "listing_id": listing.id, "reason": rejection_reason}
+
+
+@router.get("/{listing_id}/moderation-status")
+def get_listing_moderation_status(
+    listing_id: int,
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Get moderation status of a listing (seller can check their own).
+    """
+    listing = db.get(Listing, listing_id)
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+
+    if listing.owner_id != current_user.id and not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    return {
+        "listing_id": listing.id,
+        "moderation_status": listing.moderation_status,
+        "status": listing.status,
+        "moderated_at": listing.moderated_at,
+        "rejection_reason": listing.rejection_reason,
+        "moderation_notes": listing.moderation_notes if current_user.is_admin else None,
+    }
+
+
+# ============== FEATURED LISTING (PAID AD) ENDPOINTS ==============
+
+@router.post("/{listing_id}/feature")
+async def feature_listing(
+    listing_id: int,
+    boost_level: str,  # "basic", "vip", "diamond"
+    payment_method: str,  # "mpesa", "stripe"
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Seller pays to feature a listing (boost visibility).
+
+    Pricing:
+    - basic: 5,000 SOS / 30 days
+    - vip: 15,000 SOS / 30 days
+    - diamond: 50,000 SOS / 30 days
+
+    Published Events:
+    - payments.featured_listing.initiated → Send payment prompt
+    """
+    from app.models.featured_listing import FeaturedListing
+
+    # Validate listing exists and belongs to user
+    listing = db.get(Listing, listing_id)
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+
+    if listing.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Listing not owned by you")
+
+    if listing.moderation_status != "approved":
+        raise HTTPException(
+            status_code=400,
+            detail="Listing must be approved before featuring"
+        )
+
+    # Pricing map
+    PRICING = {
+        "basic": {"amount": 5000, "duration": 30},
+        "vip": {"amount": 15000, "duration": 30},
+        "diamond": {"amount": 50000, "duration": 30},
+    }
+
+    if boost_level not in PRICING:
+        raise HTTPException(status_code=400, detail="Invalid boost level")
+
+    pricing = PRICING[boost_level]
+    amount = pricing["amount"]
+    duration_days = pricing["duration"]
+
+    # Create FeaturedListing (payment pending)
+    featured = FeaturedListing(
+        listing_id=listing_id,
+        owner_id=current_user.id,
+        boost_level=boost_level,
+        amount_paid=amount,
+        currency="SOS",
+        duration_days=duration_days,
+        payment_method=payment_method,
+        status="pending",
+        payment_status="pending",
+    )
+    db.add(featured)
+    db.commit()
+    db.refresh(featured)
+
+    # Publish Kafka event
+    try:
+        from app.services.kafka_producer import publish_payment_event, publish_notification_dispatch
+
+        await publish_payment_event(
+            event_type="featured_listing.payment_initiated",
+            payload={
+                "featured_listing_id": str(featured.id),
+                "listing_id": str(listing_id),
+                "boost_level": boost_level,
+                "amount": amount,
+                "duration_days": duration_days,
+            },
+            order_id=str(featured.id),
+            user_id=str(current_user.id),
+        )
+
+        # Send payment prompt
+        await publish_notification_dispatch(
+            user_id=str(current_user.id),
+            event_type="payments.featured_listing.initiated",
+            channels=["sms", "push"],
+            template="feature_listing_payment_prompt",
+            data={
+                "listing_title": listing.title_en,
+                "boost_level": boost_level,
+                "amount": amount,
+                "featured_id": str(featured.id),
+            },
+        )
+    except Exception as e:
+        import logging
+        logging.getLogger("listings_api").warning(f"Failed to publish feature event: {e}")
+
+    return {
+        "featured_listing_id": featured.id,
+        "status": "pending",
+        "payment_required": {
+            "amount": amount,
+            "currency": "SOS",
+            "boost_level": boost_level,
+            "duration_days": duration_days,
+        },
+        "next_step": f"Complete payment via {payment_method}",
+    }
+
+
+@router.post("/webhooks/featured-payment-success")
+async def on_featured_listing_payment_success(
+    featured_listing_id: int,
+    payment_reference: str,
+    amount_paid: float,
+    *,
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Webhook called when M-Pesa/Stripe payment succeeds for featured listing.
+
+    Published Events:
+    - payments.featured_listing.success → Notify seller, update analytics
+    """
+    from app.models.featured_listing import FeaturedListing
+
+    featured = db.get(FeaturedListing, featured_listing_id)
+    if not featured:
+        raise HTTPException(status_code=404, detail="Featured listing not found")
+
+    featured.payment_status = "success"
+    featured.status = "active"
+    featured.payment_reference = payment_reference
+    featured.activated_at = datetime.utcnow()
+    featured.expires_at = datetime.utcnow() + timedelta(days=featured.duration_days)
+    db.add(featured)
+
+    # Update listing boost level
+    listing = db.get(Listing, featured.listing_id)
+    boost_map = {"basic": 1, "vip": 2, "diamond": 3}
+    listing.boost_level = boost_map.get(featured.boost_level, 0)
+    listing.boost_expires_at = featured.expires_at
+    db.add(listing)
+    db.commit()
+
+    # Publish Kafka event
+    try:
+        from app.services.kafka_producer import publish_payment_event, publish_notification_dispatch
+
+        await publish_payment_event(
+            event_type="featured_listing.payment_success",
+            payload={
+                "featured_listing_id": str(featured_listing_id),
+                "listing_id": str(featured.listing_id),
+                "amount": amount_paid,
+                "expires_at": featured.expires_at.isoformat(),
+            },
+            order_id=str(featured_listing_id),
+            user_id=str(featured.owner_id),
+        )
+
+        # Notify seller
+        await publish_notification_dispatch(
+            user_id=str(featured.owner_id),
+            event_type="payments.featured_listing.success",
+            channels=["email", "sms", "push"],
+            template="feature_listing_payment_confirmed",
+            data={
+                "listing_title": listing.title_en,
+                "boost_level": featured.boost_level,
+                "amount": amount_paid,
+                "expires_date": featured.expires_at.strftime("%B %d, %Y"),
+            },
+        )
+    except Exception as e:
+        import logging
+        logging.getLogger("listings_api").warning(f"Failed to publish success event: {e}")
+
+    return {"status": "activated"}
+
+
+@router.post("/webhooks/featured-payment-failed")
+async def on_featured_listing_payment_failed(
+    featured_listing_id: int,
+    failure_reason: str,
+    *,
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Webhook called when payment fails for featured listing.
+
+    Published Events:
+    - payments.featured_listing.failed → Notify seller to retry
+    """
+    from app.models.featured_listing import FeaturedListing
+
+    featured = db.get(FeaturedListing, featured_listing_id)
+    if not featured:
+        raise HTTPException(status_code=404, detail="Featured listing not found")
+
+    featured.payment_status = "failed"
+    db.add(featured)
+    db.commit()
+
+    # Publish Kafka event
+    try:
+        from app.services.kafka_producer import publish_payment_event, publish_notification_dispatch
+
+        await publish_payment_event(
+            event_type="featured_listing.payment_failed",
+            payload={
+                "featured_listing_id": str(featured_listing_id),
+                "listing_id": str(featured.listing_id),
+                "failure_reason": failure_reason,
+            },
+            order_id=str(featured_listing_id),
+            user_id=str(featured.owner_id),
+        )
+
+        # Notify seller
+        listing = db.get(Listing, featured.listing_id)
+        await publish_notification_dispatch(
+            user_id=str(featured.owner_id),
+            event_type="payments.featured_listing.failed",
+            channels=["email", "sms", "push"],
+            template="feature_listing_payment_failed",
+            data={
+                "listing_title": listing.title_en,
+                "amount": featured.amount_paid,
+                "failure_reason": failure_reason,
+            },
+        )
+    except Exception as e:
+        import logging
+        logging.getLogger("listings_api").warning(f"Failed to publish failure event: {e}")
+
+    return {"status": "failed", "reason": failure_reason}
