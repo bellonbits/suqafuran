@@ -57,7 +57,10 @@ class Listing(ListingBase, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    owner: Optional["User"] = Relationship(back_populates="listings")
+    owner: Optional["User"] = Relationship(
+        back_populates="listings",
+        sa_relationship_kwargs={"foreign_keys": "Listing.owner_id"}
+    )
 
 
 class ListingRead(ListingBase):
