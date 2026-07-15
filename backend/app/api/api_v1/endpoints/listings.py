@@ -957,3 +957,86 @@ def apply_listing_boost(
     db.add(listing)
     db.commit()
     return {"message": "Success", "expires_at": listing.boost_expires_at}
+
+
+@router.get("/admin/duplicates")
+def find_duplicate_shops(db: Session = Depends(deps.get_db)):
+    """Find all users with multiple seller accounts"""
+    try:
+        from sqlalchemy import text
+
+        query = text("""
+            SELECT user_id, COUNT(*) as shop_count,
+                   array_agg(id) as ids,
+                   array_agg(shop_name) as shop_names,
+                   array_agg(created_at) as created_dates
+            FROM sellers
+            WHERE is_active = true
+            AND verification_status = 'verified'
+            GROUP BY user_id
+            HAVING COUNT(*) > 1
+            ORDER BY shop_count DESC
+        """)
+
+        result = db.execute(query)
+        rows = result.fetchall()
+
+        duplicates = []
+        for row in rows:
+            duplicates.append({
+                "user_id": row[0],
+                "shop_count": row[1],
+                "shop_ids": row[2],
+                "shop_names": row[3],
+                "created_dates": [d.isoformat() if d else None for d in row[4]]
+            })
+
+        return {
+            "total_duplicate_users": len(duplicates),
+            "duplicates": duplicates
+        }
+    except Exception as e:
+        print(f"Error finding duplicates: {str(e)}")
+        return {"total_duplicate_users": 0, "duplicates": []}
+
+
+@router.post("/admin/merge-duplicates")
+def merge_duplicate_shops(
+    user_id: str,
+    keep_shop_id: str = None,
+    db: Session = Depends(deps.get_db)
+):
+    """Merge duplicate shops for a user, keeping one and deactivating others"""
+    try:
+        from sqlalchemy import text
+
+        # Get all shops for this user
+        shops_query = text("SELECT id, created_at FROM sellers WHERE user_id = :user_id ORDER BY created_at DESC")
+        result = db.execute(shops_query, {"user_id": user_id})
+        shops = result.fetchall()
+
+        if len(shops) <= 1:
+            return {"message": "User has only one shop, no merge needed"}
+
+        # Keep the newest one (first in ordered results) unless specified
+        keeper_id = keep_shop_id or shops[0][0]
+
+        # Deactivate all other shops
+        deactivated = []
+        for shop_id, _ in shops:
+            if shop_id != keeper_id:
+                update_query = text("UPDATE sellers SET is_active = false WHERE id = :id")
+                db.execute(update_query, {"id": shop_id})
+                deactivated.append(shop_id)
+
+        db.commit()
+
+        return {
+            "message": f"Merged {len(deactivated)} duplicate shops",
+            "kept_shop_id": keeper_id,
+            "deactivated_shop_ids": deactivated
+        }
+    except Exception as e:
+        db.rollback()
+        print(f"Error merging shops: {str(e)}")
+        return {"error": str(e)}

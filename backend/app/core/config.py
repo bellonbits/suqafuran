@@ -80,7 +80,7 @@ class Settings(BaseSettings):
         return f"redis://{host}:{port}/{db}"
 
     # KAFKA
-    KAFKA_BOOTSTRAP_SERVERS: str = "kafka:9092"  # Kafka broker address
+    KAFKA_BOOTSTRAP_SERVERS: str = "kafka:29092"  # Kafka broker address (internal Docker network)
     KAFKA_SASL_USERNAME: Optional[str] = None
     KAFKA_SASL_PASSWORD: Optional[str] = None
     KAFKA_SECURITY_PROTOCOL: str = "PLAINTEXT"
