@@ -174,11 +174,14 @@ class KafkaService:
                 })
             try:
                 self.producer = ConfluentProducer(p_conf)
+                print("✅✅✅ Producer initialized successfully ✅✅✅")
                 logger.info("Successfully initialized Confluent Kafka Producer.")
             except Exception as e:
+                print(f"❌❌❌ Producer init failed: {e} ❌❌❌")
                 logger.error(f"Failed to initialize Confluent Kafka Producer: {e}. Falling back to Mock.")
                 self.producer = MockProducer(p_conf)
         else:
+            print("⚠️⚠️⚠️ KAFKA_AVAILABLE or KAFKA_BOOTSTRAP_SERVERS not set, using Mock Producer ⚠️⚠️⚠️")
             self.producer = MockProducer({})
 
     def _delivery_report(self, err, msg):
