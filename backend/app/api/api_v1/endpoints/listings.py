@@ -535,7 +535,7 @@ def read_listings(
 
 
 @router.post("/", response_model=Listing)
-def create_listing(
+async def create_listing(
     *,
     db: Session = Depends(deps.get_db),
     listing_in: ListingBase,
