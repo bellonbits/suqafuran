@@ -87,7 +87,7 @@ export default function ActiveDeliveryPage() {
     // Load Google Maps
     if (!window.google) {
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${AIzaSyAk6rrT_DxxSanx0pwKjLruI-XhgN_zsko}`;
       script.async = true;
       script.onload = () => drawMap();
       document.head.appendChild(script);

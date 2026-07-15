@@ -2,7 +2,7 @@ let scriptLoaded = false;
 let scriptLoading = false;
 const scriptCallbacks: Array<() => void> = [];
 
-const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+const GOOGLE_MAPS_API_KEY = 'AIzaSyAk6rrT_DxxSanx0pwKjLruI-XhgN_zsko';
 
 export function loadGoogleMapsScript(): Promise<void> {
     return new Promise((resolve) => {
