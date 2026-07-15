@@ -1,10 +1,10 @@
 """
-Kafka + WebSocket Integration Service
+Kafka + WebSocket Integration Service - Shops Focus
 
 Architecture:
   Backend API → Kafka Producer → Kafka Topic → Kafka Consumer → WebSocket Broadcast → Connected Clients
 
-This service connects Kafka event streaming with WebSocket real-time delivery.
+This service connects Kafka event streaming with WebSocket real-time delivery for shops.
 """
 
 import json
@@ -18,72 +18,116 @@ logger = logging.getLogger("kafka_websocket_integration")
 
 
 class KafkaWebSocketBridge:
-    """Bridges Kafka events to WebSocket clients."""
+    """Bridges Kafka events to WebSocket clients - Shops Focus."""
 
     # Event type to WebSocket action mapping
     EVENT_ROUTING = {
+        # Shop Events
+        "SHOP_CREATED": {
+            "action": "shop_update",
+            "channels": lambda payload: [f"shop_{payload.get('shop_id')}"],
+            "recipients": lambda payload: [payload.get("user_id")],
+        },
+        "SHOP_UPDATED": {
+            "action": "shop_update",
+            "channels": lambda payload: [f"shop_{payload.get('shop_id')}"],
+            "recipients": lambda payload: [payload.get("user_id")],
+        },
+
         # Order Events
         "ORDER_PLACED": {
             "action": "order_update",
-            "channels": lambda payload: [f"order_{payload.get('order_id')}"],
-            "recipients": lambda payload: [payload.get("user_id")],
+            "channels": lambda payload: [
+                f"order_{payload.get('order_id')}",
+                f"shop_{payload.get('shop_id')}"
+            ],
+            "recipients": lambda payload: [payload.get("buyer_id"), payload.get("seller_id")],
         },
         "ORDER_STATUS_UPDATED": {
-            "action": "order_update",
-            "channels": lambda payload: [f"order_{payload.get('order_id')}"],
-            "recipients": lambda payload: [payload.get("user_id"), payload.get("seller_id")],
+            "action": "order_status",
+            "channels": lambda payload: [
+                f"order_{payload.get('order_id')}",
+                f"shop_{payload.get('shop_id')}"
+            ],
+            "recipients": lambda payload: [payload.get("buyer_id"), payload.get("seller_id")],
         },
         "ORDER_CONFIRMED": {
-            "action": "order_update",
-            "channels": lambda payload: [f"order_{payload.get('order_id')}"],
-            "recipients": lambda payload: [payload.get("user_id"), payload.get("seller_id")],
+            "action": "order_confirmed",
+            "channels": lambda payload: [
+                f"order_{payload.get('order_id')}",
+                f"shop_{payload.get('shop_id')}"
+            ],
+            "recipients": lambda payload: [payload.get("buyer_id"), payload.get("seller_id")],
         },
 
-        # Stock Events
-        "STOCK_LOW": {
-            "action": "inventory_alert",
-            "channels": lambda payload: [f"shop_{payload.get('business_id')}"],
-            "recipients": lambda payload: [payload.get("business_id")],
-        },
-
-        # Employee/Team Events
-        "EMPLOYEE_ADDED": {
-            "action": "team_update",
-            "channels": lambda payload: [f"shop_{payload.get('business_id')}"],
-            "recipients": lambda payload: [],
-        },
-
-        # Delivery Events (to be added)
+        # Delivery Events
         "DELIVERY_ASSIGNED": {
             "action": "delivery_update",
             "channels": lambda payload: [
                 f"order_{payload.get('order_id')}",
-                f"rider_{payload.get('rider_id')}"
+                f"shop_{payload.get('shop_id')}"
             ],
-            "recipients": lambda payload: [payload.get("user_id"), payload.get("rider_id")],
+            "recipients": lambda payload: [payload.get("buyer_id"), payload.get("seller_id"), payload.get("rider_id")],
         },
         "DELIVERY_LOCATION_UPDATE": {
             "action": "delivery_location",
             "channels": lambda payload: [
                 f"order_{payload.get('order_id')}",
-                f"rider_{payload.get('rider_id')}"
+                f"shop_{payload.get('shop_id')}"
             ],
-            "recipients": lambda payload: [payload.get("user_id"), payload.get("rider_id")],
+            "recipients": lambda payload: [payload.get("buyer_id"), payload.get("seller_id")],
+        },
+        "DELIVERY_COMPLETED": {
+            "action": "delivery_completed",
+            "channels": lambda payload: [
+                f"order_{payload.get('order_id')}",
+                f"shop_{payload.get('shop_id')}"
+            ],
+            "recipients": lambda payload: [payload.get("buyer_id"), payload.get("seller_id")],
         },
 
         # Payment Events
         "PAYMENT_PROCESSED": {
             "action": "payment_update",
-            "channels": lambda payload: [f"user_{payload.get('user_id')}"],
-            "recipients": lambda payload: [payload.get("user_id")],
+            "channels": lambda payload: [
+                f"order_{payload.get('order_id')}",
+                f"shop_{payload.get('shop_id')}"
+            ],
+            "recipients": lambda payload: [payload.get("buyer_id"), payload.get("seller_id")],
         },
 
-        # Message Events
-        "MESSAGE_RECEIVED": {
+        # Shop Product Events
+        "PRODUCT_CREATED": {
+            "action": "product_update",
+            "channels": lambda payload: [f"shop_{payload.get('shop_id')}"],
+            "recipients": lambda payload: [payload.get("seller_id")],
+        },
+        "PRODUCT_UPDATED": {
+            "action": "product_update",
+            "channels": lambda payload: [f"shop_{payload.get('shop_id')}"],
+            "recipients": lambda payload: [payload.get("seller_id")],
+        },
+
+        # Inventory Events
+        "STOCK_LOW": {
+            "action": "inventory_alert",
+            "channels": lambda payload: [f"shop_{payload.get('shop_id')}"],
+            "recipients": lambda payload: [payload.get("seller_id")],
+        },
+
+        # Rating/Review Events
+        "REVIEW_RECEIVED": {
+            "action": "review_update",
+            "channels": lambda payload: [f"shop_{payload.get('shop_id')}"],
+            "recipients": lambda payload: [payload.get("seller_id")],
+        },
+
+        # Shop Message Events
+        "SHOP_MESSAGE_RECEIVED": {
             "action": "new_message",
             "channels": lambda payload: [
-                f"user_{payload.get('recipient_id')}",
-                f"chat_{payload.get('conversation_id')}"
+                f"shop_chat_{payload.get('shop_id')}",
+                f"user_{payload.get('recipient_id')}"
             ],
             "recipients": lambda payload: [payload.get("recipient_id")],
         },
@@ -159,81 +203,118 @@ def integrate_kafka_with_websocket():
     logger.info("✅ Kafka + WebSocket integration enabled")
 
 
-# Example: How to trigger events from your API endpoints
+# Example: How to trigger shop events from your API endpoints
 
-async def trigger_order_event(order_id: str, user_id: int, seller_id: int, status: str):
+async def trigger_shop_event(shop_id: str, user_id: int, event_type: str, data: dict = None):
+    """
+    Example: Shop update event
+
+    Broadcasts shop updates to all connected clients
+    """
+    event_payload = {
+        "shop_id": shop_id,
+        "user_id": user_id,
+        **(data or {}),
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+    # Send to Kafka + WebSocket
+    kafka_service.send_event(event_type, event_payload, key=str(shop_id))
+
+
+async def trigger_order_event(order_id: str, shop_id: str, buyer_id: int, seller_id: int, status: str):
     """
     Example: Order status update
 
-    This will:
-    1. Send to Kafka for persistence
-    2. Broadcast via WebSocket to connected clients
+    Notifies both buyer and seller via WebSocket + Kafka audit trail
     """
     event_payload = {
         "order_id": order_id,
-        "user_id": user_id,
+        "shop_id": shop_id,
+        "buyer_id": buyer_id,
         "seller_id": seller_id,
         "status": status,
         "timestamp": datetime.utcnow().isoformat(),
     }
 
-    # Send to Kafka
+    # Send to Kafka + WebSocket
     kafka_service.send_event("ORDER_STATUS_UPDATED", event_payload, key=str(order_id))
 
-    # WebSocket broadcast happens automatically via integration
 
-
-async def trigger_delivery_event(order_id: str, rider_id: int, user_id: int, latitude: float, longitude: float, eta: int):
+async def trigger_delivery_event(order_id: str, shop_id: str, buyer_id: int, seller_id: int, rider_id: int, latitude: float, longitude: float, eta: int):
     """
     Example: Delivery location update
 
-    Real-time GPS tracking via WebSocket + Kafka for audit trail
+    Real-time GPS tracking to buyer and seller
     """
     event_payload = {
         "order_id": order_id,
+        "shop_id": shop_id,
+        "buyer_id": buyer_id,
+        "seller_id": seller_id,
         "rider_id": rider_id,
-        "user_id": user_id,
         "latitude": latitude,
         "longitude": longitude,
         "eta_minutes": eta,
         "timestamp": datetime.utcnow().isoformat(),
     }
 
-    # Send to Kafka
+    # Send to Kafka + WebSocket
     kafka_service.send_event("DELIVERY_LOCATION_UPDATE", event_payload, key=str(order_id))
 
 
-async def trigger_payment_event(user_id: int, amount: float, status: str, payment_id: str):
+async def trigger_payment_event(order_id: str, shop_id: str, buyer_id: int, seller_id: int, amount: float, status: str):
     """
     Example: Payment confirmation
 
-    Instant notification via WebSocket + Kafka record for billing
+    Notify both parties of payment status
     """
     event_payload = {
-        "user_id": user_id,
+        "order_id": order_id,
+        "shop_id": shop_id,
+        "buyer_id": buyer_id,
+        "seller_id": seller_id,
         "amount": amount,
         "status": status,
-        "payment_id": payment_id,
         "timestamp": datetime.utcnow().isoformat(),
     }
 
-    # Send to Kafka
-    kafka_service.send_event("PAYMENT_PROCESSED", event_payload, key=str(user_id))
+    # Send to Kafka + WebSocket
+    kafka_service.send_event("PAYMENT_PROCESSED", event_payload, key=str(order_id))
 
 
-async def trigger_message_event(conversation_id: str, sender_id: int, recipient_id: int, message: str):
+async def trigger_shop_message_event(shop_id: str, sender_id: int, recipient_id: int, message: str):
     """
-    Example: New message notification
+    Example: Shop message notification
 
-    Instant delivery via WebSocket + Kafka for message history
+    Send message updates to shop customers/sellers
     """
     event_payload = {
-        "conversation_id": conversation_id,
+        "shop_id": shop_id,
         "sender_id": sender_id,
         "recipient_id": recipient_id,
         "message": message,
         "timestamp": datetime.utcnow().isoformat(),
     }
 
-    # Send to Kafka
-    kafka_service.send_event("MESSAGE_RECEIVED", event_payload, key=str(conversation_id))
+    # Send to Kafka + WebSocket
+    kafka_service.send_event("SHOP_MESSAGE_RECEIVED", event_payload, key=str(shop_id))
+
+
+async def trigger_inventory_event(shop_id: str, seller_id: int, product_id: str, product_name: str, stock_level: int):
+    """
+    Example: Low stock alert
+
+    Alert shop owner when inventory is low
+    """
+    event_payload = {
+        "shop_id": shop_id,
+        "seller_id": seller_id,
+        "product_id": product_id,
+        "product_name": product_name,
+        "stock_level": stock_level,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+    # Send to Kafka + WebSocket
+    kafka_service.send_event("STOCK_LOW", event_payload, key=str(shop_id))
