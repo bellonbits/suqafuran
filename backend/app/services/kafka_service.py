@@ -157,6 +157,10 @@ class KafkaService:
         self.consumer_thread = None
         self.is_running = False
 
+        # Debug: Log what settings are loaded
+        logger.info(f"🔧 KAFKA_BOOTSTRAP_SERVERS = '{settings.KAFKA_BOOTSTRAP_SERVERS}'")
+        logger.info(f"🔧 KAFKA_AVAILABLE = {KAFKA_AVAILABLE}")
+
         # Setup Producer Config
         if KAFKA_AVAILABLE and settings.KAFKA_BOOTSTRAP_SERVERS:
             p_conf = {'bootstrap.servers': settings.KAFKA_BOOTSTRAP_SERVERS}
