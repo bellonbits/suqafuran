@@ -386,7 +386,7 @@ function ShopsPageContent() {
                 </div>
                 <span className="text-[11px] font-semibold text-gray-700 dark:text-slate-300 mt-2 tracking-tight text-center w-[72px]">
                   <div className="truncate">{cat.name_en}</div>
-                  <div className="text-[9px] font-normal text-gray-500 dark:text-slate-400">[{shopCountsByCategory[cat.name_en] || 0}]</div>
+                  <div className="text-[9px] font-normal text-gray-500 dark:text-slate-400">[{shopCountsByCategory[cat.id] || 0}]</div>
                 </span>
               </div>
             );
