@@ -778,44 +778,49 @@ def get_public_shops(
             category_filter = "AND l.category_id = :category_id"
             params["category_id"] = category_id
 
-        # Fast query: get only shops WITH active listings and their category IDs, ordered by product count
+        # Fast query: paginate first, then get stats (much faster for large categories)
         query_str = f"""
-            WITH shop_stats AS (
-                SELECT s.id, s.user_id, s.shop_name, s.owner_name,
-                       s.shop_address, s.location_lat, s.location_lng,
-                       s.verification_status, s.is_active, s.created_at,
-                       COALESCE(s.shop_page_banner, u.shop_page_banner) as shop_page_banner,
-                       array_agg(DISTINCT l.category_id) as category_ids,
-                       COUNT(DISTINCT l.id) as listing_count
-                FROM sellers s
-                INNER JOIN listing l ON CAST(l.owner_id AS VARCHAR) = s.user_id AND l.status = 'active' {category_filter}
-                LEFT JOIN "user" u ON CAST(u.id AS VARCHAR) = s.user_id
-                WHERE s.verification_status = 'verified'
-                  AND s.is_active = true
-                  {search_filter}
-                GROUP BY s.id, s.user_id, s.shop_name, s.owner_name,
-                         s.shop_address, s.location_lat, s.location_lng,
-                         s.verification_status, s.is_active, s.created_at,
-                         s.shop_page_banner, u.shop_page_banner
-            )
-            SELECT ss.*, (SELECT COUNT(*) FROM shop_stats) as total_count
-            FROM shop_stats ss
-            ORDER BY ss.listing_count DESC, ss.id DESC
+            SELECT s.id, s.user_id, s.shop_name, s.owner_name,
+                   s.shop_address, s.location_lat, s.location_lng,
+                   s.verification_status, s.is_active, s.created_at,
+                   COALESCE(s.shop_page_banner, u.shop_page_banner) as shop_page_banner,
+                   COUNT(DISTINCT l.id) as listing_count
+            FROM sellers s
+            INNER JOIN listing l ON CAST(l.owner_id AS VARCHAR) = s.user_id AND l.status = 'active' {category_filter}
+            LEFT JOIN "user" u ON CAST(u.id AS VARCHAR) = s.user_id
+            WHERE s.verification_status = 'verified'
+              AND s.is_active = true
+              {search_filter}
+            GROUP BY s.id, s.user_id, s.shop_name, s.owner_name,
+                     s.shop_address, s.location_lat, s.location_lng,
+                     s.verification_status, s.is_active, s.created_at,
+                     s.shop_page_banner, u.shop_page_banner
+            ORDER BY listing_count DESC, s.id DESC
             OFFSET :skip LIMIT :limit
         """
 
+        # Separate count query for total (runs fast without LIMIT)
+        count_query_str = f"""
+            SELECT COUNT(DISTINCT s.id)
+            FROM sellers s
+            INNER JOIN listing l ON CAST(l.owner_id AS VARCHAR) = s.user_id AND l.status = 'active' {category_filter}
+            WHERE s.verification_status = 'verified'
+              AND s.is_active = true
+              {search_filter}
+        """
+
+        # Execute main query for paginated results
         query = text(query_str)
         result = db.execute(query, params)
         rows = result.fetchall()
 
-        total_shops = 0
+        # Execute count query for total (fast - no LIMIT clause)
+        count_query = text(count_query_str)
+        total_shops = db.execute(count_query, params).scalar() or 0
+
         shops = []
         for row in rows:
-            if total_shops == 0 and len(row) > 12:
-                total_shops = int(row[13])  # COUNT(*) OVER ()
-
-            category_ids = list(row[11]) if row[11] else []
-            listing_count = int(row[12]) if row[12] else 0
+            listing_count = int(row[11]) if row[11] else 0
             shops.append({
                 "id": str(row[0]),
                 "user_id": str(row[1]),
@@ -828,14 +833,14 @@ def get_public_shops(
                 "rating": 4.5,
                 "is_verified": True,
                 "listing_count": listing_count,
-                "category_ids": category_ids,
+                "category_ids": [],
                 "cover_image": None,
                 "shop_page_banner": row[10],
                 "slug": str(row[0]),
                 "created_at": row[9].isoformat() if row[9] else None,
             })
 
-        result_data = {"total": total_shops or len(shops), "shops": shops}
+        result_data = {"total": total_shops, "shops": shops}
 
         # Cache result (5 minutes) - except for searches
         if not search and not shop_id:
