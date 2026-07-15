@@ -17,6 +17,7 @@ from app.core.logging_config import setup_logging, get_logger
 from app.tasks.celery_app import celery_app
 import asyncio
 from app.services.kafka_service import kafka_service, ws_manager
+from app.services.kafka_websocket_integration import integrate_kafka_with_websocket
 
 # Initialize structured logging
 setup_logging()
@@ -113,9 +114,16 @@ async def start_background_event_consumer():
     alerts, CRM updates, order-status pushes, WebSocket broadcasts). Without
     this, kafka_service.send_event() calls are queued but never drained —
     notifications and realtime sockets silently never fire.
+
+    Also integrates Kafka events with WebSocket real-time delivery.
     """
     from app.db.session import SessionLocal
     ws_manager.set_event_loop(asyncio.get_event_loop())
+
+    # Enable Kafka + WebSocket integration
+    integrate_kafka_with_websocket()
+
+    # Start Kafka consumer
     kafka_service.start_consumer(SessionLocal)
 
 
