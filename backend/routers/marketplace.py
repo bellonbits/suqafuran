@@ -114,7 +114,7 @@ def list_public_shops(
             params["search"] = f"%{search}%"
 
         query = text(f"""
-            SELECT s.id, s.user_id, s.shop_name, s.owner_name, s.category,
+            SELECT DISTINCT ON (s.user_id) s.id, s.user_id, s.shop_name, s.owner_name, s.category,
                    s.shop_address, s.location_lat, s.location_lng,
                    s.verification_status, s.is_active, s.created_at,
                    COUNT(DISTINCT l.id) as listing_count
@@ -127,7 +127,7 @@ def list_public_shops(
                      s.shop_address, s.location_lat, s.location_lng,
                      s.verification_status, s.is_active, s.created_at
             HAVING COUNT(DISTINCT l.id) >= 1
-            ORDER BY s.created_at DESC
+            ORDER BY s.user_id, s.created_at DESC
             OFFSET :skip LIMIT :limit
         """)
 
@@ -189,9 +189,9 @@ def list_public_shops(
                 "created_at": row[10].isoformat() if row[10] else None,
             })
 
-        # Get total count
+        # Get total count (distinct by user_id to match the query above)
         count_query = text(f"""
-            SELECT COUNT(DISTINCT s.id)
+            SELECT COUNT(DISTINCT s.user_id)
             FROM sellers s
             JOIN listing l ON l.status = 'active' AND CAST(l.owner_id AS TEXT) = s.user_id
             WHERE s.verification_status = 'verified'
@@ -218,10 +218,10 @@ def list_shops(
     try:
         from sqlalchemy import text, func
 
-        # Use raw SQL to efficiently find sellers with listings
+        # Use raw SQL to efficiently find sellers with listings, deduplicating by user_id
         # Filter only numeric user_ids to avoid CAST errors
         query = text("""
-            SELECT DISTINCT s.id, s.user_id, s.shop_name, s.owner_name, s.phone, s.email,
+            SELECT DISTINCT ON (s.user_id) s.id, s.user_id, s.shop_name, s.owner_name, s.phone, s.email,
                    s.shop_address, s.location_lat, s.location_lng, s.created_at,
                    s.verification_status, s.is_active
             FROM sellers s
@@ -230,7 +230,7 @@ def list_shops(
             AND s.verification_status = 'verified'
             AND l.status = 'active'
             AND s.user_id ~ '^[0-9]+$'
-            ORDER BY s.created_at DESC
+            ORDER BY s.user_id, s.created_at DESC
             OFFSET :skip
             LIMIT :limit
         """)
