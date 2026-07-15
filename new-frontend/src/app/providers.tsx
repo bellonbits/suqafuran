@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '../store/useAuth';
 import { useFavoritesStore } from '../store/useFavorites';
+import { BottomNavigation } from '../components/shared/BottomNavigation';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
     const [queryClient] = useState(() => new QueryClient({
@@ -28,7 +29,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
     return (
         <QueryClientProvider client={queryClient}>
-            {children}
+            <div className="sm:pb-0 pb-20">
+                {children}
+            </div>
+            <BottomNavigation />
         </QueryClientProvider>
     );
 }
