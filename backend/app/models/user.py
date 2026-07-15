@@ -73,7 +73,10 @@ class User(UserBase, table=True, tablename="users"):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    listings: List["Listing"] = Relationship(back_populates="owner")
+    listings: List["Listing"] = Relationship(
+        back_populates="owner",
+        sa_relationship_kwargs={"foreign_keys": "Listing.owner_id"}
+    )
     verification_requests: List["VerificationRequest"] = Relationship(back_populates="user")
     wallet: Optional["Wallet"] = Relationship(back_populates="user")
 
