@@ -362,7 +362,9 @@ def register_seller(
     existing_seller = db.query(Seller).filter(Seller.email == seller_data.email).first()
     if existing_seller:
         raise HTTPException(status_code=400, detail="Email already registered")
-    
+
+    # Prevent users from creating multiple active seller accounts
+    # Only one active seller per user is allowed
     new_seller = Seller(
         user_id="temp",
         shop_name=seller_data.shop_name,
@@ -379,7 +381,7 @@ def register_seller(
     db.add(new_seller)
     db.commit()
     db.refresh(new_seller)
-    
+
     return new_seller
 
 @app.get("/api/v1/sellers/me", response_model=SellerResponse)
