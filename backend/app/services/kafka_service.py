@@ -10,8 +10,14 @@ from app.core.config import settings
 
 logger = logging.getLogger("kafka_service")
 
-# Dynamic import of confluent_kafka - Force disabled to use in-memory Mock Kafka
-KAFKA_AVAILABLE = False
+# Dynamic import of confluent_kafka
+try:
+    from confluent_kafka import Producer as ConfluentProducer, Consumer as ConfluentConsumer, KafkaError
+    KAFKA_AVAILABLE = True
+    logger.info("✅ confluent_kafka library loaded successfully")
+except ImportError:
+    KAFKA_AVAILABLE = False
+    logger.warning("⚠️ confluent_kafka not available, using Mock Kafka")
 
 
 
