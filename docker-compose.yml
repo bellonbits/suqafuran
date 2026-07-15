@@ -24,6 +24,8 @@ services:
       dockerfile: Dockerfile.backend
     container_name: suqafuran-backend
     env_file: .env
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
     ports:
       - "8011:8000"
     volumes:
