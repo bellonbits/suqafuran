@@ -48,13 +48,9 @@ export const Header: React.FC = () => {
         }
     }, []);
 
-    // Scroll listener for logo visibility
+    // Logo always visible (removed scroll-based hiding)
     useEffect(() => {
-        const handleScroll = () => {
-            setShowLogo(window.scrollY > 300);
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+        setShowLogo(true);
     }, []);
 
     // Fetch seller status when user is authenticated
@@ -104,10 +100,8 @@ export const Header: React.FC = () => {
                 {/* Top Bar - Logo, Search, Quick Actions */}
                 <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6">
 
-                    {/* Brand Logo - Appears when scrolling down */}
-                    <Link href="/" className={`flex items-center gap-2 shrink-0 hover:opacity-90 transition-all duration-300 ${
-                        showLogo ? 'opacity-100 scale-100' : 'opacity-0 scale-95 absolute pointer-events-none'
-                    }`}>
+                    {/* Brand Logo - Always visible */}
+                    <Link href="/" className="flex items-center gap-2 shrink-0 hover:opacity-90 transition-opacity duration-300">
                         <img src="/icon1.png" alt="Suqafuran Logo" className="h-8 w-auto object-contain" />
                     </Link>
 
