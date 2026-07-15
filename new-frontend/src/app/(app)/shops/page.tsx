@@ -197,6 +197,7 @@ function ShopsPageContent() {
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
+  const categoryParam = searchParams.get('category');
 
   // Debounce search
   useEffect(() => {
@@ -210,12 +211,24 @@ function ShopsPageContent() {
       try {
         const cats = await listingsService.getCategories();
         setCategories(cats || []);
+
+        // If category param is provided, find matching category ID and select it
+        if (categoryParam && cats && cats.length > 0) {
+          const categorySlug = decodeURIComponent(categoryParam);
+          const matchedCat = cats.find(c =>
+            c.slug === categorySlug ||
+            c.name_en?.toLowerCase().replace(/\s+/g, '-') === categorySlug.toLowerCase()
+          );
+          if (matchedCat) {
+            setSelectedCategoryId(matchedCat.id);
+          }
+        }
       } catch (err) {
         console.error('Failed to load categories:', err);
       }
     }
     loadCategories();
-  }, []);
+  }, [categoryParam]);
 
   // Reset to page 1 on search or category filter change
   useEffect(() => {

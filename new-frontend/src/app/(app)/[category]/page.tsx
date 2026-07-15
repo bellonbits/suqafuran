@@ -90,10 +90,10 @@ const categorySlugMap: Record<string, string> = {
 /* ─────────────────────────────────────────────────────────────────────────────
    STORE CARD — Circular Logo + Delivery Info (Row format)
 ───────────────────────────────────────────────────────────────────────────── */
-function CategoryStoreCard({ store }: { store: Store }) {
+function CategoryStoreCard({ store, category }: { store: Store; category: string }) {
     return (
-        <Link 
-            href={`/shop/${store.slug}`}
+        <Link
+            href={`/shop/${store.slug}?category=${encodeURIComponent(category)}`}
             className="flex items-center gap-3 p-4 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl hover:shadow-md transition-all duration-200 cursor-pointer"
         >
             {/* Circular Logo */}
@@ -399,7 +399,7 @@ export default function CategoryPage({ params }: PageProps) {
                     <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">Stores Near You</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                         {filteredStores.map(store => (
-                            <CategoryStoreCard key={store.id} store={store} />
+                            <CategoryStoreCard key={store.id} store={store} category={category} />
                         ))}
                     </div>
                 </section>
@@ -440,7 +440,7 @@ export default function CategoryPage({ params }: PageProps) {
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <Link href={`/shop/${store.slug}`} className="text-xs font-bold text-[#FF3008] hover:underline mr-2">
+                                        <Link href={`/shop/${store.slug}?category=${encodeURIComponent(category)}`} className="text-xs font-bold text-[#FF3008] hover:underline mr-2">
                                             See All
                                         </Link>
                                         <button 
