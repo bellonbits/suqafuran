@@ -157,7 +157,7 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
               <span className="text-[13px] font-extrabold shrink-0">KSh 100</span>
             )}
             <span className="text-gray-300 dark:text-slate-700 font-normal shrink-0">•</span>
-            <span className="hidden md:inline shrink-0 truncate">{delTime}</span>
+            <span className="hidden md:inline shrink-0 text-[11px] max-w-[150px] truncate">{delTime}</span>
             <span className="hidden md:inline text-gray-300 dark:text-slate-700 font-normal shrink-0">•</span>
             <div className="flex items-center gap-1 shrink-0 font-bold">
               <ThumbsUp className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 shrink-0" />
