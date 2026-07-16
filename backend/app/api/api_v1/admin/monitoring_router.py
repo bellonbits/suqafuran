@@ -271,12 +271,188 @@ async def get_kafka_topic_messages(
 
 @router.get("/notifications/funnel")
 async def get_notification_funnel(
+    db: Session = Depends(deps.get_db),
     current_user: Any = Depends(deps.get_current_active_user),
+    date_from: Optional[datetime] = Query(None),
+    date_to: Optional[datetime] = Query(None),
+    domain: Optional[str] = Query(None),
+    channel: Optional[str] = Query(None),
+    event_type: Optional[str] = Query(None),
 ) -> Dict[str, Any]:
-    """Placeholder for Phase 2: Notification funnel data."""
+    """Get notification delivery funnel data.
+
+    Shows progression through stages: requested → dispatched → sent → delivered
+    Grouped by event type and channel.
+
+    Query Params:
+    - date_from: Start date (default: 24h ago)
+    - date_to: End date (default: now)
+    - domain: Filter by domain (auth, catalog, orders, payments, riders)
+    - channel: Filter by channel (sms, email, push)
+    - event_type: Filter by event type substring
+    """
     if not current_user or not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
-    return {"status": "not_implemented_yet"}
+
+    try:
+        from app.services.notification_monitor import NotificationMetrics
+
+        metrics = NotificationMetrics(db)
+        funnel_data = metrics.get_funnel_data(
+            date_from=date_from,
+            date_to=date_to,
+            domain=domain,
+            channel=channel,
+            event_type=event_type,
+        )
+
+        return {
+            "funnel": funnel_data,
+            "filters": {
+                "date_from": date_from.isoformat() if date_from else None,
+                "date_to": date_to.isoformat() if date_to else None,
+                "domain": domain,
+                "channel": channel,
+                "event_type": event_type,
+            },
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Error getting notification funnel: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get notification funnel")
+
+
+@router.get("/notifications/summary")
+async def get_notification_summary(
+    db: Session = Depends(deps.get_db),
+    current_user: Any = Depends(deps.get_current_active_user),
+    date_from: Optional[datetime] = Query(None),
+    date_to: Optional[datetime] = Query(None),
+    channel: Optional[str] = Query(None),
+) -> Dict[str, Any]:
+    """Get notification delivery summary table.
+
+    Returns per-event-type metrics: sent, failed, success rate, avg delivery time.
+    """
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    try:
+        from app.services.notification_monitor import NotificationMetrics
+
+        metrics = NotificationMetrics(db)
+        summary = metrics.get_notification_summary(
+            date_from=date_from,
+            date_to=date_to,
+            channel=channel,
+        )
+
+        return {
+            "summary": summary,
+            "total_sent": sum(s["sent"] for s in summary),
+            "total_failed": sum(s["failed"] for s in summary),
+            "overall_success_rate": (
+                sum(s["sent"] - s["failed"] for s in summary)
+                / sum(s["sent"] for s in summary)
+                * 100
+                if summary
+                else 100
+            ),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Error getting notification summary: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get notification summary")
+
+
+@router.get("/notifications/events")
+async def get_notification_events(
+    db: Session = Depends(deps.get_db),
+    current_user: Any = Depends(deps.get_current_active_user),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=500),
+    status: Optional[str] = Query(None),
+    event_type: Optional[str] = Query(None),
+    channel: Optional[str] = Query(None),
+    user_id: Optional[int] = Query(None),
+) -> Dict[str, Any]:
+    """Get paginated list of notification delivery attempts.
+
+    Each row represents one notification sent attempt with delivery status,
+    error message if failed, and correlation/trace IDs for debugging.
+
+    Query Params:
+    - status: Filter by 'sent', 'failed', 'pending', 'delivered'
+    - event_type: Filter by event type substring
+    - channel: Filter by 'sms', 'email', 'push'
+    - user_id: Filter by user ID
+    """
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    try:
+        from app.services.notification_monitor import NotificationMetrics
+
+        metrics = NotificationMetrics(db)
+        events, total = metrics.get_notification_attempts(
+            skip=skip,
+            limit=limit,
+            status=status,
+            event_type=event_type,
+            channel=channel,
+            user_id=user_id,
+        )
+
+        return {
+            "events": [
+                {
+                    **event,
+                    "dispatched_at": event["dispatched_at"].isoformat(),
+                    "delivered_at": event["delivered_at"].isoformat()
+                    if event["delivered_at"]
+                    else None,
+                }
+                for event in events
+            ],
+            "total": total,
+            "skip": skip,
+            "limit": limit,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Error getting notification events: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get notification events")
+
+
+@router.post("/notifications/{notification_id}/retry")
+async def retry_notification(
+    notification_id: str,
+    db: Session = Depends(deps.get_db),
+    current_user: Any = Depends(deps.get_current_active_user),
+) -> Dict[str, Any]:
+    """Retry a failed notification.
+
+    Re-publishes the notification to the dispatch queue for re-delivery attempt.
+    Only works on failed notifications.
+    """
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    try:
+        from app.services.notification_monitor import NotificationMetrics
+
+        metrics = NotificationMetrics(db)
+        result = metrics.retry_notification(notification_id)
+
+        logger.info(
+            f"Admin {current_user.id} retried notification {notification_id}",
+            extra={"notification_id": notification_id, "admin_id": current_user.id},
+        )
+
+        return result
+    except Exception as e:
+        logger.error(f"Error retrying notification {notification_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retry notification")
 
 
 @router.get("/traces/search")
