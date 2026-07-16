@@ -1,13 +1,15 @@
 """Monitoring dashboard API endpoints for admin operations."""
 
 import logging
+import asyncio
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from sqlalchemy import func, select
 from sqlmodel import Session
 from app.api import deps
 from app.services.kafka_admin import get_kafka_admin, TopicMetrics
+from app.services.event_stream import get_event_stream_manager
 from app.database import SessionLocal
 from app.core.config import settings
 
@@ -646,14 +648,85 @@ async def get_critical_paths(
     }
 
 
-@router.get("/live")
-async def get_live_events(
+@router.get("/live/history")
+async def get_live_event_history(
+    limit: int = Query(50, ge=1, le=200),
     current_user: Any = Depends(deps.get_current_active_user),
 ) -> Dict[str, Any]:
-    """Placeholder for Phase 4: Live events WebSocket."""
+    """Get recent event history from live stream.
+
+    Query Params:
+    - limit: Max events to return (1-200, default 50)
+    """
     if not current_user or not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
-    return {"status": "not_implemented_yet"}
+
+    try:
+        manager = get_event_stream_manager()
+        history = manager.get_event_history(limit)
+        return {
+            "events": history,
+            "total": len(history),
+            "active_connections": manager.get_connection_count(),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Error fetching event history: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch event history")
+
+
+@router.websocket("/live/ws")
+async def websocket_live_events(websocket: WebSocket):
+    """WebSocket endpoint for real-time event streaming.
+
+    Sends LiveEvent JSON objects as they occur. Client can subscribe to:
+    - Notification events (sent, delivered, failed)
+    - Kafka events (message, lag changed)
+    - Order events (created, paid, shipped, cancelled)
+    - Alert events (triggered)
+    - System events (errors)
+
+    Message format:
+    {
+        "event_type": "notification.sent|kafka.message|order.created|...",
+        "timestamp": "2024-07-16T...",
+        "service": "notification-service|kafka-admin|orders-service|...",
+        "data": {...event-specific data...},
+        "severity": "info|warning|error",
+        "trace_id": "optional-trace-id",
+        "correlation_id": "optional-correlation-id"
+    }
+    """
+    await websocket.accept()
+    manager = get_event_stream_manager()
+    queue: asyncio.Queue = asyncio.Queue()
+
+    try:
+        # Register client
+        await manager.connect(queue)
+
+        # Send initial connection message
+        await websocket.send_json({
+            "type": "connection",
+            "message": "Connected to live event stream",
+            "timestamp": datetime.utcnow().isoformat(),
+        })
+
+        # Listen for events and send to client
+        while True:
+            event = await queue.get()
+            await websocket.send_json(event.to_dict())
+
+    except WebSocketDisconnect:
+        await manager.disconnect(queue)
+        logger.info("WebSocket client disconnected")
+    except Exception as e:
+        logger.error(f"WebSocket error: {e}")
+        await manager.disconnect(queue)
+        try:
+            await websocket.close(code=1000)
+        except Exception:
+            pass
 
 
 @router.get("/alerts")
