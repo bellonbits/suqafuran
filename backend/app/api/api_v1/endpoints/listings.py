@@ -204,17 +204,17 @@ def get_shop_counts_by_category(
 ) -> Any:
     """
     Get count of verified shops per category (by their active listings).
+    Matches the shops endpoint logic - counts all verified users with active listings.
     Returns: { "category_id": shop_count, ... }
     """
     from sqlalchemy import text
 
     rows = db.execute(
         text("""
-            SELECT l.category_id, COUNT(DISTINCT s.id) as shop_count
-            FROM sellers s
-            INNER JOIN listing l ON CAST(l.owner_id AS VARCHAR) = s.user_id AND l.status = 'active'
-            WHERE s.is_active = true
-            AND s.verification_status = 'verified'
+            SELECT l.category_id, COUNT(DISTINCT u.id) as shop_count
+            FROM "user" u
+            INNER JOIN listing l ON l.owner_id = u.id AND l.status = 'active'
+            WHERE u.is_verified = true
             GROUP BY l.category_id
         """)
     ).fetchall()
@@ -860,10 +860,10 @@ def get_public_shops(
 
         result_data = {"total": total_shops, "shops": shops}
 
-        # Cache result - longer TTL for category-filtered (10 min) vs all shops (5 min)
+        # Cache result - shorter TTL for faster updates (2 min for category, 1 min for all)
         if not search and not shop_id:
             try:
-                ttl = 600 if category_id else 300  # 10 min for category, 5 min for all
+                ttl = 120 if category_id else 60  # 2 min for category, 1 min for all
                 cache.set(cache_key, _json.dumps(result_data, default=str), ttl=ttl)
             except Exception:
                 pass
