@@ -7,15 +7,48 @@ from typing import Dict, List, Optional, Any
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from sqlalchemy import func, select
 from sqlmodel import Session
+from pydantic import BaseModel
 from app.api import deps
 from app.services.kafka_admin import get_kafka_admin, TopicMetrics
 from app.services.event_stream import get_event_stream_manager
+from app.services.alert_engine import get_alert_engine
+from app.models.monitoring import AlertRule, AlertHistory
 from app.database import SessionLocal
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/admin/monitoring", tags=["admin-monitoring"])
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PYDANTIC MODELS
+# ─────────────────────────────────────────────────────────────────────────────
+
+class AlertRuleCreate(BaseModel):
+    """Create alert rule request."""
+    name: str
+    description: Optional[str] = None
+    metric_type: str
+    condition_type: str
+    threshold_value: float
+    threshold_value_high: Optional[float] = None
+    severity: str = "warning"
+    alert_message: str
+    cooldown_minutes: Optional[int] = 30
+
+
+class AlertRuleUpdate(BaseModel):
+    """Update alert rule request."""
+    name: Optional[str] = None
+    description: Optional[str] = None
+    condition_type: Optional[str] = None
+    threshold_value: Optional[float] = None
+    threshold_value_high: Optional[float] = None
+    severity: Optional[str] = None
+    alert_message: Optional[str] = None
+    cooldown_minutes: Optional[int] = None
+    is_active: Optional[bool] = None
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -729,11 +762,376 @@ async def websocket_live_events(websocket: WebSocket):
             pass
 
 
-@router.get("/alerts")
-async def list_alerts(
+# ─────────────────────────────────────────────────────────────────────────────
+# ALERT RULES ENDPOINTS
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.get("/alerts/rules")
+async def list_alert_rules(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=500),
+    is_active: Optional[bool] = Query(None),
+    db: Session = Depends(deps.get_db),
     current_user: Any = Depends(deps.get_current_active_user),
 ) -> Dict[str, Any]:
-    """Placeholder for Phase 5: Alert rules."""
+    """List alert rules with pagination and filtering.
+
+    Query Params:
+    - skip: Number to skip (pagination)
+    - limit: Max results to return
+    - is_active: Filter by active status (optional)
+    """
     if not current_user or not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
-    return {"status": "not_implemented_yet"}
+
+    try:
+        query = select(AlertRule)
+        if is_active is not None:
+            query = query.where(AlertRule.is_active == is_active)
+
+        total = db.exec(select(func.count(AlertRule.id))).one()
+        rules = db.exec(query.offset(skip).limit(limit)).all()
+
+        return {
+            "rules": [
+                {
+                    "id": rule.id,
+                    "name": rule.name,
+                    "description": rule.description,
+                    "metric_type": rule.metric_type,
+                    "condition_type": rule.condition_type,
+                    "threshold_value": rule.threshold_value,
+                    "severity": rule.severity,
+                    "is_active": rule.is_active,
+                    "cooldown_minutes": rule.cooldown_minutes,
+                    "created_at": rule.created_at,
+                }
+                for rule in rules
+            ],
+            "total": total,
+            "skip": skip,
+            "limit": limit,
+        }
+    except Exception as e:
+        logger.error(f"Error listing alert rules: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/alerts/rules")
+async def create_alert_rule(
+    data: AlertRuleCreate,
+    db: Session = Depends(deps.get_db),
+    current_user: Any = Depends(deps.get_current_active_user),
+) -> Dict[str, Any]:
+    """Create a new alert rule.
+
+    Body:
+    - name: Rule name
+    - metric_type: Type of metric to monitor
+    - condition_type: Condition to check (greater_than, less_than, between, etc.)
+    - threshold_value: Primary threshold
+    - severity: Alert severity (info, warning, critical)
+    """
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    try:
+        rule = AlertRule(
+            name=data.name,
+            description=data.description,
+            metric_type=data.metric_type,
+            condition_type=data.condition_type,
+            threshold_value=data.threshold_value,
+            threshold_value_high=data.threshold_value_high,
+            severity=data.severity,
+            alert_message=data.alert_message,
+            cooldown_minutes=data.cooldown_minutes,
+            created_by=current_user.id,
+        )
+        db.add(rule)
+        db.commit()
+        db.refresh(rule)
+
+        return {
+            "success": True,
+            "message": "Alert rule created successfully",
+            "rule_id": rule.id,
+        }
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error creating alert rule: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/alerts/rules/{rule_id}")
+async def get_alert_rule(
+    rule_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: Any = Depends(deps.get_current_active_user),
+) -> Dict[str, Any]:
+    """Get detailed alert rule information."""
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    rule = db.get(AlertRule, rule_id)
+    if not rule:
+        raise HTTPException(status_code=404, detail="Alert rule not found")
+
+    # Get recent incidents for this rule
+    recent_alerts = db.exec(
+        select(AlertHistory)
+        .where(AlertHistory.alert_rule_id == rule_id)
+        .order_by(AlertHistory.created_at.desc())
+        .limit(10)
+    ).all()
+
+    return {
+        "rule": {
+            "id": rule.id,
+            "name": rule.name,
+            "description": rule.description,
+            "metric_type": rule.metric_type,
+            "condition_type": rule.condition_type,
+            "threshold_value": rule.threshold_value,
+            "threshold_value_high": rule.threshold_value_high,
+            "severity": rule.severity,
+            "alert_message": rule.alert_message,
+            "is_active": rule.is_active,
+            "cooldown_minutes": rule.cooldown_minutes,
+            "created_at": rule.created_at,
+            "updated_at": rule.updated_at,
+        },
+        "recent_incidents": [
+            {
+                "id": alert.id,
+                "triggered": alert.triggered,
+                "current_value": alert.current_value,
+                "threshold_value": alert.threshold_value,
+                "message": alert.message,
+                "acknowledged": alert.acknowledged,
+                "created_at": alert.created_at,
+            }
+            for alert in recent_alerts
+        ],
+    }
+
+
+@router.patch("/alerts/rules/{rule_id}")
+async def update_alert_rule(
+    rule_id: int,
+    data: AlertRuleUpdate,
+    db: Session = Depends(deps.get_db),
+    current_user: Any = Depends(deps.get_current_active_user),
+) -> Dict[str, Any]:
+    """Update an existing alert rule."""
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    try:
+        rule = db.get(AlertRule, rule_id)
+        if not rule:
+            raise HTTPException(status_code=404, detail="Alert rule not found")
+
+        update_data = data.dict(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(rule, key, value)
+
+        db.add(rule)
+        db.commit()
+        db.refresh(rule)
+
+        return {
+            "success": True,
+            "message": "Alert rule updated successfully",
+            "rule_id": rule.id,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating alert rule: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete("/alerts/rules/{rule_id}")
+async def delete_alert_rule(
+    rule_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: Any = Depends(deps.get_current_active_user),
+) -> Dict[str, Any]:
+    """Delete an alert rule."""
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    try:
+        rule = db.get(AlertRule, rule_id)
+        if not rule:
+            raise HTTPException(status_code=404, detail="Alert rule not found")
+
+        db.delete(rule)
+        db.commit()
+
+        return {
+            "success": True,
+            "message": "Alert rule deleted successfully",
+        }
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error deleting alert rule: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/alerts/history")
+async def get_alert_history(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=500),
+    hours: int = Query(24, ge=1, le=7*24),
+    acknowledged: Optional[bool] = Query(None),
+    db: Session = Depends(deps.get_db),
+    current_user: Any = Depends(deps.get_current_active_user),
+) -> Dict[str, Any]:
+    """Get alert history with pagination.
+
+    Query Params:
+    - skip: Number to skip
+    - limit: Max results
+    - hours: Look back N hours (1-168)
+    - acknowledged: Filter by acknowledgment status
+    """
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    try:
+        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+
+        query = select(AlertHistory).where(AlertHistory.created_at >= cutoff_time)
+
+        if acknowledged is not None:
+            query = query.where(AlertHistory.acknowledged == acknowledged)
+
+        total = db.exec(
+            select(func.count(AlertHistory.id)).where(AlertHistory.created_at >= cutoff_time)
+        ).one()
+
+        alerts = db.exec(
+            query.order_by(AlertHistory.created_at.desc()).offset(skip).limit(limit)
+        ).all()
+
+        return {
+            "alerts": [
+                {
+                    "id": alert.id,
+                    "alert_rule_id": alert.alert_rule_id,
+                    "triggered": alert.triggered,
+                    "current_value": alert.current_value,
+                    "threshold_value": alert.threshold_value,
+                    "message": alert.message,
+                    "acknowledged": alert.acknowledged,
+                    "acknowledged_at": alert.acknowledged_at,
+                    "created_at": alert.created_at,
+                }
+                for alert in alerts
+            ],
+            "total": total,
+            "skip": skip,
+            "limit": limit,
+            "hours_lookback": hours,
+        }
+    except Exception as e:
+        logger.error(f"Error getting alert history: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/alerts/history/{alert_id}/acknowledge")
+async def acknowledge_alert(
+    alert_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: Any = Depends(deps.get_current_active_user),
+) -> Dict[str, Any]:
+    """Acknowledge an alert."""
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    try:
+        alert = db.get(AlertHistory, alert_id)
+        if not alert:
+            raise HTTPException(status_code=404, detail="Alert not found")
+
+        alert.acknowledged = True
+        alert.acknowledged_at = datetime.utcnow()
+        alert.acknowledged_by = current_user.id
+
+        db.add(alert)
+        db.commit()
+
+        return {
+            "success": True,
+            "message": "Alert acknowledged",
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error acknowledging alert: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/alerts/stats")
+async def get_alert_stats(
+    hours: int = Query(24, ge=1, le=7*24),
+    db: Session = Depends(deps.get_db),
+    current_user: Any = Depends(deps.get_current_active_user),
+) -> Dict[str, Any]:
+    """Get alert statistics for the dashboard.
+
+    Query Params:
+    - hours: Time range to analyze (1-168)
+    """
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    try:
+        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+
+        total_alerts = db.exec(
+            select(func.count(AlertHistory.id)).where(
+                AlertHistory.created_at >= cutoff_time
+            )
+        ).one()
+
+        triggered_alerts = db.exec(
+            select(func.count(AlertHistory.id)).where(
+                AlertHistory.created_at >= cutoff_time,
+                AlertHistory.triggered == True,
+            )
+        ).one()
+
+        acknowledged = db.exec(
+            select(func.count(AlertHistory.id)).where(
+                AlertHistory.created_at >= cutoff_time,
+                AlertHistory.acknowledged == True,
+            )
+        ).one()
+
+        unacknowledged = db.exec(
+            select(func.count(AlertHistory.id)).where(
+                AlertHistory.created_at >= cutoff_time,
+                AlertHistory.acknowledged == False,
+            )
+        ).one()
+
+        active_rules = db.exec(
+            select(func.count(AlertRule.id)).where(AlertRule.is_active == True)
+        ).one()
+
+        return {
+            "total_alerts": total_alerts,
+            "triggered_alerts": triggered_alerts,
+            "acknowledged": acknowledged,
+            "unacknowledged": unacknowledged,
+            "active_rules": active_rules,
+            "hours_range": hours,
+        }
+    except Exception as e:
+        logger.error(f"Error getting alert stats: {e}")
+        raise HTTPException(status_code=400, detail=str(e))

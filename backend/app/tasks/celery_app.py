@@ -9,6 +9,7 @@ celery_app = Celery(
         "app.tasks.notification_tasks",
         "app.tasks.promotion_tasks",
         "app.tasks.email_tasks",
+        "app.tasks.alert_tasks",
     ],
 )
 
@@ -39,6 +40,17 @@ celery_app.conf.update(
         "retry-failed-stk-pushes": {
             "task": "app.tasks.promotion_tasks.retry_failed_stk_pushes",
             "schedule": 300.0,
+        },
+        # Evaluate alert rules — every 5 minutes
+        "evaluate-alert-rules": {
+            "task": "evaluate_alert_rules",
+            "schedule": 300.0,
+        },
+        # Cleanup old alerts — daily at 2 AM UTC
+        "cleanup-old-alerts": {
+            "task": "cleanup_old_alerts",
+            "schedule": 86400.0,  # Once per day
+            "kwargs": {"days": 30},
         },
     },
 )
