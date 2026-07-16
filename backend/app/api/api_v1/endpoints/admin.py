@@ -1667,3 +1667,123 @@ def update_user_admin(
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SHOP MANAGEMENT ENDPOINTS
+# ─────────────────────────────────────────────────────────────────────────────
+
+class ShopNameUpdate(BaseModel):
+    """Update shop/seller business name."""
+    business_name: str
+
+
+@router.patch("/shops/{user_id}/name")
+async def update_shop_name(
+    user_id: int,
+    data: ShopNameUpdate,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> dict[str, Any]:
+    """Admin endpoint to update a shop's business name.
+
+    Path Params:
+    - user_id: ID of the seller/shop owner
+
+    Body:
+    - business_name: New shop name (1-100 characters)
+    """
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    # Validate shop name
+    if not data.business_name or len(data.business_name.strip()) == 0:
+        raise HTTPException(status_code=400, detail="Shop name cannot be empty")
+
+    if len(data.business_name) > 100:
+        raise HTTPException(status_code=400, detail="Shop name must be 100 characters or less")
+
+    try:
+        # Get user/seller
+        user = db.get(User, user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="Shop/user not found")
+
+        # Update business name
+        old_name = user.business_name
+        user.business_name = data.business_name.strip()
+
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        # Invalidate cache for this user
+        cache.delete(f"user:{user_id}")
+        cache.delete(f"user_listings:{user_id}")
+        cache.delete("all_shops")
+
+        return {
+            "success": True,
+            "message": "Shop name updated successfully",
+            "user_id": user_id,
+            "old_name": old_name,
+            "new_name": user.business_name,
+            "updated_at": user.updated_at or user.created_at,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/shops")
+async def list_shops(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=500),
+    search: Optional[str] = Query(None),
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> dict[str, Any]:
+    """Admin endpoint to list all shops with their names.
+
+    Query Params:
+    - skip: Number of shops to skip (for pagination)
+    - limit: Max shops to return (1-500)
+    - search: Optional search by business name
+    """
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    try:
+        query = select(User).where(User.business_name.isnot(None))
+
+        if search:
+            search_term = f"%{search.lower()}%"
+            query = query.where(func.lower(User.business_name).like(search_term))
+
+        total = db.exec(select(func.count(User.id)).where(User.business_name.isnot(None))).one()
+
+        shops = db.exec(query.offset(skip).limit(limit)).all()
+
+        return {
+            "shops": [
+                {
+                    "id": shop.id,
+                    "business_name": shop.business_name,
+                    "full_name": shop.full_name,
+                    "email": shop.email,
+                    "phone": shop.phone,
+                    "is_verified": shop.is_verified,
+                    "is_active": shop.is_active,
+                    "created_at": shop.created_at,
+                    "updated_at": shop.updated_at,
+                }
+                for shop in shops
+            ],
+            "total": total,
+            "skip": skip,
+            "limit": limit,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+

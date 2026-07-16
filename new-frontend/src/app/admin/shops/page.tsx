@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Eye, Loader, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, Loader, ChevronLeft, ChevronRight, X, AlertCircle, Check } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/services/api';
 
@@ -25,6 +25,13 @@ export default function ShopsAdminPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const itemsPerPage = 500; // API max limit is 500
+
+  // Edit modal state
+  const [editingShop, setEditingShop] = useState<Shop | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editError, setEditError] = useState('');
+  const [editSuccess, setEditSuccess] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
 
   // Sort shops alphabetically by business_name
   const sortedShops = [...shops].sort((a, b) =>
@@ -106,6 +113,61 @@ export default function ShopsAdminPage() {
     } catch (error) {
       console.error('Error deleting banner:', error);
       alert('Failed to delete banner');
+    }
+  };
+
+  const handleEditNameClick = (shop: Shop) => {
+    setEditingShop(shop);
+    setEditName(shop.business_name);
+    setEditError('');
+    setEditSuccess('');
+  };
+
+  const handleSaveShopName = async () => {
+    if (!editingShop) return;
+
+    if (!editName.trim()) {
+      setEditError('Shop name cannot be empty');
+      return;
+    }
+
+    if (editName === editingShop.business_name) {
+      setEditError('No changes made');
+      return;
+    }
+
+    if (editName.length > 100) {
+      setEditError('Shop name must be 100 characters or less');
+      return;
+    }
+
+    setEditSaving(true);
+    setEditError('');
+
+    try {
+      const response = await api.patch(`/admin/shops/${editingShop.id}/name`, {
+        business_name: editName.trim()
+      });
+
+      // Update the shops list
+      setShops(shops.map(shop =>
+        shop.id === editingShop.id
+          ? { ...shop, business_name: response.data.new_name }
+          : shop
+      ));
+
+      setEditSuccess('Shop name updated successfully');
+
+      setTimeout(() => {
+        setEditingShop(null);
+        setEditError('');
+        setEditSuccess('');
+      }, 1500);
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.detail || error.message || 'Failed to update shop name';
+      setEditError(errorMsg);
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -215,6 +277,13 @@ export default function ShopsAdminPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditNameClick(shop)}
+                            className="p-2 text-orange-600 hover:bg-orange-50 rounded"
+                            title="Edit shop name"
+                          >
+                            <Edit2 size={18} />
+                          </button>
                           <Link href={`/admin/shops/${shop.id}`}>
                             <button className="p-2 text-[#5bc0e8] hover:bg-blue-50 rounded">
                               <Edit2 size={18} />
@@ -255,6 +324,90 @@ export default function ShopsAdminPage() {
           </p>
         </div>
       </div>
+
+      {/* Edit Shop Name Modal */}
+      {editingShop && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full shadow-lg">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">Edit Shop Name</h2>
+              <button
+                onClick={() => setEditingShop(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-4">
+              {/* Shop Info */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-xs font-medium text-gray-600 mb-1">Shop Owner</p>
+                <p className="text-sm font-medium text-gray-900">{editingShop.full_name}</p>
+                <p className="text-xs text-gray-500 mt-1">{editingShop.email}</p>
+              </div>
+
+              {/* Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Shop Name
+                </label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => {
+                    setEditName(e.target.value);
+                    setEditError('');
+                  }}
+                  placeholder="Enter new shop name"
+                  maxLength={100}
+                  disabled={editSaving}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {editName.length}/100 characters
+                </p>
+              </div>
+
+              {/* Success Message */}
+              {editSuccess && (
+                <div className="flex gap-2 px-4 py-3 bg-green-50 border border-green-200 rounded-lg">
+                  <Check size={20} className="text-green-600 shrink-0" />
+                  <p className="text-sm text-green-800">{editSuccess}</p>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {editError && (
+                <div className="flex gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
+                  <AlertCircle size={20} className="text-red-600 shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-800">{editError}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex gap-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => setEditingShop(null)}
+                disabled={editSaving}
+                className="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveShopName}
+                disabled={editSaving || !editName.trim()}
+                className="flex-1 px-4 py-2 rounded-lg bg-[#5bc0e8] hover:bg-blue-700 disabled:bg-gray-300 text-white font-medium disabled:opacity-50"
+              >
+                {editSaving ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
