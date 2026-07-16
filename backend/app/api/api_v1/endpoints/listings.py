@@ -783,8 +783,7 @@ def get_public_shops(
         # Fast query: group shops with active listings
         # Include both sellers table entries AND users with listings who don't have seller records
         query_str = f"""
-            SELECT DISTINCT ON (owner_id)
-                   COALESCE(s.id, u.id::text) as shop_id,
+            SELECT u.id as shop_id,
                    CAST(u.id AS VARCHAR) as user_id,
                    COALESCE(s.shop_name, u.business_name, u.full_name, 'Shop') as shop_name,
                    COALESCE(s.owner_name, u.full_name) as owner_name,
@@ -795,14 +794,17 @@ def get_public_shops(
                    COALESCE(s.is_active, true) as is_active,
                    COALESCE(s.created_at, u.created_at) as created_at,
                    COALESCE(s.shop_page_banner, u.shop_page_banner) as shop_page_banner,
-                   MAX(l.created_at) OVER (PARTITION BY CAST(l.owner_id AS VARCHAR)) as latest_listing,
-                   COUNT(l.id) OVER (PARTITION BY CAST(l.owner_id AS VARCHAR)) as listing_count
+                   MAX(l.created_at) as latest_listing,
+                   COUNT(l.id) as listing_count
             FROM "user" u
             INNER JOIN listing l ON l.owner_id = u.id AND l.status = 'active' {category_filter}
             LEFT JOIN sellers s ON CAST(s.user_id AS VARCHAR) = CAST(u.id AS VARCHAR)
             WHERE u.is_verified = true
               {search_filter}
-            ORDER BY CAST(u.id AS VARCHAR), MAX(l.created_at) OVER (PARTITION BY CAST(l.owner_id AS VARCHAR)) DESC
+            GROUP BY u.id, s.id, s.shop_name, s.owner_name, s.shop_address, s.location_lat, s.location_lng,
+                     s.verification_status, s.is_active, s.created_at, s.shop_page_banner,
+                     u.business_name, u.full_name, u.location, u.shop_page_banner
+            ORDER BY latest_listing DESC
             OFFSET :skip LIMIT :limit
         """
 
