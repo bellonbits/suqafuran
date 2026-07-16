@@ -142,6 +142,34 @@ def update_user_me(
     return user
 
 
+@router.put("/me/seller-settings")
+def update_seller_settings(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    free_delivery: bool = Body(None, embed=True),
+    is_featured: bool = Body(None, embed=True),
+) -> Any:
+    """
+    Update seller delivery and featured settings.
+    Sellers can toggle whether they offer free delivery and if they want to be featured.
+    """
+    if free_delivery is not None:
+        current_user.free_delivery = free_delivery
+    if is_featured is not None:
+        current_user.is_featured = is_featured
+
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+
+    return {
+        "status": "ok",
+        "free_delivery": current_user.free_delivery,
+        "is_featured": current_user.is_featured,
+    }
+
+
 @router.put("/me/device-token")
 def update_device_token(
     *,
