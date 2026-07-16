@@ -6,7 +6,6 @@ import { Button } from '../components/Button';
 import { Link } from 'react-router-dom';
 import { cn } from '../utils/cn';
 import { dashboardService } from '../services/dashboardService';
-import { businessService } from '../services/businessService';
 import { useQuery } from '@tanstack/react-query';
 
 const OverviewDashboard: React.FC = () => {
@@ -19,11 +18,9 @@ const OverviewDashboard: React.FC = () => {
         queryFn: dashboardService.getStats,
     });
 
-    const { data: myBusinesses } = useQuery({
-        queryKey: ['my-businesses'],
-        queryFn: businessService.getMyBusinesses,
-    });
-    const hasBusiness = myBusinesses && myBusinesses.length > 0;
+    // A user automatically becomes a seller when they are verified AND have at least one active listing.
+    // No separate seller registration is required.
+    const isSeller = !!(user?.is_verified && realStats && realStats.listings > 0);
 
 
 
@@ -86,23 +83,25 @@ const OverviewDashboard: React.FC = () => {
                             </div>
                             <div className="px-3 py-1 bg-indigo-500/20 rounded-full border border-indigo-500/30">
                                 <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">
-                                    {hasBusiness ? 'Shop Dashboard Live' : 'New Feature'}
+                                    {isSeller ? 'Seller Active' : user?.is_verified ? 'Post Your First Ad' : 'Get Verified First'}
                                 </span>
                             </div>
                         </div>
                         <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">
-                            {hasBusiness ? 'Your Shop Dashboard' : 'Get a Shop Profile'}
+                            {isSeller ? 'You Are a Seller' : 'Become a Seller'}
                         </h3>
                         <p className="text-gray-400 mb-8 leading-relaxed text-sm">
-                            {hasBusiness 
-                                ? 'Manage your storefront catalog, log customer sales, analyze workspace revenue charts, and review real-time buyer chats.' 
-                                : 'Set up your dedicated digital storefront. List products, track logs, and request to show your business as a "Shop Near You" on our homepage!'
+                            {isSeller
+                                ? 'Your verified profile and active listings make you an automatic seller. Buyers can find you on the marketplace and your seller profile is live.'
+                                : user?.is_verified
+                                    ? 'You are verified! Post your first active ad to automatically become a seller — no registration required.'
+                                    : 'Get verified and post an ad to automatically become a seller. No shop registration needed.'
                             }
                         </p>
                     </div>
-                    <Link to="/business">
+                    <Link to={isSeller ? `/seller/${user?.id}` : '/post-ad'}>
                         <Button className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black h-12 shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all">
-                            {hasBusiness ? 'OPEN SHOP DASHBOARD' : 'REGISTER NOW'}
+                            {isSeller ? 'VIEW MY SELLER PROFILE' : user?.is_verified ? 'POST AN AD TO SELL' : 'GET VERIFIED'}
                         </Button>
                     </Link>
                 </div>

@@ -184,5 +184,19 @@ export const adminService = {
     async updateUser(userId: number, data: any): Promise<User> {
         const response = await api.put(`/admin/users/${userId}`, data);
         return response.data;
-    }
+    },
+
+    /**
+     * List all sellers — users who are verified AND have at least one active, approved listing.
+     * Sellers are automatic (derived from user table); no separate registration required.
+     */
+    async getSellers(params?: {
+        skip?: number;
+        limit?: number;
+        search?: string;
+    }): Promise<any[]> {
+        const response = await api.get('/admin/sellers', { params });
+        return response.data;
+    },
 };
+

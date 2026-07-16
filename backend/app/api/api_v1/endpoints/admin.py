@@ -295,48 +295,83 @@ def remove_agent(
     return {"success": True}
 
 @router.get("/sellers")
-def list_sellers():
+def list_sellers(
+    db: Session = Depends(deps.get_db),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=500),
+    search: Optional[str] = Query(default=None),
+) -> Any:
     """
-    List all verified sellers (Public endpoint - no auth required).
+    List all automatic sellers — users who are verified AND have at least one active listing.
+    Sellers are derived from the user table; no separate seller registration required.
+    Public endpoint — no auth required.
     """
     try:
-        from database import SessionLocal
-        from models import Seller as SellerModel
+        from sqlalchemy import text
 
-        db = SessionLocal()
+        search_clause = ""
+        params: dict = {"skip": skip, "limit": limit}
 
-        # Query sellers with verification_status = 'verified'
-        sellers = db.query(SellerModel).filter(
-            SellerModel.verification_status == "verified"
-        ).order_by(SellerModel.created_at.desc()).all()
+        if search:
+            search_clause = "AND (u.full_name ILIKE :search OR u.email ILIKE :search OR u.business_name ILIKE :search)"
+            params["search"] = f"%{search}%"
 
-        seller_data = []
-        for s in sellers:
-            # Don't access relationships due to schema mismatch - just use defaults
-            order_count = 0
-            avg_rating = 0.0
+        query = text(f"""
+            SELECT
+                u.id,
+                u.full_name,
+                u.email,
+                u.phone,
+                u.business_name,
+                u.shop_description,
+                u.avatar_url,
+                u.is_verified,
+                u.is_featured,
+                u.free_delivery,
+                u.verified_level,
+                u.trust_score,
+                u.trust_level,
+                u.created_at,
+                COUNT(DISTINCT l.id) AS listings_count
+            FROM "user" u
+            INNER JOIN listing l
+                ON l.owner_id = u.id
+                AND l.status = 'active'
+                AND l.moderation_status = 'approved'
+            WHERE u.is_verified = true
+              AND u.is_active = true
+              {search_clause}
+            GROUP BY u.id
+            ORDER BY u.is_featured DESC, u.created_at DESC
+            LIMIT :limit OFFSET :skip
+        """)
 
-            seller_info = {
-                "id": str(s.id),
-                "shop_name": str(s.shop_name),
-                "owner_name": str(s.owner_name),
-                "email": str(s.email),
-                "phone": str(s.phone),
-                "category": str(s.category),
-                "is_active": bool(s.is_active),
-                "verification_status": str(s.verification_status),
-                "rating": float(round(avg_rating, 1)),
-                "listings_count": int(order_count),
-                "created_at": str(s.created_at),
+        rows = db.execute(query, params).fetchall()
+
+        return [
+            {
+                "id": row[0],
+                "full_name": row[1],
+                "email": row[2],
+                "phone": row[3],
+                "business_name": row[4] or row[1],
+                "shop_description": row[5],
+                "avatar_url": row[6],
+                "is_verified": bool(row[7]),
+                "is_featured": bool(row[8]),
+                "free_delivery": bool(row[9]),
+                "verified_level": row[10],
+                "trust_score": row[11] or 0,
+                "trust_level": row[12] or "NEW",
+                "created_at": str(row[13]),
+                "listings_count": int(row[14]),
             }
-            seller_data.append(seller_info)
-
-        db.close()
-        return seller_data
+            for row in rows
+        ]
     except Exception as e:
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error listing sellers: {str(e)}")
 
 @router.post("/users/{user_id}/status")
 def update_user_status(

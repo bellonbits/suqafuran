@@ -5,8 +5,12 @@ from config import settings
 
 engine = create_engine(
     settings.DATABASE_URL,
-    echo=settings.DEBUG,
+    echo=settings.ENVIRONMENT == "development",
+    pool_size=2,
+    max_overflow=1,
+    pool_recycle=120,
     pool_pre_ping=True,
+    connect_args={"connect_timeout": 10},
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -32,6 +32,78 @@ def register_seller(
         verification_status="pending",
         is_active=True
     )
+import uuid
+from app.models.listing import Listing
+
+def ensure_seller_record(db: Session, user: User) -> Optional[Seller]:
+    """
+    Ensure that a user who is verified and has at least one active listing
+    has an entry in the legacy sellers table.
+    """
+    if not user.is_verified:
+        return None
+        
+    has_listings = db.query(Listing).filter(Listing.owner_id == user.id, Listing.status == "active").first() is not None
+    if not has_listings:
+        return None
+        
+    seller = db.query(Seller).filter(Seller.user_id == str(user.id)).first()
+    if seller:
+        if not seller.is_active or seller.verification_status != "verified":
+            seller.is_active = True
+            seller.verification_status = "verified"
+            db.commit()
+            db.refresh(seller)
+        return seller
+        
+    seller = Seller(
+        id=str(uuid.uuid4()),
+        user_id=str(user.id),
+        shop_name=user.business_name or user.full_name or "My Shop",
+        owner_name=user.full_name or "Owner",
+        email=user.email,
+        phone=user.phone or "000000000",
+        mpesa_number=user.phone or "000000000",
+        mpesa_verified=True,
+        shop_address=user.location or "Default Address",
+        category="General",
+        verification_status="verified",
+        is_active=True,
+        location_lat=0.0,
+        location_lng=0.0
+    )
+    db.add(seller)
+    try:
+        db.commit()
+        db.refresh(seller)
+        return seller
+    except Exception:
+        db.rollback()
+        return db.query(Seller).filter(Seller.user_id == str(user.id)).first()
+
+@router.post("/register", response_model=SellerResponse)
+def register_seller(
+    seller_data: SellerRegister,
+    db: Session = Depends(get_db)
+):
+    existing = db.query(Seller).filter(Seller.email == seller_data.email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered as seller")
+
+    seller = Seller(
+        user_id="temp",
+        shop_name=seller_data.shop_name,
+        owner_name=seller_data.owner_name,
+        email=seller_data.email,
+        phone=seller_data.phone,
+        mpesa_number=seller_data.mpesa_number,
+        shop_address=seller_data.shop_address,
+        category=seller_data.category,
+        location_lat=seller_data.location["latitude"],
+        location_lng=seller_data.location["longitude"],
+        verification_status="verified",
+        is_active=True
+    )
     db.add(seller)
     db.commit()
     db.refresh(seller)
@@ -42,12 +114,15 @@ def get_seller_profile(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    seller = db.query(Seller).filter(Seller.user_id == current_user.id).first()
+    # Ensure seller record is synced/created if they qualify
+    seller = ensure_seller_record(db, current_user)
+    if not seller:
+        # Check if they already have one regardless of listings
+        seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
+        
     if not seller:
         raise HTTPException(status_code=404, detail="Seller profile not found")
 
-    # Return seller regardless of verification status or listings
-    # Frontend will handle displaying seller icon based on verification_status
     return seller
 
 @router.get("/check")
@@ -56,7 +131,9 @@ def check_seller_status(
     db: Session = Depends(get_db)
 ):
     """Check if user is a seller (for header icon display)"""
-    seller = db.query(Seller).filter(Seller.user_id == current_user.id).first()
+    seller = ensure_seller_record(db, current_user)
+    if not seller:
+        seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
     return {"is_seller": seller is not None}
 
 @router.patch("/me", response_model=SellerResponse)
@@ -65,7 +142,7 @@ def update_seller_profile(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    seller = db.query(Seller).filter(Seller.user_id == current_user.id).first()
+    seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
     if not seller:
         raise HTTPException(status_code=404, detail="Seller profile not found")
 
@@ -109,7 +186,9 @@ def get_seller_orders(
     """Get all orders for the authenticated seller"""
     from models import SellerVerificationStatus
 
-    seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
+    seller = ensure_seller_record(db, current_user)
+    if not seller:
+        seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
     if not seller:
         raise HTTPException(status_code=404, detail="Seller profile not found")
 
@@ -165,7 +244,9 @@ def get_seller_order(
     """Get detailed view of an order"""
     from models import OrderItem
 
-    seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
+    seller = ensure_seller_record(db, current_user)
+    if not seller:
+        seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
     if not seller:
         raise HTTPException(status_code=404, detail="Seller profile not found")
 
@@ -214,7 +295,9 @@ def update_seller_order_status(
     """Update order status - seller can move between CONFIRMED → PREPARING → READY_FOR_PICKUP"""
     from models import SellerVerificationStatus
 
-    seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
+    seller = ensure_seller_record(db, current_user)
+    if not seller:
+        seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
     if not seller:
         raise HTTPException(status_code=404, detail="Seller profile not found")
 
@@ -263,7 +346,9 @@ def confirm_payment(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    seller = db.query(Seller).filter(Seller.user_id == current_user.id).first()
+    seller = ensure_seller_record(db, current_user)
+    if not seller:
+        seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
     if not seller:
         raise HTTPException(status_code=404, detail="Seller profile not found")
 
@@ -297,7 +382,9 @@ def get_seller_dashboard(
     from datetime import datetime, timedelta
 
     # Get seller if exists, but don't require it
-    seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
+    seller = ensure_seller_record(db, current_user)
+    if not seller:
+        seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
     seller_id = seller.id if seller else None
 
     # Get today's orders (if seller exists)
@@ -394,7 +481,9 @@ def get_seller_earnings(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    seller = db.query(Seller).filter(Seller.user_id == current_user.id).first()
+    seller = ensure_seller_record(db, current_user)
+    if not seller:
+        seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
     if not seller:
         raise HTTPException(status_code=404, detail="Seller profile not found")
 
@@ -432,7 +521,9 @@ def settle_order_payment(
     db: Session = Depends(get_db)
 ):
     """Settle payment for a delivered order - credits seller earnings"""
-    seller = db.query(Seller).filter(Seller.user_id == current_user.id).first()
+    seller = ensure_seller_record(db, current_user)
+    if not seller:
+        seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
     if not seller:
         raise HTTPException(status_code=404, detail="Seller profile not found")
 
@@ -475,7 +566,9 @@ def get_order_rider_location(
     """Get current location of rider assigned to order"""
     from models import DeliveryAssignment, Rider
 
-    seller = db.query(Seller).filter(Seller.user_id == current_user.id).first()
+    seller = ensure_seller_record(db, current_user)
+    if not seller:
+        seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
     if not seller:
         raise HTTPException(status_code=404, detail="Seller profile not found")
 
@@ -514,7 +607,9 @@ def request_withdrawal(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    seller = db.query(Seller).filter(Seller.user_id == current_user.id).first()
+    seller = ensure_seller_record(db, current_user)
+    if not seller:
+        seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
     if not seller:
         raise HTTPException(status_code=404, detail="Seller profile not found")
 
@@ -531,7 +626,9 @@ def get_withdrawal_history(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    seller = db.query(Seller).filter(Seller.user_id == current_user.id).first()
+    seller = ensure_seller_record(db, current_user)
+    if not seller:
+        seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
     if not seller:
         raise HTTPException(status_code=404, detail="Seller profile not found")
 
@@ -548,7 +645,9 @@ def get_available_riders_for_seller(
     """Get list of available riders for assigning deliveries"""
     from models import Rider
 
-    seller = db.query(Seller).filter(Seller.user_id == current_user.id).first()
+    seller = ensure_seller_record(db, current_user)
+    if not seller:
+        seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
     if not seller:
         raise HTTPException(status_code=404, detail="Seller profile not found")
 
@@ -579,7 +678,9 @@ def assign_rider_to_order(
     """Assign a rider to an order"""
     from models import Rider, DeliveryAssignment
 
-    seller = db.query(Seller).filter(Seller.user_id == current_user.id).first()
+    seller = ensure_seller_record(db, current_user)
+    if not seller:
+        seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
     if not seller:
         raise HTTPException(status_code=404, detail="Seller profile not found")
 
@@ -634,7 +735,9 @@ def get_order_rider(
     """Get assigned rider info for an order"""
     from models import Rider, DeliveryAssignment
 
-    seller = db.query(Seller).filter(Seller.user_id == current_user.id).first()
+    seller = ensure_seller_record(db, current_user)
+    if not seller:
+        seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
     if not seller:
         raise HTTPException(status_code=404, detail="Seller profile not found")
 
