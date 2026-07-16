@@ -5,7 +5,7 @@ from config import settings
 
 engine = create_engine(
     settings.DATABASE_URL,
-    echo=settings.ENVIRONMENT == "development",
+    echo=False,
     pool_size=1,
     max_overflow=1,
     pool_recycle=60,
