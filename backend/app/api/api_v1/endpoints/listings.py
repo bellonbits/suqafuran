@@ -797,7 +797,7 @@ def get_public_shops(
                    COALESCE(s.shop_page_banner, u.shop_page_banner) as shop_page_banner,
                    MAX(l.created_at) OVER (PARTITION BY CAST(l.owner_id AS VARCHAR)) as latest_listing,
                    COUNT(l.id) OVER (PARTITION BY CAST(l.owner_id AS VARCHAR)) as listing_count
-            FROM "user" u
+            FROM users u
             INNER JOIN listing l ON l.owner_id = u.id AND l.status = 'active' {category_filter}
             LEFT JOIN sellers s ON CAST(s.user_id AS VARCHAR) = CAST(u.id AS VARCHAR)
             WHERE u.is_verified = true
@@ -809,7 +809,7 @@ def get_public_shops(
         # Separate count query for total (runs fast without LIMIT)
         count_query_str = f"""
             SELECT COUNT(DISTINCT u.id)
-            FROM "user" u
+            FROM users u
             INNER JOIN listing l ON l.owner_id = u.id AND l.status = 'active' {category_filter}
             WHERE u.is_verified = true
               {search_filter}
