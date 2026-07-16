@@ -458,11 +458,192 @@ async def retry_notification(
 @router.get("/traces/search")
 async def search_traces(
     current_user: Any = Depends(deps.get_current_active_user),
+    trace_id: Optional[str] = Query(None),
+    correlation_id: Optional[str] = Query(None),
+    user_id: Optional[int] = Query(None),
+    order_id: Optional[str] = Query(None),
+    service: Optional[str] = Query(None),
+    operation: Optional[str] = Query(None),
+    limit: int = Query(20, ge=1, le=100),
+    lookback: str = Query("1h"),
 ) -> Dict[str, Any]:
-    """Placeholder for Phase 3: Trace search."""
+    """Search distributed traces by various criteria.
+
+    Queries Jaeger to find traces matching the search criteria.
+
+    Query Params:
+    - trace_id: Search by trace ID
+    - correlation_id: Search by business correlation ID
+    - user_id: Search by user ID
+    - order_id: Search by order ID
+    - service: Filter by service name
+    - operation: Filter by operation name
+    - limit: Max results (1-100, default 20)
+    - lookback: Time range (1h, 24h, 7d, etc.)
+    """
     if not current_user or not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
-    return {"status": "not_implemented_yet"}
+
+    try:
+        from app.services.jaeger_client import get_jaeger_client
+
+        jaeger = get_jaeger_client()
+
+        # Single trace lookup by trace_id
+        if trace_id:
+            trace_detail = jaeger.get_trace(trace_id)
+            if not trace_detail:
+                raise HTTPException(status_code=404, detail="Trace not found")
+            return {
+                "trace": trace_detail,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+
+        # Search by various criteria
+        traces = []
+        if correlation_id:
+            traces = jaeger.search_by_correlation_id(correlation_id, limit, lookback)
+        elif user_id:
+            traces = jaeger.search_by_user_id(user_id, limit, lookback)
+        elif order_id:
+            traces = jaeger.search_by_order_id(order_id, limit, lookback)
+        elif service or operation:
+            traces = jaeger.search_traces(
+                service=service,
+                operation=operation,
+                limit=limit,
+                lookback=lookback,
+            )
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Must provide one of: trace_id, correlation_id, user_id, order_id, or service",
+            )
+
+        return {
+            "traces": traces,
+            "total": len(traces),
+            "search_params": {
+                "trace_id": trace_id,
+                "correlation_id": correlation_id,
+                "user_id": user_id,
+                "order_id": order_id,
+                "service": service,
+                "operation": operation,
+                "lookback": lookback,
+            },
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error searching traces: {e}")
+        raise HTTPException(status_code=500, detail="Failed to search traces")
+
+
+@router.get("/traces/{trace_id}")
+async def get_trace_detail(
+    trace_id: str,
+    current_user: Any = Depends(deps.get_current_active_user),
+) -> Dict[str, Any]:
+    """Get detailed trace information including waterfall data.
+
+    Args:
+        trace_id: Trace ID to fetch
+
+    Returns:
+        Trace detail with all spans and waterfall data for visualization
+    """
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    try:
+        from app.services.jaeger_client import get_jaeger_client
+
+        jaeger = get_jaeger_client()
+        trace_detail = jaeger.get_trace(trace_id)
+
+        if not trace_detail:
+            raise HTTPException(status_code=404, detail="Trace not found")
+
+        return {
+            "trace": trace_detail,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting trace detail {trace_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get trace detail")
+
+
+@router.get("/traces/critical-paths")
+async def get_critical_paths(
+    current_user: Any = Depends(deps.get_current_active_user),
+) -> Dict[str, Any]:
+    """Get predefined critical path templates for quick analysis.
+
+    Returns common critical paths like signup flow, payment flow, etc.
+    """
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    critical_paths = [
+        {
+            "id": "signup_otp_verify",
+            "name": "Signup → OTP → Verify",
+            "description": "User signup flow with OTP verification",
+            "operations": [
+                "auth.signup.requested",
+                "auth.otp.generated",
+                "auth.otp.verified",
+            ],
+            "key_services": ["auth-service", "otp-service"],
+            "typical_duration_ms": 2000,
+        },
+        {
+            "id": "product_create_to_live",
+            "name": "Product Creation → Moderation → Live",
+            "description": "Product posting flow from creation to going live",
+            "operations": [
+                "catalog.product.created",
+                "catalog.product.moderation_started",
+                "catalog.product.moderation_completed",
+            ],
+            "key_services": ["catalog-service", "moderation-service"],
+            "typical_duration_ms": 5000,
+        },
+        {
+            "id": "order_creation_to_payment",
+            "name": "Order Creation → Payment → Confirmation",
+            "description": "Order flow from creation to successful payment",
+            "operations": [
+                "orders.order.created",
+                "payments.mpesa.initiated",
+                "payments.mpesa.confirmed",
+                "orders.order.confirmed",
+            ],
+            "key_services": ["orders-service", "payments-service"],
+            "typical_duration_ms": 3000,
+        },
+        {
+            "id": "delivery_assignment_to_pickup",
+            "name": "Delivery Assignment → Pickup → Complete",
+            "description": "Delivery flow from order assignment to completion",
+            "operations": [
+                "riders.delivery.assigned",
+                "riders.delivery.picked_up",
+                "riders.delivery.completed",
+            ],
+            "key_services": ["riders-service"],
+            "typical_duration_ms": 1800000,  # 30 minutes
+        },
+    ]
+
+    return {
+        "critical_paths": critical_paths,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
 
 
 @router.get("/live")
