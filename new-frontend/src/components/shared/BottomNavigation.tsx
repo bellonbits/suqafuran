@@ -1,11 +1,13 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Heart, ShoppingCart, MessageCircle, User } from 'lucide-react';
+import { Home, Heart, ShoppingCart, MessageCircle, User, Store } from 'lucide-react';
+import { useAuthStore } from '../../store/useAuth';
+import api from '../../services/api';
 
-const navItems = [
+const baseNavItems = [
   { href: '/shops', label: 'Home', icon: Home },
   { href: '/favorites', label: 'Favorites', icon: Heart },
   { href: '/checkout', label: 'Cart', icon: ShoppingCart },
@@ -15,6 +17,43 @@ const navItems = [
 
 export const BottomNavigation: React.FC = () => {
   const pathname = usePathname();
+  const { user, isAuthenticated } = useAuthStore();
+  const [navItems, setNavItems] = useState(baseNavItems);
+  const [isVerifiedSeller, setIsVerifiedSeller] = useState(false);
+
+  // Fetch seller status when user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const fetchSellerStatus = async () => {
+        try {
+          const response = await api.get('/sellers/check', {
+            params: { user_id: String(user.id) }
+          });
+          setIsVerifiedSeller(response.data?.is_seller === true);
+        } catch (error) {
+          setIsVerifiedSeller(false);
+        }
+      };
+      fetchSellerStatus();
+    } else {
+      setIsVerifiedSeller(false);
+    }
+  }, [isAuthenticated, user?.id]);
+
+  // Update nav items when seller status changes
+  useEffect(() => {
+    if (isVerifiedSeller && isAuthenticated) {
+      setNavItems([
+        { href: '/shops', label: 'Home', icon: Home },
+        { href: '/favorites', label: 'Favorites', icon: Heart },
+        { href: '/seller/dashboard', label: 'Seller', icon: Store },
+        { href: '/messages', label: 'Chat', icon: MessageCircle },
+        { href: '/account', label: 'Profile', icon: User },
+      ]);
+    } else {
+      setNavItems(baseNavItems);
+    }
+  }, [isVerifiedSeller, isAuthenticated]);
 
   const isActive = (href: string) => {
     return pathname === href || pathname.startsWith(href + '/');

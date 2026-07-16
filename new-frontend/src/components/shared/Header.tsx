@@ -333,9 +333,9 @@ export const Header: React.FC = () => {
                             )}
                         </div>
 
-                        {/* Sign In & Sign Up / Logout Actions */}
+                        {/* Sign In & Sign Up / Logout Actions - Hidden on mobile */}
                         {isAuthenticated ? (
-                            <div className="relative pl-2 border-l border-gray-200 dark:border-slate-800">
+                            <div className="hidden sm:flex relative pl-2 border-l border-gray-200 dark:border-slate-800">
                                 <button
                                     onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                                     className="flex items-center gap-2.5 hover:opacity-90 transition-opacity cursor-pointer"
