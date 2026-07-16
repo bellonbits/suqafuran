@@ -801,6 +801,9 @@ def get_public_shops(
                    COALESCE(s.is_active, true) as is_active,
                    COALESCE(s.created_at, u.created_at) as created_at,
                    COALESCE(s.shop_page_banner, u.shop_page_banner) as shop_page_banner,
+                   u.response_time,
+                   u.is_featured,
+                   u.free_delivery,
                    ul.latest_listing,
                    ul.listing_count
             FROM "user" u
@@ -832,7 +835,7 @@ def get_public_shops(
 
         shops = []
         for row in rows:
-            listing_count = int(row[12]) if len(row) > 12 and row[12] else 1
+            listing_count = int(row[14]) if len(row) > 14 and row[14] else 1
             shops.append({
                 "id": str(row[0]),
                 "user_id": str(row[1]),
@@ -850,6 +853,9 @@ def get_public_shops(
                 "shop_page_banner": row[10],
                 "slug": str(row[0]),
                 "created_at": row[9].isoformat() if row[9] else None,
+                "response_time": row[11],
+                "is_featured": row[12],
+                "free_delivery": row[13],
             })
 
         result_data = {"total": total_shops, "shops": shops}
