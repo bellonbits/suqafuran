@@ -801,9 +801,9 @@ def get_public_shops(
                    COALESCE(s.is_active, true) as is_active,
                    COALESCE(s.created_at, u.created_at) as created_at,
                    COALESCE(s.shop_page_banner, u.shop_page_banner) as shop_page_banner,
-                   u.response_time,
-                   u.is_featured,
-                   u.free_delivery,
+                   COALESCE(u.response_time, 'Typically responds within a few hours') as response_time,
+                   COALESCE(u.is_featured, false) as is_featured,
+                   COALESCE(u.free_delivery, false) as free_delivery,
                    ul.latest_listing,
                    ul.listing_count
             FROM "user" u
