@@ -83,13 +83,13 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
   const banner = imgError ? null : getShopBanner(shop);
   const initial = shop.shop_name?.[0]?.toUpperCase() || 'S';
 
-  // Deterministic mock Glovo metrics from shop data
-  const hasPromo = (parseInt(shop.id.slice(0, 2), 16) || 0) % 3 === 0;
-  const promoText = hasPromo ? `-${((parseInt(shop.id.slice(2, 4), 16) % 3) + 1) * 10}% some items` : null;
-  const delTime = `${20 + (parseInt(shop.id.slice(4, 6), 16) % 5) * 5}-${35 + (parseInt(shop.id.slice(6, 8), 16) % 6) * 5} min`;
-  const ratingPercent = 85 + (parseInt(shop.id.slice(8, 10), 16) % 16);
-  const reviewCount = 5 + (parseInt(shop.id.slice(10, 12), 16) % 200);
-  const isFreeDel = (parseInt(shop.id.slice(12, 14), 16) || 0) % 2 === 0;
+  // Use real data from API response
+  const delTime = shop.response_time || 'Typically responds within a few hours';
+  const ratingPercent = shop.rating ? Math.round(shop.rating * 20) : 85;
+  const reviewCount = 0; // No review count in API yet
+  const isFreeDel = shop.free_delivery === true;
+  const hasPromo = false; // No promo data in API yet
+  const promoText = hasPromo ? '-10% some items' : null;
 
   return (
     <motion.div
