@@ -780,9 +780,16 @@ def get_public_shops(
             category_filter = "AND l.category_id = :category_id"
             params["category_id"] = category_id
 
-        # Fast query: group shops with active listings
-        # Include both sellers table entries AND users with listings who don't have seller records
+        # Fast query: aggregate listings per user, prefer seller details over user details
         query_str = f"""
+            WITH user_listings AS (
+                SELECT l.owner_id,
+                       MAX(l.created_at) as latest_listing,
+                       COUNT(l.id) as listing_count
+                FROM listing l
+                WHERE l.status = 'active' {category_filter}
+                GROUP BY l.owner_id
+            )
             SELECT u.id as shop_id,
                    CAST(u.id AS VARCHAR) as user_id,
                    COALESCE(s.shop_name, u.business_name, u.full_name, 'Shop') as shop_name,
@@ -794,17 +801,14 @@ def get_public_shops(
                    COALESCE(s.is_active, true) as is_active,
                    COALESCE(s.created_at, u.created_at) as created_at,
                    COALESCE(s.shop_page_banner, u.shop_page_banner) as shop_page_banner,
-                   MAX(l.created_at) as latest_listing,
-                   COUNT(l.id) as listing_count
+                   ul.latest_listing,
+                   ul.listing_count
             FROM "user" u
-            INNER JOIN listing l ON l.owner_id = u.id AND l.status = 'active' {category_filter}
+            INNER JOIN user_listings ul ON ul.owner_id = u.id
             LEFT JOIN sellers s ON CAST(s.user_id AS VARCHAR) = CAST(u.id AS VARCHAR)
             WHERE u.is_verified = true
               {search_filter}
-            GROUP BY u.id, s.id, s.shop_name, s.owner_name, s.shop_address, s.location_lat, s.location_lng,
-                     s.verification_status, s.is_active, s.created_at, s.shop_page_banner,
-                     u.business_name, u.full_name, u.location, u.shop_page_banner
-            ORDER BY latest_listing DESC
+            ORDER BY ul.latest_listing DESC
             OFFSET :skip LIMIT :limit
         """
 
