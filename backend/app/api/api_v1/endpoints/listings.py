@@ -769,12 +769,12 @@ def get_public_shops(
         params = {"skip": skip, "limit": limit}
 
         if search:
-            search_filter = "AND (s.shop_name ILIKE :search OR s.category ILIKE :search)"
+            search_filter = "AND (COALESCE(s.shop_name, u.business_name, u.full_name) ILIKE :search)"
             params["search"] = f"%{search}%"
 
         if shop_id:
-            search_filter += " AND s.id = :shop_id"
-            params["shop_id"] = shop_id
+            search_filter += " AND u.id = :shop_id"
+            params["shop_id"] = int(shop_id) if shop_id.isdigit() else shop_id
 
         if category_id is not None:
             category_filter = "AND l.category_id = :category_id"
