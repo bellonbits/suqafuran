@@ -855,7 +855,11 @@ def get_public_shops(
 
         return result_data
     except Exception as e:
-        print(f"Error in get_public_shops: {str(e)}")
+        import logging
+        logger = logging.getLogger("listings_api")
+        logger.error(f"Error in get_public_shops: {str(e)}", exc_info=True)
+        # Return empty rather than 500 to avoid blocking UI
+        # Cache should have served this if available
         return {"total": 0, "shops": []}
 
 
