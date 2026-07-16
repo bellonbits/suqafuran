@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, ShieldCheck, Store, MapPin, Star, Package, X, ChevronLeft, ChevronRight, Percent } from 'lucide-react';
+import { Search, ShieldCheck, Store, MapPin, Star, Package, X, ChevronLeft, ChevronRight, Percent, ThumbsUp } from 'lucide-react';
 import { listingsService, PublicShop } from '../../../services/listings';
 import api, { resolveMediaUrl } from '../../../services/api';
 
@@ -133,33 +133,36 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
             </div>
           )}
 
-          {/* Shop logo — INSIDE banner, bottom-left, Glovo-style circle */}
-          <div className="absolute bottom-2 left-2.5 w-10 h-10 rounded-full bg-white dark:bg-slate-900 border-2 border-white dark:border-slate-700 shadow-md overflow-hidden flex items-center justify-center">
-            <div className="w-full h-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-sm">
+          {/* Shop logo — INSIDE banner, bottom-left, Glovo-style circle (increased size) */}
+          <div className="absolute bottom-2.5 left-3.5 w-14 h-14 rounded-full bg-white dark:bg-slate-900 border-2 border-white dark:border-slate-700 shadow-md overflow-hidden flex items-center justify-center">
+            <div className="w-full h-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-lg">
               {initial}
             </div>
           </div>
         </div>
 
         {/* ─── Details below banner ─────────────────────────────── */}
-        <div className="mt-2 px-0.5">
-          <h3 className="font-bold text-gray-900 dark:text-white text-sm leading-snug group-hover:text-orange-500 transition-colors truncate">
+        <div className="mt-2.5 px-0.5">
+          <h3 className="font-extrabold text-gray-900 dark:text-white text-[16px] leading-snug group-hover:text-orange-500 transition-colors truncate">
             {shop.shop_name}
           </h3>
 
-          {/* Metrics row */}
-          <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500 dark:text-slate-400 flex-wrap">
+          {/* Metrics row (increased text/badge sizing) */}
+          <div className="flex items-center gap-2 mt-1.5 text-[13px] font-semibold text-gray-500 dark:text-slate-400 flex-wrap">
             {isFreeDel ? (
-              <span className="bg-[#ff1244] text-white text-[9px] uppercase font-black px-1.5 py-0.5 rounded shrink-0">
+              <span className="bg-[#ff1244] text-white text-[11px] uppercase font-black px-2 py-0.5 rounded shrink-0">
                 Free
               </span>
             ) : (
-              <span className="text-[10px] font-semibold shrink-0">KSh 100</span>
+              <span className="text-[13px] font-extrabold shrink-0">KSh 100</span>
             )}
-            <span className="text-gray-300 dark:text-slate-700">•</span>
+            <span className="text-gray-300 dark:text-slate-700 font-normal">•</span>
             <span className="shrink-0">{delTime}</span>
-            <span className="text-gray-300 dark:text-slate-700">•</span>
-            <span className="shrink-0">{ratingPercent}% ({reviewCount})</span>
+            <span className="text-gray-300 dark:text-slate-700 font-normal">•</span>
+            <div className="flex items-center gap-1 shrink-0 font-bold">
+              <ThumbsUp className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 shrink-0" />
+              <span>{ratingPercent}% ({reviewCount})</span>
+            </div>
           </div>
         </div>
 
@@ -284,18 +287,18 @@ function ShopsPageContent() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 pb-20">
-      {/* ── Search Bar & Header ─────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 pt-6 pb-2">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      {/* ── Header & Search ─────────────────────────────────────────── */}
+      <div className="max-w-screen-xl mx-auto px-4 pt-4 pb-1">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Shops</h1>
+            <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Shops</h1>
             <p className="text-gray-500 dark:text-slate-400 text-xs font-semibold mt-0.5">
               Nairobi <span className="text-gray-300 dark:text-slate-800">/</span> Stores near you
             </p>
           </div>
 
           {/* Search Box */}
-          <div className="relative w-full md:w-80">
+          <div className="relative w-full md:w-72">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
@@ -316,62 +319,59 @@ function ShopsPageContent() {
         </div>
       </div>
       {/* ── Category Stickers ───────────────────────────────────────────── */}
-      {/* Outer wrapper uses same max-w as content so stickers align left   */}
-      <div className="max-w-7xl mx-auto mt-5">
-        {/* Scrollable inner container bleeds right past the wrapper edge  */}
-        <div className="overflow-x-auto hide-scrollbar">
-          <div className="flex items-end gap-4 pb-3 pt-1 px-4">
+      <div className="max-w-screen-xl mx-auto mt-3 px-4">
+        <div className="w-full overflow-x-auto hide-scrollbar">
+          <div className="flex flex-row flex-nowrap items-start gap-5 pb-3 pt-1">
 
-          {/* ALL STICKER */}
-          <div
-            onClick={() => setSelectedCategoryId(null)}
-            className="flex flex-col items-center shrink-0 cursor-pointer group"
-          >
+            {/* ALL STICKER */}
             <div
-              className={`w-[72px] h-[72px] bg-white dark:bg-slate-900 rounded-full shadow-sm flex items-center justify-center transition-all duration-200 ${
-                selectedCategoryId === null
-                  ? 'ring-[3px] ring-orange-400 ring-offset-2 dark:ring-offset-slate-950'
-                  : ''
-              }`}
+              onClick={() => setSelectedCategoryId(null)}
+              className="flex flex-col items-center shrink-0 cursor-pointer group"
             >
-              <div className="relative w-11 h-11 flex items-center justify-center">
+              <div
+                className={`relative w-[80px] h-[80px] flex items-center justify-center transition-all duration-200 ${
+                  selectedCategoryId === null ? 'scale-105' : ''
+                }`}
+              >
+                {/* fork.png circular plate background */}
                 <img
                   src="/icons/fork.png"
                   alt=""
                   className="absolute inset-0 w-full h-full object-contain pointer-events-none"
                 />
+                {/* all-shops illustration */}
                 <img
-                  src="/icons/shelves.png"
+                  src="/icons/all-shops.png"
                   alt="All Shops"
-                  className="relative z-10 w-7 h-7 object-contain"
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/icons/shelves.png'; }}
+                  className="relative z-10 w-12 h-12 object-contain group-hover:scale-105 transition-transform duration-200"
                 />
               </div>
+              <span className={`text-[13px] font-extrabold mt-2 tracking-tight text-center w-[80px] truncate block ${
+                selectedCategoryId === null ? 'text-orange-500' : 'text-gray-700 dark:text-slate-300'
+              }`}>
+                All
+              </span>
             </div>
-            <span className="text-[11px] font-semibold text-gray-700 dark:text-slate-300 mt-2 tracking-tight text-center w-[72px] truncate">
-              All
-            </span>
-          </div>
 
-          {/* DYNAMIC STICKERS — only categories with active listings */}
-          {categories
-            .filter(cat => (cat.active_listing_count ?? 0) > 0)
-            .map(cat => {
-            const icon = getCategoryStickerIcon(cat.slug);
-            const isSelected = selectedCategoryId === cat.id;
-            return (
-              <div
-                key={cat.id}
-                onClick={() => setSelectedCategoryId(cat.id)}
-                className="flex flex-col items-center shrink-0 cursor-pointer group"
-              >
+            {/* DYNAMIC STICKERS — only categories with active listings */}
+            {categories
+              .filter(cat => (cat.active_listing_count ?? 0) > 0)
+              .map(cat => {
+              const icon = getCategoryStickerIcon(cat.slug);
+              const isSelected = selectedCategoryId === cat.id;
+              return (
                 <div
-                  className={`w-[72px] h-[72px] bg-white dark:bg-slate-900 rounded-full shadow-sm flex items-center justify-center transition-all duration-200 ${
-                    isSelected
-                      ? 'ring-[3px] ring-orange-400 ring-offset-2 dark:ring-offset-slate-950'
-                      : ''
-                  }`}
+                  key={cat.id}
+                  onClick={() => setSelectedCategoryId(cat.id)}
+                  className="flex flex-col items-center shrink-0 cursor-pointer group"
                 >
-                  <div className="relative w-11 h-11 flex items-center justify-center">
+                  <div
+                    className={`relative w-[80px] h-[80px] flex items-center justify-center transition-all duration-200 ${
+                      isSelected ? 'scale-105' : ''
+                    }`}
+                  >
+                    {/* fork.png circular plate background */}
                     <img
                       src="/icons/fork.png"
                       alt=""
@@ -380,24 +380,24 @@ function ShopsPageContent() {
                     <img
                       src={icon}
                       alt={cat.name_en}
-                      className="relative z-10 w-7 h-7 object-contain"
+                      className="relative z-10 w-12 h-12 object-contain group-hover:scale-105 transition-transform duration-200"
                     />
                   </div>
+                  <span className={`text-[13px] font-extrabold mt-2 tracking-tight text-center w-[88px] truncate block ${
+                    isSelected ? 'text-orange-500' : 'text-gray-700 dark:text-slate-300'
+                  }`}>
+                    {cat.name_en}
+                  </span>
                 </div>
-                <span className="text-[11px] font-semibold text-gray-700 dark:text-slate-300 mt-2 tracking-tight text-center w-[72px]">
-                  <div className="truncate">{cat.name_en}</div>
-                  <div className="text-[9px] font-normal text-gray-500 dark:text-slate-400">[{shopCountsByCategory[cat.id] || 0}]</div>
-                </span>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
       </div>
 
       {/* ── Stores Grid ─────────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 mt-8">
-        <h2 className="text-xl font-black text-gray-900 dark:text-white mb-6">
+      <div className="max-w-screen-xl mx-auto px-4 mt-5">
+        <h2 className="text-lg font-black text-gray-900 dark:text-white mb-4">
           {selectedCategoryId
             ? `${categories.find(c => c.id === selectedCategoryId)?.name_en || 'Filtered'} Stores`
             : 'All Stores'}
@@ -416,10 +416,10 @@ function ShopsPageContent() {
           </div>
         )}
 
-        {/* Grid Container — 4 cols on xl, 3 on lg, 2 on md */}
+        {/* Grid Container — 5 cols on xl, 4 on lg, 3 on md, 2 on sm */}
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-5 gap-y-8">
-            {Array.from({ length: 8 }).map((_, i) => (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
+            {Array.from({ length: 10 }).map((_, i) => (
               <SkeletonCard key={i} />
             ))}
           </div>
@@ -435,7 +435,7 @@ function ShopsPageContent() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-5 gap-y-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
               {shops.map((shop, i) => (
                 <GlovoShopCard key={shop.id} shop={shop} index={i} />
               ))}

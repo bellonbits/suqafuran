@@ -3,61 +3,61 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ShoppingCart, Search, ShoppingBag, User, Leaf } from 'lucide-react';
-import { useAuthStore } from '../../store/useAuth';
+import { Home, Heart, PlusCircle, MessageCircleMore, CircleUser } from 'lucide-react';
+import { useT } from '../../lib/i18n';
 
 export const BottomNav: React.FC = () => {
     const pathname = usePathname();
-    const { isAuthenticated } = useAuthStore();
+    const t = useT();
 
     const isActive = (path: string) => {
-        if (path === '/' && pathname === '/') return true;
-        if (path !== '/' && pathname.startsWith(path)) return true;
-        return false;
+        if (path === '/shops') {
+            return pathname === '/' || pathname === '/shops' || pathname.startsWith('/shops/') || pathname.startsWith('/home');
+        }
+        return pathname === path || pathname.startsWith(path + '/');
     };
 
     const navItems = [
-        { href: '/home', icon: Home, label: 'Home', path: '/home' },
-        { href: '/checkout', icon: ShoppingCart, label: 'Cart', path: '/checkout' },
-        { href: '/sell', icon: Leaf, label: 'Sell', path: '/sell', isCentered: true },
-        { href: '/search', icon: Search, label: 'Search', path: '/search' },
-        { href: '/account', icon: User, label: 'Account', path: '/account' },
+        { href: '/shops', icon: Home, label: 'Home', path: '/shops' },
+        { href: '/favorites', icon: Heart, label: 'Favorites', path: '/favorites' },
+        { href: '/sell', icon: PlusCircle, label: 'Sell', path: '/sell' },
+        { href: '/messages', icon: MessageCircleMore, label: 'Chat', path: '/messages' },
+        { href: '/account', icon: CircleUser, label: 'Profile', path: '/account' },
     ];
 
     return (
-        <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 md:hidden safe-area-inset-bottom">
-            <div className="flex items-center justify-center gap-6 px-8 py-4 bg-white dark:bg-slate-800 rounded-full shadow-lg">
+        <nav 
+            className="fixed bottom-0 inset-x-0 z-50 md:hidden bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800 pb-[env(safe-area-inset-bottom)]"
+            style={{ boxShadow: '0 -4px 16px rgba(0,0,0,0.04)' }}
+        >
+            <div className="flex items-stretch h-[60px] px-1 justify-around">
                 {navItems.map((item) => {
                     const Icon = item.icon;
                     const active = isActive(item.path);
-
-                    if (item.isCentered) {
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className="flex flex-col items-center justify-center gap-1 transition-all duration-200 transform hover:scale-110"
-                            >
-                                <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full shadow-md">
-                                    <Icon className="w-6 h-6 text-white" />
-                                </div>
-                                {active && <div className="w-2 h-2 bg-green-500 rounded-full mt-1"></div>}
-                            </Link>
-                        );
-                    }
 
                     return (
                         <Link
                             key={item.href}
                             href={item.href}
-                            className="flex flex-col items-center justify-center gap-1.5 transition-all duration-200 hover:scale-110"
+                            className="flex-1 flex flex-col items-center justify-center gap-1 relative active:scale-95 transition-transform"
                         >
-                            <Icon className={`w-6 h-6 transition-colors ${
+                            <Icon className={`w-6 h-6 transition-colors duration-200 ${
                                 active
-                                    ? 'text-gray-800 dark:text-white'
-                                    : 'text-gray-400 dark:text-gray-500'
+                                    ? 'text-orange-600 dark:text-orange-400'
+                                    : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-gray-400'
                             }`} />
-                            {active && <div className="w-2 h-2 bg-green-500 rounded-full"></div>}
+                            <span className={`text-[10px] tracking-wide transition-colors duration-200 ${
+                                active
+                                    ? 'text-orange-600 dark:text-orange-400 font-bold'
+                                    : 'text-gray-400 dark:text-zinc-500 font-semibold hover:text-gray-600 dark:hover:text-gray-400'
+                            }`}>
+                                {t(item.label)}
+                            </span>
+
+                            {/* Active indicator underline */}
+                            {active && (
+                                <div className="absolute bottom-0 w-8 h-[2.5px] bg-orange-600 dark:bg-orange-400 rounded-t-full animate-scale-in" />
+                            )}
                         </Link>
                     );
                 })}
@@ -65,3 +65,4 @@ export const BottomNav: React.FC = () => {
         </nav>
     );
 };
+

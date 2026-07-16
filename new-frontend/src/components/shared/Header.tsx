@@ -187,7 +187,20 @@ export const Header: React.FC = () => {
                                     </Link>
                                 )}
                                 {(user?.is_seller || isVerifiedSeller) && (
-                                    <Link href="/seller/dashboard" className="hidden lg:block rounded-full p-2 hover:bg-orange-100 text-orange-600 dark:text-orange-400 dark:hover:bg-orange-950 transition-colors" title="Seller Dashboard">
+                                    <Link
+                                        href="/seller/dashboard"
+                                        className="rounded-full p-2 hover:bg-orange-100 text-orange-500 dark:text-orange-400 dark:hover:bg-orange-950 transition-colors"
+                                        title="Seller Dashboard"
+                                    >
+                                        <Store className="h-4.5 w-4.5" />
+                                    </Link>
+                                )}
+                                {!(user?.is_seller || isVerifiedSeller) && (
+                                    <Link
+                                        href="/sell"
+                                        className="flex lg:hidden rounded-full p-2 hover:bg-orange-100 text-orange-500 dark:text-orange-400 dark:hover:bg-orange-950 transition-colors"
+                                        title="Become a Seller"
+                                    >
                                         <Store className="h-4.5 w-4.5" />
                                     </Link>
                                 )}

@@ -24,6 +24,7 @@ const STRINGS: Record<string, { en: string; so: string }> = {
     'Favorites': { en: 'Favorites', so: 'La Jeclaaday' },
     'Following': { en: 'Following', so: 'La Raacaayo' },
     'Cart': { en: 'Cart', so: 'Dambiisha' },
+    'Chat': { en: 'Chat', so: 'Farriimaha' },
     'Use Current Location': { en: 'Use Current Location', so: 'Isticmaal Goobta Hadda' },
     'Detecting Location...': { en: 'Detecting Location...', so: 'Waa la helayaa Goobta...' },
     'Search any city, town, or address': { en: 'Search any city, town, or address', so: 'Raadi magaalo, tuulo, ama cinwaan' },
