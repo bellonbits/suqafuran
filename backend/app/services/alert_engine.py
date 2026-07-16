@@ -89,7 +89,7 @@ class AlertEngine:
         """Evaluate a single alert rule against current metrics."""
         try:
             # Get current metric value
-            metric_value = await self.get_metric_value(rule.metric_type)
+            metric_value = await self.get_metric_value(rule.metric)
 
             if metric_value is None:
                 return AlertEvaluationResult(
@@ -102,9 +102,8 @@ class AlertEngine:
             # Evaluate condition
             triggered = self.evaluate_condition(
                 metric_value,
-                rule.condition_type,
-                rule.threshold_value,
-                rule.threshold_value_high,
+                rule.comparison_operator,
+                rule.threshold,
             )
 
             # Check if already triggered recently (avoid spam)
@@ -120,7 +119,7 @@ class AlertEngine:
                 rule_name=rule.name,
                 triggered=triggered,
                 current_value=metric_value,
-                threshold_value=rule.threshold_value,
+                threshold_value=rule.threshold,
                 message=message,
                 severity=rule.severity,
             )
@@ -200,21 +199,18 @@ class AlertEngine:
         value: float,
         condition: str,
         threshold: float,
-        threshold_high: Optional[float] = None,
     ) -> bool:
         """Evaluate if a value meets the condition."""
-        if condition == AlertConditionType.GREATER_THAN.value:
+        if condition == ">":
             return value > threshold
-        elif condition == AlertConditionType.LESS_THAN.value:
+        elif condition == "<":
             return value < threshold
-        elif condition == AlertConditionType.EQUALS.value:
+        elif condition == ">=":
+            return value >= threshold
+        elif condition == "<=":
+            return value <= threshold
+        elif condition == "==":
             return value == threshold
-        elif condition == AlertConditionType.NOT_EQUALS.value:
-            return value != threshold
-        elif condition == AlertConditionType.BETWEEN.value:
-            if threshold_high is None:
-                return False
-            return threshold <= value <= threshold_high
         return False
 
     def should_alert(self, rule: AlertRule) -> bool:
@@ -255,12 +251,11 @@ class AlertEngine:
         """Create an alert history record."""
         try:
             alert = AlertHistory(
-                alert_rule_id=rule.id,
-                triggered=result.triggered,
-                current_value=result.current_value,
-                threshold_value=result.threshold_value,
+                rule_id=rule.id,
+                status="firing" if result.triggered else "resolved",
+                fired_at=datetime.utcnow(),
+                value=result.current_value,
                 message=result.message,
-                acknowledged=False,
             )
             self.db.add(alert)
             self.db.commit()

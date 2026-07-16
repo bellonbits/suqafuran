@@ -29,26 +29,29 @@ class AlertRuleCreate(BaseModel):
     """Create alert rule request."""
     name: str
     description: Optional[str] = None
-    metric_type: str
-    condition_type: str
-    threshold_value: float
-    threshold_value_high: Optional[float] = None
+    metric: str
+    threshold: float
+    comparison_operator: str  # >, <, >=, <=, ==
+    evaluation_window_minutes: int = 5
+    aggregation_function: str = "avg"
+    metric_filter: Optional[dict] = None
+    notification_channel: Optional[str] = None
+    notification_target: Optional[str] = None
     severity: str = "warning"
-    alert_message: str
-    cooldown_minutes: Optional[int] = 30
 
 
 class AlertRuleUpdate(BaseModel):
     """Update alert rule request."""
     name: Optional[str] = None
     description: Optional[str] = None
-    condition_type: Optional[str] = None
-    threshold_value: Optional[float] = None
-    threshold_value_high: Optional[float] = None
+    threshold: Optional[float] = None
+    comparison_operator: Optional[str] = None
+    evaluation_window_minutes: Optional[int] = None
+    aggregation_function: Optional[str] = None
+    notification_channel: Optional[str] = None
+    notification_target: Optional[str] = None
     severity: Optional[str] = None
-    alert_message: Optional[str] = None
-    cooldown_minutes: Optional[int] = None
-    is_active: Optional[bool] = None
+    enabled: Optional[bool] = None
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -787,7 +790,7 @@ async def list_alert_rules(
     try:
         query = select(AlertRule)
         if is_active is not None:
-            query = query.where(AlertRule.is_active == is_active)
+            query = query.where(AlertRule.enabled == is_active)
 
         total = db.exec(select(func.count(AlertRule.id))).one()
         rules = db.exec(query.offset(skip).limit(limit)).all()
@@ -798,12 +801,11 @@ async def list_alert_rules(
                     "id": rule.id,
                     "name": rule.name,
                     "description": rule.description,
-                    "metric_type": rule.metric_type,
-                    "condition_type": rule.condition_type,
-                    "threshold_value": rule.threshold_value,
+                    "metric": rule.metric,
+                    "threshold": rule.threshold,
+                    "comparison_operator": rule.comparison_operator,
                     "severity": rule.severity,
-                    "is_active": rule.is_active,
-                    "cooldown_minutes": rule.cooldown_minutes,
+                    "enabled": rule.enabled,
                     "created_at": rule.created_at,
                 }
                 for rule in rules
@@ -827,10 +829,10 @@ async def create_alert_rule(
 
     Body:
     - name: Rule name
-    - metric_type: Type of metric to monitor
-    - condition_type: Condition to check (greater_than, less_than, between, etc.)
-    - threshold_value: Primary threshold
-    - severity: Alert severity (info, warning, critical)
+    - metric: Type of metric to monitor
+    - threshold: Threshold value
+    - comparison_operator: Condition (>, <, >=, <=, ==)
+    - severity: Alert severity (warning, critical)
     """
     if not current_user or not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
@@ -839,13 +841,15 @@ async def create_alert_rule(
         rule = AlertRule(
             name=data.name,
             description=data.description,
-            metric_type=data.metric_type,
-            condition_type=data.condition_type,
-            threshold_value=data.threshold_value,
-            threshold_value_high=data.threshold_value_high,
+            metric=data.metric,
+            threshold=data.threshold,
+            comparison_operator=data.comparison_operator,
+            evaluation_window_minutes=data.evaluation_window_minutes,
+            aggregation_function=data.aggregation_function,
+            metric_filter=data.metric_filter,
+            notification_channel=data.notification_channel,
+            notification_target=data.notification_target,
             severity=data.severity,
-            alert_message=data.alert_message,
-            cooldown_minutes=data.cooldown_minutes,
             created_by=current_user.id,
         )
         db.add(rule)
@@ -880,8 +884,8 @@ async def get_alert_rule(
     # Get recent incidents for this rule
     recent_alerts = db.exec(
         select(AlertHistory)
-        .where(AlertHistory.alert_rule_id == rule_id)
-        .order_by(AlertHistory.created_at.desc())
+        .where(AlertHistory.rule_id == rule_id)
+        .order_by(AlertHistory.fired_at.desc())
         .limit(10)
     ).all()
 
@@ -890,26 +894,23 @@ async def get_alert_rule(
             "id": rule.id,
             "name": rule.name,
             "description": rule.description,
-            "metric_type": rule.metric_type,
-            "condition_type": rule.condition_type,
-            "threshold_value": rule.threshold_value,
-            "threshold_value_high": rule.threshold_value_high,
+            "metric": rule.metric,
+            "threshold": rule.threshold,
+            "comparison_operator": rule.comparison_operator,
+            "evaluation_window_minutes": rule.evaluation_window_minutes,
             "severity": rule.severity,
-            "alert_message": rule.alert_message,
-            "is_active": rule.is_active,
-            "cooldown_minutes": rule.cooldown_minutes,
+            "enabled": rule.enabled,
             "created_at": rule.created_at,
             "updated_at": rule.updated_at,
         },
         "recent_incidents": [
             {
                 "id": alert.id,
-                "triggered": alert.triggered,
-                "current_value": alert.current_value,
-                "threshold_value": alert.threshold_value,
+                "status": alert.status,
+                "value": alert.value,
                 "message": alert.message,
-                "acknowledged": alert.acknowledged,
-                "created_at": alert.created_at,
+                "fired_at": alert.fired_at,
+                "resolved_at": alert.resolved_at,
             }
             for alert in recent_alerts
         ],
@@ -1004,31 +1005,29 @@ async def get_alert_history(
     try:
         cutoff_time = datetime.utcnow() - timedelta(hours=hours)
 
-        query = select(AlertHistory).where(AlertHistory.created_at >= cutoff_time)
+        query = select(AlertHistory).where(AlertHistory.fired_at >= cutoff_time)
 
         if acknowledged is not None:
-            query = query.where(AlertHistory.acknowledged == acknowledged)
+            query = query.where(AlertHistory.status == ("firing" if acknowledged else "resolved"))
 
         total = db.exec(
-            select(func.count(AlertHistory.id)).where(AlertHistory.created_at >= cutoff_time)
+            select(func.count(AlertHistory.id)).where(AlertHistory.fired_at >= cutoff_time)
         ).one()
 
         alerts = db.exec(
-            query.order_by(AlertHistory.created_at.desc()).offset(skip).limit(limit)
+            query.order_by(AlertHistory.fired_at.desc()).offset(skip).limit(limit)
         ).all()
 
         return {
             "alerts": [
                 {
                     "id": alert.id,
-                    "alert_rule_id": alert.alert_rule_id,
-                    "triggered": alert.triggered,
-                    "current_value": alert.current_value,
-                    "threshold_value": alert.threshold_value,
+                    "rule_id": alert.rule_id,
+                    "status": alert.status,
+                    "value": alert.value,
                     "message": alert.message,
-                    "acknowledged": alert.acknowledged,
-                    "acknowledged_at": alert.acknowledged_at,
-                    "created_at": alert.created_at,
+                    "fired_at": alert.fired_at,
+                    "resolved_at": alert.resolved_at,
                 }
                 for alert in alerts
             ],
@@ -1042,13 +1041,13 @@ async def get_alert_history(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/alerts/history/{alert_id}/acknowledge")
-async def acknowledge_alert(
+@router.post("/alerts/history/{alert_id}/resolve")
+async def resolve_alert(
     alert_id: int,
     db: Session = Depends(deps.get_db),
     current_user: Any = Depends(deps.get_current_active_user),
 ) -> Dict[str, Any]:
-    """Acknowledge an alert."""
+    """Mark an alert as resolved."""
     if not current_user or not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
 
@@ -1057,22 +1056,21 @@ async def acknowledge_alert(
         if not alert:
             raise HTTPException(status_code=404, detail="Alert not found")
 
-        alert.acknowledged = True
-        alert.acknowledged_at = datetime.utcnow()
-        alert.acknowledged_by = current_user.id
+        alert.status = "resolved"
+        alert.resolved_at = datetime.utcnow()
 
         db.add(alert)
         db.commit()
 
         return {
             "success": True,
-            "message": "Alert acknowledged",
+            "message": "Alert resolved",
         }
     except HTTPException:
         raise
     except Exception as e:
         db.rollback()
-        logger.error(f"Error acknowledging alert: {e}")
+        logger.error(f"Error resolving alert: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -1095,40 +1093,32 @@ async def get_alert_stats(
 
         total_alerts = db.exec(
             select(func.count(AlertHistory.id)).where(
-                AlertHistory.created_at >= cutoff_time
+                AlertHistory.fired_at >= cutoff_time
             )
         ).one()
 
-        triggered_alerts = db.exec(
+        firing_alerts = db.exec(
             select(func.count(AlertHistory.id)).where(
-                AlertHistory.created_at >= cutoff_time,
-                AlertHistory.triggered == True,
+                AlertHistory.fired_at >= cutoff_time,
+                AlertHistory.status == "firing",
             )
         ).one()
 
-        acknowledged = db.exec(
+        resolved_alerts = db.exec(
             select(func.count(AlertHistory.id)).where(
-                AlertHistory.created_at >= cutoff_time,
-                AlertHistory.acknowledged == True,
-            )
-        ).one()
-
-        unacknowledged = db.exec(
-            select(func.count(AlertHistory.id)).where(
-                AlertHistory.created_at >= cutoff_time,
-                AlertHistory.acknowledged == False,
+                AlertHistory.fired_at >= cutoff_time,
+                AlertHistory.status == "resolved",
             )
         ).one()
 
         active_rules = db.exec(
-            select(func.count(AlertRule.id)).where(AlertRule.is_active == True)
+            select(func.count(AlertRule.id)).where(AlertRule.enabled == True)
         ).one()
 
         return {
             "total_alerts": total_alerts,
-            "triggered_alerts": triggered_alerts,
-            "acknowledged": acknowledged,
-            "unacknowledged": unacknowledged,
+            "firing_alerts": firing_alerts,
+            "resolved_alerts": resolved_alerts,
             "active_rules": active_rules,
             "hours_range": hours,
         }
