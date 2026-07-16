@@ -835,7 +835,7 @@ def get_public_shops(
 
         shops = []
         for row in rows:
-            listing_count = int(row[14]) if len(row) > 14 and row[14] else 1
+            listing_count = int(row[15]) if len(row) > 15 and row[15] else 1
             shops.append({
                 "id": str(row[0]),
                 "user_id": str(row[1]),
