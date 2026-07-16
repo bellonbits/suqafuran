@@ -769,7 +769,7 @@ def get_public_shops(
         params = {"skip": skip, "limit": limit}
 
         if search:
-            search_filter = "AND (COALESCE(s.shop_name, u.business_name, u.full_name) ILIKE :search)"
+            search_filter = "AND (u.business_name ILIKE :search OR u.full_name ILIKE :search)"
             params["search"] = f"%{search}%"
 
         if shop_id:
@@ -780,39 +780,46 @@ def get_public_shops(
             category_filter = "AND l.category_id = :category_id"
             params["category_id"] = category_id
 
-        # Fast query: aggregate listings per user, prefer seller details over user details
+        # Cache key for category views
+        cache_key = f"shops:cat:{category_id}:{skip}:{limit}" if category_id else f"shops:all:{skip}:{limit}"
+
+        # Use aggressive caching for category views (bypass for search/shop_id filters)
+        if not search and not shop_id:
+            try:
+                cached = cache.get(cache_key)
+                if cached:
+                    return _json.loads(cached)
+            except Exception:
+                pass
+
+        # Fast CTE-based aggregation
         query_str = f"""
-            WITH user_listings AS (
+            WITH shop_stats AS (
                 SELECT l.owner_id,
-                       MAX(l.created_at) as latest_listing,
-                       COUNT(l.id) as listing_count
+                       COUNT(l.id) as listing_count,
+                       MAX(l.created_at) as latest_listing
                 FROM listing l
                 WHERE l.status = 'active' {category_filter}
                 GROUP BY l.owner_id
             )
-            SELECT u.id as shop_id,
-                   CAST(u.id AS VARCHAR) as user_id,
-                   COALESCE(s.shop_name, u.business_name, u.full_name, 'Shop') as shop_name,
-                   COALESCE(s.owner_name, u.full_name) as owner_name,
-                   COALESCE(s.shop_address, u.location) as shop_address,
-                   COALESCE(s.location_lat, 0) as location_lat,
-                   COALESCE(s.location_lng, 0) as location_lng,
-                   COALESCE(s.verification_status, 'verified') as verification_status,
-                   COALESCE(s.is_active, true) as is_active,
-                   COALESCE(s.created_at, u.created_at) as created_at,
-                   COALESCE(s.shop_page_banner, u.shop_page_banner) as shop_page_banner,
-                   COALESCE(u.response_time, 'Typically responds within a few hours') as response_time,
-                   COALESCE(u.is_featured, false) as is_featured,
-                   COALESCE(u.free_delivery, false) as free_delivery,
-                   ul.latest_listing,
-                   ul.listing_count
+            SELECT u.id,
+                   CAST(u.id AS VARCHAR),
+                   COALESCE(u.business_name, u.full_name, 'Shop'),
+                   u.full_name,
+                   COALESCE(u.location, ''),
+                   u.created_at,
+                   u.shop_page_banner,
+                   COALESCE(u.response_time, 'Typically responds within a few hours'),
+                   COALESCE(u.is_featured, false),
+                   COALESCE(u.free_delivery, false),
+                   ss.listing_count,
+                   ss.latest_listing
             FROM "user" u
-            INNER JOIN user_listings ul ON ul.owner_id = u.id
-            LEFT JOIN sellers s ON CAST(s.user_id AS VARCHAR) = CAST(u.id AS VARCHAR)
+            INNER JOIN shop_stats ss ON ss.owner_id = u.id
             WHERE u.is_verified = true
               {search_filter}
-            ORDER BY ul.latest_listing DESC
-            OFFSET :skip LIMIT :limit
+            ORDER BY ss.latest_listing DESC
+            LIMIT :limit OFFSET :skip
         """
 
         # Separate count query for total (runs fast without LIMIT)
@@ -821,21 +828,17 @@ def get_public_shops(
             FROM "user" u
             INNER JOIN listing l ON l.owner_id = u.id AND l.status = 'active' {category_filter}
             WHERE u.is_verified = true
-              {search_filter}
+              {search_filter.replace('AND (u.business_name', 'AND (u.business_name') if search_filter else ''}
         """
 
-        # Execute main query for paginated results
+        # Execute main query to get all verified shops in category
         query = text(query_str)
         result = db.execute(query, params)
         rows = result.fetchall()
 
-        # Execute count query for total (fast - no LIMIT clause)
-        count_query = text(count_query_str)
-        total_shops = db.execute(count_query, params).scalar() or 0
-
+        # Build response from CTE results
         shops = []
         for row in rows:
-            listing_count = int(row[15]) if len(row) > 15 and row[15] else 1
             shops.append({
                 "id": str(row[0]),
                 "user_id": str(row[1]),
@@ -843,27 +846,38 @@ def get_public_shops(
                 "owner_name": row[3],
                 "category": None,
                 "shop_address": row[4],
-                "location_lat": row[5],
-                "location_lng": row[6],
+                "location_lat": 0,
+                "location_lng": 0,
                 "rating": 4.5,
                 "is_verified": True,
-                "listing_count": listing_count,
+                "listing_count": int(row[10]) if row[10] else 1,
                 "category_ids": [],
                 "cover_image": None,
-                "shop_page_banner": row[10],
+                "shop_page_banner": row[6],
                 "slug": str(row[0]),
-                "created_at": row[9].isoformat() if row[9] else None,
-                "response_time": row[11],
-                "is_featured": row[12],
-                "free_delivery": row[13],
+                "created_at": row[5].isoformat() if row[5] else None,
+                "response_time": row[7],
+                "is_featured": row[8],
+                "free_delivery": row[9],
             })
+
+        # Get total count of distinct shops in category
+        count_query_str = f"""
+            SELECT COUNT(DISTINCT u.id)
+            FROM "user" u
+            INNER JOIN listing l ON l.owner_id = u.id
+            WHERE u.is_verified = true AND l.status = 'active' {category_filter}
+              {search_filter}
+        """
+        count_query = text(count_query_str)
+        total_shops = db.execute(count_query, params).scalar() or 0
 
         result_data = {"total": total_shops, "shops": shops}
 
-        # Cache result - shorter TTL for faster updates (2 min for category, 1 min for all)
+        # Cache result - aggressive caching with short TTL for automatic updates
         if not search and not shop_id:
             try:
-                ttl = 120 if category_id else 60  # 2 min for category, 1 min for all
+                ttl = 45  # 45 seconds for automatic updates
                 cache.set(cache_key, _json.dumps(result_data, default=str), ttl=ttl)
             except Exception:
                 pass

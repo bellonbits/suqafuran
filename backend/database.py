@@ -6,8 +6,8 @@ from config import settings
 engine = create_engine(
     settings.DATABASE_URL,
     echo=False,
-    pool_size=1,
-    max_overflow=1,
+    pool_size=10,
+    max_overflow=10,
     pool_recycle=60,
     pool_pre_ping=True,
     connect_args={"connect_timeout": 10, "options": "-c statement_timeout=30000"},
