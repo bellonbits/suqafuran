@@ -781,34 +781,37 @@ def get_public_shops(
             params["category_id"] = category_id
 
         # Fast query: group shops with active listings
+        # Include both sellers table entries AND users with listings who don't have seller records
         query_str = f"""
-            SELECT s.id, s.user_id, s.shop_name, s.owner_name,
-                   s.shop_address, s.location_lat, s.location_lng,
-                   s.verification_status, s.is_active, s.created_at,
+            SELECT DISTINCT ON (owner_id)
+                   COALESCE(s.id, u.id::text) as shop_id,
+                   CAST(u.id AS VARCHAR) as user_id,
+                   COALESCE(s.shop_name, u.business_name, u.full_name, 'Shop') as shop_name,
+                   COALESCE(s.owner_name, u.full_name) as owner_name,
+                   COALESCE(s.shop_address, u.location) as shop_address,
+                   COALESCE(s.location_lat, 0) as location_lat,
+                   COALESCE(s.location_lng, 0) as location_lng,
+                   COALESCE(s.verification_status, 'verified') as verification_status,
+                   COALESCE(s.is_active, true) as is_active,
+                   COALESCE(s.created_at, u.created_at) as created_at,
                    COALESCE(s.shop_page_banner, u.shop_page_banner) as shop_page_banner,
-                   MAX(l.created_at) as latest_listing,
-                   COUNT(l.id) as listing_count
-            FROM sellers s
-            INNER JOIN listing l ON CAST(l.owner_id AS VARCHAR) = s.user_id AND l.status = 'active' {category_filter}
-            LEFT JOIN "user" u ON CAST(u.id AS VARCHAR) = s.user_id
-            WHERE s.verification_status = 'verified'
-              AND s.is_active = true
+                   MAX(l.created_at) OVER (PARTITION BY CAST(l.owner_id AS VARCHAR)) as latest_listing,
+                   COUNT(l.id) OVER (PARTITION BY CAST(l.owner_id AS VARCHAR)) as listing_count
+            FROM "user" u
+            INNER JOIN listing l ON l.owner_id = u.id AND l.status = 'active' {category_filter}
+            LEFT JOIN sellers s ON CAST(s.user_id AS VARCHAR) = CAST(u.id AS VARCHAR)
+            WHERE u.is_verified = true
               {search_filter}
-            GROUP BY s.id, s.user_id, s.shop_name, s.owner_name,
-                     s.shop_address, s.location_lat, s.location_lng,
-                     s.verification_status, s.is_active, s.created_at,
-                     s.shop_page_banner, u.shop_page_banner
-            ORDER BY latest_listing DESC, s.id DESC
+            ORDER BY CAST(u.id AS VARCHAR), MAX(l.created_at) OVER (PARTITION BY CAST(l.owner_id AS VARCHAR)) DESC
             OFFSET :skip LIMIT :limit
         """
 
         # Separate count query for total (runs fast without LIMIT)
         count_query_str = f"""
-            SELECT COUNT(DISTINCT s.id)
-            FROM sellers s
-            INNER JOIN listing l ON CAST(l.owner_id AS VARCHAR) = s.user_id AND l.status = 'active' {category_filter}
-            WHERE s.verification_status = 'verified'
-              AND s.is_active = true
+            SELECT COUNT(DISTINCT u.id)
+            FROM "user" u
+            INNER JOIN listing l ON l.owner_id = u.id AND l.status = 'active' {category_filter}
+            WHERE u.is_verified = true
               {search_filter}
         """
 
