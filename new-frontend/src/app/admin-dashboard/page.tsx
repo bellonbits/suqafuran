@@ -318,18 +318,18 @@ const AdminDashboard = () => {
                 orders.map((order) => (
                   <div
                     key={order.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors gap-4"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-[#c0eeff] flex items-center justify-center text-[#6cd4ff] font-bold">
-                        #{order.id}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-8 h-8 rounded-lg bg-[#c0eeff] flex items-center justify-center text-[#6cd4ff] font-bold flex-shrink-0 text-xs">
+                          #
+                        </div>
+                        <p className="font-semibold text-gray-900 truncate">Order #{order.id}</p>
                       </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">Order #{order.id}</p>
-                        <p className="text-xs text-gray-500">{new Date(order.created_at || Date.now()).toLocaleDateString()}</p>
-                      </div>
+                      <p className="text-xs text-gray-500">{new Date(order.created_at || Date.now()).toLocaleDateString()}</p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex-shrink-0">
                       <p className="font-semibold text-gray-900">Ksh {(order.total || 0).toLocaleString()}</p>
                       <p className={`text-xs font-semibold mt-1 ${order.status === 'completed' ? 'text-green-600' : 'text-yellow-600'}`}>
                         {order.status || 'Processing'}
