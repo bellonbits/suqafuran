@@ -205,7 +205,7 @@ function SearchPageContent() {
             {/* Results */}
             <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
                 {isLoading ? (
-                    <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
+                    <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5">
                         {[1, 2, 3, 4, 5, 6].map((i) => (
                             <div key={i} className="animate-pulse space-y-4">
                                 <div className="aspect-square rounded-lg bg-gray-200 dark:bg-slate-800" />
@@ -222,7 +222,7 @@ function SearchPageContent() {
                 ) : (
                     <div className={
                         viewMode === 'grid'
-                            ? "grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4"
+                            ? "grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5"
                             : "space-y-4"
                     }>
                         {filteredListings.map((listing) => (

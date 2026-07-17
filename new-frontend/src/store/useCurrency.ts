@@ -13,7 +13,7 @@ interface CurrencyState {
 export const useCurrencyStore = create<CurrencyState>()(
     persist(
         (set) => ({
-            currency: 'USD',
+            currency: 'KES',
             setCurrency: (currency) => set({ currency }),
             autoDetected: false,
             setAutoDetected: (autoDetected) => set({ autoDetected }),
