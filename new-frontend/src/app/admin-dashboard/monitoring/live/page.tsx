@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Radio, Activity } from 'lucide-react';
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+import api from '@/services/api';
 
 export default function LiveEventsPage() {
   const [events, setEvents] = useState<any[]>([]);
@@ -15,8 +13,8 @@ export default function LiveEventsPage() {
     const fetchData = async () => {
       try {
         const [eventsRes, statsRes] = await Promise.all([
-          axios.get(`${API_URL}/admin/monitoring/live/history?limit=10`),
-          axios.get(`${API_URL}/admin/monitoring/overview/health`)
+          api.get('/admin/monitoring/live/history?limit=10'),
+          api.get('/admin/monitoring/overview')
         ]);
         setEvents(eventsRes.data || []);
         setStats(statsRes.data || {});

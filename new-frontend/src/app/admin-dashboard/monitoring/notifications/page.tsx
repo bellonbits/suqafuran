@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { MessageSquare, Mail, Smartphone, Clock } from 'lucide-react';
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+import api from '@/services/api';
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -15,8 +13,8 @@ export default function NotificationsPage() {
     const fetchNotifications = async () => {
       try {
         const [notifRes, statsRes] = await Promise.all([
-          axios.get(`${API_URL}/admin/monitoring/notifications/events?limit=10`),
-          axios.get(`${API_URL}/admin/monitoring/notifications/funnel`)
+          api.get('/admin/monitoring/notifications/events?limit=10'),
+          api.get('/admin/monitoring/notifications/funnel')
         ]);
         setNotifications(notifRes.data || []);
         setStats(statsRes.data || {});

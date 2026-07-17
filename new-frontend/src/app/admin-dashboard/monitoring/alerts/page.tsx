@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Bell, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+import api from '@/services/api';
 
 export default function AlertsPage() {
   const [alerts, setAlerts] = useState<any[]>([]);
@@ -14,7 +12,7 @@ export default function AlertsPage() {
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
-        const response = await axios.get(`${API_URL}/admin/monitoring/alerts/rules`);
+        const response = await api.get('/admin/monitoring/alerts/rules');
         setAlerts(response.data || []);
       } catch (err) {
         console.error('Failed to fetch alerts:', err);

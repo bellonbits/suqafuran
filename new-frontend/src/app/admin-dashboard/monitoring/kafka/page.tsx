@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Network, TrendingUp, AlertCircle, BarChart3 } from 'lucide-react';
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+import api from '@/services/api';
 
 export default function KafkaPage() {
   const [topics, setTopics] = useState<any[]>([]);
@@ -15,8 +13,8 @@ export default function KafkaPage() {
     const fetchKafkaData = async () => {
       try {
         const [topicsRes, statsRes] = await Promise.all([
-          axios.get(`${API_URL}/admin/monitoring/kafka/topics`),
-          axios.get(`${API_URL}/admin/monitoring/kafka/health`)
+          api.get('/admin/monitoring/kafka/topics'),
+          api.get('/admin/monitoring/kafka/health')
         ]);
         setTopics(topicsRes.data || []);
         setStats(statsRes.data || {});
