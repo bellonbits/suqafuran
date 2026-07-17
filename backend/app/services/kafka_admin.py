@@ -77,45 +77,56 @@ class KafkaAdminClient:
     def create_default_topics(self):
         """Create default Kafka topics if they don't already exist."""
         if not self.admin_client:
+            logger.warning("Kafka admin client not available, skipping topic creation")
             return
 
-        # Define default topics with configurations
-        topics_to_create = [
-            NewTopic('suqafuran-orders', num_partitions=3, replication_factor=1),
-            NewTopic('suqafuran-payments', num_partitions=3, replication_factor=1),
-            NewTopic('suqafuran-deliveries', num_partitions=2, replication_factor=1),
-            NewTopic('suqafuran-alerts', num_partitions=1, replication_factor=1),
-            NewTopic('suqafuran-notifications', num_partitions=2, replication_factor=1),
-            NewTopic('suqafuran-events', num_partitions=3, replication_factor=1),
-        ]
+        # Define topic names and configurations
+        default_topics = {
+            'suqafuran-orders': (3, 1),
+            'suqafuran-payments': (3, 1),
+            'suqafuran-deliveries': (2, 1),
+            'suqafuran-alerts': (1, 1),
+            'suqafuran-notifications': (2, 1),
+            'suqafuran-events': (3, 1),
+        }
 
         try:
             # Get existing topics
-            existing_topics = self.admin_client.list_topics(timeout=5).topics.keys()
+            existing_topics = set(self.admin_client.list_topics(timeout=5).topics.keys())
+            logger.info(f"Existing Kafka topics: {existing_topics}")
 
-            # Filter to only create missing topics
-            topics_to_create = [t for t in topics_to_create if t.topic not in existing_topics]
+            # Build list of topics to create
+            topics_to_create = []
+            for topic_name, (partitions, replication) in default_topics.items():
+                if topic_name not in existing_topics:
+                    topics_to_create.append(
+                        NewTopic(topic_name, num_partitions=partitions, replication_factor=replication)
+                    )
+                else:
+                    logger.info(f"✓ Kafka topic already exists: {topic_name}")
 
             if not topics_to_create:
                 logger.info("All default Kafka topics already exist")
                 return
 
+            logger.info(f"Creating {len(topics_to_create)} missing Kafka topics...")
+
             # Create missing topics
             fs = self.admin_client.create_topics(topics_to_create, validate_only=False, timeout=30)
 
             # Wait for all topics to be created
-            for topic, f in fs.items():
+            for topic, future in fs.items():
                 try:
-                    f.result()
+                    future.result()
                     logger.info(f"✓ Successfully created Kafka topic: {topic}")
                 except Exception as e:
-                    # Topic may already exist, which is fine
-                    if 'already exists' in str(e).lower():
+                    error_msg = str(e).lower()
+                    if 'already exists' in error_msg or 'topic already exists' in error_msg:
                         logger.info(f"✓ Kafka topic already exists: {topic}")
                     else:
-                        logger.warning(f"⚠ Failed to create topic {topic}: {e}")
+                        logger.error(f"✗ Failed to create topic {topic}: {e}")
         except Exception as e:
-            logger.warning(f"Could not create default Kafka topics: {e}")
+            logger.error(f"Error creating Kafka topics: {e}", exc_info=True)
 
     def list_topics(self) -> Dict[str, TopicMetrics]:
         """List all topics with metrics.
