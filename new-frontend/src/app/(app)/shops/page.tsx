@@ -102,9 +102,9 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
     >
       <Link href={`/shops/${shop.slug}`} className="group block">
 
-        {/* ─── Banner (16:9) ────────────────────────────────────── */}
-        {/* Glovo uses rounded-lg (~8px) — not pill/2xl              */}
-        <div className="relative aspect-[16/9] w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-800">
+        {/* ─── Banner (16:10 for taller proportions) ─────────────── */}
+        {/* Slightly taller than 16:9 for better card balance         */}
+        <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-800">
           {banner ? (
             <>
               <img
@@ -136,17 +136,17 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
             </div>
           )}
 
-          {/* Shop logo — INSIDE banner, bottom-left, Glovo-style circle (increased size) */}
-          <div className="absolute bottom-2.5 left-3.5 w-14 h-14 rounded-full bg-white dark:bg-slate-900 border-2 border-white dark:border-slate-700 shadow-md overflow-hidden flex items-center justify-center">
-            <div className="w-full h-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-lg">
+          {/* Shop logo — INSIDE banner, bottom-left, Glovo-style circle */}
+          <div className="absolute bottom-3 left-3.5 w-12 h-12 rounded-full bg-white dark:bg-slate-900 border-2 border-white dark:border-slate-700 shadow-md overflow-hidden flex items-center justify-center">
+            <div className="w-full h-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-sm">
               {initial}
             </div>
           </div>
         </div>
 
         {/* ─── Details below banner ─────────────────────────────── */}
-        <div className="mt-2.5 px-0.5">
-          <h3 className="font-extrabold text-gray-900 dark:text-white text-[16px] leading-snug group-hover:text-orange-500 transition-colors truncate">
+        <div className="mt-3.5 px-1">
+          <h3 className="font-extrabold text-gray-900 dark:text-white text-[15px] leading-snug group-hover:text-orange-500 transition-colors truncate">
             {shop.shop_name}
           </h3>
 
