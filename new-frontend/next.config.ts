@@ -11,9 +11,7 @@ const nextConfig: NextConfig = {
 
   // Performance optimizations
   productionBrowserSourceMaps: false,
-  swcMinify: true,
   compress: true,
-  optimizeFonts: true,
 
   images: {
     qualities: [50, 75, 100],
