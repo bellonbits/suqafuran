@@ -47,9 +47,9 @@ def upgrade() -> None:
         sa.Column('confirmed_at', sa.DateTime(), nullable=True),
         sa.Column('shipped_at', sa.DateTime(), nullable=True),
         sa.Column('delivered_at', sa.DateTime(), nullable=True),
-        sa.ForeignKeyConstraint(['customer_id'], ['users.id'], ),
-        sa.ForeignKeyConstraint(['seller_id'], ['users.id'], ),
-        sa.ForeignKeyConstraint(['rider_id'], ['users.id'], ),
+        sa.ForeignKeyConstraint(['customer_id'], ['user.id'], ),
+        sa.ForeignKeyConstraint(['seller_id'], ['user.id'], ),
+        sa.ForeignKeyConstraint(['rider_id'], ['user.id'], ),
         sa.ForeignKeyConstraint(['address_id'], ['savedaddress.id'], ),
         sa.ForeignKeyConstraint(['delivery_id'], ['delivery.id'], ),
         sa.PrimaryKeyConstraint('id')
@@ -86,7 +86,7 @@ def upgrade() -> None:
         sa.Column('promo_discount_amount', sa.Float(), nullable=False),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),
-        sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+        sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
         sa.UniqueConstraint('user_id'),
         sa.PrimaryKeyConstraint('id')
     )
