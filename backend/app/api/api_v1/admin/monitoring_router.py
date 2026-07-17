@@ -13,7 +13,7 @@ from app.services.kafka_admin import get_kafka_admin, TopicMetrics
 from app.services.event_stream import get_event_stream_manager
 from app.services.alert_engine import get_alert_engine
 from app.models.monitoring import AlertRule, AlertHistory
-from app.database import SessionLocal
+from database import SessionLocal
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)

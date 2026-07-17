@@ -1,120 +1,189 @@
+version: '3.8'
+
 services:
-  # Redis Cache
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: suqafuran-postgres
+    environment:
+      POSTGRES_USER: suqafuran
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-suqafuran}
+      POSTGRES_DB: suqafuran
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U suqafuran"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - suqafuran-network
+    restart: unless-stopped
+
+  # Redis for caching & Celery
   redis:
     image: redis:7-alpine
     container_name: suqafuran-redis
     ports:
       - "6379:6379"
-    command: redis-server --requirepass suqaredis
     volumes:
       - redis_data:/data
-    networks:
-      - suqafuran-network
-    restart: always
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
+      test: ["CMD", "redis-cli", "PING"]
+      interval: 10s
+      timeout: 5s
       retries: 5
-
-  # FastAPI Backend - connects to DigitalOcean managed DB & local Redis
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile.backend
-    container_name: suqafuran-backend
-    env_file: .env
-    environment:
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
-    ports:
-      - "8011:8000"
-    volumes:
-      - ./backend:/app
-      - ./backend/uploads:/app/uploads
     networks:
       - suqafuran-network
-    restart: always
-    depends_on:
-      redis:
-        condition: service_healthy
+    restart: unless-stopped
 
-  # Next.js Frontend
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8011/api/v1}
-    container_name: suqafuran-frontend
-    env_file: .env
-    environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8011/api/v1}
-      NEXT_PUBLIC_APP_NAME: Suqafuran
-      NEXT_PUBLIC_ENVIRONMENT: production
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./new-frontend:/app
-      - /app/.next
-      - /app/node_modules
-    networks:
-      - suqafuran-network
-    restart: always
-    depends_on:
-      - backend
-
-  # Kafka (KRaft mode - no Zookeeper needed)
+  # Kafka for event streaming
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: suqafuran-kafka
-    ports:
-      - "9092:9092"
-      - "9101:9101"
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_JMX_PORT: 9101
-      KAFKA_JMX_HOSTNAME: localhost
-      KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_NODE_ID: 1
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
-      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
-      CLUSTER_ID: MkQkQk5NZDhRQ3dDSU1rdw
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-    volumes:
-      - kafka_data:/var/lib/kafka/data
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
     networks:
       - suqafuran-network
-    restart: always
+    restart: unless-stopped
 
-  # Kafdrop - Kafka Web UI
-  kafdrop:
-    image: obsidiandynamics/kafdrop:latest
-    container_name: suqafuran-kafdrop
-    ports:
-      - "9000:9000"
+  # Zookeeper for Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: suqafuran-zookeeper
     environment:
-      KAFKA_BROKERCONNECT: kafka:29092
-      JVM_OPTS: "-Xms32M -Xmx64M"
-      SERVER_SERVLET_CONTEXTPATH: /
+      ZOOKEEPER_CLIENT_PORT: 2181
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+    networks:
+      - suqafuran-network
+    restart: unless-stopped
+
+  # Jaeger for distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: suqafuran-jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+    networks:
+      - suqafuran-network
+    restart: unless-stopped
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: suqafuran-backend
+    environment:
+      DATABASE_URL: postgresql://suqafuran:${DB_PASSWORD:-suqafuran}@postgres:5432/suqafuran
+      REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      JAEGER_QUERY_URL: http://jaeger:16686
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    networks:
+      - suqafuran-network
+    restart: unless-stopped
+
+  # Celery Worker
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: suqafuran-celery
+    command: celery -A app.tasks.celery_app worker -l info -c 4
+    environment:
+      DATABASE_URL: postgresql://suqafuran:${DB_PASSWORD:-suqafuran}@postgres:5432/suqafuran
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - ./backend:/app
+    networks:
+      - suqafuran-network
+    restart: unless-stopped
+
+  # Celery Beat
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: suqafuran-celery-beat
+    command: celery -A app.tasks.celery_app beat -l info
+    environment:
+      DATABASE_URL: postgresql://suqafuran:${DB_PASSWORD:-suqafuran}@postgres:5432/suqafuran
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - ./backend:/app
+    networks:
+      - suqafuran-network
+    restart: unless-stopped
+
+  # Frontend (Next.js)
+  frontend:
+    build:
+      context: ./new-frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
+    container_name: suqafuran-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - suqafuran-network
+    restart: unless-stopped
+
+  # Kafka UI
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: suqafuran-kafka-ui
+    environment:
+      KAFKA_CLUSTERS_0_NAME: suqafuran
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    ports:
+      - "8080:8080"
     depends_on:
       - kafka
     networks:
       - suqafuran-network
-    restart: always
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  zookeeper_data:
 
 networks:
   suqafuran-network:
     driver: bridge
-
-volumes:
-  kafka_data:
-  redis_data:
