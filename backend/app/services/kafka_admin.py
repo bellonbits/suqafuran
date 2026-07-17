@@ -9,7 +9,7 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 try:
-    from confluent_kafka.admin import AdminClient, ConfigResource, ConfigSource
+    from confluent_kafka.admin import AdminClient, ConfigResource, ConfigSource, NewTopic
     from confluent_kafka import Consumer, KafkaError
     KAFKA_AVAILABLE = True
 except ImportError:
@@ -68,9 +68,54 @@ class KafkaAdminClient:
                 'client.id': 'suqafuran-monitoring',
             })
             logger.info(f"Kafka admin client initialized: {self.bootstrap_servers}")
+            # Auto-create topics on startup
+            self.create_default_topics()
         except Exception as e:
             logger.error(f"Failed to initialize Kafka admin client: {e}")
             self.admin_client = None
+
+    def create_default_topics(self):
+        """Create default Kafka topics if they don't already exist."""
+        if not self.admin_client:
+            return
+
+        # Define default topics with configurations
+        topics_to_create = [
+            NewTopic('suqafuran-orders', num_partitions=3, replication_factor=1),
+            NewTopic('suqafuran-payments', num_partitions=3, replication_factor=1),
+            NewTopic('suqafuran-deliveries', num_partitions=2, replication_factor=1),
+            NewTopic('suqafuran-alerts', num_partitions=1, replication_factor=1),
+            NewTopic('suqafuran-notifications', num_partitions=2, replication_factor=1),
+            NewTopic('suqafuran-events', num_partitions=3, replication_factor=1),
+        ]
+
+        try:
+            # Get existing topics
+            existing_topics = self.admin_client.list_topics(timeout=5).topics.keys()
+
+            # Filter to only create missing topics
+            topics_to_create = [t for t in topics_to_create if t.topic not in existing_topics]
+
+            if not topics_to_create:
+                logger.info("All default Kafka topics already exist")
+                return
+
+            # Create missing topics
+            fs = self.admin_client.create_topics(topics_to_create, validate_only=False, timeout=30)
+
+            # Wait for all topics to be created
+            for topic, f in fs.items():
+                try:
+                    f.result()
+                    logger.info(f"✓ Successfully created Kafka topic: {topic}")
+                except Exception as e:
+                    # Topic may already exist, which is fine
+                    if 'already exists' in str(e).lower():
+                        logger.info(f"✓ Kafka topic already exists: {topic}")
+                    else:
+                        logger.warning(f"⚠ Failed to create topic {topic}: {e}")
+        except Exception as e:
+            logger.warning(f"Could not create default Kafka topics: {e}")
 
     def list_topics(self) -> Dict[str, TopicMetrics]:
         """List all topics with metrics.

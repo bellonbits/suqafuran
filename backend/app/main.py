@@ -19,6 +19,7 @@ import asyncio
 from app.services.kafka_service import kafka_service, ws_manager
 from app.services.kafka_websocket_integration import integrate_kafka_with_websocket
 from app.services.kafka_producer import kafka_producer
+from app.services.kafka_admin import get_kafka_admin
 
 # Initialize structured logging
 setup_logging()
@@ -120,6 +121,10 @@ async def start_background_event_consumer():
     """
     from app.db.session import SessionLocal
     ws_manager.set_event_loop(asyncio.get_event_loop())
+
+    # Initialize Kafka and auto-create default topics
+    logger.info("Initializing Kafka and creating default topics...")
+    get_kafka_admin()  # This will auto-create topics on init
 
     # Enable Kafka + WebSocket integration
     integrate_kafka_with_websocket()
