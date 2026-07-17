@@ -41,14 +41,7 @@ def upgrade() -> None:
         unique=False
     )
 
-    # Index for user queries by business_name
-    op.create_index(
-        'ix_user_business_name',
-        'user',
-        ['business_name'],
-        unique=False
-    )
-
+    # Note: business_name column doesn't exist in current schema, skip this index
     # Index for user verification and active status
     op.create_index(
         'ix_user_is_verified_is_active',
@@ -60,7 +53,6 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_index('ix_user_is_verified_is_active', table_name='user')
-    op.drop_index('ix_user_business_name', table_name='user')
     op.drop_index('ix_listing_status_category_id', table_name='listing')
     op.drop_index('ix_listing_category_owner_id', table_name='listing')
     op.drop_index('ix_listing_status_owner_id', table_name='listing')
