@@ -9,7 +9,8 @@ import {
   ShoppingCart, AlertCircle, Eye, UserCheck, BarChart3,
   Truck, MapPin, Clock, CheckCircle, AlertTriangle, XCircle,
   ArrowLeft, Menu, X, Bell, Search, Loader, Zap, Grid3x3,
-  FileText, MessageSquare, Shield, Tag, Percent, TrendingDown
+  FileText, MessageSquare, Shield, Tag, Percent, TrendingDown,
+  Activity, Radio, Network
 } from 'lucide-react';
 import { MetricCard } from '@/components/MetricCard';
 import { DashboardLayout } from '@/components/DashboardLayout';
@@ -215,7 +216,7 @@ const AdminDashboard = () => {
 
       {/* Tabs */}
       <div className="flex gap-4 mb-6 border-b border-gray-200">
-        {['overview', 'transactions', 'deliveries'].map((tab) => (
+        {['overview', 'monitoring', 'transactions', 'deliveries'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -621,6 +622,93 @@ const AdminDashboard = () => {
               )}
             </div>
           )}
+        </motion.div>
+      )}
+
+      {/* Monitoring Tab */}
+      {activeTab === 'monitoring' && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="space-y-6"
+        >
+          <div>
+            <h2 className="text-2xl font-black text-gray-900 mb-2">System Monitoring</h2>
+            <p className="text-gray-600">Monitor alerts, events, and system health in real-time</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Link href="/admin-dashboard/monitoring/alerts">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 hover:shadow-lg rounded-lg p-6 border border-blue-200 cursor-pointer transition">
+                <Bell className="w-8 h-8 text-blue-600 mb-3" />
+                <h3 className="font-bold text-gray-900 mb-1">Alert Rules</h3>
+                <p className="text-sm text-gray-600">View & manage alert rules</p>
+              </div>
+            </Link>
+
+            <Link href="/admin-dashboard/monitoring/live">
+              <div className="bg-gradient-to-br from-green-50 to-green-100 hover:shadow-lg rounded-lg p-6 border border-green-200 cursor-pointer transition">
+                <Radio className="w-8 h-8 text-green-600 mb-3" />
+                <h3 className="font-bold text-gray-900 mb-1">Live Events</h3>
+                <p className="text-sm text-gray-600">Real-time event stream</p>
+              </div>
+            </Link>
+
+            <Link href="/admin-dashboard/monitoring/notifications">
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 hover:shadow-lg rounded-lg p-6 border border-purple-200 cursor-pointer transition">
+                <AlertCircle className="w-8 h-8 text-purple-600 mb-3" />
+                <h3 className="font-bold text-gray-900 mb-1">Notifications</h3>
+                <p className="text-sm text-gray-600">Alert delivery logs</p>
+              </div>
+            </Link>
+
+            <Link href="/admin-dashboard/monitoring/kafka">
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 hover:shadow-lg rounded-lg p-6 border border-orange-200 cursor-pointer transition">
+                <Network className="w-8 h-8 text-orange-600 mb-3" />
+                <h3 className="font-bold text-gray-900 mb-1">Kafka Streams</h3>
+                <p className="text-sm text-gray-600">Message broker metrics</p>
+              </div>
+            </Link>
+
+            <Link href="/admin-dashboard/monitoring/traces">
+              <div className="bg-gradient-to-br from-red-50 to-red-100 hover:shadow-lg rounded-lg p-6 border border-red-200 cursor-pointer transition">
+                <Zap className="w-8 h-8 text-red-600 mb-3" />
+                <h3 className="font-bold text-gray-900 mb-1">Distributed Traces</h3>
+                <p className="text-sm text-gray-600">Jaeger request tracing</p>
+              </div>
+            </Link>
+
+            <a href="http://165.22.13.173:16686" target="_blank" rel="noopener noreferrer">
+              <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 hover:shadow-lg rounded-lg p-6 border border-indigo-200 cursor-pointer transition">
+                <BarChart3 className="w-8 h-8 text-indigo-600 mb-3" />
+                <h3 className="font-bold text-gray-900 mb-1">Jaeger UI</h3>
+                <p className="text-sm text-gray-600">Full distributed tracing</p>
+              </div>
+            </a>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h3 className="text-lg font-black text-gray-900 mb-4">Quick Stats</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-blue-50 rounded-lg p-4">
+                <p className="text-xs text-gray-600 mb-1">Events/min</p>
+                <p className="text-2xl font-bold text-blue-600">247</p>
+              </div>
+              <div className="bg-green-50 rounded-lg p-4">
+                <p className="text-xs text-gray-600 mb-1">Delivery Rate</p>
+                <p className="text-2xl font-bold text-green-600">98%</p>
+              </div>
+              <div className="bg-purple-50 rounded-lg p-4">
+                <p className="text-xs text-gray-600 mb-1">Avg Latency</p>
+                <p className="text-2xl font-bold text-purple-600">127ms</p>
+              </div>
+              <div className="bg-orange-50 rounded-lg p-4">
+                <p className="text-xs text-gray-600 mb-1">Active Alerts</p>
+                <p className="text-2xl font-bold text-orange-600">3</p>
+              </div>
+            </div>
+          </div>
         </motion.div>
       )}
       </DashboardLayout>
