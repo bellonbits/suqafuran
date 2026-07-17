@@ -63,24 +63,48 @@ class KafkaAdminClient:
             return
 
         try:
+            logger.info(f"Creating Kafka admin client for {self.bootstrap_servers}...")
             self.admin_client = AdminClient({
                 'bootstrap.servers': self.bootstrap_servers,
                 'client.id': 'suqafuran-monitoring',
+                'socket.timeout.ms': 10000,
+                'connections.max.idle.ms': 540000,
             })
-            logger.info(f"Kafka admin client initialized: {self.bootstrap_servers}")
+
+            if not self.admin_client:
+                logger.error("AdminClient creation returned None")
+                return
+
+            logger.info(f"✓ Kafka admin client initialized: {self.bootstrap_servers}")
+
+            # Verify connection by listing topics
+            try:
+                topics = self.admin_client.list_topics(timeout=5)
+                logger.info(f"✓ Successfully connected to Kafka broker")
+            except Exception as e:
+                logger.error(f"✗ Failed to connect to Kafka: {e}")
+                self.admin_client = None
+                return
+
             # Auto-create topics on startup
             self.create_default_topics()
         except Exception as e:
-            logger.error(f"Failed to initialize Kafka admin client: {e}")
+            logger.error(f"Failed to initialize Kafka admin client: {e}", exc_info=True)
             self.admin_client = None
 
     def create_default_topics(self):
         """Create default Kafka topics if they don't already exist."""
-        logger.info("Starting Kafka topic creation process...")
+        logger.info("📋 Starting Kafka topic creation process...")
+
+        if self.admin_client is None:
+            logger.error("❌ Kafka admin client is None - cannot create topics")
+            return
 
         if not self.admin_client:
-            logger.warning("Kafka admin client not available, skipping topic creation")
+            logger.warning("⚠️  Kafka admin client not available, skipping topic creation")
             return
+
+        logger.info(f"✓ Admin client is ready: {self.admin_client}")
 
         # Define topic names and configurations
         default_topics = {
