@@ -21,6 +21,24 @@ export function resolveMediaUrl(url?: string | null): string | null {
     return `${API_ORIGIN}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 
+// Optimize Cloudinary URLs for high-quality display
+export function optimizeCloudinaryUrl(url?: string | null, options: { width?: number; quality?: 'auto' | number; fetch_format?: 'auto' | 'webp' | 'jpg' } = {}): string | null {
+    if (!url || typeof url !== 'string') return null;
+
+    // Only optimize Cloudinary URLs
+    if (!url.includes('cloudinary.com')) return url;
+
+    const { width = 1920, quality = 'auto', fetch_format = 'auto' } = options;
+
+    // Insert optimization params into Cloudinary URL
+    // Format: /image/upload/w_1920,q_auto,f_auto/...
+    const parts = url.split('/upload/');
+    if (parts.length !== 2) return url;
+
+    const params = [`w_${width}`, `q_${quality}`, `f_${fetch_format}`];
+    return `${parts[0]}/upload/${params.join(',')},dpr_auto/${parts[1]}`;
+}
+
 const api = axios.create({
     baseURL: API_BASE_URL,
     headers: {
