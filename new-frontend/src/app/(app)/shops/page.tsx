@@ -98,7 +98,7 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03, duration: 0.28, ease: 'easeOut' }}
     >
-      <Link href={`/shops/${shop.id}`} className="group block">
+      <Link href={`/shops/${shop.slug}`} className="group block">
 
         {/* ─── Banner (16:9) ────────────────────────────────────── */}
         {/* Glovo uses rounded-lg (~8px) — not pill/2xl              */}

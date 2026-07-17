@@ -840,6 +840,13 @@ def get_public_shops(
         # Build response from CTE results
         shops = []
         for row in rows:
+            # Generate URL-friendly slug from shop name
+            shop_name = row[2] or f'Shop_{row[0]}'
+            slug = shop_name.lower().strip().replace(' ', '').replace('_', '').replace('shop', 'shop')
+            # Remove non-alphanumeric except dash
+            slug = ''.join(c for c in slug if c.isalnum() or c == '-')
+            slug = slug or f'shop_{row[0]}'  # Fallback if slug is empty
+
             shops.append({
                 "id": str(row[0]),
                 "user_id": str(row[1]),
@@ -855,7 +862,7 @@ def get_public_shops(
                 "category_ids": [],
                 "cover_image": None,
                 "shop_page_banner": row[6],
-                "slug": str(row[0]),
+                "slug": slug,
                 "created_at": row[5].isoformat() if row[5] else None,
                 "response_time": row[7],
                 "is_featured": row[8],
