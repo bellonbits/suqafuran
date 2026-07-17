@@ -122,9 +122,22 @@ async def start_background_event_consumer():
     from app.db.session import SessionLocal
     ws_manager.set_event_loop(asyncio.get_event_loop())
 
-    # Initialize Kafka and auto-create default topics
+    # Initialize Kafka admin and auto-create default topics with retries
+    logger.info("=" * 60)
     logger.info("Initializing Kafka and creating default topics...")
-    get_kafka_admin()  # This will auto-create topics on init
+    logger.info("=" * 60)
+
+    kafka_admin = get_kafka_admin()
+    if kafka_admin and kafka_admin.admin_client:
+        success = kafka_admin.create_default_topics(retries=3, delay=2.0)
+        if success:
+            logger.info("✅ Kafka topics initialized successfully")
+        else:
+            logger.warning("⚠️  Kafka topics initialization incomplete")
+    else:
+        logger.error("❌ Kafka admin client not available")
+
+    logger.info("=" * 60)
 
     # Enable Kafka + WebSocket integration
     integrate_kafka_with_websocket()
