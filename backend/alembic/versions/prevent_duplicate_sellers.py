@@ -17,12 +17,9 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Add unique constraint: only one active seller per user
-    op.execute("""
-        CREATE UNIQUE INDEX idx_sellers_user_id_active
-        ON sellers(user_id)
-        WHERE is_active = true
-    """)
+    # TODO: sellers table doesn't exist yet in current schema
+    # This constraint will be added once sellers table is created
+    pass
 
 
 def downgrade() -> None:
