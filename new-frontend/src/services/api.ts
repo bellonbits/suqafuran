@@ -10,7 +10,7 @@ export const API_BASE_URL =
 
 const API_ORIGIN = typeof window !== 'undefined'
   ? window.location.origin
-  : 'http://localhost:8000';
+  : (process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/v1$/, '') || 'http://localhost:8000');
 
 // Some media (e.g. user avatars) is stored on the backend as a path relative
 // to the API host rather than a full URL. Resolve it against the API origin

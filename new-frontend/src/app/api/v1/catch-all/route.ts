@@ -5,8 +5,9 @@ export async function GET(request: NextRequest) {
   const pathMatch = url.pathname.match(/^\/api\/v1\/(.*?)(?:\?|$)/);
   const pathStr = pathMatch ? pathMatch[1] : '';
   const queryString = url.search;
-  
-  const backendUrl = `http://localhost:8000/api/v1/${pathStr}${queryString}`;
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+  const backendUrl = `${apiUrl}/${pathStr}${queryString}`;
   
   try {
     const response = await fetch(backendUrl, {
@@ -32,8 +33,9 @@ export async function POST(request: NextRequest) {
   const pathMatch = url.pathname.match(/^\/api\/v1\/(.*?)(?:\?|$)/);
   const pathStr = pathMatch ? pathMatch[1] : '';
   const body = await request.text();
-  
-  const backendUrl = `http://localhost:8000/api/v1/${pathStr}`;
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+  const backendUrl = `${apiUrl}/${pathStr}`;
   
   try {
     const response = await fetch(backendUrl, {

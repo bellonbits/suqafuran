@@ -2,49 +2,37 @@
 
 import React, { useState, useEffect } from 'react';
 import { Bell, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
+import axios from 'axios';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 export default function AlertsPage() {
   const [alerts, setAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Load alerts data
-    setTimeout(() => {
-      setAlerts([
-        {
-          id: 1,
-          name: 'High Error Rate',
-          metric: 'error_rate',
-          threshold: 5,
-          current: 2.3,
-          status: 'healthy',
-          lastTriggered: '2 hours ago'
-        },
-        {
-          id: 2,
-          name: 'Kafka Lag Alert',
-          metric: 'kafka_lag',
-          threshold: 1000,
-          current: 450,
-          status: 'healthy',
-          lastTriggered: '5 minutes ago'
-        },
-        {
-          id: 3,
-          name: 'Queue Depth Alert',
-          metric: 'queue_depth',
-          threshold: 500,
-          current: 120,
-          status: 'healthy',
-          lastTriggered: 'Never'
-        },
-      ]);
-      setLoading(false);
-    }, 500);
+    const fetchAlerts = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/admin/monitoring/alerts/rules`);
+        setAlerts(response.data || []);
+      } catch (err) {
+        console.error('Failed to fetch alerts:', err);
+        setError('Failed to load alerts');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAlerts();
   }, []);
 
   if (loading) {
     return <div className="p-8 text-center text-gray-500">Loading alerts...</div>;
+  }
+
+  if (error) {
+    return <div className="p-8 text-center text-red-500">{error}</div>;
   }
 
   return (

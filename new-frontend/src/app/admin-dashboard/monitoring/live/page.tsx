@@ -1,9 +1,37 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Radio, Activity } from 'lucide-react';
+import axios from 'axios';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 export default function LiveEventsPage() {
+  const [events, setEvents] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [eventsRes, statsRes] = await Promise.all([
+          axios.get(`${API_URL}/admin/monitoring/live/history?limit=10`),
+          axios.get(`${API_URL}/admin/monitoring/overview/health`)
+        ]);
+        setEvents(eventsRes.data || []);
+        setStats(statsRes.data || {});
+      } catch (err) {
+        console.error('Failed to fetch live events:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="space-y-6 p-6">
       <div>
@@ -31,31 +59,36 @@ export default function LiveEventsPage() {
         </h2>
         <div className="bg-slate-900 dark:bg-slate-950 rounded-lg border border-slate-700 p-6 font-mono text-sm text-green-400 overflow-auto max-h-96">
           <div className="space-y-1 text-xs">
-            <div>[2026-07-17 09:15:24] → user_created: user_id=1001</div>
-            <div>[2026-07-17 09:15:25] → order_placed: order_id=5023, amount=45000</div>
-            <div>[2026-07-17 09:15:26] → payment_confirmed: txn_id=TXN123456</div>
-            <div>[2026-07-17 09:15:27] → delivery_assigned: delivery_id=2045, rider=15</div>
-            <div>[2026-07-17 09:15:28] → alert_triggered: rule=high_error_rate, severity=warning</div>
-            <div className="text-gray-500">[waiting for events...]</div>
+            {loading ? (
+              <div className="text-gray-500">[Loading events...]</div>
+            ) : events.length > 0 ? (
+              events.map((event, idx) => (
+                <div key={idx}>
+                  [{new Date(event.timestamp).toLocaleTimeString()}] → {event.event_type}: {JSON.stringify(event.data || {})}
+                </div>
+              ))
+            ) : (
+              <div className="text-gray-500">[No events yet...]</div>
+            )}
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-gray-200 dark:border-slate-700">
-          <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">247</div>
+          <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{stats.events_per_minute || '0'}</div>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Events/min</p>
         </div>
         <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-gray-200 dark:border-slate-700">
-          <div className="text-3xl font-bold text-green-600 dark:text-green-400">98%</div>
+          <div className="text-3xl font-bold text-green-600 dark:text-green-400">{stats.delivery_rate || '0'}%</div>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Delivery Rate</p>
         </div>
         <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-gray-200 dark:border-slate-700">
-          <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">1.2s</div>
+          <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">{stats.avg_latency || '0'}ms</div>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Avg Latency</p>
         </div>
         <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-gray-200 dark:border-slate-700">
-          <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">5</div>
+          <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">{stats.active_topics || '0'}</div>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Topics</p>
         </div>
       </div>
