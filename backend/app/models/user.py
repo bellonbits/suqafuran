@@ -48,6 +48,7 @@ class UserBase(SQLModel):
     referral_code: Optional[str] = Field(default=None, index=True)       # marketing promo code used at signup
     referral_listing_counted: bool = Field(default=False)                 # True after first ad posted
     location: Optional[str] = Field(default=None)                        # city / region set from profile
+    market: Optional[str] = Field(default=None, index=True)               # Kenyan market location (e.g., "Eastleigh Market")
     device_fingerprint: Optional[str] = Field(default=None, index=True)
     last_ip: Optional[str] = Field(default=None)
     fcm_token: Optional[str] = Field(default=None)  # Firebase push notification token
