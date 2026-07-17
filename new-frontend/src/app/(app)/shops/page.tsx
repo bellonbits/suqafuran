@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, ShieldCheck, Store, MapPin, Star, Package, X, ChevronLeft, ChevronRight, Percent, ThumbsUp } from 'lucide-react';
 import { listingsService, PublicShop } from '../../../services/listings';
 import api, { resolveMediaUrl } from '../../../services/api';
+import { useLocationStore } from '../../../store/useLocation';
+import { MARKET_TO_CITY } from '../../../constants/markets';
 
 interface Category {
   id: number;
@@ -196,6 +198,7 @@ const SHOPS_PER_PAGE = 24;
 function ShopsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { city } = useLocationStore();
 
   const [shops, setShops] = useState<PublicShop[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -208,6 +211,15 @@ function ShopsPageContent() {
   const [page, setPage] = useState(1);
   const [shopCountsByCategory, setShopCountsByCategory] = useState<Record<string, number>>({});
   const categoryParam = searchParams.get('category');
+
+  // Get markets for the selected city
+  const getMarketsForCity = (cityName: string): string[] => {
+    return Object.entries(MARKET_TO_CITY)
+      .filter(([, c]) => c === cityName)
+      .map(([market]) => market);
+  };
+
+  const selectedMarkets = city ? getMarketsForCity(city) : [];
 
   // Debounce search
   useEffect(() => {
@@ -273,9 +285,16 @@ function ShopsPageContent() {
         _t: Date.now(),
       });
 
-      // Deduplication is now handled by the service
-      setShops(result.shops || []);
-      setTotal(result.total || 0);
+      // Filter shops by selected market
+      let filteredShops = result.shops || [];
+      if (selectedMarkets.length > 0) {
+        filteredShops = filteredShops.filter(shop =>
+          selectedMarkets.includes(shop.market || 'Eastleigh Market')
+        );
+      }
+
+      setShops(filteredShops);
+      setTotal(filteredShops.length);
     } catch (err: any) {
       console.error('Failed to fetch shops:', err);
       setError('Failed to load shops. Please try again.');
@@ -283,7 +302,7 @@ function ShopsPageContent() {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch, selectedCategoryId]);
+  }, [page, debouncedSearch, selectedCategoryId, selectedMarkets]);
 
   useEffect(() => {
     fetchShops();
@@ -299,7 +318,7 @@ function ShopsPageContent() {
           <div>
             <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Shops</h1>
             <p className="text-gray-500 dark:text-slate-400 text-xs font-semibold mt-0.5">
-              Nairobi <span className="text-gray-300 dark:text-slate-800">/</span> Markets near you
+              {city || 'Select Location'} <span className="text-gray-300 dark:text-slate-800">/</span> Markets near you
             </p>
           </div>
 
