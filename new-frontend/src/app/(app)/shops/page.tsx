@@ -84,7 +84,7 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
   const initial = shop.shop_name?.[0]?.toUpperCase() || 'S';
 
   // Use real data from API response
-  const delTime = shop.response_time || 'Typically responds within a few hours';
+  const deliveryTime = shop.delivery_time || '15-30 min';
   const ratingPercent = shop.rating ? Math.round(shop.rating * 20) : 85;
   const reviewCount = 0; // No review count in API yet
   const isFreeDel = shop.free_delivery === true;
@@ -149,19 +149,19 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
 
           {/* Metrics row (increased text/badge sizing) */}
           <div className="flex items-center gap-2 mt-1.5 text-[13px] font-semibold text-gray-500 dark:text-slate-400 flex-nowrap overflow-hidden">
-            {isFreeDel ? (
-              <span className="bg-[#ff1244] text-white text-[11px] uppercase font-black px-2 py-0.5 rounded shrink-0">
-                Free
-              </span>
-            ) : (
-              <span className="text-[13px] font-extrabold shrink-0">KSh 100</span>
+            {isFreeDel && (
+              <>
+                <span className="bg-[#ff1244] text-white text-[11px] uppercase font-black px-2 py-0.5 rounded shrink-0">
+                  Free
+                </span>
+                <span className="text-gray-300 dark:text-slate-700 font-normal shrink-0">•</span>
+              </>
             )}
+            <span className="shrink-0 text-[12px] font-semibold">{deliveryTime}</span>
             <span className="text-gray-300 dark:text-slate-700 font-normal shrink-0">•</span>
-            <span className="hidden md:inline shrink-0 text-[11px] max-w-[150px] truncate">{delTime}</span>
-            <span className="hidden md:inline text-gray-300 dark:text-slate-700 font-normal shrink-0">•</span>
             <div className="flex items-center gap-1 shrink-0 font-bold">
               <ThumbsUp className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 shrink-0" />
-              <span className="truncate">{ratingPercent}% ({reviewCount})</span>
+              <span className="truncate">{ratingPercent}%</span>
             </div>
           </div>
         </div>
