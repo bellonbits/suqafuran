@@ -90,6 +90,7 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
   const isFreeDel = shop.free_delivery === true;
   const hasPromo = false; // No promo data in API yet
   const promoText = hasPromo ? '-10% some items' : null;
+  const market = shop.market || 'Eastleigh Market';
 
   return (
     <motion.div
@@ -163,6 +164,8 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
               <ThumbsUp className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 shrink-0" />
               <span className="truncate">{ratingPercent}%</span>
             </div>
+            <span className="text-gray-300 dark:text-slate-700 font-normal shrink-0">•</span>
+            <span className="shrink-0 text-[12px] font-semibold truncate">{market}</span>
           </div>
         </div>
 

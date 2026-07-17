@@ -28,6 +28,10 @@ export interface PublicShop {
     shop_page_banner: string | null;  // Cloudinary URL for shop card banner
     slug: string;
     created_at: string | null;
+    market?: string;  // Kenyan market location (e.g., "Eastleigh Market")
+    response_time?: string;
+    is_featured?: boolean;
+    free_delivery?: boolean;
 }
 
 export const listingsService = {
