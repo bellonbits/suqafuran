@@ -148,7 +148,7 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
             {shop.shop_name}
           </h3>
 
-          {/* Metrics row (increased text/badge sizing) */}
+          {/* Metrics row (delivery time and rating) */}
           <div className="flex items-center gap-2 mt-1.5 text-[13px] font-semibold text-gray-500 dark:text-slate-400 flex-nowrap overflow-hidden">
             {isFreeDel && (
               <>
@@ -164,8 +164,11 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
               <ThumbsUp className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 shrink-0" />
               <span className="truncate">{ratingPercent}%</span>
             </div>
-            <span className="text-gray-300 dark:text-slate-700 font-normal shrink-0">•</span>
-            <span className="shrink-0 text-[12px] font-semibold truncate">{market}</span>
+          </div>
+
+          {/* Market row (below metrics) */}
+          <div className="mt-1 text-[12px] font-semibold text-gray-500 dark:text-slate-400">
+            {market}
           </div>
         </div>
 
@@ -296,7 +299,7 @@ function ShopsPageContent() {
           <div>
             <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Shops</h1>
             <p className="text-gray-500 dark:text-slate-400 text-xs font-semibold mt-0.5">
-              Nairobi <span className="text-gray-300 dark:text-slate-800">/</span> Stores near you
+              Nairobi <span className="text-gray-300 dark:text-slate-800">/</span> Markets near you
             </p>
           </div>
 
@@ -402,8 +405,8 @@ function ShopsPageContent() {
       <div className="max-w-screen-xl mx-auto px-4 mt-5">
         <h2 className="text-lg font-black text-gray-900 dark:text-white mb-4">
           {selectedCategoryId
-            ? `${categories.find(c => c.id === selectedCategoryId)?.name_en || 'Filtered'} Stores`
-            : 'All Stores'}
+            ? `${categories.find(c => c.id === selectedCategoryId)?.name_en || 'Filtered'} Markets`
+            : 'All Markets'}
         </h2>
 
         {/* Error */}
