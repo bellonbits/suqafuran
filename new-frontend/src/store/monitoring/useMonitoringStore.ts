@@ -1,5 +1,3 @@
-"""Zustand store for monitoring dashboard state."""
-
 import { create } from 'zustand';
 
 interface MonitoringStats {
