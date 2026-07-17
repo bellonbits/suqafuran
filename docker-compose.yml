@@ -88,7 +88,7 @@ services:
       dockerfile: Dockerfile
     container_name: suqafuran-backend
     environment:
-      DATABASE_URL: postgresql://suqafuran:${DB_PASSWORD:-suqafuran}@postgres:5432/suqafuran
+      DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://redis:6379/0
       ENVIRONMENT: ${ENVIRONMENT:-production}
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
@@ -97,8 +97,6 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
     volumes:
@@ -115,11 +113,10 @@ services:
     container_name: suqafuran-celery
     command: celery -A app.tasks.celery_app worker -l info -c 4
     environment:
-      DATABASE_URL: postgresql://suqafuran:${DB_PASSWORD:-suqafuran}@postgres:5432/suqafuran
+      DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://redis:6379/0
     depends_on:
       - redis
-      - postgres
     volumes:
       - ./backend:/app
     networks:
@@ -134,11 +131,10 @@ services:
     container_name: suqafuran-celery-beat
     command: celery -A app.tasks.celery_app beat -l info --pidfile=/tmp/celerybeat.pid
     environment:
-      DATABASE_URL: postgresql://suqafuran:${DB_PASSWORD:-suqafuran}@postgres:5432/suqafuran
+      DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://redis:6379/0
     depends_on:
       - redis
-      - postgres
     volumes:
       - ./backend:/app
       - celerybeat_data:/app/celerybeat
