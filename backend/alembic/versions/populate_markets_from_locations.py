@@ -103,8 +103,8 @@ def upgrade() -> None:
     query = sa.text("""
         SELECT id, location, business_name
         FROM "user"
-        WHERE business_name IS NOT NULL AND market IS NULL
-        LIMIT 1000
+        WHERE business_name IS NOT NULL AND (market IS NULL OR market = '')
+        LIMIT 5000
     """)
 
     users = conn.execute(query).fetchall()
