@@ -1,7 +1,7 @@
 """Add Order and Cart models for Phase 2 implementation
 
 Revision ID: phase2_order_cart
-Revises: f2e1d0c9b8a7
+Revises: perf_001
 Create Date: 2026-07-06 10:00:00.000000
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'phase2_order_cart'
-down_revision = 'f2e1d0c9b8a7'
+down_revision = 'perf_001'
 branch_labels = None
 depends_on = None
 
