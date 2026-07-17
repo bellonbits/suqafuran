@@ -8,7 +8,7 @@ import { Search, ShieldCheck, Store, MapPin, Star, Package, X, ChevronLeft, Chev
 import { listingsService, PublicShop } from '../../../services/listings';
 import api, { resolveMediaUrl } from '../../../services/api';
 import { useLocationStore } from '../../../store/useLocation';
-import { MARKET_TO_CITY } from '../../../constants/markets';
+import { MARKET_TO_CITY } from '../../../../constants/markets';
 
 interface Category {
   id: number;
