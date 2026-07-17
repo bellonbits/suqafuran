@@ -28,6 +28,9 @@ KENYAN_MARKETS = [
     "Machakos Market",
     "Meru Market",
     "Garissa Market",
+
+    # International Markets
+    "Somali Market",
 ]
 
 # Create a sorted version for UI dropdown
@@ -52,13 +55,15 @@ MARKET_TO_CITY = {
     "Marikiti Market (Mombasa)": "Mombasa",
     # Kisumu
     "Kibuye Market (Kisumu)": "Kisumu",
-    # Other
+    # Other Kenya
     "Nakuru Market": "Nakuru",
     "Eldoret Market": "Eldoret",
     "Kitale Market": "Kitale",
     "Machakos Market": "Machakos",
     "Meru Market": "Meru",
     "Garissa Market": "Garissa",
+    # International
+    "Somali Market": "Somalia",
 }
 
 def get_markets_by_city(city: str) -> list:

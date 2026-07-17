@@ -20,10 +20,12 @@ depends_on = None
 
 # Location to Market mapping
 # Based on actual database analysis:
-# - 187/221 shops (84.6%) have NO location data → default to Eastleigh
+# - 187/221 shops (84.6%) have NO location data → default to Eastleigh Market
 # - 22 shops from "nairobi" → Eastleigh Market
-# - 4-5 shops from Somalia (Garoowe, Garowe) → Eastleigh Market (not Kenya)
-# - Result: All shops → Eastleigh Market by default
+# - 4 shops from "garoowe" (Somalia) → Somali Market
+# - 2 shops from "garowe" (Somalia variant) → Somali Market
+# - 1 shop from "somalia" → Somali Market
+# - Result: Kenya shops → Eastleigh/local markets, Somalia shops → Somali Market
 
 LOCATION_TO_MARKET = {
     # Kenyan Markets
@@ -66,10 +68,10 @@ LOCATION_TO_MARKET = {
     'groganville': 'Eastleigh Market',
     'ridgeways': 'Eastleigh Market',
 
-    # Non-Kenya locations (Somalia, etc) → Eastleigh Market
-    'garoowe': 'Eastleigh Market',  # Somalia
-    'garowe': 'Eastleigh Market',   # Somalia variant
-    'somalia': 'Eastleigh Market',
+    # Non-Kenya locations (Somalia, etc) → Somali Market
+    'garoowe': 'Somali Market',     # Somalia
+    'garowe': 'Somali Market',      # Somalia variant
+    'somalia': 'Somali Market',
 }
 
 def get_market_from_location(location: str) -> str:
