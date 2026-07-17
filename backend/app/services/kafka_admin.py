@@ -1,6 +1,7 @@
 """Kafka admin client wrapper for monitoring topic metrics."""
 
 import logging
+import time
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 from dataclasses import dataclass
@@ -92,19 +93,18 @@ class KafkaAdminClient:
             logger.error(f"Failed to initialize Kafka admin client: {e}", exc_info=True)
             self.admin_client = None
 
-    def create_default_topics(self):
-        """Create default Kafka topics if they don't already exist."""
+    def create_default_topics(self, retries: int = 3, delay: float = 2.0):
+        """Create default Kafka topics with retry logic.
+
+        Args:
+            retries: Number of retry attempts
+            delay: Delay between retries in seconds
+        """
         logger.info("📋 Starting Kafka topic creation process...")
 
-        if self.admin_client is None:
-            logger.error("❌ Kafka admin client is None - cannot create topics")
-            return
-
         if not self.admin_client:
-            logger.warning("⚠️  Kafka admin client not available, skipping topic creation")
-            return
-
-        logger.info(f"✓ Admin client is ready: {self.admin_client}")
+            logger.error("❌ Kafka admin client is not initialized")
+            return False
 
         # Define topic names and configurations
         default_topics = {
@@ -116,48 +116,70 @@ class KafkaAdminClient:
             'suqafuran-events': (3, 1),
         }
 
-        try:
-            # Get existing topics
-            logger.info("Fetching existing Kafka topics...")
-            existing_topics = set(self.admin_client.list_topics(timeout=5).topics.keys())
-            logger.info(f"✓ Found existing Kafka topics: {existing_topics}")
+        for attempt in range(1, retries + 1):
+            try:
+                logger.info(f"[Attempt {attempt}/{retries}] Fetching existing Kafka topics...")
 
-            # Build list of topics to create
-            topics_to_create = []
-            for topic_name, (partitions, replication) in default_topics.items():
-                if topic_name not in existing_topics:
-                    logger.info(f"  → Will create: {topic_name} ({partitions} partitions)")
-                    topics_to_create.append(
-                        NewTopic(topic_name, num_partitions=partitions, replication_factor=replication)
-                    )
-                else:
-                    logger.info(f"✓ Topic already exists: {topic_name}")
+                # Get existing topics
+                existing_topics = set(self.admin_client.list_topics(timeout=10).topics.keys())
+                logger.info(f"✓ Found {len(existing_topics)} existing topics: {existing_topics}")
 
-            if not topics_to_create:
-                logger.info("✓ All default Kafka topics already exist")
-                return
-
-            logger.info(f"📝 Creating {len(topics_to_create)} missing Kafka topics...")
-
-            # Create missing topics with longer timeout
-            fs = self.admin_client.create_topics(topics_to_create, validate_only=False, timeout=60)
-            logger.info(f"  Created {len(fs)} topic futures, waiting for results...")
-
-            # Wait for all topics to be created
-            for topic, future in fs.items():
-                try:
-                    result = future.result(timeout=30)
-                    logger.info(f"✅ Successfully created Kafka topic: {topic}")
-                except Exception as e:
-                    error_msg = str(e).lower()
-                    if 'already exists' in error_msg or 'topic_already_exists' in error_msg:
-                        logger.info(f"✓ Kafka topic already exists: {topic}")
+                # Build list of topics to create
+                topics_to_create = []
+                for topic_name, (partitions, replication) in default_topics.items():
+                    if topic_name not in existing_topics:
+                        logger.info(f"  → Will create: {topic_name} ({partitions} partitions)")
+                        topics_to_create.append(
+                            NewTopic(topic_name, num_partitions=partitions, replication_factor=replication)
+                        )
                     else:
-                        logger.error(f"❌ Failed to create topic {topic}: {e}")
+                        logger.info(f"  ✓ Already exists: {topic_name}")
 
-            logger.info("✅ Kafka topic creation process completed")
-        except Exception as e:
-            logger.error(f"❌ Error creating Kafka topics: {e}", exc_info=True)
+                if not topics_to_create:
+                    logger.info("✅ All default Kafka topics already exist!")
+                    return True
+
+                # Create missing topics
+                logger.info(f"📝 Creating {len(topics_to_create)} missing topics...")
+                fs = self.admin_client.create_topics(
+                    topics_to_create,
+                    validate_only=False,
+                    timeout=60
+                )
+
+                created_count = 0
+                failed_count = 0
+
+                # Wait for all topics to be created
+                for topic, future in fs.items():
+                    try:
+                        future.result(timeout=30)
+                        logger.info(f"✅ Created: {topic}")
+                        created_count += 1
+                    except Exception as e:
+                        error_msg = str(e).lower()
+                        if 'already exists' in error_msg or 'topic_already_exists' in error_msg:
+                            logger.info(f"✓ Already exists: {topic}")
+                            created_count += 1
+                        else:
+                            logger.warning(f"⚠️  Failed to create {topic}: {e}")
+                            failed_count += 1
+
+                if failed_count == 0:
+                    logger.info(f"✅ Kafka topic creation completed successfully! ({created_count} topics)")
+                    return True
+                else:
+                    logger.warning(f"⚠️  {failed_count} topics failed, retrying...")
+
+            except Exception as e:
+                logger.warning(f"[Attempt {attempt}/{retries}] Error: {e}")
+                if attempt < retries:
+                    logger.info(f"Retrying in {delay}s...")
+                    time.sleep(delay)
+                continue
+
+        logger.error("❌ Failed to create Kafka topics after all retries")
+        return False
 
     def list_topics(self) -> Dict[str, TopicMetrics]:
         """List all topics with metrics.
