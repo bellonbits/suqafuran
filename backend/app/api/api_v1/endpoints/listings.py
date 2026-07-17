@@ -818,7 +818,7 @@ def get_public_shops(
             INNER JOIN shop_stats ss ON ss.owner_id = u.id
             WHERE u.is_verified = true
               {search_filter}
-            ORDER BY ss.latest_listing DESC
+            ORDER BY ss.listing_count DESC, ss.latest_listing DESC
             LIMIT :limit OFFSET :skip
         """
 
