@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Search, Filter, Loader, Eye, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Search, Loader, Eye, Clock, CheckCircle, AlertCircle, LayoutDashboard, ShoppingBag, Package, BarChart3, DollarSign, MessageCircle, Settings } from 'lucide-react';
+import { DashboardLayout } from '@/components/DashboardLayout';
 import api from '@/services/api';
 
 interface Order {
@@ -17,14 +18,27 @@ interface Order {
   items?: any[];
 }
 
-const statusColors: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  confirmed: 'bg-[#e0f7ff] text-blue-800',
-  preparing: 'bg-purple-100 text-purple-800',
-  ready_for_pickup: 'bg-indigo-100 text-indigo-800',
-  delivered: 'bg-green-100 text-green-800',
-  cancelled: 'bg-red-100 text-red-800',
-};
+const sellerNavItems = [
+  { label: 'Dashboard',  icon: <LayoutDashboard className="w-5 h-5" />, href: '/seller-dashboard' },
+  { label: 'Products',   icon: <ShoppingBag className="w-5 h-5" />,    href: '/seller-products' },
+  { label: 'Orders',     icon: <Package className="w-5 h-5" />,         href: '/seller-orders' },
+  { label: 'Analytics',  icon: <BarChart3 className="w-5 h-5" />,       href: '/seller-analytics' },
+  { label: 'Earnings',   icon: <DollarSign className="w-5 h-5" />,      href: '/seller-earnings' },
+  { label: 'Messages',   icon: <MessageCircle className="w-5 h-5" />,   href: '/seller-messages' },
+  { label: 'Profile',    icon: <Settings className="w-5 h-5" />,        href: '/seller-profile' },
+];
+
+function getStatusBadgeClass(status: string) {
+  switch (status?.toLowerCase()) {
+    case 'pending':          return 'badge badge-yellow';
+    case 'confirmed':        return 'badge badge-blue';
+    case 'preparing':        return 'badge badge-purple';
+    case 'ready_for_pickup': return 'badge badge-orange';
+    case 'delivered':        return 'badge badge-green';
+    case 'cancelled':        return 'badge badge-red';
+    default:                 return 'badge badge-gray';
+  }
+}
 
 export default function SellerOrdersPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,7 +67,7 @@ export default function SellerOrdersPage() {
     }
   };
 
-  const filteredOrders = orders.filter((order) => {
+  const filteredOrders = orders.filter((order: Order) => {
     const matchesSearch = order.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -61,132 +75,126 @@ export default function SellerOrdersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <Loader className="w-8 h-8 animate-spin text-[#6cd4ff]" />
-      </div>
+      <DashboardLayout title="My Orders" navItems={sellerNavItems} userRole="seller">
+        <div className="flex items-center justify-center h-64">
+          <div className="flex flex-col items-center gap-3">
+            <Loader className="w-8 h-8 animate-spin text-sky-500" />
+            <p className="text-gray-500 text-sm font-medium">Loading orders database...</p>
+          </div>
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-900">
-      {/* Header */}
-      <div className="bg-slate-800 border-b border-slate-700 p-6">
-        <div className="flex items-center gap-4 mb-6 justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/seller-dashboard" className="p-2 hover:bg-slate-700 rounded-lg transition-colors">
-              <ArrowLeft className="w-5 h-5 text-slate-400" />
-            </Link>
-            <h1 className="text-3xl font-black text-white">My Orders ({orders.length})</h1>
-          </div>
-        </div>
-
-        {/* Search and Filter */}
-        <div className="flex gap-4 flex-wrap">
-          <div className="flex-1 min-w-[250px] relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search by Order ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-[#6cd4ff]"
-            />
-          </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-[#6cd4ff]"
-          >
-            <option value="all">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="preparing">Preparing</option>
-            <option value="ready_for_pickup">Ready for Pickup</option>
-            <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
+    <DashboardLayout title="My Orders" navItems={sellerNavItems} userRole="seller">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-2xl font-black text-gray-900">Manage Shop Orders</h2>
+          <p className="text-sm text-gray-500 mt-0.5">Filter, fulfill, and monitor customer orders</p>
         </div>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mx-6 mt-6 bg-red-900/30 border border-red-700 rounded-lg p-4 text-red-300"
+      {/* Toolbar / Search & Filter */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-5">
+        <div className="relative flex-1">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by Order ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-300 shadow-sm"
+          />
+        </div>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-700 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-300 cursor-pointer font-semibold"
         >
+          <option value="all">All Orders</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="preparing">Preparing</option>
+          <option value="ready_for_pickup">Ready for Pickup</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      {/* Error Alert */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 mb-5 text-sm font-semibold flex items-center gap-2">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
           {error}
-        </motion.div>
+        </div>
       )}
 
       {/* Orders Table */}
-      <div className="p-6">
-        {filteredOrders.length === 0 ? (
-          <div className="text-center py-12 bg-slate-800 border border-slate-700 rounded-lg">
-            <AlertCircle className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-            <p className="text-slate-300 font-medium">No orders found</p>
-            <p className="text-slate-400 text-sm">
-              {orders.length === 0 ? 'You have no orders yet' : 'No orders match your filters'}
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-700">
-                  <th className="text-left px-4 py-3 font-bold text-slate-300">Order ID</th>
-                  <th className="text-left px-4 py-3 font-bold text-slate-300">Date</th>
-                  <th className="text-left px-4 py-3 font-bold text-slate-300">Status</th>
-                  <th className="text-right px-4 py-3 font-bold text-slate-300">Amount</th>
-                  <th className="text-right px-4 py-3 font-bold text-slate-300">Your Earning</th>
-                  <th className="text-center px-4 py-3 font-bold text-slate-300">Action</th>
+      <div className="data-table-wrapper">
+        <div className="overflow-x-auto">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Order Date</th>
+                <th>Status</th>
+                <th className="text-right">Total Amount</th>
+                <th className="text-right">Your Earning</th>
+                <th className="text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredOrders.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-16 text-center text-gray-400">
+                    <Package className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p className="font-semibold text-gray-500">No orders found</p>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {filteredOrders.map((order, idx) => (
-                  <motion.tr
-                    key={order.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="border-b border-slate-700 hover:bg-slate-800/50 transition-colors"
-                  >
-                    <td className="px-4 py-4">
-                      <span className="font-mono text-sm text-sky-400">{order.id}</span>
+              ) : (
+                filteredOrders.map((order: Order) => (
+                  <tr key={order.id}>
+                    <td>
+                      <span className="font-mono text-xs bg-sky-50 text-sky-600 px-2 py-1 rounded-lg font-bold">
+                        #{order.id.slice(0, 12)}
+                      </span>
                     </td>
-                    <td className="px-4 py-4 text-sm text-slate-300">
-                      {new Date(order.created_at).toLocaleDateString()}
+                    <td>
+                      <span className="text-gray-500 text-xs font-medium">
+                        {new Date(order.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </span>
                     </td>
-                    <td className="px-4 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusColors[order.status] || 'bg-gray-700 text-gray-300'}`}>
+                    <td>
+                      <span className={getStatusBadgeClass(order.status)}>
                         {order.status.replace(/_/g, ' ')}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-right font-semibold text-green-400">
-                      Ksh {order.total_amount.toLocaleString()}
+                    <td className="text-right">
+                      <span className="font-bold text-gray-900">
+                        Ksh {order.total_amount.toLocaleString()}
+                      </span>
                     </td>
-                    <td className="px-4 py-4 text-right font-semibold text-[#6cd4ff]">
-                      Ksh {order.seller_amount.toLocaleString()}
+                    <td className="text-right">
+                      <span className="font-bold text-emerald-600">
+                        Ksh {order.seller_amount.toLocaleString()}
+                      </span>
                     </td>
-                    <td className="px-4 py-4 text-center">
+                    <td className="text-center">
                       <Link href={`/seller-orders/${order.id}`}>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.95 }}
-                          className="inline-flex items-center gap-2 px-3 py-2 bg-[#5bc0e8] hover:bg-sky-700 text-white rounded-lg transition-colors font-bold text-sm"
-                        >
-                          <Eye className="w-4 h-4" />
-                          View
-                        </motion.button>
+                        <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-600 text-xs font-bold transition-all">
+                          <Eye className="w-3.5 h-3.5" /> Details
+                        </button>
                       </Link>
                     </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

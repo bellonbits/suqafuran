@@ -1,9 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Loader, ArrowLeft, MapPin, Truck } from 'lucide-react';
+import { Loader, MapPin, Truck, LayoutDashboard, DollarSign, MessageSquare } from 'lucide-react';
+import { DashboardLayout } from '@/components/DashboardLayout';
 import api from '@/services/api';
+
+const riderNavItems = [
+  { label: 'Dashboard',   icon: <LayoutDashboard className="w-5 h-5" />, href: '/rider-dashboard' },
+  { label: 'Deliveries',  icon: <Truck className="w-5 h-5" />,           href: '/rider-deliveries' },
+  { label: 'Earnings',    icon: <DollarSign className="w-5 h-5" />,      href: '/rider-earnings' },
+  { label: 'Messages',    icon: <MessageSquare className="w-5 h-5" />,   href: '/rider-messages' },
+];
 
 const RiderDeliveriesPage = () => {
   const [deliveries, setDeliveries] = useState<any[]>([]);
@@ -26,76 +33,104 @@ const RiderDeliveriesPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Loader className="w-8 h-8 animate-spin text-[#6cd4ff]" />
-      </div>
+      <DashboardLayout title="Active Deliveries" navItems={riderNavItems} userRole="rider">
+        <div className="flex items-center justify-center h-64">
+          <div className="flex flex-col items-center gap-3">
+            <Loader className="w-8 h-8 animate-spin text-sky-500" />
+            <p className="text-gray-500 text-sm font-medium">Loading deliveries database...</p>
+          </div>
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="border-b border-gray-200 p-6">
-        <div className="flex items-center gap-4">
-          <Link href="/rider-dashboard" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
-          </Link>
+    <DashboardLayout title="Active Deliveries" navItems={riderNavItems} userRole="rider">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-2xl font-black text-gray-900">Delivery Schedule</h2>
+          <p className="text-sm text-gray-500 mt-0.5">Track and coordinate active customer shipments</p>
+        </div>
+      </div>
+
+      {/* Metrics Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-7">
+        <div className="stat-card flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center text-sky-600">
+            <Truck className="w-6 h-6" />
+          </div>
           <div>
-            <h1 className="text-3xl font-black text-gray-900">Active Deliveries</h1>
-            <p className="text-gray-500 mt-1">View your delivery schedule</p>
+            <p className="text-2xl font-black text-gray-900">{deliveries.length}</p>
+            <p className="text-xs text-gray-500 mt-0.5 font-medium">Active Deliveries Scheduled</p>
           </div>
         </div>
       </div>
 
-      <div className="p-6">
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-8">
-          <Truck className="w-10 h-10 text-[#6cd4ff] mb-4" />
-          <p className="text-3xl font-black text-gray-900">{deliveries.length}</p>
-          <p className="text-sm text-gray-500 mt-1">Active Deliveries</p>
+      {/* Table */}
+      <div className="data-table-wrapper">
+        <div className="overflow-x-auto">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Delivery ID</th>
+                <th>Destination Location</th>
+                <th>Distance</th>
+                <th>Compensation</th>
+                <th>Estimated Time</th>
+                <th className="text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {deliveries.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-16 text-center text-gray-400">
+                    <Truck className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p className="font-semibold text-gray-500">No active deliveries scheduled</p>
+                  </td>
+                </tr>
+              ) : (
+                deliveries.map((delivery) => (
+                  <tr key={delivery.id}>
+                    <td>
+                      <span className="font-bold text-sky-600 font-mono text-xs bg-sky-50 px-2 py-1 rounded-lg">
+                        #{delivery.id}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="text-gray-700 text-sm font-semibold flex items-center gap-1.5">
+                        <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        {delivery.destination || 'Pending details'}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="text-gray-600 text-sm font-medium">
+                        {delivery.distance || '0'} km
+                      </span>
+                    </td>
+                    <td>
+                      <span className="font-bold text-emerald-600">
+                        Ksh {Math.round(delivery.fee || 0).toLocaleString()}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="text-gray-600 text-sm font-medium">
+                        {delivery.eta || 'TBD'}
+                      </span>
+                    </td>
+                    <td className="text-right">
+                      <span className={`badge ${delivery.status === 'in_progress' ? 'badge-yellow' : 'badge-gray'}`}>
+                        {delivery.status || 'pending'}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-
-        {deliveries.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center text-gray-400">
-            <Truck className="w-16 h-16 mx-auto mb-4 opacity-30" />
-            <p className="font-medium">No active deliveries</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {deliveries.map((delivery) => (
-              <div key={delivery.id} className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="font-bold text-gray-900">Delivery #{delivery.id}</h3>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 mt-2">
-                      <MapPin className="w-4 h-4" />
-                      {delivery.destination || 'Pending location'}
-                    </div>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                    delivery.status === 'in_progress' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'
-                  }`}>
-                    {delivery.status || 'pending'}
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200">
-                  <div>
-                    <p className="text-xs text-gray-500">Distance</p>
-                    <p className="font-bold text-gray-900">{delivery.distance || '0'} km</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Delivery Fee</p>
-                    <p className="font-bold text-green-600">Ksh {Math.round(delivery.fee || 0).toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">ETA</p>
-                    <p className="font-bold text-gray-900">{delivery.eta || 'TBD'}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
