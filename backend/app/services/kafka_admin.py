@@ -60,37 +60,51 @@ class KafkaAdminClient:
     def _initialize(self):
         """Initialize the admin client connection."""
         if not KAFKA_AVAILABLE:
-            logger.warning("Kafka admin client not available")
+            logger.warning("Kafka admin client not available - confluent_kafka not installed")
             return
 
+        logger.info(f"Attempting to create Kafka admin client for {self.bootstrap_servers}...")
+
         try:
-            logger.info(f"Creating Kafka admin client for {self.bootstrap_servers}...")
-            self.admin_client = AdminClient({
+            # Create admin client with explicit configuration
+            config = {
                 'bootstrap.servers': self.bootstrap_servers,
                 'client.id': 'suqafuran-monitoring',
                 'socket.timeout.ms': 10000,
                 'connections.max.idle.ms': 540000,
-            })
+                'api.version.request.timeout.ms': 10000,
+            }
+            logger.info(f"AdminClient config: {config}")
 
-            if not self.admin_client:
+            self.admin_client = AdminClient(config)
+            logger.info(f"AdminClient object created: {type(self.admin_client)}")
+
+            if self.admin_client is None:
                 logger.error("AdminClient creation returned None")
                 return
 
-            logger.info(f"✓ Kafka admin client initialized: {self.bootstrap_servers}")
+            logger.info(f"✓ Kafka admin client initialized for {self.bootstrap_servers}")
+
+            # Wait a moment for connection to establish
+            time.sleep(1)
 
             # Verify connection by listing topics
             try:
-                topics = self.admin_client.list_topics(timeout=5)
-                logger.info(f"✓ Successfully connected to Kafka broker")
+                logger.info("Testing connection by listing topics...")
+                metadata = self.admin_client.list_topics(timeout=10)
+                existing = set(metadata.topics.keys())
+                logger.info(f"✓ Successfully connected to Kafka broker, found {len(existing)} topics")
             except Exception as e:
-                logger.error(f"✗ Failed to connect to Kafka: {e}")
+                logger.error(f"✗ Failed to list topics: {e}")
                 self.admin_client = None
                 return
 
             # Auto-create topics on startup
+            logger.info("Proceeding to create default topics...")
             self.create_default_topics()
+
         except Exception as e:
-            logger.error(f"Failed to initialize Kafka admin client: {e}", exc_info=True)
+            logger.error(f"❌ Failed to initialize Kafka admin client: {e}", exc_info=True)
             self.admin_client = None
 
     def create_default_topics(self, retries: int = 3, delay: float = 2.0):
