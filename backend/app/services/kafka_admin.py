@@ -99,9 +99,7 @@ class KafkaAdminClient:
                 self.admin_client = None
                 return
 
-            # Auto-create topics on startup
-            logger.info("Proceeding to create default topics...")
-            self.create_default_topics()
+            logger.info("✓ Kafka admin client is ready for topic operations")
 
         except Exception as e:
             logger.error(f"❌ Failed to initialize Kafka admin client: {e}", exc_info=True)

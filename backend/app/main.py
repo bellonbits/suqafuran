@@ -119,6 +119,7 @@ async def start_background_event_consumer():
 
     Also integrates Kafka events with WebSocket real-time delivery.
     """
+    import subprocess
     from app.db.session import SessionLocal
     ws_manager.set_event_loop(asyncio.get_event_loop())
 
@@ -129,11 +130,26 @@ async def start_background_event_consumer():
 
     kafka_admin = get_kafka_admin()
     if kafka_admin and kafka_admin.admin_client:
-        success = kafka_admin.create_default_topics(retries=3, delay=2.0)
-        if success:
-            logger.info("✅ Kafka topics initialized successfully")
-        else:
-            logger.warning("⚠️  Kafka topics initialization incomplete")
+        try:
+            success = kafka_admin.create_default_topics(retries=3, delay=2.0)
+            if success:
+                logger.info("✅ Kafka topics initialized successfully")
+            else:
+                logger.warning("⚠️  Kafka topics initialization incomplete, attempting fallback...")
+                # Try using kafka-topics CLI as fallback
+                try:
+                    subprocess.run([
+                        "kafka-topics",
+                        "--bootstrap-server", "kafka:9092",
+                        "--create", "--topic", "suqafuran-orders",
+                        "--partitions", "3", "--replication-factor", "1",
+                        "--if-not-exists"
+                    ], timeout=10, check=False)
+                    logger.info("✓ Created topics via CLI fallback")
+                except Exception as e:
+                    logger.warning(f"⚠️  CLI fallback also failed: {e}")
+        except Exception as e:
+            logger.error(f"❌ Error creating topics: {e}")
     else:
         logger.error("❌ Kafka admin client not available")
 
