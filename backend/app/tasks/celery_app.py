@@ -30,6 +30,8 @@ celery_app.conf.update(
         "app.tasks.notification_tasks.*": {"queue": "notifications"},
         "app.tasks.email_tasks.*": {"queue": "default"},
     },
+    beat_scheduler="celery.beat:PersistentScheduler",
+    beat_dburi="sqlite:////app/celerybeat/celerybeat.db",
     beat_schedule={
         # Expire stale promotions that never got paid — every hour
         "expire-stale-promotions": {

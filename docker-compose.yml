@@ -132,7 +132,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: suqafuran-celery-beat
-    command: celery -A app.tasks.celery_app beat -l info
+    command: celery -A app.tasks.celery_app beat -l info --pidfile=/tmp/celerybeat.pid
     environment:
       DATABASE_URL: postgresql://suqafuran:${DB_PASSWORD:-suqafuran}@postgres:5432/suqafuran
       REDIS_URL: redis://redis:6379/0
@@ -141,6 +141,7 @@ services:
       - postgres
     volumes:
       - ./backend:/app
+      - celerybeat_data:/app/celerybeat
     networks:
       - suqafuran-network
     restart: unless-stopped
@@ -183,6 +184,7 @@ volumes:
   postgres_data:
   redis_data:
   zookeeper_data:
+  celerybeat_data:
 
 networks:
   suqafuran-network:
