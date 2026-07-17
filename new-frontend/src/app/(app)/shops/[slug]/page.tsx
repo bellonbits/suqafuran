@@ -60,12 +60,14 @@ export default function ShopDetailPage() {
                 return shopSlug;
             }
 
-            // Otherwise, fetch shops and find by slug (fetch ALL shops, no limit)
+            // Otherwise, bypass cache and fetch shops directly from API
             console.log('🔍 Resolving slug:', shopSlug);
-            const response = await listingsService.getShops({ limit: 500 });
-            console.log('🔍 Fetched shops count:', response.shops?.length);
+            const response = await api.get('/listings/shops', {
+                params: { limit: 500, skip: 0 }
+            });
+            console.log('🔍 Fetched shops count:', response.data.shops?.length);
 
-            const shop = response.shops?.find((s: any) => {
+            const shop = response.data.shops?.find((s: any) => {
                 const shopSlugLower = s.slug?.toLowerCase();
                 const paramSlugLower = shopSlug.toLowerCase();
                 return shopSlugLower === paramSlugLower;
@@ -76,7 +78,7 @@ export default function ShopDetailPage() {
                 return shop.id;
             } else {
                 console.error('🔍 Shop not found with slug:', shopSlug);
-                console.log('🔍 Available slugs:', response.shops?.map((s: any) => s.slug).slice(0, 10));
+                console.log('🔍 Available slugs:', response.data.shops?.map((s: any) => s.slug).slice(0, 10));
                 return null;
             }
         } catch (error) {
