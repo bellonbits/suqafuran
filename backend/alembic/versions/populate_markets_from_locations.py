@@ -19,8 +19,14 @@ branch_labels = None
 depends_on = None
 
 # Location to Market mapping
+# Based on actual database analysis:
+# - 187/221 shops (84.6%) have NO location data → default to Eastleigh
+# - 22 shops from "nairobi" → Eastleigh Market
+# - 4-5 shops from Somalia (Garoowe, Garowe) → Eastleigh Market (not Kenya)
+# - Result: All shops → Eastleigh Market by default
+
 LOCATION_TO_MARKET = {
-    # Nairobi Markets (exact matches)
+    # Kenyan Markets
     'eastleigh': 'Eastleigh Market',
     'gikomba': 'Gikomba Market',
     'kamukunji': 'Kamukunji Market',
@@ -34,26 +40,20 @@ LOCATION_TO_MARKET = {
     'kangemi': 'Kangemi Market',
     'wakulima': 'Wakulima Market',
     'kawangware': 'Kawangware Market',
-
-    # Mombasa Markets
     'mombasa': 'Kongowea Market (Mombasa)',
     'kongowea': 'Kongowea Market (Mombasa)',
     'marikiti': 'Marikiti Market (Mombasa)',
-
-    # Kisumu Markets
     'kisumu': 'Kibuye Market (Kisumu)',
     'kibuye': 'Kibuye Market (Kisumu)',
-
-    # Other Major Cities (map to their main markets)
     'nakuru': 'Nakuru Market',
     'eldoret': 'Eldoret Market',
     'kitale': 'Kitale Market',
     'machakos': 'Machakos Market',
     'meru': 'Meru Market',
     'garissa': 'Garissa Market',
-
-    # Nairobi Suburbs (default to Eastleigh or City Market)
     'nairobi': 'Eastleigh Market',
+
+    # Nairobi Suburbs
     'westlands': 'Eastleigh Market',
     'karen': 'Eastleigh Market',
     'ngong': 'Eastleigh Market',
@@ -65,6 +65,11 @@ LOCATION_TO_MARKET = {
     'lavington': 'Eastleigh Market',
     'groganville': 'Eastleigh Market',
     'ridgeways': 'Eastleigh Market',
+
+    # Non-Kenya locations (Somalia, etc) → Eastleigh Market
+    'garoowe': 'Eastleigh Market',  # Somalia
+    'garowe': 'Eastleigh Market',   # Somalia variant
+    'somalia': 'Eastleigh Market',
 }
 
 def get_market_from_location(location: str) -> str:
