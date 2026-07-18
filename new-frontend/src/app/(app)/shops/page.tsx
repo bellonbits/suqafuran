@@ -5,10 +5,10 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, ShieldCheck, Store, MapPin, Star, Package, X, ChevronLeft, ChevronRight, Percent, ThumbsUp } from 'lucide-react';
-import { listingsService, PublicShop } from '../../../services/listings';
-import api, { resolveMediaUrl } from '../../../services/api';
-import { useLocationStore } from '../../../store/useLocation';
-import { MARKET_TO_CITY } from '../../../../constants/markets';
+import { listingsService, PublicShop } from '@/services/listings';
+import api, { resolveMediaUrl } from '@/services/api';
+import { useLocationStore } from '@/store/useLocation';
+import { MARKET_TO_CITY } from '@/constants/markets';
 
 interface Category {
   id: number;
