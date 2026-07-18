@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List
 from app.api import deps
-from app.models.listings import Listing
+from app.models.listing import Listing
 from app.models.bulk import ProductTitleChange
 from app.services.title_suggester import TitleSuggester
 
