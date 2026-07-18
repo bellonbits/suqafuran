@@ -68,7 +68,7 @@ class UserBase(SQLModel):
     free_delivery: bool = Field(default=False)  # Free delivery badge
 
 
-class User(UserBase, table=True, tablename="users"):
+class User(UserBase, table=True, tablename="user"):
     id: Optional[int] = Field(default=None, primary_key=True)
     hashed_password: Optional[str] = Field(default=None)  # Keep optional for backward compat/admin
     created_at: datetime = Field(default_factory=datetime.utcnow)
