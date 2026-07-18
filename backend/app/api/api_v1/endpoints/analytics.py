@@ -103,33 +103,28 @@ async def get_funnel_stats(
 
     cutoff = datetime.utcnow() - timedelta(days=days)
 
-    # Count users in each stage
-    total_signups = db.exec(
+    # Count by step
+    signup = db.exec(
         select(func.count(ConversionFunnel.id))
+        .where(ConversionFunnel.step == 'signup')
         .where(ConversionFunnel.created_at >= cutoff)
     ).one() or 0
 
-    first_search = db.exec(
+    search = db.exec(
         select(func.count(ConversionFunnel.id))
-        .where(ConversionFunnel.first_search_at.isnot(None))
+        .where(ConversionFunnel.step == 'search')
         .where(ConversionFunnel.created_at >= cutoff)
     ).one() or 0
 
-    first_view = db.exec(
+    view = db.exec(
         select(func.count(ConversionFunnel.id))
-        .where(ConversionFunnel.first_view_listing_at.isnot(None))
+        .where(ConversionFunnel.step == 'view_listing')
         .where(ConversionFunnel.created_at >= cutoff)
     ).one() or 0
 
-    first_purchase = db.exec(
+    purchase = db.exec(
         select(func.count(ConversionFunnel.id))
-        .where(ConversionFunnel.first_purchase_at.isnot(None))
-        .where(ConversionFunnel.created_at >= cutoff)
-    ).one() or 0
-
-    repeat_purchase = db.exec(
-        select(func.count(ConversionFunnel.id))
-        .where(ConversionFunnel.repeat_purchase_at.isnot(None))
+        .where(ConversionFunnel.step == 'purchase')
         .where(ConversionFunnel.created_at >= cutoff)
     ).one() or 0
 
@@ -137,24 +132,20 @@ async def get_funnel_stats(
         "period_days": days,
         "funnel": {
             "signup": {
-                "count": total_signups,
+                "count": signup,
                 "percentage": 100,
             },
-            "first_search": {
-                "count": first_search,
-                "percentage": (first_search / total_signups * 100) if total_signups > 0 else 0,
+            "search": {
+                "count": search,
+                "percentage": (search / signup * 100) if signup > 0 else 0,
             },
-            "first_view": {
-                "count": first_view,
-                "percentage": (first_view / total_signups * 100) if total_signups > 0 else 0,
+            "view_listing": {
+                "count": view,
+                "percentage": (view / signup * 100) if signup > 0 else 0,
             },
-            "first_purchase": {
-                "count": first_purchase,
-                "percentage": (first_purchase / total_signups * 100) if total_signups > 0 else 0,
-            },
-            "repeat_purchase": {
-                "count": repeat_purchase,
-                "percentage": (repeat_purchase / total_signups * 100) if total_signups > 0 else 0,
+            "purchase": {
+                "count": purchase,
+                "percentage": (purchase / signup * 100) if signup > 0 else 0,
             },
         }
     }
