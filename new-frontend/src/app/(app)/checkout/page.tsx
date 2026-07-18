@@ -275,7 +275,7 @@ export default function CheckoutPage() {
                                         loading="lazy"
                                         allowFullScreen={true}
                                         referrerPolicy="no-referrer-when-downgrade"
-                                        src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${currentLocation.lat},${currentLocation.lng}&zoom=16`}
+                                        src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(deliveryAddress || 'Nairobi, Kenya')}&zoom=14`}
                                     />
                                     <div className="absolute bottom-4 right-4 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-lg border border-gray-200 dark:border-slate-800 flex items-center gap-2">
                                         <MapPin className="w-3 h-3 text-orange-500" />
