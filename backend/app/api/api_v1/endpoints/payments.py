@@ -166,6 +166,14 @@ def initiate_mpesa_checkout(
 
         # CREATE ORDER FIRST (before M-Pesa service initialization)
         try:
+            # Extract seller_id from first item in cart
+            seller_id = None
+            if items:
+                seller_id = items[0].get('seller_id') or items[0].get('owner_id')
+
+            if not seller_id:
+                raise HTTPException(status_code=400, detail="No seller found for cart items")
+
             # Ensure user exists in database (for foreign key constraint)
             from models import User
             existing_user = db.query(User).filter(User.id == user_id).first()
@@ -186,7 +194,7 @@ def initiate_mpesa_checkout(
             order = Order(
                 id=order_id,
                 user_id=user_id,
-                seller_id="guest-seller",
+                seller_id=seller_id,
                 status=OrderStatus.PAYMENT_PENDING,
                 delivery_option=fulfillment_type,
                 delivery_address=delivery_address or "Current Location",
