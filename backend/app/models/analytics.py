@@ -58,7 +58,7 @@ class UserActivity(SQLModel, table=True):
     search_query: Optional[str] = None
 
     # Metadata
-    metadata: str = ""  # JSON for additional data
+    event_metadata: str = ""  # JSON for additional data
 
     # Timing & Location
     timestamp: datetime = Field(default_factory=datetime.utcnow, index=True)

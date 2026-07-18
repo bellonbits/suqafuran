@@ -77,7 +77,7 @@ async def track_metric(
                     action_type=data.get("metric_name", "metric"),
                     action_category="metrics",
                     page_url=data.get("page_url", ""),
-                    metadata=data.get("metric_data", "{}"),
+                    event_metadata=data.get("metric_data", "{}"),
                     timestamp=datetime.utcnow(),
                     ip_address=request.client.host if request.client else None,
                 )
