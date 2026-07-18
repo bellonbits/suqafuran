@@ -193,7 +193,7 @@ function SkeletonCard() {
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
-const SHOPS_PER_PAGE = 24;
+const SHOPS_PER_PAGE = 20;
 
 function ShopsPageContent() {
   const router = useRouter();
@@ -208,17 +208,10 @@ function ShopsPageContent() {
   const [search, setSearch] = useState(searchParams.get('q') || '');
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [selectedMarket, setSelectedMarket] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [shopCountsByCategory, setShopCountsByCategory] = useState<Record<string, number>>({});
   const categoryParam = searchParams.get('category');
-
-  // Get markets for the selected city (memoized to prevent infinite loops)
-  const selectedMarkets = useMemo(() => {
-    if (!city) return [];
-    return Object.entries(MARKET_TO_CITY)
-      .filter(([, c]) => c === city)
-      .map(([market]) => market);
-  }, [city]);
 
   // Debounce search
   useEffect(() => {
@@ -259,10 +252,10 @@ function ShopsPageContent() {
     loadCategories();
   }, [categoryParam]);
 
-  // Reset to page 1 on search or category filter change
+  // Reset to page 1 on search, category, or market filter change
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, selectedCategoryId]);
+  }, [debouncedSearch, selectedCategoryId, selectedMarket]);
 
   const fetchShops = useCallback(async () => {
     // Clear browser cache to get fresh banners
@@ -284,11 +277,11 @@ function ShopsPageContent() {
         _t: Date.now(),
       });
 
-      // Filter shops by selected market
+      // Filter shops by selected market (optional)
       let filteredShops = result.shops || [];
-      if (selectedMarkets.length > 0) {
+      if (selectedMarket) {
         filteredShops = filteredShops.filter(shop =>
-          selectedMarkets.includes(shop.market || 'Eastleigh Market')
+          shop.market === selectedMarket
         );
       }
 
@@ -301,7 +294,7 @@ function ShopsPageContent() {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch, selectedCategoryId, selectedMarkets]);
+  }, [page, debouncedSearch, selectedCategoryId, selectedMarket]);
 
   useEffect(() => {
     fetchShops();
@@ -317,28 +310,45 @@ function ShopsPageContent() {
           <div>
             <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Shops</h1>
             <p className="text-gray-500 dark:text-slate-400 text-xs font-semibold mt-0.5">
-              {city || 'Select Location'} <span className="text-gray-300 dark:text-slate-800">/</span> Markets near you
+              All Markets <span className="text-gray-300 dark:text-slate-800">/</span> {total} shops
             </p>
           </div>
 
-          {/* Search Box */}
-          <div className="relative w-full md:w-72">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search shops..."
-              className="w-full pl-10 pr-9 py-2 rounded-full bg-gray-100 dark:bg-slate-900 border-0 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder:text-gray-400 text-gray-900 dark:text-white"
-            />
-            {search && (
-              <button
-                onClick={() => setSearch('')}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
+          {/* Search & Filter */}
+          <div className="flex gap-2 w-full md:w-auto">
+            {/* Search Box */}
+            <div className="relative flex-1 md:flex-none md:w-64">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search shops..."
+                className="w-full pl-10 pr-9 py-2 rounded-full bg-gray-100 dark:bg-slate-900 border-0 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder:text-gray-400 text-gray-900 dark:text-white"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Market Filter Dropdown */}
+            <select
+              value={selectedMarket || ''}
+              onChange={(e) => setSelectedMarket(e.target.value || null)}
+              className="px-4 py-2 rounded-full bg-gray-100 dark:bg-slate-900 border-0 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-400 cursor-pointer"
+            >
+              <option value="">All Markets</option>
+              {Object.keys(MARKET_TO_CITY).sort().map((market) => (
+                <option key={market} value={market}>
+                  {market}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
