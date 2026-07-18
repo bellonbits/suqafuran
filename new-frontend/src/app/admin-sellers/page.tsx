@@ -9,25 +9,19 @@ const AdminSellersPage = () => {
   const [sellers, setSellers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [verificationFilter, setVerificationFilter] = useState('all');
   const [viewingSeller, setViewingSeller] = useState<any>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
-  const [statusOpen, setStatusOpen] = useState(false);
-  const [verificationOpen, setVerificationOpen] = useState(false);
   const [exportCount, setExportCount] = useState(0);
 
   useEffect(() => {
     loadSellers();
-  }, [searchQuery, statusFilter, verificationFilter]);
+  }, [searchQuery]);
 
   const loadSellers = async () => {
     setLoading(true);
     try {
-      let url = `/users/?limit=500`;
+      let url = `/admin/sellers?limit=500`;
       if (searchQuery) url += `&search=${searchQuery}`;
-      if (statusFilter !== 'all') url += `&is_active=${statusFilter === 'active'}`;
-      if (verificationFilter !== 'all') url += `&is_verified=${verificationFilter === 'verified'}`;
 
       const res = await api.get(url).catch(() => null);
       if (res?.data) {
@@ -72,18 +66,19 @@ const AdminSellersPage = () => {
         id: s.id,
         full_name: s.full_name,
         email: s.email,
-        phone: s.phone,
-        business_name: s.business_name,
-        location: s.location,
-        market: s.market,
+        phone: s.phone || '',
+        business_name: s.business_name || '',
+        location: s.location || '',
+        market: s.market || '',
         is_active: s.is_active ? 'Yes' : 'No',
         is_verified: s.is_verified ? 'Yes' : 'No',
-        verified_level: s.verified_level,
-        trust_level: s.trust_level,
-        trust_score: s.trust_score,
+        verified_level: s.verified_level || '',
+        trust_level: s.trust_level || 'NEW',
+        trust_score: s.trust_score || 0,
         is_flagged: s.is_flagged ? 'Yes' : 'No',
         is_suspended: s.is_suspended ? 'Yes' : 'No',
-        response_time: s.response_time,
+        response_time: s.response_time || '',
+        listings_count: s.listings_count || 0,
         joined_date: s.created_at ? new Date(s.created_at).toLocaleDateString() : '',
       }))
     );
@@ -119,7 +114,7 @@ const AdminSellersPage = () => {
           Back
         </Link>
         <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-2">Sellers Management</h1>
-        <p className="text-gray-600 dark:text-gray-400 mb-6">Manage, export, and bulk update seller accounts</p>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">Manage and export all {exportCount} seller accounts</p>
 
         <div className="flex gap-3 flex-wrap mb-6 items-center">
           <button onClick={handleExportCSV} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold flex items-center gap-2 transition-colors">
@@ -151,9 +146,9 @@ const AdminSellersPage = () => {
                     <th className="px-4 py-4 text-left text-sm font-bold text-gray-900 dark:text-white">NAME</th>
                     <th className="px-4 py-4 text-left text-sm font-bold text-gray-900 dark:text-white">BUSINESS</th>
                     <th className="px-4 py-4 text-left text-sm font-bold text-gray-900 dark:text-white">EMAIL</th>
-                    <th className="px-4 py-4 text-left text-sm font-bold text-gray-900 dark:text-white">VERIFIED</th>
+                    <th className="px-4 py-4 text-left text-sm font-bold text-gray-900 dark:text-white">PHONE</th>
                     <th className="px-4 py-4 text-left text-sm font-bold text-gray-900 dark:text-white">TRUST</th>
-                    <th className="px-4 py-4 text-left text-sm font-bold text-gray-900 dark:text-white">STATUS</th>
+                    <th className="px-4 py-4 text-left text-sm font-bold text-gray-900 dark:text-white">LISTINGS</th>
                     <th className="px-4 py-4 text-left text-sm font-bold text-gray-900 dark:text-white">ACTIONS</th>
                   </tr>
                 </thead>
@@ -166,19 +161,16 @@ const AdminSellersPage = () => {
                         <td className="px-4 py-4"><p className="text-sm font-semibold text-gray-900 dark:text-white">{seller.full_name || 'Unknown'}</p></td>
                         <td className="px-4 py-4"><p className="text-sm text-gray-600 dark:text-gray-400">{seller.business_name || '—'}</p></td>
                         <td className="px-4 py-4"><p className="text-sm text-gray-600 dark:text-gray-400 truncate">{seller.email}</p></td>
-                        <td className="px-4 py-4"><span className={`px-2 py-1 rounded text-xs font-bold \${seller.is_verified ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}>{seller.is_verified ? '✓' : '✗'}</span></td>
-                        <td className="px-4 py-4"><p className="text-sm font-semibold text-gray-900 dark:text-white">{seller.trust_level || 'NEW'}</p></td>
-                        <td className="px-4 py-4"><span className={`px-2 py-1 rounded text-xs font-bold \${seller.is_active ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'}`}>{seller.is_active ? 'Active' : 'Inactive'}</span></td>
+                        <td className="px-4 py-4"><p className="text-sm text-gray-600 dark:text-gray-400">{seller.phone || '—'}</p></td>
+                        <td className="px-4 py-4"><span className="px-2 py-1 rounded text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">{seller.trust_level || 'NEW'}</span></td>
+                        <td className="px-4 py-4"><p className="text-sm font-bold text-gray-900 dark:text-white">{seller.listings_count || 0}</p></td>
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-2">
-                            <button onClick={() => handleView(seller)} className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition-colors" title="View">
+                            <button onClick={() => handleView(seller)} className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition-colors">
                               <Eye className="w-4 h-4 text-[#5bc0e8]" />
                             </button>
-                            <button onClick={() => handleEdit(seller.id)} className="p-1.5 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded transition-colors" title="Edit">
+                            <button onClick={() => handleEdit(seller.id)} className="p-1.5 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded transition-colors">
                               <Edit2 className="w-4 h-4 text-orange-600" />
-                            </button>
-                            <button onClick={() => handleDelete(seller.id)} disabled={deleting === seller.id} className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors disabled:opacity-50">
-                              {deleting === seller.id ? <Loader className="w-4 h-4 text-red-600 animate-spin" /> : <Trash2 className="w-4 h-4 text-red-600" />}
                             </button>
                           </div>
                         </td>
@@ -209,8 +201,16 @@ const AdminSellersPage = () => {
                 <div><p className="text-xs font-bold text-gray-600 dark:text-gray-400">PHONE</p><p className="text-sm text-gray-900 dark:text-white">{viewingSeller.phone || '—'}</p></div>
                 <div><p className="text-xs font-bold text-gray-600 dark:text-gray-400">LOCATION</p><p className="text-sm text-gray-900 dark:text-white">{viewingSeller.location || '—'}</p></div>
                 <div><p className="text-xs font-bold text-gray-600 dark:text-gray-400">TRUST LEVEL</p><p className="text-sm text-gray-900 dark:text-white">{viewingSeller.trust_level || 'NEW'}</p></div>
+                <div><p className="text-xs font-bold text-gray-600 dark:text-gray-400">LISTINGS</p><p className="text-sm text-gray-900 dark:text-white">{viewingSeller.listings_count || 0}</p></div>
+                <div><p className="text-xs font-bold text-gray-600 dark:text-gray-400">TRUST SCORE</p><p className="text-sm text-gray-900 dark:text-white">{viewingSeller.trust_score || 0}</p></div>
               </div>
-              <div className="flex gap-3">
+              {viewingSeller.shop_description && (
+                <div>
+                  <p className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2">SHOP DESCRIPTION</p>
+                  <p className="text-sm text-gray-900 dark:text-white">{viewingSeller.shop_description}</p>
+                </div>
+              )}
+              <div className="flex gap-3 pt-4">
                 <button onClick={() => handleEdit(viewingSeller.id)} className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors">
                   <Edit2 className="w-4 h-4 inline mr-2" /> Edit
                 </button>
