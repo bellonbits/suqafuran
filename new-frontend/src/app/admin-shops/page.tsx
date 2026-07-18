@@ -53,18 +53,24 @@ const ShopsPage = () => {
   const loadShops = async () => {
     setLoading(true);
     try {
-      const verResponse = await api.get('/verifications/?limit=500');
+      const [verResponse, listingsResponse] = await Promise.all([
+        api.get('/verifications/?limit=500'),
+        api.get('/listings/?limit=5000'),
+      ]);
+
       let shopsData = Array.isArray(verResponse.data) ? verResponse.data : [];
+      let allListings = Array.isArray(listingsResponse.data) ? listingsResponse.data : [];
 
-      const results = [];
-      for (const shop of shopsData) {
-        let listings: any[] = [];
-        try {
-          const listingsRes = await api.get(`/listings/?limit=500&owner_id=${shop.user_id}`);
-          if (Array.isArray(listingsRes.data)) listings = listingsRes.data;
-        } catch (_) {}
+      const listingsByOwner = allListings.reduce((acc: any, listing: any) => {
+        const ownerId = listing.owner_id;
+        if (!acc[ownerId]) acc[ownerId] = [];
+        acc[ownerId].push(listing);
+        return acc;
+      }, {});
 
-        results.push({
+      const results = shopsData.map(shop => {
+        const listings = listingsByOwner[shop.user_id] || [];
+        return {
           id: shop.id,
           shop_name: shop.user?.business_name || shop.user?.full_name || 'Unknown',
           owner_name: shop.user?.full_name || 'Unknown',
@@ -76,8 +82,9 @@ const ShopsPage = () => {
           total_products: listings.length,
           active_products: listings.filter((l: any) => l.status === 'active').length,
           user_id: shop.user_id,
-        });
-      }
+        };
+      });
+
       setShops(results);
     } catch (error) {
       console.error('Error loading shops:', error);
