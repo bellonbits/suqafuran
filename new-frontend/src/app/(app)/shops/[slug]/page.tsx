@@ -41,6 +41,7 @@ export default function ShopDetailPage() {
     const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
     const [modalQuantity, setModalQuantity] = useState(1);
     const [shopId, setShopId] = useState<string | null>(null);
+    const [shopOwnerId, setShopOwnerId] = useState<string | number | null>(null);
 
     const { items: cartItems, addItem, updateQuantity: updateCartQuantity, getTotalPrice } = useCart();
 
@@ -127,6 +128,7 @@ export default function ShopDetailPage() {
 
                     setShopName(currentShop.shop_name || 'Shop');
                     setShopLogo(currentShop.cover_image || '');
+                    setShopOwnerId(currentShop.user_id);
                     setAllListings(shopListings || []);
                     if (shopListings && shopListings.length > 0) {
                         setActiveCategory(String(shopListings[0].category_id || ''));
@@ -566,6 +568,7 @@ export default function ShopDetailPage() {
                                                                 e.stopPropagation();
                                                                 e.preventDefault();
                                                                 addItem({
+                                                                    owner_id: shopOwnerId,
                                                                     id: String(product.id),
                                                                     title: product.title_en,
                                                                     price: product.price,
@@ -788,6 +791,7 @@ export default function ShopDetailPage() {
                                 <button
                                     onClick={() => {
                                         addItem({
+                                                                    owner_id: shopOwnerId,
                                             id: String(selectedProduct.id),
                                             title: selectedProduct.title_en,
                                             price: selectedProduct.price,
