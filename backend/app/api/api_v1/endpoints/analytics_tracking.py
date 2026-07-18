@@ -55,6 +55,45 @@ async def track_click(
         return {"status": "error"}
 
 
+@router.post("/track/metric")
+async def track_metric(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    current_user: Optional[User] = Depends(deps.get_current_active_user),
+    db: Session = Depends(deps.get_db),
+):
+    """
+    Track custom metrics (time on page, scroll depth, etc).
+    """
+    try:
+        data = await request.json()
+
+        # Process in background
+        async def save_metric():
+            try:
+                activity = UserActivity(
+                    user_id=current_user.id if current_user else None,
+                    session_id=data.get("session_token"),
+                    action_type=data.get("metric_name", "metric"),
+                    action_category="metrics",
+                    page_url=data.get("page_url", ""),
+                    metadata=data.get("metric_data", "{}"),
+                    timestamp=datetime.utcnow(),
+                    ip_address=request.client.host if request.client else None,
+                )
+                db.add(activity)
+                db.commit()
+            except Exception as e:
+                print(f"Error saving metric: {e}")
+
+        background_tasks.add_task(save_metric)
+        return {"status": "received"}
+
+    except Exception as e:
+        print(f"Error in track_metric: {e}")
+        return {"status": "error"}
+
+
 @router.post("/track/activity")
 async def track_activity(
     request: Request,
