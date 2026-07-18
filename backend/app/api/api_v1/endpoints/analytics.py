@@ -103,29 +103,25 @@ async def get_funnel_stats(
 
     cutoff = datetime.utcnow() - timedelta(days=days)
 
-    # Count by step
+    # Count by timestamp fields
     signup = db.exec(
         select(func.count(ConversionFunnel.id))
-        .where(ConversionFunnel.step == 'signup')
-        .where(ConversionFunnel.created_at >= cutoff)
+        .where(ConversionFunnel.signup_at.isnot(None))
     ).one() or 0
 
     search = db.exec(
         select(func.count(ConversionFunnel.id))
-        .where(ConversionFunnel.step == 'search')
-        .where(ConversionFunnel.created_at >= cutoff)
+        .where(ConversionFunnel.first_search_at.isnot(None))
     ).one() or 0
 
     view = db.exec(
         select(func.count(ConversionFunnel.id))
-        .where(ConversionFunnel.step == 'view_listing')
-        .where(ConversionFunnel.created_at >= cutoff)
+        .where(ConversionFunnel.first_view_listing_at.isnot(None))
     ).one() or 0
 
     purchase = db.exec(
         select(func.count(ConversionFunnel.id))
-        .where(ConversionFunnel.step == 'purchase')
-        .where(ConversionFunnel.created_at >= cutoff)
+        .where(ConversionFunnel.first_purchase_at.isnot(None))
     ).one() or 0
 
     return {
@@ -139,7 +135,7 @@ async def get_funnel_stats(
                 "count": search,
                 "percentage": (search / signup * 100) if signup > 0 else 0,
             },
-            "view_listing": {
+            "view": {
                 "count": view,
                 "percentage": (view / signup * 100) if signup > 0 else 0,
             },
