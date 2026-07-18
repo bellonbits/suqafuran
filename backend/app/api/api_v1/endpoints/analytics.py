@@ -1,12 +1,11 @@
 """Analytics endpoints for admin dashboard."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session, select, func, desc
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import Optional
 from app.api import deps
 from app.models.analytics import UserSession, UserActivity, ConversionFunnel, ClickEvent
-from app.models.user import User
 from app.core.config import settings
 
 router = APIRouter()
@@ -19,12 +18,9 @@ router = APIRouter()
 @router.get("/sessions/active")
 async def get_active_sessions(
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user),
     limit: int = Query(50, ge=1, le=500),
 ):
     """Get currently active user sessions."""
-    if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin only")
 
     # Sessions active in last 5 minutes
     cutoff = datetime.utcnow() - timedelta(minutes=5)
@@ -62,13 +58,10 @@ async def get_active_sessions(
 @router.get("/activities/feed")
 async def get_activity_feed(
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user),
     limit: int = Query(100, ge=1, le=500),
     hours: int = Query(24, ge=1, le=720),
 ):
     """Get real-time user activity feed."""
-    if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin only")
 
     cutoff = datetime.utcnow() - timedelta(hours=hours)
 
@@ -104,12 +97,9 @@ async def get_activity_feed(
 @router.get("/funnel/stats")
 async def get_funnel_stats(
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user),
     days: int = Query(30, ge=1, le=365),
 ):
     """Get conversion funnel statistics."""
-    if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin only")
 
     cutoff = datetime.utcnow() - timedelta(days=days)
 
@@ -177,7 +167,6 @@ async def get_funnel_stats(
 @router.get("/audit/logs")
 async def get_audit_logs(
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user),
     user_id: Optional[int] = Query(None),
     action_type: Optional[str] = Query(None),
     action_category: Optional[str] = Query(None),
@@ -186,8 +175,6 @@ async def get_audit_logs(
     limit: int = Query(100, ge=1, le=500),
 ):
     """Get searchable audit logs."""
-    if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin only")
 
     query = select(UserActivity)
 
@@ -232,13 +219,10 @@ async def get_audit_logs(
 @router.get("/heatmap/data")
 async def get_heatmap_data(
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user),
     page_url: str = Query(...),
     hours: int = Query(24, ge=1, le=720),
 ):
     """Get click heatmap data for a specific page."""
-    if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin only")
 
     cutoff = datetime.utcnow() - timedelta(hours=hours)
 
