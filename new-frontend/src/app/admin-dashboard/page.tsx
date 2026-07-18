@@ -74,7 +74,7 @@ const AdminDashboard = () => {
     { label: 'Marketing', icon: <TrendingUp className="w-5 h-5" />, href: '/admin-marketing' },
     { label: 'Reports', icon: <FileText className="w-5 h-5" />, href: '/admin-reports' },
     { label: 'Disputes', icon: <AlertCircle className="w-5 h-5" />, href: '/admin-disputes' },
-    { label: 'Analytics', icon: <BarChart3 className="w-5 h-5" />, href: '/admin-analytics' },
+    { label: 'Analytics', icon: <BarChart3 className="w-5 h-5" />, href: '/admin-dashboard/analytics' },
   ];
 
   const metrics = [
@@ -639,6 +639,14 @@ const AdminDashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Link href="/admin-dashboard/analytics">
+              <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 hover:shadow-lg rounded-lg p-6 border border-cyan-200 cursor-pointer transition">
+                <BarChart3 className="w-8 h-8 text-cyan-600 mb-3" />
+                <h3 className="font-bold text-gray-900 mb-1">Analytics Dashboard</h3>
+                <p className="text-sm text-gray-600">User behavior & conversions</p>
+              </div>
+            </Link>
+
             <Link href="/admin-dashboard/monitoring/alerts">
               <div className="bg-gradient-to-br from-blue-50 to-blue-100 hover:shadow-lg rounded-lg p-6 border border-blue-200 cursor-pointer transition">
                 <Bell className="w-8 h-8 text-blue-600 mb-3" />
@@ -681,7 +689,7 @@ const AdminDashboard = () => {
 
             <a href="http://165.22.13.173:16686" target="_blank" rel="noopener noreferrer">
               <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 hover:shadow-lg rounded-lg p-6 border border-indigo-200 cursor-pointer transition">
-                <BarChart3 className="w-8 h-8 text-indigo-600 mb-3" />
+                <Network className="w-8 h-8 text-indigo-600 mb-3" />
                 <h3 className="font-bold text-gray-900 mb-1">Jaeger UI</h3>
                 <p className="text-sm text-gray-600">Full distributed tracing</p>
               </div>
