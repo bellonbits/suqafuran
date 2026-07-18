@@ -61,7 +61,12 @@ venv.bak/
 # Celery
 backend/celerybeat-schedule
 celerybeat-schedule*
-new-frontend/
+
+# Frontend - exclude node_modules but track src and config
+new-frontend/node_modules/
+new-frontend/.next/
+new-frontend/out/
+new-frontend/.env*
 !new-frontend/package.json
 !new-frontend/package-lock.json
 !new-frontend/Dockerfile
