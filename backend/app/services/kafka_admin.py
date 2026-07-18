@@ -114,7 +114,7 @@ class KafkaAdminClient:
         """
         logger.info("📋 Starting Kafka topic creation process...")
 
-        if not self.admin_client:
+        if self.admin_client is None:
             logger.error("❌ Kafka admin client is not initialized")
             return False
 
@@ -200,7 +200,7 @@ class KafkaAdminClient:
         Returns:
             Dict mapping topic names to TopicMetrics
         """
-        if not self.admin_client:
+        if self.admin_client is None:
             logger.warning("Kafka admin client not available")
             return {}
 
@@ -255,7 +255,7 @@ class KafkaAdminClient:
         Returns:
             TopicMetrics or None if topic not found
         """
-        if not self.admin_client:
+        if self.admin_client is None:
             return None
 
         try:
@@ -274,7 +274,7 @@ class KafkaAdminClient:
         Returns:
             List of PartitionMetrics
         """
-        if not self.admin_client:
+        if self.admin_client is None:
             return []
 
         try:
@@ -345,7 +345,7 @@ class KafkaAdminClient:
 
     def _get_topic_retention(self, topic_name: str) -> Dict:
         """Get retention policy for a topic."""
-        if not self.admin_client:
+        if self.admin_client is None:
             return {}
 
         try:
