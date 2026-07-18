@@ -46,7 +46,7 @@ class SellerVerificationStatus(str, enum.Enum):
 
 # User Model
 class User(Base):
-    __tablename__ = "users"
+    __tablename__ = "user"
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     email = Column(String, unique=True, index=True, nullable=False)
@@ -65,7 +65,7 @@ class Seller(Base):
     __tablename__ = "sellers"
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    user_id = Column(String, ForeignKey("user.id"), nullable=False)
     shop_name = Column(String, nullable=False)
     owner_name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
@@ -119,7 +119,7 @@ class Order(Base):
     __tablename__ = "orders"
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    user_id = Column(String, ForeignKey("user.id"), nullable=False)
     seller_id = Column(String, ForeignKey("sellers.id"), nullable=False)
     status = Column(String, default=OrderStatus.PENDING)
     delivery_option = Column(String, default=DeliveryOption.DELIVERY)
@@ -211,7 +211,7 @@ class Rating(Base):
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     order_id = Column(String, ForeignKey("orders.id"), nullable=False, unique=True)
-    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    user_id = Column(String, ForeignKey("user.id"), nullable=False)
     seller_id = Column(String, ForeignKey("sellers.id"), nullable=False)
     rating = Column(Integer, nullable=False)  # 1-5 stars
     review_text = Column(Text)  # Optional detailed review
@@ -274,7 +274,7 @@ class Notification(Base):
     __tablename__ = "notifications"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(String, ForeignKey("user.id"), nullable=False, index=True)
     type = Column(String, nullable=False)  # order, payment, delivery, issue, promotion, system
     title = Column(String, nullable=False)
     message = Column(Text, nullable=False)
@@ -292,7 +292,7 @@ class NotificationPreference(Base):
     __tablename__ = "notification_preferences"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, unique=True, index=True)
+    user_id = Column(String, ForeignKey("user.id"), nullable=False, unique=True, index=True)
     email_notifications = Column(Boolean, default=True)
     sms_notifications = Column(Boolean, default=True)
     push_notifications = Column(Boolean, default=True)
@@ -326,7 +326,7 @@ class DeviceToken(Base):
     __tablename__ = "device_tokens"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(String, ForeignKey("user.id"), nullable=False, index=True)
     token = Column(String, nullable=False, unique=True, index=True)
     device_type = Column(String)  # ios, android, web
     device_name = Column(String)
@@ -342,7 +342,7 @@ class RealtimeEvent(Base):
     __tablename__ = "realtime_events"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(String, ForeignKey("user.id"), nullable=False, index=True)
     event_type = Column(String, nullable=False)  # order_update, delivery_update, notification, connection, etc.
     event_data = Column(JSON, nullable=False)
     order_id = Column(String, index=True)
@@ -378,7 +378,7 @@ class Rider(Base):
     __tablename__ = "riders"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    user_id = Column(String, ForeignKey("user.id"), nullable=False)
     phone = Column(String, nullable=False)
     vehicle_type = Column(String)
     vehicle_plate = Column(String)
