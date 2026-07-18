@@ -5,10 +5,11 @@ import {
   LayoutDashboard, Users, UserCheck, ShoppingCart, DollarSign,
   Truck, Grid3x3, Tag, Percent, MessageSquare, Shield,
   AlertTriangle, TrendingUp, FileText, AlertCircle, BarChart3,
-  Zap, ExternalLink, MapPin, Mail, Phone, Calendar
+  Zap, ExternalLink, MapPin, Mail, Phone, Calendar, Download, Upload
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import api from '@/services/api';
+import Papa from 'papaparse';
 
 const adminNavItems = [
   { label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, href: '/admin-dashboard' },
@@ -104,6 +105,44 @@ const ShopsPage = () => {
     else { setSortBy(col); setSortDir('desc'); }
   };
 
+  const handleExportCSV = () => {
+    const csv = Papa.unparse(
+      filtered.map(s => ({
+        id: s.id,
+        shop_name: s.shop_name,
+        owner_name: s.owner_name,
+        email: s.email,
+        phone: s.phone,
+        total_products: s.total_products,
+        active_products: s.active_products,
+        verified: s.verified ? 'Yes' : 'No',
+        joined_date: new Date(s.created_at).toLocaleDateString(),
+      }))
+    );
+
+    const link = document.createElement('a');
+    link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    link.download = `shops_export_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
+  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    Papa.parse(file, {
+      header: true,
+      complete: (results: any) => {
+        console.log('Imported CSV data:', results.data);
+        alert(`Loaded ${results.data.length} shops for bulk update. Feature coming soon.`);
+      },
+      error: (error: any) => {
+        console.error('CSV parse error:', error);
+        alert('Error parsing CSV file');
+      },
+    });
+  };
+
   const SortIcon = ({ col }: { col: typeof sortBy }) => (
     <span className="ml-1 inline-flex flex-col gap-0">
       <ChevronUp className={`w-3 h-3 -mb-1 ${sortBy === col && sortDir === 'asc' ? 'text-sky-500' : 'text-gray-300'}`} />
@@ -127,20 +166,43 @@ const ShopsPage = () => {
   return (
     <DashboardLayout title="Shops Management" navItems={adminNavItems} userRole="admin">
       {/* Page header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h2 className="text-2xl font-black text-gray-900">All Shops</h2>
-          <p className="text-sm text-gray-500 mt-0.5">View all verified shops and their listings</p>
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-black text-gray-900">All Shops</h2>
+            <p className="text-sm text-gray-500 mt-0.5">View all verified shops and their listings</p>
+          </div>
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search shops, owners, email…"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-400 bg-white shadow-sm"
+            />
+          </div>
         </div>
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search shops, owners, email…"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-400 bg-white shadow-sm"
-          />
+
+        {/* Export/Import buttons */}
+        <div className="flex gap-3 flex-wrap">
+          <button
+            onClick={handleExportCSV}
+            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold flex items-center gap-2 transition-colors shadow-sm"
+          >
+            <Download size={16} />
+            Export {filtered.length} Shops to CSV
+          </button>
+          <label className="px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-semibold flex items-center gap-2 transition-colors shadow-sm cursor-pointer">
+            <Upload size={16} />
+            Import CSV for Bulk Update
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleImportCSV}
+              className="hidden"
+            />
+          </label>
         </div>
       </div>
 
