@@ -205,8 +205,6 @@ async def get_heatmap_data(
                 "x": c.x,
                 "y": c.y,
                 "element_id": c.element_id,
-                "element_type": c.element_type,
-                "text": c.text,
             }
             for c in clicks
         ]
