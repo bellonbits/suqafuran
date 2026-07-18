@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -212,14 +212,13 @@ function ShopsPageContent() {
   const [shopCountsByCategory, setShopCountsByCategory] = useState<Record<string, number>>({});
   const categoryParam = searchParams.get('category');
 
-  // Get markets for the selected city
-  const getMarketsForCity = (cityName: string): string[] => {
+  // Get markets for the selected city (memoized to prevent infinite loops)
+  const selectedMarkets = useMemo(() => {
+    if (!city) return [];
     return Object.entries(MARKET_TO_CITY)
-      .filter(([, c]) => c === cityName)
+      .filter(([, c]) => c === city)
       .map(([market]) => market);
-  };
-
-  const selectedMarkets = city ? getMarketsForCity(city) : [];
+  }, [city]);
 
   // Debounce search
   useEffect(() => {
