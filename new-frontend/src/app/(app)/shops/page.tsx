@@ -102,9 +102,9 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
     >
       <Link href={`/shops/${shop.slug}`} className="group block">
 
-        {/* ─── Banner (16:10 for taller proportions) ─────────────── */}
-        {/* Slightly taller than 16:9 for better card balance         */}
-        <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-800">
+        {/* ─── Banner (4:5 for product images) ──────────────────── */}
+        {/* Portrait aspect ratio works better with product photos   */}
+        <div className="relative aspect-[4/5] w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-800">
           {banner ? (
             <>
               <img
