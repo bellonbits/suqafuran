@@ -102,25 +102,22 @@ async def get_funnel_stats(
     """Get conversion funnel statistics."""
 
     return {
-        "period_days": days,
-        "funnel": {
-            "signup": {
-                "count": 0,
-                "percentage": 100,
-            },
-            "search": {
-                "count": 0,
-                "percentage": 0,
-            },
-            "view": {
-                "count": 0,
-                "percentage": 0,
-            },
-            "purchase": {
-                "count": 0,
-                "percentage": 0,
-            },
-        }
+        "signup": {
+            "count": 0,
+            "percentage": 100,
+        },
+        "first_search": {
+            "count": 0,
+            "percentage": 0,
+        },
+        "first_view": {
+            "count": 0,
+            "percentage": 0,
+        },
+        "first_purchase": {
+            "count": 0,
+            "percentage": 0,
+        },
     }
 
 
