@@ -1,9 +1,23 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Loader, ChevronLeft, Eye, Trash2, Edit2, X, ChevronDown, Download, Upload } from 'lucide-react';
+import {
+  Search, Loader, ChevronLeft, Eye, Trash2, Edit2, X, ChevronDown, Download, Upload,
+  LayoutDashboard, Users, UserCheck, ShoppingCart, DollarSign, Truck, Grid3x3,
+  Tag, Percent, MessageSquare, Shield, AlertTriangle, TrendingUp, FileText, AlertCircle, BarChart3, Zap, Package
+} from 'lucide-react';
 import api from '@/services/api';
 import Papa from 'papaparse';
+import { DashboardLayout } from '@/components/DashboardLayout';
+
+const adminNavItems = [
+  { label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, href: '/admin-dashboard' },
+  { label: 'Shops', icon: <Package className="w-5 h-5" />, href: '/admin-shops' },
+  { label: 'Sellers', icon: <Users className="w-5 h-5" />, href: '/admin-sellers' },
+  { label: 'Listings', icon: <Grid3x3 className="w-5 h-5" />, href: '/admin-listings' },
+  { label: 'Verifications', icon: <UserCheck className="w-5 h-5" />, href: '/admin-verifications' },
+  { label: 'Orders', icon: <ShoppingCart className="w-5 h-5" />, href: '/admin-orders' },
+];
 
 const AdminSellersPage = () => {
   const [sellers, setSellers] = useState<any[]>([]);
@@ -107,14 +121,12 @@ const AdminSellersPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <DashboardLayout title="Sellers Management" navItems={adminNavItems} userRole="admin">
       <div className="max-w-7xl mx-auto px-4">
-        <Link href="/admin-dashboard" className="flex items-center gap-2 text-orange-500 hover:text-orange-600 mb-6 font-medium">
-          <ChevronLeft size={20} />
-          Back
-        </Link>
-        <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-2">Sellers Management</h1>
-        <p className="text-gray-600 dark:text-gray-400 mb-6">Manage and export all {exportCount} seller accounts</p>
+        <div>
+          <h1 className="text-2xl font-black text-gray-900">Sellers Management</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Manage and export all {exportCount} seller accounts</p>
+        </div>
 
         <div className="flex gap-3 flex-wrap mb-6 items-center">
           <button onClick={handleExportCSV} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold flex items-center gap-2 transition-colors">
@@ -219,7 +231,8 @@ const AdminSellersPage = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </DashboardLayout>
   );
 };
 
