@@ -33,9 +33,33 @@ const AdminSellersPage = () => {
   const loadSellers = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/admin/sellers?limit=500');
-      let sellersData = Array.isArray(res.data) ? res.data : [];
-      setSellers(sellersData);
+      const verResponse = await api.get('/verifications/?limit=500');
+      let sellersData = Array.isArray(verResponse.data) ? verResponse.data : [];
+
+      const results = [];
+      for (const seller of sellersData) {
+        let listings: any[] = [];
+        try {
+          const listingsRes = await api.get(`/listings/?limit=500&owner_id=${seller.user_id}`);
+          if (Array.isArray(listingsRes.data)) listings = listingsRes.data;
+        } catch (_) {}
+
+        results.push({
+          id: seller.id,
+          full_name: seller.user?.full_name || 'Unknown',
+          business_name: seller.user?.business_name || '',
+          email: seller.user?.email || '',
+          phone: seller.user?.phone || '',
+          location: seller.user?.location || '',
+          market: seller.user?.market || '',
+          is_verified: seller.status === 'approved',
+          trust_level: seller.user?.trust_level || 'NEW',
+          trust_score: seller.user?.trust_score || 0,
+          listings_count: listings.length,
+          user_id: seller.user_id,
+        });
+      }
+      setSellers(results);
     } catch (error) {
       console.error('Error loading sellers:', error);
       setSellers([]);
