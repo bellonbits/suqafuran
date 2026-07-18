@@ -286,7 +286,8 @@ function ShopsPageContent() {
       }
 
       setShops(filteredShops);
-      setTotal(filteredShops.length);
+      // Use API total for pagination, not filtered count
+      setTotal(result.total || filteredShops.length);
     } catch (err: any) {
       console.error('Failed to fetch shops:', err);
       setError('Failed to load shops. Please try again.');
