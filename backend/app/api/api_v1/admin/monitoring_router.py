@@ -85,7 +85,7 @@ async def get_monitoring_overview(
         stalled_topics = sum(1 for t in topics.values() if t.status == 'stalled')
 
         # Notification success rate (last 1h)
-        from app.models.notification import NotificationLog  # If created
+        from app.models.monitoring import NotificationLog
         now = datetime.utcnow()
         one_hour_ago = now - timedelta(hours=1)
 
