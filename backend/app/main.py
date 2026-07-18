@@ -134,7 +134,11 @@ async def start_background_event_consumer():
     logger.info("=" * 60)
 
     kafka_admin = get_kafka_admin()
-    logger.info(f"DEBUG: kafka_admin={kafka_admin}, admin_client={kafka_admin.admin_client if kafka_admin else 'N/A'}")
+    logger.info(f"DEBUG: kafka_admin type={type(kafka_admin)}, value={kafka_admin}")
+    if kafka_admin:
+        logger.info(f"DEBUG: kafka_admin exists, admin_client type={type(kafka_admin.admin_client)}, value={kafka_admin.admin_client}")
+        logger.info(f"DEBUG: bool(kafka_admin.admin_client)={bool(kafka_admin.admin_client)}")
+
     if kafka_admin and kafka_admin.admin_client:
         try:
             logger.info("📋 Calling create_default_topics...")
