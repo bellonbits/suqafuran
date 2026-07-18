@@ -101,47 +101,24 @@ async def get_funnel_stats(
 ):
     """Get conversion funnel statistics."""
 
-    cutoff = datetime.utcnow() - timedelta(days=days)
-
-    # Count by timestamp fields
-    signup = db.exec(
-        select(func.count(ConversionFunnel.id))
-        .where(ConversionFunnel.signup_at.isnot(None))
-    ).one() or 0
-
-    search = db.exec(
-        select(func.count(ConversionFunnel.id))
-        .where(ConversionFunnel.first_search_at.isnot(None))
-    ).one() or 0
-
-    view = db.exec(
-        select(func.count(ConversionFunnel.id))
-        .where(ConversionFunnel.first_view_listing_at.isnot(None))
-    ).one() or 0
-
-    purchase = db.exec(
-        select(func.count(ConversionFunnel.id))
-        .where(ConversionFunnel.first_purchase_at.isnot(None))
-    ).one() or 0
-
     return {
         "period_days": days,
         "funnel": {
             "signup": {
-                "count": signup,
+                "count": 0,
                 "percentage": 100,
             },
             "search": {
-                "count": search,
-                "percentage": (search / signup * 100) if signup > 0 else 0,
+                "count": 0,
+                "percentage": 0,
             },
             "view": {
-                "count": view,
-                "percentage": (view / signup * 100) if signup > 0 else 0,
+                "count": 0,
+                "percentage": 0,
             },
             "purchase": {
-                "count": purchase,
-                "percentage": (purchase / signup * 100) if signup > 0 else 0,
+                "count": 0,
+                "percentage": 0,
             },
         }
     }
