@@ -126,6 +126,7 @@ class KafkaAdminClient:
             'suqafuran-alerts': (1, 1),
             'suqafuran-notifications': (2, 1),
             'suqafuran-events': (3, 1),
+            'suqafuran-business-events': (3, 1),
         }
 
         for attempt in range(1, retries + 1):
