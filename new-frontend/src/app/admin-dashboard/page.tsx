@@ -60,6 +60,7 @@ const AdminDashboard = () => {
     { label: 'Agent Dashboard', icon: <TrendingUp className="w-5 h-5" />, href: '/agent-dashboard' },
     { label: 'Users', icon: <Users className="w-5 h-5" />, href: '/admin-users' },
     { label: 'Listings', icon: <Grid3x3 className="w-5 h-5" />, href: '/admin-listings' },
+    { label: 'Bulk Products', icon: <Package className="w-5 h-5" />, href: '/admin-dashboard/bulk-products' },
     { label: 'Verifications', icon: <UserCheck className="w-5 h-5" />, href: '/admin-verifications' },
     { label: 'Orders', icon: <ShoppingCart className="w-5 h-5" />, href: '/admin-orders' },
     { label: 'Transactions', icon: <DollarSign className="w-5 h-5" />, href: '/admin-transactions' },
