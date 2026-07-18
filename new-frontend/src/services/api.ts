@@ -6,11 +6,11 @@ export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   (typeof window !== 'undefined' && (import.meta as any)?.env?.VITE_API_URL) ||
   (typeof window !== 'undefined' && (import.meta as any)?.env?.VITE_REACT_APP_API_URL) ||
-  'http://localhost:8000/api/v1';
+  '/api/v1';
 
 const API_ORIGIN = typeof window !== 'undefined'
   ? window.location.origin
-  : (process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/v1$/, '') || 'http://localhost:8000');
+  : (process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/v1$/, '') || 'http://backend:8000');
 
 // Some media (e.g. user avatars) is stored on the backend as a path relative
 // to the API host rather than a full URL. Resolve it against the API origin
