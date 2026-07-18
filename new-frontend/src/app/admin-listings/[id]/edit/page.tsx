@@ -1,8 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, Loader, AlertCircle, X, Upload } from 'lucide-react';
-import Image from 'next/image';
+import { ChevronLeft, Loader, AlertCircle, X, Upload, ImageOff } from 'lucide-react';
 import api from '@/services/api';
 import { useParams, useRouter } from 'next/navigation';
 
@@ -54,6 +53,7 @@ const EditListingPage = () => {
   });
   const [images, setImages] = useState<string[]>([]);
   const [newImages, setNewImages] = useState<File[]>([]);
+  const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (listingId) {
@@ -442,13 +442,18 @@ const EditListingPage = () => {
                 <div className="grid grid-cols-3 gap-3">
                   {images.map((img, idx) => (
                     <div key={idx} className="relative group">
-                      <Image
-                        src={img}
-                        alt={`Image ${idx}`}
-                        width={150}
-                        height={150}
-                        className="w-full h-32 object-cover rounded-lg"
-                      />
+                      {brokenImages.has(img) ? (
+                        <div className="w-full h-32 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                          <ImageOff size={24} className="text-gray-400" />
+                        </div>
+                      ) : (
+                        <img
+                          src={img}
+                          alt={`Image ${idx}`}
+                          className="w-full h-32 object-cover rounded-lg"
+                          onError={() => setBrokenImages(prev => new Set([...prev, img]))}
+                        />
+                      )}
                       <button
                         type="button"
                         onClick={() => removeImage(idx)}
@@ -469,11 +474,9 @@ const EditListingPage = () => {
                 <div className="grid grid-cols-3 gap-3">
                   {newImages.map((file, idx) => (
                     <div key={idx} className="relative group">
-                      <Image
+                      <img
                         src={URL.createObjectURL(file)}
                         alt={`New ${idx}`}
-                        width={150}
-                        height={150}
                         className="w-full h-32 object-cover rounded-lg"
                       />
                       <button
