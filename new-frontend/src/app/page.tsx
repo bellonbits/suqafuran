@@ -165,6 +165,13 @@ export default function LandingPage() {
           font-weight: 600;
         }
       `}</style>
+      <Script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAk6rrT_DxxSanx0pwKjLruI-XhgN_zsko&libraries=places"
+        strategy="lazyOnload"
+        onLoad={() => {
+          // Script is loaded, autocomplete will initialize
+        }}
+      />
       <AuthModal />
 
       {/* ══════════════════════════════════════════════════════
