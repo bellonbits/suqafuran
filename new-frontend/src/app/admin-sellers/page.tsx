@@ -231,7 +231,7 @@ const AdminSellersPage = () => {
           </div>
         </div>
       )}
-      </div>
+    </div>
     </DashboardLayout>
   );
 };
