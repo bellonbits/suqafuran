@@ -156,8 +156,7 @@ class KafkaAdminClient:
                 logger.info(f"📝 Creating {len(topics_to_create)} missing topics...")
                 fs = self.admin_client.create_topics(
                     topics_to_create,
-                    validate_only=False,
-                    timeout=60
+                    validate_only=False
                 )
 
                 created_count = 0
