@@ -134,12 +134,8 @@ async def start_background_event_consumer():
     logger.info("=" * 60)
 
     kafka_admin = get_kafka_admin()
-    logger.info(f"DEBUG: kafka_admin type={type(kafka_admin)}, value={kafka_admin}")
-    if kafka_admin:
-        logger.info(f"DEBUG: kafka_admin exists, admin_client type={type(kafka_admin.admin_client)}, value={kafka_admin.admin_client}")
-        logger.info(f"DEBUG: bool(kafka_admin.admin_client)={bool(kafka_admin.admin_client)}")
-
-    if kafka_admin and kafka_admin.admin_client:
+    # Use 'is not None' because AdminClient.__bool__() returns False even when valid
+    if kafka_admin is not None and kafka_admin.admin_client is not None:
         try:
             logger.info("📋 Calling create_default_topics...")
             success = kafka_admin.create_default_topics(retries=3, delay=2.0)
