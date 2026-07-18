@@ -13,7 +13,7 @@ import uuid
 import time
 import structlog
 from app.core.logging_config import setup_logging, get_logger
-# from app.core.tracing import setup_tracing
+from app.core.tracing import setup_tracing
 from app.tasks.celery_app import celery_app
 import asyncio
 from app.services.kafka_service import kafka_service, ws_manager
@@ -33,7 +33,7 @@ app = FastAPI(
 )
 
 # Initialize distributed tracing
-# setup_tracing(app)
+setup_tracing(app)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
