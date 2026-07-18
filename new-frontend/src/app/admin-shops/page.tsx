@@ -53,14 +53,14 @@ const ShopsPage = () => {
   const loadShops = async () => {
     setLoading(true);
     try {
-      const verResponse = await api.get('/verifications/?limit=50');
+      const verResponse = await api.get('/verifications/?limit=500');
       let shopsData = Array.isArray(verResponse.data) ? verResponse.data : [];
 
       const results = [];
       for (const shop of shopsData) {
         let listings: any[] = [];
         try {
-          const listingsRes = await api.get(`/listings/?limit=100&owner_id=${shop.user_id}`);
+          const listingsRes = await api.get(`/listings/?limit=500&owner_id=${shop.user_id}`);
           if (Array.isArray(listingsRes.data)) listings = listingsRes.data;
         } catch (_) {}
 
