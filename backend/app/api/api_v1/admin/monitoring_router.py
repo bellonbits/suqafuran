@@ -792,7 +792,12 @@ async def list_alert_rules(
         if is_active is not None:
             query = query.where(AlertRule.enabled == is_active)
 
-        total = db.exec(select(func.count(AlertRule.id))).one()
+        # Count with same filters
+        count_query = select(func.count(AlertRule.id))
+        if is_active is not None:
+            count_query = count_query.where(AlertRule.enabled == is_active)
+
+        total = db.exec(count_query).one()
         rules = db.exec(query.offset(skip).limit(limit)).all()
 
         return {
