@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLocationStore } from '../../../../store/useLocation';
 import { LocationPickerModal } from '../../../../components/shared/LocationPickerModal';
 import { listingsService } from '../../../../services/listings';
-import api, { optimizeCloudinaryUrl } from '../../../../services/api';
+import api, { optimizeCloudinaryUrl, resolveMediaUrl } from '../../../../services/api';
 import {
     ChevronRight, ChevronLeft, Star, Clock, MapPin, Plus, Minus, Search, ShoppingBag, X, Percent, ThumbsUp, Info
 } from 'lucide-react';
@@ -130,7 +130,7 @@ export default function ShopDetailPage() {
 
                     setShopName(currentShop.shop_name || 'Shop');
                     setShopLogo(currentShop.cover_image || '');
-                                        setShopAvatar(currentShop.user?.avatar_url || '');
+                                        setShopAvatar(resolveMediaUrl(currentShop.user?.avatar_url) || '');
                     setShopOwnerId(currentShop.user_id);
                     setAllListings(shopListings || []);
                     if (shopListings && shopListings.length > 0) {
