@@ -4,6 +4,16 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Edit2, Trash2, Copy, Loader } from 'lucide-react';
 import api from '@/services/api';
 
+const truncateId = (id: any, length: number = 8): string => {
+  if (!id) return 'N/A';
+  try {
+    const idStr = typeof id === 'string' ? id : String(id);
+    return idStr.substring(0, length);
+  } catch {
+    return 'N/A';
+  }
+};
+
 export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [products, setProducts] = useState<any[]>([]);
@@ -116,7 +126,7 @@ export default function ProductsPage() {
                   <td className="px-6 py-4">
                     <div>
                       <p className="font-semibold text-gray-900 dark:text-white truncate">{product.title || 'Unnamed'}</p>
-                      <p className="text-xs text-gray-500 dark:text-slate-400">{product.id ? String(product.id).substring(0, 8) : 'N/A'}</p>
+                      <p className="text-xs text-gray-500 dark:text-slate-400">{truncateId(product.id)}</p>
                     </div>
                   </td>
                   <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">KSh {(product.price || 0).toLocaleString()}</td>
