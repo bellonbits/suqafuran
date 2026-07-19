@@ -72,32 +72,32 @@ services:
   jaeger:
     image: jaegertracing/jaeger:latest
     container_name: suqafuran-jaeger
-    command:
-      - "--admin.http.host-port=:14269"
-      - "--collector.grpc.host-port=:4317"
-      - "--collector.otlp.enabled=true"
-      - "--collector.http.host-port=:4318"
-      - "--query.http.server.host-port=:16686"
     environment:
+      # Storage configuration
       SPAN_STORAGE_TYPE: badger
       BADGER_EPHEMERAL: "false"
       BADGER_DIRECTORY_VALUE: /badger/data
       BADGER_DIRECTORY_KEY: /badger/key
-      OTEL_SDK_DISABLED: "false"
+      # Ports configuration (Jaeger v2 uses environment variables)
+      COLLECTOR_GRPC_HOST_PORT: "0.0.0.0:4317"
+      COLLECTOR_HTTP_HOST_PORT: "0.0.0.0:4318"
+      QUERY_HTTP_SERVER_HOST_PORT: "0.0.0.0:16686"
+      ADMIN_HTTP_HOST_PORT: "0.0.0.0:14269"
     ports:
-      - "4317:4317"
-      - "4318:4318"
-      - "16686:16686"
-      - "14269:14269"
+      - "4317:4317"    # OTLP gRPC receiver
+      - "4318:4318"    # OTLP HTTP receiver
+      - "16686:16686"  # Query UI
+      - "14269:14269"  # Admin API
     volumes:
       - jaeger_data:/badger
     networks:
       - suqafuran-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:14269/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:16686/"]
       interval: 15s
-      timeout: 5s
+      timeout: 10s
       retries: 3
+      start_period: 30s
     restart: unless-stopped
 
   # Backend API
