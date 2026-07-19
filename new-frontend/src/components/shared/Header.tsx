@@ -216,9 +216,19 @@ export const Header: React.FC = () => {
                             <div className="relative">
                                 <button
                                     onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                                    className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
                                 >
-                                    <User className="w-5 h-5 text-gray-600 dark:text-slate-400" />
+                                    {(user as any).avatar_url ? (
+                                        <img
+                                            src={(user as any).avatar_url}
+                                            alt={user.full_name}
+                                            className="w-7 h-7 rounded-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-sky-400 to-orange-600 flex items-center justify-center text-white text-xs font-bold">
+                                            {user.full_name?.charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
                                 </button>
                                 
                                 {profileMenuOpen && (

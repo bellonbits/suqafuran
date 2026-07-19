@@ -6,9 +6,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api, { resolveMediaUrl, optimizeCloudinaryUrl } from '../../../../services/api';
 import { listingsService } from '../../../../services/listings';
 import {
-  ChevronRight, Star, MapPin, Phone, Mail, Clock, Heart, Share2, MessageCircle,
+  ChevronRight, Star, MapPin, Edit, Settings, Phone, Mail, Clock, Heart, Share2, MessageCircle,
   Plus, Minus, ShoppingBag, X, Loader, Package, CheckCircle
 } from 'lucide-react';
+import { useAuthStore } from '../../../../store/useAuth';
 import { useCart } from '../../../../store/useCart';
 
 interface ShopProfile {
@@ -60,6 +61,8 @@ export default function PublicShopPage() {
   const params = useParams();
   const router = useRouter();
   const shopSlug = params.slug as string;
+  const { user, isAuthenticated } = useAuthStore();
+  const [isAdminOrAgent, setIsAdminOrAgent] = useState(false);
 
   const [shopData, setShopData] = useState<ShopProfile | null>(null);
   const [listings, setListings] = useState<Listing[]>([]);
@@ -81,6 +84,23 @@ export default function PublicShopPage() {
   useEffect(() => {
     fetchShopData();
   }, [shopSlug]);
+
+  useEffect(() => {
+    // Check if current user is admin or agent
+    if (isAuthenticated && user) {
+      const checkAdminAgent = async () => {
+        try {
+          const userEmail = user.email || '';
+          if (userEmail.includes('admin') || userEmail.includes('agent')) {
+            setIsAdminOrAgent(true);
+          }
+        } catch (error) {
+          setIsAdminOrAgent(false);
+        }
+      };
+      checkAdminAgent();
+    }
+  }, [isAuthenticated, user]);
 
   const fetchShopData = async () => {
     try {
@@ -303,9 +323,36 @@ export default function PublicShopPage() {
         <div className="mb-8">
           <div className="flex justify-between items-start mb-4">
             <div className="flex-1">
-              <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2">
-                {shopData.shop_name}
-              </h1>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-4xl font-black text-gray-900 dark:text-white">
+                  {shopData.shop_name}
+                </h1>
+                {isAdminOrAgent && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => router.push(`/seller-dashboard/shop`)}
+                      className="px-3 py-1.5 bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 rounded-lg hover:bg-orange-200 dark:hover:bg-orange-900/30 font-semibold text-sm flex items-center gap-1 transition-colors"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Edit Shop
+                    </button>
+                    <button
+                      onClick={() => router.push(`/seller-dashboard/products?add=true`)}
+                      className="px-3 py-1.5 bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/30 font-semibold text-sm flex items-center gap-1 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Product
+                    </button>
+                    <button
+                      onClick={() => router.push(`/seller-dashboard`)}
+                      className="px-3 py-1.5 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700 font-semibold text-sm flex items-center gap-1 transition-colors"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Manage
+                    </button>
+                  </div>
+                )}
+              </div>
               <div className="flex items-center gap-3 flex-wrap">
                 {shopData.is_verified && (
                   <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
