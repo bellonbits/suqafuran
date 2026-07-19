@@ -361,9 +361,124 @@ Thanks!`;
               </div>
             </div>
 
-            {/* Receipt Preview */}
-            <div className="bg-gray-900 dark:bg-black rounded-2xl p-6 font-mono text-xs text-gray-300 overflow-x-auto whitespace-pre max-h-96 overflow-y-auto">
-              {generateReceipt()}
+            {/* Receipt Preview - Ticket Style */}
+            <div className="flex justify-center py-8">
+              <div className="w-full max-w-sm">
+                {/* Receipt Card */}
+                <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border-2 border-gray-200 dark:border-slate-700 shadow-2xl relative">
+                  {/* Perforated edges left */}
+                  <div className="absolute left-0 top-1/4 w-4 h-4 bg-gray-50 dark:bg-slate-950 rounded-full transform -translate-x-2"></div>
+                  <div className="absolute left-0 bottom-1/4 w-4 h-4 bg-gray-50 dark:bg-slate-950 rounded-full transform -translate-x-2"></div>
+
+                  {/* Perforated edges right */}
+                  <div className="absolute right-0 top-1/4 w-4 h-4 bg-gray-50 dark:bg-slate-950 rounded-full transform translate-x-2"></div>
+                  <div className="absolute right-0 bottom-1/4 w-4 h-4 bg-gray-50 dark:bg-slate-950 rounded-full transform translate-x-2"></div>
+
+                  {/* Content */}
+                  <div className="text-center space-y-6">
+                    {/* Logo & Celebration */}
+                    <div className="flex justify-center">
+                      <img src="/icon1.png" alt="Suqafuran" className="h-12 w-auto object-contain" />
+                    </div>
+
+                    {/* Thank You Message */}
+                    <div>
+                      <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-2">Thank you!</h2>
+                      <p className="text-gray-600 dark:text-slate-400 text-sm">Your order has been created</p>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="border-t-2 border-dashed border-gray-300 dark:border-slate-600 pt-6"></div>
+
+                    {/* Order ID & Amount */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-left">
+                        <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-1">Order ID</p>
+                        <p className="text-lg font-black text-gray-900 dark:text-white">{orderNumber}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-1">Total</p>
+                        <p className="text-lg font-black text-orange-600">KSh {total.toLocaleString()}</p>
+                      </div>
+                    </div>
+
+                    {/* Date & Time */}
+                    <div className="text-left">
+                      <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-1">Date & Time</p>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{new Date().toLocaleDateString()} | {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                    </div>
+
+                    {/* Buyer Info */}
+                    <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-4 border border-orange-200 dark:border-orange-800">
+                      <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-3">Buyer Information</p>
+                      <div className="space-y-2 text-left text-sm">
+                        <p><span className="font-semibold text-gray-900 dark:text-white">{buyerName}</span></p>
+                        <p className="text-gray-600 dark:text-slate-400">{buyerPhone}</p>
+                      </div>
+                    </div>
+
+                    {/* Location with Map */}
+                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+                      <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-3">📍 Your Location</p>
+                      <div className="relative h-32 bg-gradient-to-b from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-900/10 rounded-lg mb-3 overflow-hidden flex items-center justify-center">
+                        <iframe
+                          src={`https://maps.google.com/maps?q=${currentLocation?.lat},${currentLocation?.lng}&z=15&output=embed`}
+                          width="100%"
+                          height="100%"
+                          style={{ border: 0 }}
+                          allowFullScreen=""
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                        ></iframe>
+                      </div>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white text-center">{currentLocation?.address}</p>
+                    </div>
+
+                    {/* Items List */}
+                    <div className="text-left bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
+                      <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-3">Items</p>
+                      <div className="space-y-2">
+                        {cartItems.map((item: CheckoutItem, idx: number) => (
+                          <div key={item.id} className="flex justify-between text-sm">
+                            <span className="text-gray-900 dark:text-white">{idx + 1}. {item.title_en}</span>
+                            <span className="font-semibold text-gray-900 dark:text-white">KSh {item.price.toLocaleString()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="border-t-2 border-dashed border-gray-300 dark:border-slate-600"></div>
+
+                    {/* Barcode */}
+                    <div className="flex justify-center py-4">
+                      <div className="text-center">
+                        <div className="font-mono text-xs text-gray-600 dark:text-slate-400 mb-2">{orderNumber}</div>
+                        <svg
+                          width="200"
+                          height="50"
+                          viewBox="0 0 200 50"
+                          className="mx-auto"
+                        >
+                          <rect width="200" height="50" fill="white" className="dark:fill-slate-900" />
+                          {[...Array(50)].map((_, i) => (
+                            <line
+                              key={i}
+                              x1={i * 4}
+                              y1="10"
+                              x2={i * 4}
+                              y2="35"
+                              stroke="#000"
+                              strokeWidth={Math.random() > 0.5 ? 2 : 1}
+                              className="dark:stroke-white"
+                            />
+                          ))}
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Action Buttons */}
