@@ -43,9 +43,10 @@ export default function SellerDashboard() {
 
   const loadDashboardData = async () => {
     try {
-      const [statsRes, productsRes] = await Promise.all([
+      const [statsRes, productsRes, ordersRes] = await Promise.all([
         api.get('/dashboard/stats').catch(() => null),
         api.get('/listings/me?limit=10').catch(() => null),
+        api.get('/orders?limit=5').catch(() => null),
       ]);
 
       if (statsRes?.data) {
@@ -54,6 +55,10 @@ export default function SellerDashboard() {
       if (productsRes?.data) {
         const listingsArray = Array.isArray(productsRes.data) ? productsRes.data : [];
         setTopProducts(listingsArray.slice(0, 4));
+      }
+      if (ordersRes?.data) {
+        const ordersArray = Array.isArray(ordersRes.data) ? ordersRes.data : ordersRes.data.orders || [];
+        setRecentOrders(ordersArray.slice(0, 5));
       }
     } catch (error) {
       console.error('Error loading dashboard:', error);
