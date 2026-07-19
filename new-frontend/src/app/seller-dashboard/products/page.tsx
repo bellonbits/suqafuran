@@ -112,9 +112,12 @@ export default function ProductsPage() {
   const totalViews = products.reduce((sum, p) => sum + (p.views || 0), 0);
   const totalSales = products.reduce((sum, p) => sum + (p.sales || 0), 0);
 
-  const filteredProducts = products.filter(p =>
-    p.title?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProducts = products.filter(p => {
+    const title = (p.title_en || p.title || '').toLowerCase();
+    return title.includes(searchQuery.toLowerCase());
+  });
+  
+  console.log('[DEBUG] Filtered products count:', filteredProducts.length);
 
   return (
     <div className="space-y-6">
@@ -201,24 +204,24 @@ export default function ProductsPage() {
                   <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">KSh {(product.price || 0).toLocaleString()}</td>
                   <td className="px-6 py-4">
                     <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                      (product.stock || 0) > 20
+                      (product.quantity || 0) > 20
                         ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
-                        : (product.stock || 0) > 0
+                        : (product.quantity || 0) > 0
                         ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
                         : 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
                     }`}>
-                      {product.stock || 0}
+                      {product.quantity || 0}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-gray-900 dark:text-white">{product.views || 0}</td>
                   <td className="px-6 py-4 text-gray-900 dark:text-white">{product.sales || 0}</td>
                   <td className="px-6 py-4">
                     <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                      product.status === 'active'
+                      (product.is_active === true || product.status === 'active')
                         ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
                         : 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
                     }`}>
-                      {product.status === 'active' ? 'Active' : 'Inactive'}
+                      {(product.is_active === true || product.status === 'active') ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td className="px-6 py-4">
