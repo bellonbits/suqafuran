@@ -432,16 +432,39 @@ Thanks!`;
                       <p className="text-sm font-semibold text-gray-900 dark:text-white text-center">{currentLocation?.address}</p>
                     </div>
 
-                    {/* Items List */}
+                    {/* Items List - Detailed */}
                     <div className="text-left bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
-                      <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-3">Items</p>
-                      <div className="space-y-2">
+                      <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-4">Order Items</p>
+                      <div className="space-y-3">
                         {cartItems.map((item: CheckoutItem, idx: number) => (
-                          <div key={item.id} className="flex justify-between text-sm">
-                            <span className="text-gray-900 dark:text-white">{idx + 1}. {item.title_en}</span>
-                            <span className="font-semibold text-gray-900 dark:text-white">KSh {item.price.toLocaleString()}</span>
+                          <div key={item.id} className="border-l-4 border-orange-600 pl-3 py-2">
+                            <div className="flex justify-between items-start gap-2">
+                              <div className="flex-1">
+                                <p className="font-bold text-gray-900 dark:text-white text-sm">{item.title_en}</p>
+                                {item.owner && (
+                                  <p className="text-xs text-gray-600 dark:text-slate-400">from {item.owner.full_name}</p>
+                                )}
+                              </div>
+                              <p className="font-bold text-orange-600 whitespace-nowrap">KSh {item.price.toLocaleString()}</p>
+                            </div>
                           </div>
                         ))}
+                      </div>
+
+                      {/* Pricing Summary */}
+                      <div className="border-t border-gray-300 dark:border-slate-700 mt-4 pt-4 space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-slate-400">Subtotal:</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">KSh {subtotal.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-slate-400">Platform Fee (2%):</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">KSh {platformFee}</span>
+                        </div>
+                        <div className="flex justify-between border-t border-gray-300 dark:border-slate-700 pt-2 text-base">
+                          <span className="font-bold text-gray-900 dark:text-white">Grand Total:</span>
+                          <span className="font-black text-orange-600 text-lg">KSh {total.toLocaleString()}</span>
+                        </div>
                       </div>
                     </div>
 
