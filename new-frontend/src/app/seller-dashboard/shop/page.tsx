@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Save, Loader, Upload, X, MapPin, Clock, Tag, ChevronDown, Crosshair } from 'lucide-react';
+import { Save, Loader, Upload, X, MapPin, Clock, Tag, ChevronDown, Crosshair, FileText, Palette } from 'lucide-react';
 import api from '@/services/api';
 import { imageService } from '@/services/imageService';
 import { loadGoogleMapsScript } from '@/lib/googleMaps';
@@ -393,12 +393,12 @@ export default function ShopPage() {
       {/* Tabs */}
       <div className="flex gap-2 border-b border-gray-200 dark:border-slate-800">
         {[
-          { id: 'basic', label: 'Basic Info', icon: '📝' },
-          { id: 'branding', label: 'Branding', icon: '🎨' },
+          { id: 'basic', label: 'Basic Info', icon: <FileText className='w-4 h-4' /> },
+          { id: 'branding', label: 'Branding', icon: <Palette className='w-4 h-4' /> },
           { id: 'location', label: 'Location', icon: <MapPin className='w-4 h-4' /> },
-          { id: 'hours', label: 'Hours', icon: '⏰' },
-          { id: 'categories', label: 'Categories', icon: '🏷️' },
-          { id: 'policies', label: 'Policies', icon: '📋' },
+          { id: 'hours', label: 'Hours', icon: <Clock className='w-4 h-4' /> },
+          { id: 'categories', label: 'Categories', icon: <Tag className='w-4 h-4' /> },
+          { id: 'policies', label: 'Policies', icon: <FileText className='w-4 h-4' /> },
         ].map(tab => (
           <button
             key={tab.id}
