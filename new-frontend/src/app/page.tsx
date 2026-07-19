@@ -7,8 +7,8 @@ export default function RootPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to electronics category (most popular for classifieds)
-    router.push('/electronics');
+    // Redirect to shops browsing for classifieds marketplace
+    router.push('/shops');
   }, [router]);
 
   return (
