@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Save, Loader, Upload, X, MapPin, Clock, Tag, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Save, Loader, Upload, X, MapPin, Clock, Tag, ChevronDown, Crosshair } from 'lucide-react';
 import api from '@/services/api';
 import { imageService } from '@/services/imageService';
+import { loadGoogleMapsScript } from '@/lib/googleMaps';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ShopData {
@@ -77,6 +78,9 @@ export default function ShopPage() {
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstance = useRef<google.maps.Map | null>(null);
+  const markerRef = useRef<google.maps.Marker | null>(null);
 
   useEffect(() => {
     loadShopData();
