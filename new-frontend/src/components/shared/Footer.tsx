@@ -28,12 +28,12 @@ export const Footer: React.FC = () => {
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/dashboard/products" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
+                                <Link href="/sell" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
                                     Post a Listing
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/dashboard" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
+                                <Link href="/seller-dashboard" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
                                     Seller Dashboard
                                 </Link>
                             </li>
@@ -47,17 +47,17 @@ export const Footer: React.FC = () => {
                         </h3>
                         <ul className="mt-4 space-y-2">
                             <li>
-                                <Link href="/help" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
+                                <Link href="/account" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
                                     Help Center
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/safety" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
+                                <Link href="/" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
                                     Safe Trading Tips
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/terms" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
+                                <Link href="/" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
                                     Terms of Use
                                 </Link>
                             </li>
