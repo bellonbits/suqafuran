@@ -376,36 +376,9 @@ export default function ShopDetailPage() {
                     </button>
                 </div>
 
-                {/* DETAILS ROW (Title, Badges, Contact Buttons) */}
+                {/* DETAILS ROW (Title, Badges, bubbles metrics) */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-                    {/* Contact Buttons - Top Right (Visible on all screens) */}
-                    <div className="md:col-span-4 order-2 md:order-1 flex flex-col gap-3">
-                        <div className="flex gap-2 flex-wrap md:flex-col">
-                            <button
-                                onClick={() => window.open(`https://wa.me/?text=Hi%20${shopName}`)}
-                                className="flex-1 md:w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-500 hover:bg-green-600 text-white font-bold text-sm rounded-lg transition-all hover:scale-105 shadow-md"
-                            >
-                                <MessageCircle className="w-4 h-4" />
-                                WhatsApp
-                            </button>
-                            <button
-                                onClick={() => window.location.href = 'tel:+254712345678'}
-                                className="flex-1 md:w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm rounded-lg transition-all hover:scale-105 shadow-md"
-                            >
-                                <Phone className="w-4 h-4" />
-                                Call
-                            </button>
-                            <button
-                                onClick={() => router.push('/messages')}
-                                className="flex-1 md:w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm rounded-lg transition-all hover:scale-105 shadow-md"
-                            >
-                                <MessageCircle className="w-4 h-4" />
-                                Message
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="md:col-span-8 order-1 md:order-2">
+                    <div className="md:col-span-8">
                         <h1 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white tracking-tight mb-2">
                             {shopName}
                         </h1>
@@ -439,39 +412,34 @@ export default function ShopDetailPage() {
                         </div>
                     </div>
 
-                    {/* Marketplace Info Section - Hidden Glovo Metrics */}
-                    <div className="md:col-span-4 flex justify-start md:justify-end gap-6 py-2 px-1 hidden">
-                        {/* Rating */}
-                        <div className="flex flex-col items-center gap-1 shrink-0">
-                            <div className="w-11 h-11 rounded-full bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center border border-emerald-100/50 dark:border-emerald-900/30">
-                                <ThumbsUp className="w-4.5 h-4.5 text-[#00a082]" />
-                            </div>
-                            <span className="text-[11px] font-black text-gray-800 dark:text-slate-300">100%</span>
-                        </div>
+                    {/* Contact Buttons - Icon Only (Right Side, One Line) */}
+                    <div className="md:col-span-4 flex justify-start md:justify-end gap-3 py-2 px-1">
+                        {/* WhatsApp */}
+                        <button
+                            onClick={() => window.open(`https://wa.me/?text=Hi%20${shopName}`)}
+                            title="WhatsApp"
+                            className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 hover:scale-110 transition-all shadow-sm border border-green-200 dark:border-green-800"
+                        >
+                            <MessageCircle className="w-5 h-5" />
+                        </button>
 
-                        {/* Delivery Time */}
-                        <div className="flex flex-col items-center gap-1 shrink-0">
-                            <div className="w-11 h-11 rounded-full bg-gray-50 dark:bg-slate-800/80 flex items-center justify-center border border-gray-100 dark:border-slate-800">
-                                <Clock className="w-4.5 h-4.5 text-gray-500" />
-                            </div>
-                            <span className="text-[11px] font-black text-gray-800 dark:text-slate-300">10-20 min</span>
-                        </div>
+                        {/* Call */}
+                        <button
+                            onClick={() => window.location.href = 'tel:+254712345678'}
+                            title="Call"
+                            className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 hover:scale-110 transition-all shadow-sm border border-blue-200 dark:border-blue-800"
+                        >
+                            <Phone className="w-5 h-5" />
+                        </button>
 
-                        {/* Price & Delivery cost */}
-                        <div className="flex flex-col items-center gap-1 shrink-0">
-                            <div className="w-11 h-11 rounded-full bg-gray-50 dark:bg-slate-800/80 flex items-center justify-center border border-gray-100 dark:border-slate-800">
-                                <span className="text-[9px] font-bold text-gray-400 line-through">KSh 100</span>
-                            </div>
-                            <span className="text-[9px] font-extrabold text-[#00a082] bg-emerald-50 dark:bg-emerald-950/20 px-1.5 py-0.5 rounded tracking-wide uppercase">Free</span>
-                        </div>
-
-                        {/* Prime */}
-                        <div className="flex flex-col items-center gap-1 shrink-0">
-                            <div className="w-11 h-11 rounded-full bg-[#f2e6ff] dark:bg-purple-950/20 flex items-center justify-center border border-purple-100 dark:border-purple-900/30">
-                                <span className="text-sm font-black text-purple-600 dark:text-purple-400">P</span>
-                            </div>
-                            <span className="text-[11px] font-black text-gray-800 dark:text-slate-300">Prime</span>
-                        </div>
+                        {/* Message */}
+                        <button
+                            onClick={() => router.push('/messages')}
+                            title="Message"
+                            className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50 hover:scale-110 transition-all shadow-sm border border-orange-200 dark:border-orange-800"
+                        >
+                            <MessageCircle className="w-5 h-5" />
+                        </button>
                     </div>
                 </div>
             </div>
