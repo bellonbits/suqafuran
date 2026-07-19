@@ -414,39 +414,6 @@ export default function LandingPage() {
           .float-down-2 { animation: float-down-2 6.5s ease-in-out infinite; }
         `}</style>
 
-        {/* Left decoration — floating hero images */}
-        <div className="absolute inset-y-0 left-0 w-[32%] hidden xl:block pointer-events-none">
-          <div className="relative h-full flex flex-col justify-center items-start pl-4">
-            <img
-              src="/hero/39022.jpg"
-              alt=""
-              className="w-48 h-48 object-cover rounded-3xl shadow-2xl float-up-1 mb-16"
-            />
-            <img
-              src="/hero/45777.jpg"
-              alt=""
-              className="w-56 h-56 object-cover rounded-3xl shadow-2xl float-down-1 ml-8"
-            />
-          </div>
-        </div>
-
-        {/* Right decoration — more hero images */}
-        <div className="absolute inset-y-0 right-0 w-[32%] hidden xl:block pointer-events-none">
-          <div className="relative h-full flex flex-col justify-center items-end pr-4">
-            <img
-              src="/hero/18677.jpg"
-              alt=""
-              className="w-52 h-52 object-cover rounded-3xl shadow-2xl float-up-2 mb-16"
-            />
-            <img
-              src="/hero/22714.jpg"
-              alt=""
-              className="w-48 h-48 object-cover rounded-3xl shadow-2xl float-down-2 mr-8"
-            />
-          </div>
-        </div>
-
-
         {/* Center content */}
         <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 pt-20 pb-36 min-h-[600px]">
           {/* Logo — Optimized size */}
@@ -629,7 +596,7 @@ export default function LandingPage() {
             {/* Photo right */}
             <div className="relative order-1 md:order-2 flex items-center justify-center min-h-[350px] md:min-h-0 py-6">
               <img
-                src="/seller.jpg"
+                src="/seller_hero.png"
                 alt="African marketplace seller"
                 className="max-h-[400px] w-full object-cover rounded-2xl transition-transform duration-300 hover:scale-105"
               />
@@ -647,7 +614,7 @@ export default function LandingPage() {
             {/* Photo left */}
             <div className="relative flex items-center justify-center min-h-[350px] md:min-h-0 py-6">
               <img
-                src="/partner.jpg"
+                src="/business_hero.png"
                 alt="African business owner"
                 className="max-h-[400px] w-full object-cover rounded-2xl transition-transform duration-300 hover:scale-105"
               />

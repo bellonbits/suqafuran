@@ -306,7 +306,7 @@ function ShopsPageContent() {
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 pb-20">
       {/* ── Header & Search ─────────────────────────────────────────── */}
-      <div className="max-w-screen-xl mx-auto px-4 pt-4 pb-1">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-1">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
             <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Shops</h1>
@@ -354,7 +354,7 @@ function ShopsPageContent() {
         </div>
       </div>
       {/* ── Category Stickers ───────────────────────────────────────────── */}
-      <div className="max-w-screen-xl mx-auto mt-3 px-4">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 mt-3">
         <div className="w-full overflow-x-auto hide-scrollbar">
           <div className="flex flex-row flex-nowrap items-start gap-5 pb-3 pt-1">
 
@@ -431,7 +431,7 @@ function ShopsPageContent() {
       </div>
 
       {/* ── Stores Grid ─────────────────────────────────────────────────── */}
-      <div className="max-w-screen-xl mx-auto px-4 mt-5">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 mt-5">
         <h2 className="text-lg font-black text-gray-900 dark:text-white mb-4">
           {selectedCategoryId
             ? `${categories.find(c => c.id === selectedCategoryId)?.name_en || 'Filtered'} Markets`
@@ -453,7 +453,7 @@ function ShopsPageContent() {
 
         {/* Grid Container — 5 cols on xl, 4 on lg, 3 on md, 2 on sm */}
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-x-4 gap-y-6">
             {Array.from({ length: 10 }).map((_, i) => (
               <SkeletonCard key={i} />
             ))}
@@ -470,7 +470,7 @@ function ShopsPageContent() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-x-4 gap-y-6">
               {shops.map((shop, i) => (
                 <GlovoShopCard key={shop.id} shop={shop} index={i} />
               ))}

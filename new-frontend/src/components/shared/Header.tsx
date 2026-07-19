@@ -3,16 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, ChevronDown, Sun, Moon, MapPin, Heart, Users, ShieldCheck, LayoutGrid, Plus, ShoppingBag, X, User, Store, Menu, LogOut } from 'lucide-react';
+import { Search, Sun, Moon, MapPin, Plus, Bell, User, Menu, X, LogOut, Store, ShoppingCart, LayoutDashboard, Shield } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuth';
 import { useAuthModal } from '../../store/useAuthModal';
 import { useLocationStore } from '../../store/useLocation';
 import { useCart } from '../../store/useCart';
 import { useT } from '../../lib/i18n';
-import { LanguageToggle } from './LanguageToggle';
-import { CurrencyToggle } from './CurrencyToggle';
 import { LocationPickerModal } from './LocationPickerModal';
-import { AuthModal } from '../AuthModal';
 import NotificationCenter from '../NotificationCenter';
 import api from '../../services/api';
 
@@ -21,20 +18,16 @@ export const Header: React.FC = () => {
     const { user, isAuthenticated, logout } = useAuthStore();
     const openAuthModal = useAuthModal((s) => s.open);
     const { city } = useLocationStore();
-    const { items: cartItems, getTotalCount, updateQuantity, getTotalPrice } = useCart();
+    const { getTotalCount } = useCart();
     const t = useT();
     const [searchQuery, setSearchQuery] = useState('');
     const [darkMode, setDarkMode] = useState(false);
-    const [orderMode, setOrderMode] = useState<'delivery' | 'pickup'>('delivery');
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
-    const [isCartOpen, setIsCartOpen] = useState(false);
-    const [authModalOpen, setAuthModalOpen] = useState(false);
-    const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-    const [isVerifiedSeller, setIsVerifiedSeller] = useState(false);
-    const [sellerLoading, setSellerLoading] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [showLogo, setShowLogo] = useState(false);
+    const [isVerifiedSeller, setIsVerifiedSeller] = useState(false);
+    const [userRole, setUserRole] = useState<'admin' | 'agent' | 'seller' | null>(null);
+    const [cartOpen, setCartOpen] = useState(false);
     const cartCount = getTotalCount();
 
     useEffect(() => {
@@ -42,38 +35,33 @@ export const Header: React.FC = () => {
             const isDark = document.documentElement.classList.contains('dark') ||
                            window.matchMedia('(prefers-color-scheme: dark)').matches;
             setDarkMode(isDark);
-            if (isDark) {
-                document.documentElement.classList.add('dark');
-            }
         }
     }, []);
 
-    // Logo always visible (removed scroll-based hiding)
-    useEffect(() => {
-        setShowLogo(true);
-    }, []);
-
-    // Fetch seller status when user is authenticated
     useEffect(() => {
         if (isAuthenticated && user) {
-            const fetchSellerStatus = async () => {
+            const fetchUserStatus = async () => {
                 try {
-                    setSellerLoading(true);
-                    // Use /sellers/check which queries the sellers DB table reliably
-                    const response = await api.get('/sellers/check', {
+                    // Check seller status
+                    const sellerResponse = await api.get('/sellers/check', {
                         params: { user_id: String(user.id) }
                     });
-                    setIsVerifiedSeller(response.data?.is_seller === true);
+                    setIsVerifiedSeller(sellerResponse.data?.is_seller === true);
+
+                    // Check user role (admin, agent, seller, etc.)
+                    const roleResponse = await api.get('/users/me').catch(() => null);
+                    if (roleResponse?.data?.role) {
+                        setUserRole(roleResponse.data.role);
+                    }
                 } catch (error) {
-                    // Any error — default to not a seller (don't block UI)
                     setIsVerifiedSeller(false);
-                } finally {
-                    setSellerLoading(false);
+                    setUserRole(null);
                 }
             };
-            fetchSellerStatus();
+            fetchUserStatus();
         } else {
             setIsVerifiedSeller(false);
+            setUserRole(null);
         }
     }, [isAuthenticated, user?.id]);
 
@@ -96,436 +84,277 @@ export const Header: React.FC = () => {
 
     return (
         <>
-            <header className="sticky top-0 z-50 w-full border-b border-gray-200/80 bg-white/95 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/95">
-                {/* Top Bar - Logo, Search, Quick Actions */}
-                <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6">
-
-                    {/* Brand Logo - Always visible */}
-                    <Link href="/" className="flex items-center gap-2 shrink-0 hover:opacity-90 transition-opacity duration-300">
-                        <img src="/icon1.png" alt="Suqafuran Logo" className="h-8 w-auto object-contain" />
+            <header className="sticky top-0 z-50 w-full bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 shadow-sm">
+                {/* Main Header */}
+                <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 w-full max-w-full mx-auto h-20">
+                    
+                    {/* Logo */}
+                    <Link href="/" className="flex items-center shrink-0 hover:opacity-85 transition-opacity">
+                        <img src="/icon1.png" alt="Suqafuran" className="h-8 w-auto object-contain" />
                     </Link>
 
-                    {/* Search Bar */}
-                    <form
-                        onSubmit={handleSearchSubmit}
-                        className="relative flex-1 min-w-0 mx-2 sm:mx-3 md:mx-4 max-w-xs sm:max-w-2xl flex items-center"
-                    >
-                        <Search className="absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 shrink-0" />
-                        <input
-                            type="text"
-                            placeholder={t('Search')}
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full min-w-0 rounded-full border border-transparent bg-slate-100 py-2 pl-9 pr-3 text-sm font-semibold text-gray-900 outline-none transition-all focus:bg-white focus:border-gray-200 dark:bg-slate-800 dark:text-slate-100 dark:focus:bg-slate-950 shadow-sm"
-                        />
-                    </form>
-
-                    {/* Right Actions - Responsive */}
-                    <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2 lg:gap-3 shrink-0">
-
-                        {/* Location - Hidden on mobile */}
+                    {/* Center: Location + Search + Button */}
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                        
+                        {/* Location Selector - Pill */}
                         <button
                             onClick={() => setIsLocationModalOpen(true)}
-                            className="hidden md:flex items-center gap-1.5 text-xs font-black text-gray-800 dark:text-slate-200 hover:opacity-85 cursor-pointer tracking-tight transition-opacity px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+                            className="hidden md:flex items-center gap-2 px-4 py-2.5 rounded-full bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors shrink-0 border border-gray-200 dark:border-slate-700"
                         >
-                            <MapPin className="h-3.5 w-3.5 shrink-0" />
-                            <span className="truncate max-w-20">{city || t('Select')}</span>
+                            <MapPin className="w-4 h-4 text-orange-600 dark:text-orange-500 shrink-0" />
+                            <span className="text-xs font-semibold text-gray-700 dark:text-slate-300 truncate max-w-[100px]">
+                                {city || 'Location'}
+                            </span>
                         </button>
 
-                        {/* Delivery/Pickup - Hidden on mobile */}
-                        <div className="hidden lg:flex border border-gray-200 dark:border-slate-800 rounded-full p-0.5 bg-slate-100 dark:bg-slate-950/40">
+                        {/* Search Bar */}
+                        <form
+                            onSubmit={handleSearchSubmit}
+                            className="flex items-center flex-1 min-w-0 max-w-3xl"
+                        >
+                            <div className="relative w-full">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 shrink-0" />
+                                <input
+                                    type="text"
+                                    placeholder="What are you looking for?"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full h-12 pl-12 pr-4 rounded-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white text-sm font-medium placeholder:text-gray-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                />
+                            </div>
+                            
+                            {/* Search Button */}
                             <button
-                                onClick={() => setOrderMode('delivery')}
-                                className={`px-3 py-1.5 rounded-full text-xs font-extrabold transition-all cursor-pointer ${
-                                    orderMode === 'delivery'
-                                        ? 'bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900'
-                                        : 'text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-200'
-                                }`}
+                                type="submit"
+                                className="ml-2 px-6 py-2.5 bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700 text-white rounded-full font-semibold text-sm transition-colors shrink-0 shadow-sm"
                             >
-                                {t('Delivery')}
+                                Search
                             </button>
-                            <button
-                                onClick={() => setOrderMode('pickup')}
-                                className={`px-3 py-1.5 rounded-full text-xs font-extrabold transition-all cursor-pointer ${
-                                    orderMode === 'pickup'
-                                        ? 'bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900'
-                                        : 'text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-200'
-                                }`}
-                            >
-                                {t('Pickup')}
-                            </button>
-                        </div>
+                        </form>
+                    </div>
 
-                        {/* Dark/Light Mode - Desktop only */}
+                    {/* Right: Actions */}
+                    <div className="flex items-center gap-2 shrink-0">
+                        
+                        {/* Dark Mode */}
                         <button
                             onClick={toggleDarkMode}
-                            className="hidden lg:block rounded-full p-2 hover:bg-slate-100 text-gray-600 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors hidden sm:flex"
+                            aria-label="Toggle dark mode"
                         >
-                            {darkMode ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
+                            {darkMode ? (
+                                <Sun className="w-5 h-5 text-gray-600 dark:text-slate-400" />
+                            ) : (
+                                <Moon className="w-5 h-5 text-gray-600" />
+                            )}
                         </button>
 
-                        {/* Desktop Account Links - All visible on lg+ */}
-                        {isAuthenticated && (
-                            <>
-                                <Link href="/account" className="hidden lg:block rounded-full p-2 hover:bg-slate-100 text-gray-600 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors" title="Account">
-                                    <User className="h-4.5 w-4.5" />
-                                </Link>
-                                <Link href="/favorites" className="hidden lg:block rounded-full p-2 hover:bg-slate-100 text-gray-600 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
-                                    <Heart className="h-4.5 w-4.5" />
-                                </Link>
-                                <Link href="/following" className="hidden lg:block rounded-full p-2 hover:bg-slate-100 text-gray-600 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
-                                    <Users className="h-4.5 w-4.5" />
-                                </Link>
-                                {(user?.is_agent || user?.is_admin) && (
-                                    <Link href="/agent" className="hidden lg:block rounded-full p-2 hover:bg-slate-100 text-gray-600 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors" title="Agent Hub">
-                                        <ShieldCheck className="h-4.5 w-4.5" />
-                                    </Link>
-                                )}
-                                {user?.is_admin && (
-                                    <Link href="/admin" className="hidden lg:block rounded-full p-2 hover:bg-slate-100 text-gray-600 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors" title="Admin Console">
-                                        <LayoutGrid className="h-4.5 w-4.5" />
-                                    </Link>
-                                )}
-                                {(user?.is_seller || isVerifiedSeller) && (
-                                    <Link
-                                        href="/seller-dashboard"
-                                        className="rounded-full p-2 hover:bg-orange-100 text-orange-500 dark:text-orange-400 dark:hover:bg-orange-950 transition-colors"
-                                        title="Seller Dashboard"
-                                    >
-                                        <Store className="h-4.5 w-4.5" />
-                                    </Link>
-                                )}
-                                {!(user?.is_seller || isVerifiedSeller) && (
-                                    <Link
-                                        href="/sell"
-                                        className="flex lg:hidden rounded-full p-2 hover:bg-orange-100 text-orange-500 dark:text-orange-400 dark:hover:bg-orange-950 transition-colors"
-                                        title="Become a Seller"
-                                    >
-                                        <Store className="h-4.5 w-4.5" />
-                                    </Link>
-                                )}
-                            </>
-                        )}
-
-                        {/* Sell Button - Desktop only */}
-                        <Link href="/sell" className="hidden lg:flex rounded-full p-2 hover:bg-slate-100 text-gray-600 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer transition-colors">
-                            <Plus className="h-4.5 w-4.5" />
-                        </Link>
-
-                        <LanguageToggle className="!hidden" />
-                        <CurrencyToggle className="!hidden" />
-
-                        {/* Cart Button */}
-                        <div className="relative">
+                        {/* Notifications */}
+                        <div className="relative hidden sm:block">
                             <button
-                                onClick={() => setIsCartOpen(!isCartOpen)}
-                                className="relative rounded-full p-2 hover:bg-slate-100 text-gray-600 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer shrink-0 transition-colors"
+                                onClick={() => {}}
+                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors relative"
                             >
-                                <ShoppingBag className="h-5 w-5" />
-                                {cartCount > 0 && (
-                                    <span className="absolute right-0 top-0 h-5 w-5 rounded-full bg-green-500 text-white text-xs font-bold flex items-center justify-center">
-                                        {cartCount}
-                                    </span>
-                                )}
+                                <Bell className="w-5 h-5 text-gray-600 dark:text-slate-400" />
+                                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                             </button>
-
-                            {/* Notifications */}
-                            <NotificationCenter />
-
-                            {/* Mobile Menu Button */}
-                            <button
-                                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                                className="sm:hidden rounded-full p-2 hover:bg-slate-100 text-gray-600 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer transition-colors"
-                            >
-                                <Menu className="h-5 w-5" />
-                            </button>
-
-                            {/* Cart Dropdown */}
-                            {isCartOpen && (
-                                <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-gray-200 dark:border-slate-800 z-50 max-h-[600px] overflow-y-auto">
-                                    <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 p-5 flex items-center justify-between">
-                                        <div>
-                                            <h3 className="font-bold text-lg text-gray-900 dark:text-white">Your order</h3>
-                                            <p className="text-sm text-gray-600 dark:text-gray-400">{cartCount} product{cartCount !== 1 ? 's' : ''}</p>
-                                        </div>
-                                        <button onClick={() => setIsCartOpen(false)}>
-                                            <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                                        </button>
-                                    </div>
-
-                                    <div className="p-5">
-                                        {cartCount === 0 ? (
-                                            <p className="text-sm text-gray-600 dark:text-gray-400 text-center py-8">
-                                                Your cart is empty
-                                            </p>
-                                        ) : (
-                                            <div className="space-y-4">
-                                                {cartItems.map((item) => (
-                                                    <div key={item.id} className="flex gap-3 pb-4 border-b border-gray-100 dark:border-slate-800 last:border-0">
-                                                        {/* Product Image */}
-                                                        <div className="w-16 h-16 flex-shrink-0 bg-gray-200 dark:bg-slate-800 rounded-lg overflow-hidden">
-                                                            {item.image ? (
-                                                                <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
-                                                            ) : (
-                                                                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                                                    <ShoppingBag className="w-6 h-6" />
-                                                                </div>
-                                                            )}
-                                                        </div>
-
-                                                        {/* Product Info */}
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2">
-                                                                {item.title}
-                                                            </p>
-                                                            <p className="text-base font-bold text-gray-900 dark:text-white mt-1">
-                                                                KSh{(item.price * item.quantity).toLocaleString()}
-                                                            </p>
-                                                        </div>
-
-                                                        {/* Controls */}
-                                                        <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-slate-800 rounded-full p-1">
-                                                            <button
-                                                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                                                className="p-0.5 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full text-gray-600 dark:text-gray-400"
-                                                            >
-                                                                <X className="w-3.5 h-3.5" />
-                                                            </button>
-                                                            <span className="px-1.5 font-bold text-gray-900 dark:text-white text-xs w-4 text-center">
-                                                                {item.quantity}
-                                                            </span>
-                                                            <button
-                                                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                                                className="p-0.5 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full text-gray-600 dark:text-gray-400"
-                                                            >
-                                                                <Plus className="w-3.5 h-3.5" />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {cartCount > 0 && (
-                                        <div className="border-t border-gray-200 dark:border-slate-800 p-5 space-y-3">
-                                            <div className="h-1 bg-orange-500 rounded-full" />
-                                            <div className="text-center">
-                                                <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                                                    Nice! You've just saved KSh{Math.round(getTotalPrice() * 0.1).toLocaleString()} 
-                                                </p>
-                                            </div>
-                                            <button
-                                                onClick={() => {
-                                                    setIsCartOpen(false);
-                                                    router.push('/checkout');
-                                                }}
-                                                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-full text-base transition-colors"
-                                            >
-                                                Go to checkout • KSh {getTotalPrice().toLocaleString()}
-                                            </button>
-                                            <button className="w-full text-center text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
-                                                ℹ Fees information
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
                         </div>
 
-                        {/* Sign In & Sign Up / Logout Actions - Hidden on mobile */}
-                        {isAuthenticated ? (
-                            <div className="hidden sm:flex relative pl-2 border-l border-gray-200 dark:border-slate-800">
+                        {/* Cart Pill Button */}
+                        <button
+                            onClick={() => router.push('/checkout')}
+                            className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-full bg-white dark:bg-slate-800 border border-orange-600 text-orange-600 dark:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors font-semibold text-sm"
+                        >
+                            <ShoppingCart className="w-4 h-4" />
+                            <span>Cart</span>
+                            {cartCount > 0 && (
+                                <span className="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-orange-600 text-white rounded-full">
+                                    {cartCount}
+                                </span>
+                            )}
+                        </button>
+
+                        {/* Sell/Listing Pill Button */}
+                        {isVerifiedSeller ? (
+                            <button
+                                onClick={() => router.push('/seller-dashboard/products')}
+                                className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-full bg-white dark:bg-slate-800 border border-orange-600 text-orange-600 dark:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors font-semibold text-sm"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span>Sell</span>
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => router.push('/seller-dashboard')}
+                                className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-full bg-white dark:bg-slate-800 border border-orange-600 text-orange-600 dark:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors font-semibold text-sm"
+                            >
+                                <Store className="w-4 h-4" />
+                                <span>Sell</span>
+                            </button>
+                        )}
+
+                        {/* Auth Section */}
+                        {isAuthenticated && user ? (
+                            <div className="relative">
                                 <button
                                     onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                                    className="flex items-center gap-2.5 hover:opacity-90 transition-opacity cursor-pointer"
+                                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
                                 >
-                                    <div className="text-right hidden sm:block">
-                                        <p className="text-sm font-bold text-gray-900 dark:text-white line-clamp-1">
-                                            {user?.full_name || 'User'}
-                                        </p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                                            {user?.email}
-                                        </p>
-                                    </div>
-                                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-white font-black text-sm uppercase shrink-0">
-                                        {user?.full_name?.charAt(0) || 'U'}
-                                    </div>
+                                    <User className="w-5 h-5 text-gray-600 dark:text-slate-400" />
                                 </button>
-
-                                {/* Profile Dropdown Menu */}
+                                
                                 {profileMenuOpen && (
-                                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800 z-50">
-                                        <Link
-                                            href="/account"
-                                            onClick={() => setProfileMenuOpen(false)}
-                                            className="block px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-800 rounded-t-xl border-b border-gray-100 dark:border-slate-800"
-                                        >
-                                            <User className="w-4 h-4 inline mr-2" /> {t('My Profile')}
-                                        </Link>
-                                        <Link
-                                            href="/orders"
-                                            onClick={() => setProfileMenuOpen(false)}
-                                            className="block px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-800 border-b border-gray-100 dark:border-slate-800"
-                                        >
-                                            {t('My Orders')}
-                                        </Link>
-                                        <button
-                                            onClick={() => {
-                                                logout();
-                                                setProfileMenuOpen(false);
-                                            }}
-                                            className="w-full text-left px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-b-xl"
-                                        >
-                                            <LogOut className="w-4 h-4 inline mr-2" /> {t('Sign Out')}
-                                        </button>
+                                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-gray-200 dark:border-slate-800 z-50">
+                                        <div className="p-3 border-b border-gray-100 dark:border-slate-800">
+                                            <p className="text-sm font-semibold text-gray-900 dark:text-white">{user.full_name}</p>
+                                            <p className="text-xs text-gray-500 dark:text-slate-400">{user.email}</p>
+                                        </div>
+                                        <div className="p-2 space-y-1">
+                                            <button
+                                                onClick={() => {
+                                                    router.push('/account');
+                                                    setProfileMenuOpen(false);
+                                                }}
+                                                className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded"
+                                            >
+                                                Profile
+                                            </button>
+
+                                            {/* Admin Dashboard */}
+                                            {userRole === 'admin' && (
+                                                <button
+                                                    onClick={() => {
+                                                        router.push('/admin-dashboard');
+                                                        setProfileMenuOpen(false);
+                                                    }}
+                                                    className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded flex items-center gap-2"
+                                                >
+                                                    <Shield className="w-4 h-4" />
+                                                    Admin Dashboard
+                                                </button>
+                                            )}
+
+                                            {/* Agent Dashboard */}
+                                            {(userRole === 'admin' || userRole === 'agent') && (
+                                                <button
+                                                    onClick={() => {
+                                                        router.push('/agent-dashboard');
+                                                        setProfileMenuOpen(false);
+                                                    }}
+                                                    className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded flex items-center gap-2"
+                                                >
+                                                    <LayoutDashboard className="w-4 h-4" />
+                                                    Agent Dashboard
+                                                </button>
+                                            )}
+
+                                            {/* Seller Dashboard */}
+                                            {isVerifiedSeller && (
+                                                <button
+                                                    onClick={() => {
+                                                        router.push('/seller-dashboard');
+                                                        setProfileMenuOpen(false);
+                                                    }}
+                                                    className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded flex items-center gap-2"
+                                                >
+                                                    <Store className="w-4 h-4" />
+                                                    Seller Dashboard
+                                                </button>
+                                            )}
+
+                                            <button
+                                                onClick={() => {
+                                                    logout();
+                                                    setProfileMenuOpen(false);
+                                                }}
+                                                className="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded flex items-center gap-2"
+                                            >
+                                                <LogOut className="w-4 h-4" />
+                                                Sign Out
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
                             </div>
                         ) : (
-                            <div className="flex items-center gap-2 pl-2 border-l border-gray-200 dark:border-slate-800">
+                            <div className="flex items-center gap-2">
                                 <button
-                                    onClick={() => {
-                                        setAuthMode('signin');
-                                        setAuthModalOpen(true);
-                                    }}
-                                    className="text-sm font-black text-gray-700 hover:text-primary px-2 sm:px-3 py-2 dark:text-slate-200 dark:hover:text-sky-400 cursor-pointer hidden sm:block"
+                                    onClick={() => openAuthModal('signin')}
+                                    className="px-4 py-2.5 text-sm font-semibold bg-sky-400 hover:bg-sky-500 dark:bg-sky-500 dark:hover:bg-sky-600 text-white rounded-full transition-colors hidden sm:inline-block"
                                 >
-                                    {t('Sign In')}
+                                    Sign In
                                 </button>
                                 <button
-                                    onClick={() => {
-                                        setAuthMode('signup');
-                                        setAuthModalOpen(true);
-                                    }}
-                                    className="btn-premium bg-slate-100 border border-gray-200 px-3 sm:px-5 py-2 text-xs sm:text-sm font-black text-gray-800 hover:bg-slate-200 shadow-sm dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors"
+                                    onClick={() => openAuthModal('signup')}
+                                    className="px-4 py-2.5 text-sm font-semibold bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700 text-white rounded-full transition-colors"
                                 >
-                                    {t('Sign Up')}
+                                    Sign Up
                                 </button>
                             </div>
                         )}
 
+                        {/* Mobile Menu */}
+                        <button
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                            className="sm:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                        >
+                            {isMobileMenuOpen ? (
+                                <X className="w-5 h-5" />
+                            ) : (
+                                <Menu className="w-5 h-5" />
+                            )}
+                        </button>
                     </div>
                 </div>
 
-                {/* Mobile Menu Dropdown */}
-                {isMobileMenuOpen && (
-                    <div className="sm:hidden border-t border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 absolute top-16 right-0 left-0 z-40 shadow-lg">
-                        <div className="divide-y divide-gray-100 dark:divide-slate-800 py-2">
-                            {/* Theme Toggle */}
-                            <button
-                                onClick={() => {
-                                    toggleDarkMode();
-                                    setIsMobileMenuOpen(false);
-                                }}
-                                className="w-full px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-800 text-left flex items-center gap-3"
-                            >
-                                {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                                <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
-                            </button>
-
-                            {isAuthenticated && (
-                                <>
-                                    {/* Account */}
-                                    <Link
-                                        href="/account"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-800"
-                                    >
-                                        <User className="h-4 w-4" />
-                                        {t('My Profile')}
-                                    </Link>
-
-                                    {/* Favorites */}
-                                    <Link
-                                        href="/favorites"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-800"
-                                    >
-                                        <Heart className="h-4 w-4 text-red-500" />
-                                        {t('Favorites')}
-                                    </Link>
-
-                                    {/* Following */}
-                                    <Link
-                                        href="/following"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-800"
-                                    >
-                                        <Users className="h-4 w-4" />
-                                        Following
-                                    </Link>
-
-                                    {/* Agent Hub */}
-                                    {(user?.is_agent || user?.is_admin) && (
-                                        <Link
-                                            href="/agent"
-                                            onClick={() => setIsMobileMenuOpen(false)}
-                                            className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-800"
-                                        >
-                                            <ShieldCheck className="h-4 w-4" />
-                                            Agent Hub
-                                        </Link>
-                                    )}
-
-                                    {/* Admin Console */}
-                                    {user?.is_admin && (
-                                        <Link
-                                            href="/admin"
-                                            onClick={() => setIsMobileMenuOpen(false)}
-                                            className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-800"
-                                        >
-                                            <LayoutGrid className="h-4 w-4" />
-                                            Admin
-                                        </Link>
-                                    )}
-
-                                    {/* Seller Dashboard */}
-                                    {(user?.is_seller || isVerifiedSeller) && (
-                                        <Link
-                                            href="/seller-dashboard"
-                                            onClick={() => setIsMobileMenuOpen(false)}
-                                            className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950"
-                                        >
-                                            <Store className="h-4 w-4" />
-                                            Seller Dashboard
-                                        </Link>
-                                    )}
-                                </>
-                            )}
-
-                            {/* Sign In / Sign Out */}
-                            {isAuthenticated ? (
-                                <button
-                                    onClick={() => {
-                                        logout();
-                                        setIsMobileMenuOpen(false);
-                                    }}
-                                    className="w-full text-left px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center gap-3"
-                                >
-                                    <LogOut className="h-4 w-4" />
-                                    {t('Sign Out')}
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={() => {
-                                        setAuthMode('signin');
-                                        setAuthModalOpen(true);
-                                        setIsMobileMenuOpen(false);
-                                    }}
-                                    className="w-full text-left px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center gap-3"
-                                >
-                                    <User className="h-4 w-4" />
-                                    {t('Sign In')}
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                )}
+                {/* Location Modal */}
+                <LocationPickerModal
+                    isOpen={isLocationModalOpen}
+                    onClose={() => setIsLocationModalOpen(false)}
+                />
             </header>
 
-            <LocationPickerModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} />
-            <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} mode={authMode} />
+            {/* Mobile Menu */}
+            {isMobileMenuOpen && (
+                <div className="sm:hidden bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 px-4 py-4 space-y-3">
+                    <button
+                        onClick={() => setIsLocationModalOpen(true)}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+                    >
+                        <MapPin className="w-4 h-4 text-orange-600" />
+                        <span className="text-sm font-medium">{city || 'Select Location'}</span>
+                    </button>
+                    <button
+                        onClick={() => router.push('/checkout')}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-orange-600 text-orange-600 hover:bg-orange-50 transition-colors font-semibold text-sm"
+                    >
+                        <ShoppingCart className="w-4 h-4" />
+                        <span>Cart ({cartCount})</span>
+                    </button>
+                    {!isAuthenticated && (
+                        <>
+                            <button
+                                onClick={() => {
+                                    openAuthModal('signin');
+                                    setIsMobileMenuOpen(false);
+                                }}
+                                className="w-full px-4 py-2 text-sm font-semibold bg-sky-400 text-white rounded-full hover:bg-sky-500 transition-colors"
+                            >
+                                Sign In
+                            </button>
+                            <button
+                                onClick={() => {
+                                    openAuthModal('signup');
+                                    setIsMobileMenuOpen(false);
+                                }}
+                                className="w-full px-4 py-2 text-sm font-semibold bg-orange-600 text-white rounded-full hover:bg-orange-700 transition-colors"
+                            >
+                                Sign Up
+                            </button>
+                        </>
+                    )}
+                </div>
+            )}
         </>
     );
 };
