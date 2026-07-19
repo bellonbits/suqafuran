@@ -49,10 +49,28 @@ export const Header: React.FC = () => {
                     setIsVerifiedSeller(sellerResponse.data?.is_seller === true);
 
                     // Check user role (admin, agent, seller, etc.)
+                    let detectedRole: 'admin' | 'agent' | 'seller' | null = null;
+                    
+                    // Try /users/me endpoint
                     const roleResponse = await api.get('/users/me').catch(() => null);
                     if (roleResponse?.data?.role) {
-                        setUserRole(roleResponse.data.role);
+                        detectedRole = roleResponse.data.role;
                     }
+                    
+                    // Fallback: check email for admin/agent keywords
+                    if (!detectedRole && user.email) {
+                        if (user.email.includes('admin')) detectedRole = 'admin';
+                        else if (user.email.includes('agent')) detectedRole = 'agent';
+                    }
+                    
+                    // Fallback: check user object for role properties
+                    if (!detectedRole) {
+                        if ((user as any).is_admin || (user as any).role === 'admin') detectedRole = 'admin';
+                        else if ((user as any).is_agent || (user as any).role === 'agent') detectedRole = 'agent';
+                    }
+                    
+                    setUserRole(detectedRole);
+
                 } catch (error) {
                     setIsVerifiedSeller(false);
                     setUserRole(null);
