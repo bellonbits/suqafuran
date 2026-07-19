@@ -13,7 +13,7 @@ def setup_tracing(app):
         return
 
     try:
-        from opentelemetry import trace, metrics, logs
+        from opentelemetry import trace
         from opentelemetry.sdk.trace import TracerProvider
         from opentelemetry.sdk.trace.export import BatchSpanProcessor
         from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter

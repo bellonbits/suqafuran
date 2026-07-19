@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  TrendingUp, TrendingDown, ShoppingCart, Package, DollarSign,
+  TrendingUp, ShoppingCart, Package, DollarSign,
   Eye, MessageSquare, Star, Users, Truck, RefreshCw,
   ArrowUpRight, ArrowDownRight, Clock, CheckCircle, XCircle,
   AlertTriangle, Plus, ChevronRight, BarChart2, Zap
 } from 'lucide-react';
+
 import { sellerDashboardService, fmtKSh } from '../../services/sellerDashboardService';
 import { cn } from '../../utils/cn';
 

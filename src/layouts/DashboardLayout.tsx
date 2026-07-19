@@ -9,7 +9,8 @@ import {
     PlusCircle, Bell, HelpCircle, Shield, Folder,
     Menu, X, MessageSquare, Zap, Target,
     LifeBuoy,
-    MessageCircle, Users, Globe, House, Megaphone, Flag
+    MessageCircle, Users, Globe, House, Megaphone, Flag, Store
+
 } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { getAvatarUrl } from '../utils/imageUtils';
@@ -185,7 +186,23 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                         ))}
                     </div>
 
+                    <div className="pt-4 mt-4 border-t border-gray-100">
+                        <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Seller Tools</p>
+                        <Link
+                            to="/seller-dashboard"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className={cn(
+                                "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-sky-600 hover:bg-sky-50",
+                                location.pathname.startsWith('/seller-dashboard') && "bg-sky-50 shadow-sm font-bold"
+                            )}
+                        >
+                            <Store className="h-5 w-5 text-sky-500" />
+                            <span>Seller Dashboard</span>
+                        </Link>
+                    </div>
+
                     {(user?.is_admin || user?.is_agent) && (
+
                         <div className="pt-4 mt-4 border-t border-gray-100">
                             <p className="px-4 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('dashboard.agentTools', 'Agent Tools')}</p>
                             <Link

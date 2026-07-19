@@ -105,6 +105,24 @@ const PremiumPage = lazyNamed(() => import('./pages/PremiumPage'), 'PremiumPage'
 const DiscoveryFeedPage = lazy(() => import('./pages/DiscoveryFeedPage'));
 const BusinessDashboard = lazyNamed(() => import('./pages/business/BusinessDashboard'), 'BusinessDashboard');
 
+// Lazy load Seller Dashboard Layout & Pages
+const SellerDashboardLayout = lazyNamed(() => import('./layouts/SellerDashboardLayout'), 'SellerDashboardLayout');
+const SellerDashboardHome = lazyNamed(() => import('./pages/seller/SellerDashboardHome'), 'SellerDashboardHome');
+const SellerProductsPage = lazyNamed(() => import('./pages/seller/SellerProductsPage'), 'SellerProductsPage');
+const SellerOrdersPage = lazyNamed(() => import('./pages/seller/SellerOrdersPage'), 'SellerOrdersPage');
+const SellerDeliveryPage = lazyNamed(() => import('./pages/seller/SellerDeliveryPage'), 'SellerDeliveryPage');
+const SellerInventoryPage = lazyNamed(() => import('./pages/seller/SellerInventoryPage'), 'SellerInventoryPage');
+const SellerCustomersPage = lazyNamed(() => import('./pages/seller/SellerCustomersPage'), 'SellerCustomersPage');
+const SellerMessagesPage = lazyNamed(() => import('./pages/seller/SellerMessagesPage'), 'SellerMessagesPage');
+const SellerMarketingPage = lazyNamed(() => import('./pages/seller/SellerMarketingPage'), 'SellerMarketingPage');
+const SellerReviewsPage = lazyNamed(() => import('./pages/seller/SellerReviewsPage'), 'SellerReviewsPage');
+const SellerAnalyticsPage = lazyNamed(() => import('./pages/seller/SellerAnalyticsPage'), 'SellerAnalyticsPage');
+const SellerFinancePage = lazyNamed(() => import('./pages/seller/SellerFinancePage'), 'SellerFinancePage');
+const SellerShopPage = lazyNamed(() => import('./pages/seller/SellerShopPage'), 'SellerShopPage');
+const SellerReportsPage = lazyNamed(() => import('./pages/seller/SellerReportsPage'), 'SellerReportsPage');
+const SellerSettingsPage = lazyNamed(() => import('./pages/seller/SellerSettingsPage'), 'SellerSettingsPage');
+
+
 // Lazy load pages - Default Exports (Admin/Agent Pages)
 const AdminCategoriesPage = lazy(() => import('./pages/admin/AdminCategoriesPage'));
 const AdminPromotionsPage = lazy(() => import('./pages/admin/AdminPromotionsPage'));
@@ -374,6 +392,25 @@ const App: React.FC = () => {
 
             {/* Business Hub SaaS Workspace */}
             <Route path="/business" element={<ProtectedRoute><BusinessDashboard /></ProtectedRoute>} />
+
+            {/* Seller Dashboard */}
+            <Route path="/seller-dashboard" element={<ProtectedRoute><SellerDashboardLayout /></ProtectedRoute>}>
+              <Route index element={<SellerDashboardHome />} />
+              <Route path="products" element={<SellerProductsPage />} />
+              <Route path="orders" element={<SellerOrdersPage />} />
+              <Route path="delivery" element={<SellerDeliveryPage />} />
+              <Route path="inventory" element={<SellerInventoryPage />} />
+              <Route path="customers" element={<SellerCustomersPage />} />
+              <Route path="messages" element={<SellerMessagesPage />} />
+              <Route path="marketing" element={<SellerMarketingPage />} />
+              <Route path="reviews" element={<SellerReviewsPage />} />
+              <Route path="analytics" element={<SellerAnalyticsPage />} />
+              <Route path="finance" element={<SellerFinancePage />} />
+              <Route path="shop" element={<SellerShopPage />} />
+              <Route path="reports" element={<SellerReportsPage />} />
+              <Route path="settings" element={<SellerSettingsPage />} />
+            </Route>
+
 
             {/* Public Pages with Layout */}
             <Route path="/category/:categoryId" element={<CategoryListingPage />} />

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  Plus, Search, Filter, Edit2, Trash2, Copy, Archive, Eye,
-  Package, ChevronDown, ChevronUp, X, Upload, Tag, AlertCircle,
-  Check, Loader2, MoreVertical, BarChart2, Heart, ShoppingCart
+  Plus, Search, Edit2, Trash2, Copy, Archive, Eye,
+  Package, ChevronDown, ChevronUp, X, Upload, Tag,
+  Loader2, BarChart2, Heart, ShoppingCart
 } from 'lucide-react';
+
 import { toast } from 'react-hot-toast';
 import { sellerDashboardService, fmtKSh } from '../../services/sellerDashboardService';
 import { cn } from '../../utils/cn';

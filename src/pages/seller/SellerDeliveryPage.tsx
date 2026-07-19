@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import {
-  Truck, MapPin, Package, Scale, DollarSign, Clock, Plus, X,
-  Edit2, Trash2, Check, Toggle, Zap, Navigation, Star
+  Truck, MapPin, Package, Scale, DollarSign, Plus, X,
+  Edit2, Trash2, Check, Zap, Navigation
 } from 'lucide-react';
+
 import {
   getLocalDeliveryZones, saveLocalDeliveryZones,
   getLocalDeliverySettings, saveLocalDeliverySettings,

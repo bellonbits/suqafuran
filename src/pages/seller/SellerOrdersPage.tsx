@@ -3,8 +3,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ShoppingCart, Clock, CheckCircle, XCircle, RefreshCw, Truck,
   Package, AlertTriangle, Eye, Phone, MapPin, Printer, Receipt,
-  MessageSquare, X, ChevronDown, Search, Filter, User
+  MessageSquare, X, Search, User
 } from 'lucide-react';
+
 import { toast } from 'react-hot-toast';
 import { sellerDashboardService, fmtKSh } from '../../services/sellerDashboardService';
 import type { SellerOrder } from '../../services/sellerDashboardService';
