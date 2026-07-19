@@ -363,7 +363,7 @@ Thanks!`;
 
             {/* Receipt Preview - Ticket Style */}
             <div className="flex justify-center py-8">
-              <div className="w-full max-w-sm">
+              <div className="w-full max-w-2xl">
                 {/* Receipt Card */}
                 <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border-2 border-gray-200 dark:border-slate-700 shadow-2xl relative">
                   {/* Perforated edges left */}
@@ -390,22 +390,20 @@ Thanks!`;
                     {/* Divider */}
                     <div className="border-t-2 border-dashed border-gray-300 dark:border-slate-600 pt-6"></div>
 
-                    {/* Order ID & Amount */}
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* Order ID, Amount, Date & Time - 3 Columns */}
+                    <div className="grid grid-cols-3 gap-4">
                       <div className="text-left">
                         <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-1">Order ID</p>
-                        <p className="text-lg font-black text-gray-900 dark:text-white">{orderNumber}</p>
+                        <p className="text-lg font-black text-gray-900 dark:text-white break-all">{orderNumber}</p>
                       </div>
-                      <div className="text-right">
+                      <div className="text-center">
                         <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-1">Total</p>
                         <p className="text-lg font-black text-orange-600">KSh {total.toLocaleString()}</p>
                       </div>
-                    </div>
-
-                    {/* Date & Time */}
-                    <div className="text-left">
-                      <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-1">Date & Time</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{new Date().toLocaleDateString()} | {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                      <div className="text-right">
+                        <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-1">Date & Time</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{new Date().toLocaleDateString()} {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                      </div>
                     </div>
 
                     {/* Buyer Info */}
@@ -420,7 +418,7 @@ Thanks!`;
                     {/* Location with Map */}
                     <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
                       <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-3">📍 Your Location</p>
-                      <div className="relative h-32 bg-gradient-to-b from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-900/10 rounded-lg mb-3 overflow-hidden flex items-center justify-center">
+                      <div className="relative h-48 bg-gradient-to-b from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-900/10 rounded-lg mb-3 overflow-hidden flex items-center justify-center">
                         <iframe
                           src={`https://maps.google.com/maps?q=${currentLocation?.lat},${currentLocation?.lng}&z=15&output=embed`}
                           width="100%"
