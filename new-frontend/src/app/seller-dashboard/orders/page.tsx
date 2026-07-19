@@ -1,15 +1,68 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Search, Filter, Eye } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, Eye, Loader } from 'lucide-react';
+import api from '@/services/api';
 
 export default function OrdersPage() {
-  const [orders] = useState([
-    { id: 'ORD-001', customer: 'Ahmed Mohamed', items: 2, amount: 'KSh 5,200', date: '2 hours ago', status: 'Delivered' },
-    { id: 'ORD-002', customer: 'Zainab Ali', items: 1, amount: 'KSh 3,800', date: '4 hours ago', status: 'Processing' },
-    { id: 'ORD-003', customer: 'Fatima Hassan', items: 3, amount: 'KSh 8,100', date: '6 hours ago', status: 'Pending' },
-    { id: 'ORD-004', customer: 'Khalid Omar', items: 1, amount: 'KSh 4,500', date: '1 day ago', status: 'Delivered' },
-  ]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    loadOrdersData();
+  }, []);
+
+  const loadOrdersData = async () => {
+    try {
+      const [ordersRes, statsRes] = await Promise.all([
+        api.get('/orders?limit=100').catch(() => null),
+        api.get('/dashboard/stats').catch(() => null),
+      ]);
+
+      if (ordersRes?.data) {
+        setOrders(Array.isArray(ordersRes.data) ? ordersRes.data : []);
+      }
+
+      if (statsRes?.data) {
+        const orderData = Array.isArray(ordersRes?.data) ? ordersRes.data : [];
+        const totalOrders = orderData.length;
+        const pending = orderData.filter((o: any) => o.status === 'pending').length;
+        const processing = orderData.filter((o: any) => o.status === 'processing').length;
+        const delivered = orderData.filter((o: any) => o.status === 'delivered').length;
+
+        setStats({
+          total_orders: totalOrders,
+          pending,
+          processing,
+          delivered,
+        });
+      }
+    } catch (error) {
+      console.error('Error loading orders:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center gap-3">
+          <Loader className="w-8 h-8 animate-spin text-orange-600" />
+          <p className="text-gray-500 text-sm">Loading orders...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const statValues = {
+    total_orders: stats?.total_orders || 0,
+    pending: stats?.pending || 0,
+    processing: stats?.processing || 0,
+    delivered: stats?.delivered || 0,
+  };
 
   return (
     <div className="space-y-6">
@@ -21,26 +74,32 @@ export default function OrdersPage() {
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
           <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Total Orders</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">248</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{statValues.total_orders}</p>
         </div>
         <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
           <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Pending</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">12</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{statValues.pending}</p>
         </div>
         <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
           <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Processing</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">28</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{statValues.processing}</p>
         </div>
         <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
           <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Delivered</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">205</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{statValues.delivered}</p>
         </div>
       </div>
 
       <div className="flex gap-2">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input type="text" placeholder="Search orders..." className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white" />
+          <input
+            type="text"
+            placeholder="Search orders..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
+          />
         </div>
         <button className="px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 flex items-center gap-2">
           <Filter className="w-4 h-4" /> Filter
@@ -62,23 +121,37 @@ export default function OrdersPage() {
               </tr>
             </thead>
             <tbody>
-              {orders.map((order) => (
-                <tr key={order.id} className="border-b border-gray-200 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                  <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">{order.id}</td>
-                  <td className="px-6 py-4 text-gray-900 dark:text-white">{order.customer}</td>
-                  <td className="px-6 py-4 text-gray-900 dark:text-white">{order.items}</td>
-                  <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">{order.amount}</td>
-                  <td className="px-6 py-4 text-gray-600 dark:text-slate-400">{order.date}</td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                      order.status === 'Delivered' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' :
-                      order.status === 'Processing' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :
-                      'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
-                    }`}>{order.status}</span>
-                  </td>
-                  <td className="px-6 py-4"><button className="text-blue-600 hover:text-blue-700"><Eye className="w-4 h-4" /></button></td>
+              {orders.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-gray-400">No orders yet</td>
                 </tr>
-              ))}
+              ) : (
+                orders.map((order) => (
+                  <tr key={order.id} className="border-b border-gray-200 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/50">
+                    <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">{order.id}</td>
+                    <td className="px-6 py-4 text-gray-900 dark:text-white">{order.customer_name || 'Unknown'}</td>
+                    <td className="px-6 py-4 text-gray-900 dark:text-white">{order.items_count || 0}</td>
+                    <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">KSh {(order.total_amount || 0).toLocaleString()}</td>
+                    <td className="px-6 py-4 text-gray-600 dark:text-slate-400">{new Date(order.created_at).toLocaleDateString() || '-'}</td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                        order.status === 'delivered'
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                          : order.status === 'processing'
+                          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                          : 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
+                      }`}>
+                        {order.status?.replace(/_/g, ' ')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <button className="text-blue-600 hover:text-blue-700">
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

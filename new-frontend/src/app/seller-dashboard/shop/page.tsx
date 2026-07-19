@@ -1,15 +1,70 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Save } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Save, Loader } from 'lucide-react';
+import api from '@/services/api';
 
 export default function ShopPage() {
   const [shopData, setShopData] = useState({
-    name: 'Electronics Hub',
-    description: 'Premium electronics and gadgets',
-    phone: '+254701234567',
-    email: 'shop@electronics.com',
+    name: '',
+    description: '',
+    phone: '',
+    email: '',
   });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    loadShopData();
+  }, []);
+
+  const loadShopData = async () => {
+    try {
+      const res = await api.get('/seller/profile').catch(() => null);
+
+      if (res?.data) {
+        setShopData({
+          name: res.data.shop_name || '',
+          description: res.data.description || '',
+          phone: res.data.phone || '',
+          email: res.data.email || '',
+        });
+      }
+    } catch (error) {
+      console.error('Error loading shop data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await api.put('/seller/profile', {
+        shop_name: shopData.name,
+        description: shopData.description,
+        phone: shopData.phone,
+        email: shopData.email,
+      });
+      alert('Shop information updated successfully!');
+    } catch (error) {
+      console.error('Error saving shop data:', error);
+      alert('Failed to save shop information');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center gap-3">
+          <Loader className="w-8 h-8 animate-spin text-orange-600" />
+          <p className="text-gray-500 text-sm">Loading shop information...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -59,9 +114,13 @@ export default function ShopPage() {
               />
             </div>
           </div>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg flex items-center gap-2">
-            <Save className="w-5 h-5" />
-            Save Changes
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold px-6 py-2 rounded-lg flex items-center gap-2"
+          >
+            {saving ? <Loader className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+            {saving ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </div>
