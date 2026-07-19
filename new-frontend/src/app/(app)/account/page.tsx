@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuth';
 import { authService } from '@/services/authService';
 import { Mail, Phone, MapPin, Shield, Calendar, LogOut, Loader2, AlertCircle, Copy, Check, Camera } from 'lucide-react';
-import api from '@/services/api';
+import api, { resolveMediaUrl } from '@/services/api';
 
 export default function AccountPage() {
   const router = useRouter();
@@ -154,7 +154,7 @@ export default function AccountPage() {
           <div className="relative w-fit">
             {avatarPreview || profile.avatar_url ? (
               <img
-                src={avatarPreview || profile.avatar_url}
+                src={avatarPreview || resolveMediaUrl(profile.avatar_url)}
                 alt={profile.full_name}
                 className="w-24 h-24 rounded-2xl object-cover"
               />
