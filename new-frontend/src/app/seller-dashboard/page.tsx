@@ -16,6 +16,11 @@ const StatCard = ({ icon: Icon, label, value, color = 'blue' }: any) => {
     purple: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
   };
 
+  // Log dashboard data for debugging
+  console.log('[DEBUG] Dashboard - topProducts:', topProducts);
+  console.log('[DEBUG] Dashboard - recentOrders:', recentOrders);
+  console.log('[DEBUG] Dashboard - stats:', stats);
+
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-gray-200 dark:border-slate-800">
       <div className="flex items-start gap-4">
@@ -85,7 +90,12 @@ export default function SellerDashboard() {
   };
 
   if (loading) {
-    return (
+    // Log dashboard data for debugging
+  console.log('[DEBUG] Dashboard - topProducts:', topProducts);
+  console.log('[DEBUG] Dashboard - recentOrders:', recentOrders);
+  console.log('[DEBUG] Dashboard - stats:', stats);
+
+  return (
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-3">
           <Loader className="w-8 h-8 animate-spin text-orange-600" />
@@ -98,6 +108,15 @@ export default function SellerDashboard() {
   const totalProducts = stats?.listings || 0;
   const totalMessages = stats?.messages || 0;
 
+  // Log dashboard data for debugging
+  console.log('[DEBUG] Dashboard - topProducts:', topProducts);
+  console.log('[DEBUG] Dashboard - recentOrders:', recentOrders);
+  console.log('[DEBUG] Dashboard - stats:', stats);
+
+  // Ensure data is available
+  const safeStats = stats || {};
+  const totalProducts = topProducts?.length || 0;
+
   return (
     <div className="space-y-8">
       <div>
@@ -108,10 +127,10 @@ export default function SellerDashboard() {
       <div>
         <h2 className="text-lg font-black text-gray-900 dark:text-white mb-4">Overview</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard icon={DollarSign} label="Total Revenue" value={`KSh ${(stats?.balance || 0).toLocaleString()}`} color="green" />
-          <StatCard icon={ShoppingCart} label="Total Orders" value={stats?.total_orders || "0"} color="blue" />
+          <StatCard icon={DollarSign} label="Total Revenue" value={`KSh ${(safeStats.balance || 0).toLocaleString()}`} color="green" />
+          <StatCard icon={ShoppingCart} label="Total Orders" value={safeStats.total_orders || "0"} color="blue" />
           <StatCard icon={Package} label="Active Products" value={totalProducts.toString()} color="blue" />
-          <StatCard icon={Eye} label="Shop Views" value={stats?.views || "0"} color="purple" />
+          <StatCard icon={Eye} label="Shop Views" value={safeStats.views || "0"} color="purple" />
         </div>
       </div>
 
@@ -137,12 +156,12 @@ export default function SellerDashboard() {
                   </tr>
                 ) : (
                   recentOrders.map((order) => (
-                    <tr key={order.id} className="border-b border-gray-100 dark:border-slate-800">
-                      <td className="py-3 px-4 font-semibold text-gray-900 dark:text-white">{order.id}</td>
+                    <tr key={order.order_id || order.id || 'N/A'} className="border-b border-gray-100 dark:border-slate-800">
+                      <td className="py-3 px-4 font-semibold text-gray-900 dark:text-white">{order.order_id || order.id || 'N/A'}</td>
                       <td className="py-3 px-4 font-semibold text-gray-900 dark:text-white">KSh {(order.total_amount || 0).toLocaleString()}</td>
                       <td className="py-3 px-4">
                         <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                          order.status === 'delivered'
+                          (order.status === 'delivered' || order.status === 'completed')
                             ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
                             : order.status === 'processing'
                             ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
@@ -170,7 +189,7 @@ export default function SellerDashboard() {
             ) : (
               topProducts.map((product) => (
                 <div key={product.id} className="pb-4 border-b border-gray-100 dark:border-slate-800 last:border-0">
-                  <p className="font-semibold text-gray-900 dark:text-white text-sm mb-2 truncate">{product.title || 'Unnamed Product'}</p>
+                  <p className="font-semibold text-gray-900 dark:text-white text-sm mb-2 truncate">{product.title_en || product.title || 'Untitled Product'}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-600 dark:text-slate-400">{product.views || 0} views</span>
                     <span className="font-bold text-gray-900 dark:text-white text-sm">KSh {((product.price || 0)).toLocaleString()}</span>
