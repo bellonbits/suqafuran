@@ -116,7 +116,7 @@ export default function ProductsPage() {
                   <td className="px-6 py-4">
                     <div>
                       <p className="font-semibold text-gray-900 dark:text-white truncate">{product.title || 'Unnamed'}</p>
-                      <p className="text-xs text-gray-500 dark:text-slate-400">{product.id?.substring(0, 8) || 'N/A'}</p>
+                      <p className="text-xs text-gray-500 dark:text-slate-400">{product.id ? String(product.id).substring(0, 8) : 'N/A'}</p>
                     </div>
                   </td>
                   <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">KSh {(product.price || 0).toLocaleString()}</td>
