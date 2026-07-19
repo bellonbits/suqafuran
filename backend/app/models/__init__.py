@@ -32,6 +32,13 @@ from app.models.business import (
     BusinessTask,
     BusinessRole,
 )
+from app.models.delivery_zone import DeliveryZone
+from app.models.review import Review
+from app.models.campaign import Campaign
+from app.models.seller_profile import SellerProfile
+from app.models.seller_settings import SellerSettings
+from app.models.conversation import Conversation, ConversationMessage
+from app.models.report import SalesReport
 
 __all__ = [
     "User",
@@ -81,4 +88,12 @@ __all__ = [
     "BusinessRole",
     "OTPLog",
     "SavedAddress",
+    "DeliveryZone",
+    "Review",
+    "Campaign",
+    "SellerProfile",
+    "SellerSettings",
+    "Conversation",
+    "ConversationMessage",
+    "SalesReport",
 ]

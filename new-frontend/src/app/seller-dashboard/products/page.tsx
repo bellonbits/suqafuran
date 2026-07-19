@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Edit2, Trash2, Copy, Loader } from 'lucide-react';
+import { Plus, Search, Filter, Edit2, Trash2, Copy, Loader, CheckCircle } from 'lucide-react';
 import api from '@/services/api';
 
 const truncateId = (id: any, length: number = 8): string => {
@@ -18,6 +18,8 @@ export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [copying, setCopying] = useState<string | null>(null);
 
   useEffect(() => {
     loadProducts();
@@ -36,6 +38,50 @@ export default function ProductsPage() {
     }
   };
 
+  const handleDelete = async (productId: string) => {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+
+    setDeleting(productId);
+    try {
+      await api.delete(`/listings/${productId}`);
+      setProducts(products.filter(p => p.id !== productId));
+      loadProducts();
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert('Failed to delete product');
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const handleCopy = async (product: any) => {
+    setCopying(product.id);
+    try {
+      const newProduct = {
+        ...product,
+        title: `${product.title} (Copy)`,
+      };
+      delete newProduct.id;
+      delete newProduct.created_at;
+      delete newProduct.updated_at;
+      delete newProduct.views;
+      delete newProduct.sales;
+
+      await api.post('/listings', newProduct);
+      alert('Product copied successfully!');
+      loadProducts();
+    } catch (error) {
+      console.error('Error copying product:', error);
+      alert('Failed to copy product');
+    } finally {
+      setCopying(null);
+    }
+  };
+
+  const handleEdit = (product: any) => {
+    window.location.href = `/listings/${product.id}/edit`;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -52,6 +98,10 @@ export default function ProductsPage() {
   const totalViews = products.reduce((sum, p) => sum + (p.views || 0), 0);
   const totalSales = products.reduce((sum, p) => sum + (p.sales || 0), 0);
 
+  const filteredProducts = products.filter(p =>
+    p.title?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -59,10 +109,13 @@ export default function ProductsPage() {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Products</h1>
           <p className="text-gray-600 dark:text-slate-400">Manage your product listings</p>
         </div>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg flex items-center gap-2 transition-colors">
+        <a
+          href="/sell"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg flex items-center gap-2 transition-colors text-center"
+        >
           <Plus className="w-5 h-5" />
           Add Product
-        </button>
+        </a>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -116,12 +169,14 @@ export default function ProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {products.length === 0 ? (
+              {filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-gray-400">No products yet</td>
+                  <td colSpan={7} className="py-12 text-center text-gray-400">
+                    {searchQuery ? 'No products match your search' : 'No products yet'}
+                  </td>
                 </tr>
               ) : (
-              products.map((product) => (
+              filteredProducts.map((product) => (
                 <tr key={product.id} className="border-b border-gray-200 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/50">
                   <td className="px-6 py-4">
                     <div>
@@ -154,14 +209,36 @@ export default function ProductsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
-                      <button className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded">
-                        <Edit2 className="w-4 h-4 text-gray-600 dark:text-slate-400" />
+                      <button
+                        onClick={() => handleEdit(product)}
+                        className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded"
+                        title="Edit product"
+                      >
+                        <Edit2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                       </button>
-                      <button className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded">
-                        <Copy className="w-4 h-4 text-gray-600 dark:text-slate-400" />
+                      <button
+                        onClick={() => handleCopy(product)}
+                        disabled={copying === product.id}
+                        className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded disabled:opacity-50"
+                        title="Duplicate product"
+                      >
+                        {copying === product.id ? (
+                          <Loader className="w-4 h-4 animate-spin text-gray-600 dark:text-slate-400" />
+                        ) : (
+                          <Copy className="w-4 h-4 text-gray-600 dark:text-slate-400" />
+                        )}
                       </button>
-                      <button className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded">
-                        <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+                      <button
+                        onClick={() => handleDelete(product.id)}
+                        disabled={deleting === product.id}
+                        className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded disabled:opacity-50"
+                        title="Delete product"
+                      >
+                        {deleting === product.id ? (
+                          <Loader className="w-4 h-4 animate-spin text-red-600 dark:text-red-400" />
+                        ) : (
+                          <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+                        )}
                       </button>
                     </div>
                   </td>
