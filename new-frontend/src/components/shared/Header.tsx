@@ -188,7 +188,7 @@ export const Header: React.FC = () => {
                                 )}
                                 {(user?.is_seller || isVerifiedSeller) && (
                                     <Link
-                                        href="/seller/dashboard"
+                                        href="/seller-dashboard"
                                         className="rounded-full p-2 hover:bg-orange-100 text-orange-500 dark:text-orange-400 dark:hover:bg-orange-950 transition-colors"
                                         title="Seller Dashboard"
                                     >
@@ -483,7 +483,7 @@ export const Header: React.FC = () => {
                                     {/* Seller Dashboard */}
                                     {(user?.is_seller || isVerifiedSeller) && (
                                         <Link
-                                            href="/seller/dashboard"
+                                            href="/seller-dashboard"
                                             onClick={() => setIsMobileMenuOpen(false)}
                                             className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950"
                                         >

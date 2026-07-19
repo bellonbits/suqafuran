@@ -46,7 +46,7 @@ export const BottomNavigation: React.FC = () => {
       setNavItems([
         { href: '/shops', label: 'Home', icon: Home },
         { href: '/favorites', label: 'Favorites', icon: Heart },
-        { href: '/seller/dashboard', label: 'Seller', icon: Store },
+        { href: '/seller-dashboard', label: 'Seller', icon: Store },
         { href: '/messages', label: 'Chat', icon: MessageCircle },
         { href: '/account', label: 'Profile', icon: User },
       ]);

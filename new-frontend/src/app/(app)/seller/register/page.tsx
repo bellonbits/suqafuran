@@ -87,7 +87,7 @@ export default function SellerRegistrationPage() {
 
             if (result.id) {
                 // Redirect to seller dashboard
-                router.push('/seller/dashboard');
+                router.push('/seller-dashboard');
             }
         } catch (err: any) {
             setError(err.response?.data?.detail || 'Registration failed. Please try again.');

@@ -519,7 +519,7 @@ export default function LandingPage() {
 
             {/* Tile 1 — Become a Seller */}
             <Link
-              href={isAuthenticated ? '/seller/dashboard' : '/?auth=signup'}
+              href={isAuthenticated ? '/seller-dashboard' : '/?auth=signup'}
               onClick={(e) => {
                 if (!isAuthenticated) {
                   e.preventDefault();
@@ -544,7 +544,7 @@ export default function LandingPage() {
 
             {/* Tile 2 — Become a Partner */}
             <Link
-              href={isAuthenticated ? '/seller/dashboard' : '/?auth=signup'}
+              href={isAuthenticated ? '/seller-dashboard' : '/?auth=signup'}
               onClick={(e) => {
                 if (!isAuthenticated) {
                   e.preventDefault();
@@ -619,7 +619,7 @@ export default function LandingPage() {
               </ul>
               <div>
                 <button
-                  onClick={() => isAuthenticated ? router.push('/seller/dashboard') : openAuthModal('signup')}
+                  onClick={() => isAuthenticated ? router.push('/seller-dashboard') : openAuthModal('signup')}
                   className="inline-flex items-center text-sm font-black text-white bg-[#6cd4ff] hover:bg-[#5bc0e8] px-8 py-4 rounded-full transition-all shadow-md shadow-[#6cd4ff]/20"
                 >
                   Become a Seller
@@ -674,7 +674,7 @@ export default function LandingPage() {
               </ul>
               <div>
                 <button
-                  onClick={() => isAuthenticated ? router.push('/seller/dashboard') : openAuthModal('signup')}
+                  onClick={() => isAuthenticated ? router.push('/seller-dashboard') : openAuthModal('signup')}
                   className="inline-flex items-center text-sm font-black text-white bg-emerald-500 hover:bg-emerald-600 px-8 py-4 rounded-full transition-all shadow-md shadow-emerald-500/20"
                 >
                   Partner with Suqafuran
