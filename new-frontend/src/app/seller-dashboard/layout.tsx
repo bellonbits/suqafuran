@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Package, ShoppingCart, Truck, Warehouse,
   Users, MessageSquare, Megaphone, Star, BarChart3,
   DollarSign, Store, FileText, Settings, LogOut, Menu, X,
-  ChevronRight, Home
+  ChevronRight, Home, ArrowLeft
 } from 'lucide-react';
 
 const sellerNavItems = [
@@ -27,28 +27,64 @@ const sellerNavItems = [
   { label: 'Settings', icon: <Settings className="w-5 h-5" />, href: '/seller-dashboard/settings' },
 ];
 
+function getPageLabel(pathname: string): string {
+  if (pathname === '/seller-dashboard') return 'Dashboard';
+  const item = sellerNavItems.find(item => item.href === pathname);
+  return item?.label || 'Seller Dashboard';
+}
+
+function getParentPath(pathname: string): string {
+  if (pathname === '/seller-dashboard') return '/';
+  return '/seller-dashboard';
+}
+
 export default function SellerDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const currentPageLabel = getPageLabel(pathname);
+  const parentPath = getParentPath(pathname);
+
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Escape to toggle sidebar on mobile
+      if (e.key === 'Escape' && window.innerWidth < 768) {
+        setSidebarOpen(false);
+      }
+      // Alt/Option + Left Arrow to go back
+      if ((e.altKey || e.metaKey) && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        router.back();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
       {/* Mobile Header */}
-      <div className="md:hidden sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800">
+      <div className="md:hidden sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
-          <Link href="/" className="text-2xl font-black text-orange-600">
-            Suqafuran
-          </Link>
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg"
-          >
-            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg"
+              aria-label="Toggle sidebar"
+            >
+              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+            <Link href="/seller-dashboard" className="text-lg font-black text-orange-600">
+              Suqafuran
+            </Link>
+          </div>
+          <span className="text-sm font-semibold text-gray-700 dark:text-slate-300">{currentPageLabel}</span>
         </div>
       </div>
 
@@ -59,8 +95,9 @@ export default function SellerDashboardLayout({
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
-          <div className="hidden md:flex items-center gap-3 px-6 py-6 border-b border-gray-200 dark:border-slate-800">
-            <div className="w-10 h-10 rounded-xl bg-orange-600 flex items-center justify-center">
+          {/* Header - Desktop Only */}
+          <div className="hidden md:flex items-center gap-3 px-6 py-6 border-b border-gray-200 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-900 z-10">
+            <div className="w-10 h-10 rounded-xl bg-orange-600 flex items-center justify-center flex-shrink-0">
               <Store className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -97,6 +134,7 @@ export default function SellerDashboardLayout({
             <div className="space-y-1">
               <Link
                 href="/"
+                onClick={() => setSidebarOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <Home className="w-5 h-5" />
@@ -111,8 +149,40 @@ export default function SellerDashboardLayout({
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 w-full">
-          <main className="p-4 md:p-8 max-w-7xl mx-auto">
+        <div className="flex-1 w-full overflow-hidden flex flex-col">
+          {/* Top Navigation Bar - Desktop */}
+          <div className="hidden md:block sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shadow-sm">
+            <div className="px-8 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {pathname !== '/seller-dashboard' && (
+                  <button
+                    onClick={() => router.back()}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                    title="Go back (Alt + Left Arrow)"
+                  >
+                    <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-slate-400" />
+                  </button>
+                )}
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
+                  <Link href="/seller-dashboard" className="hover:text-orange-600 font-medium">
+                    Dashboard
+                  </Link>
+                  {pathname !== '/seller-dashboard' && (
+                    <>
+                      <ChevronRight className="w-4 h-4" />
+                      <span className="font-semibold text-gray-900 dark:text-white">{currentPageLabel}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="text-xs text-gray-500 dark:text-slate-400">
+                💡 Tip: Alt + Left Arrow to go back
+              </div>
+            </div>
+          </div>
+
+          {/* Page Content */}
+          <main className="flex-1 overflow-y-auto p-4 md:p-8 max-w-7xl mx-auto w-full">
             {children}
           </main>
         </div>

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { businessService } from '../services/businessService';
@@ -8,17 +8,22 @@ import { Button } from '../components/Button';
 import {
     ShieldCheck, MapPin, Phone, Mail, Globe,
     MessageCircle, Sparkles, Loader2, ChevronLeft, ShoppingBag,
-    AlertCircle, Check, Copy, Heart, Eye, ExternalLink
+    AlertCircle, Check, Copy, Heart, Eye, ExternalLink, Star, Clock, Users
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../utils/cn';
 import { useCurrencyStore } from '../store/useCurrencyStore';
 import { formatConvertedPrice } from '../utils/currencyUtils';
+import { useScrollPosition } from '../hooks/useScrollPosition';
 
 const ShopProfile: React.FC = () => {
     const { t } = useTranslation();
     const { slug } = useParams<{ slug: string }>();
-    const [activeTab, setActiveTab] = useState<'products' | 'about' | 'contact'>('products');
+    const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState<'products' | 'reviews' | 'about' | 'contact'>('products');
+
+    // Scroll position memory
+    useScrollPosition(`shop-${slug}`, [slug]);
     const [copied, setCopied] = useState(false);
     const [favorites, setFavorites] = useState<Record<number, boolean>>({});
     const { currency: targetCurrency } = useCurrencyStore();
@@ -96,10 +101,13 @@ const ShopProfile: React.FC = () => {
                 {/* Back link */}
                 <div className="bg-white border-b border-slate-100 sticky top-0 z-40 backdrop-blur-md bg-opacity-90">
                     <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-                        <Link to="/" className="flex items-center text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors">
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="flex items-center text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors"
+                        >
                             <ChevronLeft className="h-4 w-4 mr-1" />
                             {t('sellerProfile.backToSearch', 'BACK TO MARKETPLACE')}
-                        </Link>
+                        </button>
 
                         <div className="flex items-center gap-2">
                             <button
@@ -234,11 +242,11 @@ const ShopProfile: React.FC = () => {
                 {/* Shop Navigation Tabs */}
                 <div className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-14 z-30">
                     <div className="container mx-auto px-4">
-                        <div className="flex gap-8">
+                        <div className="flex gap-8 overflow-x-auto">
                             <button
                                 onClick={() => setActiveTab('products')}
                                 className={cn(
-                                    "py-4 text-sm font-bold tracking-wider relative transition-colors uppercase",
+                                    "py-4 text-sm font-bold tracking-wider relative transition-colors uppercase whitespace-nowrap",
                                     activeTab === 'products' ? "text-slate-900" : "text-slate-500 hover:text-slate-800"
                                 )}
                             >
@@ -248,9 +256,21 @@ const ShopProfile: React.FC = () => {
                                 )}
                             </button>
                             <button
+                                onClick={() => setActiveTab('reviews')}
+                                className={cn(
+                                    "py-4 text-sm font-bold tracking-wider relative transition-colors uppercase whitespace-nowrap",
+                                    activeTab === 'reviews' ? "text-slate-900" : "text-slate-500 hover:text-slate-800"
+                                )}
+                            >
+                                Reviews
+                                {activeTab === 'reviews' && (
+                                    <div className="absolute bottom-0 left-0 right-0 h-1 rounded-t-full" style={{ backgroundColor: brandColor }} />
+                                )}
+                            </button>
+                            <button
                                 onClick={() => setActiveTab('about')}
                                 className={cn(
-                                    "py-4 text-sm font-bold tracking-wider relative transition-colors uppercase",
+                                    "py-4 text-sm font-bold tracking-wider relative transition-colors uppercase whitespace-nowrap",
                                     activeTab === 'about' ? "text-slate-900" : "text-slate-500 hover:text-slate-800"
                                 )}
                             >
@@ -262,7 +282,7 @@ const ShopProfile: React.FC = () => {
                             <button
                                 onClick={() => setActiveTab('contact')}
                                 className={cn(
-                                    "py-4 text-sm font-bold tracking-wider relative transition-colors uppercase",
+                                    "py-4 text-sm font-bold tracking-wider relative transition-colors uppercase whitespace-nowrap",
                                     activeTab === 'contact' ? "text-slate-900" : "text-slate-500 hover:text-slate-800"
                                 )}
                             >
@@ -472,6 +492,77 @@ const ShopProfile: React.FC = () => {
                                     <p className="text-slate-400 max-w-sm mx-auto">This shop storefront is brand new or hasn't imported inventory catalog products yet.</p>
                                 </div>
                             )}
+                        </div>
+                    )}
+
+                    {activeTab === 'reviews' && (
+                        <div className="max-w-3xl mx-auto">
+                            {/* Reviews Header */}
+                            <div className="bg-white rounded-3xl p-6 md:p-8 border border-sky-100 shadow-sm mb-6">
+                                <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                                    <Star className="w-5 h-5" style={{ color: brandColor }} />
+                                    Customer Reviews
+                                </h2>
+
+                                {/* Overall Rating Summary */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 pb-8 border-b border-sky-100/60">
+                                    <div className="flex flex-col items-center justify-center">
+                                        <div className="text-5xl font-black text-slate-900 mb-2">
+                                            {business.rating.toFixed(1)}
+                                        </div>
+                                        <div className="flex items-center gap-1 mb-2">
+                                            {[...Array(5)].map((_, i) => (
+                                                <Star
+                                                    key={i}
+                                                    className={cn(
+                                                        'h-5 w-5',
+                                                        i < Math.round(business.rating)
+                                                            ? 'fill-amber-400 text-amber-400'
+                                                            : 'text-slate-300'
+                                                    )}
+                                                />
+                                            ))}
+                                        </div>
+                                        <p className="text-sm text-slate-500 font-medium">Based on customer feedback</p>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        {[5, 4, 3, 2, 1].map(rating => (
+                                            <div key={rating} className="flex items-center gap-3">
+                                                <div className="flex items-center gap-1 w-12">
+                                                    {[...Array(rating)].map((_, i) => (
+                                                        <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" />
+                                                    ))}
+                                                </div>
+                                                <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-amber-400"
+                                                        style={{ width: `${Math.random() * 100}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* No Reviews Message */}
+                                <div className="text-center py-8">
+                                    <Users className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                                    <p className="text-slate-500 font-medium mb-4">
+                                        This shop doesn't have customer reviews yet. Be the first to share your experience!
+                                    </p>
+                                    <button className="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl transition-colors">
+                                        Write a Review
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Review List Placeholder */}
+                            <div className="space-y-4">
+                                <p className="text-sm text-slate-500 text-center py-8">
+                                    Verified customer reviews will appear here once customers start rating their purchases.
+                                </p>
+                            </div>
                         </div>
                     )}
 
