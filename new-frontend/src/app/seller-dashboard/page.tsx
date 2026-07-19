@@ -43,25 +43,42 @@ export default function SellerDashboard() {
 
   const loadDashboardData = async () => {
     try {
+      console.log('[DEBUG] Loading dashboard data');
       const [statsRes, productsRes, ordersRes] = await Promise.all([
-        api.get('/dashboard/stats').catch(() => null),
-        api.get('/listings/me?limit=10').catch(() => null),
-        api.get('/orders?limit=5').catch(() => null),
+        api.get('/dashboard/stats').catch((err) => {
+          console.error('[ERROR] Stats fetch:', err);
+          return null;
+        }),
+        api.get('/listings/me?limit=10').catch((err) => {
+          console.error('[ERROR] Products fetch:', err);
+          return null;
+        }),
+        api.get('/orders?limit=5').catch((err) => {
+          console.error('[ERROR] Orders fetch:', err);
+          return null;
+        }),
       ]);
 
+      console.log('[DEBUG] Stats response:', statsRes?.data);
       if (statsRes?.data) {
         setStats(statsRes.data);
       }
+      
+      console.log('[DEBUG] Products response:', productsRes?.data);
       if (productsRes?.data) {
         const listingsArray = Array.isArray(productsRes.data) ? productsRes.data : [];
+        console.log('[DEBUG] Products loaded:', listingsArray.length);
         setTopProducts(listingsArray.slice(0, 4));
       }
+      
+      console.log('[DEBUG] Orders response:', ordersRes?.data);
       if (ordersRes?.data) {
         const ordersArray = Array.isArray(ordersRes.data) ? ordersRes.data : ordersRes.data.orders || [];
+        console.log('[DEBUG] Orders loaded:', ordersArray.length);
         setRecentOrders(ordersArray.slice(0, 5));
       }
     } catch (error) {
-      console.error('Error loading dashboard:', error);
+      console.error('[ERROR] Loading dashboard:', error);
     } finally {
       setLoading(false);
     }
