@@ -406,29 +406,39 @@ export default function PublicShopPage() {
             </p>
           )}
 
-          {/* Quick Actions */}
-          <div className="flex gap-3 flex-wrap">
-            <button
-              onClick={() => handleContact('whatsapp')}
-              className="flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors text-sm font-semibold"
-            >
-              <MessageCircle className="w-4 h-4" />
-              WhatsApp
-            </button>
-            <button
-              onClick={() => handleContact('phone')}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors text-sm font-semibold"
-            >
-              <Phone className="w-4 h-4" />
-              {shopData.phone || 'Call'}
-            </button>
-            <button
-              onClick={() => handleContact('email')}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors text-sm font-semibold"
-            >
-              <Mail className="w-4 h-4" />
-              Email
-            </button>
+          {/* Quick Actions - Contact Seller */}
+          <div className="bg-gradient-to-r from-orange-50 to-blue-50 dark:from-orange-900/20 dark:to-blue-900/20 rounded-xl p-4 mb-6 border-2 border-orange-200 dark:border-orange-800">
+            <p className="text-sm font-semibold text-gray-900 dark:text-white mb-3">💬 Contact this seller:</p>
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={() => handleContact('whatsapp')}
+                className="flex items-center gap-2 px-5 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-full font-bold text-sm transition-all hover:scale-105 shadow-md"
+              >
+                <MessageCircle className="w-4 h-4" />
+                WhatsApp
+              </button>
+              <button
+                onClick={() => handleContact('phone')}
+                className="flex items-center gap-2 px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-bold text-sm transition-all hover:scale-105 shadow-md"
+              >
+                <Phone className="w-4 h-4" />
+                Call
+              </button>
+              <button
+                onClick={() => handleContact('email')}
+                className="flex items-center gap-2 px-5 py-2.5 bg-purple-500 hover:bg-purple-600 text-white rounded-full font-bold text-sm transition-all hover:scale-105 shadow-md"
+              >
+                <Mail className="w-4 h-4" />
+                Email
+              </button>
+              <button
+                onClick={() => router.push('/messages')}
+                className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-full font-bold text-sm transition-all hover:scale-105 shadow-md"
+              >
+                <MessageSquare className="w-4 h-4" />
+                Message
+              </button>
+            </div>
           </div>
         </div>
 
