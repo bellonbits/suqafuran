@@ -391,27 +391,41 @@ export default function ShopPage() {
       </AnimatePresence>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-gray-200 dark:border-slate-800">
+      <div className="flex gap-2 border-b border-gray-200 dark:border-slate-800 overflow-x-auto">
         {[
-          { id: 'basic', label: 'Basic Info', icon: <FileText className='w-4 h-4' /> },
-          { id: 'branding', label: 'Branding', icon: <Palette className='w-4 h-4' /> },
-          { id: 'location', label: 'Location', icon: <MapPin className='w-4 h-4' /> },
-          { id: 'hours', label: 'Hours', icon: <Clock className='w-4 h-4' /> },
-          { id: 'categories', label: 'Categories', icon: <Tag className='w-4 h-4' /> },
-          { id: 'policies', label: 'Policies', icon: <FileText className='w-4 h-4' /> },
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
-              activeTab === tab.id
-                ? 'text-orange-600 dark:text-orange-400 border-orange-600 dark:border-orange-400'
-                : 'text-gray-600 dark:text-slate-400 border-transparent hover:text-gray-900 dark:hover:text-white'
-            }`}
-          >
-            {tab.icon} {tab.label}
-          </button>
-        ))}
+          { id: 'basic', label: 'Basic Info' },
+          { id: 'branding', label: 'Branding' },
+          { id: 'location', label: 'Location' },
+          { id: 'hours', label: 'Hours' },
+          { id: 'categories', label: 'Categories' },
+          { id: 'policies', label: 'Policies' },
+        ].map(tab => {
+          const getTabIcon = (id: string) => {
+            switch(id) {
+              case 'basic': return <FileText className='w-4 h-4' />;
+              case 'branding': return <Palette className='w-4 h-4' />;
+              case 'location': return <MapPin className='w-4 h-4' />;
+              case 'hours': return <Clock className='w-4 h-4' />;
+              case 'categories': return <Tag className='w-4 h-4' />;
+              case 'policies': return <FileText className='w-4 h-4' />;
+              default: return null;
+            }
+          };
+
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
+                activeTab === tab.id
+                  ? 'text-orange-600 dark:text-orange-400 border-orange-600 dark:border-orange-400'
+                  : 'text-gray-600 dark:text-slate-400 border-transparent hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              {getTabIcon(tab.id)} {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Tab Content */}
