@@ -415,6 +415,32 @@ export default function ListingDetailPage() {
               </div>
 
               <div className="space-y-3">
+                {/* Ratings Section */}
+                {listing.owner.rating && (
+                  <div className="bg-white dark:bg-slate-800 rounded-lg p-3 border border-gray-100 dark:border-slate-700">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-0.5">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-4 h-4 ${
+                              i < Math.round(listing.owner.rating)
+                                ? 'fill-amber-400 text-amber-400'
+                                : 'text-gray-300 dark:text-slate-600'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="font-bold text-gray-900 dark:text-white">{listing.owner.rating.toFixed(1)}</span>
+                    </div>
+                    {listing.owner.reviews_count && (
+                      <p className="text-xs text-gray-600 dark:text-slate-400">
+                        Based on {listing.owner.reviews_count} reviews
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex items-center gap-2 text-gray-700 dark:text-slate-300">
                   <Clock className="w-4 h-4 flex-shrink-0" />
                   <span className="text-sm">{listing.owner.response_time}</span>

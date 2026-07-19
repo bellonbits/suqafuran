@@ -179,7 +179,23 @@ function CategoryProductCard({ listing, onAddToCart }: { listing: Listing; onAdd
                 </div>
             </div>
             
-            <div className="px-0.5 mt-1">
+            <div className="px-0.5 mt-1 space-y-1">
+                {listing.owner && (
+                    <div className="space-y-0.5">
+                        <div className="flex items-center gap-0.5 text-[8px] text-gray-600 dark:text-slate-400 font-bold truncate">
+                            <span className="truncate">{listing.owner.full_name}</span>
+                            {listing.owner.is_verified && (
+                                <span className="text-orange-600 dark:text-orange-400">✓</span>
+                            )}
+                        </div>
+                        {listing.owner.rating && (
+                            <div className="flex items-center gap-0.5 text-[7px] text-gray-500 dark:text-slate-500">
+                                <span>⭐ {listing.owner.rating.toFixed(1)}</span>
+                                {listing.owner.reviews_count && <span>({listing.owner.reviews_count})</span>}
+                            </div>
+                        )}
+                    </div>
+                )}
                 <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-1.5 py-0.5 rounded block w-max">
                     In stock
                 </span>

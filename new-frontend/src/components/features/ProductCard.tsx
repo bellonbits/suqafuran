@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Eye, Heart, ShieldCheck } from 'lucide-react';
+import { Eye, Heart, ShieldCheck, Star } from 'lucide-react';
 import { useFavoritesStore } from '../../store/useFavorites';
 import { useAuthStore } from '../../store/useAuth';
 import { useAuthModal } from '../../store/useAuthModal';
@@ -87,9 +87,27 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller })
                     </h3>
 
                     {showSeller && listing.owner && (
-                        <div className="flex items-center gap-1 text-[11px] text-gray-500 dark:text-slate-400 font-bold truncate">
-                            <span className="truncate">{listing.owner.full_name}</span>
-                            {listing.owner.is_verified && <ShieldCheck className="h-3 w-3 text-accent shrink-0" />}
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-1 text-[11px] text-gray-700 dark:text-slate-300 font-bold truncate">
+                                <span className="truncate">{listing.owner.full_name}</span>
+                                {listing.owner.is_verified && <ShieldCheck className="h-3 w-3 text-orange-600 dark:text-orange-400 shrink-0" />}
+                            </div>
+                            {listing.owner.rating && (
+                                <div className="flex items-center gap-1 text-[10px] text-gray-600 dark:text-slate-400">
+                                    <div className="flex items-center gap-0.5">
+                                        <Star className="h-2.5 w-2.5 fill-amber-400 text-amber-400" />
+                                        <span className="font-bold">{listing.owner.rating.toFixed(1)}</span>
+                                    </div>
+                                    {listing.owner.reviews_count && (
+                                        <span className="text-gray-500 dark:text-slate-500">({listing.owner.reviews_count} reviews)</span>
+                                    )}
+                                </div>
+                            )}
+                            {listing.owner.response_time && (
+                                <div className="text-[9px] text-gray-500 dark:text-slate-500 font-medium">
+                                    Replies {listing.owner.response_time}
+                                </div>
+                            )}
                         </div>
                     )}
 
