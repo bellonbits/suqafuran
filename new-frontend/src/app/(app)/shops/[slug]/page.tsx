@@ -8,7 +8,7 @@ import { LocationPickerModal } from '../../../../components/shared/LocationPicke
 import { listingsService } from '../../../../services/listings';
 import api, { optimizeCloudinaryUrl, resolveMediaUrl } from '../../../../services/api';
 import {
-    ChevronRight, ChevronLeft, Star, Clock, MapPin, Plus, Minus, Search, ShoppingBag, X, Percent, ThumbsUp, Info
+    ChevronRight, ChevronLeft, Star, Clock, MapPin, Plus, Minus, Search, ShoppingBag, X, Percent, ThumbsUp, Info, Heart, Filter
 } from 'lucide-react';
 import { useCart } from '../../../../store/useCart';
 
@@ -44,6 +44,7 @@ export default function ShopDetailPage() {
     const [modalQuantity, setModalQuantity] = useState(1);
     const [shopId, setShopId] = useState<string | null>(null);
     const [shopOwnerId, setShopOwnerId] = useState<string | number | null>(null);
+    const [favorites, setFavorites] = useState<Set<string | number>>(new Set());
 
     const { items: cartItems, addItem, updateQuantity: updateCartQuantity, getTotalPrice } = useCart();
 
@@ -398,7 +399,7 @@ export default function ShopDetailPage() {
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder={`Search in ${shopName}...`}
+                                placeholder="Search products, brands..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full pl-11 pr-4 py-2.5 bg-gray-100 dark:bg-slate-900 text-gray-900 dark:text-white rounded-full focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm border-0"
@@ -411,8 +412,8 @@ export default function ShopDetailPage() {
                         </div>
                     </div>
 
-                    {/* Glovo Metrics Bubbles Section */}
-                    <div className="md:col-span-4 flex justify-start md:justify-end gap-6 py-2 px-1">
+                    {/* Marketplace Info Section - Hidden Glovo Metrics */}
+                    <div className="md:col-span-4 flex justify-start md:justify-end gap-6 py-2 px-1 hidden">
                         {/* Rating */}
                         <div className="flex flex-col items-center gap-1 shrink-0">
                             <div className="w-11 h-11 rounded-full bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center border border-emerald-100/50 dark:border-emerald-900/30">
@@ -566,6 +567,24 @@ export default function ShopDetailPage() {
                                                                 {promoText}
                                                             </div>
                                                         )}
+
+                                                        {/* Favorite Heart Button - Top Right */}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                e.preventDefault();
+                                                                const newFavorites = new Set(favorites);
+                                                                if (newFavorites.has(product.id)) {
+                                                                    newFavorites.delete(product.id);
+                                                                } else {
+                                                                    newFavorites.add(product.id);
+                                                                }
+                                                                setFavorites(newFavorites);
+                                                            }}
+                                                            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white dark:bg-slate-900 shadow-md hover:scale-110 active:scale-95 flex items-center justify-center transition-all border border-gray-100 dark:border-slate-800"
+                                                        >
+                                                            <Heart className={`w-3.5 h-3.5 ${favorites.has(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
+                                                        </button>
 
                                                         {/* Circular overlay + button on the bottom-right */}
                                                         <button
