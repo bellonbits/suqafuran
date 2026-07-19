@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, Sun, Moon, MapPin, Plus, Bell, User, Menu, X, LogOut, Store, ShoppingCart, LayoutDashboard, Shield } from 'lucide-react';
+import { Search, Sun, Moon, MapPin, Plus, Bell, User, Menu, X, LogOut, Store, ShoppingCart, LayoutDashboard, Shield, MessageSquare } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuth';
 import { useAuthModal } from '../../store/useAuthModal';
 import { useLocationStore } from '../../store/useLocation';
@@ -177,6 +177,16 @@ export const Header: React.FC = () => {
                                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                             </button>
                         </div>
+
+                        {/* Messages */}
+                        <button
+                            onClick={() => router.push('/messages')}
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors relative"
+                            title="Messages"
+                        >
+                            <MessageSquare className="w-5 h-5 text-gray-600 dark:text-slate-400" />
+                            <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
+                        </button>
 
                         {/* Cart Pill Button */}
                         <button
