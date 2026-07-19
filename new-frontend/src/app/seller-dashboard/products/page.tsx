@@ -27,12 +27,26 @@ export default function ProductsPage() {
 
   const loadProducts = async () => {
     try {
+      console.log('[DEBUG] Loading products from /listings/me');
       const res = await api.get('/listings/me?limit=100');
+      console.log('[DEBUG] API Response:', res);
+      console.log('[DEBUG] Response data:', res.data);
+      
       if (res.data) {
-        setProducts(Array.isArray(res.data) ? res.data : []);
+        const productsArray = Array.isArray(res.data) ? res.data : res.data.listings || res.data.items || [];
+        console.log('[DEBUG] Parsed products array:', productsArray);
+        console.log('[DEBUG] Product count:', productsArray.length);
+        setProducts(productsArray);
+      } else {
+        console.warn('[DEBUG] No data in response');
+        setProducts([]);
       }
     } catch (error) {
-      console.error('Error loading products:', error);
+      console.error('[ERROR] Loading products failed:', error);
+      if (error instanceof Error) {
+        console.error('[ERROR] Error message:', error.message);
+      }
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -180,7 +194,7 @@ export default function ProductsPage() {
                 <tr key={product.id} className="border-b border-gray-200 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/50">
                   <td className="px-6 py-4">
                     <div>
-                      <p className="font-semibold text-gray-900 dark:text-white truncate">{product.title || 'Unnamed'}</p>
+                      <p className="font-semibold text-gray-900 dark:text-white truncate">{product.title || product.name || 'Untitled Product'}</p>
                       <p className="text-xs text-gray-500 dark:text-slate-400">{truncateId(product.id)}</p>
                     </div>
                   </td>

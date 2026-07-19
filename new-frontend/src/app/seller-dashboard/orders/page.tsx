@@ -16,13 +16,26 @@ export default function OrdersPage() {
 
   const loadOrdersData = async () => {
     try {
+      console.log('[DEBUG] Loading orders from /orders');
       const [ordersRes, statsRes] = await Promise.all([
-        api.get('/orders?limit=100').catch(() => null),
-        api.get('/dashboard/stats').catch(() => null),
+        api.get('/orders?limit=100').catch((err) => {
+          console.error('[ERROR] Orders fetch failed:', err);
+          return null;
+        }),
+        api.get('/dashboard/stats').catch((err) => {
+          console.error('[ERROR] Stats fetch failed:', err);
+          return null;
+        }),
       ]);
 
+      console.log('[DEBUG] Orders response:', ordersRes);
       if (ordersRes?.data) {
-        setOrders(Array.isArray(ordersRes.data) ? ordersRes.data : []);
+        const ordersArray = Array.isArray(ordersRes.data) ? ordersRes.data : ordersRes.data.orders || [];
+        console.log('[DEBUG] Orders count:', ordersArray.length);
+        setOrders(ordersArray);
+      } else {
+        console.warn('[DEBUG] No orders data');
+        setOrders([]);
       }
 
       if (statsRes?.data) {
@@ -129,7 +142,7 @@ export default function OrdersPage() {
                 orders.map((order) => (
                   <tr key={order.id} className="border-b border-gray-200 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/50">
                     <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">{order.id}</td>
-                    <td className="px-6 py-4 text-gray-900 dark:text-white">{order.customer_name || 'Unknown'}</td>
+                    <td className="px-6 py-4 text-gray-900 dark:text-white">{order.customer_name || order.customer?.full_name || order.buyer_name || 'Guest Customer'}</td>
                     <td className="px-6 py-4 text-gray-900 dark:text-white">{order.items_count || 0}</td>
                     <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">KSh {(order.total_amount || 0).toLocaleString()}</td>
                     <td className="px-6 py-4 text-gray-600 dark:text-slate-400">{new Date(order.created_at).toLocaleDateString() || '-'}</td>
