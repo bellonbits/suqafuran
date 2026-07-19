@@ -1,18 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../../../store/useCart';
 import { useLocationStore } from '../../../store/useLocation';
 import { useAuthStore } from '../../../store/useAuth';
+import html2canvas from 'html2canvas';
 import { ChevronLeft, MapPin, Download, Send, MessageCircle, Phone, CheckCircle, AlertCircle, Map, Package, User, DollarSign, BarChart3 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface CheckoutItem {
-  id: number;
-  title_en: string;
+  id: string;
+  title: string;
+  title_en?: string;
   price: number;
   images?: string[];
+  quantity?: number;
   owner?: {
     full_name: string;
     phone: string;
@@ -34,6 +37,7 @@ export default function CheckoutPage() {
   const [buyerPhone, setBuyerPhone] = useState('');
   const [buyerName, setBuyerName] = useState(user?.full_name || '');
   const [isProcessing, setIsProcessing] = useState(false);
+  const receiptRef = useRef<HTMLDivElement>(null);
 
   // Get buyer's current location
   useEffect(() => {
@@ -84,7 +88,7 @@ export default function CheckoutPage() {
 
   const generateReceipt = () => {
     const itemsText = cartItems
-      .map((item: CheckoutItem, idx: number) => `${idx + 1}. ${item.title_en} - ${item.price.toLocaleString()}`)
+      .map((item: CheckoutItem, idx: number) => `${idx + 1}. ${item.title || item.title_en || 'Product'} - ${item.price.toLocaleString()}`)
       .join('\n');
 
     const receipt = `SUQAFURAN ORDER RECEIPT
@@ -127,15 +131,27 @@ Your delivery: Arrange with seller
     return receipt;
   };
 
-  const downloadReceipt = () => {
-    const receipt = generateReceipt();
-    const element = document.createElement('a');
-    const file = new Blob([receipt], { type: 'text/plain' });
-    element.href = URL.createObjectURL(file);
-    element.download = `receipt-${orderNumber}.txt`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+  const downloadReceipt = async () => {
+    if (!receiptRef.current) return;
+
+    try {
+      const canvas = await html2canvas(receiptRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        logging: false,
+      });
+
+      const image = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = `receipt-${orderNumber}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error downloading receipt:', error);
+      alert('Failed to download receipt');
+    }
   };
 
   const handleProceed = async () => {
@@ -185,7 +201,7 @@ Your delivery: Arrange with seller
 
     const firstSeller = Array.from(sellerGroups.values())[0];
     const itemsList = firstSeller.items
-      .map((item: CheckoutItem) => `• ${item.title_en} - KSh ${item.price.toLocaleString()}`)
+      .map((item: CheckoutItem) => `• ${item.title || item.title_en || 'Product'} - KSh ${item.price.toLocaleString()}`)
       .join('\n');
 
     const message = `Hi ${firstSeller.name},
@@ -305,7 +321,7 @@ Thanks!`;
                 {cartItems.map((item: CheckoutItem) => (
                   <div key={item.id} className="flex items-center justify-between">
                     <div className="flex-1">
-                      <p className="font-semibold text-gray-900 dark:text-white">${item.title_en}</p>
+                      <p className="font-semibold text-gray-900 dark:text-white">${item.title || item.title_en || 'Product'}</p>
                       <p className="text-sm text-gray-600 dark:text-slate-400">from ${item.owner?.full_name}</p>
                     </div>
                     <p className="font-bold text-gray-900 dark:text-white">KSh ${item.price.toLocaleString()}</p>
@@ -362,7 +378,7 @@ Thanks!`;
             <div className="flex justify-center py-8">
               <div className="w-full max-w-2xl">
                 {/* Receipt Card */}
-                <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border-2 border-gray-200 dark:border-slate-700 shadow-2xl relative">
+                <div ref={receiptRef} className="bg-white dark:bg-slate-900 rounded-3xl p-8 border-2 border-gray-200 dark:border-slate-700 shadow-2xl relative">
                   {/* Perforated edges left */}
                   <div className="absolute left-0 top-1/4 w-4 h-4 bg-gray-50 dark:bg-slate-950 rounded-full transform -translate-x-2"></div>
                   <div className="absolute left-0 bottom-1/4 w-4 h-4 bg-gray-50 dark:bg-slate-950 rounded-full transform -translate-x-2"></div>
@@ -444,16 +460,20 @@ Thanks!`;
                       <div className="space-y-3">
                         {cartItems && cartItems.length > 0 ? (
                           cartItems.map((item: CheckoutItem, idx: number) => (
-                            <div key={item.id} className="pb-3 border-b border-gray-300 dark:border-slate-700 last:border-b-0">
-                              <div className="flex justify-between items-start gap-3 mb-1">
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-bold text-gray-900 dark:text-white text-sm break-words">{item.title_en}</p>
+                            <div key={item.id} className="pb-3 mb-3 border-b border-gray-300 dark:border-slate-700 last:border-b-0">
+                              <div className="flex justify-between items-start gap-3">
+                                <div className="flex-1 min-w-0 pr-2">
+                                  <p className="font-bold text-gray-900 dark:text-white text-base leading-tight mb-2">
+                                    {item.title || item.title_en || 'Product' || 'Product'}
+                                  </p>
+                                  {item.owner && (
+                                    <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">from {item.owner.full_name}</p>
+                                  )}
                                 </div>
-                                <p className="font-bold text-orange-600 whitespace-nowrap text-sm">{item.price.toLocaleString()}</p>
+                                <div className="text-right whitespace-nowrap">
+                                  <p className="font-bold text-orange-600 dark:text-orange-500 text-base">{item.price.toLocaleString()}</p>
+                                </div>
                               </div>
-                              {item.owner && (
-                                <p className="text-xs text-gray-600 dark:text-slate-400">from {item.owner.full_name}</p>
-                              )}
                             </div>
                           ))
                         ) : (
