@@ -115,7 +115,6 @@ export default function SellerDashboard() {
 
   // Ensure data is available
   const safeStats = stats || {};
-  const totalProducts = topProducts?.length || 0;
 
   return (
     <div className="space-y-8">
