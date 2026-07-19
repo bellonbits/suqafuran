@@ -361,7 +361,7 @@ export const Header: React.FC = () => {
                                             onClick={() => setProfileMenuOpen(false)}
                                             className="block px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-800 rounded-t-xl border-b border-gray-100 dark:border-slate-800"
                                         >
-                                            👤 {t('My Profile')}
+                                            <User className="w-4 h-4 inline mr-2" /> {t('My Profile')}
                                         </Link>
                                         <Link
                                             href="/orders"
@@ -377,7 +377,7 @@ export const Header: React.FC = () => {
                                             }}
                                             className="w-full text-left px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-b-xl"
                                         >
-                                            🚪 {t('Sign Out')}
+                                            <LogOut className="w-4 h-4 inline mr-2" /> {t('Sign Out')}
                                         </button>
                                     </div>
                                 )}
