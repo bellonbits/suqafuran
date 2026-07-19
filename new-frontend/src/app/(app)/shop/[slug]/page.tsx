@@ -7,7 +7,7 @@ import api, { resolveMediaUrl, optimizeCloudinaryUrl } from '../../../../service
 import { listingsService } from '../../../../services/listings';
 import {
   ChevronRight, Star, MapPin, Edit, Settings, Phone, Mail, Clock, Heart, Share2, MessageCircle,
-  Plus, Minus, ShoppingBag, X, Loader, Package, CheckCircle
+  Plus, Minus, ShoppingBag, X, Loader, Package, CheckCircle, Filter, Search
 } from 'lucide-react';
 import { useAuthStore } from '../../../../store/useAuth';
 import { useCart } from '../../../../store/useCart';
@@ -73,6 +73,11 @@ export default function PublicShopPage() {
   const [selectedProduct, setSelectedProduct] = useState<Listing | null>(null);
   const [modalQuantity, setModalQuantity] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 100000 });
+  const [favorites, setFavorites] = useState<Set<string | number>>(new Set());
 
   const { addItem } = useCart();
   const cartItems = useCart((state) => state.items);
@@ -442,6 +447,100 @@ export default function PublicShopPage() {
           </div>
         </div>
 
+        {/* Marketplace Filters Section */}
+        <div className="mb-8 space-y-4">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search products, brands..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 rounded-full border-2 border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-orange-600"
+            />
+          </div>
+
+          {/* Category Filter Bar - Horizontal Scroll */}
+          {shopData.categories && shopData.categories.length > 0 && (
+            <div className="overflow-x-auto pb-2 -mx-4 px-4">
+              <div className="flex gap-2 w-max">
+                <button
+                  onClick={() => setSelectedCategory(null)}
+                  className={`px-4 py-2 rounded-full font-semibold text-sm whitespace-nowrap transition-all ${
+                    selectedCategory === null
+                      ? 'bg-orange-600 text-white'
+                      : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200'
+                  }`}
+                >
+                  All Products
+                </button>
+                {shopData.categories.map((catId) => (
+                  <button
+                    key={catId}
+                    onClick={() => setSelectedCategory(catId)}
+                    className={`px-4 py-2 rounded-full font-semibold text-sm whitespace-nowrap transition-all ${
+                      selectedCategory === catId
+                        ? 'bg-orange-600 text-white'
+                        : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200'
+                    }`}
+                  >
+                    Category {catId}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Filter Pills */}
+          <div className="flex gap-2 flex-wrap">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 px-4 py-2 rounded-full border-2 border-gray-200 dark:border-slate-700 hover:border-orange-600 text-gray-700 dark:text-slate-300 font-semibold text-sm transition-all"
+            >
+              <Filter className="w-4 h-4" />
+              Filters
+            </button>
+            {shopData.city && (
+              <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-semibold text-sm">
+                <MapPin className="w-4 h-4" />
+                {shopData.city}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Advanced Filters Drawer */}
+        {showFilters && (
+          <div className="mb-6 p-4 bg-gray-50 dark:bg-slate-900 rounded-xl border-2 border-gray-200 dark:border-slate-700 space-y-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">Price Range</label>
+              <div className="flex gap-3">
+                <input
+                  type="number"
+                  value={priceRange.min}
+                  onChange={(e) => setPriceRange({ ...priceRange, min: parseInt(e.target.value) || 0 })}
+                  placeholder="Min"
+                  className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+                />
+                <input
+                  type="number"
+                  value={priceRange.max}
+                  onChange={(e) => setPriceRange({ ...priceRange, max: parseInt(e.target.value) || 100000 })}
+                  placeholder="Max"
+                  className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+                />
+              </div>
+            </div>
+            <button
+              onClick={() => setShowFilters(false)}
+              className="w-full py-2 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg transition-colors"
+            >
+              Apply Filters
+            </button>
+          </div>
+        )}
+
         {/* Tabs */}
         <div className="flex gap-4 border-b border-gray-200 dark:border-slate-800 mb-8 overflow-x-auto">
           {[
@@ -475,58 +574,107 @@ export default function PublicShopPage() {
                   <p className="text-gray-600 dark:text-slate-400">This shop hasn't listed any products yet.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-20">
-                  {listings.map((product) => {
-                    const cartQty = getCartQuantity(String(product.id));
-                    return (
-                      <div
-                        key={product.id}
-                        onClick={() => {
-                          setSelectedProduct(product);
-                          setModalQuantity(cartQty || 1);
-                        }}
-                        className="group cursor-pointer"
-                      >
-                        <div className="relative bg-gray-100 dark:bg-slate-900/60 aspect-square rounded-lg overflow-hidden mb-3 flex items-center justify-center border border-gray-200 dark:border-slate-800 group-hover:shadow-md transition-shadow">
-                          {product.images?.[0] ? (
-                            <img
-                              src={product.images[0]}
-                              alt={product.title_en}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <ShoppingBag className="w-6 h-6 text-gray-300" />
-                          )}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              addItem({
-                                owner_id: shopData.user_id,
-                                id: String(product.id),
-                                title: product.title_en,
-                                price: product.price,
-                                image: product.images?.[0],
-                                quantity: cartQty + 1
-                              });
-                            }}
-                            className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-white dark:bg-slate-900 text-green-600 shadow-md hover:scale-105 active:scale-95 flex items-center justify-center transition-all border border-gray-200 dark:border-slate-800"
+                <div>
+                  {/* Filtered Products Grid */}
+                  {listings.filter((product) => {
+                    const matchesSearch = !searchQuery ||
+                      product.title_en.toLowerCase().includes(searchQuery.toLowerCase());
+                    const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
+                    const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
+                    return matchesSearch && matchesPrice && matchesCategory;
+                  }).length === 0 ? (
+                    <div className="text-center py-16">
+                      <Package className="w-12 h-12 text-gray-300 dark:text-slate-700 mx-auto mb-3" />
+                      <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">No products found</h3>
+                      <p className="text-gray-600 dark:text-slate-400">Try adjusting your filters or search.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-20">
+                      {listings.filter((product) => {
+                        const matchesSearch = !searchQuery ||
+                          product.title_en.toLowerCase().includes(searchQuery.toLowerCase());
+                        const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
+                        const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
+                        return matchesSearch && matchesPrice && matchesCategory;
+                      }).map((product) => {
+                        const cartQty = getCartQuantity(String(product.id));
+                        const isFavorite = favorites.has(product.id);
+                        return (
+                          <div
+                            key={product.id}
+                            className="group"
                           >
-                            {cartQty > 0 ? (
-                              <span className="text-xs font-black text-gray-900 dark:text-white">{cartQty}</span>
-                            ) : (
-                              <Plus className="w-4 h-4 stroke-[3]" />
-                            )}
-                          </button>
-                        </div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white text-xs leading-normal line-clamp-2 min-h-[32px] group-hover:text-orange-600 transition-colors">
-                          {product.title_en}
-                        </h3>
-                        <p className="text-sm font-black text-gray-900 dark:text-white mt-1">
-                          KSh {product.price.toLocaleString()}
-                        </p>
-                      </div>
-                    );
-                  })}
+                            <div className="relative bg-gray-100 dark:bg-slate-900/60 aspect-square rounded-lg overflow-hidden mb-3 flex items-center justify-center border border-gray-200 dark:border-slate-800 group-hover:shadow-md transition-shadow">
+                              {product.images?.[0] ? (
+                                <img
+                                  src={product.images[0]}
+                                  alt={product.title_en}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                />
+                              ) : (
+                                <ShoppingBag className="w-6 h-6 text-gray-300" />
+                              )}
+
+                              {/* Favorite Button */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const newFavorites = new Set(favorites);
+                                  if (isFavorite) {
+                                    newFavorites.delete(product.id);
+                                  } else {
+                                    newFavorites.add(product.id);
+                                  }
+                                  setFavorites(newFavorites);
+                                }}
+                                className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white dark:bg-slate-900 shadow-md hover:scale-110 active:scale-95 flex items-center justify-center transition-all border border-gray-200 dark:border-slate-800"
+                              >
+                                <Heart className={`w-4 h-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
+                              </button>
+
+                              {/* Add to Cart Button */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  addItem({
+                                    owner_id: shopData.user_id,
+                                    id: String(product.id),
+                                    title: product.title_en,
+                                    price: product.price,
+                                    image: product.images?.[0],
+                                    quantity: cartQty + 1
+                                  });
+                                }}
+                                className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-white dark:bg-slate-900 text-green-600 shadow-md hover:scale-105 active:scale-95 flex items-center justify-center transition-all border border-gray-200 dark:border-slate-800"
+                              >
+                                {cartQty > 0 ? (
+                                  <span className="text-xs font-black text-gray-900 dark:text-white">{cartQty}</span>
+                                ) : (
+                                  <Plus className="w-4 h-4 stroke-[3]" />
+                                )}
+                              </button>
+                            </div>
+
+                            {/* Product Info */}
+                            <div
+                              onClick={() => {
+                                setSelectedProduct(product);
+                                setModalQuantity(cartQty || 1);
+                              }}
+                              className="cursor-pointer"
+                            >
+                              <h3 className="font-semibold text-gray-900 dark:text-white text-xs leading-normal line-clamp-2 min-h-[32px] group-hover:text-orange-600 transition-colors">
+                                {product.title_en}
+                              </h3>
+                              <p className="text-sm font-black text-gray-900 dark:text-white mt-1">
+                                {product.price.toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
