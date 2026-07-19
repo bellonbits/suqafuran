@@ -57,16 +57,16 @@ export default function ShopDetailPage() {
         try {
             // If slug is numeric, it's likely an old ID - use it directly
             if (/^\d+$/.test(shopSlug)) {
-                console.log('🔍 Using numeric ID directly:', shopSlug);
+                console.log(' Using numeric ID directly:', shopSlug);
                 return shopSlug;
             }
 
             // Otherwise, bypass cache and fetch shops directly from API
-            console.log('🔍 Resolving slug:', shopSlug);
+            console.log(' Resolving slug:', shopSlug);
             const response = await api.get('/listings/shops', {
                 params: { limit: 500, skip: 0 }
             });
-            console.log('🔍 Fetched shops count:', response.data.shops?.length);
+            console.log(' Fetched shops count:', response.data.shops?.length);
 
             const shop = response.data.shops?.find((s: any) => {
                 const shopSlugLower = s.slug?.toLowerCase();
@@ -75,11 +75,11 @@ export default function ShopDetailPage() {
             });
 
             if (shop) {
-                console.log('🔍 Found shop by slug:', shop.id, shop.slug);
+                console.log(' Found shop by slug:', shop.id, shop.slug);
                 return shop.id;
             } else {
-                console.error('🔍 Shop not found with slug:', shopSlug);
-                console.log('🔍 Available slugs:', response.data.shops?.map((s: any) => s.slug).slice(0, 10));
+                console.error(' Shop not found with slug:', shopSlug);
+                console.log(' Available slugs:', response.data.shops?.map((s: any) => s.slug).slice(0, 10));
                 return null;
             }
         } catch (error) {
@@ -118,13 +118,13 @@ export default function ShopDetailPage() {
                 const currentShop = (shopsData.shops || [])[0];
 
                 if (currentShop) {
-                    console.log('🛍️ Matched public shop:', currentShop);
+                    console.log(' Matched public shop:', currentShop);
                     // 2. Fetch listings specifically for this shop's user_id from the backend (highly optimized)
                     const shopListings = await listingsService.getListings({
                         owner_id: Number(currentShop.user_id),
                         limit: 200
                     });
-                    console.log('🛍️ Retrieved shop listings:', shopListings);
+                    console.log(' Retrieved shop listings:', shopListings);
 
                     setShopName(currentShop.shop_name || 'Shop');
                     setShopLogo(currentShop.cover_image || '');

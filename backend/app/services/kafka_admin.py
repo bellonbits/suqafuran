@@ -102,7 +102,7 @@ class KafkaAdminClient:
             logger.info("✓ Kafka admin client is ready for topic operations")
 
         except Exception as e:
-            logger.error(f"❌ Failed to initialize Kafka admin client: {e}", exc_info=True)
+            logger.error(f"Failed to initialize Kafka admin client: {e}", exc_info=True)
             self.admin_client = None
 
     def create_default_topics(self, retries: int = 3, delay: float = 2.0):
@@ -112,10 +112,10 @@ class KafkaAdminClient:
             retries: Number of retry attempts
             delay: Delay between retries in seconds
         """
-        logger.info("📋 Starting Kafka topic creation process...")
+        logger.info("Starting Kafka topic creation process...")
 
         if self.admin_client is None:
-            logger.error("❌ Kafka admin client is not initialized")
+            logger.error("Kafka admin client is not initialized")
             return False
 
         # Define topic names and configurations
@@ -149,7 +149,7 @@ class KafkaAdminClient:
                         logger.info(f"  ✓ Already exists: {topic_name}")
 
                 if not topics_to_create:
-                    logger.info("✅ All default Kafka topics already exist!")
+                    logger.info("All default Kafka topics already exist!")
                     return True
 
                 # Create missing topics
@@ -166,7 +166,7 @@ class KafkaAdminClient:
                 for topic, future in fs.items():
                     try:
                         future.result(timeout=30)
-                        logger.info(f"✅ Created: {topic}")
+                        logger.info(f"Created: {topic}")
                         created_count += 1
                     except Exception as e:
                         error_msg = str(e).lower()
@@ -178,7 +178,7 @@ class KafkaAdminClient:
                             failed_count += 1
 
                 if failed_count == 0:
-                    logger.info(f"✅ Kafka topic creation completed successfully! ({created_count} topics)")
+                    logger.info(f"Kafka topic creation completed successfully! ({created_count} topics)")
                     return True
                 else:
                     logger.warning(f"⚠️  {failed_count} topics failed, retrying...")
@@ -190,7 +190,7 @@ class KafkaAdminClient:
                     time.sleep(delay)
                 continue
 
-        logger.error("❌ Failed to create Kafka topics after all retries")
+        logger.error("Failed to create Kafka topics after all retries")
         return False
 
     def list_topics(self) -> Dict[str, TopicMetrics]:

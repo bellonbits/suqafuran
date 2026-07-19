@@ -14,7 +14,7 @@ logger = logging.getLogger("kafka_service")
 try:
     from confluent_kafka import Producer as ConfluentProducer, Consumer as ConfluentConsumer, KafkaError
     KAFKA_AVAILABLE = True
-    logger.info("✅ confluent_kafka library loaded successfully")
+    logger.info("confluent_kafka library loaded successfully")
 except ImportError:
     KAFKA_AVAILABLE = False
     logger.warning("⚠️ confluent_kafka not available, using Mock Kafka")
@@ -268,14 +268,14 @@ class KafkaService:
         for attempt in range(max_retries):
             try:
                 self.consumer.subscribe([settings.KAFKA_TOPIC_BUSINESS_EVENTS])
-                logger.info(f"✅ Subscribed to topic: {settings.KAFKA_TOPIC_BUSINESS_EVENTS}")
+                logger.info(f"Subscribed to topic: {settings.KAFKA_TOPIC_BUSINESS_EVENTS}")
                 break
             except Exception as e:
                 if attempt < max_retries - 1:
                     logger.warning(f"[Attempt {attempt+1}/{max_retries}] Failed to subscribe: {e}. Retrying in 2s...")
                     time.sleep(2)
                 else:
-                    logger.error(f"❌ Failed to subscribe after {max_retries} attempts: {e}")
+                    logger.error(f"Failed to subscribe after {max_retries} attempts: {e}")
                     return
 
         while self.is_running:

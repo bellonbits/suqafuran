@@ -683,7 +683,7 @@ Return a JSON object:
             return output_text
 
         except Exception as e:
-            logger.error(f"❌ GROQ API ERROR: {str(e)}", exc_info=True)
+            logger.error(f"GROQ API ERROR: {str(e)}", exc_info=True)
             # Check for specific known errors if possible
             error_msg = str(e).lower()
             if "rate limit" in error_msg:

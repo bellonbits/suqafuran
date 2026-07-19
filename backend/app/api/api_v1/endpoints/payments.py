@@ -249,7 +249,7 @@ def initiate_mpesa_checkout(
 
             db.commit()
 
-            logger.info(f"[M-Pesa] ✅ Order created and confirmed: {order_id} for user {user_id}")
+            logger.info(f"[M-Pesa] SUCCESS Order created and confirmed: {order_id} for user {user_id}")
 
         except Exception as db_error:
             db.rollback()
@@ -376,13 +376,13 @@ def simulate_mpesa_payment(body: dict = Body(...), db: Session = Depends(deps.ge
             order.payment_status = "completed"
             order.payment_reference = payment.mpesa_reference
             order.status = OrderStatus.CONFIRMED
-            logger.info(f"[M-Pesa Simulate] ✅ Order {order_id} payment marked as completed")
+            logger.info(f"[M-Pesa Simulate] SUCCESS Order {order_id} payment marked as completed")
         else:
             # Simulate failed payment
             payment.status = "failed"
             order.payment_status = "failed"
             order.status = OrderStatus.CANCELLED
-            logger.info(f"[M-Pesa Simulate] ❌ Order {order_id} payment marked as failed")
+            logger.info(f"[M-Pesa Simulate] ERROR Order {order_id} payment marked as failed")
 
         db.commit()
 

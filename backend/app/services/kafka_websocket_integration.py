@@ -200,7 +200,7 @@ def integrate_kafka_with_websocket():
     # Replace the dispatcher
     kafka_service._dispatch_event = dispatch_with_websocket
 
-    logger.info("✅ Kafka + WebSocket integration enabled")
+    logger.info("Kafka + WebSocket integration enabled")
 
 
 # Example: How to trigger shop events from your API endpoints

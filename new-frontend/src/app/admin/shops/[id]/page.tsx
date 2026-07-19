@@ -73,7 +73,7 @@ export default function EditShopPage() {
       } else if (error.response?.status === 403) {
         alert('⚠️ Permission denied! Only superadmins can edit shops.');
       } else if (error.response?.status === 404) {
-        alert('❌ Shop not found!');
+        alert(' Shop not found!');
       } else {
         alert('Failed to load shop details');
       }
@@ -222,7 +222,7 @@ export default function EditShopPage() {
           }
         );
 
-        console.log(`✅ ${bannerType} uploaded successfully:`, response.data.url);
+        console.log(` ${bannerType} uploaded successfully:`, response.data.url);
         setPreviews({ ...previews, [bannerType]: response.data.url });
         return;
       } catch (error: any) {

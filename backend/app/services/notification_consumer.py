@@ -48,7 +48,7 @@ class NotificationConsumer:
             )
             await self.consumer.start()
             self.is_running = True
-            logger.info("✅ Notification Consumer started, listening to suqafuran.notifications.dispatch")
+            logger.info("Notification Consumer started, listening to suqafuran.notifications.dispatch")
         except Exception as e:
             logger.error(f"Failed to start Notification Consumer: {e}")
             self.is_running = False

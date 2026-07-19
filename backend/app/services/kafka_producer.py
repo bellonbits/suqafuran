@@ -36,7 +36,7 @@ class KafkaEventProducer:
             )
             await self.producer.start()
             self.is_connected = True
-            logger.info(f"✅ Kafka Producer connected to {settings.KAFKA_BOOTSTRAP_SERVERS}")
+            logger.info(f"Kafka Producer connected to {settings.KAFKA_BOOTSTRAP_SERVERS}")
         except Exception as e:
             logger.error(f"Failed to connect Kafka Producer: {e}")
             self.is_connected = False

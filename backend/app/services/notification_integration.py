@@ -110,7 +110,7 @@ Suqafuran Team
 """
     },
     "order_delivered": {
-        "subject": "Your Order has Arrived! ✅",
+        "subject": "Your Order has Arrived! SUCCESS",
         "body": """
 Your order {order_id} has been successfully delivered!
 

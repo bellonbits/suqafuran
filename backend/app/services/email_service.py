@@ -484,7 +484,7 @@ class EmailService:
           <h4 style="margin: 0 0 12px 0; color: #0369a1; font-weight: 800;">Here's how to kickstart your journey:</h4>
           <ul style="margin: 0; padding-left: 20px; color: #334155; font-size: 14px; line-height: 1.8;">
             <li>⚡ <strong>Post in seconds:</strong> Snap a photo, add details, and start selling.</li>
-            <li>🔍 <strong>Find amazing deals:</strong> Search by location, category, or trending status.</li>
+            <li><strong>Find amazing deals:</strong> Search by location, category, or trending status.</li>
             <li>🛡️ <strong>Verified protection:</strong> Chat securely with verified buyers & sellers.</li>
           </ul>
         </div>
@@ -1216,7 +1216,7 @@ class EmailService:
           </table>
           <div style="margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 12px; color: #64748b;">
             💳 <strong>Payment Method:</strong> {payment_method}<br>
-            🔍 <strong>Reference:</strong> {tx_ref}
+            <strong>Reference:</strong> {tx_ref}
           </div>
         </div>
         """
@@ -1591,7 +1591,7 @@ class EmailService:
           <h4 style="margin:0 0 8px 0; color:#1e293b;">Platform Core Component Diagnostic Report:</h4>
           <p style="font-size:13px; color:#475569; margin:4px 0;">💻 <strong>Component:</strong> {component}</p>
           <p style="font-size:13px; color:{color}; margin:4px 0;">⚡ <strong>Status:</strong> {status.upper()}</p>
-          <p style="font-size:13px; color:#475569; margin:4px 0;">🔍 <strong>Details:</strong> {details}</p>
+          <p style="font-size:13px; color:#475569; margin:4px 0;"><strong>Details:</strong> {details}</p>
         </div>
         """
         html_body = self._get_base_template(

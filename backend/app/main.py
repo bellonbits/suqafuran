@@ -137,10 +137,10 @@ async def start_background_event_consumer():
     # Use 'is not None' because AdminClient.__bool__() returns False even when valid
     if kafka_admin is not None and kafka_admin.admin_client is not None:
         try:
-            logger.info("📋 Calling create_default_topics...")
+            logger.info("Calling create_default_topics...")
             success = kafka_admin.create_default_topics(retries=3, delay=2.0)
             if success:
-                logger.info("✅ Kafka topics initialized successfully")
+                logger.info("Kafka topics initialized successfully")
             else:
                 logger.warning("⚠️  Kafka topics initialization incomplete, attempting fallback...")
                 # Try using kafka-topics CLI as fallback
@@ -156,9 +156,9 @@ async def start_background_event_consumer():
                 except Exception as e:
                     logger.warning(f"⚠️  CLI fallback also failed: {e}")
         except Exception as e:
-            logger.error(f"❌ Error creating topics: {e}")
+            logger.error(f"Error creating topics: {e}")
     else:
-        logger.error("❌ Kafka admin client not available")
+        logger.error("Kafka admin client not available")
 
     logger.info("=" * 60)
 
