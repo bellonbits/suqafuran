@@ -82,6 +82,69 @@ export default function ShopPage() {
     loadShopData();
   }, []);
 
+  // Initialize Google Map
+  useEffect(() => {
+    if (activeTab !== 'location' || !mapRef.current) return;
+
+    const initMap = async () => {
+      await loadGoogleMapsScript();
+      if (!mapRef.current) return;
+
+      const defaultCenter = {
+        lat: shopData.latitude || -1.2921,
+        lng: shopData.longitude || 36.8219,
+      };
+
+      mapInstance.current = new window.google.maps.Map(mapRef.current, {
+        zoom: 13,
+        center: defaultCenter,
+        mapTypeControl: true,
+        fullscreenControl: true,
+        zoomControl: true,
+      });
+
+      // Add or update marker
+      if (markerRef.current) {
+        markerRef.current.setMap(null);
+      }
+
+      markerRef.current = new window.google.maps.Marker({
+        position: defaultCenter,
+        map: mapInstance.current,
+        title: 'Shop Location',
+        draggable: true,
+      });
+
+      // Update location when marker is dragged
+      markerRef.current.addListener('dragend', () => {
+        const pos = markerRef.current?.getPosition();
+        if (pos) {
+          setShopData({
+            ...shopData,
+            latitude: pos.lat(),
+            longitude: pos.lng(),
+          });
+        }
+      });
+
+      // Update location when map is clicked
+      mapInstance.current.addListener('click', (e: google.maps.MapMouseEvent) => {
+        if (e.latLng) {
+          const lat = e.latLng.lat();
+          const lng = e.latLng.lng();
+          setShopData({
+            ...shopData,
+            latitude: lat,
+            longitude: lng,
+          });
+          markerRef.current?.setPosition(e.latLng);
+        }
+      });
+    };
+
+    initMap();
+  }, [activeTab, shopData]);
+
   useEffect(() => {
     if (toast) {
       const timer = setTimeout(() => setToast(null), 3000);
@@ -202,6 +265,33 @@ export default function ShopPage() {
       : [...selectedCategories, categoryId];
     setSelectedCategories(newCategories);
     setShopData({ ...shopData, categories: newCategories });
+  };
+
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        setShopData({
+          ...shopData,
+          latitude: lat,
+          longitude: lng,
+        });
+        if (mapInstance.current) {
+          mapInstance.current.setCenter({ lat, lng });
+          markerRef.current?.setPosition({ lat, lng });
+        }
+      },
+      (error) => {
+        console.error('Error getting location:', error);
+        alert('Unable to get your current location. Please allow location access.');
+      }
+    );
   };
 
   const handleSave = async () => {
@@ -441,8 +531,26 @@ export default function ShopPage() {
 
         {/* Location Tab */}
         {activeTab === 'location' && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Shop Location</h2>
+            
+            {/* Google Map */}
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-900 dark:text-white">Select Location on Map</label>
+              <div 
+                ref={mapRef} 
+                className="w-full h-96 rounded-lg border border-gray-200 dark:border-slate-800 overflow-hidden"
+              />
+              <button
+                onClick={getCurrentLocation}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm transition-colors"
+              >
+                <Crosshair className="w-4 h-4" />
+                Use Current Location
+              </button>
+            </div>
+
+            {/* Address */}
             <div>
               <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Address</label>
               <input
@@ -453,7 +561,9 @@ export default function ShopPage() {
                 className="w-full px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
               />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+            {/* City and Coordinates */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">City/Area</label>
                 <input
@@ -471,6 +581,7 @@ export default function ShopPage() {
                   step="0.0001"
                   value={shopData.latitude}
                   onChange={(e) => setShopData({...shopData, latitude: parseFloat(e.target.value)})}
+                  placeholder="Click on map or enter manually"
                   className="w-full px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
                 />
               </div>
@@ -481,8 +592,23 @@ export default function ShopPage() {
                   step="0.0001"
                   value={shopData.longitude}
                   onChange={(e) => setShopData({...shopData, longitude: parseFloat(e.target.value)})}
+                  placeholder="Click on map or enter manually"
                   className="w-full px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
                 />
+              </div>
+            </div>
+
+            {/* Info Box */}
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex gap-3">
+              <MapPin className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-blue-900 dark:text-blue-300">How to set location:</p>
+                <ul className="text-sm text-blue-800 dark:text-blue-400 mt-1 space-y-1">
+                  <li>• Click on the map to set your shop location</li>
+                  <li>• Drag the marker to adjust the position</li>
+                  <li>• Or tap "Use Current Location" to auto-fill</li>
+                  <li>• Manually enter coordinates if needed</li>
+                </ul>
               </div>
             </div>
           </div>
