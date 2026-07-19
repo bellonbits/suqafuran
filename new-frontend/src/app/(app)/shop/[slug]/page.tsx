@@ -241,7 +241,7 @@ export default function PublicShopPage() {
   const shopInitial = shopData.shop_name?.[0]?.toUpperCase() || 'S';
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950">
+    <div className="bg-white dark:bg-slate-950">
       {/* Breadcrumbs */}
       <div className="sticky top-0 z-40 bg-white dark:bg-slate-950 border-b border-gray-100 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 lg:px-6 py-3.5 flex items-center gap-2 text-xs font-semibold">
