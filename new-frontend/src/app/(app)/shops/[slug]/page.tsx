@@ -413,32 +413,32 @@ export default function ShopDetailPage() {
                     </div>
 
                     {/* Contact Buttons - Icon Only (Right Side, One Line) */}
-                    <div className="md:col-span-4 flex justify-start md:justify-end gap-3 py-2 px-1">
+                    <div className="md:col-span-4 flex justify-start md:justify-end gap-4 py-2 px-1">
                         {/* WhatsApp */}
                         <button
                             onClick={() => window.open(`https://wa.me/?text=Hi%20${shopName}`)}
                             title="WhatsApp"
-                            className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 hover:scale-110 transition-all shadow-sm border border-green-200 dark:border-green-800"
+                            className="hover:scale-110 transition-transform active:scale-95"
                         >
-                            <MessageCircle className="w-5 h-5" />
+                            <img src="/whatsapp-icon.png" alt="WhatsApp" className="w-12 h-12 object-contain" />
                         </button>
 
                         {/* Call */}
                         <button
                             onClick={() => window.location.href = 'tel:+254712345678'}
                             title="Call"
-                            className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 hover:scale-110 transition-all shadow-sm border border-blue-200 dark:border-blue-800"
+                            className="hover:scale-110 transition-transform active:scale-95"
                         >
-                            <Phone className="w-5 h-5" />
+                            <img src="/call-icon.png" alt="Call" className="w-12 h-12 object-contain" />
                         </button>
 
                         {/* Message */}
                         <button
                             onClick={() => router.push('/messages')}
                             title="Message"
-                            className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50 hover:scale-110 transition-all shadow-sm border border-orange-200 dark:border-orange-800"
+                            className="hover:scale-110 transition-transform active:scale-95"
                         >
-                            <MessageCircle className="w-5 h-5" />
+                            <img src="/message-icon.png" alt="Message" className="w-12 h-12 object-contain" />
                         </button>
                     </div>
                 </div>
