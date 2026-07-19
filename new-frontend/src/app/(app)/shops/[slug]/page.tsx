@@ -8,7 +8,7 @@ import { LocationPickerModal } from '../../../../components/shared/LocationPicke
 import { listingsService } from '../../../../services/listings';
 import api, { optimizeCloudinaryUrl, resolveMediaUrl } from '../../../../services/api';
 import {
-    ChevronRight, ChevronLeft, Star, Clock, MapPin, Plus, Minus, Search, ShoppingBag, X, Percent, ThumbsUp, Info, Heart, Filter
+    ChevronRight, ChevronLeft, Star, Clock, MapPin, Plus, Minus, Search, ShoppingBag, X, Percent, ThumbsUp, Info, Heart, Filter, Phone, MessageCircle
 } from 'lucide-react';
 import { useCart } from '../../../../store/useCart';
 
@@ -395,7 +395,7 @@ export default function ShopDetailPage() {
                         </div>
 
                         {/* SEARCH BAR */}
-                        <div className="relative max-w-xl">
+                        <div className="relative max-w-xl mb-4">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <input
                                 type="text"
@@ -409,6 +409,31 @@ export default function ShopDetailPage() {
                                     <X className="w-4 h-4" />
                                 </button>
                             )}
+                        </div>
+
+                        {/* CONTACT BUTTONS - Marketplace Style */}
+                        <div className="flex gap-2 flex-wrap">
+                            <button
+                                onClick={() => window.open(`https://wa.me/?text=Hi%20${shopName}`)}
+                                className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-bold text-sm rounded-full transition-all hover:scale-105"
+                            >
+                                <MessageCircle className="w-4 h-4" />
+                                WhatsApp
+                            </button>
+                            <button
+                                onClick={() => window.location.href = 'tel:+254712345678'}
+                                className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm rounded-full transition-all hover:scale-105"
+                            >
+                                <Phone className="w-4 h-4" />
+                                Call
+                            </button>
+                            <button
+                                onClick={() => router.push('/messages')}
+                                className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm rounded-full transition-all hover:scale-105"
+                            >
+                                <MessageCircle className="w-4 h-4" />
+                                Message
+                            </button>
                         </div>
                     </div>
 
