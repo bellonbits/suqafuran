@@ -84,47 +84,44 @@ export default function CheckoutPage() {
 
   const generateReceipt = () => {
     const itemsText = cartItems
-      .map((item: CheckoutItem, idx: number) => `${idx + 1}. ${item.title_en} - KSh ${item.price.toLocaleString()}`)
+      .map((item: CheckoutItem, idx: number) => `${idx + 1}. ${item.title_en} - ${item.price.toLocaleString()}`)
       .join('\n');
 
-    const receipt = `
-    ╔════════════════════════════════════════════════════╗
-    ║           SUQAFURAN ORDER RECEIPT                  ║
-    ╚════════════════════════════════════════════════════╝
+    const receipt = `SUQAFURAN ORDER RECEIPT
+========================================
 
-    ORDER #${orderNumber}
-    Date: ${new Date().toLocaleString()}
+ORDER #${orderNumber}
+Date: ${new Date().toLocaleString()}
 
-    ─── BUYER INFORMATION ───
-    Name: ${buyerName}
-    Phone: ${buyerPhone}
-    Location: ${currentLocation?.address}
+BUYER INFORMATION
+Name: ${buyerName}
+Phone: ${buyerPhone}
+Location: ${currentLocation?.address}
 
-    ─── ITEMS ───
-    ${itemsText}
+ITEMS
+${itemsText}
 
-    ─── PRICING ───
-    Subtotal:     KSh ${subtotal.toLocaleString()}
-    Platform Fee: KSh ${platformFee}
-    ─────────────────────────
-    TOTAL:        KSh ${total.toLocaleString()}
+PRICING
+Subtotal: ${subtotal.toLocaleString()}
+Platform Fee (2%): ${platformFee}
+TOTAL: ${total.toLocaleString()}
 
-    ─── HOW IT WORKS ───
-    This is a P2P (peer-to-peer) transaction.
+HOW IT WORKS
+This is a P2P (peer-to-peer) transaction.
 
-    1. You have shared your location with the seller
-    2. Contact the seller via WhatsApp or message
-    3. Discuss and agree on:
-       • Meeting location and time
-       • Payment method
-       • Product condition and quantity
-    4. Complete the transaction directly
+1. You have shared your location with the seller
+2. Contact the seller via WhatsApp or message
+3. Discuss and agree on:
+   - Meeting location and time
+   - Payment method
+   - Product condition and quantity
+4. Complete the transaction directly
 
-    Suqafuran's role: Connect buyers and sellers
-    Your payment: Directly with seller (not through platform)
-    Your delivery: Arrange with seller
+Suqafuran's role: Connect buyers and sellers
+Your payment: Directly with seller (not through platform)
+Your delivery: Arrange with seller
 
-    ════════════════════════════════════════════════════════
+========================================
     `;
 
     return receipt;
@@ -442,22 +439,26 @@ Thanks!`;
                     <div className="text-left bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-4">
                         <Package className="w-4 h-4 text-orange-600" />
-                        <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider">Order Items</p>
+                        <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider">Items ({cartItems.length})</p>
                       </div>
                       <div className="space-y-3">
-                        {cartItems.map((item: CheckoutItem, idx: number) => (
-                          <div key={item.id} className="border-l-4 border-orange-600 pl-3 py-2">
-                            <div className="flex justify-between items-start gap-2">
-                              <div className="flex-1">
-                                <p className="font-bold text-gray-900 dark:text-white text-sm">{item.title_en}</p>
-                                {item.owner && (
-                                  <p className="text-xs text-gray-600 dark:text-slate-400">from {item.owner.full_name}</p>
-                                )}
+                        {cartItems && cartItems.length > 0 ? (
+                          cartItems.map((item: CheckoutItem, idx: number) => (
+                            <div key={item.id} className="pb-3 border-b border-gray-300 dark:border-slate-700 last:border-b-0">
+                              <div className="flex justify-between items-start gap-3 mb-1">
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-bold text-gray-900 dark:text-white text-sm break-words">{item.title_en}</p>
+                                </div>
+                                <p className="font-bold text-orange-600 whitespace-nowrap text-sm">{item.price.toLocaleString()}</p>
                               </div>
-                              <p className="font-bold text-orange-600 whitespace-nowrap">{item.price.toLocaleString()}</p>
+                              {item.owner && (
+                                <p className="text-xs text-gray-600 dark:text-slate-400">from {item.owner.full_name}</p>
+                              )}
                             </div>
-                          </div>
-                        ))}
+                          ))
+                        ) : (
+                          <p className="text-gray-600 dark:text-slate-400 text-sm">No items in order</p>
+                        )}
                       </div>
 
                       {/* Pricing Summary */}
