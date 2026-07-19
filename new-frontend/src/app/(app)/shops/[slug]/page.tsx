@@ -130,6 +130,7 @@ export default function ShopDetailPage() {
 
                     setShopName(currentShop.shop_name || 'Shop');
                     setShopLogo(currentShop.cover_image || '');
+                                        setShopAvatar(currentShop.user?.avatar_url || '');
                     setShopOwnerId(currentShop.user_id);
                     setAllListings(shopListings || []);
                     if (shopListings && shopListings.length > 0) {
@@ -361,12 +362,14 @@ export default function ShopDetailPage() {
                     
                     {/* Circle Logo Overlay (Bottom-left) */}
                     <div className="absolute bottom-4 left-5 w-16 h-16 rounded-full bg-white dark:bg-slate-900 border-4 border-white dark:border-slate-700 shadow-lg flex items-center justify-center overflow-hidden">
-                        <div className="w-full h-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-xl">
-                            {shopInitial}
-                        </div>
+                        {shopAvatar ? (
+                            <img src={shopAvatar} alt={shopName} className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-xl">
+                                {shopInitial}
+                            </div>
+                        )}
                     </div>
-
-                    {/* Info badge top-right */}
                     <button className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/95 dark:bg-slate-900/95 flex items-center justify-center text-gray-600 dark:text-slate-300 hover:scale-105 shadow transition-all">
                         <Info className="w-4 h-4" />
                     </button>
