@@ -81,6 +81,8 @@ export default function ShopPage() {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<google.maps.Map | null>(null);
   const markerRef = useRef<google.maps.Marker | null>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const addressInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadShopData();
@@ -144,10 +146,37 @@ export default function ShopPage() {
           markerRef.current?.setPosition(e.latLng);
         }
       });
+
+      // Initialize Google Places Autocomplete
+      if (addressInputRef.current && !autocompleteRef.current) {
+        autocompleteRef.current = new window.google.maps.places.Autocomplete(
+          addressInputRef.current,
+          {
+            componentRestrictions: { country: 'ke' },
+            fields: ['formatted_address', 'geometry.location', 'name'],
+          }
+        );
+
+        autocompleteRef.current.addListener('place_changed', () => {
+          const place = autocompleteRef.current?.getPlace();
+          if (place?.geometry?.location) {
+            const lat = place.geometry.location.lat();
+            const lng = place.geometry.location.lng();
+            setShopData({
+              ...shopData,
+              address: place.formatted_address || '',
+              latitude: lat,
+              longitude: lng,
+            });
+            mapInstance.current?.setCenter({ lat, lng });
+            markerRef.current?.setPosition({ lat, lng });
+          }
+        });
+      }
     };
 
     initMap();
-  }, [activeTab, shopData]);
+  }, [activeTab]);
 
   useEffect(() => {
     if (toast) {
@@ -366,7 +395,7 @@ export default function ShopPage() {
         {[
           { id: 'basic', label: 'Basic Info', icon: '📝' },
           { id: 'branding', label: 'Branding', icon: '🎨' },
-          { id: 'location', label: 'Location', icon: '📍' },
+          { id: 'location', label: 'Location', icon: <MapPin className='w-4 h-4' /> },
           { id: 'hours', label: 'Hours', icon: '⏰' },
           { id: 'categories', label: 'Categories', icon: '🏷️' },
           { id: 'policies', label: 'Policies', icon: '📋' },
@@ -554,16 +583,18 @@ export default function ShopPage() {
               </button>
             </div>
 
-            {/* Address */}
+            {/* Address with Autocomplete */}
             <div>
               <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Address</label>
               <input
+                ref={addressInputRef}
                 type="text"
                 value={shopData.address}
                 onChange={(e) => setShopData({...shopData, address: e.target.value})}
-                placeholder="Enter shop address"
-                className="w-full px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
+                placeholder="Type address or location name (Kenya)"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Autocomplete suggestions will appear as you type</p>
             </div>
 
             {/* City and Coordinates */}
@@ -603,17 +634,29 @@ export default function ShopPage() {
             </div>
 
             {/* Info Box */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex gap-3">
-              <MapPin className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-semibold text-blue-900 dark:text-blue-300">How to set location:</p>
-                <ul className="text-sm text-blue-800 dark:text-blue-400 mt-1 space-y-1">
-                  <li>• Click on the map to set your shop location</li>
-                  <li>• Drag the marker to adjust the position</li>
-                  <li>• Or tap "Use Current Location" to auto-fill</li>
-                  <li>• Manually enter coordinates if needed</li>
-                </ul>
-              </div>
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <p className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-3 flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
+                How to set location:
+              </p>
+              <ul className="text-sm text-blue-800 dark:text-blue-400 space-y-2">
+                <li className="flex items-start gap-3">
+                  <span className="text-blue-600 dark:text-blue-500 font-bold mt-0.5">1.</span>
+                  <span>Type address in the field above for autocomplete suggestions</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-blue-600 dark:text-blue-500 font-bold mt-0.5">2.</span>
+                  <span>Click on the map to set your shop location</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-blue-600 dark:text-blue-500 font-bold mt-0.5">3.</span>
+                  <span>Drag the marker to adjust the position precisely</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-blue-600 dark:text-blue-500 font-bold mt-0.5">4.</span>
+                  <span>Tap "Use Current Location" to auto-fill with your position</span>
+                </li>
+              </ul>
             </div>
           </div>
         )}
