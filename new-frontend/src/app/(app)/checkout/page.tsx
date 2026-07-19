@@ -99,7 +99,6 @@ export default function CheckoutPage() {
     Name: ${buyerName}
     Phone: ${buyerPhone}
     Location: ${currentLocation?.address}
-    Coordinates: ${currentLocation?.lat.toFixed(4)}, ${currentLocation?.lng.toFixed(4)}
 
     ─── ITEMS ───
     ${itemsText}
@@ -198,8 +197,7 @@ I'm interested in your products:
 ${itemsList}
 
 📍 MY LOCATION:
-Address: ${currentLocation?.address}
-Coordinates: ${currentLocation?.lat.toFixed(4)}, ${currentLocation?.lng.toFixed(4)}
+${currentLocation?.address}
 
 MY DETAILS:
 Name: ${buyerName}
@@ -282,8 +280,6 @@ Thanks!`;
                   <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
                     <p className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">📍 Your Location</p>
                     <p className="font-semibold text-gray-900 dark:text-white text-lg">{currentLocation?.address}</p>
-                    <p className="text-xs text-gray-600 dark:text-slate-400 mt-2">Latitude: {currentLocation?.lat.toFixed(6)}</p>
-                    <p className="text-xs text-gray-600 dark:text-slate-400">Longitude: {currentLocation?.lng.toFixed(6)}</p>
                   </div>
 
                   {/* Map Link */}
