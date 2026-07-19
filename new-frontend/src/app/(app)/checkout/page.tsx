@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '../../../store/useCart';
 import { useLocationStore } from '../../../store/useLocation';
 import { useAuthStore } from '../../../store/useAuth';
-import { ChevronLeft, MapPin, Download, Send, MessageCircle, Phone, CheckCircle, AlertCircle, Map } from 'lucide-react';
+import { ChevronLeft, MapPin, Download, Send, MessageCircle, Phone, CheckCircle, AlertCircle, Map, Package, User, DollarSign, BarChart3 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface CheckoutItem {
@@ -398,7 +398,7 @@ Thanks!`;
                       </div>
                       <div className="text-center">
                         <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-1">Total</p>
-                        <p className="text-lg font-black text-orange-600">KSh {total.toLocaleString()}</p>
+                        <p className="text-lg font-black text-orange-600">{total.toLocaleString()}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-1">Date & Time</p>
@@ -408,7 +408,10 @@ Thanks!`;
 
                     {/* Buyer Info */}
                     <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-4 border border-orange-200 dark:border-orange-800">
-                      <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-3">Buyer Information</p>
+                      <div className="flex items-center gap-2 mb-3">
+                        <User className="w-4 h-4 text-orange-600" />
+                        <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider">Buyer Information</p>
+                      </div>
                       <div className="space-y-2 text-left text-sm">
                         <p><span className="font-semibold text-gray-900 dark:text-white">{buyerName}</span></p>
                         <p className="text-gray-600 dark:text-slate-400">{buyerPhone}</p>
@@ -417,7 +420,10 @@ Thanks!`;
 
                     {/* Location with Map */}
                     <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
-                      <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-3">📍 Your Location</p>
+                      <div className="flex items-center gap-2 mb-3">
+                        <MapPin className="w-4 h-4 text-blue-600" />
+                        <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider">Your Location</p>
+                      </div>
                       <div className="relative h-48 bg-gradient-to-b from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-900/10 rounded-lg mb-3 overflow-hidden flex items-center justify-center">
                         <iframe
                           src={`https://maps.google.com/maps?q=${currentLocation?.lat},${currentLocation?.lng}&z=15&output=embed`}
@@ -434,7 +440,10 @@ Thanks!`;
 
                     {/* Items List - Detailed */}
                     <div className="text-left bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
-                      <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-4">Order Items</p>
+                      <div className="flex items-center gap-2 mb-4">
+                        <Package className="w-4 h-4 text-orange-600" />
+                        <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider">Order Items</p>
+                      </div>
                       <div className="space-y-3">
                         {cartItems.map((item: CheckoutItem, idx: number) => (
                           <div key={item.id} className="border-l-4 border-orange-600 pl-3 py-2">
@@ -445,7 +454,7 @@ Thanks!`;
                                   <p className="text-xs text-gray-600 dark:text-slate-400">from {item.owner.full_name}</p>
                                 )}
                               </div>
-                              <p className="font-bold text-orange-600 whitespace-nowrap">KSh {item.price.toLocaleString()}</p>
+                              <p className="font-bold text-orange-600 whitespace-nowrap">{item.price.toLocaleString()}</p>
                             </div>
                           </div>
                         ))}
@@ -454,16 +463,16 @@ Thanks!`;
                       {/* Pricing Summary */}
                       <div className="border-t border-gray-300 dark:border-slate-700 mt-4 pt-4 space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-gray-600 dark:text-slate-400">Subtotal:</span>
-                          <span className="font-semibold text-gray-900 dark:text-white">KSh {subtotal.toLocaleString()}</span>
+                          <span className="text-gray-600 dark:text-slate-400">Subtotal</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">{subtotal.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600 dark:text-slate-400">Platform Fee (2%):</span>
-                          <span className="font-semibold text-gray-900 dark:text-white">KSh {platformFee}</span>
+                          <span className="text-gray-600 dark:text-slate-400">Platform Fee (2%)</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">{platformFee}</span>
                         </div>
                         <div className="flex justify-between border-t border-gray-300 dark:border-slate-700 pt-2 text-base">
-                          <span className="font-bold text-gray-900 dark:text-white">Grand Total:</span>
-                          <span className="font-black text-orange-600 text-lg">KSh {total.toLocaleString()}</span>
+                          <span className="font-bold text-gray-900 dark:text-white">Grand Total</span>
+                          <span className="font-black text-orange-600 text-lg">{total.toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
