@@ -194,7 +194,7 @@ export default function ProductsPage() {
                 <tr key={product.id} className="border-b border-gray-200 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/50">
                   <td className="px-6 py-4">
                     <div>
-                      <p className="font-semibold text-gray-900 dark:text-white truncate">{product.title || product.name || 'Untitled Product'}</p>
+                      <p className="font-semibold text-gray-900 dark:text-white truncate">{product.title_en || product.title || product.name || 'Untitled Product'}</p>
                       <p className="text-xs text-gray-500 dark:text-slate-400">{truncateId(product.id)}</p>
                     </div>
                   </td>

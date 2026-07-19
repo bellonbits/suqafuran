@@ -103,7 +103,7 @@ export default function InventoryPage() {
                     <tr key={item.id} className="border-b border-gray-200 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/50">
                       <td className="px-6 py-4">
                         <div>
-                          <p className="font-semibold text-gray-900 dark:text-white truncate">{item.title || 'Unnamed'}</p>
+                          <p className="font-semibold text-gray-900 dark:text-white truncate">{item.title_en || item.title || 'Untitled Product'}</p>
                           <p className="text-xs text-gray-500">{item.id}</p>
                         </div>
                       </td>
