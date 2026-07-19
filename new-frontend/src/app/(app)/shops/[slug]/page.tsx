@@ -376,9 +376,36 @@ export default function ShopDetailPage() {
                     </button>
                 </div>
 
-                {/* DETAILS ROW (Title, Badges, bubbles metrics) */}
+                {/* DETAILS ROW (Title, Badges, Contact Buttons) */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-                    <div className="md:col-span-8">
+                    {/* Contact Buttons - Top Right (Visible on all screens) */}
+                    <div className="md:col-span-4 order-2 md:order-1 flex flex-col gap-3">
+                        <div className="flex gap-2 flex-wrap md:flex-col">
+                            <button
+                                onClick={() => window.open(`https://wa.me/?text=Hi%20${shopName}`)}
+                                className="flex-1 md:w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-500 hover:bg-green-600 text-white font-bold text-sm rounded-lg transition-all hover:scale-105 shadow-md"
+                            >
+                                <MessageCircle className="w-4 h-4" />
+                                WhatsApp
+                            </button>
+                            <button
+                                onClick={() => window.location.href = 'tel:+254712345678'}
+                                className="flex-1 md:w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm rounded-lg transition-all hover:scale-105 shadow-md"
+                            >
+                                <Phone className="w-4 h-4" />
+                                Call
+                            </button>
+                            <button
+                                onClick={() => router.push('/messages')}
+                                className="flex-1 md:w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm rounded-lg transition-all hover:scale-105 shadow-md"
+                            >
+                                <MessageCircle className="w-4 h-4" />
+                                Message
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="md:col-span-8 order-1 md:order-2">
                         <h1 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white tracking-tight mb-2">
                             {shopName}
                         </h1>
@@ -395,7 +422,7 @@ export default function ShopDetailPage() {
                         </div>
 
                         {/* SEARCH BAR */}
-                        <div className="relative max-w-xl mb-4">
+                        <div className="relative max-w-xl">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <input
                                 type="text"
@@ -409,31 +436,6 @@ export default function ShopDetailPage() {
                                     <X className="w-4 h-4" />
                                 </button>
                             )}
-                        </div>
-
-                        {/* CONTACT BUTTONS - Marketplace Style */}
-                        <div className="flex gap-2 flex-wrap">
-                            <button
-                                onClick={() => window.open(`https://wa.me/?text=Hi%20${shopName}`)}
-                                className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-bold text-sm rounded-full transition-all hover:scale-105"
-                            >
-                                <MessageCircle className="w-4 h-4" />
-                                WhatsApp
-                            </button>
-                            <button
-                                onClick={() => window.location.href = 'tel:+254712345678'}
-                                className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm rounded-full transition-all hover:scale-105"
-                            >
-                                <Phone className="w-4 h-4" />
-                                Call
-                            </button>
-                            <button
-                                onClick={() => router.push('/messages')}
-                                className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm rounded-full transition-all hover:scale-105"
-                            >
-                                <MessageCircle className="w-4 h-4" />
-                                Message
-                            </button>
                         </div>
                     </div>
 
