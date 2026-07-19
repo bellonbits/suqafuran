@@ -15,7 +15,7 @@ export default function ProductsPage() {
 
   const loadProducts = async () => {
     try {
-      const res = await api.get('/api/v1/listings/me?limit=100');
+      const res = await api.get('/listings/me?limit=100');
       if (res.data) {
         setProducts(Array.isArray(res.data) ? res.data : []);
       }

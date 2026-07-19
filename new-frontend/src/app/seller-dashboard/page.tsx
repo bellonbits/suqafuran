@@ -48,8 +48,8 @@ export default function SellerDashboard() {
   const loadDashboardData = async () => {
     try {
       const [statsRes, productsRes] = await Promise.all([
-        api.get('/api/v1/dashboard/stats').catch(() => null),
-        api.get('/api/v1/listings/me?limit=10').catch(() => null),
+        api.get('/dashboard/stats').catch(() => null),
+        api.get('/listings/me?limit=10').catch(() => null),
       ]);
 
       if (statsRes?.data) {
