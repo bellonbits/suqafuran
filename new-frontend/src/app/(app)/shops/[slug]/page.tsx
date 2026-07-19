@@ -31,6 +31,8 @@ export default function ShopDetailPage() {
 
     const [shopName, setShopName] = useState('');
     const [shopLogo, setShopLogo] = useState('');
+    const [shopAvatar, setShopAvatar] = useState('');
+
     const [allListings, setAllListings] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(!city);
