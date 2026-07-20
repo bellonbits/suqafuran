@@ -654,11 +654,9 @@ export default function ShopDetailPage() {
                                             </div>
                                         )}
                                     </div>
-                                ))}
-                            </div>
 
-                            {/* Filters Section */}
-                            <div className="space-y-4 mt-8 pt-6 border-t border-gray-200 dark:border-slate-800">
+                                    {/* Filters - Nested under categories */}
+                                    <div className="pl-2 mt-4 pt-4 space-y-3 border-t border-gray-200 dark:border-slate-800">
                                 {/* Price Range */}
                                 <div>
                                     <h3 className="text-xs font-bold text-gray-900 dark:text-white mb-2">Price Range</h3>
