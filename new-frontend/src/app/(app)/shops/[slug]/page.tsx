@@ -607,7 +607,7 @@ export default function ShopDetailPage() {
                                                                             {subsubcategory.name_en}
                                                                         </button>
                                                                     ))
-                                                                ) : null}
+                                                                }
                                                             </div>
                                                         )}
                                                     </div>
