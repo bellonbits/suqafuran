@@ -103,62 +103,52 @@ export const Header: React.FC = () => {
     return (
         <>
             <header className="sticky top-0 z-50 w-full bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 shadow-sm">
-                {/* Main Header */}
-                <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 w-full max-w-full mx-auto h-20">
-                    
-                    {/* Logo */}
-                    <Link href="/" className="flex items-center shrink-0 hover:opacity-85 transition-opacity">
-                        <img src="/icon1.png" alt="Suqafuran" className="h-8 w-auto object-contain" />
-                    </Link>
+                <div className="max-w-7xl mx-auto px-8 h-20 flex items-center justify-between">
 
-                    {/* Center: Location + Search + Button */}
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                        
-                        {/* Location Selector - Pill */}
+                    {/* Left: Logo + Location */}
+                    <div className="flex items-center gap-4 shrink-0">
+                        <Link href="/" className="flex items-center hover:opacity-85 transition-opacity">
+                            <img src="/icon1.png" alt="Suqafuran" className="h-8 w-auto object-contain" />
+                        </Link>
+
+                        {/* Location Selector - Compact Pill */}
                         <button
                             onClick={() => setIsLocationModalOpen(true)}
-                            className="hidden md:flex items-center gap-2 px-4 py-2.5 rounded-full bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors shrink-0 border border-gray-200 dark:border-slate-700"
+                            className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-full bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors border border-gray-200 dark:border-slate-700"
                         >
                             <MapPin className="w-4 h-4 text-orange-600 dark:text-orange-500 shrink-0" />
-                            <span className="text-xs font-semibold text-gray-700 dark:text-slate-300 truncate max-w-[100px]">
+                            <span className="text-xs font-medium text-gray-700 dark:text-slate-300 truncate max-w-[150px]">
                                 {city || 'Location'}
                             </span>
                         </button>
-
-                        {/* Search Bar */}
-                        <form
-                            onSubmit={handleSearchSubmit}
-                            className="flex items-center flex-1 min-w-0 max-w-3xl"
-                        >
-                            <div className="relative w-full">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 shrink-0" />
-                                <input
-                                    type="text"
-                                    placeholder="What are you looking for?"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full h-12 pl-12 pr-4 rounded-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white text-sm font-medium placeholder:text-gray-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                                />
-                            </div>
-                            
-                            {/* Search Button */}
-                            <button
-                                type="submit"
-                                className="ml-2 px-6 py-2.5 bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700 text-white rounded-full font-semibold text-sm transition-colors shrink-0 shadow-sm"
-                            >
-                                Search
-                            </button>
-                        </form>
                     </div>
 
-                    {/* Right: Actions */}
-                    <div className="flex items-center gap-2 shrink-0">
-                        
-                        {/* Dark Mode */}
+                    {/* Center: Search Bar - Dominant Element */}
+                    <form
+                        onSubmit={handleSearchSubmit}
+                        className="hidden md:flex items-center flex-1 mx-8 max-w-2xl"
+                    >
+                        <div className="relative w-full">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 shrink-0" />
+                            <input
+                                type="text"
+                                placeholder="Search products, shops, services..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full h-12 pl-12 pr-4 rounded-lg bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white text-sm font-medium placeholder:text-gray-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                            />
+                        </div>
+                    </form>
+
+                    {/* Right: Action Buttons */}
+                    <div className="flex items-center gap-4 shrink-0">
+
+                        {/* Dark Mode - Icon Only */}
                         <button
                             onClick={toggleDarkMode}
-                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors hidden sm:flex"
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors hidden lg:flex"
                             aria-label="Toggle dark mode"
+                            title="Toggle dark mode"
                         >
                             {darkMode ? (
                                 <Sun className="w-5 h-5 text-gray-600 dark:text-slate-400" />
@@ -167,80 +157,80 @@ export const Header: React.FC = () => {
                             )}
                         </button>
 
-                        {/* Notifications */}
-                        <div className="relative hidden sm:block">
-                            <button
-                                onClick={() => {}}
-                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors relative"
-                            >
-                                <Bell className="w-5 h-5 text-gray-600 dark:text-slate-400" />
-                                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                            </button>
-                        </div>
+                        {/* Notifications - Icon Only */}
+                        <button
+                            onClick={() => {}}
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors relative hidden lg:flex"
+                            title="Notifications"
+                        >
+                            <Bell className="w-5 h-5 text-gray-600 dark:text-slate-400" />
+                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </button>
 
-                        {/* Messages */}
+                        {/* Messages - Icon Only */}
                         <button
                             onClick={() => router.push('/messages')}
-                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors relative"
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors relative hidden lg:flex"
                             title="Messages"
                         >
                             <MessageSquare className="w-5 h-5 text-gray-600 dark:text-slate-400" />
-                            <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
+                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full"></span>
                         </button>
 
-                        {/* Cart Pill Button */}
+                        {/* Cart - Icon Only with Badge */}
                         <button
                             onClick={() => router.push('/checkout')}
-                            className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-full bg-white dark:bg-slate-800 border border-orange-600 text-orange-600 dark:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors font-semibold text-sm"
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors relative hidden sm:flex"
+                            title="Cart"
                         >
-                            <ShoppingCart className="w-4 h-4" />
-                            <span>Cart</span>
+                            <ShoppingCart className="w-5 h-5 text-gray-600 dark:text-slate-400" />
                             {cartCount > 0 && (
-                                <span className="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-orange-600 text-white rounded-full">
+                                <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-orange-600 text-white rounded-full">
                                     {cartCount}
                                 </span>
                             )}
                         </button>
 
-                        {/* Sell/Listing Pill Button */}
+                        {/* Sell Button - Outlined */}
                         {isVerifiedSeller ? (
                             <button
                                 onClick={() => router.push('/seller-dashboard/products')}
-                                className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-full bg-white dark:bg-slate-800 border border-orange-600 text-orange-600 dark:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors font-semibold text-sm"
+                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors border border-orange-600 dark:border-orange-500 flex items-center justify-center hidden sm:flex"
+                                title="Seller dashboard"
                             >
-                                <Plus className="w-4 h-4" />
-                                <span>Sell</span>
+                                <Plus className="w-5 h-5 text-orange-600 dark:text-orange-500" />
                             </button>
                         ) : (
                             <button
                                 onClick={() => router.push('/seller-dashboard')}
-                                className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-full bg-white dark:bg-slate-800 border border-orange-600 text-orange-600 dark:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors font-semibold text-sm"
+                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors border border-orange-600 dark:border-orange-500 flex items-center justify-center hidden sm:flex"
+                                title="Start selling"
                             >
-                                <Store className="w-4 h-4" />
-                                <span>Sell</span>
+                                <Store className="w-5 h-5 text-orange-600 dark:text-orange-500" />
                             </button>
                         )}
 
                         {/* Auth Section */}
                         {isAuthenticated && user ? (
-                            <div className="relative">
+                            <div className="relative hidden sm:block">
                                 <button
                                     onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                                    className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                                    className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center"
+                                    title="Profile menu"
                                 >
                                     {(user as any).avatar_url ? (
                                         <img
                                             src={(user as any).avatar_url}
                                             alt={user.full_name}
-                                            className="w-7 h-7 rounded-full object-cover"
+                                            className="w-6 h-6 rounded-full object-cover"
                                         />
                                     ) : (
-                                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-sky-400 to-orange-600 flex items-center justify-center text-white text-xs font-bold">
+                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-sky-400 to-orange-600 flex items-center justify-center text-white text-xs font-bold">
                                             {user.full_name?.charAt(0).toUpperCase()}
                                         </div>
                                     )}
                                 </button>
-                                
+
                                 {profileMenuOpen && (
                                     <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-gray-200 dark:border-slate-800 z-50">
                                         <div className="p-3 border-b border-gray-100 dark:border-slate-800">
@@ -258,7 +248,6 @@ export const Header: React.FC = () => {
                                                 Profile
                                             </button>
 
-                                            {/* Admin Dashboard */}
                                             {userRole === 'admin' && (
                                                 <button
                                                     onClick={() => {
@@ -272,7 +261,6 @@ export const Header: React.FC = () => {
                                                 </button>
                                             )}
 
-                                            {/* Agent Dashboard */}
                                             {(userRole === 'admin' || userRole === 'agent') && (
                                                 <button
                                                     onClick={() => {
@@ -286,7 +274,6 @@ export const Header: React.FC = () => {
                                                 </button>
                                             )}
 
-                                            {/* Seller Dashboard */}
                                             {isVerifiedSeller && (
                                                 <button
                                                     onClick={() => {
@@ -315,16 +302,16 @@ export const Header: React.FC = () => {
                                 )}
                             </div>
                         ) : (
-                            <div className="flex items-center gap-2">
+                            <div className="hidden sm:flex items-center gap-2">
                                 <button
                                     onClick={() => openAuthModal('signin')}
-                                    className="px-4 py-2.5 text-sm font-semibold bg-sky-400 hover:bg-sky-500 dark:bg-sky-500 dark:hover:bg-sky-600 text-white rounded-full transition-colors hidden sm:inline-block"
+                                    className="px-4 py-2 text-sm font-semibold bg-sky-400 hover:bg-sky-500 dark:bg-sky-500 dark:hover:bg-sky-600 text-white rounded-lg transition-colors"
                                 >
                                     Sign In
                                 </button>
                                 <button
                                     onClick={() => openAuthModal('signup')}
-                                    className="px-4 py-2.5 text-sm font-semibold bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700 text-white rounded-full transition-colors"
+                                    className="px-4 py-2 text-sm font-semibold bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700 text-white rounded-lg transition-colors"
                                 >
                                     Sign Up
                                 </button>
@@ -354,7 +341,7 @@ export const Header: React.FC = () => {
 
             {/* Mobile Menu */}
             {isMobileMenuOpen && (
-                <div className="sm:hidden bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 px-4 py-4 space-y-3">
+                <div className="md:hidden bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 px-4 py-4 space-y-3">
                     <button
                         onClick={() => setIsLocationModalOpen(true)}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
@@ -362,9 +349,23 @@ export const Header: React.FC = () => {
                         <MapPin className="w-4 h-4 text-orange-600" />
                         <span className="text-sm font-medium">{city || 'Select Location'}</span>
                     </button>
+
+                    <form onSubmit={handleSearchSubmit} className="md:hidden">
+                        <div className="relative w-full">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 shrink-0" />
+                            <input
+                                type="text"
+                                placeholder="Search products, shops, services..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full h-10 pl-12 pr-4 rounded-lg bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white text-sm placeholder:text-gray-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                            />
+                        </div>
+                    </form>
+
                     <button
                         onClick={() => router.push('/checkout')}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-orange-600 text-orange-600 hover:bg-orange-50 transition-colors font-semibold text-sm"
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-orange-600 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors font-semibold text-sm"
                     >
                         <ShoppingCart className="w-4 h-4" />
                         <span>Cart ({cartCount})</span>
@@ -376,7 +377,7 @@ export const Header: React.FC = () => {
                                     openAuthModal('signin');
                                     setIsMobileMenuOpen(false);
                                 }}
-                                className="w-full px-4 py-2 text-sm font-semibold bg-sky-400 text-white rounded-full hover:bg-sky-500 transition-colors"
+                                className="w-full px-4 py-2 text-sm font-semibold bg-sky-400 text-white rounded-lg hover:bg-sky-500 transition-colors"
                             >
                                 Sign In
                             </button>
@@ -385,7 +386,7 @@ export const Header: React.FC = () => {
                                     openAuthModal('signup');
                                     setIsMobileMenuOpen(false);
                                 }}
-                                className="w-full px-4 py-2 text-sm font-semibold bg-orange-600 text-white rounded-full hover:bg-orange-700 transition-colors"
+                                className="w-full px-4 py-2 text-sm font-semibold bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
                             >
                                 Sign Up
                             </button>
