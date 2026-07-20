@@ -140,7 +140,7 @@ def list_listings(
 
 # ===== SHOP REVIEWS, FEEDBACK, FOLLOW ENDPOINTS =====
 
-@listings_router.get("/shops/{shop_id}/reviews", response_model=ReviewsListResponse)
+@listings_router.get("/shops/{shop_id}/reviews")
 def get_shop_reviews(shop_id: str = Path(...), db: Session = Depends(get_db)):
     try:
         reviews = db.query(ShopReview).filter(ShopReview.seller_id == shop_id).all()
@@ -169,7 +169,7 @@ def post_shop_review(shop_id: str = Path(...), data: ReviewCreate = Body(...), d
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-@listings_router.get("/shops/{shop_id}/feedback", response_model=FeedbackListResponse)
+@listings_router.get("/shops/{shop_id}/feedback")
 def get_shop_feedback(shop_id: str = Path(...), db: Session = Depends(get_db)):
     try:
         feedback = db.query(ShopFeedback).filter(ShopFeedback.seller_id == shop_id).all()
