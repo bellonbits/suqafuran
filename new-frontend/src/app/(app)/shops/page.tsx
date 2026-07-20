@@ -44,6 +44,21 @@ const CATEGORY_ICONS: Record<string, string> = {
   'babies-kids':         '/icons/baby.png',
 };
 
+
+// Helper function to build category breadcrumb path
+function getCategoryBreadcrumb(category: Category): string {
+  // If category has a slug with multiple parts, split them
+  if (category.slug && category.slug.includes('-')) {
+    const parts = category.slug.split('-').map(p => 
+      p.charAt(0).toUpperCase() + p.slice(1)
+    );
+    return parts.join(' > ');
+  }
+  // Otherwise just use the category name
+  return category.name_en || 'Products';
+}
+
+
 function getCategoryStickerIcon(slug: string): string {
   const normalized = slug.toLowerCase();
   for (const [key, icon] of Object.entries(CATEGORY_ICONS)) {
