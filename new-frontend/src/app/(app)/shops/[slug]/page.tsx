@@ -251,23 +251,24 @@ export default function ShopDetailPage() {
 
         const categoryMap = new Map<string, any[]>();
         filteredListings.forEach((listing: any) => {
-            // Always group by main category_id to keep related products together
-            const catId = String(listing.category_id);
-
-            // But use the most specific name available for display
+            // Group by the most specific category available (subsubcategory > subcategory > category)
+            let groupKey = String(listing.category_id);
             let displayName = listing.category?.name_en || 'Products';
+
             if (listing.subsubcategory_id) {
+                groupKey = `${listing.category_id}_${listing.subcategory_id}_${listing.subsubcategory_id}`;
                 const subsub = subsubcategoryMap.get(listing.subsubcategory_id);
                 if (subsub) displayName = subsub.name_en;
             } else if (listing.subcategory_id) {
+                groupKey = `${listing.category_id}_${listing.subcategory_id}`;
                 const sub = subcategoryMap.get(listing.subcategory_id);
                 if (sub) displayName = sub.name_en;
             }
 
-            if (!categoryMap.has(catId)) {
-                categoryMap.set(catId, []);
+            if (!categoryMap.has(groupKey)) {
+                categoryMap.set(groupKey, []);
             }
-            categoryMap.get(catId)!.push({ ...listing, _displayName: displayName });
+            categoryMap.get(groupKey)!.push({ ...listing, _displayName: displayName });
         });
 
         return Array.from(categoryMap.entries())
