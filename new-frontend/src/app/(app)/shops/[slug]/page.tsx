@@ -295,8 +295,6 @@ export default function ShopDetailPage() {
             }))
             .sort((a, b) => b.products.length - a.products.length);
 
-        // Debug: Log what categories were created
-        console.log('🔷 CATEGORIES GROUPED:', result.map(c => `${c.name} (${c.products.length})`));
 
         return result;
     }, [filteredListings, dbCategories]);
@@ -831,7 +829,17 @@ export default function ShopDetailPage() {
 
                         {/* 2. Center Column (List of Carousels) */}
                         <main className="col-span-12 lg:col-span-7 space-y-12">
-                            {categories.filter((category) => category.products.length > 0).map((category) => (
+                            {categories
+                                .filter((category) => category.products.length > 0)
+                                .filter((category) => {
+                                    // If a specific category is selected, only show that category
+                                    if (selectedCategoryId !== null) {
+                                        return category.products.some((p: any) => p.category_id === selectedCategoryId);
+                                    }
+                                    // Otherwise show all categories
+                                    return true;
+                                })
+                                .map((category) => (
                                 <div
                                     key={category.id}
                                     ref={(el) => { if (el) categoryRefs.current[category.id] = el; }}
@@ -887,10 +895,7 @@ export default function ShopDetailPage() {
                                             const filtered = category.products.filter((product) => {
                                                 // Main category filter
                                                 if (selectedCategoryId !== null) {
-                                                    if (product.category_id !== selectedCategoryId) {
-                                                        console.log(`❌ Filtered out product ${product.id}: category_id=${product.category_id}, selectedCategoryId=${selectedCategoryId}`);
-                                                        return false;
-                                                    }
+                                                    if (product.category_id !== selectedCategoryId) return false;
                                                 }
 
                                                 // Subcategory/Subsubcategory filters
