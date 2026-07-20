@@ -237,10 +237,10 @@ export const Header: React.FC = () => {
                                         <img
                                             src={(user as any).avatar_url}
                                             alt={user.full_name}
-                                            className="w-6 h-6 rounded-full object-cover"
+                                            className="w-8 h-8 rounded-full object-cover"
                                         />
                                     ) : (
-                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-sky-400 to-orange-600 flex items-center justify-center text-white text-xs font-bold">
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-orange-600 flex items-center justify-center text-white text-xs font-bold">
                                             {user.full_name?.charAt(0).toUpperCase()}
                                         </div>
                                     )}
