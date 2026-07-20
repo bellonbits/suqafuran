@@ -804,7 +804,7 @@ export default function ShopDetailPage() {
 
                         {/* 2. Center Column (List of Carousels) */}
                         <main className="col-span-12 lg:col-span-7 space-y-12">
-                            {categories.map((category) => (
+                            {categories.filter((category) => category.products.length > 0).map((category) => (
                                 <div
                                     key={category.id}
                                     ref={(el) => { if (el) categoryRefs.current[category.id] = el; }}
@@ -812,41 +812,6 @@ export default function ShopDetailPage() {
                                     className="scroll-mt-28"
                                 >
                                     <div className="mb-4">
-                                        {/* Category Breadcrumb */}
-                                        <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-2 uppercase tracking-wide">
-                                            {(() => {
-                                                // If subsubcategory selected, get its path
-                                                if (selectedSubsubcategoryId) {
-                                                    for (const cat of dbCategories) {
-                                                        for (const subcat of cat.subcategories || []) {
-                                                            const found = subcat.subsubcategories?.find((ss: any) => ss.id === selectedSubsubcategoryId);
-                                                            if (found) {
-                                                                return `${cat.name_en} > ${subcat.name_en} > ${found.name_en}`.toUpperCase();
-                                                            }
-                                                        }
-                                                    }
-                                                }
-
-                                                // If subcategory selected, get its path
-                                                if (selectedSubcategoryId) {
-                                                    for (const cat of dbCategories) {
-                                                        const found = cat.subcategories?.find((s: any) => s.id === selectedSubcategoryId);
-                                                        if (found) {
-                                                            return `${cat.name_en} > ${found.name_en}`.toUpperCase();
-                                                        }
-                                                    }
-                                                }
-
-                                                // Default: show main category or path from first product
-                                                if (category.products && category.products.length > 0) {
-                                                    const mainCat = dbCategories.find((c: any) =>
-                                                        category.products?.some((p: any) => p.category_id === c.id)
-                                                    );
-                                                    if (mainCat) return mainCat.name_en.toUpperCase();
-                                                }
-                                                return (category.name === 'Other' ? 'Products' : category.name).toUpperCase();
-                                            })()}
-                                        </p>
                                         <div className="flex items-center justify-between">
                                             <h2 className="text-xl font-extrabold text-gray-900 dark:text-white">
                                                 {(() => {
@@ -877,25 +842,9 @@ export default function ShopDetailPage() {
                                                     return (category.name === 'Other' ? 'Products' : category.name);
                                                 })()}
                                             </h2>
-                                        <div className="flex items-center gap-3">
-                                            <button className="text-xs font-black text-[#00a082] hover:underline">
-                                                Show all
-                                            </button>
-                                            <div className="flex gap-1">
-                                                <button 
-                                                    onClick={() => scrollProducts(category.id, 'left')}
-                                                    className="w-7 h-7 rounded-full border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-gray-55 dark:hover:bg-slate-800 flex items-center justify-center transition-colors shadow-sm"
-                                                >
-                                                    <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-slate-400" />
-                                                </button>
-                                                <button 
-                                                    onClick={() => scrollProducts(category.id, 'right')}
-                                                    className="w-7 h-7 rounded-full border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-gray-55 dark:hover:bg-slate-800 flex items-center justify-center transition-colors shadow-sm"
-                                                >
-                                                    <ChevronRight className="w-4 h-4 text-gray-600 dark:text-slate-400" />
-                                                </button>
-                                            </div>
-                                        </div>
+                                        <button className="text-xs font-black text-[#00a082] hover:underline">
+                                            Show all ({category.products.length})
+                                        </button>
                                     </div>
                                     </div>
 
