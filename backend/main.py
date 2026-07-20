@@ -12,7 +12,7 @@ from schemas import (
     OrderCreate, OrderResponse, OrderStatusUpdate, RatingSubmit, IssueReport,
     SellerRegister, SellerResponse
 )
-from routers import payments, sellers, riders, notifications, websocket_routes, ratings, delivery_tracking, rider_endpoints, seller_endpoints, delivery_endpoints, marketplace, favorites, addresses, promotions, shop_reviews
+from routers import payments, sellers, riders, notifications, websocket_routes, ratings, delivery_tracking, rider_endpoints, seller_endpoints, delivery_endpoints, marketplace, favorites, addresses, promotions
 from utils.security import get_current_user, hash_password, verify_password, create_access_token
 from models import Order, OrderItem, Issue, Seller
 
@@ -74,9 +74,6 @@ app.include_router(ratings.router, prefix="/api/v1")
 app.include_router(delivery_tracking.router)
 app.include_router(notifications.router, prefix="/api/v1")
 app.include_router(websocket_routes.router, prefix="/api/v1")
-# Shop reviews router (must be BEFORE marketplace.listings_router to avoid conflicts)
-app.include_router(shop_reviews.router, prefix="/api/v1")
-
 app.include_router(marketplace.listings_router, prefix="/api/v1")
 app.include_router(marketplace.admin_router, prefix="/api/v1")
 app.include_router(marketplace.notifications_router, prefix="/api/v1")
