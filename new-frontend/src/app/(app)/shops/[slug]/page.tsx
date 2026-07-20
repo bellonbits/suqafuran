@@ -118,17 +118,8 @@ export default function ShopDetailPage() {
       setSelectedCategoryId(mainCategoryId);
       setSelectedSubcategoryId(null);
       setSelectedSubsubcategoryId(null);
-      // Set the active category and scroll to it
+      // Set the active category (no auto-scroll)
       setActiveCategory(mainCategoryId);
-      const matchingCat = categories.find(c => c.products?.some((p: any) => p.category_id === mainCategoryId));
-      if (matchingCat) {
-        setTimeout(() => {
-          categoryRefs.current[matchingCat.id]?.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
-          });
-        }, 100);
-      }
     }
   };
 
@@ -615,13 +606,6 @@ export default function ShopDetailPage() {
                                                 setSelectedSubcategoryId(null);
                                                 setSelectedSubsubcategoryId(null);
                                                 setActiveCategory(dbCategory.id);
-                                                const matchingCat = categories.find(c => c.products?.some((p: any) => p.category_id === dbCategory.id));
-                                                if (matchingCat) {
-                                                    categoryRefs.current[matchingCat.id]?.scrollIntoView({
-                                                        behavior: 'smooth',
-                                                        block: 'start',
-                                                    });
-                                                }
                                             }}
                                             className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all ${
                                                 selectedCategoryId === dbCategory.id
@@ -665,10 +649,6 @@ export default function ShopDetailPage() {
                                                                 );
                                                                 if (matchingCat) {
                                                                     setActiveCategory(matchingCat.id);
-                                                                    categoryRefs.current[matchingCat.id]?.scrollIntoView({
-                                                                        behavior: 'smooth',
-                                                                        block: 'start',
-                                                                    });
                                                                 }
                                                             }}
                                                             className="w-full text-left px-3 py-1 rounded-lg text-[11px] font-semibold transition-all text-gray-600 dark:text-slate-400 hover:text-gray-900 hover:bg-gray-50 dark:hover:text-slate-200 dark:hover:bg-slate-900/40 flex items-center justify-between"
@@ -718,10 +698,6 @@ export default function ShopDetailPage() {
                                                                                 );
                                                                                 if (matchingCat) {
                                                                                     setActiveCategory(matchingCat.id);
-                                                                                    categoryRefs.current[matchingCat.id]?.scrollIntoView({
-                                                                                        behavior: 'smooth',
-                                                                                        block: 'start',
-                                                                                    });
                                                                                 }
                                                                             }}
                                                                             className="w-full text-left px-3 py-1 rounded-lg text-[10px] font-medium transition-all text-gray-500 dark:text-slate-500 hover:text-gray-700 hover:bg-gray-50 dark:hover:text-slate-300 dark:hover:bg-slate-900/40 cursor-pointer"
