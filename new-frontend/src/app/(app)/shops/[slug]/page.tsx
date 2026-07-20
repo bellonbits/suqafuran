@@ -274,15 +274,12 @@ export default function ShopDetailPage() {
 
         const categoryMap = new Map<string, any[]>();
         filteredListings.forEach((listing: any) => {
-            // Group by subcategory if available, otherwise by main category
-            let groupKey = String(listing.category_id);
-            let displayName = listing.category?.name_en || 'Products';
+            // Group by MAIN CATEGORY ONLY
+            const groupKey = String(listing.category_id);
 
-            if (listing.subcategory_id) {
-                groupKey = `${listing.category_id}_${listing.subcategory_id}`;
-                const sub = subcategoryMap.get(listing.subcategory_id);
-                if (sub) displayName = sub.name_en;
-            }
+            // Get main category name
+            const mainCat = dbCategories.find((c: any) => c.id === listing.category_id);
+            const displayName = mainCat?.name_en || 'Products';
 
             if (!categoryMap.has(groupKey)) {
                 categoryMap.set(groupKey, []);
