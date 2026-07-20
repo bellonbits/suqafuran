@@ -561,9 +561,12 @@ export default function ShopDetailPage() {
                                                         {/* Subcategory */}
                                                         <button
                                                             onClick={() => {
-                                                                const matchingCat = categories.find(c => 
-                                                                    c.products?.[0]?.category_id === dbCategory.id && 
-                                                                    c.products?.[0]?.subcategory_id === subcategory.id
+                                                                // Find carousel section that contains products from this subcategory
+                                                                const matchingCat = categories.find(c =>
+                                                                    c.products?.some((p: any) =>
+                                                                        p.category_id === dbCategory.id &&
+                                                                        p.subcategory_id === subcategory.id
+                                                                    )
                                                                 );
                                                                 if (matchingCat) {
                                                                     setActiveCategory(matchingCat.id);
@@ -571,6 +574,8 @@ export default function ShopDetailPage() {
                                                                         behavior: 'smooth',
                                                                         block: 'start',
                                                                     });
+                                                                } else {
+                                                                    console.log(`No products found for subcategory: ${subcategory.name_en}`);
                                                                 }
                                                             }}
                                                             className="w-full text-left px-3 py-1 rounded-lg text-[11px] font-semibold transition-all text-gray-600 dark:text-slate-400 hover:text-gray-900 hover:bg-gray-50 dark:hover:text-slate-200 dark:hover:bg-slate-900/40 flex items-center justify-between"
@@ -607,7 +612,26 @@ export default function ShopDetailPage() {
                                                                     .map((subsubcategory: any) => (
                                                                         <button
                                                                             key={subsubcategory.id}
-                                                                            className="w-full text-left px-3 py-1 rounded-lg text-[10px] font-medium transition-all text-gray-500 dark:text-slate-500 hover:text-gray-700 hover:bg-gray-50 dark:hover:text-slate-300 dark:hover:bg-slate-900/40"
+                                                                            onClick={() => {
+                                                                                // Find carousel section with products from this subsubcategory
+                                                                                const matchingCat = categories.find(c =>
+                                                                                    c.products?.some((p: any) =>
+                                                                                        p.category_id === dbCategory.id &&
+                                                                                        p.subcategory_id === subcategory.id &&
+                                                                                        p.subsubcategory_id === subsubcategory.id
+                                                                                    )
+                                                                                );
+                                                                                if (matchingCat) {
+                                                                                    setActiveCategory(matchingCat.id);
+                                                                                    categoryRefs.current[matchingCat.id]?.scrollIntoView({
+                                                                                        behavior: 'smooth',
+                                                                                        block: 'start',
+                                                                                    });
+                                                                                } else {
+                                                                                    console.log(`No products found for: ${subsubcategory.name_en}`);
+                                                                                }
+                                                                            }}
+                                                                            className="w-full text-left px-3 py-1 rounded-lg text-[10px] font-medium transition-all text-gray-500 dark:text-slate-500 hover:text-gray-700 hover:bg-gray-50 dark:hover:text-slate-300 dark:hover:bg-slate-900/40 cursor-pointer"
                                                                         >
                                                                             {subsubcategory.name_en}
                                                                         </button>
