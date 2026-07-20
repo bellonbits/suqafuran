@@ -492,49 +492,73 @@ export default function PublicShopPage() {
             </div>
           )}
 
-          {/* Filter Pills */}
-          <div className="flex gap-2 flex-wrap">
+          {/* Filter Row */}
+          <div className="flex gap-3 items-center">
+            {/* Search Box - Pill Shape */}
+            <div className="relative max-w-md flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search products..."
+                className="w-full pl-12 pr-10 py-2.5 rounded-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-500 text-gray-900 dark:text-white"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Filters Button - Pill Shape */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 px-4 py-2 rounded-full border-2 border-gray-200 dark:border-slate-700 hover:border-orange-600 text-gray-700 dark:text-slate-300 font-semibold text-sm transition-all"
+              className={`px-4 py-2.5 rounded-full font-semibold text-sm whitespace-nowrap transition-all flex items-center gap-2 ${
+                showFilters
+                  ? 'bg-orange-600 text-white'
+                  : 'bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-800'
+              }`}
             >
               <Filter className="w-4 h-4" />
               Filters
             </button>
-            {shopData.city && (
-              <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-semibold text-sm">
-                <MapPin className="w-4 h-4" />
-                {shopData.city}
-              </button>
-            )}
           </div>
         </div>
 
         {/* Advanced Filters Drawer */}
         {showFilters && (
-          <div className="mb-6 p-4 bg-gray-50 dark:bg-slate-900 rounded-xl border-2 border-gray-200 dark:border-slate-700 space-y-4">
+          <div className="mb-6 p-5 bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 space-y-4">
             <div>
-              <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">Price Range</label>
-              <div className="flex gap-3">
-                <input
-                  type="number"
-                  value={priceRange.min}
-                  onChange={(e) => setPriceRange({ ...priceRange, min: parseInt(e.target.value) || 0 })}
-                  placeholder="Min"
-                  className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
-                />
-                <input
-                  type="number"
-                  value={priceRange.max}
-                  onChange={(e) => setPriceRange({ ...priceRange, max: parseInt(e.target.value) || 100000 })}
-                  placeholder="Max"
-                  className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
-                />
+              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">Price Range</label>
+              <div className="flex gap-3 items-end">
+                <div className="flex-1">
+                  <input
+                    type="number"
+                    value={priceRange.min}
+                    onChange={(e) => setPriceRange({ ...priceRange, min: parseInt(e.target.value) || 0 })}
+                    placeholder="Min price"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  />
+                </div>
+                <div className="text-gray-400">—</div>
+                <div className="flex-1">
+                  <input
+                    type="number"
+                    value={priceRange.max}
+                    onChange={(e) => setPriceRange({ ...priceRange, max: parseInt(e.target.value) || 100000 })}
+                    placeholder="Max price"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  />
+                </div>
               </div>
             </div>
             <button
               onClick={() => setShowFilters(false)}
-              className="w-full py-2 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg transition-colors"
+              className="w-full py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition-colors"
             >
               Apply Filters
             </button>
