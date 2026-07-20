@@ -1028,7 +1028,7 @@ export default function ShopDetailPage() {
                                     {/* Horizontal Carousel */}
                                     <div 
                                         ref={(el) => { if (el) scrollRefs.current[category.id] = el; }}
-                                        className="flex gap-4 overflow-x-auto pb-2 scroll-smooth hide-scrollbar snap-x snap-mandatory"
+                                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
                                     >
                                         {(() => {
                                             const filtered = category.products.filter((product) => {
@@ -1107,7 +1107,7 @@ export default function ShopDetailPage() {
                                                         setSelectedProduct(product);
                                                         setModalQuantity(cartQty || 1);
                                                     }}
-                                                    className="flex-shrink-0 w-44 snap-start cursor-pointer group"
+                                                    className="cursor-pointer group"
                                                 >
                                                     {/* Card Image Container */}
                                                     <div className="relative bg-gray-50 dark:bg-slate-900/60 aspect-square rounded-lg overflow-hidden border border-gray-100 dark:border-slate-800/80 mb-2.5 flex items-center justify-center transition-shadow group-hover:shadow-md">
@@ -1179,7 +1179,12 @@ export default function ShopDetailPage() {
                                                     
                                                     {/* Category Breadcrumb */}
                                                     <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-1 line-clamp-1">
-                                                        {getCategoryPath(product.category_id, product.subcategory_id, dbCategories, (product as any).subsubcategory_id)}
+                                                        {(() => {
+                                                  const cat = dbCategories.find((c: any) => c.id === product.category_id);
+                                                  const subcat = cat?.subcategories?.find((s: any) => s.id === product.subcategory_id);
+                                                  if (subcat) return `${cat?.name_en || 'Category'} • ${subcat.name_en}`;
+                                                  return cat?.name_en || 'Category';
+                                                })()}
                                                     </p>
                                                     
                                                     <div className="mt-2 flex flex-col">
