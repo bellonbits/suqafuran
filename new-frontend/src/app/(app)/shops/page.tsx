@@ -317,7 +317,7 @@ function ShopsPageContent() {
 
       {/* ── Search & Filter Row ─────────────────────────────────────────── */}
       <div className="max-w-[1440px] mx-auto px-8 pb-8">
-        <div className="flex gap-3 items-center">
+        <div className="flex gap-3 items-center justify-between">
           {/* Search Box - Pill Shape */}
           <div className="relative max-w-md flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -338,7 +338,7 @@ function ShopsPageContent() {
             )}
           </div>
 
-          {/* Market Filter Dropdown - Pill Shape */}
+          {/* Market Filter Dropdown - Pill Shape - Right Side */}
           <select
             value={selectedMarket || ''}
             onChange={(e) => setSelectedMarket(e.target.value || null)}
