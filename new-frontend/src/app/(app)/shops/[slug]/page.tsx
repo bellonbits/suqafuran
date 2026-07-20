@@ -394,21 +394,24 @@ export default function ShopDetailPage() {
                             </span>
                         </div>
 
-                        {/* SEARCH BAR */}
-                        <div className="relative max-w-xl">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder="Search products, brands..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-11 pr-4 py-2.5 bg-gray-100 dark:bg-slate-900 text-gray-900 dark:text-white rounded-full focus:outline-none focus:ring-2 focus:ring-orange-400 text-sm border-0"
-                            />
-                            {searchQuery && (
-                                <button onClick={() => setSearchQuery('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                                    <X className="w-4 h-4" />
-                                </button>
-                            )}
+                        {/* SEARCH & FILTER */}
+                        <div className="flex gap-3 items-center max-w-2xl">
+                            {/* SEARCH BAR */}
+                            <div className="relative flex-1 max-w-md">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Search products, brands..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-11 pr-4 py-2.5 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm border border-gray-200 dark:border-slate-800"
+                                />
+                                {searchQuery && (
+                                    <button onClick={() => setSearchQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300">
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
 
