@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'reac
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, ShieldCheck, Store, MapPin, Star, Package, X, ChevronLeft, ChevronRight, Percent, ThumbsUp, MoreHorizontal } from 'lucide-react';
+import { Search, ShieldCheck, Store, MapPin, Star, Package, X, ChevronLeft, ChevronRight, Percent, ThumbsUp } from 'lucide-react';
 import { listingsService, PublicShop } from '@/services/listings';
 import api, { resolveMediaUrl } from '@/services/api';
 import { useLocationStore } from '@/store/useLocation';
@@ -189,7 +189,6 @@ function SkeletonCard() {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 const SHOPS_PER_PAGE = 20;
-const MAX_VISIBLE_CATEGORIES = 10;
 
 function ShopsPageContent() {
   const router = useRouter();
@@ -207,7 +206,6 @@ function ShopsPageContent() {
   const [selectedMarket, setSelectedMarket] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [shopCountsByCategory, setShopCountsByCategory] = useState<Record<string, number>>({});
-  const [showMoreCategories, setShowMoreCategories] = useState(false);
   const categoryParam = searchParams.get('category');
 
   // Debounce search
@@ -300,10 +298,8 @@ function ShopsPageContent() {
 
   const totalPages = Math.ceil(total / SHOPS_PER_PAGE);
 
-  // Get visible categories (limit to MAX_VISIBLE_CATEGORIES)
+  // Get all active categories (no limit)
   const activeCategories = categories.filter(cat => (cat.active_listing_count ?? 0) > 0);
-  const visibleCategories = showMoreCategories ? activeCategories : activeCategories.slice(0, MAX_VISIBLE_CATEGORIES);
-  const hasMoreCategories = activeCategories.length > MAX_VISIBLE_CATEGORIES;
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 pb-20">
@@ -391,7 +387,7 @@ function ShopsPageContent() {
             </div>
 
             {/* DYNAMIC STICKERS — only categories with active listings */}
-            {visibleCategories.map(cat => {
+            {activeCategories.map(cat => {
               const icon = getCategoryStickerIcon(cat.slug);
               const isSelected = selectedCategoryId === cat.id;
               return (
@@ -426,20 +422,6 @@ function ShopsPageContent() {
               );
             })}
 
-            {/* More Categories Button */}
-            {hasMoreCategories && (
-              <div
-                onClick={() => setShowMoreCategories(!showMoreCategories)}
-                className="flex flex-col items-center shrink-0 cursor-pointer group"
-              >
-                <div className="relative w-16 h-16 flex items-center justify-center transition-all duration-200 rounded-full bg-gray-100 dark:bg-slate-800 group-hover:bg-gray-200 dark:group-hover:bg-slate-700">
-                  <MoreHorizontal className="w-6 h-6 text-gray-600 dark:text-slate-400" />
-                </div>
-                <span className="text-[12px] font-bold mt-2 tracking-tight text-center w-16 text-gray-700 dark:text-slate-300">
-                  {showMoreCategories ? 'Less' : 'More'}
-                </span>
-              </div>
-            )}
           </div>
         </div>
       </div>
