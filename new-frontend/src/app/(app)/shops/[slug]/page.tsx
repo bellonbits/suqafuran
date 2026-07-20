@@ -107,6 +107,10 @@ export default function ShopDetailPage() {
     const [shopRating, setShopRating] = useState<number | null>(null);
     const [totalReviews, setTotalReviews] = useState(0);
     const [verifiedReviewsCount, setVerifiedReviewsCount] = useState(0);
+    const [reviews, setReviews] = useState<any[]>([]);
+    const [reviewsLoading, setReviewsLoading] = useState(false);
+    const [userHasReviewed, setUserHasReviewed] = useState(false);
+    const [lastReviewTime, setLastReviewTime] = useState<number | null>(null);
 
     const { items: cartItems, addItem, updateQuantity: updateCartQuantity, getTotalPrice } = useCart();
 
@@ -253,6 +257,45 @@ export default function ShopDetailPage() {
 
         fetchData();
     }, [shopId, city]);
+
+    // Fetch reviews for the shop
+    useEffect(() => {
+        if (!shopId) return;
+
+        const fetchReviews = async () => {
+            try {
+                setReviewsLoading(true);
+                const response = await api.get(`/listings/shops/${shopId}/reviews`);
+
+                if (response.data) {
+                    setReviews(response.data.reviews || []);
+                    setShopRating(response.data.average_rating || null);
+                    setTotalReviews(response.data.total_reviews || 0);
+                    setVerifiedReviewsCount(response.data.verified_reviews_count || 0);
+
+                    // Check if current user has already reviewed
+                    const userEmail = localStorage.getItem('userEmail');
+                    if (userEmail) {
+                        const userReview = response.data.reviews?.find((r: any) => r.reviewer_email === userEmail);
+                        if (userReview) {
+                            setUserHasReviewed(true);
+                            setLastReviewTime(new Date(userReview.created_at).getTime());
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch reviews:', error);
+                // Fallback: set empty reviews, don't show rating
+                setReviews([]);
+                setShopRating(null);
+                setTotalReviews(0);
+            } finally {
+                setReviewsLoading(false);
+            }
+        };
+
+        fetchReviews();
+    }, [shopId]);
 
     const filteredListings = useMemo(() => {
         if (!searchQuery.trim()) return allListings;
@@ -522,31 +565,41 @@ export default function ShopDetailPage() {
                         </div>
 
                         {/* Rating Section */}
-                        <div className="flex items-center gap-4 mb-4 py-3 border-y border-gray-100 dark:border-slate-800">
-                            <div className="flex items-center gap-2">
-                                <div className="flex gap-0.5">
-                                    {[...Array(5)].map((_, i) => (
-                                        <Star
-                                            key={i}
-                                            className={`w-4 h-4 ${
-                                                i < Math.floor(shopRating || 4.7)
-                                                    ? 'fill-yellow-400 text-yellow-400'
-                                                    : 'text-gray-300 dark:text-slate-600'
-                                            }`}
-                                        />
-                                    ))}
+                        {shopRating !== null && totalReviews > 0 && (
+                            <div className="flex items-center gap-4 mb-4 py-3 border-y border-gray-100 dark:border-slate-800">
+                                <div className="flex items-center gap-2">
+                                    <div className="flex gap-0.5">
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star
+                                                key={i}
+                                                className={`w-4 h-4 ${
+                                                    i < Math.floor(shopRating)
+                                                        ? 'fill-yellow-400 text-yellow-400'
+                                                        : 'text-gray-300 dark:text-slate-600'
+                                                }`}
+                                            />
+                                        ))}
+                                    </div>
+                                    <span className="text-xs font-bold text-gray-900 dark:text-white">
+                                        {shopRating.toFixed(1)} ({totalReviews})
+                                    </span>
+                                    <span className="text-xs text-gray-500 dark:text-slate-400">
+                                        ({verifiedReviewsCount} verified)
+                                    </span>
                                 </div>
-                                <span className="text-xs font-bold text-gray-900 dark:text-white">
-                                    {shopRating || 4.7} ({totalReviews || 247})
-                                </span>
+                                <button
+                                    onClick={() => setRatingModalOpen(true)}
+                                    disabled={userHasReviewed}
+                                    className={`text-xs font-bold ml-auto ${
+                                        userHasReviewed
+                                            ? 'text-gray-400 cursor-not-allowed'
+                                            : 'text-[#00a082] hover:underline'
+                                    }`}
+                                >
+                                    {userHasReviewed ? 'Review Submitted' : 'Rate Shop'}
+                                </button>
                             </div>
-                            <button
-                                onClick={() => setRatingModalOpen(true)}
-                                className="text-xs font-bold text-[#00a082] hover:underline ml-auto"
-                            >
-                                Rate Shop
-                            </button>
-                        </div>
+                        )}
 
                         {/* Badges */}
                         <div className="flex items-center gap-2 mb-4 flex-wrap">
@@ -1198,6 +1251,127 @@ export default function ShopDetailPage() {
                 )}
             </div>
 
+            {/* REVIEWS SECTION */}
+            {reviews && reviews.length > 0 && (
+                <div className="max-w-7xl mx-auto px-4 lg:px-6 pb-12 mt-12">
+                    <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">Customer Reviews</h2>
+
+                    <div className="grid grid-cols-12 gap-8">
+                        {/* Reviews List - Left/Center */}
+                        <div className="col-span-12 lg:col-span-8">
+                            <div className="space-y-4">
+                                {reviews.map((review: any) => (
+                                    <div
+                                        key={review.id}
+                                        className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-100 dark:border-slate-800"
+                                    >
+                                        {/* Header */}
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="font-bold text-gray-900 dark:text-white">
+                                                        {review.display_name}
+                                                    </span>
+                                                    {review.is_verified_purchase ? (
+                                                        <span className="text-xs bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                            <span>✓</span> Verified Purchase
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-xs bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full">
+                                                            Public Review
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs text-gray-500 dark:text-slate-400">
+                                                    {new Date(review.created_at).toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Rating */}
+                                        <div className="flex gap-0.5 mb-2">
+                                            {[...Array(5)].map((_, i) => (
+                                                <Star
+                                                    key={i}
+                                                    className={`w-4 h-4 ${
+                                                        i < review.rating
+                                                            ? 'fill-yellow-400 text-yellow-400'
+                                                            : 'text-gray-300 dark:text-slate-600'
+                                                    }`}
+                                                />
+                                            ))}
+                                        </div>
+
+                                        {/* Review Text */}
+                                        {review.review && (
+                                            <p className="text-sm text-gray-700 dark:text-slate-300">
+                                                {review.review}
+                                            </p>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Rating Summary - Right */}
+                        {shopRating !== null && (
+                            <div className="col-span-12 lg:col-span-4">
+                                <div className="bg-white dark:bg-slate-900 rounded-lg p-6 border border-gray-100 dark:border-slate-800 sticky top-28">
+                                    <div className="text-center mb-6">
+                                        <div className="text-5xl font-black text-gray-900 dark:text-white mb-2">
+                                            {shopRating.toFixed(1)}
+                                        </div>
+                                        <div className="flex justify-center gap-0.5 mb-3">
+                                            {[...Array(5)].map((_, i) => (
+                                                <Star
+                                                    key={i}
+                                                    className={`w-5 h-5 ${
+                                                        i < Math.floor(shopRating)
+                                                            ? 'fill-yellow-400 text-yellow-400'
+                                                            : 'text-gray-300 dark:text-slate-600'
+                                                    }`}
+                                                />
+                                            ))}
+                                        </div>
+                                        <p className="text-sm text-gray-600 dark:text-slate-400">
+                                            {totalReviews} total reviews
+                                        </p>
+                                    </div>
+
+                                    <div className="space-y-3 pt-6 border-t border-gray-200 dark:border-slate-800">
+                                        <div>
+                                            <p className="text-xs text-gray-600 dark:text-slate-400 mb-1">
+                                                Verified Reviews
+                                            </p>
+                                            <p className="font-bold text-gray-900 dark:text-white">
+                                                {verifiedReviewsCount}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-600 dark:text-slate-400 mb-1">
+                                                Community Reviews
+                                            </p>
+                                            <p className="font-bold text-gray-900 dark:text-white">
+                                                {totalReviews - verifiedReviewsCount}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {!userHasReviewed && (
+                                        <button
+                                            onClick={() => setRatingModalOpen(true)}
+                                            className="w-full bg-[#00a082] hover:bg-[#008f73] text-white font-bold py-2 px-4 rounded-lg transition-colors mt-6"
+                                        >
+                                            Write a Review
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
             {/* PRODUCT DETAIL MODAL (Overlay) */}
             <AnimatePresence>
                 {selectedProduct && (
@@ -1474,22 +1648,55 @@ export default function ShopDetailPage() {
 
                         {/* Submit Button */}
                         <button
-                            onClick={() => {
+                            onClick={async () => {
                                 if (userRating > 0 && displayName.trim()) {
-                                    console.log('Review submitted:', {
-                                        rating: userRating,
-                                        review: userReview,
-                                        displayName,
-                                        isVerifiedPurchase,
-                                        shopId,
-                                    });
-                                    // TODO: Send to API endpoint
-                                    setRatingModalOpen(false);
-                                    setUserRating(0);
-                                    setUserReview('');
-                                    setDisplayName('');
-                                    setIsVerifiedPurchase(false);
-                                    alert('Thank you for your review!');
+                                    // Rate limiting: 24 hours between reviews
+                                    if (userHasReviewed && lastReviewTime) {
+                                        const hoursSinceReview = (Date.now() - lastReviewTime) / (1000 * 60 * 60);
+                                        if (hoursSinceReview < 24) {
+                                            alert(`You can update your review in ${Math.ceil(24 - hoursSinceReview)} hours.`);
+                                            return;
+                                        }
+                                    }
+
+                                    try {
+                                        // Submit review to API
+                                        const response = await api.post(
+                                            `/listings/shops/${shopId}/reviews`,
+                                            {
+                                                rating: userRating,
+                                                review: userReview,
+                                                display_name: displayName,
+                                                is_verified_purchase: isVerifiedPurchase,
+                                            }
+                                        );
+
+                                        if (response.data) {
+                                            // Update local state
+                                            setUserHasReviewed(true);
+                                            setLastReviewTime(Date.now());
+
+                                            // Refresh reviews
+                                            const reviewsResponse = await api.get(`/listings/shops/${shopId}/reviews`);
+                                            if (reviewsResponse.data) {
+                                                setReviews(reviewsResponse.data.reviews || []);
+                                                setShopRating(reviewsResponse.data.average_rating || null);
+                                                setTotalReviews(reviewsResponse.data.total_reviews || 0);
+                                                setVerifiedReviewsCount(reviewsResponse.data.verified_reviews_count || 0);
+                                            }
+
+                                            // Clear form
+                                            setRatingModalOpen(false);
+                                            setUserRating(0);
+                                            setUserReview('');
+                                            setDisplayName('');
+                                            setIsVerifiedPurchase(false);
+                                            alert('Thank you for your review!');
+                                        }
+                                    } catch (error) {
+                                        console.error('Failed to submit review:', error);
+                                        alert('Failed to submit review. Please try again.');
+                                    }
                                 } else {
                                     alert('Please select a rating and enter your name');
                                 }
