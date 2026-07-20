@@ -441,9 +441,59 @@ export default function ShopDetailPage() {
                 {/* DETAILS ROW (Title, Badges, bubbles metrics) */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
                     <div className="md:col-span-8">
-                        <h1 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white tracking-tight mb-2">
+                        <h1 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white tracking-tight mb-3">
                             {shopName}
                         </h1>
+
+                        {/* Seller Info Section */}
+                        <div className="flex items-center gap-4 mb-5 pb-4 border-b border-gray-100 dark:border-slate-800">
+                            {/* Verification & Stats */}
+                            <div className="flex items-center gap-3 flex-wrap">
+                                <span className="bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+                                    <span>✓</span> Verified Seller
+                                </span>
+                                <span className="text-xs text-gray-600 dark:text-slate-400 font-semibold">
+                                    <span className="text-green-600 dark:text-green-400">95%</span> response rate
+                                </span>
+                                <span className="text-xs text-gray-600 dark:text-slate-400 font-semibold">
+                                    Member since <span className="text-gray-900 dark:text-white">Jan 2026</span>
+                                </span>
+                            </div>
+
+                            {/* Contact Buttons - Icon Row */}
+                            <div className="flex items-center gap-2 ml-auto">
+                                <button
+                                    onClick={() => {
+                                        setContactModalOpen(true);
+                                        setSelectedContactType('whatsapp');
+                                    }}
+                                    className="w-10 h-10 rounded-lg hover:scale-110 transition-transform flex items-center justify-center"
+                                    title="WhatsApp"
+                                >
+                                    <img src="/whatsapp-icon.png" alt="WhatsApp" className="w-6 h-6" />
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setContactModalOpen(true);
+                                        setSelectedContactType('call');
+                                    }}
+                                    className="w-10 h-10 rounded-lg hover:scale-110 transition-transform flex items-center justify-center"
+                                    title="Call"
+                                >
+                                    <img src="/call-icon.png" alt="Call" className="w-6 h-6" />
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setContactModalOpen(true);
+                                        setSelectedContactType('message');
+                                    }}
+                                    className="w-10 h-10 rounded-lg hover:scale-110 transition-transform flex items-center justify-center"
+                                    title="Message"
+                                >
+                                    <img src="/message-icon.png" alt="Message" className="w-6 h-6" />
+                                </button>
+                            </div>
+                        </div>
 
                         {/* Badges */}
                         <div className="flex items-center gap-2 mb-4 flex-wrap">
