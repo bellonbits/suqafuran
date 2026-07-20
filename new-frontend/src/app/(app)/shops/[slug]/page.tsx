@@ -61,6 +61,7 @@ export default function ShopDetailPage() {
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(!city);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategory, setActiveCategory] = useState<string>('');
+    const [expandedSubcategories, setExpandedSubcategories] = useState<Set<number>>(new Set());
     const [dbCategories, setDbCategories] = useState<any[]>([]);
     const [customBanner, setCustomBanner] = useState<string | null>(null);
     const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
@@ -184,7 +185,13 @@ export default function ShopDetailPage() {
                         console.error(`⚠️ Banner fetch failed (will use category fallback):`, err.message);
                     }
                 } else {
-                    console.error('Shop not found in public shops list.');
+                    console.error('Shop not found in public shops list. Setting fallback data.');
+                    // Fallback: use shop name from URL slug
+                    setShopName(shopSlug || 'Shop');
+                    setAllListings(shopListings || []);
+                    if (shopListings && shopListings.length > 0) {
+                        setActiveCategory(String(shopListings[0].category_id || ''));
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching shop details:', error);
