@@ -146,7 +146,7 @@ export const Header: React.FC = () => {
                         {/* Dark Mode - Icon Only */}
                         <button
                             onClick={toggleDarkMode}
-                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors hidden lg:flex"
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors flex"
                             aria-label="Toggle dark mode"
                             title="Toggle dark mode"
                         >
