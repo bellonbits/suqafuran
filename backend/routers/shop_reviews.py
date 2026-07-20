@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Body, Query
+from fastapi import APIRouter, Depends, HTTPException, Body, Query, Path
 from sqlalchemy.orm import Session
 from database import get_db
 from models import ShopReview, ShopFeedback, ShopFollow
@@ -86,7 +86,7 @@ router = APIRouter(tags=["shop-reviews"])
 
 @router.get("/listings/shops/{shop_id}/reviews", response_model=ReviewsListResponse, tags=["Shop Reviews"])
 def get_reviews(
-    shop_id: str = Field(..., description="ID of the shop"),
+    shop_id: str = Path(..., description="ID of the shop"),
     db: Session = Depends(get_db)
 ):
     """Get all reviews for a shop with aggregate statistics."""
@@ -101,7 +101,7 @@ def get_reviews(
 
 @router.post("/listings/shops/{shop_id}/reviews", response_model=SuccessIdResponse, tags=["Shop Reviews"])
 def post_review(
-    shop_id: str = Field(..., description="ID of the shop"),
+    shop_id: str = Path(..., description="ID of the shop"),
     data: ReviewCreate = Body(..., description="Review submission data"),
     db: Session = Depends(get_db)
 ):
@@ -119,7 +119,7 @@ def post_review(
 
 @router.get("/listings/shops/{shop_id}/feedback", response_model=FeedbackListResponse, tags=["Shop Feedback"])
 def get_feedback(
-    shop_id: str = Field(..., description="ID of the shop"),
+    shop_id: str = Path(..., description="ID of the shop"),
     db: Session = Depends(get_db)
 ):
     """Get all feedback for a shop."""
@@ -131,7 +131,7 @@ def get_feedback(
 
 @router.post("/listings/shops/{shop_id}/feedback", response_model=SuccessIdResponse, tags=["Shop Feedback"])
 def post_feedback(
-    shop_id: str = Field(..., description="ID of the shop"),
+    shop_id: str = Path(..., description="ID of the shop"),
     data: FeedbackCreate = Body(..., description="Feedback submission data"),
     db: Session = Depends(get_db)
 ):
@@ -147,7 +147,7 @@ def post_feedback(
 
 @router.post("/listings/shops/{shop_id}/follow", response_model=SuccessResponse, tags=["Shop Follow"])
 def follow(
-    shop_id: str = Field(..., description="ID of the shop to follow"),
+    shop_id: str = Path(..., description="ID of the shop to follow"),
     data: FollowCreate = Body(..., description="Follow request data"),
     db: Session = Depends(get_db)
 ):
@@ -165,7 +165,7 @@ def follow(
 
 @router.delete("/listings/shops/{shop_id}/follow", response_model=SuccessResponse, tags=["Shop Follow"])
 def unfollow(
-    shop_id: str = Field(..., description="ID of the shop to unfollow"),
+    shop_id: str = Path(..., description="ID of the shop to unfollow"),
     user_id: int = Query(..., description="ID of the user unfollowing"),
     db: Session = Depends(get_db)
 ):
