@@ -275,13 +275,18 @@ export default function ShopDetailPage() {
         const fetchReviews = async () => {
             try {
                 setReviewsLoading(true);
-                const response = await api.get(`/listings/shops/${shopId}/reviews`);
+                const response = await api.get(`/reviews`);
 
-                if (response.data) {
-                    setReviews(response.data.reviews || []);
-                    setShopRating(response.data.average_rating || null);
-                    setTotalReviews(response.data.total_reviews || 0);
-                    setVerifiedReviewsCount(response.data.verified_reviews_count || 0);
+                if (response.data && Array.isArray(response.data)) {
+                    const shopReviews = response.data.filter((r: any) => String(r.seller_id) === String(shopId));
+                    setReviews(shopReviews || []);
+                    const avg = shopReviews.length > 0
+                        ? shopReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / shopReviews.length
+                        : null;
+                    const verified = shopReviews.filter((r: any) => r.is_verified_purchase).length;
+                    setShopRating(avg);
+                    setTotalReviews(shopReviews.length || 0);
+                    setVerifiedReviewsCount(verified || 0);
 
                     // Check if current user has already reviewed
                     const userEmail = localStorage.getItem('userEmail');
@@ -1355,11 +1360,12 @@ export default function ShopDetailPage() {
                                             try {
                                                 setIsSubmittingFeedback(true);
                                                 const response = await api.post(
-                                                    `/listings/shops/${shopId}/feedback`,
+                                                    `/feedback/feedback`,
                                                     {
                                                         feedback_text: feedbackText,
                                                         display_name: displayName || user?.full_name || 'Anonymous',
                                                         user_id: user?.id,
+                                                        seller_id: shopId,
                                                         is_public: true
                                                     }
                                                 );
@@ -1767,10 +1773,11 @@ export default function ShopDetailPage() {
                                     try {
                                         // Submit review to API
                                         const response = await api.post(
-                                            `/listings/shops/${shopId}/reviews`,
+                                            `/reviews`,
                                             {
                                                 rating: userRating,
-                                                review: userReview,
+                                                review_text: userReview,
+                                                seller_id: shopId,
                                                 display_name: displayName,
                                                 is_verified_purchase: isVerifiedPurchase,
                                                 user_id: user?.id,
@@ -1784,12 +1791,17 @@ export default function ShopDetailPage() {
                                             setLastReviewTime(Date.now());
 
                                             // Refresh reviews
-                                            const reviewsResponse = await api.get(`/listings/shops/${shopId}/reviews`);
-                                            if (reviewsResponse.data) {
-                                                setReviews(reviewsResponse.data.reviews || []);
-                                                setShopRating(reviewsResponse.data.average_rating || null);
-                                                setTotalReviews(reviewsResponse.data.total_reviews || 0);
-                                                setVerifiedReviewsCount(reviewsResponse.data.verified_reviews_count || 0);
+                                            const reviewsResponse = await api.get(`/reviews`);
+                                            if (reviewsResponse.data && Array.isArray(reviewsResponse.data)) {
+                                                const shopReviews = reviewsResponse.data.filter((r: any) => String(r.seller_id) === String(shopId));
+                                                setReviews(shopReviews || []);
+                                                const avg = shopReviews.length > 0
+                                                    ? shopReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / shopReviews.length
+                                                    : null;
+                                                const verified = shopReviews.filter((r: any) => r.is_verified_purchase).length;
+                                                setShopRating(avg);
+                                                setTotalReviews(shopReviews.length || 0);
+                                                setVerifiedReviewsCount(verified || 0);
                                             }
 
                                             // Clear form
