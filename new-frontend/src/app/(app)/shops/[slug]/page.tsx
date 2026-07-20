@@ -655,7 +655,7 @@ export default function ShopDetailPage() {
                                         )}
 
                                         {/* Filters - Inside each category */}
-                                        <div className="space-y-3 mt-4 pt-4 border-t border-gray-200 dark:border-slate-800">
+                                        <div className="pl-2 space-y-3 mt-4 pt-4 border-t border-gray-200 dark:border-slate-800">
                                 {/* Price Range */}
                                 <div>
                                     <h3 className="text-xs font-bold text-gray-900 dark:text-white mb-2">Price Range</h3>
