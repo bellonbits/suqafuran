@@ -79,6 +79,8 @@ export default function ShopDetailPage() {
     const [shopId, setShopId] = useState<string | null>(null);
     const [shopOwnerId, setShopOwnerId] = useState<string | number | null>(null);
     const [favorites, setFavorites] = useState<Set<string | number>>(new Set());
+    const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<number | null>(null);
+    const [selectedSubsubcategoryId, setSelectedSubsubcategoryId] = useState<number | null>(null);
 
     const { items: cartItems, addItem, updateQuantity: updateCartQuantity, getTotalPrice } = useCart();
 
@@ -561,7 +563,9 @@ export default function ShopDetailPage() {
                                                         {/* Subcategory */}
                                                         <button
                                                             onClick={() => {
-                                                                // Find carousel section that contains products from this subcategory
+                                                                setSelectedSubcategoryId(subcategory.id);
+                                                                setSelectedSubsubcategoryId(null);
+
                                                                 const matchingCat = categories.find(c =>
                                                                     c.products?.some((p: any) =>
                                                                         p.category_id === dbCategory.id &&
@@ -574,8 +578,6 @@ export default function ShopDetailPage() {
                                                                         behavior: 'smooth',
                                                                         block: 'start',
                                                                     });
-                                                                } else {
-                                                                    console.log(`No products found for subcategory: ${subcategory.name_en}`);
                                                                 }
                                                             }}
                                                             className="w-full text-left px-3 py-1 rounded-lg text-[11px] font-semibold transition-all text-gray-600 dark:text-slate-400 hover:text-gray-900 hover:bg-gray-50 dark:hover:text-slate-200 dark:hover:bg-slate-900/40 flex items-center justify-between"
@@ -613,7 +615,9 @@ export default function ShopDetailPage() {
                                                                         <button
                                                                             key={subsubcategory.id}
                                                                             onClick={() => {
-                                                                                // Find carousel section with products from this subsubcategory
+                                                                                setSelectedSubcategoryId(subcategory.id);
+                                                                                setSelectedSubsubcategoryId(subsubcategory.id);
+
                                                                                 const matchingCat = categories.find(c =>
                                                                                     c.products?.some((p: any) =>
                                                                                         p.category_id === dbCategory.id &&
@@ -627,8 +631,6 @@ export default function ShopDetailPage() {
                                                                                         behavior: 'smooth',
                                                                                         block: 'start',
                                                                                     });
-                                                                                } else {
-                                                                                    console.log(`No products found for: ${subsubcategory.name_en}`);
                                                                                 }
                                                                             }}
                                                                             className="w-full text-left px-3 py-1 rounded-lg text-[10px] font-medium transition-all text-gray-500 dark:text-slate-500 hover:text-gray-700 hover:bg-gray-50 dark:hover:text-slate-300 dark:hover:bg-slate-900/40 cursor-pointer"
@@ -702,7 +704,21 @@ export default function ShopDetailPage() {
                                         ref={(el) => { if (el) scrollRefs.current[category.id] = el; }}
                                         className="flex gap-4 overflow-x-auto pb-2 scroll-smooth hide-scrollbar snap-x snap-mandatory"
                                     >
-                                        {category.products.map((product) => {
+                                        {category.products
+                                            .filter((product) => {
+                                                // If no subcategory selected, show all products
+                                                if (selectedSubcategoryId === null) return true;
+
+                                                // If subcategory selected but no subsubcategory
+                                                if (selectedSubsubcategoryId === null) {
+                                                    return product.subcategory_id === selectedSubcategoryId;
+                                                }
+
+                                                // If both selected, match both
+                                                return product.subcategory_id === selectedSubcategoryId &&
+                                                       product.subsubcategory_id === selectedSubsubcategoryId;
+                                            })
+                                            .map((product) => {
                                             const { hasPromo, originalPrice, promoText } = getMockProductInfo(product);
                                             const cartQty = getCartQuantity(String(product.id));
 
