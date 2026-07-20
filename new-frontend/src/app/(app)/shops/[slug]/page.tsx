@@ -550,19 +550,21 @@ export default function ShopDetailPage() {
                 ) : (
                     <div className="grid grid-cols-12 gap-8 items-start">
                         {/* 1. Left Sidebar (Categories with Subcategories) */}
-                        <aside className={`hidden lg:block sticky top-28 self-start max-h-[75vh] overflow-y-auto pr-2 hide-scrollbar transition-all duration-300 ${isSidebarCollapsed ? 'lg:col-span-0.5' : 'lg:col-span-2'}`}>
-                            {/* Collapse/Expand Button */}
-                            <button
-                                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                className="w-full mb-3 flex items-center justify-center p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-900/40 transition-colors"
-                                title={isSidebarCollapsed ? "Expand filters" : "Collapse filters"}
-                            >
-                                <ChevronLeft className={`w-5 h-5 text-gray-600 dark:text-slate-400 transition-transform ${isSidebarCollapsed ? 'rotate-180' : ''}`} />
-                            </button>
+                        <aside className="hidden lg:block lg:col-span-2 sticky top-28 self-start max-h-[75vh] overflow-y-auto pr-2 hide-scrollbar">
+                            {/* Categories Section with Collapse/Expand Button */}
+                            <div className="mb-4">
+                                <button
+                                    onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                                    className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-900/40 transition-colors mb-2"
+                                    title={isSidebarCollapsed ? "Expand categories" : "Collapse categories"}
+                                >
+                                    <span className="text-xs font-bold text-gray-700 dark:text-slate-300">Categories</span>
+                                    <ChevronLeft className={`w-4 h-4 text-gray-600 dark:text-slate-400 transition-transform ${isSidebarCollapsed ? 'rotate-180' : ''}`} />
+                                </button>
 
-                            {/* Categories Content - Hidden when collapsed */}
-                            {!isSidebarCollapsed && (
-                            <div className="space-y-2">
+                                {/* Categories Content - Hidden when collapsed */}
+                                {!isSidebarCollapsed && (
+                                <div className="space-y-2">
                                 {dbCategories
                                     .filter((dbCategory: any) => {
                                         // Only show categories that have products in this shop
@@ -690,9 +692,15 @@ export default function ShopDetailPage() {
                                                         )}
                                                     </div>
                                                 ))}
+                        )}
+                    </div>
+                ))}
+            </div>
+                                )}
+                            </div>
 
-                                                {/* Filters - Inside subcategories */}
-                                                <div className="space-y-3 mt-4 pt-4 border-t border-gray-200 dark:border-slate-800">
+                            {/* Filters Section - Always Visible */}
+                            <div className="space-y-3 mt-4 pt-4 border-t border-gray-200 dark:border-slate-800">
                                 {/* Price Range */}
                                 <div>
                                     <h3 className="text-xs font-bold text-gray-900 dark:text-white mb-2">Price Range</h3>
@@ -794,16 +802,10 @@ export default function ShopDetailPage() {
                                     </div>
                                 </div>
                             </div>
-                            </div>
-                        )}
-                    </div>
-                ))}
-            </div>
-                            )}
                         </aside>
 
                         {/* 2. Center Column (List of Carousels) */}
-                        <main className={`col-span-12 space-y-12 transition-all duration-300 ${isSidebarCollapsed ? 'lg:col-span-9.5' : 'lg:col-span-7'}`}>
+                        <main className="col-span-12 lg:col-span-7 space-y-12">
                             {categories.map((category) => (
                                 <div
                                     key={category.id}
@@ -1080,7 +1082,7 @@ export default function ShopDetailPage() {
                         </main>
 
                         {/* 3. Right Sidebar (Your Order / Cart Summary) */}
-                        <aside className={`col-span-12 sticky top-28 self-start transition-all duration-300 ${isSidebarCollapsed ? 'lg:col-span-2.5' : 'lg:col-span-3'}`}>
+                        <aside className="col-span-12 lg:col-span-3 sticky top-28 self-start">
                             <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-xl p-5 shadow-sm max-h-[75vh] flex flex-col">
                                 <div className="flex items-center gap-2 pb-4 border-b border-gray-100 dark:border-slate-800 mb-4 shrink-0">
                                     <ShoppingBag className="w-4.5 h-4.5 text-gray-500" />
