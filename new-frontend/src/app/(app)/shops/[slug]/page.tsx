@@ -24,14 +24,24 @@ function getMockProductInfo(product: any) {
 }
 
 
-// Helper: Format category as breadcrumb
-function getCategoryPath(categoryId: number, categories: any[] = []): string {
-  // For now, just use category ID as fallback
-  // In future, this will map to full hierarchy from backend
-  if (categoryId === 1) return "Beauty & Personal Care > Moisturizers";
-  if (categoryId === 2) return "Beauty & Personal Care > Cleansers";
-  if (categoryId === 3) return "Fashion > Women's Clothing";
-  return `Category ${categoryId}`;
+// Helper: Format category as breadcrumb with main category > subcategory
+function getCategoryPath(categoryId: number): string {
+  // Map category IDs to full hierarchies (main > sub)
+  const categoryMap: {[key: number]: string} = {
+    1: "Beauty & Personal Care > Moisturizers",
+    2: "Beauty & Personal Care > Cleansers",
+    3: "Beauty & Personal Care > Serums",
+    4: "Beauty & Personal Care > Sunscreens",
+    5: "Fashion > Women's Clothing",
+    6: "Fashion > Men's Clothing",
+    7: "Fashion > Shoes",
+    8: "Electronics > Phones",
+    9: "Electronics > Laptops",
+    10: "Electronics > Accessories",
+    11: "Health & Wellness > Supplements",
+    12: "Home & Garden > Furniture",
+  };
+  return categoryMap[categoryId] || `Products > Category ${categoryId}`;
 }
 
 export default function ShopDetailPage() {
@@ -496,7 +506,16 @@ export default function ShopDetailPage() {
                                                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-900/40'
                                             }`}
                                         >
-                                            <span className="truncate mr-1">{category.name === 'Other' ? 'Products' : category.name}</span>
+                                            <span className="truncate mr-1">
+                                              {category.products && category.products.length > 0
+                                                ? (() => {
+                                                    const path = getCategoryPath(category.products[0].category_id);
+                                                    const parts = path.split(' > ');
+                                                    return parts[parts.length - 1]; // Show just subcategory in sidebar
+                                                  })()
+                                                : (category.name === 'Other' ? 'Products' : category.name)
+                                              }
+                                            </span>
                                             {isActive && <ChevronRight className="w-3.5 h-3.5 shrink-0" />}
                                         </button>
                                     );
@@ -516,11 +535,20 @@ export default function ShopDetailPage() {
                                     <div className="mb-4">
                                         {/* Category Breadcrumb */}
                                         <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-2 uppercase tracking-wide">
-                                            {`Shop > ${category.name === 'Other' ? 'Products' : category.name}`}
+                                            {category.products && category.products.length > 0
+                                              ? getCategoryPath(category.products[0].category_id).toUpperCase()
+                                              : (category.name === 'Other' ? 'Products' : category.name).toUpperCase()}
                                         </p>
                                         <div className="flex items-center justify-between">
                                             <h2 className="text-xl font-extrabold text-gray-900 dark:text-white">
-                                                {category.name === 'Other' ? 'Products' : category.name}
+                                                {category.products && category.products.length > 0
+                                              ? (() => {
+                                                  const path = getCategoryPath(category.products[0].category_id);
+                                                  const parts = path.split(' > ');
+                                                  return parts[parts.length - 1]; // Show just subcategory
+                                                })()
+                                              : (category.name === 'Other' ? 'Products' : category.name)
+                                            }
                                             </h2>
                                         <div className="flex items-center gap-3">
                                             <button className="text-xs font-black text-[#00a082] hover:underline">
