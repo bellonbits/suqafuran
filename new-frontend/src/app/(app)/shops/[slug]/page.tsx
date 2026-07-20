@@ -757,9 +757,8 @@ export default function ShopDetailPage() {
                                     </div>
                                 </div>
                             </div>
-                        )}
                     </div>
-                )}
+                ))}
             </div>
         </aside>
 
