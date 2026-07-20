@@ -109,10 +109,15 @@ def get_reviews(shop_id: str, db: Session = Depends(get_db)):
         return {"reviews": [], "average_rating": 0, "total_reviews": 0, "verified_reviews_count": 0}
 
 @listings_router.post("/shops/{shop_id}/reviews")
-def post_review(shop_id: str, rating: int = Query(...), review: str = Query(...), user_id: int = Query(...), display_name: str = Query("Anonymous"), reviewer_email: Optional[str] = Query(None), db: Session = Depends(get_db)):
+def post_review(shop_id: str, data: dict, db: Session = Depends(get_db)):
     """Submit a review for a shop."""
     try:
         import uuid
+        rating = data.get("rating")
+        review = data.get("review")
+        user_id = data.get("user_id")
+        display_name = data.get("display_name", "Anonymous")
+        reviewer_email = data.get("reviewer_email")
         if not (1 <= rating <= 5):
             raise HTTPException(status_code=400, detail="Rating must be 1-5")
         new = ShopReview(id=str(uuid.uuid4()), seller_id=shop_id, user_id=user_id, rating=rating, review=review, display_name=display_name, reviewer_email=reviewer_email, is_verified_purchase=False)
@@ -133,10 +138,13 @@ def get_feedback(shop_id: str, db: Session = Depends(get_db)):
         return {"feedback": []}
 
 @listings_router.post("/shops/{shop_id}/feedback")
-def post_feedback(shop_id: str, feedback_text: str = Query(...), user_id: int = Query(...), display_name: str = Query("Anonymous"), db: Session = Depends(get_db)):
+def post_feedback(shop_id: str, data: dict, db: Session = Depends(get_db)):
     """Submit feedback for a shop."""
     try:
         import uuid
+        feedback_text = data.get("feedback_text")
+        user_id = data.get("user_id")
+        display_name = data.get("display_name", "Anonymous")
         new = ShopFeedback(id=str(uuid.uuid4()), seller_id=shop_id, user_id=user_id, feedback_text=feedback_text, display_name=display_name, is_public=True)
         db.add(new)
         db.commit()
@@ -146,10 +154,11 @@ def post_feedback(shop_id: str, feedback_text: str = Query(...), user_id: int = 
         raise HTTPException(status_code=500, detail=str(e))
 
 @listings_router.post("/shops/{shop_id}/follow")
-def follow(shop_id: str, user_id: int = Query(...), db: Session = Depends(get_db)):
+def follow(shop_id: str, data: dict, db: Session = Depends(get_db)):
     """Follow a shop."""
     try:
         import uuid
+        user_id = data.get("user_id")
         if not user_id:
             raise HTTPException(status_code=400, detail="User ID required")
         new = ShopFollow(id=str(uuid.uuid4()), user_id=user_id, seller_id=shop_id)
