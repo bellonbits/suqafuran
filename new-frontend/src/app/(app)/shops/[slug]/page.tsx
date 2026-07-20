@@ -1729,10 +1729,10 @@ export default function ShopDetailPage() {
 
                                     try {
                                         await api.post('/reviews', {
-                                            seller_id: ownerId,
+                                            product_id: parseInt(shopId),
+                                            customer_name: displayName || user?.full_name || 'Anonymous',
                                             rating: userRating,
-                                            comment: userReview,
-                                            listing_id: shopId
+                                            comment: userReview
                                         });
                                         setUserHasReviewed(true);
                                         setLastReviewTime(Date.now());
