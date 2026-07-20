@@ -541,7 +541,16 @@ export default function ShopDetailPage() {
                                         {/* Subcategories with Expandable Sub-subcategories */}
                                         {dbCategory.subcategories && dbCategory.subcategories.length > 0 && (
                                             <div className="pl-2 space-y-1">
-                                                {dbCategory.subcategories.map((subcategory: any) => (
+                                                {dbCategory.subcategories
+                                                    .filter((subcategory: any) => {
+                                                        // Show only subcategories that have products in this shop
+                                                        return allListings.some(
+                                                            listing =>
+                                                                listing.category_id === dbCategory.id &&
+                                                                (listing.subcategory_id === subcategory.id || !listing.subcategory_id)
+                                                        );
+                                                    })
+                                                    .map((subcategory: any) => (
                                                     <div key={subcategory.id}>
                                                         {/* Subcategory */}
                                                         <button
@@ -576,10 +585,20 @@ export default function ShopDetailPage() {
                                                             )}
                                                         </button>
                                                         
-                                                        {/* Sub-subcategories (Expanded) - Filtered to show only existing ones */}
+                                                        {/* Sub-subcategories (Expanded) - Show only those with products */}
                                                         {expandedSubcategories.has(subcategory.id) && subcategory.subsubcategories && (
                                                             <div className="pl-2 mt-1 space-y-1">
-                                                                {subcategory.subsubcategories.map((subsubcategory: any) => (
+                                                                {subcategory.subsubcategories
+                                                                    .filter((subsubcategory: any) => {
+                                                                        // Show only subsubcategories that have products in this shop
+                                                                        return allListings.some(
+                                                                            listing =>
+                                                                                listing.category_id === dbCategory.id &&
+                                                                                listing.subcategory_id === subcategory.id &&
+                                                                                (listing.subsubcategory_id === subsubcategory.id || !listing.subsubcategory_id)
+                                                                        );
+                                                                    })
+                                                                    .map((subsubcategory: any) => (
                                                                         <button
                                                                             key={subsubcategory.id}
                                                                             className="w-full text-left px-3 py-1 rounded-lg text-[10px] font-medium transition-all text-gray-500 dark:text-slate-500 hover:text-gray-700 hover:bg-gray-50 dark:hover:text-slate-300 dark:hover:bg-slate-900/40"
