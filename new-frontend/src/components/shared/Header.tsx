@@ -32,9 +32,22 @@ export const Header: React.FC = () => {
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            const isDark = document.documentElement.classList.contains('dark') ||
-                           window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const savedTheme = localStorage.getItem('theme');
+            let isDark = false;
+            
+            if (savedTheme) {
+                isDark = savedTheme === 'dark';
+            } else {
+                isDark = document.documentElement.classList.contains('dark') ||
+                         window.matchMedia('(prefers-color-scheme: dark)').matches;
+            }
+            
             setDarkMode(isDark);
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
         }
     }, []);
 
@@ -88,8 +101,10 @@ export const Header: React.FC = () => {
         setDarkMode(nextMode);
         if (nextMode) {
             document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
         } else {
             document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
         }
     };
 
