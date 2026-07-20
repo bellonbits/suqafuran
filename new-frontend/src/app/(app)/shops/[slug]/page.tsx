@@ -541,14 +541,7 @@ export default function ShopDetailPage() {
                                         {/* Subcategories with Expandable Sub-subcategories */}
                                         {dbCategory.subcategories && dbCategory.subcategories.length > 0 && (
                                             <div className="pl-2 space-y-1">
-                                                {dbCategory.subcategories
-                                                    .filter((subcategory: any) => {
-                                                        // Only show subcategories that have products in this shop
-                                                        return allListings.some(
-                                                            listing => listing.category_id === dbCategory.id && listing.subcategory_id === subcategory.id
-                                                        );
-                                                    })
-                                                    .map((subcategory: any) => (
+                                                {dbCategory.subcategories.map((subcategory: any) => (
                                                     <div key={subcategory.id}>
                                                         {/* Subcategory */}
                                                         <button
