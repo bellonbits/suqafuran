@@ -664,9 +664,38 @@ export default function ShopDetailPage() {
                                     <div className="mb-4">
                                         {/* Category Breadcrumb */}
                                         <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-2 uppercase tracking-wide">
-                                            {category.products && category.products.length > 0
-                                              ? getCategoryPath(category.products[0].category_id, category.products[0].subcategory_id, dbCategories).toUpperCase()
-                                              : (category.name === 'Other' ? 'Products' : category.name).toUpperCase()}
+                                            {(() => {
+                                                // If subsubcategory selected, get its path
+                                                if (selectedSubsubcategoryId) {
+                                                    for (const cat of dbCategories) {
+                                                        for (const subcat of cat.subcategories || []) {
+                                                            const found = subcat.subsubcategories?.find((ss: any) => ss.id === selectedSubsubcategoryId);
+                                                            if (found) {
+                                                                return `${cat.name_en} > ${subcat.name_en} > ${found.name_en}`.toUpperCase();
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                // If subcategory selected, get its path
+                                                if (selectedSubcategoryId) {
+                                                    for (const cat of dbCategories) {
+                                                        const found = cat.subcategories?.find((s: any) => s.id === selectedSubcategoryId);
+                                                        if (found) {
+                                                            return `${cat.name_en} > ${found.name_en}`.toUpperCase();
+                                                        }
+                                                    }
+                                                }
+
+                                                // Default: show main category or path from first product
+                                                if (category.products && category.products.length > 0) {
+                                                    const mainCat = dbCategories.find((c: any) =>
+                                                        category.products?.some((p: any) => p.category_id === c.id)
+                                                    );
+                                                    if (mainCat) return mainCat.name_en.toUpperCase();
+                                                }
+                                                return (category.name === 'Other' ? 'Products' : category.name).toUpperCase();
+                                            })()}
                                         </p>
                                         <div className="flex items-center justify-between">
                                             <h2 className="text-xl font-extrabold text-gray-900 dark:text-white">
