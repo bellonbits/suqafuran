@@ -109,6 +109,27 @@ export default function ShopDetailPage() {
     setExpandedSubcategories(newExpanded);
   };
 
+  const handleShowAllCategory = (category: any) => {
+    // Extract main category_id from the first product in the category
+    if (category.products && category.products.length > 0) {
+      const mainCategoryId = category.products[0].category_id;
+      // Clear subcategory/subsubcategory filters to show all products in the main category
+      setSelectedSubcategoryId(null);
+      setSelectedSubsubcategoryId(null);
+      // Set the active category and scroll to it
+      setActiveCategory(mainCategoryId);
+      const matchingCat = categories.find(c => c.products?.some((p: any) => p.category_id === mainCategoryId));
+      if (matchingCat) {
+        setTimeout(() => {
+          categoryRefs.current[matchingCat.id]?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+          });
+        }, 100);
+      }
+    }
+  };
+
   const getCartQuantity = (productId: string) => {
         return cartItems.find(item => item.id === productId)?.quantity || 0;
     };
@@ -842,7 +863,10 @@ export default function ShopDetailPage() {
                                                     return (category.name === 'Other' ? 'Products' : category.name);
                                                 })()}
                                             </h2>
-                                        <button className="text-xs font-black text-[#00a082] hover:underline">
+                                        <button
+                                            onClick={() => handleShowAllCategory(category)}
+                                            className="text-xs font-black text-[#00a082] hover:underline"
+                                        >
                                             Show all ({category.products.length})
                                         </button>
                                     </div>
