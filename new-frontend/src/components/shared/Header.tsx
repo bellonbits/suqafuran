@@ -108,7 +108,7 @@ export const Header: React.FC = () => {
                     {/* Left: Logo + Location */}
                     <div className="flex items-center gap-4 shrink-0">
                         <Link href="/" className="flex items-center hover:opacity-85 transition-opacity">
-                            <img src="/icon1.png" alt="Suqafuran" className="h-8 w-auto object-contain" />
+                            <img src="/icon1.png" alt="Suqafuran" className="h-12 w-auto object-contain" />
                         </Link>
 
                         {/* Location Selector - Compact Pill */}
