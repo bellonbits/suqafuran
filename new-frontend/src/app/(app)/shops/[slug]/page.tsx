@@ -563,11 +563,8 @@ export default function ShopDetailPage() {
                                 </button>
                                 <button
                                     onClick={() => {
-                                        if (shopOwnerId) {
-                                            router.push(`/messages?userId=${shopOwnerId}`);
-                                        } else {
-                                            alert('Shop owner ID not available');
-                                        }
+                                        setContactModalOpen(true);
+                                        setSelectedContactType('message');
                                     }}
                                     className="w-10 h-10 rounded-lg hover:scale-110 transition-transform flex items-center justify-center"
                                     title="Message Seller"
