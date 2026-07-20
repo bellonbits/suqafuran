@@ -178,6 +178,8 @@ export default function ShopDetailPage() {
                                         setShopAvatar(resolveMediaUrl(currentShop.user?.avatar_url) || '');
                     setShopOwnerId(currentShop.user_id);
                     setAllListings(shopListings || []);
+                    console.log('📦 Sample listing:', shopListings?.[0]);
+                    console.log('📦 Has subcategory_id:', shopListings?.[0]?.subcategory_id);
                     if (shopListings && shopListings.length > 0) {
                         setActiveCategory(String(shopListings[0].category_id || ''));
                     }
@@ -543,12 +545,16 @@ export default function ShopDetailPage() {
                                             <div className="pl-2 space-y-1">
                                                 {dbCategory.subcategories
                                                     .filter((subcategory: any) => {
-                                                        // Show only subcategories that have products in this shop
-                                                        return allListings.some(
+                                                        // Show only subcategories that have exact matching products in this shop
+                                                        const hasMatch = allListings.some(
                                                             listing =>
                                                                 listing.category_id === dbCategory.id &&
-                                                                (listing.subcategory_id === subcategory.id || !listing.subcategory_id)
+                                                                listing.subcategory_id === subcategory.id
                                                         );
+                                                        if (hasMatch) {
+                                                            console.log(`✓ ${subcategory.name_en} has products`);
+                                                        }
+                                                        return hasMatch;
                                                     })
                                                     .map((subcategory: any) => (
                                                     <div key={subcategory.id}>
@@ -590,12 +596,12 @@ export default function ShopDetailPage() {
                                                             <div className="pl-2 mt-1 space-y-1">
                                                                 {subcategory.subsubcategories
                                                                     .filter((subsubcategory: any) => {
-                                                                        // Show only subsubcategories that have products in this shop
+                                                                        // Show only subsubcategories that have exact matching products in this shop
                                                                         return allListings.some(
                                                                             listing =>
                                                                                 listing.category_id === dbCategory.id &&
                                                                                 listing.subcategory_id === subcategory.id &&
-                                                                                (listing.subsubcategory_id === subsubcategory.id || !listing.subsubcategory_id)
+                                                                                listing.subsubcategory_id === subsubcategory.id
                                                                         );
                                                                     })
                                                                     .map((subsubcategory: any) => (
