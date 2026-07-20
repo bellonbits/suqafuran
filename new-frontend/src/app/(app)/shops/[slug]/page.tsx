@@ -24,23 +24,23 @@ function getMockProductInfo(product: any) {
 }
 
 
-// Helper: Build breadcrumb from actual category hierarchy
-function getCategoryPath(categoryId: number, listings: any[] = []): string {
-  if (!categoryId || !listings || listings.length === 0) {
-    return `Category ${categoryId}`;
-  }
+// Helper: Build breadcrumb from category hierarchy using dbCategories
+function getCategoryPath(categoryId: number, subcategoryId: number | undefined, dbCategories: any[] = []): string {
+  if (!categoryId) return 'Products';
   
-  // Find a listing with this category_id to get category info
-  const listing = listings.find(l => l.category_id === categoryId);
-  if (!listing) return `Category ${categoryId}`;
+  // Find the category in dbCategories
+  const category = dbCategories.find((c: any) => c.id === categoryId);
+  if (!category) return `Category ${categoryId}`;
   
-  // Get category names from the listing data
-  const categoryName = listing.category_name || `Category ${categoryId}`;
-  const subcategoryName = listing.subcategory_name || '';
+  const categoryName = category.name_en || `Category ${categoryId}`;
   
-  // Build breadcrumb
-  if (subcategoryName && categoryName !== subcategoryName) {
-    return `${categoryName} > ${subcategoryName}`;
+  // If subcategory_id is provided, find the subcategory name
+  if (subcategoryId && category.subcategories) {
+    const subcategory = category.subcategories.find((s: any) => s.id === subcategoryId);
+    if (subcategory) {
+      const subcategoryName = subcategory.name_en;
+      return `${categoryName} > ${subcategoryName}`;
+    }
   }
   
   return categoryName;
@@ -511,7 +511,7 @@ export default function ShopDetailPage() {
                                             <span className="truncate mr-1">
                                               {category.products && category.products.length > 0
                                                 ? (() => {
-                                                    const path = getCategoryPath(category.products[0].category_id, allListings);
+                                                    const path = getCategoryPath(category.products[0].category_id, category.products[0].subcategory_id, dbCategories);
                                                     const parts = path.split(' > ');
                                                     return parts[parts.length - 1]; // Show just subcategory in sidebar
                                                   })()
@@ -538,14 +538,14 @@ export default function ShopDetailPage() {
                                         {/* Category Breadcrumb */}
                                         <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-2 uppercase tracking-wide">
                                             {category.products && category.products.length > 0
-                                              ? getCategoryPath(category.products[0].category_id, allListings).toUpperCase()
+                                              ? getCategoryPath(category.products[0].category_id, category.products[0].subcategory_id, dbCategories).toUpperCase()
                                               : (category.name === 'Other' ? 'Products' : category.name).toUpperCase()}
                                         </p>
                                         <div className="flex items-center justify-between">
                                             <h2 className="text-xl font-extrabold text-gray-900 dark:text-white">
                                                 {category.products && category.products.length > 0
                                               ? (() => {
-                                                  const path = getCategoryPath(category.products[0].category_id, allListings);
+                                                  const path = getCategoryPath(category.products[0].category_id, category.products[0].subcategory_id, dbCategories);
                                                   const parts = path.split(' > ');
                                                   return parts[parts.length - 1]; // Show just subcategory
                                                 })()
@@ -662,7 +662,7 @@ export default function ShopDetailPage() {
                                                     
                                                     {/* Category Breadcrumb */}
                                                     <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-1 line-clamp-1">
-                                                        {getCategoryPath(product.category_id, allListings)}
+                                                        {getCategoryPath(product.category_id, product.subcategory_id, dbCategories)}
                                                     </p>
                                                     
                                                     <div className="mt-2 flex flex-col">
