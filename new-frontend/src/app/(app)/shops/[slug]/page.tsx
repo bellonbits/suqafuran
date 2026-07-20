@@ -572,17 +572,17 @@ export default function ShopDetailPage() {
                                                         >
                                                             <span className="truncate">{subcategory.name_en}</span>
                                                             {subcategory.subsubcategories && subcategory.subsubcategories.length > 0 && (
-                                                                <button
+                                                                <div
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         toggleSubcategoryExpand(subcategory.id);
                                                                     }}
-                                                                    className="ml-1 shrink-0"
+                                                                    className="ml-1 shrink-0 cursor-pointer"
                                                                 >
                                                                     <ChevronRight className={`w-3 h-3 transition-transform ${
                                                                         expandedSubcategories.has(subcategory.id) ? 'rotate-90' : ''
                                                                     }`} />
-                                                                </button>
+                                                                </div>
                                                             )}
                                                         </button>
                                                         
