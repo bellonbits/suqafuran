@@ -438,3 +438,49 @@ class RiderWithdrawal(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     rider = relationship("Rider", back_populates="withdrawals")
+
+# Shop Review Model (for shop-level reviews, not order-based)
+class ShopReview(Base):
+    __tablename__ = "shop_reviews"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    seller_id = Column(String, ForeignKey("sellers.id"), nullable=False, index=True)
+    user_id = Column(String, ForeignKey("user.id"), nullable=False, index=True)
+    rating = Column(Integer, nullable=False)  # 1-5 stars
+    review = Column(Text)  # Review text
+    display_name = Column(String)  # Name to display (can be different from user name)
+    reviewer_email = Column(String)  # Store email to check for duplicates
+    is_verified_purchase = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    seller = relationship("Seller")
+    user = relationship("User")
+
+# Shop Feedback Model
+class ShopFeedback(Base):
+    __tablename__ = "shop_feedback"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    seller_id = Column(String, ForeignKey("sellers.id"), nullable=False, index=True)
+    user_id = Column(String, ForeignKey("user.id"), nullable=True, index=True)
+    feedback_text = Column(Text, nullable=False)
+    display_name = Column(String)
+    is_public = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    seller = relationship("Seller")
+    user = relationship("User")
+
+# Shop Follow Model
+class ShopFollow(Base):
+    __tablename__ = "shop_follows"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("user.id"), nullable=False, index=True)
+    seller_id = Column(String, ForeignKey("sellers.id"), nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    user = relationship("User")
+    seller = relationship("Seller")

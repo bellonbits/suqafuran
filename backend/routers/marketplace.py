@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Seller, Category, Listing
+from models import Seller, Category, Listing, ShopReview, ShopFeedback, ShopFollow
 from typing import List, Optional
 import json
 import asyncio
@@ -364,6 +364,310 @@ def merge_duplicate_shops(
         db.rollback()
         print(f"Error merging shops: {str(e)}")
         return {"error": str(e)}
+
+
+# REVIEW ENDPOINTS
+@listings_router.get("/shops/{shop_id}/reviews")
+def get_shop_reviews(
+    shop_id: str,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db)
+):
+    """Get all reviews for a shop"""
+    try:
+        from models import ShopReview, Seller
+        from sqlalchemy import func
+
+        # Get the seller by ID (shop_id is the seller ID)
+        seller = db.query(Seller).filter(Seller.id == shop_id).first()
+        if not seller:
+            raise HTTPException(status_code=404, detail="Shop not found")
+
+        # Get reviews
+        reviews = db.query(ShopReview).filter(
+            ShopReview.seller_id == shop_id
+        ).order_by(ShopReview.created_at.desc()).offset(skip).limit(limit).all()
+
+        # Calculate stats
+        total_reviews = db.query(func.count(ShopReview.id)).filter(
+            ShopReview.seller_id == shop_id
+        ).scalar()
+
+        avg_rating = db.query(func.avg(ShopReview.rating)).filter(
+            ShopReview.seller_id == shop_id
+        ).scalar()
+
+        verified_count = db.query(func.count(ShopReview.id)).filter(
+            ShopReview.seller_id == shop_id,
+            ShopReview.is_verified_purchase == True
+        ).scalar()
+
+        return {
+            "reviews": [
+                {
+                    "id": r.id,
+                    "display_name": r.display_name or "Anonymous",
+                    "rating": r.rating,
+                    "review": r.review,
+                    "is_verified_purchase": r.is_verified_purchase,
+                    "reviewer_email": r.reviewer_email,
+                    "created_at": r.created_at.isoformat() if r.created_at else None
+                }
+                for r in reviews
+            ],
+            "average_rating": float(avg_rating) if avg_rating else 0,
+            "total_reviews": total_reviews or 0,
+            "verified_reviews_count": verified_count or 0
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error fetching reviews: {str(e)}")
+        return {
+            "reviews": [],
+            "average_rating": 0,
+            "total_reviews": 0,
+            "verified_reviews_count": 0
+        }
+
+
+@listings_router.post("/shops/{shop_id}/reviews")
+def create_shop_review(
+    shop_id: str,
+    review_data: dict,
+    db: Session = Depends(get_db)
+):
+    """Submit a review for a shop"""
+    try:
+        from models import ShopReview, Seller
+
+        # Get shop
+        seller = db.query(Seller).filter(Seller.id == shop_id).first()
+        if not seller:
+            raise HTTPException(status_code=404, detail="Shop not found")
+
+        # Extract review data
+        user_id = review_data.get("user_id")
+        reviewer_email = review_data.get("reviewer_email")
+        rating = review_data.get("rating")
+        review_text = review_data.get("review")
+        display_name = review_data.get("display_name", "Anonymous")
+        is_verified_purchase = review_data.get("is_verified_purchase", False)
+
+        # Validate rating
+        if not rating or not (1 <= rating <= 5):
+            raise HTTPException(status_code=400, detail="Rating must be between 1 and 5")
+
+        # Check if user already reviewed (by email)
+        if reviewer_email:
+            existing_review = db.query(ShopReview).filter(
+                ShopReview.seller_id == shop_id,
+                ShopReview.reviewer_email == reviewer_email
+            ).first()
+            if existing_review:
+                # Update existing review
+                existing_review.rating = rating
+                existing_review.review = review_text
+                existing_review.display_name = display_name
+                existing_review.is_verified_purchase = is_verified_purchase
+                existing_review.updated_at = datetime.utcnow()
+                db.commit()
+                db.refresh(existing_review)
+                return {
+                    "id": existing_review.id,
+                    "message": "Review updated successfully",
+                    "is_new": False
+                }
+
+        # Create new review
+        new_review = ShopReview(
+            seller_id=shop_id,
+            user_id=user_id,
+            rating=rating,
+            review=review_text,
+            display_name=display_name,
+            reviewer_email=reviewer_email,
+            is_verified_purchase=is_verified_purchase
+        )
+        db.add(new_review)
+        db.commit()
+        db.refresh(new_review)
+
+        return {
+            "id": new_review.id,
+            "message": "Review submitted successfully",
+            "is_new": True
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        print(f"Error creating review: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# FEEDBACK ENDPOINTS
+@listings_router.get("/shops/{shop_id}/feedback")
+def get_shop_feedback(
+    shop_id: str,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db)
+):
+    """Get feedback for a shop"""
+    try:
+        from models import ShopFeedback, Seller
+
+        # Get the seller
+        seller = db.query(Seller).filter(Seller.id == shop_id).first()
+        if not seller:
+            raise HTTPException(status_code=404, detail="Shop not found")
+
+        # Get feedback
+        feedback = db.query(ShopFeedback).filter(
+            ShopFeedback.seller_id == shop_id,
+            ShopFeedback.is_public == True
+        ).order_by(ShopFeedback.created_at.desc()).offset(skip).limit(limit).all()
+
+        return {
+            "feedback": [
+                {
+                    "id": f.id,
+                    "display_name": f.display_name or "Anonymous",
+                    "feedback_text": f.feedback_text,
+                    "created_at": f.created_at.isoformat() if f.created_at else None
+                }
+                for f in feedback
+            ]
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error fetching feedback: {str(e)}")
+        return {"feedback": []}
+
+
+@listings_router.post("/shops/{shop_id}/feedback")
+def submit_shop_feedback(
+    shop_id: str,
+    feedback_data: dict,
+    db: Session = Depends(get_db)
+):
+    """Submit feedback for a shop"""
+    try:
+        from models import ShopFeedback, Seller
+
+        # Get shop
+        seller = db.query(Seller).filter(Seller.id == shop_id).first()
+        if not seller:
+            raise HTTPException(status_code=404, detail="Shop not found")
+
+        feedback_text = feedback_data.get("feedback_text")
+        if not feedback_text or len(feedback_text.strip()) == 0:
+            raise HTTPException(status_code=400, detail="Feedback text is required")
+
+        # Create feedback
+        new_feedback = ShopFeedback(
+            seller_id=shop_id,
+            user_id=feedback_data.get("user_id"),
+            feedback_text=feedback_text,
+            display_name=feedback_data.get("display_name", "Anonymous"),
+            is_public=feedback_data.get("is_public", True)
+        )
+        db.add(new_feedback)
+        db.commit()
+        db.refresh(new_feedback)
+
+        return {
+            "id": new_feedback.id,
+            "message": "Feedback submitted successfully"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        print(f"Error submitting feedback: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# FOLLOW ENDPOINTS
+@listings_router.post("/shops/{shop_id}/follow")
+def follow_shop(
+    shop_id: str,
+    follow_data: dict,
+    db: Session = Depends(get_db)
+):
+    """Follow a shop"""
+    try:
+        from models import ShopFollow, Seller
+
+        # Get shop
+        seller = db.query(Seller).filter(Seller.id == shop_id).first()
+        if not seller:
+            raise HTTPException(status_code=404, detail="Shop not found")
+
+        user_id = follow_data.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=400, detail="User ID is required")
+
+        # Check if already following
+        existing_follow = db.query(ShopFollow).filter(
+            ShopFollow.user_id == user_id,
+            ShopFollow.seller_id == shop_id
+        ).first()
+
+        if existing_follow:
+            return {"message": "Already following this shop", "is_new": False}
+
+        # Create follow relationship
+        new_follow = ShopFollow(
+            user_id=user_id,
+            seller_id=shop_id
+        )
+        db.add(new_follow)
+        db.commit()
+
+        return {
+            "message": "Shop followed successfully",
+            "is_new": True
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        print(f"Error following shop: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@listings_router.delete("/shops/{shop_id}/follow")
+def unfollow_shop(
+    shop_id: str,
+    user_id: str,
+    db: Session = Depends(get_db)
+):
+    """Unfollow a shop"""
+    try:
+        from models import ShopFollow
+
+        follow = db.query(ShopFollow).filter(
+            ShopFollow.user_id == user_id,
+            ShopFollow.seller_id == shop_id
+        ).first()
+
+        if not follow:
+            raise HTTPException(status_code=404, detail="Not following this shop")
+
+        db.delete(follow)
+        db.commit()
+
+        return {"message": "Shop unfollowed successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        print(f"Error unfollowing shop: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @notifications_router.websocket("/ws")
