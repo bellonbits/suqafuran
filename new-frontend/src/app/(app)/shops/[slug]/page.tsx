@@ -82,6 +82,12 @@ export default function ShopDetailPage() {
     const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<number | null>(null);
     const [selectedSubsubcategoryId, setSelectedSubsubcategoryId] = useState<number | null>(null);
 
+    // Filters
+    const [selectedPriceRanges, setSelectedPriceRanges] = useState<Set<string>>(new Set());
+    const [selectedConditions, setSelectedConditions] = useState<Set<string>>(new Set());
+    const [selectedDiscounts, setSelectedDiscounts] = useState<Set<string>>(new Set());
+    const [selectedRatings, setSelectedRatings] = useState<Set<string>>(new Set());
+
     const { items: cartItems, addItem, updateQuantity: updateCartQuantity, getTotalPrice } = useCart();
 
     const categoryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -650,6 +656,110 @@ export default function ShopDetailPage() {
                                     </div>
                                 ))}
                             </div>
+
+                            {/* Filters Section */}
+                            <div className="space-y-4 mt-8 pt-6 border-t border-gray-200 dark:border-slate-800">
+                                {/* Price Range */}
+                                <div>
+                                    <h3 className="text-xs font-bold text-gray-900 dark:text-white mb-2">Price Range</h3>
+                                    <div className="space-y-2">
+                                        {[
+                                            { label: 'Under KSh 500', value: 'under500', min: 0, max: 500 },
+                                            { label: 'KSh 500 - 1,000', value: '500-1000', min: 500, max: 1000 },
+                                            { label: 'KSh 1,000 - 2,500', value: '1000-2500', min: 1000, max: 2500 },
+                                            { label: 'Above KSh 2,500', value: 'above2500', min: 2500, max: Infinity }
+                                        ].map((range) => (
+                                            <label key={range.value} className="flex items-center gap-2 cursor-pointer text-xs">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedPriceRanges.has(range.value)}
+                                                    onChange={(e) => {
+                                                        const newRanges = new Set(selectedPriceRanges);
+                                                        if (e.target.checked) newRanges.add(range.value);
+                                                        else newRanges.delete(range.value);
+                                                        setSelectedPriceRanges(newRanges);
+                                                    }}
+                                                />
+                                                {range.label}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Condition */}
+                                <div>
+                                    <h3 className="text-xs font-bold text-gray-900 dark:text-white mb-2">Condition</h3>
+                                    <div className="space-y-2">
+                                        {['New', 'Used'].map((condition) => (
+                                            <label key={condition} className="flex items-center gap-2 cursor-pointer text-xs">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedConditions.has(condition)}
+                                                    onChange={(e) => {
+                                                        const newConditions = new Set(selectedConditions);
+                                                        if (e.target.checked) newConditions.add(condition);
+                                                        else newConditions.delete(condition);
+                                                        setSelectedConditions(newConditions);
+                                                    }}
+                                                />
+                                                {condition}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Discount */}
+                                <div>
+                                    <h3 className="text-xs font-bold text-gray-900 dark:text-white mb-2">Discount</h3>
+                                    <div className="space-y-2">
+                                        {[
+                                            { label: 'On Sale', value: 'sale' },
+                                            { label: '10%+ Off', value: '10off' },
+                                            { label: '20%+ Off', value: '20off' },
+                                            { label: '50%+ Off', value: '50off' }
+                                        ].map((discount) => (
+                                            <label key={discount.value} className="flex items-center gap-2 cursor-pointer text-xs">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedDiscounts.has(discount.value)}
+                                                    onChange={(e) => {
+                                                        const newDiscounts = new Set(selectedDiscounts);
+                                                        if (e.target.checked) newDiscounts.add(discount.value);
+                                                        else newDiscounts.delete(discount.value);
+                                                        setSelectedDiscounts(newDiscounts);
+                                                    }}
+                                                />
+                                                {discount.label}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Rating */}
+                                <div>
+                                    <h3 className="text-xs font-bold text-gray-900 dark:text-white mb-2">Rating</h3>
+                                    <div className="space-y-2">
+                                        {[
+                                            { label: '4★ & Above', value: '4star', min: 4 },
+                                            { label: '3★ & Above', value: '3star', min: 3 }
+                                        ].map((rating) => (
+                                            <label key={rating.value} className="flex items-center gap-2 cursor-pointer text-xs">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedRatings.has(rating.value)}
+                                                    onChange={(e) => {
+                                                        const newRatings = new Set(selectedRatings);
+                                                        if (e.target.checked) newRatings.add(rating.value);
+                                                        else newRatings.delete(rating.value);
+                                                        setSelectedRatings(newRatings);
+                                                    }}
+                                                />
+                                                {rating.label}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
                         </aside>
 
                         {/* 2. Center Column (List of Carousels) */}
@@ -756,17 +866,63 @@ export default function ShopDetailPage() {
                                     >
                                         {(() => {
                                             const filtered = category.products.filter((product) => {
-                                                // If no subcategory selected, show all products
-                                                if (selectedSubcategoryId === null) return true;
-
-                                                // If subcategory selected but no subsubcategory
-                                                if (selectedSubsubcategoryId === null) {
-                                                    return product.subcategory_id === selectedSubcategoryId;
+                                                // Category filters
+                                                if (selectedSubcategoryId !== null) {
+                                                    if (selectedSubsubcategoryId === null) {
+                                                        if (product.subcategory_id !== selectedSubcategoryId) return false;
+                                                    } else {
+                                                        if (product.subcategory_id !== selectedSubcategoryId || product.subsubcategory_id !== selectedSubsubcategoryId) return false;
+                                                    }
                                                 }
 
-                                                // If both selected, match both
-                                                return product.subcategory_id === selectedSubcategoryId &&
-                                                       product.subsubcategory_id === selectedSubsubcategoryId;
+                                                // Price filter
+                                                if (selectedPriceRanges.size > 0) {
+                                                    const price = product.price || 0;
+                                                    const matchesPrice = Array.from(selectedPriceRanges).some(range => {
+                                                        switch(range) {
+                                                            case 'under500': return price < 500;
+                                                            case '500-1000': return price >= 500 && price <= 1000;
+                                                            case '1000-2500': return price > 1000 && price <= 2500;
+                                                            case 'above2500': return price > 2500;
+                                                            default: return false;
+                                                        }
+                                                    });
+                                                    if (!matchesPrice) return false;
+                                                }
+
+                                                // Condition filter
+                                                if (selectedConditions.size > 0) {
+                                                    if (!selectedConditions.has(product.condition)) return false;
+                                                }
+
+                                                // Discount filter (mock based on product id)
+                                                if (selectedDiscounts.size > 0) {
+                                                    const idNum = typeof product.id === 'number' ? product.id : (parseInt(String(product.id).slice(0, 4), 16) || 123);
+                                                    const hasPromo = (idNum % 3) !== 0;
+                                                    const discountPercent = 10 + (idNum % 4) * 5;
+
+                                                    const matchesDiscount = Array.from(selectedDiscounts).some(discount => {
+                                                        if (discount === 'sale' && hasPromo) return true;
+                                                        if (discount === '10off' && hasPromo && discountPercent >= 10) return true;
+                                                        if (discount === '20off' && hasPromo && discountPercent >= 20) return true;
+                                                        if (discount === '50off' && hasPromo && discountPercent >= 50) return true;
+                                                        return false;
+                                                    });
+                                                    if (!matchesDiscount) return false;
+                                                }
+
+                                                // Rating filter (mock based on shop rating)
+                                                if (selectedRatings.size > 0) {
+                                                    const mockRating = 3.5 + Math.random() * 1.5; // 3.5-5 stars
+                                                    const matchesRating = Array.from(selectedRatings).some(rating => {
+                                                        if (rating === '4star' && mockRating >= 4) return true;
+                                                        if (rating === '3star' && mockRating >= 3) return true;
+                                                        return false;
+                                                    });
+                                                    if (!matchesRating) return false;
+                                                }
+
+                                                return true;
                                             });
                                             if (filtered.length < category.products.length) {
                                                 console.log(`Filtered ${category.products.length} → ${filtered.length} products`);
