@@ -24,8 +24,8 @@ function getMockProductInfo(product: any) {
 }
 
 
-// Helper: Build breadcrumb from category hierarchy using dbCategories
-function getCategoryPath(categoryId: number, subcategoryId: number | undefined, dbCategories: any[] = []): string {
+// Helper: Build breadcrumb from full category hierarchy (Category > Subcategory > SubSubcategory)
+function getCategoryPath(categoryId: number, subcategoryId: number | undefined, dbCategories: any[] = [], subsubcategoryId: number | undefined = undefined): string {
   if (!categoryId) return 'Products';
   
   // Find the category in dbCategories
@@ -39,6 +39,16 @@ function getCategoryPath(categoryId: number, subcategoryId: number | undefined, 
     const subcategory = category.subcategories.find((s: any) => s.id === subcategoryId);
     if (subcategory) {
       const subcategoryName = subcategory.name_en;
+      
+      // If sub-subcategory_id is provided, find the sub-subcategory name
+      if (subsubcategoryId && subcategory.subsubcategories) {
+        const subsubcategory = subcategory.subsubcategories.find((ss: any) => ss.id === subsubcategoryId);
+        if (subsubcategory) {
+          const subsubcategoryName = subsubcategory.name_en;
+          return `${categoryName} > ${subcategoryName} > ${subsubcategoryName}`;
+        }
+      }
+      
       return `${categoryName} > ${subcategoryName}`;
     }
   }
@@ -576,17 +586,27 @@ export default function ShopDetailPage() {
                                                             )}
                                                         </button>
                                                         
-                                                        {/* Sub-subcategories (Expanded) */}
+                                                        {/* Sub-subcategories (Expanded) - Filtered to show only existing ones */}
                                                         {expandedSubcategories.has(subcategory.id) && subcategory.subsubcategories && (
                                                             <div className="pl-2 mt-1 space-y-1">
-                                                                {subcategory.subsubcategories.map((subsubcategory: any) => (
-                                                                    <button
-                                                                        key={subsubcategory.id}
-                                                                        className="w-full text-left px-3 py-1 rounded-lg text-[10px] font-medium transition-all text-gray-500 dark:text-slate-500 hover:text-gray-700 hover:bg-gray-50 dark:hover:text-slate-300 dark:hover:bg-slate-900/40"
-                                                                    >
-                                                                        {subsubcategory.name_en}
-                                                                    </button>
-                                                                ))}
+                                                                {subcategory.subsubcategories
+                                                                    .filter((subsubcategory: any) => {
+                                                                        // Only show sub-subcategories that have products in this shop
+                                                                        return allListings.some(
+                                                                            listing => 
+                                                                                listing.category_id === dbCategory.id && 
+                                                                                listing.subcategory_id === subcategory.id &&
+                                                                                listing.subsubcategory_id === subsubcategory.id
+                                                                        );
+                                                                    })
+                                                                    .map((subsubcategory: any) => (
+                                                                        <button
+                                                                            key={subsubcategory.id}
+                                                                            className="w-full text-left px-3 py-1 rounded-lg text-[10px] font-medium transition-all text-gray-500 dark:text-slate-500 hover:text-gray-700 hover:bg-gray-50 dark:hover:text-slate-300 dark:hover:bg-slate-900/40"
+                                                                        >
+                                                                            {subsubcategory.name_en}
+                                                                        </button>
+                                                                    ))}
                                                             </div>
                                                         )}
                                                     </div>
@@ -735,7 +755,7 @@ export default function ShopDetailPage() {
                                                     
                                                     {/* Category Breadcrumb */}
                                                     <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-1 line-clamp-1">
-                                                        {getCategoryPath(product.category_id, product.subcategory_id, dbCategories)}
+                                                        {getCategoryPath(product.category_id, product.subcategory_id, dbCategories, (product as any).subsubcategory_id)}
                                                     </p>
                                                     
                                                     <div className="mt-2 flex flex-col">
