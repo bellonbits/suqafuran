@@ -564,7 +564,7 @@ export default function ShopDetailPage() {
                                 <button
                                     onClick={() => {
                                         if (shopOwnerId) {
-                                            router.push(`/messages/${shopOwnerId}`);
+                                            router.push(`/messages?userId=${shopOwnerId}`);
                                         } else {
                                             alert('Shop owner ID not available');
                                         }
