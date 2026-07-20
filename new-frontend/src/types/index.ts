@@ -35,6 +35,7 @@ export interface Listing {
     condition: string;
     category_id: number;
     subcategory_id?: number;
+    subsubcategory_id?: number;
     owner_id: number;
     seller_id?: number;
     status: string;
