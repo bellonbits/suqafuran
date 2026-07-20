@@ -23,6 +23,17 @@ function getMockProductInfo(product: any) {
   return { hasPromo, discountPercent, originalPrice, promoText };
 }
 
+
+// Helper: Format category as breadcrumb
+function getCategoryPath(categoryId: number, categories: any[] = []): string {
+  // For now, just use category ID as fallback
+  // In future, this will map to full hierarchy from backend
+  if (categoryId === 1) return "Beauty & Personal Care > Moisturizers";
+  if (categoryId === 2) return "Beauty & Personal Care > Cleansers";
+  if (categoryId === 3) return "Fashion > Women's Clothing";
+  return `Category ${categoryId}`;
+}
+
 export default function ShopDetailPage() {
     const params = useParams();
     const router = useRouter();
@@ -502,10 +513,15 @@ export default function ShopDetailPage() {
                                     data-category-id={category.id}
                                     className="scroll-mt-28"
                                 >
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h2 className="text-xl font-extrabold text-gray-900 dark:text-white">
-                                            {category.name === 'Other' ? 'Products' : category.name}
-                                        </h2>
+                                    <div className="mb-4">
+                                        {/* Category Breadcrumb */}
+                                        <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-2 uppercase tracking-wide">
+                                            {`Shop > ${category.name === 'Other' ? 'Products' : category.name}`}
+                                        </p>
+                                        <div className="flex items-center justify-between">
+                                            <h2 className="text-xl font-extrabold text-gray-900 dark:text-white">
+                                                {category.name === 'Other' ? 'Products' : category.name}
+                                            </h2>
                                         <div className="flex items-center gap-3">
                                             <button className="text-xs font-black text-[#00a082] hover:underline">
                                                 Show all
@@ -525,6 +541,7 @@ export default function ShopDetailPage() {
                                                 </button>
                                             </div>
                                         </div>
+                                    </div>
                                     </div>
 
                                     {/* Horizontal Carousel */}
@@ -612,7 +629,13 @@ export default function ShopDetailPage() {
                                                     <h3 className="font-semibold text-gray-900 dark:text-white text-xs leading-normal line-clamp-2 min-h-[32px] group-hover:text-orange-500 transition-colors">
                                                         {product.title_en}
                                                     </h3>
-                                                    <div className="mt-1 flex flex-col">
+                                                    
+                                                    {/* Category Breadcrumb */}
+                                                    <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-1 line-clamp-1">
+                                                        {getCategoryPath(product.category_id)}
+                                                    </p>
+                                                    
+                                                    <div className="mt-2 flex flex-col">
                                                         <span className="text-sm font-black text-gray-900 dark:text-white">
                                                             KSh {product.price.toLocaleString()}
                                                         </span>
