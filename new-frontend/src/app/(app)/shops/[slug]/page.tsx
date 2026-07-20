@@ -98,6 +98,16 @@ export default function ShopDetailPage() {
     const [selectedContactType, setSelectedContactType] = useState<'whatsapp' | 'call' | 'message' | null>(null);
     const [showMobileContactSheet, setShowMobileContactSheet] = useState(false);
 
+    // Review/Rating State
+    const [ratingModalOpen, setRatingModalOpen] = useState(false);
+    const [userRating, setUserRating] = useState(0);
+    const [userReview, setUserReview] = useState('');
+    const [displayName, setDisplayName] = useState('');
+    const [isVerifiedPurchase, setIsVerifiedPurchase] = useState(false);
+    const [shopRating, setShopRating] = useState<number | null>(null);
+    const [totalReviews, setTotalReviews] = useState(0);
+    const [verifiedReviewsCount, setVerifiedReviewsCount] = useState(0);
+
     const { items: cartItems, addItem, updateQuantity: updateCartQuantity, getTotalPrice } = useCart();
 
     const categoryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -509,6 +519,33 @@ export default function ShopDetailPage() {
                                     <img src="/message-icon.png" alt="Message" className="w-6 h-6" />
                                 </button>
                             </div>
+                        </div>
+
+                        {/* Rating Section */}
+                        <div className="flex items-center gap-4 mb-4 py-3 border-y border-gray-100 dark:border-slate-800">
+                            <div className="flex items-center gap-2">
+                                <div className="flex gap-0.5">
+                                    {[...Array(5)].map((_, i) => (
+                                        <Star
+                                            key={i}
+                                            className={`w-4 h-4 ${
+                                                i < Math.floor(shopRating || 4.7)
+                                                    ? 'fill-yellow-400 text-yellow-400'
+                                                    : 'text-gray-300 dark:text-slate-600'
+                                            }`}
+                                        />
+                                    ))}
+                                </div>
+                                <span className="text-xs font-bold text-gray-900 dark:text-white">
+                                    {shopRating || 4.7} ({totalReviews || 247})
+                                </span>
+                            </div>
+                            <button
+                                onClick={() => setRatingModalOpen(true)}
+                                className="text-xs font-bold text-[#00a082] hover:underline ml-auto"
+                            >
+                                Rate Shop
+                            </button>
                         </div>
 
                         {/* Badges */}
@@ -1352,6 +1389,115 @@ export default function ShopDetailPage() {
                                 )}
                             </>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* RATING MODAL */}
+            {ratingModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="absolute inset-0" onClick={() => setRatingModalOpen(false)} />
+                    <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 z-10 border border-gray-100 dark:border-slate-800">
+                        {/* Close button */}
+                        <button
+                            onClick={() => setRatingModalOpen(false)}
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-slate-400"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Rate This Shop</h2>
+
+                        {/* Rating Stars */}
+                        <div className="mb-6">
+                            <p className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-3">Overall Rating</p>
+                            <div className="flex gap-2 justify-center">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <button
+                                        key={star}
+                                        onClick={() => setUserRating(star)}
+                                        className="focus:outline-none transition-transform hover:scale-110"
+                                    >
+                                        <Star
+                                            className={`w-8 h-8 cursor-pointer ${
+                                                star <= userRating
+                                                    ? 'fill-yellow-400 text-yellow-400'
+                                                    : 'text-gray-300 dark:text-slate-600'
+                                            }`}
+                                        />
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Review Text */}
+                        <div className="mb-4">
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
+                                Your Review
+                            </label>
+                            <textarea
+                                value={userReview}
+                                onChange={(e) => setUserReview(e.target.value)}
+                                placeholder="Share your experience with this shop..."
+                                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00a082] text-sm"
+                                rows={4}
+                            />
+                        </div>
+
+                        {/* Display Name */}
+                        <div className="mb-4">
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
+                                Display Name
+                            </label>
+                            <input
+                                type="text"
+                                value={displayName}
+                                onChange={(e) => setDisplayName(e.target.value)}
+                                placeholder="Ahmed Hassan"
+                                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00a082] text-sm"
+                            />
+                        </div>
+
+                        {/* Verified Purchase Checkbox */}
+                        <div className="mb-6 flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                id="verified"
+                                checked={isVerifiedPurchase}
+                                onChange={(e) => setIsVerifiedPurchase(e.target.checked)}
+                                className="rounded cursor-pointer"
+                            />
+                            <label htmlFor="verified" className="text-sm text-gray-700 dark:text-slate-300 cursor-pointer">
+                                I purchased from this shop
+                            </label>
+                        </div>
+
+                        {/* Submit Button */}
+                        <button
+                            onClick={() => {
+                                if (userRating > 0 && displayName.trim()) {
+                                    console.log('Review submitted:', {
+                                        rating: userRating,
+                                        review: userReview,
+                                        displayName,
+                                        isVerifiedPurchase,
+                                        shopId,
+                                    });
+                                    // TODO: Send to API endpoint
+                                    setRatingModalOpen(false);
+                                    setUserRating(0);
+                                    setUserReview('');
+                                    setDisplayName('');
+                                    setIsVerifiedPurchase(false);
+                                    alert('Thank you for your review!');
+                                } else {
+                                    alert('Please select a rating and enter your name');
+                                }
+                            }}
+                            className="w-full bg-[#00a082] hover:bg-[#008f73] text-white font-bold py-2.5 px-4 rounded-lg transition-colors"
+                        >
+                            Submit Review
+                        </button>
                     </div>
                 </div>
             )}
