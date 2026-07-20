@@ -585,6 +585,22 @@ export default function ShopDetailPage() {
                                 {/* Categories Content - Hidden when collapsed */}
                                 {!isSidebarCollapsed && (
                                 <div className="space-y-2">
+                                    {/* All Categories Button */}
+                                    <button
+                                        onClick={() => {
+                                            setSelectedCategoryId(null);
+                                            setSelectedSubcategoryId(null);
+                                            setSelectedSubsubcategoryId(null);
+                                        }}
+                                        className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                                            selectedCategoryId === null
+                                                ? 'bg-[#00a082] text-white'
+                                                : 'text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-900/40'
+                                        }`}
+                                    >
+                                        All Categories
+                                    </button>
+
                                 {dbCategories
                                     .filter((dbCategory: any) => {
                                         // Only show categories that have products in this shop
@@ -607,7 +623,11 @@ export default function ShopDetailPage() {
                                                     });
                                                 }
                                             }}
-                                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-900/40"
+                                            className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                                                selectedCategoryId === dbCategory.id
+                                                    ? 'bg-[#00a082] text-white'
+                                                    : 'text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-900/40'
+                                            }`}
                                         >
                                             {dbCategory.name_en}
                                         </button>
