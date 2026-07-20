@@ -13,6 +13,7 @@ import {
 import { FaWhatsapp } from 'react-icons/fa';
 import { MdMessage, MdPhone, MdContentCopy } from 'react-icons/md';
 import { useCart } from '../../../../store/useCart';
+import { useAuthStore } from '../../../../stores/useAuthStore';
 
 
 // Deterministic mock product attributes helper (discount, hasPromo, etc.)
@@ -112,7 +113,16 @@ export default function ShopDetailPage() {
     const [userHasReviewed, setUserHasReviewed] = useState(false);
     const [lastReviewTime, setLastReviewTime] = useState<number | null>(null);
 
+    // Feedback State
+    const [feedbackText, setFeedbackText] = useState('');
+    const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+
+    // Follow State
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [isSubmittingFollow, setIsSubmittingFollow] = useState(false);
+
     const { items: cartItems, addItem, updateQuantity: updateCartQuantity, getTotalPrice } = useCart();
+    const { user } = useAuthStore();
 
     const categoryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
     const scrollRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -1332,10 +1342,42 @@ export default function ShopDetailPage() {
                                 <div className="bg-white dark:bg-slate-900 rounded-lg p-6 border border-gray-100 dark:border-slate-800">
                                     <textarea
                                         placeholder="Share your experience with this shop..."
+                                        value={feedbackText}
+                                        onChange={(e) => setFeedbackText(e.target.value)}
                                         className="w-full h-24 p-4 border border-gray-100 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#00a082] resize-none"
                                     />
-                                    <button className="mt-4 bg-[#00a082] hover:bg-[#008f73] text-white font-bold py-2 px-6 rounded-lg transition-colors">
-                                        Submit Feedback
+                                    <button
+                                        onClick={async () => {
+                                            if (feedbackText.trim().length === 0) {
+                                                alert('Please enter your feedback');
+                                                return;
+                                            }
+                                            try {
+                                                setIsSubmittingFeedback(true);
+                                                const response = await api.post(
+                                                    `/listings/shops/${shopId}/feedback`,
+                                                    {
+                                                        feedback_text: feedbackText,
+                                                        display_name: displayName || user?.full_name || 'Anonymous',
+                                                        user_id: user?.id,
+                                                        is_public: true
+                                                    }
+                                                );
+                                                if (response.data) {
+                                                    setFeedbackText('');
+                                                    alert('Thank you for your feedback!');
+                                                }
+                                            } catch (error) {
+                                                console.error('Failed to submit feedback:', error);
+                                                alert('Failed to submit feedback. Please try again.');
+                                            } finally {
+                                                setIsSubmittingFeedback(false);
+                                            }
+                                        }}
+                                        disabled={isSubmittingFeedback}
+                                        className="mt-4 bg-[#00a082] hover:bg-[#008f73] disabled:bg-gray-400 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+                                    >
+                                        {isSubmittingFeedback ? 'Submitting...' : 'Submit Feedback'}
                                     </button>
                                 </div>
                             </div>
@@ -1395,9 +1437,38 @@ export default function ShopDetailPage() {
                                     )}
 
                                     <button
-                                        className="w-full bg-white dark:bg-slate-800 border-2 border-[#00a082] text-[#00a082] dark:text-[#00a082] font-bold py-2 px-4 rounded-lg transition-colors mt-3 hover:bg-[#00a082]/5"
+                                        onClick={async () => {
+                                            if (!user) {
+                                                alert('Please log in to follow shops');
+                                                return;
+                                            }
+                                            try {
+                                                setIsSubmittingFollow(true);
+                                                const response = await api.post(
+                                                    `/listings/shops/${shopId}/follow`,
+                                                    {
+                                                        user_id: user.id
+                                                    }
+                                                );
+                                                if (response.data) {
+                                                    setIsFollowing(true);
+                                                    alert('You are now following this shop!');
+                                                }
+                                            } catch (error) {
+                                                console.error('Failed to follow shop:', error);
+                                                alert('Failed to follow shop. Please try again.');
+                                            } finally {
+                                                setIsSubmittingFollow(false);
+                                            }
+                                        }}
+                                        disabled={isSubmittingFollow || isFollowing}
+                                        className={`w-full font-bold py-2 px-4 rounded-lg transition-colors mt-3 ${
+                                            isFollowing
+                                                ? 'bg-[#00a082] text-white cursor-default'
+                                                : 'bg-white dark:bg-slate-800 border-2 border-[#00a082] text-[#00a082] dark:text-[#00a082] hover:bg-[#00a082]/5'
+                                        }`}
                                     >
-                                        Follow Shop
+                                        {isSubmittingFollow ? 'Following...' : isFollowing ? 'Following' : 'Follow Shop'}
                                     </button>
                                 </div>
                             </div>
@@ -1702,6 +1773,8 @@ export default function ShopDetailPage() {
                                                 review: userReview,
                                                 display_name: displayName,
                                                 is_verified_purchase: isVerifiedPurchase,
+                                                user_id: user?.id,
+                                                reviewer_email: user?.email
                                             }
                                         );
 
