@@ -290,13 +290,18 @@ export default function ShopDetailPage() {
             categoryMap.get(groupKey)!.push({ ...listing, _displayName: displayName });
         });
 
-        return Array.from(categoryMap.entries())
+        const result = Array.from(categoryMap.entries())
             .map(([id, products]) => ({
                 id,
                 name: products[0]._displayName || 'Products',
                 products: products.map(({ _displayName, ...rest }) => rest)
             }))
             .sort((a, b) => b.products.length - a.products.length);
+
+        // Debug: Log what categories were created
+        console.log('🔷 CATEGORIES GROUPED:', result.map(c => `${c.name} (${c.products.length})`));
+
+        return result;
     }, [filteredListings, dbCategories]);
 
     const mainCategoryMap = useMemo(() => {
@@ -885,7 +890,10 @@ export default function ShopDetailPage() {
                                             const filtered = category.products.filter((product) => {
                                                 // Main category filter
                                                 if (selectedCategoryId !== null) {
-                                                    if (product.category_id !== selectedCategoryId) return false;
+                                                    if (product.category_id !== selectedCategoryId) {
+                                                        console.log(`❌ Filtered out product ${product.id}: category_id=${product.category_id}, selectedCategoryId=${selectedCategoryId}`);
+                                                        return false;
+                                                    }
                                                 }
 
                                                 // Subcategory/Subsubcategory filters
