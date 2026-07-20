@@ -1252,13 +1252,14 @@ export default function ShopDetailPage() {
             </div>
 
             {/* REVIEWS SECTION */}
-            {reviews && reviews.length > 0 && (
+            {shopId && (
                 <div className="max-w-7xl mx-auto px-4 lg:px-6 pb-12 mt-12">
                     <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">Customer Reviews</h2>
 
                     <div className="grid grid-cols-12 gap-8">
-                        {/* Reviews List - Left/Center */}
-                        <div className="col-span-12 lg:col-span-8">
+                        {/* Reviews & Feedback - Left/Center */}
+                        <div className="col-span-12 lg:col-span-8 space-y-8">
+                            {reviews && reviews.length > 0 ? (
                             <div className="space-y-4">
                                 {reviews.map((review: any) => (
                                     <div
@@ -1310,6 +1311,33 @@ export default function ShopDetailPage() {
                                         )}
                                     </div>
                                 ))}
+                            </div>
+                            ) : (
+                                <div className="bg-white dark:bg-slate-900 rounded-lg p-12 border border-gray-100 dark:border-slate-800 text-center">
+                                    <p className="text-gray-600 dark:text-slate-400 mb-4">
+                                        No reviews yet. Be the first to rate this shop!
+                                    </p>
+                                    <button
+                                        onClick={() => setRatingModalOpen(true)}
+                                        className="bg-[#00a082] hover:bg-[#008f73] text-white font-bold py-2 px-6 rounded-lg transition-colors"
+                                    >
+                                        Write First Review
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* FEEDBACK SECTION */}
+                            <div className="mt-8">
+                                <h3 className="text-xl font-black text-gray-900 dark:text-white mb-4">Shop Feedback</h3>
+                                <div className="bg-white dark:bg-slate-900 rounded-lg p-6 border border-gray-100 dark:border-slate-800">
+                                    <textarea
+                                        placeholder="Share your experience with this shop..."
+                                        className="w-full h-24 p-4 border border-gray-100 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#00a082] resize-none"
+                                    />
+                                    <button className="mt-4 bg-[#00a082] hover:bg-[#008f73] text-white font-bold py-2 px-6 rounded-lg transition-colors">
+                                        Submit Feedback
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -1365,6 +1393,12 @@ export default function ShopDetailPage() {
                                             Write a Review
                                         </button>
                                     )}
+
+                                    <button
+                                        className="w-full bg-white dark:bg-slate-800 border-2 border-[#00a082] text-[#00a082] dark:text-[#00a082] font-bold py-2 px-4 rounded-lg transition-colors mt-3 hover:bg-[#00a082]/5"
+                                    >
+                                        Follow Shop
+                                    </button>
                                 </div>
                             </div>
                         )}
