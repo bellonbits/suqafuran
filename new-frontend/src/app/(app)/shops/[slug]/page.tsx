@@ -10,6 +10,8 @@ import api, { optimizeCloudinaryUrl, resolveMediaUrl } from '../../../../service
 import {
     ChevronRight, ChevronLeft, Star, Clock, MapPin, Plus, Minus, Search, ShoppingBag, X, Percent, ThumbsUp, Info, Heart, Filter, Phone, MessageCircle
 } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
+import { MdMessage, MdPhone, MdContentCopy } from 'react-icons/md';
 import { useCart } from '../../../../store/useCart';
 
 
@@ -65,6 +67,7 @@ export default function ShopDetailPage() {
     const [shopName, setShopName] = useState('');
     const [shopLogo, setShopLogo] = useState('');
     const [shopAvatar, setShopAvatar] = useState('');
+    const [shopPhone, setShopPhone] = useState<string | null>(null);
 
     const [allListings, setAllListings] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -203,7 +206,8 @@ export default function ShopDetailPage() {
 
                     setShopName(currentShop.shop_name || 'Shop');
                     setShopLogo(currentShop.cover_image || '');
-                                        setShopAvatar(resolveMediaUrl(currentShop.user?.avatar_url) || '');
+                    setShopAvatar(resolveMediaUrl(currentShop.user?.avatar_url) || '');
+                    setShopPhone(currentShop.phone || null);
                     setShopOwnerId(currentShop.user_id);
                     setAllListings(shopListings || []);
                     console.log('📦 Sample listing:', shopListings?.[0]);
@@ -1288,25 +1292,65 @@ export default function ShopDetailPage() {
                         <div className="mb-4">
                             <p className="text-sm text-gray-600 dark:text-slate-400 mb-2">Seller: {shopName}</p>
                             <p className="text-sm font-semibold text-gray-900 dark:text-white">Phone:</p>
-                            <p className="text-base font-bold text-[#00a082] mb-4">+254 712 345 678</p>
+                            <p className="text-base font-bold text-[#00a082] mb-4">{shopPhone || 'Not available'}</p>
                         </div>
-                        {selectedContactType === 'whatsapp' && (
-                            <div className="space-y-2">
-                                <button onClick={() => window.open('https://wa.me/254712345678')} className="w-full bg-[#25D366] text-white font-bold py-2 px-4 rounded-lg">💬 Chat WhatsApp</button>
-                                <button onClick={() => navigator.clipboard.writeText('+254 712 345 678')} className="w-full bg-gray-200 text-gray-900 font-bold py-2 px-4 rounded-lg">📋 Copy</button>
-                            </div>
-                        )}
-                        {selectedContactType === 'call' && (
-                            <div className="space-y-2">
-                                <button onClick={() => window.location.href = 'tel:+254712345678'} className="w-full bg-[#FFC107] text-gray-900 font-bold py-2 px-4 rounded-lg">📞 Call</button>
-                                <button onClick={() => navigator.clipboard.writeText('+254 712 345 678')} className="w-full bg-gray-200 text-gray-900 font-bold py-2 px-4 rounded-lg">📋 Copy</button>
-                            </div>
-                        )}
-                        {selectedContactType === 'message' && (
-                            <div className="space-y-2">
-                                <button onClick={() => window.location.href = 'sms:+254712345678'} className="w-full bg-[#00a082] text-white font-bold py-2 px-4 rounded-lg">📱 Send SMS</button>
-                                <button onClick={() => navigator.clipboard.writeText('+254 712 345 678')} className="w-full bg-gray-200 text-gray-900 font-bold py-2 px-4 rounded-lg">📋 Copy</button>
-                            </div>
+                        {shopPhone && (
+                            <>
+                                {selectedContactType === 'whatsapp' && (
+                                    <div className="space-y-2">
+                                        <button
+                                            onClick={() => window.open(`https://wa.me/${shopPhone.replace(/\D/g, '')}`)}
+                                            className="w-full bg-[#25D366] text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-[#20BA5A] transition-colors"
+                                        >
+                                            <FaWhatsapp className="w-5 h-5" />
+                                            Chat WhatsApp
+                                        </button>
+                                        <button
+                                            onClick={() => navigator.clipboard.writeText(shopPhone)}
+                                            className="w-full bg-gray-200 text-gray-900 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-300 transition-colors"
+                                        >
+                                            <MdContentCopy className="w-5 h-5" />
+                                            Copy
+                                        </button>
+                                    </div>
+                                )}
+                                {selectedContactType === 'call' && (
+                                    <div className="space-y-2">
+                                        <button
+                                            onClick={() => window.location.href = `tel:${shopPhone}`}
+                                            className="w-full bg-[#FFC107] text-gray-900 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-[#FFB300] transition-colors"
+                                        >
+                                            <MdPhone className="w-5 h-5" />
+                                            Call
+                                        </button>
+                                        <button
+                                            onClick={() => navigator.clipboard.writeText(shopPhone)}
+                                            className="w-full bg-gray-200 text-gray-900 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-300 transition-colors"
+                                        >
+                                            <MdContentCopy className="w-5 h-5" />
+                                            Copy
+                                        </button>
+                                    </div>
+                                )}
+                                {selectedContactType === 'message' && (
+                                    <div className="space-y-2">
+                                        <button
+                                            onClick={() => window.location.href = `sms:${shopPhone}`}
+                                            className="w-full bg-[#00a082] text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-[#008f73] transition-colors"
+                                        >
+                                            <MdMessage className="w-5 h-5" />
+                                            Send SMS
+                                        </button>
+                                        <button
+                                            onClick={() => navigator.clipboard.writeText(shopPhone)}
+                                            className="w-full bg-gray-200 text-gray-900 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-300 transition-colors"
+                                        >
+                                            <MdContentCopy className="w-5 h-5" />
+                                            Copy
+                                        </button>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>
