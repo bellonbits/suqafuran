@@ -366,8 +366,7 @@ def merge_duplicate_shops(
         return {"error": str(e)}
 
 
-# REVIEW ENDPOINTS
-@listings_router.get("/shops/{shop_id}/reviews")
+@notifications_router.websocket("/ws")
 def get_shop_reviews(
     shop_id: str,
     skip: int = Query(0, ge=0),
