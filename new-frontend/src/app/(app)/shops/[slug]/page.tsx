@@ -654,18 +654,20 @@ export default function ShopDetailPage() {
                                             </div>
                                         )}
                                     </div>
+                                ))}
+                            </div>
 
-                                    {/* Filters - Nested under categories */}
-                                    <div className="pl-2 mt-4 pt-4 space-y-3 border-t border-gray-200 dark:border-slate-800">
+                            {/* Filters Section - After categories */}
+                            <div className="space-y-3 mt-6 pt-4 border-t border-gray-200 dark:border-slate-800">
                                 {/* Price Range */}
                                 <div>
                                     <h3 className="text-xs font-bold text-gray-900 dark:text-white mb-2">Price Range</h3>
                                     <div className="space-y-2">
                                         {[
-                                            { label: 'Under KSh 500', value: 'under500', min: 0, max: 500 },
-                                            { label: 'KSh 500 - 1,000', value: '500-1000', min: 500, max: 1000 },
-                                            { label: 'KSh 1,000 - 2,500', value: '1000-2500', min: 1000, max: 2500 },
-                                            { label: 'Above KSh 2,500', value: 'above2500', min: 2500, max: Infinity }
+                                            { label: 'Under KSh 500', value: 'under500' },
+                                            { label: 'KSh 500 - 1,000', value: '500-1000' },
+                                            { label: 'KSh 1,000 - 2,500', value: '1000-2500' },
+                                            { label: 'Above KSh 2,500', value: 'above2500' }
                                         ].map((range) => (
                                             <label key={range.value} className="flex items-center gap-2 cursor-pointer text-xs">
                                                 <input
@@ -738,8 +740,8 @@ export default function ShopDetailPage() {
                                     <h3 className="text-xs font-bold text-gray-900 dark:text-white mb-2">Rating</h3>
                                     <div className="space-y-2">
                                         {[
-                                            { label: '4★ & Above', value: '4star', min: 4 },
-                                            { label: '3★ & Above', value: '3star', min: 3 }
+                                            { label: '4★ & Above', value: '4star' },
+                                            { label: '3★ & Above', value: '3star' }
                                         ].map((rating) => (
                                             <label key={rating.value} className="flex items-center gap-2 cursor-pointer text-xs">
                                                 <input
