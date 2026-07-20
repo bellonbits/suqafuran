@@ -528,8 +528,10 @@ export default function ShopDetailPage() {
                                         {/* Main Category */}
                                         <button
                                             onClick={() => {
+                                                setSelectedSubcategoryId(null);
+                                                setSelectedSubsubcategoryId(null);
                                                 setActiveCategory(dbCategory.id);
-                                                const matchingCat = categories.find(c => c.products?.[0]?.category_id === dbCategory.id);
+                                                const matchingCat = categories.find(c => c.products?.some((p: any) => p.category_id === dbCategory.id));
                                                 if (matchingCat) {
                                                     categoryRefs.current[matchingCat.id]?.scrollIntoView({
                                                         behavior: 'smooth',
@@ -668,14 +670,33 @@ export default function ShopDetailPage() {
                                         </p>
                                         <div className="flex items-center justify-between">
                                             <h2 className="text-xl font-extrabold text-gray-900 dark:text-white">
-                                                {category.products && category.products.length > 0
-                                              ? (() => {
-                                                  const path = getCategoryPath(category.products[0].category_id, category.products[0].subcategory_id, dbCategories);
-                                                  const parts = path.split(' > ');
-                                                  return parts[parts.length - 1]; // Show just subcategory
-                                                })()
-                                              : (category.name === 'Other' ? 'Products' : category.name)
-                                            }
+                                                {(() => {
+                                                    // If subsubcategory selected, find and show its name
+                                                    if (selectedSubsubcategoryId) {
+                                                        for (const cat of dbCategories) {
+                                                            for (const subcat of cat.subcategories || []) {
+                                                                const found = subcat.subsubcategories?.find((ss: any) => ss.id === selectedSubsubcategoryId);
+                                                                if (found) return found.name_en;
+                                                            }
+                                                        }
+                                                    }
+
+                                                    // If subcategory selected, find and show its name
+                                                    if (selectedSubcategoryId) {
+                                                        for (const cat of dbCategories) {
+                                                            const found = cat.subcategories?.find((s: any) => s.id === selectedSubcategoryId);
+                                                            if (found) return found.name_en;
+                                                        }
+                                                    }
+
+                                                    // Default: show first product's subcategory
+                                                    if (category.products && category.products.length > 0) {
+                                                        const path = getCategoryPath(category.products[0].category_id, category.products[0].subcategory_id, dbCategories);
+                                                        const parts = path.split(' > ');
+                                                        return parts[parts.length - 1];
+                                                    }
+                                                    return (category.name === 'Other' ? 'Products' : category.name);
+                                                })()}
                                             </h2>
                                         <div className="flex items-center gap-3">
                                             <button className="text-xs font-black text-[#00a082] hover:underline">
