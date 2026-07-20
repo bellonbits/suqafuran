@@ -306,7 +306,7 @@ function ShopsPageContent() {
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 pb-20">
       {/* ── Header & Search ─────────────────────────────────────────── */}
-      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-1">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-1">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
             <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Shops</h1>
@@ -354,7 +354,7 @@ function ShopsPageContent() {
         </div>
       </div>
       {/* ── Category Stickers ───────────────────────────────────────────── */}
-      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 mt-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-3">
         <div className="w-full overflow-x-auto hide-scrollbar">
           <div className="flex flex-row flex-nowrap items-start gap-5 pb-3 pt-1">
 
