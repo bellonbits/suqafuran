@@ -1317,10 +1317,31 @@ export default function ShopDetailPage() {
                                         className="w-full h-24 p-4 border border-gray-100 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#00a082] resize-none"
                                     />
                                     <button
-                                        onClick={() => alert('Feedback feature coming soon!')}
-                                        className="mt-4 bg-[#00a082] hover:bg-[#008f73] text-white font-bold py-2 px-6 rounded-lg transition-colors"
+                                        onClick={async () => {
+                                            if (feedbackText.trim().length === 0) {
+                                                alert('Please enter your feedback');
+                                                return;
+                                            }
+                                            try {
+                                                setIsSubmittingFeedback(true);
+                                                await api.post('/feedback/feedback', {
+                                                    target_user_id: ownerId,
+                                                    comment: feedbackText,
+                                                    rating: 5
+                                                });
+                                                setFeedbackText('');
+                                                alert('Thank you for your feedback!');
+                                            } catch (error) {
+                                                console.error('Failed to submit feedback:', error);
+                                                alert('Failed to submit feedback. Please try again.');
+                                            } finally {
+                                                setIsSubmittingFeedback(false);
+                                            }
+                                        }}
+                                        disabled={isSubmittingFeedback}
+                                        className="mt-4 bg-[#00a082] hover:bg-[#008f73] disabled:bg-gray-400 text-white font-bold py-2 px-6 rounded-lg transition-colors"
                                     >
-                                        Submit Feedback
+                                        {isSubmittingFeedback ? 'Submitting...' : 'Submit Feedback'}
                                     </button>
                                 </div>
                             </div>
@@ -1380,10 +1401,37 @@ export default function ShopDetailPage() {
                                     )}
 
                                     <button
-                                        onClick={() => alert('Follow feature coming soon!')}
-                                        className="w-full font-bold py-2 px-4 rounded-lg transition-colors mt-3 bg-white dark:bg-slate-800 border-2 border-[#00a082] text-[#00a082] dark:text-[#00a082] hover:bg-[#00a082]/5"
+                                        onClick={async () => {
+                                            if (!user) {
+                                                alert('Please log in to follow shops');
+                                                return;
+                                            }
+                                            try {
+                                                setIsSubmittingFollow(true);
+                                                if (isFollowing) {
+                                                    await api.delete(`/follows/unfollow/${ownerId}`);
+                                                    setIsFollowing(false);
+                                                    alert('You unfollowed this shop');
+                                                } else {
+                                                    await api.post(`/follows/follow/${ownerId}`);
+                                                    setIsFollowing(true);
+                                                    alert('You are now following this shop!');
+                                                }
+                                            } catch (error) {
+                                                console.error('Failed to follow shop:', error);
+                                                alert('Failed to follow shop. Please try again.');
+                                            } finally {
+                                                setIsSubmittingFollow(false);
+                                            }
+                                        }}
+                                        disabled={isSubmittingFollow}
+                                        className={`w-full font-bold py-2 px-4 rounded-lg transition-colors mt-3 ${
+                                            isFollowing
+                                                ? 'bg-[#00a082] text-white cursor-default'
+                                                : 'bg-white dark:bg-slate-800 border-2 border-[#00a082] text-[#00a082] dark:text-[#00a082] hover:bg-[#00a082]/5'
+                                        }`}
                                     >
-                                        Follow Shop (Coming Soon)
+                                        {isSubmittingFollow ? 'Following...' : isFollowing ? 'Following' : 'Follow Shop'}
                                     </button>
                                 </div>
                             </div>
@@ -1679,8 +1727,25 @@ export default function ShopDetailPage() {
                                         }
                                     }
 
-                                    alert('Review feature coming soon!');
-                                    setRatingModalOpen(false);
+                                    try {
+                                        await api.post('/reviews', {
+                                            seller_id: ownerId,
+                                            rating: userRating,
+                                            comment: userReview,
+                                            listing_id: shopId
+                                        });
+                                        setUserHasReviewed(true);
+                                        setLastReviewTime(Date.now());
+                                        setRatingModalOpen(false);
+                                        setUserRating(0);
+                                        setUserReview('');
+                                        setDisplayName('');
+                                        setIsVerifiedPurchase(false);
+                                        alert('Thank you for your review!');
+                                    } catch (error) {
+                                        console.error('Failed to submit review:', error);
+                                        alert('Failed to submit review. Please try again.');
+                                    }
                                 } else {
                                     alert('Please select a rating and enter your name');
                                 }
