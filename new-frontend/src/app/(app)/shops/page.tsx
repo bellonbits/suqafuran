@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'reac
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, ShieldCheck, Store, MapPin, Star, Package, X, ChevronLeft, ChevronRight, Percent, ThumbsUp } from 'lucide-react';
+import { Search, ShieldCheck, Store, MapPin, Star, Package, X, ChevronLeft, ChevronRight, Percent, ThumbsUp, MoreHorizontal } from 'lucide-react';
 import { listingsService, PublicShop } from '@/services/listings';
 import api, { resolveMediaUrl } from '@/services/api';
 import { useLocationStore } from '@/store/useLocation';
@@ -102,9 +102,8 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
     >
       <Link href={`/shops/${shop.slug}`} className="group block">
 
-        {/* ─── Banner (16:9) ────────────────────────────────────── */}
-        {/* Standard widescreen aspect ratio for shop banners         */}
-        <div className="relative aspect-[16/9] w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-800">
+        {/* ─── Banner (16:7 aspect ratio - shorter) ──────────────────────── */}
+        <div className="relative aspect-[16/7] w-full rounded-lg overflow-hidden bg-gray-200 dark:bg-slate-800">
           {banner ? (
             <>
               <img
@@ -114,11 +113,13 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
                 onError={() => setImgError(true)}
               />
               {/* Subtle dark gradient at bottom for logo legibility */}
-              <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/30 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-black/30 to-transparent" />
             </>
           ) : (
-            /* Placeholder when no banner */
-            <div className="w-full h-full bg-gray-100 dark:bg-slate-800" />
+            /* Fallback: Shop initial on gradient background */
+            <div className="w-full h-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center">
+              <span className="text-4xl font-black text-white">{initial}</span>
+            </div>
           )}
 
           {/* Promo badge — top-left */}
@@ -137,40 +138,34 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
           )}
 
           {/* Shop logo — INSIDE banner, bottom-left, Glovo-style circle */}
-          <div className="absolute bottom-3 left-3.5 w-12 h-12 rounded-full bg-white dark:bg-slate-900 border-2 border-white dark:border-slate-700 shadow-md overflow-hidden flex items-center justify-center">
-            <div className="w-full h-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-sm">
-              {initial}
+          {banner && (
+            <div className="absolute bottom-2.5 left-3 w-10 h-10 rounded-full bg-white dark:bg-slate-900 border-2 border-white dark:border-slate-700 shadow-md overflow-hidden flex items-center justify-center">
+              <div className="w-full h-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-xs">
+                {initial}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* ─── Details below banner ─────────────────────────────── */}
-        <div className="mt-3.5 px-1">
-          <h3 className="font-extrabold text-gray-900 dark:text-white text-[15px] leading-snug group-hover:text-orange-500 transition-colors truncate">
+        <div className="mt-3 px-0.5">
+          <h3 className="font-extrabold text-gray-900 dark:text-white text-[14px] leading-snug group-hover:text-orange-500 transition-colors truncate">
             {shop.shop_name}
           </h3>
 
-          {/* Metrics row (delivery time and rating) */}
-          <div className="flex items-center gap-2 mt-1.5 text-[13px] font-semibold text-gray-500 dark:text-slate-400 flex-nowrap overflow-hidden">
-            {isFreeDel && (
-              <>
-                <span className="bg-[#ff1244] text-white text-[11px] uppercase font-black px-2 py-0.5 rounded shrink-0">
-                  Free
-                </span>
-                <span className="text-gray-300 dark:text-slate-700 font-normal shrink-0">•</span>
-              </>
-            )}
-            <span className="shrink-0 text-[12px] font-semibold">{deliveryTime}</span>
-            <span className="text-gray-300 dark:text-slate-700 font-normal shrink-0">•</span>
-            <div className="flex items-center gap-1 shrink-0 font-bold">
-              <ThumbsUp className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 shrink-0" />
-              <span className="truncate">{ratingPercent}%</span>
-            </div>
+          {/* Market row (directly under shop name) */}
+          <div className="mt-0.5 text-[12px] font-semibold text-gray-500 dark:text-slate-400 truncate">
+            {market}
           </div>
 
-          {/* Market row (below metrics) */}
-          <div className="mt-1 text-[12px] font-semibold text-gray-500 dark:text-slate-400">
-            {market}
+          {/* Metrics row (delivery time and rating) */}
+          <div className="flex items-center gap-2 mt-1.5 text-[12px] font-semibold text-gray-500 dark:text-slate-400 flex-nowrap overflow-hidden">
+            <div className="flex items-center gap-1 shrink-0 font-bold">
+              <Star className="w-3 h-3 text-amber-400 fill-amber-400 shrink-0" />
+              <span className="truncate">{ratingPercent}%</span>
+            </div>
+            <span className="text-gray-300 dark:text-slate-700 font-normal shrink-0">•</span>
+            <span className="shrink-0 text-[11px] font-semibold">{deliveryTime}</span>
           </div>
         </div>
 
@@ -183,10 +178,10 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
 function SkeletonCard() {
   return (
     <div className="animate-pulse">
-      <div className="aspect-[16/9] w-full bg-gray-200 dark:bg-slate-800 rounded-lg" />
+      <div className="aspect-[16/7] w-full bg-gray-200 dark:bg-slate-800 rounded-lg" />
       <div className="mt-2.5 space-y-1.5 px-0.5">
-        <div className="h-3.5 bg-gray-200 dark:bg-slate-700 rounded w-3/4" />
-        <div className="h-3 bg-gray-100 dark:bg-slate-800 rounded w-2/3" />
+        <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-3/4" />
+        <div className="h-2.5 bg-gray-100 dark:bg-slate-800 rounded w-2/3" />
       </div>
     </div>
   );
@@ -194,6 +189,7 @@ function SkeletonCard() {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 const SHOPS_PER_PAGE = 20;
+const MAX_VISIBLE_CATEGORIES = 10;
 
 function ShopsPageContent() {
   const router = useRouter();
@@ -211,6 +207,7 @@ function ShopsPageContent() {
   const [selectedMarket, setSelectedMarket] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [shopCountsByCategory, setShopCountsByCategory] = useState<Record<string, number>>({});
+  const [showMoreCategories, setShowMoreCategories] = useState(false);
   const categoryParam = searchParams.get('category');
 
   // Debounce search
@@ -303,60 +300,64 @@ function ShopsPageContent() {
 
   const totalPages = Math.ceil(total / SHOPS_PER_PAGE);
 
+  // Get visible categories (limit to MAX_VISIBLE_CATEGORIES)
+  const activeCategories = categories.filter(cat => (cat.active_listing_count ?? 0) > 0);
+  const visibleCategories = showMoreCategories ? activeCategories : activeCategories.slice(0, MAX_VISIBLE_CATEGORIES);
+  const hasMoreCategories = activeCategories.length > MAX_VISIBLE_CATEGORIES;
+
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 pb-20">
-      {/* ── Header & Search ─────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-1">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Shops</h1>
-            <p className="text-gray-500 dark:text-slate-400 text-xs font-semibold mt-0.5">
-              All Markets <span className="text-gray-300 dark:text-slate-800">/</span> {total} shops
-            </p>
+      {/* ── Page Title ─────────────────────────────────────────────────── */}
+      <div className="max-w-7xl mx-auto px-8 pt-8 pb-6">
+        <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Shops</h1>
+        <p className="text-gray-600 dark:text-slate-400 text-sm font-semibold mt-1">
+          {total} shops in All Markets
+        </p>
+      </div>
+
+      {/* ── Search & Filter Row ─────────────────────────────────────────── */}
+      <div className="max-w-7xl mx-auto px-8 pb-8">
+        <div className="flex gap-3 w-full">
+          {/* Search Box */}
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search shops..."
+              className="w-full pl-12 pr-10 py-3 rounded-lg bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-500 text-gray-900 dark:text-white"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
-          {/* Search & Filter */}
-          <div className="flex gap-2 w-full md:w-auto">
-            {/* Search Box */}
-            <div className="relative flex-1 md:flex-none md:w-64">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Search shops..."
-                className="w-full pl-10 pr-9 py-2 rounded-full bg-gray-100 dark:bg-slate-900 border-0 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 placeholder:text-gray-400 text-gray-900 dark:text-white"
-              />
-              {search && (
-                <button
-                  onClick={() => setSearch('')}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
-            {/* Market Filter Dropdown */}
-            <select
-              value={selectedMarket || ''}
-              onChange={(e) => setSelectedMarket(e.target.value || null)}
-              className="px-4 py-2 rounded-full bg-gray-100 dark:bg-slate-900 border-0 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-400 cursor-pointer"
-            >
-              <option value="">All Markets</option>
-              {Object.keys(MARKET_TO_CITY).sort().map((market) => (
-                <option key={market} value={market}>
-                  {market}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Market Filter Dropdown */}
+          <select
+            value={selectedMarket || ''}
+            onChange={(e) => setSelectedMarket(e.target.value || null)}
+            className="px-4 py-3 rounded-lg bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer whitespace-nowrap"
+          >
+            <option value="">All Markets</option>
+            {Object.keys(MARKET_TO_CITY).sort().map((market) => (
+              <option key={market} value={market}>
+                {market}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
+
       {/* ── Category Stickers ───────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-3">
+      <div className="max-w-7xl mx-auto px-8 pb-8">
         <div className="w-full overflow-x-auto hide-scrollbar">
-          <div className="flex flex-row flex-nowrap items-start gap-5 pb-3 pt-1">
+          <div className="flex flex-row flex-nowrap items-start gap-4 pb-2 pt-0">
 
             {/* ALL STICKER */}
             <div
@@ -364,7 +365,7 @@ function ShopsPageContent() {
               className="flex flex-col items-center shrink-0 cursor-pointer group"
             >
               <div
-                className={`relative w-[80px] h-[80px] flex items-center justify-center transition-all duration-200 ${
+                className={`relative w-16 h-16 flex items-center justify-center transition-all duration-200 ${
                   selectedCategoryId === null ? 'scale-105' : ''
                 }`}
               >
@@ -379,10 +380,10 @@ function ShopsPageContent() {
                   src="/icons/all-shops.png"
                   alt="All Shops"
                   onError={(e) => { (e.target as HTMLImageElement).src = '/icons/shelves.png'; }}
-                  className="relative z-10 w-12 h-12 object-contain group-hover:scale-105 transition-transform duration-200"
+                  className="relative z-10 w-10 h-10 object-contain group-hover:scale-105 transition-transform duration-200"
                 />
               </div>
-              <span className={`text-[13px] font-extrabold mt-2 tracking-tight text-center w-[80px] truncate block ${
+              <span className={`text-[12px] font-bold mt-2 tracking-tight text-center w-16 truncate block ${
                 selectedCategoryId === null ? 'text-orange-500' : 'text-gray-700 dark:text-slate-300'
               }`}>
                 All
@@ -390,9 +391,7 @@ function ShopsPageContent() {
             </div>
 
             {/* DYNAMIC STICKERS — only categories with active listings */}
-            {categories
-              .filter(cat => (cat.active_listing_count ?? 0) > 0)
-              .map(cat => {
+            {visibleCategories.map(cat => {
               const icon = getCategoryStickerIcon(cat.slug);
               const isSelected = selectedCategoryId === cat.id;
               return (
@@ -402,7 +401,7 @@ function ShopsPageContent() {
                   className="flex flex-col items-center shrink-0 cursor-pointer group"
                 >
                   <div
-                    className={`relative w-[80px] h-[80px] flex items-center justify-center transition-all duration-200 ${
+                    className={`relative w-16 h-16 flex items-center justify-center transition-all duration-200 ${
                       isSelected ? 'scale-105' : ''
                     }`}
                   >
@@ -415,10 +414,10 @@ function ShopsPageContent() {
                     <img
                       src={icon}
                       alt={cat.name_en}
-                      className="relative z-10 w-12 h-12 object-contain group-hover:scale-105 transition-transform duration-200"
+                      className="relative z-10 w-10 h-10 object-contain group-hover:scale-105 transition-transform duration-200"
                     />
                   </div>
-                  <span className={`text-[13px] font-extrabold mt-2 tracking-tight text-center w-[88px] truncate block ${
+                  <span className={`text-[12px] font-bold mt-2 tracking-tight text-center w-16 truncate block ${
                     isSelected ? 'text-orange-500' : 'text-gray-700 dark:text-slate-300'
                   }`}>
                     {cat.name_en}
@@ -426,18 +425,27 @@ function ShopsPageContent() {
                 </div>
               );
             })}
+
+            {/* More Categories Button */}
+            {hasMoreCategories && (
+              <div
+                onClick={() => setShowMoreCategories(!showMoreCategories)}
+                className="flex flex-col items-center shrink-0 cursor-pointer group"
+              >
+                <div className="relative w-16 h-16 flex items-center justify-center transition-all duration-200 rounded-full bg-gray-100 dark:bg-slate-800 group-hover:bg-gray-200 dark:group-hover:bg-slate-700">
+                  <MoreHorizontal className="w-6 h-6 text-gray-600 dark:text-slate-400" />
+                </div>
+                <span className="text-[12px] font-bold mt-2 tracking-tight text-center w-16 text-gray-700 dark:text-slate-300">
+                  {showMoreCategories ? 'Less' : 'More'}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* ── Stores Grid ─────────────────────────────────────────────────── */}
-      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 mt-5">
-        <h2 className="text-lg font-black text-gray-900 dark:text-white mb-4">
-          {selectedCategoryId
-            ? `${categories.find(c => c.id === selectedCategoryId)?.name_en || 'Filtered'} Markets`
-            : 'All Markets'}
-        </h2>
-
+      <div className="max-w-7xl mx-auto px-8">
         {/* Error */}
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 text-center mb-6">
@@ -451,15 +459,15 @@ function ShopsPageContent() {
           </div>
         )}
 
-        {/* Grid Container — 5 cols on xl, 4 on lg, 3 on md, 2 on sm */}
+        {/* Grid Container — 4 cols on lg+, 3 on md, 2 on sm */}
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-x-4 gap-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {Array.from({ length: 10 }).map((_, i) => (
               <SkeletonCard key={i} />
             ))}
           </div>
         ) : shops.length === 0 ? (
-          <div className="text-center py-20 bg-gray-50 dark:bg-slate-900/40 rounded-3xl p-8 border border-dashed border-gray-200 dark:border-slate-800">
+          <div className="text-center py-20 bg-gray-50 dark:bg-slate-900/40 rounded-2xl p-8 border border-dashed border-gray-200 dark:border-slate-800">
             <div className="w-16 h-16 bg-orange-100 dark:bg-orange-950/40 rounded-full flex items-center justify-center mx-auto mb-4">
               <Store className="w-8 h-8 text-orange-500" />
             </div>
@@ -470,7 +478,7 @@ function ShopsPageContent() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-x-4 gap-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {shops.map((shop, i) => (
                 <GlovoShopCard key={shop.id} shop={shop} index={i} />
               ))}
