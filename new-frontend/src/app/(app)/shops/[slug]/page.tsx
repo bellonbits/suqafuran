@@ -79,6 +79,7 @@ export default function ShopDetailPage() {
     const [shopId, setShopId] = useState<string | null>(null);
     const [shopOwnerId, setShopOwnerId] = useState<string | number | null>(null);
     const [favorites, setFavorites] = useState<Set<string | number>>(new Set());
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
     const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<number | null>(null);
     const [selectedSubsubcategoryId, setSelectedSubsubcategoryId] = useState<number | null>(null);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -113,7 +114,8 @@ export default function ShopDetailPage() {
     // Extract main category_id from the first product in the category
     if (category.products && category.products.length > 0) {
       const mainCategoryId = category.products[0].category_id;
-      // Clear subcategory/subsubcategory filters to show all products in the main category
+      // Set the category and clear all subcategory filters
+      setSelectedCategoryId(mainCategoryId);
       setSelectedSubcategoryId(null);
       setSelectedSubsubcategoryId(null);
       // Set the active category and scroll to it
@@ -593,6 +595,7 @@ export default function ShopDetailPage() {
                                         {/* Main Category */}
                                         <button
                                             onClick={() => {
+                                                setSelectedCategoryId(dbCategory.id);
                                                 setSelectedSubcategoryId(null);
                                                 setSelectedSubsubcategoryId(null);
                                                 setActiveCategory(dbCategory.id);
@@ -630,6 +633,7 @@ export default function ShopDetailPage() {
                                                         {/* Subcategory */}
                                                         <button
                                                             onClick={() => {
+                                                                setSelectedCategoryId(dbCategory.id);
                                                                 setSelectedSubcategoryId(subcategory.id);
                                                                 setSelectedSubsubcategoryId(null);
 
@@ -879,7 +883,12 @@ export default function ShopDetailPage() {
                                     >
                                         {(() => {
                                             const filtered = category.products.filter((product) => {
-                                                // Category filters
+                                                // Main category filter
+                                                if (selectedCategoryId !== null) {
+                                                    if (product.category_id !== selectedCategoryId) return false;
+                                                }
+
+                                                // Subcategory/Subsubcategory filters
                                                 if (selectedSubcategoryId !== null) {
                                                     if (selectedSubsubcategoryId === null) {
                                                         if (product.subcategory_id !== selectedSubcategoryId) return false;
