@@ -273,44 +273,6 @@ export default function ShopDetailPage() {
         fetchData();
     }, [shopId, city]);
 
-    // Fetch reviews for the shop
-    useEffect(() => {
-        if (!shopId) return;
-
-        const fetchReviews = async () => {
-            try {
-                setReviewsLoading(true);
-                const response = await api.get(`/listings/shops/${shopId}/reviews`);
-
-                if (response.data) {
-                    setReviews(response.data.reviews || []);
-                    setShopRating(response.data.average_rating || null);
-                    setTotalReviews(response.data.total_reviews || 0);
-                    setVerifiedReviewsCount(response.data.verified_reviews_count || 0);
-
-                    // Check if current user has already reviewed
-                    const userEmail = localStorage.getItem('userEmail');
-                    if (userEmail) {
-                        const userReview = response.data.reviews?.find((r: any) => r.reviewer_email === userEmail);
-                        if (userReview) {
-                            setUserHasReviewed(true);
-                            setLastReviewTime(new Date(userReview.created_at).getTime());
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to fetch reviews:', error);
-                // Fallback: set empty reviews, don't show rating
-                setReviews([]);
-                setShopRating(null);
-                setTotalReviews(0);
-            } finally {
-                setReviewsLoading(false);
-            }
-        };
-
-        fetchReviews();
-    }, [shopId]);
 
     const filteredListings = useMemo(() => {
         if (!searchQuery.trim()) return allListings;
@@ -1355,37 +1317,10 @@ export default function ShopDetailPage() {
                                         className="w-full h-24 p-4 border border-gray-100 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#00a082] resize-none"
                                     />
                                     <button
-                                        onClick={async () => {
-                                            if (feedbackText.trim().length === 0) {
-                                                alert('Please enter your feedback');
-                                                return;
-                                            }
-                                            try {
-                                                setIsSubmittingFeedback(true);
-                                                const response = await api.post(
-                                                    `/listings/shops/${shopId}/feedback`,
-                                                    {
-                                                        feedback_text: feedbackText,
-                                                        display_name: displayName || user?.full_name || 'Anonymous',
-                                                        user_id: user?.id,
-                                                        is_public: true
-                                                    }
-                                                );
-                                                if (response.data) {
-                                                    setFeedbackText('');
-                                                    alert('Thank you for your feedback!');
-                                                }
-                                            } catch (error) {
-                                                console.error('Failed to submit feedback:', error);
-                                                alert('Failed to submit feedback. Please try again.');
-                                            } finally {
-                                                setIsSubmittingFeedback(false);
-                                            }
-                                        }}
-                                        disabled={isSubmittingFeedback}
-                                        className="mt-4 bg-[#00a082] hover:bg-[#008f73] disabled:bg-gray-400 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+                                        onClick={() => alert('Feedback feature coming soon!')}
+                                        className="mt-4 bg-[#00a082] hover:bg-[#008f73] text-white font-bold py-2 px-6 rounded-lg transition-colors"
                                     >
-                                        {isSubmittingFeedback ? 'Submitting...' : 'Submit Feedback'}
+                                        Submit Feedback
                                     </button>
                                 </div>
                             </div>
@@ -1445,38 +1380,10 @@ export default function ShopDetailPage() {
                                     )}
 
                                     <button
-                                        onClick={async () => {
-                                            if (!user) {
-                                                alert('Please log in to follow shops');
-                                                return;
-                                            }
-                                            try {
-                                                setIsSubmittingFollow(true);
-                                                const response = await api.post(
-                                                    `/listings/shops/${shopId}/follow`,
-                                                    {
-                                                        user_id: user.id
-                                                    }
-                                                );
-                                                if (response.data) {
-                                                    setIsFollowing(true);
-                                                    alert('You are now following this shop!');
-                                                }
-                                            } catch (error) {
-                                                console.error('Failed to follow shop:', error);
-                                                alert('Failed to follow shop. Please try again.');
-                                            } finally {
-                                                setIsSubmittingFollow(false);
-                                            }
-                                        }}
-                                        disabled={isSubmittingFollow || isFollowing}
-                                        className={`w-full font-bold py-2 px-4 rounded-lg transition-colors mt-3 ${
-                                            isFollowing
-                                                ? 'bg-[#00a082] text-white cursor-default'
-                                                : 'bg-white dark:bg-slate-800 border-2 border-[#00a082] text-[#00a082] dark:text-[#00a082] hover:bg-[#00a082]/5'
-                                        }`}
+                                        onClick={() => alert('Follow feature coming soon!')}
+                                        className="w-full font-bold py-2 px-4 rounded-lg transition-colors mt-3 bg-white dark:bg-slate-800 border-2 border-[#00a082] text-[#00a082] dark:text-[#00a082] hover:bg-[#00a082]/5"
                                     >
-                                        {isSubmittingFollow ? 'Following...' : isFollowing ? 'Following' : 'Follow Shop'}
+                                        Follow Shop (Coming Soon)
                                     </button>
                                 </div>
                             </div>
@@ -1772,46 +1679,8 @@ export default function ShopDetailPage() {
                                         }
                                     }
 
-                                    try {
-                                        // Submit review to API
-                                        const response = await api.post(
-                                            `/listings/shops/${shopId}/reviews`,
-                                            {
-                                                rating: userRating,
-                                                review: userReview,
-                                                display_name: displayName,
-                                                is_verified_purchase: isVerifiedPurchase,
-                                                user_id: user?.id,
-                                                reviewer_email: user?.email
-                                            }
-                                        );
-
-                                        if (response.data) {
-                                            // Update local state
-                                            setUserHasReviewed(true);
-                                            setLastReviewTime(Date.now());
-
-                                            // Refresh reviews
-                                            const reviewsResponse = await api.get(`/listings/shops/${shopId}/reviews`);
-                                            if (reviewsResponse.data) {
-                                                setReviews(reviewsResponse.data.reviews || []);
-                                                setShopRating(reviewsResponse.data.average_rating || null);
-                                                setTotalReviews(reviewsResponse.data.total_reviews || 0);
-                                                setVerifiedReviewsCount(reviewsResponse.data.verified_reviews_count || 0);
-                                            }
-
-                                            // Clear form
-                                            setRatingModalOpen(false);
-                                            setUserRating(0);
-                                            setUserReview('');
-                                            setDisplayName('');
-                                            setIsVerifiedPurchase(false);
-                                            alert('Thank you for your review!');
-                                        }
-                                    } catch (error) {
-                                        console.error('Failed to submit review:', error);
-                                        alert('Failed to submit review. Please try again.');
-                                    }
+                                    alert('Review feature coming soon!');
+                                    setRatingModalOpen(false);
                                 } else {
                                     alert('Please select a rating and enter your name');
                                 }

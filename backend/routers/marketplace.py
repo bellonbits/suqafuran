@@ -1,17 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status, Path, Body
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Seller, Category, Listing, ShopFollow, ShopFeedback, ShopReview
+from models import Seller, Category, Listing
 from pydantic import BaseModel, Field
 from typing import List, Optional
 import json
 import asyncio
 from datetime import datetime
 import uuid
-
-# ===== PYDANTIC MODEL FOR SHOP FOLLOWS =====
-class FollowCreate(BaseModel):
-    user_id: int
 
 # Main marketplace router
 router = APIRouter(tags=["marketplace"])
@@ -100,113 +96,6 @@ def list_listings(
 
 
 
-# ===== SHOP REVIEWS ENDPOINTS =====
-
-@listings_router.get("/shops/{shop_id}/reviews")
-def get_shop_reviews(shop_id: str = Path(...), db: Session = Depends(get_db)):
-    try:
-        reviews = db.query(ShopReview).filter(ShopReview.seller_id == shop_id).all()
-        total = len(reviews)
-        avg = (sum(r.rating for r in reviews) / total) if total > 0 else 0
-        verified = sum(1 for r in reviews if r.is_verified_purchase)
-        return {
-            "reviews": [
-                {
-                    "id": r.id,
-                    "display_name": r.display_name or "Anonymous",
-                    "rating": r.rating,
-                    "review": r.review,
-                    "is_verified_purchase": r.is_verified_purchase,
-                    "created_at": r.created_at.isoformat() if r.created_at else None
-                }
-                for r in reviews
-            ],
-            "average_rating": avg,
-            "total_reviews": total,
-            "verified_reviews_count": verified
-        }
-    except:
-        return {"reviews": [], "average_rating": 0, "total_reviews": 0, "verified_reviews_count": 0}
-
-@listings_router.post("/shops/{shop_id}/reviews")
-def post_shop_review(shop_id: str = Path(...), data: dict = Body(...), db: Session = Depends(get_db)):
-    try:
-        rating = data.get("rating")
-        review_text = data.get("review_text") or data.get("review")
-
-        if not (1 <= rating <= 5):
-            raise HTTPException(status_code=400, detail="Rating must be 1-5")
-
-        new = ShopReview(
-            id=str(uuid.uuid4()),
-            seller_id=shop_id,
-            user_id=data.get("user_id"),
-            rating=rating,
-            review=review_text,
-            display_name=data.get("display_name", "Anonymous"),
-            reviewer_email=data.get("reviewer_email"),
-            is_verified_purchase=data.get("is_verified_purchase", False)
-        )
-        db.add(new)
-        db.commit()
-        return {"id": new.id, "message": "Review submitted"}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-
-# ===== SHOP FEEDBACK ENDPOINT =====
-
-@listings_router.post("/shops/{shop_id}/feedback")
-def post_shop_feedback(shop_id: str = Path(...), data: dict = Body(...), db: Session = Depends(get_db)):
-    try:
-        feedback_text = data.get("feedback_text")
-        user_id = data.get("user_id")
-        display_name = data.get("display_name", "Anonymous")
-
-        if not feedback_text or not feedback_text.strip():
-            raise HTTPException(status_code=400, detail="Feedback text required")
-
-        new = ShopFeedback(
-            id=str(uuid.uuid4()),
-            seller_id=shop_id,
-            user_id=user_id,
-            feedback_text=feedback_text,
-            display_name=display_name,
-            is_public=data.get("is_public", True)
-        )
-        db.add(new)
-        db.commit()
-        return {"id": new.id, "message": "Feedback submitted"}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-
-# ===== SHOP FOLLOW ENDPOINTS =====
-
-@listings_router.post("/shops/{shop_id}/follow")
-def follow_shop(shop_id: str = Path(...), data: FollowCreate = Body(...), db: Session = Depends(get_db)):
-    try:
-        new = ShopFollow(id=str(uuid.uuid4()), user_id=data.user_id, seller_id=shop_id)
-        db.add(new)
-        db.commit()
-        return {"message": "Shop followed"}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-
-@listings_router.delete("/shops/{shop_id}/follow")
-def unfollow_shop(shop_id: str = Path(...), user_id: int = Query(...), db: Session = Depends(get_db)):
-    try:
-        follow = db.query(ShopFollow).filter(ShopFollow.user_id == user_id, ShopFollow.seller_id == shop_id).first()
-        if follow:
-            db.delete(follow)
-            db.commit()
-        return {"message": "Shop unfollowed"}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-
-# ===== END SHOP REVIEWS =====
 
 @listings_router.get("/shops")
 def list_public_shops(
