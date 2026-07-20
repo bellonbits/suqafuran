@@ -74,7 +74,17 @@ export default function ShopDetailPage() {
     const categoryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
     const scrollRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-    const getCartQuantity = (productId: string) => {
+    const toggleSubcategoryExpand = (subcategoryId: number) => {
+    const newExpanded = new Set(expandedSubcategories);
+    if (newExpanded.has(subcategoryId)) {
+      newExpanded.delete(subcategoryId);
+    } else {
+      newExpanded.add(subcategoryId);
+    }
+    setExpandedSubcategories(newExpanded);
+  };
+
+  const getCartQuantity = (productId: string) => {
         return cartItems.find(item => item.id === productId)?.quantity || 0;
     };
 
@@ -487,41 +497,85 @@ export default function ShopDetailPage() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-12 gap-8 items-start">
-                        {/* 1. Left Sidebar (Categories Navigation Menu) */}
+                        {/* 1. Left Sidebar (Categories with Subcategories) */}
                         <aside className="hidden lg:block lg:col-span-2 sticky top-28 self-start max-h-[75vh] overflow-y-auto pr-2 hide-scrollbar">
-                            <div className="space-y-1">
-                                {categories.map((category) => {
-                                    const isActive = activeCategory === category.id;
-                                    return (
+                            <div className="space-y-2">
+                                {dbCategories.map((dbCategory: any) => (
+                                    <div key={dbCategory.id} className="space-y-1">
+                                        {/* Main Category */}
                                         <button
-                                            key={category.id}
                                             onClick={() => {
-                                                setActiveCategory(category.id);
-                                                categoryRefs.current[category.id]?.scrollIntoView({
-                                                    behavior: 'smooth',
-                                                    block: 'start',
-                                                });
+                                                setActiveCategory(dbCategory.id);
+                                                const matchingCat = categories.find(c => c.products?.[0]?.category_id === dbCategory.id);
+                                                if (matchingCat) {
+                                                    categoryRefs.current[matchingCat.id]?.scrollIntoView({
+                                                        behavior: 'smooth',
+                                                        block: 'start',
+                                                    });
+                                                }
                                             }}
-                                            className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all duration-150 flex items-center justify-between ${
-                                                isActive
-                                                    ? 'bg-orange-50 text-orange-600 dark:bg-orange-950/20 dark:text-orange-400'
-                                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-900/40'
-                                            }`}
+                                            className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-900/40"
                                         >
-                                            <span className="truncate mr-1">
-                                              {category.products && category.products.length > 0
-                                                ? (() => {
-                                                    const path = getCategoryPath(category.products[0].category_id, category.products[0].subcategory_id, dbCategories);
-                                                    const parts = path.split(' > ');
-                                                    return parts[parts.length - 1]; // Show just subcategory in sidebar
-                                                  })()
-                                                : (category.name === 'Other' ? 'Products' : category.name)
-                                              }
-                                            </span>
-                                            {isActive && <ChevronRight className="w-3.5 h-3.5 shrink-0" />}
+                                            {dbCategory.name_en}
                                         </button>
-                                    );
-                                })}
+                                        
+                                        {/* Subcategories with Expandable Sub-subcategories */}
+                                        {dbCategory.subcategories && dbCategory.subcategories.length > 0 && (
+                                            <div className="pl-2 space-y-1">
+                                                {dbCategory.subcategories.map((subcategory: any) => (
+                                                    <div key={subcategory.id}>
+                                                        {/* Subcategory */}
+                                                        <button
+                                                            onClick={() => {
+                                                                const matchingCat = categories.find(c => 
+                                                                    c.products?.[0]?.category_id === dbCategory.id && 
+                                                                    c.products?.[0]?.subcategory_id === subcategory.id
+                                                                );
+                                                                if (matchingCat) {
+                                                                    setActiveCategory(matchingCat.id);
+                                                                    categoryRefs.current[matchingCat.id]?.scrollIntoView({
+                                                                        behavior: 'smooth',
+                                                                        block: 'start',
+                                                                    });
+                                                                }
+                                                            }}
+                                                            className="w-full text-left px-3 py-1 rounded-lg text-[11px] font-semibold transition-all text-gray-600 dark:text-slate-400 hover:text-gray-900 hover:bg-gray-50 dark:hover:text-slate-200 dark:hover:bg-slate-900/40 flex items-center justify-between"
+                                                        >
+                                                            <span className="truncate">{subcategory.name_en}</span>
+                                                            {subcategory.subsubcategories && subcategory.subsubcategories.length > 0 && (
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        toggleSubcategoryExpand(subcategory.id);
+                                                                    }}
+                                                                    className="ml-1 shrink-0"
+                                                                >
+                                                                    <ChevronRight className={`w-3 h-3 transition-transform ${
+                                                                        expandedSubcategories.has(subcategory.id) ? 'rotate-90' : ''
+                                                                    }`} />
+                                                                </button>
+                                                            )}
+                                                        </button>
+                                                        
+                                                        {/* Sub-subcategories (Expanded) */}
+                                                        {expandedSubcategories.has(subcategory.id) && subcategory.subsubcategories && (
+                                                            <div className="pl-2 mt-1 space-y-1">
+                                                                {subcategory.subsubcategories.map((subsubcategory: any) => (
+                                                                    <button
+                                                                        key={subsubcategory.id}
+                                                                        className="w-full text-left px-3 py-1 rounded-lg text-[10px] font-medium transition-all text-gray-500 dark:text-slate-500 hover:text-gray-700 hover:bg-gray-50 dark:hover:text-slate-300 dark:hover:bg-slate-900/40"
+                                                                    >
+                                                                        {subsubcategory.name_en}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
                         </aside>
 
