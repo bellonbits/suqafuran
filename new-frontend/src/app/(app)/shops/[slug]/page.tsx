@@ -654,11 +654,9 @@ export default function ShopDetailPage() {
                                             </div>
                                         )}
                                     </div>
-                                ))}
-                            </div>
 
-                            {/* Filters Section - After categories */}
-                            <div className="space-y-3 mt-6 pt-4 border-t border-gray-200 dark:border-slate-800">
+                                    {/* Filters - Inside each category */}
+                                    <div className="space-y-3 mt-4 pt-4 border-t border-gray-200 dark:border-slate-800">
                                 {/* Price Range */}
                                 <div>
                                     <h3 className="text-xs font-bold text-gray-900 dark:text-white mb-2">Price Range</h3>
@@ -760,7 +758,11 @@ export default function ShopDetailPage() {
                                     </div>
                                 </div>
                             </div>
-                        </aside>
+                        )}
+                    </div>
+                ))}
+            </div>
+        </aside>
 
                         {/* 2. Center Column (List of Carousels) */}
                         <main className="col-span-12 lg:col-span-7 space-y-12">
