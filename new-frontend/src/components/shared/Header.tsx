@@ -103,7 +103,7 @@ export const Header: React.FC = () => {
     return (
         <>
             <header className="sticky top-0 z-50 w-full bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 shadow-sm">
-                <div className="max-w-[1568px] mx-auto px-8 h-20 flex items-center justify-between">
+                <div className="max-w-[1440px] mx-auto px-8 h-20 flex items-center justify-between">
 
                     {/* Left: Logo + Location */}
                     <div className="flex items-center gap-4 shrink-0">

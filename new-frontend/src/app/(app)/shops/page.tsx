@@ -308,7 +308,7 @@ function ShopsPageContent() {
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 pb-20">
       {/* ── Page Title ─────────────────────────────────────────────────── */}
-      <div className="max-w-[1568px] mx-auto px-8 pt-8 pb-6">
+      <div className="max-w-[1440px] mx-auto px-8 pt-8 pb-6">
         <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Shops</h1>
         <p className="text-gray-600 dark:text-slate-400 text-sm font-semibold mt-1">
           {total} shops in All Markets
@@ -316,7 +316,7 @@ function ShopsPageContent() {
       </div>
 
       {/* ── Search & Filter Row ─────────────────────────────────────────── */}
-      <div className="max-w-[1568px] mx-auto px-8 pb-8">
+      <div className="max-w-[1440px] mx-auto px-8 pb-8">
         <div className="flex gap-3 w-full">
           {/* Search Box */}
           <div className="relative flex-1">
@@ -355,7 +355,7 @@ function ShopsPageContent() {
       </div>
 
       {/* ── Category Stickers ───────────────────────────────────────────── */}
-      <div className="max-w-[1568px] mx-auto px-8 pb-8">
+      <div className="max-w-[1440px] mx-auto px-8 pb-8">
         <div className="w-full overflow-x-auto hide-scrollbar">
           <div className="flex flex-row flex-nowrap items-start gap-4 pb-2 pt-0">
 
@@ -445,7 +445,7 @@ function ShopsPageContent() {
       </div>
 
       {/* ── Stores Grid ─────────────────────────────────────────────────── */}
-      <div className="max-w-[1568px] mx-auto px-8">
+      <div className="max-w-[1440px] mx-auto px-8">
         {/* Error */}
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 text-center mb-6">
