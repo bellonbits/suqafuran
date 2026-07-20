@@ -275,18 +275,13 @@ export default function ShopDetailPage() {
         const fetchReviews = async () => {
             try {
                 setReviewsLoading(true);
-                const response = await api.get(`/reviews`);
+                const response = await api.get(`/listings/shops/${shopId}/reviews`);
 
-                if (response.data && Array.isArray(response.data)) {
-                    const shopReviews = response.data.filter((r: any) => String(r.seller_id) === String(shopId));
-                    setReviews(shopReviews || []);
-                    const avg = shopReviews.length > 0
-                        ? shopReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / shopReviews.length
-                        : null;
-                    const verified = shopReviews.filter((r: any) => r.is_verified_purchase).length;
-                    setShopRating(avg);
-                    setTotalReviews(shopReviews.length || 0);
-                    setVerifiedReviewsCount(verified || 0);
+                if (response.data) {
+                    setReviews(response.data.reviews || []);
+                    setShopRating(response.data.average_rating || null);
+                    setTotalReviews(response.data.total_reviews || 0);
+                    setVerifiedReviewsCount(response.data.verified_reviews_count || 0);
 
                     // Check if current user has already reviewed
                     const userEmail = localStorage.getItem('userEmail');
@@ -568,11 +563,14 @@ export default function ShopDetailPage() {
                                 </button>
                                 <button
                                     onClick={() => {
-                                        setContactModalOpen(true);
-                                        setSelectedContactType('message');
+                                        if (shopOwnerId) {
+                                            router.push(`/messages/${shopOwnerId}`);
+                                        } else {
+                                            alert('Shop owner ID not available');
+                                        }
                                     }}
                                     className="w-10 h-10 rounded-lg hover:scale-110 transition-transform flex items-center justify-center"
-                                    title="Message"
+                                    title="Message Seller"
                                 >
                                     <img src="/message-icon.png" alt="Message" className="w-6 h-6" />
                                 </button>
@@ -1360,12 +1358,11 @@ export default function ShopDetailPage() {
                                             try {
                                                 setIsSubmittingFeedback(true);
                                                 const response = await api.post(
-                                                    `/feedback/feedback`,
+                                                    `/listings/shops/${shopId}/feedback`,
                                                     {
                                                         feedback_text: feedbackText,
                                                         display_name: displayName || user?.full_name || 'Anonymous',
                                                         user_id: user?.id,
-                                                        seller_id: shopId,
                                                         is_public: true
                                                     }
                                                 );
@@ -1773,11 +1770,10 @@ export default function ShopDetailPage() {
                                     try {
                                         // Submit review to API
                                         const response = await api.post(
-                                            `/reviews`,
+                                            `/listings/shops/${shopId}/reviews`,
                                             {
                                                 rating: userRating,
-                                                review_text: userReview,
-                                                seller_id: shopId,
+                                                review: userReview,
                                                 display_name: displayName,
                                                 is_verified_purchase: isVerifiedPurchase,
                                                 user_id: user?.id,
@@ -1791,17 +1787,12 @@ export default function ShopDetailPage() {
                                             setLastReviewTime(Date.now());
 
                                             // Refresh reviews
-                                            const reviewsResponse = await api.get(`/reviews`);
-                                            if (reviewsResponse.data && Array.isArray(reviewsResponse.data)) {
-                                                const shopReviews = reviewsResponse.data.filter((r: any) => String(r.seller_id) === String(shopId));
-                                                setReviews(shopReviews || []);
-                                                const avg = shopReviews.length > 0
-                                                    ? shopReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / shopReviews.length
-                                                    : null;
-                                                const verified = shopReviews.filter((r: any) => r.is_verified_purchase).length;
-                                                setShopRating(avg);
-                                                setTotalReviews(shopReviews.length || 0);
-                                                setVerifiedReviewsCount(verified || 0);
+                                            const reviewsResponse = await api.get(`/listings/shops/${shopId}/reviews`);
+                                            if (reviewsResponse.data) {
+                                                setReviews(reviewsResponse.data.reviews || []);
+                                                setShopRating(reviewsResponse.data.average_rating || null);
+                                                setTotalReviews(reviewsResponse.data.total_reviews || 0);
+                                                setVerifiedReviewsCount(reviewsResponse.data.verified_reviews_count || 0);
                                             }
 
                                             // Clear form
