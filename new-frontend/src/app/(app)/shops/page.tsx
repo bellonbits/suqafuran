@@ -317,16 +317,16 @@ function ShopsPageContent() {
 
       {/* ── Search & Filter Row ─────────────────────────────────────────── */}
       <div className="max-w-[1440px] mx-auto px-8 pb-8">
-        <div className="flex gap-3 w-full">
-          {/* Search Box */}
-          <div className="relative flex-1">
+        <div className="flex gap-3 items-center">
+          {/* Search Box - Pill Shape */}
+          <div className="relative max-w-md flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search shops..."
-              className="w-full pl-12 pr-10 py-3 rounded-lg bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-500 text-gray-900 dark:text-white"
+              className="w-full pl-12 pr-10 py-2.5 rounded-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-500 text-gray-900 dark:text-white"
             />
             {search && (
               <button
@@ -338,11 +338,11 @@ function ShopsPageContent() {
             )}
           </div>
 
-          {/* Market Filter Dropdown */}
+          {/* Market Filter Dropdown - Pill Shape */}
           <select
             value={selectedMarket || ''}
             onChange={(e) => setSelectedMarket(e.target.value || null)}
-            className="px-4 py-3 rounded-lg bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer whitespace-nowrap"
+            className="px-4 py-2.5 rounded-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer whitespace-nowrap shrink-0"
           >
             <option value="">All Markets</option>
             {Object.keys(MARKET_TO_CITY).sort().map((market) => (
