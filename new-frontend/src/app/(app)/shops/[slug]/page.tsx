@@ -589,17 +589,7 @@ export default function ShopDetailPage() {
                                                         {/* Sub-subcategories (Expanded) - Filtered to show only existing ones */}
                                                         {expandedSubcategories.has(subcategory.id) && subcategory.subsubcategories && (
                                                             <div className="pl-2 mt-1 space-y-1">
-                                                                {subcategory.subsubcategories
-                                                                    .filter((subsubcategory: any) => {
-                                                                        // Only show sub-subcategories that have products in this shop
-                                                                        return allListings.some(
-                                                                            listing => 
-                                                                                listing.category_id === dbCategory.id && 
-                                                                                listing.subcategory_id === subcategory.id &&
-                                                                                listing.subsubcategory_id === subsubcategory.id
-                                                                        );
-                                                                    })
-                                                                    .map((subsubcategory: any) => (
+                                                                {subcategory.subsubcategories.map((subsubcategory: any) => (
                                                                         <button
                                                                             key={subsubcategory.id}
                                                                             className="w-full text-left px-3 py-1 rounded-lg text-[10px] font-medium transition-all text-gray-500 dark:text-slate-500 hover:text-gray-700 hover:bg-gray-50 dark:hover:text-slate-300 dark:hover:bg-slate-900/40"
