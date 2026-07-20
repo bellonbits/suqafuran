@@ -689,12 +689,12 @@ export default function ShopDetailPage() {
                                                         }
                                                     }
 
-                                                    // Default: show first product's subcategory
-                                                    if (category.products && category.products.length > 0) {
-                                                        const path = getCategoryPath(category.products[0].category_id, category.products[0].subcategory_id, dbCategories);
-                                                        const parts = path.split(' > ');
-                                                        return parts[parts.length - 1];
-                                                    }
+                                                    // If no subcategory selected, show the main category name
+                                                    const mainCat = dbCategories.find((c: any) =>
+                                                        category.products?.some((p: any) => p.category_id === c.id)
+                                                    );
+                                                    if (mainCat) return mainCat.name_en;
+
                                                     return (category.name === 'Other' ? 'Products' : category.name);
                                                 })()}
                                             </h2>
@@ -725,8 +725,8 @@ export default function ShopDetailPage() {
                                         ref={(el) => { if (el) scrollRefs.current[category.id] = el; }}
                                         className="flex gap-4 overflow-x-auto pb-2 scroll-smooth hide-scrollbar snap-x snap-mandatory"
                                     >
-                                        {category.products
-                                            .filter((product) => {
+                                        {(() => {
+                                            const filtered = category.products.filter((product) => {
                                                 // If no subcategory selected, show all products
                                                 if (selectedSubcategoryId === null) return true;
 
@@ -738,7 +738,13 @@ export default function ShopDetailPage() {
                                                 // If both selected, match both
                                                 return product.subcategory_id === selectedSubcategoryId &&
                                                        product.subsubcategory_id === selectedSubsubcategoryId;
-                                            })
+                                            });
+                                            if (filtered.length < category.products.length) {
+                                                console.log(`Filtered ${category.products.length} → ${filtered.length} products`);
+                                            }
+                                            return filtered;
+                                        })()
+
                                             .map((product) => {
                                             const { hasPromo, originalPrice, promoText } = getMockProductInfo(product);
                                             const cartQty = getCartQuantity(String(product.id));
