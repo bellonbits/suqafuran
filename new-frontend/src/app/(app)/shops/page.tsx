@@ -140,9 +140,9 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
           {/* Shop logo — INSIDE banner, bottom-left, Glovo-style circle */}
           {banner && (
             <div className="absolute bottom-2.5 left-3 w-10 h-10 rounded-full bg-white dark:bg-slate-900 border-2 border-white dark:border-slate-700 shadow-md overflow-hidden flex items-center justify-center">
-              {(shop as any).avatar_url ? (
+              {(shop.logo_url || shop.owner_avatar_url) ? (
                 <img
-                  src={(shop as any).avatar_url}
+                  src={shop.logo_url || shop.owner_avatar_url || ''}
                   alt={shop.shop_name}
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -150,7 +150,7 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
                   }}
                 />
               ) : null}
-              {!(shop as any).avatar_url && (
+              {!(shop.logo_url || shop.owner_avatar_url) && (
                 <div className="w-full h-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-xs">
                   {initial}
                 </div>

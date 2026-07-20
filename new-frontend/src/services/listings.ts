@@ -26,6 +26,8 @@ export interface PublicShop {
     category_ids: number[];
     cover_image: string | null;
     shop_page_banner: string | null;  // Cloudinary URL for shop card banner
+    logo_url?: string | null;  // Shop logo/avatar image
+    owner_avatar_url?: string | null;  // Owner profile picture
     slug: string;
     created_at: string | null;
     market?: string;  // Kenyan market location (e.g., "Eastleigh Market")
