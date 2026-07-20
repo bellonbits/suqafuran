@@ -507,7 +507,12 @@ export default function ShopDetailPage() {
                         {/* 1. Left Sidebar (Categories with Subcategories) */}
                         <aside className="hidden lg:block lg:col-span-2 sticky top-28 self-start max-h-[75vh] overflow-y-auto pr-2 hide-scrollbar">
                             <div className="space-y-2">
-                                {dbCategories.map((dbCategory: any) => (
+                                {dbCategories
+                                    .filter((dbCategory: any) => {
+                                        // Only show categories that have products in this shop
+                                        return allListings.some(listing => listing.category_id === dbCategory.id);
+                                    })
+                                    .map((dbCategory: any) => (
                                     <div key={dbCategory.id} className="space-y-1">
                                         {/* Main Category */}
                                         <button
@@ -529,7 +534,14 @@ export default function ShopDetailPage() {
                                         {/* Subcategories with Expandable Sub-subcategories */}
                                         {dbCategory.subcategories && dbCategory.subcategories.length > 0 && (
                                             <div className="pl-2 space-y-1">
-                                                {dbCategory.subcategories.map((subcategory: any) => (
+                                                {dbCategory.subcategories
+                                                    .filter((subcategory: any) => {
+                                                        // Only show subcategories that have products in this shop
+                                                        return allListings.some(
+                                                            listing => listing.category_id === dbCategory.id && listing.subcategory_id === subcategory.id
+                                                        );
+                                                    })
+                                                    .map((subcategory: any) => (
                                                     <div key={subcategory.id}>
                                                         {/* Subcategory */}
                                                         <button
