@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Seller, Category, Listing, ShopReview, ShopFeedback, ShopFollow
+from models import Seller, Category, Listing
 from typing import List, Optional
 import json
 import asyncio
@@ -92,97 +92,6 @@ def list_listings(
     except Exception as e:
         return []
 
-
-# ===== SHOP REVIEWS, FEEDBACK, FOLLOW ROUTES (must come BEFORE /shops route) =====
-
-@listings_router.get("/shops/{shop_id}/reviews")
-def get_reviews(shop_id: str, db: Session = Depends(get_db)):
-    """Get all reviews for a shop with aggregate statistics."""
-    try:
-        reviews = db.query(ShopReview).filter(ShopReview.seller_id == shop_id).all()
-        from sqlalchemy import func
-        total = db.query(func.count(ShopReview.id)).filter(ShopReview.seller_id == shop_id).scalar()
-        avg = db.query(func.avg(ShopReview.rating)).filter(ShopReview.seller_id == shop_id).scalar()
-        verified = db.query(func.count(ShopReview.id)).filter(ShopReview.seller_id == shop_id, ShopReview.is_verified_purchase == True).scalar()
-        return {"reviews": [{"id": r.id, "display_name": r.display_name or "Anonymous", "rating": r.rating, "review": r.review, "is_verified_purchase": r.is_verified_purchase, "created_at": r.created_at.isoformat() if r.created_at else None} for r in reviews], "average_rating": float(avg) if avg else 0, "total_reviews": total or 0, "verified_reviews_count": verified or 0}
-    except:
-        return {"reviews": [], "average_rating": 0, "total_reviews": 0, "verified_reviews_count": 0}
-
-@listings_router.post("/shops/{shop_id}/reviews")
-def post_review(shop_id: str, data: dict, db: Session = Depends(get_db)):
-    """Submit a review for a shop."""
-    try:
-        import uuid
-        rating = data.get("rating")
-        review = data.get("review")
-        user_id = data.get("user_id")
-        display_name = data.get("display_name", "Anonymous")
-        reviewer_email = data.get("reviewer_email")
-        if not (1 <= rating <= 5):
-            raise HTTPException(status_code=400, detail="Rating must be 1-5")
-        new = ShopReview(id=str(uuid.uuid4()), seller_id=shop_id, user_id=user_id, rating=rating, review=review, display_name=display_name, reviewer_email=reviewer_email, is_verified_purchase=False)
-        db.add(new)
-        db.commit()
-        return {"id": new.id, "message": "Review submitted successfully"}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-
-@listings_router.get("/shops/{shop_id}/feedback")
-def get_feedback(shop_id: str, db: Session = Depends(get_db)):
-    """Get all feedback for a shop."""
-    try:
-        feedback = db.query(ShopFeedback).filter(ShopFeedback.seller_id == shop_id).all()
-        return {"feedback": [{"id": f.id, "display_name": f.display_name or "Anonymous", "feedback_text": f.feedback_text, "created_at": f.created_at.isoformat() if f.created_at else None} for f in feedback]}
-    except:
-        return {"feedback": []}
-
-@listings_router.post("/shops/{shop_id}/feedback")
-def post_feedback(shop_id: str, data: dict, db: Session = Depends(get_db)):
-    """Submit feedback for a shop."""
-    try:
-        import uuid
-        feedback_text = data.get("feedback_text")
-        user_id = data.get("user_id")
-        display_name = data.get("display_name", "Anonymous")
-        new = ShopFeedback(id=str(uuid.uuid4()), seller_id=shop_id, user_id=user_id, feedback_text=feedback_text, display_name=display_name, is_public=True)
-        db.add(new)
-        db.commit()
-        return {"id": new.id, "message": "Feedback submitted successfully"}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-
-@listings_router.post("/shops/{shop_id}/follow")
-def follow(shop_id: str, data: dict, db: Session = Depends(get_db)):
-    """Follow a shop."""
-    try:
-        import uuid
-        user_id = data.get("user_id")
-        if not user_id:
-            raise HTTPException(status_code=400, detail="User ID required")
-        new = ShopFollow(id=str(uuid.uuid4()), user_id=user_id, seller_id=shop_id)
-        db.add(new)
-        db.commit()
-        return {"message": "Shop followed successfully"}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-
-@listings_router.delete("/shops/{shop_id}/follow")
-def unfollow(shop_id: str, user_id: int = Query(...), db: Session = Depends(get_db)):
-    """Unfollow a shop."""
-    try:
-        follow = db.query(ShopFollow).filter(ShopFollow.user_id == user_id, ShopFollow.seller_id == shop_id).first()
-        if follow:
-            db.delete(follow)
-            db.commit()
-        return {"message": "Shop unfollowed successfully"}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-
-# ===== END SHOP REVIEWS ROUTES =====
 
 
 @listings_router.get("/shops")
