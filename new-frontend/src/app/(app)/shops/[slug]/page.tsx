@@ -121,6 +121,11 @@ export default function ShopDetailPage() {
     const [isFollowing, setIsFollowing] = useState(false);
     const [isSubmittingFollow, setIsSubmittingFollow] = useState(false);
 
+    // Messaging State
+    const [messagingModalOpen, setMessagingModalOpen] = useState(false);
+    const [messageText, setMessageText] = useState('');
+    const [isSendingMessage, setIsSendingMessage] = useState(false);
+
     const { items: cartItems, addItem, updateQuantity: updateCartQuantity, getTotalPrice } = useCart();
     const { user } = useAuthStore();
 
@@ -563,8 +568,11 @@ export default function ShopDetailPage() {
                                 </button>
                                 <button
                                     onClick={() => {
-                                        setContactModalOpen(true);
-                                        setSelectedContactType('message');
+                                        if (!user) {
+                                            alert('Please log in to message this seller');
+                                            return;
+                                        }
+                                        setMessagingModalOpen(true);
                                     }}
                                     className="w-10 h-10 rounded-lg hover:scale-110 transition-transform flex items-center justify-center"
                                     title="Message Seller"
@@ -1811,6 +1819,58 @@ export default function ShopDetailPage() {
                             className="w-full bg-[#00a082] hover:bg-[#008f73] text-white font-bold py-2.5 px-4 rounded-lg transition-colors"
                         >
                             Submit Review
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* MESSAGING MODAL */}
+            {messagingModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="absolute inset-0" onClick={() => setMessagingModalOpen(false)} />
+                    <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 z-10 border border-gray-100 dark:border-slate-800">
+                        <button
+                            onClick={() => setMessagingModalOpen(false)}
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-slate-400"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Message {shopName}</h2>
+
+                        <textarea
+                            value={messageText}
+                            onChange={(e) => setMessageText(e.target.value)}
+                            placeholder="Type your message..."
+                            className="w-full h-32 p-4 border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#00a082] resize-none mb-4"
+                        />
+
+                        <button
+                            onClick={async () => {
+                                if (!messageText.trim()) {
+                                    alert('Please enter a message');
+                                    return;
+                                }
+                                try {
+                                    setIsSendingMessage(true);
+                                    await api.post('/messages/', {
+                                        other_user_id: shopOwnerId,
+                                        message: messageText
+                                    });
+                                    setMessageText('');
+                                    setMessagingModalOpen(false);
+                                    alert('Message sent to ' + shopName + '!');
+                                } catch (error) {
+                                    console.error('Failed to send message:', error);
+                                    alert('Failed to send message. Please try again.');
+                                } finally {
+                                    setIsSendingMessage(false);
+                                }
+                            }}
+                            disabled={isSendingMessage}
+                            className="w-full bg-[#00a082] hover:bg-[#008f73] disabled:bg-gray-400 text-white font-bold py-2.5 px-4 rounded-lg transition-colors"
+                        >
+                            {isSendingMessage ? 'Sending...' : 'Send Message'}
                         </button>
                     </div>
                 </div>
