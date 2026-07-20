@@ -74,6 +74,17 @@ GET    /shops/nearby                    Get shops near location (geo-search)
 GET    /shops/featured                  Get featured shops
 ```
 
+#### Shop Reviews & Feedback (via `/listings/shops`)
+
+```
+GET    /listings/shops/{shop_id}/reviews        Get shop reviews (avg rating, totals)
+POST   /listings/shops/{shop_id}/reviews        Submit review for shop
+GET    /listings/shops/{shop_id}/feedback       Get shop feedback
+POST   /listings/shops/{shop_id}/feedback       Submit feedback for shop
+POST   /listings/shops/{shop_id}/follow         Follow a shop
+DELETE /listings/shops/{shop_id}/follow         Unfollow a shop (requires user_id query param)
+```
+
 #### Seller Endpoints (Shop Management)
 
 ```
@@ -817,14 +828,14 @@ Response:
 | Module | Status | Endpoints | Notes |
 |--------|--------|-----------|-------|
 | User | ✅ | 9/10 | Auth complete |
-| Shop | ⚠️ | 5/11 | Public view working |
+| Shop | ✅ | 11/11 | Public view + reviews/feedback/follow complete |
 | Product | ⚠️ | 7/13 | Seller CRUD incomplete |
 | Category | ❌ | 0/5 | NEW - needs implementation |
 | Cart | ❌ | 0/6 | NEW - needs implementation |
 | Order | ⚠️ | 8/15 | Partial - missing customer flows |
 | Payment | ✅ | 3/3 | M-Pesa working |
 | Delivery | ⚠️ | 8/11 | Tracking incomplete |
-| Review | ⚠️ | 5/8 | Partial |
+| Review | ✅ | 8/8 | Shop reviews, feedback, follow complete |
 | Verification | ⚠️ | 3/8 | Admin review working |
 | Message | ❌ | 0/7 | NEW - needs implementation |
 | Notification | ✅ | 4/5 | WebSocket events working |
@@ -836,5 +847,5 @@ Response:
 
 ---
 
-**Total Endpoints**: 127 planned, 88 implemented (69% complete)
+**Total Endpoints**: 133 planned, 94 implemented (71% complete)
 
