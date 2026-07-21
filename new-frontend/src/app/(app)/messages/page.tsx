@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Send, Search, AlertCircle, ShoppingBag, ArrowLeft } from 'lucide-react';
+import { Send, Search, AlertCircle, ShoppingBag, ArrowLeft, MessageSquare } from 'lucide-react';
 import api from '../../../services/api';
 import { listingsService } from '../../../services/listings';
 import type { ChatMessage, Listing } from '../../../types';
