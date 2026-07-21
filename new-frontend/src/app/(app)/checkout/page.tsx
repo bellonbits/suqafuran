@@ -237,7 +237,7 @@ Thanks!`;
       window.open(`https://wa.me/${whatsappPhone}?text=${encodedMessage}`, '_blank');
     } else if (method === 'message') {
       router.push(`/messages`);
-      }
+    }
     } finally {
       setIsProcessing(false);
     }
