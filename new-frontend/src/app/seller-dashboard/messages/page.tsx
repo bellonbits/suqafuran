@@ -13,6 +13,7 @@ export default function MessagesPage() {
   const [messageInput, setMessageInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,11 +34,18 @@ export default function MessagesPage() {
 
   const loadConversations = async () => {
     try {
-      const res = await api.get('/conversations?limit=50').catch(() => null);
+      const res = await api.get('/conversations?limit=50').catch((err) => {
+        console.error('Error loading conversations:', err);
+        if (err.response?.status === 500) {
+          setError('Messaging service is temporarily unavailable. Please try again later.');
+        }
+        return null;
+      });
 
       if (res?.data) {
         const convsList = Array.isArray(res.data) ? res.data : [];
         setConversations(convsList);
+        setError(null);
 
         if (!selectedConversation && convsList.length > 0) {
           setSelectedConversation(convsList[0]);
@@ -46,6 +54,7 @@ export default function MessagesPage() {
       }
     } catch (error) {
       console.error('Error loading conversations:', error);
+      setError('Failed to load conversations');
     } finally {
       setLoading(false);
     }
@@ -113,6 +122,12 @@ export default function MessagesPage() {
           Open Full Messages →
         </a>
       </div>
+
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-red-700 dark:text-red-400">
+          {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[600px]">
         <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 overflow-hidden flex flex-col">

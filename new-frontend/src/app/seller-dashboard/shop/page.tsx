@@ -81,6 +81,7 @@ export default function ShopPage() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [shopStats, setShopStats] = useState<any>(null);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<google.maps.Map | null>(null);
   const markerRef = useRef<google.maps.Marker | null>(null);
@@ -219,7 +220,13 @@ export default function ShopPage() {
 
   const loadShopData = async () => {
     try {
-      const res = await api.get('/seller/profile').catch(() => null);
+      const res = await api.get('/seller/profile').catch((err) => {
+        console.error('Error loading shop data:', err);
+        if (err.response?.status === 500) {
+          setProfileError('Shop profile service is temporarily unavailable. You can still view your inventory and orders.');
+        }
+        return null;
+      });
 
       if (res?.data) {
         setShopData({
@@ -247,10 +254,11 @@ export default function ShopPage() {
         if (res.data.logo_url) setLogoPreview(res.data.logo_url);
         if (res.data.banner_url) setBannerPreview(res.data.banner_url);
         setSelectedCategories(res.data.categories || []);
+        setProfileError(null);
       }
     } catch (error) {
       console.error('Error loading shop data:', error);
-      setToast({ message: 'Failed to load shop data', type: 'error' });
+      setProfileError('Failed to load shop profile. Check back later.');
     } finally {
       setLoading(false);
     }
@@ -405,6 +413,12 @@ export default function ShopPage() {
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Shop Management</h1>
         <p className="text-gray-600 dark:text-slate-400">Manage your shop information, branding, policies, inventory, and orders</p>
       </div>
+
+      {profileError && (
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-yellow-700 dark:text-yellow-400">
+          {profileError}
+        </div>
+      )}
 
       {/* Quick Stats */}
       {!statsLoading && shopStats && (
