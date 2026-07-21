@@ -13,7 +13,7 @@ import {
 import { FaWhatsapp } from 'react-icons/fa';
 import { MdMessage, MdPhone, MdContentCopy } from 'react-icons/md';
 import { useCart } from '../../../../store/useCart';
-import { useAuthStore } from '../../../../stores/useAuthStore';
+import { useAuthStore } from '../../../../store/useAuth';
 
 
 // Deterministic mock product attributes helper (discount, hasPromo, etc.)
@@ -127,7 +127,7 @@ export default function ShopDetailPage() {
     const [isSendingMessage, setIsSendingMessage] = useState(false);
 
     const { items: cartItems, addItem, updateQuantity: updateCartQuantity, getTotalPrice } = useCart();
-    const { user, token } = useAuthStore();
+    const { user, token, isAuthenticated } = useAuthStore();
 
     const categoryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
     const scrollRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -530,8 +530,8 @@ export default function ShopDetailPage() {
                                 </button>
                                 <button
                                     onClick={() => {
-                                        if (!token && !user) {
-                                            alert('Please log in to message this seller');
+                                        if (!isAuthenticated) {
+                                            router.push('/login?returnUrl=' + encodeURIComponent(window.location.pathname));
                                             return;
                                         }
                                         setMessagingModalOpen(true);
@@ -1402,8 +1402,8 @@ export default function ShopDetailPage() {
 
                                     <button
                                         onClick={async () => {
-                                            if (!token && !user) {
-                                                alert('Please log in to follow shops');
+                                            if (!isAuthenticated) {
+                                                router.push('/login?returnUrl=' + encodeURIComponent(window.location.pathname));
                                                 return;
                                             }
                                             try {
@@ -1788,8 +1788,8 @@ export default function ShopDetailPage() {
                                 try {
                                     setIsSendingMessage(true);
                                     await api.post('/messages/', {
-                                        other_user_id: shopOwnerId,
-                                        message: messageText
+                                        receiver_id: shopOwnerId,
+                                        content: messageText
                                     });
                                     setMessageText('');
                                     setMessagingModalOpen(false);
