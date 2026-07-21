@@ -316,3 +316,335 @@ def get_shop_stats(
         "total_unique_visitors": (unique_users or 0) + (unique_guests or 0),
         "avg_time_spent_seconds": round(avg_time_spent) if avg_time_spent else 0,
     }
+
+
+@router.post("/track/search")
+def track_search(
+    *,
+    db: Session = Depends(deps.get_db),
+    query: str,
+    result_count: int = 0,
+    device_type: Optional[str] = None,
+    category_filter: Optional[str] = None,
+    location_filter: Optional[str] = None,
+    request: Request,
+    current_user: Optional[User] = Depends(deps.get_current_user),
+) -> Any:
+    """Track search queries for marketplace analytics."""
+    from app.models.analytics import SearchEvent
+    
+    search_event = SearchEvent(
+        query=query,
+        result_count=result_count,
+        user_id=current_user.id if current_user else None,
+        device_type=device_type,
+        ip_address=request.client.host if request.client else None,
+        category_filter=category_filter,
+        location_filter=location_filter,
+    )
+    db.add(search_event)
+    db.commit()
+    return {"status": "ok"}
+
+
+@router.post("/track/click")
+def track_click(
+    *,
+    db: Session = Depends(deps.get_db),
+    event_type: str,
+    listing_id: Optional[int] = None,
+    shop_id: Optional[int] = None,
+    device_type: Optional[str] = None,
+    request: Request,
+    current_user: Optional[User] = Depends(deps.get_current_user),
+) -> Any:
+    """Track user clicks (chat, call, favorite, etc.)."""
+    from app.models.analytics import ClickEvent
+    
+    click_event = ClickEvent(
+        event_type=event_type,
+        listing_id=listing_id,
+        shop_id=shop_id,
+        user_id=current_user.id if current_user else None,
+        device_type=device_type,
+        ip_address=request.client.host if request.client else None,
+    )
+    db.add(click_event)
+    db.commit()
+    return {"status": "ok"}
+
+
+@router.post("/track/conversion")
+def track_conversion(
+    *,
+    db: Session = Depends(deps.get_db),
+    stage: str,
+    listing_id: Optional[int] = None,
+    shop_id: Optional[int] = None,
+    device_type: Optional[str] = None,
+    request: Request,
+    current_user: Optional[User] = Depends(deps.get_current_user),
+) -> Any:
+    """Track conversion funnel events."""
+    from app.models.analytics import ConversionFunnelEvent
+    
+    event = ConversionFunnelEvent(
+        stage=stage,
+        listing_id=listing_id,
+        shop_id=shop_id,
+        user_id=current_user.id if current_user else None,
+        device_type=device_type,
+        ip_address=request.client.host if request.client else None,
+    )
+    db.add(event)
+    db.commit()
+    return {"status": "ok"}
+
+
+@router.get("/admin/overview")
+def get_overview(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    days: int = Query(7, ge=1, le=90),
+) -> Any:
+    """Get overview analytics for dashboard."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    from app.models.analytics import ItemView, ShopView, ClickEvent, SearchEvent
+    
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+    # Total visitors (unique users + guests by IP)
+    total_item_views = db.exec(
+        select(func.count(ItemView.id)).where(ItemView.viewed_at >= cutoff_date)
+    ).one() or 0
+    
+    total_shop_views = db.exec(
+        select(func.count(ShopView.id)).where(ShopView.viewed_at >= cutoff_date)
+    ).one() or 0
+
+    # Unique visitors
+    unique_users = db.exec(
+        select(func.count(func.distinct(ItemView.user_id))).where(
+            ItemView.viewed_at >= cutoff_date, ItemView.user_id.isnot(None)
+        )
+    ).one() or 0
+
+    unique_guests = db.exec(
+        select(func.count(func.distinct(ItemView.ip_address))).where(
+            ItemView.viewed_at >= cutoff_date, ItemView.user_id.is_(None)
+        )
+    ).one() or 0
+
+    # Searches
+    total_searches = db.exec(
+        select(func.count(SearchEvent.id)).where(SearchEvent.searched_at >= cutoff_date)
+    ).one() or 0
+
+    # Clicks (chat, call, etc.)
+    chat_clicks = db.exec(
+        select(func.count(ClickEvent.id)).where(
+            ClickEvent.event_type == 'chat', ClickEvent.clicked_at >= cutoff_date
+        )
+    ).one() or 0
+
+    favorites = db.exec(
+        select(func.count(ClickEvent.id)).where(
+            ClickEvent.event_type == 'favorite', ClickEvent.clicked_at >= cutoff_date
+        )
+    ).one() or 0
+
+    whatsapp_clicks = db.exec(
+        select(func.count(ClickEvent.id)).where(
+            ClickEvent.event_type == 'whatsapp', ClickEvent.clicked_at >= cutoff_date
+        )
+    ).one() or 0
+
+    call_clicks = db.exec(
+        select(func.count(ClickEvent.id)).where(
+            ClickEvent.event_type == 'call', ClickEvent.clicked_at >= cutoff_date
+        )
+    ).one() or 0
+
+    # Conversion rate (chats / views)
+    total_views = total_item_views + total_shop_views
+    conversion_rate = round((chat_clicks / total_views * 100) if total_views > 0 else 0, 2)
+
+    return {
+        "period_days": days,
+        "total_visitors": unique_users + unique_guests,
+        "unique_users": unique_users,
+        "unique_guests": unique_guests,
+        "total_item_views": total_item_views,
+        "total_shop_views": total_shop_views,
+        "total_views": total_views,
+        "total_searches": total_searches,
+        "chat_clicks": chat_clicks,
+        "whatsapp_clicks": whatsapp_clicks,
+        "call_clicks": call_clicks,
+        "favorites_added": favorites,
+        "conversion_rate": conversion_rate,
+    }
+
+
+@router.get("/admin/search-analytics")
+def get_search_analytics(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    days: int = Query(7, ge=1, le=90),
+    limit: int = Query(20, ge=1, le=100),
+) -> Any:
+    """Get search analytics: top searches and no-result searches."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    from app.models.analytics import SearchEvent
+    
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+    # Top searches (by frequency)
+    top_searches = db.exec(
+        select(
+            SearchEvent.query,
+            func.count(SearchEvent.id).label("search_count"),
+            func.avg(SearchEvent.result_count).label("avg_results"),
+        )
+        .where(SearchEvent.searched_at >= cutoff_date)
+        .group_by(SearchEvent.query)
+        .order_by(func.count(SearchEvent.id).desc())
+        .limit(limit)
+    ).all()
+
+    # No-result searches
+    no_results = db.exec(
+        select(
+            SearchEvent.query,
+            func.count(SearchEvent.id).label("search_count"),
+        )
+        .where(
+            SearchEvent.searched_at >= cutoff_date,
+            SearchEvent.result_count == 0,
+        )
+        .group_by(SearchEvent.query)
+        .order_by(func.count(SearchEvent.id).desc())
+        .limit(limit)
+    ).all()
+
+    return {
+        "period_days": days,
+        "top_searches": [
+            {
+                "query": q[0],
+                "search_count": q[1],
+                "avg_results": round(q[2]) if q[2] else 0,
+            }
+            for q in top_searches
+        ],
+        "no_result_searches": [
+            {
+                "query": q[0],
+                "search_count": q[1],
+            }
+            for q in no_results
+        ],
+    }
+
+
+@router.get("/admin/category-analytics")
+def get_category_analytics(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    days: int = Query(7, ge=1, le=90),
+    limit: int = Query(20, ge=1, le=100),
+) -> Any:
+    """Get category performance analytics."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    from app.models.analytics import ItemView
+    from app.models.listing import Listing
+    
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+    # Get category stats
+    results = db.exec(
+        select(
+            Listing.category_id,
+            func.count(ItemView.id).label("view_count"),
+            func.count(func.distinct(Listing.id)).label("listing_count"),
+        )
+        .join(ItemView, ItemView.listing_id == Listing.id)
+        .where(ItemView.viewed_at >= cutoff_date)
+        .group_by(Listing.category_id)
+        .order_by(func.count(ItemView.id).desc())
+        .limit(limit)
+    ).all()
+
+    return {
+        "period_days": days,
+        "categories": [
+            {
+                "category_id": r[0],
+                "view_count": r[1],
+                "listing_count": r[2],
+                "ctr": round((r[1] / max(r[2], 1) * 100), 2),
+            }
+            for r in results
+        ]
+    }
+
+
+@router.get("/admin/conversion-funnel")
+def get_conversion_funnel(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    days: int = Query(7, ge=1, le=90),
+) -> Any:
+    """Get conversion funnel analytics: View -> Click -> Chat -> Contact."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    from app.models.analytics import ItemView, ClickEvent
+    
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+    # Stage counts
+    views = db.exec(
+        select(func.count(ItemView.id)).where(ItemView.viewed_at >= cutoff_date)
+    ).one() or 1
+
+    clicks = db.exec(
+        select(func.count(ClickEvent.id)).where(ClickEvent.clicked_at >= cutoff_date)
+    ).one() or 0
+
+    chats = db.exec(
+        select(func.count(ClickEvent.id)).where(
+            ClickEvent.event_type == 'chat', ClickEvent.clicked_at >= cutoff_date
+        )
+    ).one() or 0
+
+    return {
+        "period_days": days,
+        "funnel": [
+            {
+                "stage": "Views",
+                "count": views,
+                "percentage": 100,
+            },
+            {
+                "stage": "Clicks",
+                "count": clicks,
+                "percentage": round((clicks / views * 100), 2),
+            },
+            {
+                "stage": "Chats Started",
+                "count": chats,
+                "percentage": round((chats / views * 100), 2),
+            },
+        ]
+    }

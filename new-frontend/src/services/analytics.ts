@@ -114,3 +114,108 @@ class AnalyticsService {
 }
 
 export const analyticsService = new AnalyticsService();
+
+interface SearchParams {
+  query: string;
+  result_count?: number;
+  device_type?: string;
+  category_filter?: string;
+  location_filter?: string;
+}
+
+interface ClickParams {
+  event_type: string; // 'chat', 'whatsapp', 'call', 'favorite', 'share', 'review'
+  listing_id?: number;
+  shop_id?: number;
+  device_type?: string;
+}
+
+interface ConversionParams {
+  stage: string; // 'view', 'click', 'chat', 'contact'
+  listing_id?: number;
+  shop_id?: number;
+  device_type?: string;
+}
+
+// Phase 1: Search, Click, Conversion tracking
+
+async trackSearch(params: SearchParams) {
+  try {
+    const queryParams = new URLSearchParams();
+    queryParams.append('query', params.query);
+    if (params.result_count) queryParams.append('result_count', params.result_count.toString());
+    if (params.device_type) queryParams.append('device_type', params.device_type);
+    if (params.category_filter) queryParams.append('category_filter', params.category_filter);
+    if (params.location_filter) queryParams.append('location_filter', params.location_filter);
+
+    return await api.post(`/analytics/track/search?${queryParams.toString()}`);
+  } catch (error) {
+    console.error('Failed to track search:', error);
+  }
+}
+
+async trackClick(params: ClickParams) {
+  try {
+    const queryParams = new URLSearchParams();
+    queryParams.append('event_type', params.event_type);
+    if (params.listing_id) queryParams.append('listing_id', params.listing_id.toString());
+    if (params.shop_id) queryParams.append('shop_id', params.shop_id.toString());
+    if (params.device_type) queryParams.append('device_type', params.device_type);
+
+    return await api.post(`/analytics/track/click?${queryParams.toString()}`);
+  } catch (error) {
+    console.error('Failed to track click:', error);
+  }
+}
+
+async trackConversion(params: ConversionParams) {
+  try {
+    const queryParams = new URLSearchParams();
+    queryParams.append('stage', params.stage);
+    if (params.listing_id) queryParams.append('listing_id', params.listing_id.toString());
+    if (params.shop_id) queryParams.append('shop_id', params.shop_id.toString());
+    if (params.device_type) queryParams.append('device_type', params.device_type);
+
+    return await api.post(`/analytics/track/conversion?${queryParams.toString()}`);
+  } catch (error) {
+    console.error('Failed to track conversion:', error);
+  }
+}
+
+// Phase 1: Analytics queries
+
+async getOverview(days = 7) {
+  try {
+    return await api.get(`/analytics/admin/overview?days=${days}`);
+  } catch (error) {
+    console.error('Failed to fetch overview:', error);
+    throw error;
+  }
+}
+
+async getSearchAnalytics(days = 7, limit = 20) {
+  try {
+    return await api.get(`/analytics/admin/search-analytics?days=${days}&limit=${limit}`);
+  } catch (error) {
+    console.error('Failed to fetch search analytics:', error);
+    throw error;
+  }
+}
+
+async getCategoryAnalytics(days = 7, limit = 20) {
+  try {
+    return await api.get(`/analytics/admin/category-analytics?days=${days}&limit=${limit}`);
+  } catch (error) {
+    console.error('Failed to fetch category analytics:', error);
+    throw error;
+  }
+}
+
+async getConversionFunnel(days = 7) {
+  try {
+    return await api.get(`/analytics/admin/conversion-funnel?days=${days}`);
+  } catch (error) {
+    console.error('Failed to fetch conversion funnel:', error);
+    throw error;
+  }
+}

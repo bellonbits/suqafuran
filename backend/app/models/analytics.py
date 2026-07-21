@@ -168,3 +168,66 @@ class ShopView(SQLModel, table=True):
 
     # Timestamp
     viewed_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+
+class SearchEvent(SQLModel, table=True):
+    """Track search queries for marketplace analytics."""
+
+    __tablename__ = "search_event"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    query: str = Field(index=True)
+    result_count: int = 0
+    user_id: Optional[int] = Field(foreign_key="user.id", index=True)
+    session_id: Optional[str] = None
+
+    # Device & Location
+    device_type: Optional[str] = None
+    ip_address: Optional[str] = None
+    category_filter: Optional[str] = None
+    location_filter: Optional[str] = None
+
+    # Timestamp
+    searched_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+
+class ClickEvent(SQLModel, table=True):
+    """Track user actions (chat, call, favorite, etc.) for conversion analytics."""
+
+    __tablename__ = "click_event"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    event_type: str = Field(index=True)  # "chat", "whatsapp", "call", "favorite", "share", "review"
+    listing_id: Optional[int] = Field(foreign_key="listing.id", index=True)
+    shop_id: Optional[int] = Field(foreign_key="user.id", index=True)
+    user_id: Optional[int] = Field(foreign_key="user.id", index=True)
+    session_id: Optional[str] = None
+
+    # Device info
+    device_type: Optional[str] = None
+    ip_address: Optional[str] = None
+
+    # Timestamp
+    clicked_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+
+class ConversionFunnelEvent(SQLModel, table=True):
+    """Track conversion funnel: View -> Click -> Contact -> Transaction."""
+
+    __tablename__ = "conversion_funnel_event"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    user_id: Optional[int] = Field(foreign_key="user.id", index=True)
+    session_id: Optional[str] = None
+
+    # Funnel stages
+    stage: str = Field(index=True)  # "view", "click", "chat", "contact", "transaction"
+    listing_id: Optional[int] = Field(index=True)
+    shop_id: Optional[int] = Field(index=True)
+
+    # Metadata
+    device_type: Optional[str] = None
+    ip_address: Optional[str] = None
+
+    # Timestamp
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
