@@ -225,17 +225,19 @@ Thanks!`;
 
     if (method === 'whatsapp') {
       const encodedMessage = encodeURIComponent(message);
-      const whatsappPhone = firstSeller.phone.replace(/\D/g, '');
+      let whatsappPhone = firstSeller.phone.replace(/\D/g, '');
+      // Remove leading 0 for Kenya numbers and add country code if needed
+      if (whatsappPhone.startsWith('0')) {
+        whatsappPhone = '254' + whatsappPhone.substring(1);
+      } else if (!whatsappPhone.startsWith('254')) {
+        whatsappPhone = '254' + whatsappPhone;
+      }
       window.open(`https://wa.me/${whatsappPhone}?text=${encodedMessage}`, '_blank');
+      setIsProcessing(false);
     } else if (method === 'message') {
+      setIsProcessing(false);
       router.push(`/messages`);
     }
-
-    setIsProcessing(false);
-    setTimeout(() => {
-      clearCart();
-      router.push('/shops');
-    }, 2000);
   };
 
   return (
