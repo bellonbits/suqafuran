@@ -185,7 +185,7 @@ const SellerProfilePage = () => {
             <button
               onClick={handleVerifyMpesa}
               disabled={saving || profile?.mpesa_verified}
-              className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg font-bold transition-colors"
+              className="w-full px-6 py-3 bg-[#02CCFE] hover:bg-[#02CCFE] disabled:opacity-50 text-white rounded-lg font-bold transition-colors"
             >
               {profile?.mpesa_verified ? '✓ M-Pesa Verified' : 'Verify M-Pesa'}
             </button>

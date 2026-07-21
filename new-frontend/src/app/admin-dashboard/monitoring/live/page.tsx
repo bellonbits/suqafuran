@@ -42,7 +42,7 @@ export default function LiveEventsPage() {
 
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-6 border border-green-200 dark:border-green-800">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+          <div className="w-3 h-3 bg-[#02CCFE] rounded-full animate-pulse"></div>
           <span className="font-semibold text-green-900 dark:text-green-300">Live Stream Active</span>
         </div>
         <p className="text-green-800 dark:text-green-400 text-sm">

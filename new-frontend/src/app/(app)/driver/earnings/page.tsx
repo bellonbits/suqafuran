@@ -112,7 +112,7 @@ export default function EarningsPage() {
                 onClick={() => setFilter(f)}
                 className={`px-4 py-2 rounded-lg font-semibold transition-colors capitalize ${
                   filter === f
-                    ? 'bg-green-500 text-white'
+                    ? 'bg-[#02CCFE] text-white'
                     : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
                 }`}
               >

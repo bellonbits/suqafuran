@@ -214,7 +214,7 @@ export default function ActiveDeliveryPage() {
                   <div className="flex flex-col items-center">
                     <div
                       className={`w-4 h-4 rounded-full ${
-                        nextStep === 'pickup' ? 'bg-blue-500' : 'bg-green-500'
+                        nextStep === 'pickup' ? 'bg-blue-500' : 'bg-[#02CCFE]'
                       }`}
                     />
                     {nextStep === 'pickup' && <div className="w-1 h-8 bg-blue-500" />}
@@ -229,7 +229,7 @@ export default function ActiveDeliveryPage() {
                   <div className="flex flex-col items-center">
                     <div
                       className={`w-4 h-4 rounded-full ${
-                        nextStep === 'delivery' ? 'bg-green-500' : 'bg-slate-400'
+                        nextStep === 'delivery' ? 'bg-[#02CCFE]' : 'bg-slate-400'
                       }`}
                     />
                   </div>
@@ -263,7 +263,7 @@ export default function ActiveDeliveryPage() {
                   <button
                     onClick={handleSubmitProof}
                     disabled={!proofImageUrl || isSubmitting}
-                    className="w-full bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600 transition-colors disabled:opacity-50"
+                    className="w-full bg-[#02CCFE] text-white py-2 rounded-lg font-semibold hover:bg-[#02CCFE] transition-colors disabled:opacity-50"
                   >
                     {isSubmitting ? 'Submitting...' : 'Submit Proof'}
                   </button>
@@ -318,7 +318,7 @@ export default function ActiveDeliveryPage() {
               {selectedDelivery.status === 'in_transit' && (
                 <button
                   onClick={() => handleUpdateStatus('delivered')}
-                  className="w-full bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-[#02CCFE] text-white py-3 rounded-lg font-semibold hover:bg-[#02CCFE] transition-colors flex items-center justify-center gap-2"
                 >
                   <CheckCircle className="w-5 h-5" />
                   Mark Delivered

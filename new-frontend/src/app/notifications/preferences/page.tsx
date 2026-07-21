@@ -233,7 +233,7 @@ export default function NotificationPreferencesPage() {
             exit={{ opacity: 0, y: 10 }}
             className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-3"
           >
-            <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
+            <div className="w-5 h-5 bg-[#02CCFE] rounded-full flex items-center justify-center">
               <div className="w-2 h-2 bg-white rounded-full" />
             </div>
             <p className="text-green-700 dark:text-green-300 font-bold text-sm">

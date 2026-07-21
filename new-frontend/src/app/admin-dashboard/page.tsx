@@ -514,7 +514,7 @@ const AdminDashboard = () => {
                             <div
                               className={`h-full transition-all ${
                                 delivery.status === 'Delivered'
-                                  ? 'bg-green-500'
+                                  ? 'bg-[#02CCFE]'
                                   : delivery.status === 'Delayed'
                                     ? 'bg-orange-500'
                                     : 'bg-[#e0f7ff]0'

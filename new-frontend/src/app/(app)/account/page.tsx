@@ -281,19 +281,19 @@ export default function AccountPage() {
           <h3 className="font-bold text-blue-900 dark:text-blue-200 mb-4">Account Status</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${profile.is_active ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              <div className={`w-3 h-3 rounded-full ${profile.is_active ? 'bg-[#02CCFE]' : 'bg-red-500'}`}></div>
               <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{profile.is_active ? 'Active' : 'Inactive'}</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${profile.is_verified ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+              <div className={`w-3 h-3 rounded-full ${profile.is_verified ? 'bg-[#02CCFE]' : 'bg-yellow-500'}`}></div>
               <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{profile.is_verified ? 'Verified' : 'Not Verified'}</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${!profile.is_suspended ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              <div className={`w-3 h-3 rounded-full ${!profile.is_suspended ? 'bg-[#02CCFE]' : 'bg-red-500'}`}></div>
               <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{!profile.is_suspended ? 'Good' : 'Suspended'}</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${!profile.is_flagged ? 'bg-green-500' : 'bg-orange-500'}`}></div>
+              <div className={`w-3 h-3 rounded-full ${!profile.is_flagged ? 'bg-[#02CCFE]' : 'bg-orange-500'}`}></div>
               <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{!profile.is_flagged ? 'Clean' : 'Flagged'}</span>
             </div>
           </div>

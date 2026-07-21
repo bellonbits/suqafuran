@@ -110,7 +110,7 @@ export function HeatmapViewer({ clicks, pageWidth, pageHeight }: HeatmapViewerPr
           <span className="text-xs text-slate-300">Low Activity</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-green-500 rounded"></div>
+          <div className="w-4 h-4 bg-[#02CCFE] rounded"></div>
           <span className="text-xs text-slate-300">Medium</span>
         </div>
         <div className="flex items-center gap-2">

@@ -240,7 +240,7 @@ export default function BulkProductsPage() {
             <button
               onClick={applyChanges}
               disabled={changedCount === 0 || applying}
-              className="flex items-center gap-2 px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-600 text-white rounded font-semibold transition ml-auto"
+              className="flex items-center gap-2 px-6 py-2 bg-[#02CCFE] hover:bg-[#02CCFE] disabled:bg-slate-600 text-white rounded font-semibold transition ml-auto"
             >
               {applying ? 'Applying...' : `Apply Changes (${changedCount})`}
             </button>

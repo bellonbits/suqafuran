@@ -399,7 +399,7 @@ export default function PublicShopPage() {
                   ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                   : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
               }`}>
-                <span className={`w-2 h-2 rounded-full ${isOpen ? 'bg-green-600' : 'bg-red-600'}`} />
+                <span className={`w-2 h-2 rounded-full ${isOpen ? 'bg-[#02CCFE]' : 'bg-red-600'}`} />
                 {isOpen ? 'Open now' : 'Closed'}
               </div>
             </div>
@@ -417,7 +417,7 @@ export default function PublicShopPage() {
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={() => handleContact('whatsapp')}
-                className="flex items-center gap-2 px-5 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-full font-bold text-sm transition-all hover:scale-105 shadow-md"
+                className="flex items-center gap-2 px-5 py-2.5 bg-[#02CCFE] hover:bg-[#02CCFE] text-white rounded-full font-bold text-sm transition-all hover:scale-105 shadow-md"
               >
                 <MessageCircle className="w-4 h-4" />
                 WhatsApp

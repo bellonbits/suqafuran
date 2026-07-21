@@ -127,7 +127,7 @@ export default function DriverDashboard() {
               onClick={toggleOnlineStatus}
               className={`px-6 py-2 rounded-lg font-semibold transition-all ${
                 isOnline
-                  ? 'bg-green-500 text-white hover:bg-green-600'
+                  ? 'bg-[#02CCFE] text-white hover:bg-[#02CCFE]'
                   : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
               }`}
             >
@@ -348,7 +348,7 @@ function JobOfferCard({
         <button
           onClick={handleAccept}
           disabled={isAccepting}
-          className="flex-1 bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600 transition-colors disabled:opacity-50"
+          className="flex-1 bg-[#02CCFE] text-white py-2 rounded-lg font-semibold hover:bg-[#02CCFE] transition-colors disabled:opacity-50"
         >
           {isAccepting ? '...' : '✓ Accept'}
         </button>

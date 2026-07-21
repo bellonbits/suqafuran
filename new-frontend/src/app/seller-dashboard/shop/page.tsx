@@ -489,7 +489,7 @@ export default function ShopPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             className={`p-4 rounded-lg text-white font-medium ${
-              toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+              toast.type === 'success' ? 'bg-[#02CCFE]' : 'bg-red-500'
             }`}
           >
             {toast.message}

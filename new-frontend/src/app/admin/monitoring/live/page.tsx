@@ -111,7 +111,7 @@ export default function LiveEventsPage() {
               <div className="flex items-center gap-2">
                 <div
                   className={`h-3 w-3 rounded-full ${
-                    store.isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                    store.isConnected ? 'bg-[#02CCFE] animate-pulse' : 'bg-red-500'
                   }`}
                 />
                 <span className="text-sm font-medium text-slate-900 dark:text-white">

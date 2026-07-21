@@ -285,7 +285,7 @@ function OrderCard({
           <button
             onClick={handleAccept}
             disabled={isProcessing}
-            className="flex-1 bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600 transition-colors disabled:opacity-50 text-sm"
+            className="flex-1 bg-[#02CCFE] text-white py-2 rounded-lg font-semibold hover:bg-[#02CCFE] transition-colors disabled:opacity-50 text-sm"
           >
             ✓ Accept
           </button>

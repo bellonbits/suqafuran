@@ -386,7 +386,7 @@ export default function SellerOrderDetailPage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleOpenRiderModal}
-                  className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold transition-colors flex items-center justify-center gap-2"
+                  className="w-full px-4 py-2 bg-[#02CCFE] hover:bg-[#02CCFE] text-white rounded-lg font-bold transition-colors flex items-center justify-center gap-2"
                 >
                   <Truck className="w-5 h-5" />
                   {order.assigned_rider_id ? 'Change Rider' : 'Select Rider'}

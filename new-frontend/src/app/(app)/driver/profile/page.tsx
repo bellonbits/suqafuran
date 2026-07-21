@@ -185,7 +185,7 @@ export default function DriverProfilePage() {
             <h2 className="text-xl font-bold text-white">Withdrawals</h2>
             <button
               onClick={() => setShowWithdrawal(!showWithdrawal)}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-600 transition-colors"
+              className="bg-[#02CCFE] text-white px-4 py-2 rounded-lg font-semibold hover:bg-[#02CCFE] transition-colors"
             >
               + Request Withdrawal
             </button>
@@ -238,7 +238,7 @@ export default function DriverProfilePage() {
                 <button
                   onClick={handleRequestWithdrawal}
                   disabled={isSubmitting}
-                  className="bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600 transition-colors disabled:opacity-50"
+                  className="bg-[#02CCFE] text-white py-2 rounded-lg font-semibold hover:bg-[#02CCFE] transition-colors disabled:opacity-50"
                 >
                   {isSubmitting ? 'Processing...' : 'Request'}
                 </button>

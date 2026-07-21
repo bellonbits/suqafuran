@@ -456,7 +456,7 @@ export default function EditShopPage() {
                   <button
                     onClick={() => handleToggle(key)}
                     className={`relative w-14 h-8 rounded-full transition ${
-                      formData[key] ? 'bg-green-600' : 'bg-gray-300'
+                      formData[key] ? 'bg-[#02CCFE]' : 'bg-gray-300'
                     }`}
                   >
                     <div className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition ${

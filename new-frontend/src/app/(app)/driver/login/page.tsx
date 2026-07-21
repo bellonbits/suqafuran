@@ -100,7 +100,7 @@ export default function DriverLoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-green-500 text-white py-3 rounded-lg font-bold hover:bg-green-600 transition-colors disabled:opacity-50"
+                className="w-full bg-[#02CCFE] text-white py-3 rounded-lg font-bold hover:bg-[#02CCFE] transition-colors disabled:opacity-50"
               >
                 {isLoading ? 'Sending OTP...' : 'Send OTP'}
               </button>
@@ -145,7 +145,7 @@ export default function DriverLoginPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="bg-green-500 text-white py-3 rounded-lg font-bold hover:bg-green-600 transition-colors disabled:opacity-50"
+                  className="bg-[#02CCFE] text-white py-3 rounded-lg font-bold hover:bg-[#02CCFE] transition-colors disabled:opacity-50"
                 >
                   {isLoading ? 'Verifying...' : 'Verify'}
                 </button>

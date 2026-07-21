@@ -458,7 +458,7 @@ export default function ListingDetailPage() {
 
                 <a
                   href={`tel:${listing.owner.phone}`}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 text-center"
+                  className="w-full bg-[#02CCFE] hover:bg-[#02CCFE] text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 text-center"
                 >
                   <Phone className="w-4 h-4" />
                   Call Seller

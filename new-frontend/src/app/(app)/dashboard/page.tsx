@@ -434,7 +434,7 @@ function DashboardContent() {
                                                                 <button
                                                                     disabled={updatingOrderId === order.id}
                                                                     onClick={() => handleUpdateOrderStatus(order.id, 'completed')}
-                                                                    className="btn-premium bg-accent text-white px-3 py-1.5 text-[10px] hover:bg-green-600 disabled:opacity-50"
+                                                                    className="btn-premium bg-accent text-white px-3 py-1.5 text-[10px] hover:bg-[#02CCFE] disabled:opacity-50"
                                                                 >
                                                                     Mark Completed
                                                                 </button>

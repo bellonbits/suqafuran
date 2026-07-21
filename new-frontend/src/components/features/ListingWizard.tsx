@@ -212,7 +212,7 @@ export const ListingWizard: React.FC = () => {
                   <div
                     className={`absolute top-5 left-1/2 w-full h-1 -z-10 ${
                       step.id < currentStep
-                        ? 'bg-green-500'
+                        ? 'bg-[#02CCFE]'
                         : 'bg-gray-200 dark:bg-slate-700'
                     }`}
                     style={{
@@ -287,7 +287,7 @@ export const ListingWizard: React.FC = () => {
               whileTap={{ scale: 0.95 }}
               onClick={handleSubmit}
               disabled={loading}
-              className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-[#02CCFE] hover:bg-[#02CCFE] text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Publishing...' : 'Publish Listing'}
               <Check className="h-5 w-5" />

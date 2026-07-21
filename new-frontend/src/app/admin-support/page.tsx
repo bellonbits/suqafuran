@@ -158,7 +158,7 @@ const SupportManagementPage = () => {
                       {ticket.status !== 'resolved' && (
                         <button
                           onClick={() => handleResolveTicket(ticket.id)}
-                          className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold transition-colors"
+                          className="px-3 py-1 bg-[#02CCFE] hover:bg-[#02CCFE] text-white rounded-lg text-sm font-bold transition-colors"
                         >
                           Resolve
                         </button>
