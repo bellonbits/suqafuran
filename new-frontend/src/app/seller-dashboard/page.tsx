@@ -35,10 +35,13 @@ export default function SellerDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [topProducts, setTopProducts] = useState<any[]>([]);
+  const [recentVisitors, setRecentVisitors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadDashboardData();
+    const interval = setInterval(loadDashboardData, 30000); // Refresh every 30 seconds
+    return () => clearInterval(interval);
   }, []);
 
   const loadDashboardData = async () => {
@@ -76,6 +79,19 @@ export default function SellerDashboard() {
         const ordersArray = Array.isArray(ordersRes.data) ? ordersRes.data : ordersRes.data.orders || [];
         console.log('[DEBUG] Orders loaded:', ordersArray.length);
         setRecentOrders(ordersArray.slice(0, 5));
+      }
+
+      // Generate mock visitor data based on orders (in production, this would come from a visitor tracking API)
+      if (ordersRes?.data) {
+        const ordersArray = Array.isArray(ordersRes.data) ? ordersRes.data : [];
+        const visitors = ordersArray.slice(0, 10).map((order: any, index: number) => ({
+          id: order.id,
+          name: order.customer_name || `Customer ${index + 1}`,
+          action: order.status === 'completed' ? 'Purchased' : 'Browsing',
+          time: new Date(order.created_at).toLocaleTimeString(),
+          timestamp: new Date(order.created_at).getTime(),
+        }));
+        setRecentVisitors(visitors.sort((a: any, b: any) => b.timestamp - a.timestamp));
       }
     } catch (error) {
       console.error('[ERROR] Loading dashboard:', error);
@@ -120,9 +136,29 @@ export default function SellerDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-black text-gray-900 dark:text-white">Recent Orders</h3>
-            <a href="/seller-dashboard/orders" className="text-orange-600 hover:text-orange-700 font-semibold text-sm">View All →</a>
+            <h3 className="text-lg font-black text-gray-900 dark:text-white">Recent Activity</h3>
+            <a href="/seller-dashboard/customers" className="text-orange-600 hover:text-orange-700 font-semibold text-sm">View All →</a>
           </div>
+
+          {recentVisitors.length > 0 && (
+            <div className="mb-6 pb-6 border-b border-gray-200 dark:border-slate-800">
+              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Recent Shop Visitors</h4>
+              <div className="space-y-2">
+                {recentVisitors.slice(0, 5).map((visitor) => (
+                  <div key={visitor.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-900 dark:text-white text-sm">{visitor.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-slate-400">{visitor.action}</p>
+                    </div>
+                    <p className="text-xs text-gray-500 ml-2">{visitor.time}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div>
+            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Recent Orders</h4>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -158,6 +194,7 @@ export default function SellerDashboard() {
                 )}
               </tbody>
             </table>
+          </div>
           </div>
         </div>
 

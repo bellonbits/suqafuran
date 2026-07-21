@@ -1,19 +1,35 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Send, Loader } from 'lucide-react';
+import React, { useState, useEffect, useRef, useEffect as useLayoutEffect } from 'react';
+import { Send, Loader, Search, Clock } from 'lucide-react';
 import api from '@/services/api';
 
 export default function MessagesPage() {
   const [conversations, setConversations] = useState<any[]>([]);
+  const [filteredConversations, setFilteredConversations] = useState<any[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [messageInput, setMessageInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sending, setSending] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadConversations();
+    const interval = setInterval(loadConversations, 5000);
+    return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const filtered = conversations.filter((conv) => {
+      const name = (conv.customer_name || conv.other_user_name || 'Unknown').toLowerCase();
+      const message = (conv.last_message || '').toLowerCase();
+      const query = searchQuery.toLowerCase();
+      return name.includes(query) || message.includes(query);
+    });
+    setFilteredConversations(filtered);
+  }, [searchQuery, conversations]);
 
   const loadConversations = async () => {
     try {
@@ -23,7 +39,7 @@ export default function MessagesPage() {
         const convsList = Array.isArray(res.data) ? res.data : [];
         setConversations(convsList);
 
-        if (convsList.length > 0) {
+        if (!selectedConversation && convsList.length > 0) {
           setSelectedConversation(convsList[0]);
           loadMessages(convsList[0].id);
         }
@@ -37,14 +53,19 @@ export default function MessagesPage() {
 
   const loadMessages = async (conversationId: string) => {
     try {
-      const res = await api.get(`/conversations/${conversationId}/messages?limit=50`).catch(() => null);
+      const res = await api.get(`/conversations/${conversationId}/messages?limit=100`).catch(() => null);
 
       if (res?.data) {
         setMessages(Array.isArray(res.data) ? res.data : []);
+        setTimeout(() => scrollToBottom(), 100);
       }
     } catch (error) {
       console.error('Error loading messages:', error);
     }
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleSelectConversation = (conversation: any) => {
@@ -55,6 +76,7 @@ export default function MessagesPage() {
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !selectedConversation) return;
 
+    setSending(true);
     try {
       await api.post(`/conversations/${selectedConversation.id}/messages`, {
         message: messageInput,
@@ -64,6 +86,8 @@ export default function MessagesPage() {
       loadMessages(selectedConversation.id);
     } catch (error) {
       console.error('Error sending message:', error);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -80,37 +104,57 @@ export default function MessagesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Messages</h1>
-        <p className="text-gray-600 dark:text-slate-400">Chat with your customers</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Messages</h1>
+          <p className="text-gray-600 dark:text-slate-400">Chat with your customers</p>
+        </div>
+        <a href="/messages" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors text-sm">
+          Open Full Messages →
+        </a>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[500px]">
-        <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 overflow-hidden">
-          <div className="border-b border-gray-200 dark:border-slate-800 p-4">
-            <h3 className="font-semibold text-gray-900 dark:text-white">Conversations</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[600px]">
+        <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 overflow-hidden flex flex-col">
+          <div className="border-b border-gray-200 dark:border-slate-800 p-4 space-y-3">
+            <h3 className="font-semibold text-gray-900 dark:text-white">Conversations ({filteredConversations.length})</h3>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search conversations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white text-sm"
+              />
+            </div>
           </div>
-          <div className="divide-y divide-gray-200 dark:divide-slate-800">
-            {conversations.length === 0 ? (
-              <div className="p-4 text-gray-500 text-sm">No conversations yet</div>
+          <div className="flex-1 divide-y divide-gray-200 dark:divide-slate-800 overflow-y-auto">
+            {filteredConversations.length === 0 ? (
+              <div className="p-4 text-gray-500 text-sm text-center">
+                {searchQuery ? 'No conversations match your search' : 'No conversations yet'}
+              </div>
             ) : (
-              conversations.map((conv) => (
-                <div
+              filteredConversations.map((conv) => (
+                <button
                   key={conv.id}
                   onClick={() => handleSelectConversation(conv)}
-                  className={`p-4 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer ${
-                    selectedConversation?.id === conv.id ? 'bg-gray-50 dark:bg-slate-800' : ''
+                  className={`w-full text-left p-4 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors ${
+                    selectedConversation?.id === conv.id ? 'bg-orange-50 dark:bg-orange-900/20' : ''
                   }`}
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <p className="font-semibold text-gray-900 dark:text-white text-sm">{conv.customer_name || 'Unknown'}</p>
+                    <p className="font-semibold text-gray-900 dark:text-white text-sm truncate flex-1">{conv.customer_name || conv.other_user_name || 'Unknown'}</p>
                     {conv.unread_count > 0 && (
-                      <span className="bg-orange-600 text-white text-xs rounded-full px-2 py-1">{conv.unread_count}</span>
+                      <span className="bg-orange-600 text-white text-xs rounded-full px-2 py-0.5 ml-2 flex-shrink-0">{conv.unread_count}</span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-600 dark:text-slate-400 truncate">{conv.last_message || 'No messages'}</p>
-                  <p className="text-xs text-gray-500 mt-1">{new Date(conv.updated_at).toLocaleDateString()}</p>
-                </div>
+                  <p className="text-xs text-gray-600 dark:text-slate-400 truncate mb-1">{conv.last_message || 'No messages'}</p>
+                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <Clock className="w-3 h-3" />
+                    {new Date(conv.updated_at).toLocaleDateString()}
+                  </div>
+                </button>
               ))
             )}
           </div>
@@ -119,48 +163,63 @@ export default function MessagesPage() {
         <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 overflow-hidden flex flex-col">
           <div className="border-b border-gray-200 dark:border-slate-800 p-4">
             <h3 className="font-semibold text-gray-900 dark:text-white">
-              {selectedConversation?.customer_name || 'Select a conversation'}
+              {selectedConversation?.customer_name || selectedConversation?.other_user_name || 'Select a conversation'}
             </h3>
+            <p className="text-xs text-gray-500 mt-1">{selectedConversation?.id}</p>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.length === 0 ? (
+            {!selectedConversation ? (
               <div className="flex items-center justify-center h-full text-gray-500">
-                No messages yet
+                Select a conversation to start messaging
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="flex items-center justify-center h-full text-gray-500">
+                No messages yet. Start the conversation!
               </div>
             ) : (
-              messages.map((msg, i) => (
-                <div key={i} className={`flex ${msg.sender_type === 'seller' ? 'justify-end' : 'justify-start'}`}>
-                  <div
-                    className={`rounded-lg px-4 py-2 max-w-xs ${
-                      msg.sender_type === 'seller'
-                        ? 'bg-orange-600 text-white'
-                        : 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white'
-                    }`}
-                  >
-                    <p className="text-sm">{msg.message}</p>
+              <>
+                {messages.map((msg, i) => (
+                  <div key={i} className={`flex ${msg.sender_type === 'seller' ? 'justify-end' : 'justify-start'}`}>
+                    <div
+                      className={`rounded-lg px-4 py-2 max-w-xs text-sm ${
+                        msg.sender_type === 'seller'
+                          ? 'bg-orange-600 text-white'
+                          : 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white'
+                      }`}
+                    >
+                      <p>{msg.message || msg.content}</p>
+                      <p className="text-xs opacity-70 mt-1">
+                        {new Date(msg.created_at || msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+                <div ref={messagesEndRef} />
+              </>
             )}
           </div>
-          <div className="border-t border-gray-200 dark:border-slate-800 p-4">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Type a message..."
-                value={messageInput}
-                onChange={(e) => setMessageInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                className="flex-1 px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
-              />
-              <button
-                onClick={handleSendMessage}
-                className="bg-orange-600 hover:bg-orange-700 text-white p-2 rounded-lg"
-              >
-                <Send className="w-4 h-4" />
-              </button>
+          {selectedConversation && (
+            <div className="border-t border-gray-200 dark:border-slate-800 p-4">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Type a message..."
+                  value={messageInput}
+                  onChange={(e) => setMessageInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                  disabled={sending}
+                  className="flex-1 px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white disabled:opacity-50"
+                />
+                <button
+                  onClick={handleSendMessage}
+                  disabled={sending || !messageInput.trim()}
+                  className="bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white p-2 rounded-lg transition-colors"
+                >
+                  {sending ? <Loader className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

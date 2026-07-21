@@ -8,8 +8,14 @@ import { API_BASE_URL } from '../../services/api';
 const RECONNECT_DELAY_MS = 4000;
 
 function buildSocketUrl(token: string): string {
-    const wsBase = API_BASE_URL.replace(/^http/, 'ws');
-    return `${wsBase}/notifications/ws?token=${encodeURIComponent(token)}`;
+    try {
+        const apiUrl = typeof window !== 'undefined' ? window.location.origin + '/api/v1' : API_BASE_URL;
+        const wsBase = apiUrl.replace(/^https?/, 'ws');
+        return `${wsBase}/notifications/ws?token=${encodeURIComponent(token)}`;
+    } catch (error) {
+        console.error('[WebSocket] Failed to build socket URL:', error);
+        return '';
+    }
 }
 
 /**
@@ -37,11 +43,25 @@ export function RealtimeConnection() {
             if (cancelled) return;
             try {
                 const socketUrl = buildSocketUrl(token as string);
+                if (!socketUrl) {
+                    console.warn('[WebSocket] Socket URL is empty, skipping connection attempt');
+                    return;
+                }
+
                 console.log('[WebSocket] Connecting to:', socketUrl.replace(/token=[^&]*/g, 'token=***'));
                 const ws = new WebSocket(socketUrl);
                 socketRef.current = ws;
 
+                // Set connection timeout
+                const connectionTimeout = setTimeout(() => {
+                    if (ws.readyState === WebSocket.CONNECTING) {
+                        console.warn('[WebSocket] Connection timeout, closing');
+                        ws.close();
+                    }
+                }, 10000); // 10 second timeout
+
                 ws.onopen = () => {
+                    clearTimeout(connectionTimeout);
                     console.log('[WebSocket] ✅ Connected successfully');
                     useRealtimeStore.getState().setConnected(true);
                     reconnectAttempt.current = 0;
@@ -59,10 +79,11 @@ export function RealtimeConnection() {
                 };
 
                 ws.onclose = (event) => {
+                    clearTimeout(connectionTimeout);
                     const reason = event.reason || 'No reason provided';
                     console.log(`[WebSocket] ❌ Closed (code: ${event.code}, reason: ${reason})`);
                     useRealtimeStore.getState().setConnected(false);
-                    if (!cancelled && event.code !== 4401) {
+                    if (!cancelled && event.code !== 4401 && reconnectAttempt.current < 5) {
                         const delay = Math.min(1000 * Math.pow(2, reconnectAttempt.current), 30000);
                         reconnectAttempt.current++;
                         console.log(`[WebSocket] 🔄 Reconnecting in ${delay}ms (attempt ${reconnectAttempt.current})`);
@@ -71,14 +92,14 @@ export function RealtimeConnection() {
                 };
 
                 ws.onerror = (event) => {
+                    clearTimeout(connectionTimeout);
                     console.error('[WebSocket] ⚠️ Error event fired');
-                    console.error('[WebSocket] Event type:', event.type);
                     console.error('[WebSocket] WebSocket readyState:', ws.readyState, '(0=connecting, 1=open, 2=closing, 3=closed)');
                     ws.close();
                 };
             } catch (error) {
                 console.error('[WebSocket] ❌ Failed to create WebSocket:', error);
-                if (!cancelled) {
+                if (!cancelled && reconnectAttempt.current < 5) {
                     const delay = Math.min(1000 * Math.pow(2, reconnectAttempt.current), 30000);
                     reconnectAttempt.current++;
                     console.log(`[WebSocket] 🔄 Retrying in ${delay}ms`);
