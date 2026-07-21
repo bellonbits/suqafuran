@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Eye, Shop, TrendingUp, RefreshCw, Calendar } from 'lucide-react';
+import { BarChart3, Eye, Store, TrendingUp, RefreshCw, Calendar } from 'lucide-react';
 import { analyticsService } from '../../../../services/analytics';
 
 interface TopItem {
@@ -169,7 +169,7 @@ export default function AnalyticsDashboard() {
 
         <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-800 flex items-center gap-2">
-            <Shop className="w-5 h-5 text-blue-600" />
+            <Store className="w-5 h-5 text-blue-600" />
             <h2 className="text-lg font-bold text-gray-900 dark:text-white">Top Shops</h2>
           </div>
 
