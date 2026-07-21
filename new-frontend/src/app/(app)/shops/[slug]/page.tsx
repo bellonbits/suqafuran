@@ -1416,13 +1416,7 @@ export default function ShopDetailPage() {
                                     </>
                                 ) : (
                                     <div className="text-center py-6">
-                                        <p className="text-sm text-gray-600 dark:text-slate-400 mb-4">No reviews yet</p>
-                                        <button
-                                            onClick={() => setRatingModalOpen(true)}
-                                            className="w-full bg-[#00a082] hover:bg-[#008f73] text-white font-bold py-2 px-4 rounded-lg transition-colors"
-                                        >
-                                            Write First Review
-                                        </button>
+                                        <p className="text-sm text-gray-600 dark:text-slate-400">No reviews yet</p>
                                     </div>
                                 )}
 
