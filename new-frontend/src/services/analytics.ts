@@ -277,3 +277,50 @@ async trackUserCohort(isNew: boolean) {
     console.error('Failed to track user cohort:', error);
   }
 }
+
+// Phase 3: Device Analytics, Seller Rankings, Admin Alerts
+
+async getDeviceAnalytics(days = 7) {
+  try {
+    return await api.get(`/analytics/admin/device-analytics?days=${days}`);
+  } catch (error) {
+    console.error('Failed to fetch device analytics:', error);
+    throw error;
+  }
+}
+
+async getSellerRankings(days = 30, metric = "views", limit = 20) {
+  try {
+    return await api.get(`/analytics/admin/seller-rankings?days=${days}&metric=${metric}&limit=${limit}`);
+  } catch (error) {
+    console.error('Failed to fetch seller rankings:', error);
+    throw error;
+  }
+}
+
+async getAlerts() {
+  try {
+    return await api.get(`/analytics/admin/alerts`);
+  } catch (error) {
+    console.error('Failed to fetch alerts:', error);
+    throw error;
+  }
+}
+
+async getAlertEvents(status = "triggered", limit = 50) {
+  try {
+    return await api.get(`/analytics/admin/alert-events?status=${status}&limit=${limit}`);
+  } catch (error) {
+    console.error('Failed to fetch alert events:', error);
+    throw error;
+  }
+}
+
+async acknowledgeAlert(alertEventId: string) {
+  try {
+    return await api.post(`/analytics/admin/alert/${alertEventId}/acknowledge`);
+  } catch (error) {
+    console.error('Failed to acknowledge alert:', error);
+    throw error;
+  }
+}

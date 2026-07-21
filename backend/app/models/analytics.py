@@ -282,3 +282,65 @@ class UserCohort(SQLModel, table=True):
     # Timestamp
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class DeviceMetric(SQLModel, table=True):
+    """Track device type distribution for analytics."""
+
+    __tablename__ = "device_metric"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    device_type: str = Field(index=True)  # "mobile", "tablet", "desktop"
+    event_type: str = Field(index=True)  # "view", "search", "click"
+    count: int = 0
+
+    # Timestamp (bucket by hour/day)
+    date: datetime = Field(index=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class AdminAlert(SQLModel, table=True):
+    """Alert rules and thresholds for admin monitoring."""
+
+    __tablename__ = "admin_alert"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    alert_type: str = Field(index=True)  # "traffic_spike", "low_engagement", "new_seller", "suspicious_activity"
+    metric: str  # "views", "chats", "conversions", "seller_count"
+    threshold: float
+    comparison: str  # ">", "<", "==", "spike"
+    enabled: bool = True
+
+    # Notification settings
+    notify_admin: bool = True
+    notify_seller: bool = False
+
+    # Metadata
+    description: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class AlertEvent(SQLModel, table=True):
+    """Log of triggered alerts."""
+
+    __tablename__ = "alert_event"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    alert_id: str = Field(foreign_key="admin_alert.id", index=True)
+    alert_type: str = Field(index=True)
+
+    # Event details
+    metric_value: float
+    threshold: float
+    entity_type: Optional[str] = None  # "shop", "listing", "user"
+    entity_id: Optional[int] = None
+
+    # Status
+    status: str = Field(default="triggered")  # "triggered", "acknowledged", "resolved"
+    acknowledged_at: Optional[datetime] = None
+    resolved_at: Optional[datetime] = None
+
+    # Metadata
+    message: str
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)

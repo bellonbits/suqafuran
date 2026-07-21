@@ -890,3 +890,239 @@ def get_user_analytics(
             for u in top_users
         ],
     }
+
+
+# Phase 3: Device Analytics, Seller Rankings, Admin Alerts
+
+@router.get("/admin/device-analytics")
+def get_device_analytics(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    days: int = Query(7, ge=1, le=90),
+) -> Any:
+    """Get device type distribution analytics."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    from app.models.analytics import ItemView, ShopView
+
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+    # Device distribution for views
+    device_dist = db.exec(
+        select(
+            ItemView.device_type,
+            func.count(ItemView.id).label("count"),
+        )
+        .where(ItemView.viewed_at >= cutoff_date, ItemView.device_type.isnot(None))
+        .group_by(ItemView.device_type)
+        .order_by(func.count(ItemView.id).desc())
+    ).all()
+
+    # Shop views by device
+    shop_device_dist = db.exec(
+        select(
+            ShopView.device_type,
+            func.count(ShopView.id).label("count"),
+        )
+        .where(ShopView.viewed_at >= cutoff_date, ShopView.device_type.isnot(None))
+        .group_by(ShopView.device_type)
+        .order_by(func.count(ShopView.id).desc())
+    ).all()
+
+    total_views = sum(d[1] for d in device_dist) or 1
+
+    return {
+        "period_days": days,
+        "item_views_by_device": [
+            {
+                "device_type": d[0] or "unknown",
+                "count": d[1],
+                "percentage": round((d[1] / total_views * 100), 2),
+            }
+            for d in device_dist
+        ],
+        "shop_views_by_device": [
+            {
+                "device_type": d[0] or "unknown",
+                "count": d[1],
+            }
+            for d in shop_device_dist
+        ],
+    }
+
+
+@router.get("/admin/seller-rankings")
+def get_seller_rankings(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    days: int = Query(30, ge=1, le=365),
+    metric: str = Query("views", regex="^(views|chats|conversions)$"),
+    limit: int = Query(20, ge=1, le=100),
+) -> Any:
+    """Get seller performance rankings by metric."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    from app.models.analytics import ShopView, ClickEvent
+    from app.models.user import User as UserModel
+
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+    if metric == "views":
+        results = db.exec(
+            select(
+                ShopView.shop_owner_id,
+                UserModel.full_name,
+                func.count(ShopView.id).label("metric_value"),
+            )
+            .join(UserModel, ShopView.shop_owner_id == UserModel.id)
+            .where(ShopView.viewed_at >= cutoff_date)
+            .group_by(ShopView.shop_owner_id, UserModel.full_name)
+            .order_by(func.count(ShopView.id).desc())
+            .limit(limit)
+        ).all()
+    elif metric == "chats":
+        results = db.exec(
+            select(
+                ClickEvent.shop_id,
+                UserModel.full_name,
+                func.count(ClickEvent.id).label("metric_value"),
+            )
+            .join(UserModel, ClickEvent.shop_id == UserModel.id)
+            .where(
+                ClickEvent.event_type == "chat",
+                ClickEvent.clicked_at >= cutoff_date,
+            )
+            .group_by(ClickEvent.shop_id, UserModel.full_name)
+            .order_by(func.count(ClickEvent.id).desc())
+            .limit(limit)
+        ).all()
+    else:  # conversions
+        results = db.exec(
+            select(
+                ClickEvent.shop_id,
+                UserModel.full_name,
+                func.count(ClickEvent.id).label("metric_value"),
+            )
+            .join(UserModel, ClickEvent.shop_id == UserModel.id)
+            .where(
+                ClickEvent.event_type.in_(["chat", "whatsapp", "call"]),
+                ClickEvent.clicked_at >= cutoff_date,
+            )
+            .group_by(ClickEvent.shop_id, UserModel.full_name)
+            .order_by(func.count(ClickEvent.id).desc())
+            .limit(limit)
+        ).all()
+
+    return {
+        "metric": metric,
+        "period_days": days,
+        "rankings": [
+            {
+                "rank": idx + 1,
+                "shop_id": r[0],
+                "shop_name": r[1] or f"Shop #{r[0]}",
+                "value": r[2],
+            }
+            for idx, r in enumerate(results)
+        ],
+    }
+
+
+@router.get("/admin/alerts")
+def get_alerts(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """Get all active alert rules."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    from app.models.analytics import AdminAlert
+
+    alerts = db.exec(select(AdminAlert).where(AdminAlert.enabled == True)).all()
+
+    return {
+        "alerts": [
+            {
+                "id": a.id,
+                "alert_type": a.alert_type,
+                "metric": a.metric,
+                "threshold": a.threshold,
+                "comparison": a.comparison,
+                "description": a.description,
+                "notify_admin": a.notify_admin,
+                "notify_seller": a.notify_seller,
+            }
+            for a in alerts
+        ]
+    }
+
+
+@router.get("/admin/alert-events")
+def get_alert_events(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    status: str = Query("triggered", regex="^(triggered|acknowledged|resolved)$"),
+    limit: int = Query(50, ge=1, le=200),
+) -> Any:
+    """Get recent alert events."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    from app.models.analytics import AlertEvent
+
+    events = db.exec(
+        select(AlertEvent)
+        .where(AlertEvent.status == status)
+        .order_by(AlertEvent.created_at.desc())
+        .limit(limit)
+    ).all()
+
+    return {
+        "status": status,
+        "events": [
+            {
+                "id": e.id,
+                "alert_type": e.alert_type,
+                "metric_value": e.metric_value,
+                "threshold": e.threshold,
+                "entity_type": e.entity_type,
+                "entity_id": e.entity_id,
+                "message": e.message,
+                "created_at": e.created_at.isoformat(),
+                "acknowledged_at": e.acknowledged_at.isoformat() if e.acknowledged_at else None,
+            }
+            for e in events
+        ],
+    }
+
+
+@router.post("/admin/alert/{alert_event_id}/acknowledge")
+def acknowledge_alert(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    alert_event_id: str,
+) -> Any:
+    """Mark an alert as acknowledged."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    from app.models.analytics import AlertEvent
+
+    event = db.get(AlertEvent, alert_event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Alert event not found")
+
+    event.status = "acknowledged"
+    event.acknowledged_at = datetime.utcnow()
+    db.add(event)
+    db.commit()
+
+    return {"status": "acknowledged"}
