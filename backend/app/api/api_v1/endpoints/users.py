@@ -1,13 +1,14 @@
 import secrets
 import string
 from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException, Body, BackgroundTasks, Request
+from fastapi import APIRouter, Depends, HTTPException, Body, BackgroundTasks, Request, UploadFile, File
 from sqlmodel import Session
 from app.api import deps
 from app.crud import crud_user
 from app.models.user import UserCreate, User, UserUpdate, PasswordChange
 from app.utils.email import send_verification_email
 from app.utils.redis import set_verification_code, get_verification_code, delete_verification_code
+from app.services.storage_service import storage_service
 
 router = APIRouter()
 
@@ -197,41 +198,28 @@ def remove_device_token(
     return {"status": "ok"}
 
 
-from fastapi import UploadFile, File
-import shutil
-import os
-from app.core.config import settings
-
 @router.post("/me/avatar", response_model=User)
-def upload_avatar(
+async def upload_avatar(
     *,
     db: Session = Depends(deps.get_db),
     file: UploadFile = File(...),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
-    Upload user avatar.
+    Upload user avatar to Cloudinary.
     """
-    # Create avatar directory if it doesn't exist
-    avatar_dir = os.path.join(settings.UPLOAD_DIR, "avatars")
-    os.makedirs(avatar_dir, exist_ok=True)
-    
-    # Save file
-    file_extension = os.path.splitext(file.filename)[1]
-    file_name = f"avatar_{current_user.id}{file_extension}"
-    file_path = os.path.join(avatar_dir, file_name)
-    
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-    
+    # Read file content
+    content = await file.read()
+
+    # Upload to Cloudinary or local storage
+    avatar_url, _ = await storage_service.upload_file(content, file.filename or "avatar.jpg")
+
     # Update user avatar_url
-    # Static files are served from /api/v1/listings/images -> UPLOAD_DIR
-    avatar_url = f"/api/v1/listings/images/avatars/{file_name}"
     current_user.avatar_url = avatar_url
     db.add(current_user)
     db.commit()
     db.refresh(current_user)
-    
+
     return current_user
 
 
