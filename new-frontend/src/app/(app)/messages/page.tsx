@@ -157,25 +157,23 @@ function MessagesPageContent() {
                                     onClick={() => setSelectedUserId(conv.other_user_id)}
                                     className={`w-full p-4 flex gap-3 text-left transition-all ${selectedUserId === conv.other_user_id ? 'bg-white dark:bg-slate-900' : 'hover:bg-white/50 dark:hover:bg-slate-900/50'}`}
                                 >
-                                    <div className="relative shrink-0">
-                                        <img
-                                            src={conv.other_user_avatar || 'https://via.placeholder.com/44'}
-                                            alt={conv.other_user_name}
-                                            className="h-11 w-11 rounded-2xl object-cover"
-                                        />
-                                    </div>
-                                    <div className="overflow-hidden flex-1 flex flex-col justify-between py-0.5">
-                                        <div className="flex justify-between items-baseline gap-2">
+                                    <img
+                                        src={conv.other_user_avatar || 'https://via.placeholder.com/44'}
+                                        alt={conv.other_user_name}
+                                        className="h-11 w-11 rounded-2xl object-cover shrink-0"
+                                    />
+                                    <div className="flex-1 flex flex-col justify-between py-0.5 min-w-0">
+                                        <div className="flex justify-between items-start gap-2 min-w-0">
                                             <h4 className="text-xs font-black text-gray-900 dark:text-slate-100 truncate">
                                                 {conv.other_user_name || `User ${conv.other_user_id}`}
                                             </h4>
                                             {conv.last_message_time && (
-                                                <span className="text-[9px] text-gray-400 dark:text-slate-500 font-bold shrink-0">
+                                                <span className="text-[9px] text-gray-400 dark:text-slate-500 font-bold shrink-0 whitespace-nowrap">
                                                     {new Date(conv.last_message_time).toLocaleDateString()}
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="flex justify-between items-center gap-2">
+                                        <div className="flex justify-between items-center gap-2 min-w-0">
                                             <p className="text-[11px] text-gray-400 dark:text-slate-500 truncate font-semibold">
                                                 {conv.last_message || 'No messages yet'}
                                             </p>
