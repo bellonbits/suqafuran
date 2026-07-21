@@ -228,7 +228,7 @@ Thanks!`;
       const whatsappPhone = firstSeller.phone.replace(/\D/g, '');
       window.open(`https://wa.me/${whatsappPhone}?text=${encodedMessage}`, '_blank');
     } else if (method === 'message') {
-      router.push(`/messages?sellerId=${firstSeller.phone}&message=${encodeURIComponent(message)}`);
+      router.push(`/messages`);
     }
 
     setIsProcessing(false);
@@ -321,10 +321,10 @@ Thanks!`;
                 {cartItems.map((item: CheckoutItem) => (
                   <div key={item.id} className="flex items-center justify-between">
                     <div className="flex-1">
-                      <p className="font-semibold text-gray-900 dark:text-white">${item.title || item.title_en || 'Product'}</p>
-                      <p className="text-sm text-gray-600 dark:text-slate-400">from ${item.owner?.full_name}</p>
+                      <p className="font-semibold text-gray-900 dark:text-white">{item.title || item.title_en || 'Product'}</p>
+                      <p className="text-sm text-gray-600 dark:text-slate-400">from {item.owner?.full_name}</p>
                     </div>
-                    <p className="font-bold text-gray-900 dark:text-white">KSh ${item.price.toLocaleString()}</p>
+                    <p className="font-bold text-gray-900 dark:text-white">KSh {item.price.toLocaleString()}</p>
                   </div>
                 ))}
               </div>
@@ -332,15 +332,15 @@ Thanks!`;
               <div className="border-t border-gray-200 dark:border-slate-700 pt-4 space-y-2">
                 <div className="flex justify-between text-gray-700 dark:text-slate-400">
                   <span>Subtotal</span>
-                  <span>KSh ${subtotal.toLocaleString()}</span>
+                  <span>KSh {subtotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-gray-700 dark:text-slate-400">
                   <span>Platform Fee (2%)</span>
-                  <span>KSh ${platformFee}</span>
+                  <span>KSh {platformFee}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold text-gray-900 dark:text-white pt-2 border-t border-gray-200 dark:border-slate-700">
                   <span>Total</span>
-                  <span className="text-orange-600">KSh ${total.toLocaleString()}</span>
+                  <span className="text-orange-600">KSh {total.toLocaleString()}</span>
                 </div>
               </div>
             </div>
