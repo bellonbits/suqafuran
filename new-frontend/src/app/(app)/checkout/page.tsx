@@ -436,24 +436,20 @@ Thanks!`;
                       </div>
                     </div>
 
-                    {/* Location with Map */}
+                    {/* Location Link */}
                     <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
                       <div className="flex items-center gap-2 mb-3">
                         <MapPin className="w-4 h-4 text-blue-600" />
                         <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider">Your Location</p>
                       </div>
-                      <div className="relative h-48 bg-gradient-to-b from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-900/10 rounded-lg mb-3 overflow-hidden flex items-center justify-center">
-                        <iframe
-                          src={`https://maps.google.com/maps?q=${currentLocation?.lat},${currentLocation?.lng}&z=15&output=embed`}
-                          width="100%"
-                          height="100%"
-                          style={{ border: 0 }}
-                          allowFullScreen=""
-                          loading="lazy"
-                          referrerPolicy="no-referrer-when-downgrade"
-                        ></iframe>
-                      </div>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white text-center">{currentLocation?.address}</p>
+                      <a 
+                        href={`https://maps.google.com/maps?q=${currentLocation?.lat},${currentLocation?.lng}&z=15`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline font-semibold break-all text-center block"
+                      >
+                        {currentLocation?.address}
+                      </a>
                     </div>
 
                     {/* Items List - Detailed */}
