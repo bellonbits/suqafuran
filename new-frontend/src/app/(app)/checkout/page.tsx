@@ -568,16 +568,16 @@ Thanks!`;
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Contact Seller(s)</h2>
               <p className="text-gray-600 dark:text-slate-400 mb-6">Choose how you want to contact the seller. They'll see your location and order details.</p>
 
-              <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleContactSeller('whatsapp')}
                   disabled={isProcessing}
-                  className="w-full flex items-center justify-center gap-3 bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white font-bold py-4 rounded-xl transition-colors"
+                  className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white font-bold py-4 rounded-xl transition-colors"
                 >
-                  <FaWhatsapp className="w-6 h-6" />
-                  Send via WhatsApp
+                  <FaWhatsapp className="w-5 h-5" />
+                  <span>WhatsApp</span>
                 </motion.button>
 
                 <motion.button
@@ -585,9 +585,9 @@ Thanks!`;
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleContactSeller('message')}
                   disabled={isProcessing}
-                  className="w-full flex items-center justify-center gap-3 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white font-bold py-4 rounded-xl transition-colors"
+                  className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white font-bold py-4 rounded-xl transition-colors"
                 >
-                  <MdMessage className="w-6 h-6" />
+                  <MdMessage className="w-5 h-5" />
                   Send via Message
                 </motion.button>
               </div>
