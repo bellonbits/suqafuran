@@ -5,6 +5,7 @@ import { X, Mail, Lock, User as UserIcon, Phone, Loader2 } from 'lucide-react';
 import { useAuthModal } from '../../store/useAuthModal';
 import { useAuthStore } from '../../store/useAuth';
 import { authService } from '../../services/auth';
+import { Turnstile } from '../Turnstile';
 
 type Method = 'email' | 'phone';
 type Step = 'form' | 'otp';
@@ -34,6 +35,7 @@ export const AuthModal: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [cooldown, setCooldown] = useState(0);
+    const [turnstileToken, setTurnstileToken] = useState('');
 
     const phone = `${countryCode}${localPhone.replace(/\D/g, '')}`;
 
@@ -44,6 +46,11 @@ export const AuthModal: React.FC = () => {
             setOtp('');
             setError('');
             setPassword('');
+            setTurnstileToken('');
+            // Reset Turnstile widget
+            if ((window as any).turnstile) {
+                (window as any).turnstile.reset();
+            }
         }
     }, [isOpen, mode, method]);
 
@@ -64,6 +71,13 @@ export const AuthModal: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+
+        // Require Turnstile verification before form submission (only on initial form)
+        if (step === 'form' && !turnstileToken) {
+            setError('Please verify you are human');
+            return;
+        }
+
         setLoading(true);
         try {
             if (mode === 'signin' && method === 'email') {
@@ -295,6 +309,16 @@ export const AuthModal: React.FC = () => {
                                         </button>
                                     </div>
                                 </div>
+                            )}
+
+                            {step === 'form' && (
+                                <Turnstile
+                                    onToken={setTurnstileToken}
+                                    onError={() => {
+                                        setTurnstileToken('');
+                                        setError('Verification failed. Please try again.');
+                                    }}
+                                />
                             )}
                         </>
                     )}
