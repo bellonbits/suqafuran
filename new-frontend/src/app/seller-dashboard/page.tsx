@@ -16,11 +16,6 @@ const StatCard = ({ icon: Icon, label, value, color = 'blue' }: any) => {
     purple: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
   };
 
-  // Log dashboard data for debugging
-  console.log('[DEBUG] Dashboard - topProducts:', topProducts);
-  console.log('[DEBUG] Dashboard - recentOrders:', recentOrders);
-  console.log('[DEBUG] Dashboard - stats:', stats);
-
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-gray-200 dark:border-slate-800">
       <div className="flex items-start gap-4">
@@ -90,12 +85,7 @@ export default function SellerDashboard() {
   };
 
   if (loading) {
-    // Log dashboard data for debugging
-  console.log('[DEBUG] Dashboard - topProducts:', topProducts);
-  console.log('[DEBUG] Dashboard - recentOrders:', recentOrders);
-  console.log('[DEBUG] Dashboard - stats:', stats);
-
-  return (
+    return (
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-3">
           <Loader className="w-8 h-8 animate-spin text-orange-600" />
@@ -108,12 +98,6 @@ export default function SellerDashboard() {
   const totalProducts = stats?.listings || 0;
   const totalMessages = stats?.messages || 0;
 
-  // Log dashboard data for debugging
-  console.log('[DEBUG] Dashboard - topProducts:', topProducts);
-  console.log('[DEBUG] Dashboard - recentOrders:', recentOrders);
-  console.log('[DEBUG] Dashboard - stats:', stats);
-
-  // Ensure data is available
   const safeStats = stats || {};
 
   return (

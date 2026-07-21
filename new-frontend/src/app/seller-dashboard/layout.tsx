@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  LayoutDashboard, Package, ShoppingCart, Truck, Warehouse,
+  LayoutDashboard, Package, ShoppingCart, Warehouse,
   Users, MessageSquare, Megaphone, Star, BarChart3,
   DollarSign, Store, FileText, Settings, LogOut, Menu, X,
   ChevronRight, Home, ArrowLeft
@@ -14,7 +14,6 @@ const sellerNavItems = [
   { label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, href: '/seller-dashboard' },
   { label: 'Products', icon: <Package className="w-5 h-5" />, href: '/seller-dashboard/products' },
   { label: 'Orders', icon: <ShoppingCart className="w-5 h-5" />, href: '/seller-dashboard/orders' },
-  { label: 'Delivery', icon: <Truck className="w-5 h-5" />, href: '/seller-dashboard/delivery' },
   { label: 'Inventory', icon: <Warehouse className="w-5 h-5" />, href: '/seller-dashboard/inventory' },
   { label: 'Customers', icon: <Users className="w-5 h-5" />, href: '/seller-dashboard/customers' },
   { label: 'Messages', icon: <MessageSquare className="w-5 h-5" />, href: '/seller-dashboard/messages' },
