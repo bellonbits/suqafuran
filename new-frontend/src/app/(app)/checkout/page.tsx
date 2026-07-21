@@ -566,7 +566,7 @@ Thanks!`;
                 <motion.button
                   whileHover={{ scale: 1.3 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => handleContactSeller('whatsapp')}
+                  onClick={handleWhatsApp}
                   disabled={isProcessing}
                   className="text-[#25D366] hover:text-[#20BA5A] disabled:opacity-50 transition-colors p-2"
                   title="Contact via WhatsApp"
@@ -577,7 +577,7 @@ Thanks!`;
                 <motion.button
                   whileHover={{ scale: 1.3 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => handleContactSeller('message')}
+                  onClick={handleMessage}
                   disabled={isProcessing}
                   className="text-blue-500 hover:text-blue-600 disabled:opacity-50 transition-colors p-2"
                   title="Contact via Message"
