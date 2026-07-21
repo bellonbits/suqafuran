@@ -1,7 +1,7 @@
 """Add review table
 
 Revision ID: add_review_001
-Revises:
+Revises: monitoring_001, analytics_001
 Create Date: 2026-07-21 06:55:00.000000
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'add_review_001'
-down_revision = 'monitoring_001'
+down_revision = ('monitoring_001', 'analytics_001')
 branch_labels = None
 depends_on = None
 
