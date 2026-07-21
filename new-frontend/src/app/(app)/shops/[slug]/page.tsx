@@ -14,6 +14,7 @@ import { FaWhatsapp } from 'react-icons/fa';
 import { MdMessage, MdPhone, MdContentCopy } from 'react-icons/md';
 import { useCart } from '../../../../store/useCart';
 import { useAuthStore } from '../../../../store/useAuth';
+import { useTrackShopView } from '../../../../hooks/useViewTracking';
 
 
 // Deterministic mock product attributes helper (discount, hasPromo, etc.)
@@ -129,6 +130,9 @@ export default function ShopDetailPage() {
 
     const { items: cartItems, addItem, updateQuantity: updateCartQuantity, getTotalPrice } = useCart();
     const { user, token, isAuthenticated } = useAuthStore();
+
+    // Track shop profile views for analytics
+    useTrackShopView(shopOwnerId as number);
 
     const categoryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
     const scrollRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
