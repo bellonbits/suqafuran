@@ -42,12 +42,13 @@ export default function GeographicAnalytics() {
     setLoading(true);
     try {
       const res = await analyticsService.getGeographicAnalytics(days);
-      setCities(res.data?.cities || []);
+      const citiesData = res.data?.cities || [];
+      setCities(citiesData);
       setCountries(res.data?.countries || []);
       setLastRefresh(new Date());
-      
-      if (mapLoaded && res.data?.cities && res.data.cities.length > 0) {
-        drawMap(res.data.cities);
+
+      if (mapLoaded) {
+        drawMap(citiesData);
       }
     } catch (error) {
       console.error('Failed to fetch geographic analytics:', error);
@@ -60,12 +61,21 @@ export default function GeographicAnalytics() {
     const mapElement = document.getElementById('analytics-map');
     if (!mapElement || typeof (window as any).google === 'undefined') return;
 
-    const avgLat = citiesData.reduce((sum, c) => sum + c.latitude, 0) / citiesData.length;
-    const avgLng = citiesData.reduce((sum, c) => sum + c.longitude, 0) / citiesData.length;
+    // Default center (world view)
+    let center = { lat: 20, lng: 0 };
+    let zoom = 2;
+
+    // If there's data, center on average location
+    if (citiesData.length > 0) {
+      const avgLat = citiesData.reduce((sum, c) => sum + c.latitude, 0) / citiesData.length;
+      const avgLng = citiesData.reduce((sum, c) => sum + c.longitude, 0) / citiesData.length;
+      center = { lat: avgLat, lng: avgLng };
+      zoom = 6;
+    }
 
     const map = new (window as any).google.maps.Map(mapElement, {
-      zoom: 6,
-      center: { lat: avgLat, lng: avgLng },
+      zoom,
+      center,
       styles: [
         {
           featureType: 'all',
@@ -80,40 +90,43 @@ export default function GeographicAnalytics() {
       ],
     });
 
-    const maxVisitors = Math.max(...citiesData.map(c => c.visitor_count));
+    // Only add markers if there's data
+    if (citiesData.length > 0) {
+      const maxVisitors = Math.max(...citiesData.map(c => c.visitor_count));
 
-    citiesData.forEach((city) => {
-      const size = Math.max(20, Math.min(50, (city.visitor_count / maxVisitors) * 50));
-      
-      const marker = new (window as any).google.maps.Marker({
-        position: { lat: city.latitude, lng: city.longitude },
-        map,
-        title: city.city,
-        icon: {
-          path: (window as any).google.maps.SymbolPath.CIRCLE,
-          scale: size,
-          fillColor: '#ff9900',
-          fillOpacity: 0.8,
-          strokeColor: '#fff',
-          strokeWeight: 2,
-        },
-      });
+      citiesData.forEach((city) => {
+        const size = Math.max(20, Math.min(50, (city.visitor_count / maxVisitors) * 50));
 
-      const infoWindow = new (window as any).google.maps.InfoWindow({
-        content: `
-          <div style="font-family: system-ui;">
-            <strong>${city.city}, ${city.country}</strong><br/>
-            Visitors: ${city.visitor_count}<br/>
-            Unique Users: ${city.unique_users}
-          </div>
-        `,
-      });
+        const marker = new (window as any).google.maps.Marker({
+          position: { lat: city.latitude, lng: city.longitude },
+          map,
+          title: city.city,
+          icon: {
+            path: (window as any).google.maps.SymbolPath.CIRCLE,
+            scale: size,
+            fillColor: '#ff9900',
+            fillOpacity: 0.8,
+            strokeColor: '#fff',
+            strokeWeight: 2,
+          },
+        });
 
-      marker.addListener('click', () => {
-        infoWindow.open(map, marker);
-        setSelectedCity(city);
+        const infoWindow = new (window as any).google.maps.InfoWindow({
+          content: `
+            <div style="font-family: system-ui;">
+              <strong>${city.city}, ${city.country}</strong><br/>
+              Visitors: ${city.visitor_count}<br/>
+              Unique Users: ${city.unique_users}
+            </div>
+          `,
+        });
+
+        marker.addListener('click', () => {
+          infoWindow.open(map, marker);
+          setSelectedCity(city);
+        });
       });
-    });
+    }
   };
 
   useEffect(() => {
@@ -163,11 +176,14 @@ export default function GeographicAnalytics() {
           )}
         </div>
 
-        {mapLoaded && (
-          <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 overflow-hidden">
-            <div id="analytics-map" style={{ width: '100%', height: '500px' }} />
-          </div>
-        )}
+        <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 overflow-hidden">
+          <div id="analytics-map" style={{ width: '100%', height: '500px' }} />
+          {!mapLoaded && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/50">
+              <p className="text-gray-600">Loading map...</p>
+            </div>
+          )}
+        </div>
 
         {cities.length > 0 && (
           <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 overflow-hidden">
