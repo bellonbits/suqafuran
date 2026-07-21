@@ -63,7 +63,7 @@ export default function ShopDetailPage() {
     const params = useParams();
     const router = useRouter();
     const shopSlug = params.slug as string;
-    const { city } = useLocationStore();
+    const { city, isHydrated } = useLocationStore();
 
     const [shopName, setShopName] = useState('');
     const [shopOwnerName, setShopOwnerName] = useState('');
@@ -73,7 +73,7 @@ export default function ShopDetailPage() {
 
     const [allListings, setAllListings] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isLocationModalOpen, setIsLocationModalOpen] = useState(!city);
+    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategory, setActiveCategory] = useState<string>('');
     const [expandedSubcategories, setExpandedSubcategories] = useState<Set<number>>(new Set());
@@ -197,7 +197,7 @@ export default function ShopDetailPage() {
     };
 
     useEffect(() => {
-        if (!city) {
+        if (!city && isHydrated) {
             setIsLocationModalOpen(true);
             return;
         }
@@ -274,7 +274,7 @@ export default function ShopDetailPage() {
         };
 
         fetchData();
-    }, [shopId, city]);
+    }, [shopId, city, isHydrated]);
 
 
     const filteredListings = useMemo(() => {
