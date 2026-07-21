@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '../store/useAuth';
 import { useFavoritesStore } from '../store/useFavorites';
 import { analyticsTracker } from '../services/analytics-tracking';
+import { RealtimeConnection } from '../components/shared/RealtimeConnection';
+import { NotificationToast } from '../components/shared/NotificationToast';
 // import { BottomNavigation } from '../components/shared/BottomNavigation';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
@@ -30,6 +32,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
     return (
         <QueryClientProvider client={queryClient}>
+            <RealtimeConnection />
+            <NotificationToast />
             <div className="sm:pb-0 pb-20">
                 {children}
             </div>
