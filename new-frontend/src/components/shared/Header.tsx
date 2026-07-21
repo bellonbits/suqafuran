@@ -11,6 +11,7 @@ import { useCart } from '../../store/useCart';
 import { useT } from '../../lib/i18n';
 import { LocationPickerModal } from './LocationPickerModal';
 import NotificationCenter from '../NotificationCenter';
+import { NotificationBell } from './NotificationBell';
 import api from '../../services/api';
 
 export const Header: React.FC = () => {
@@ -172,15 +173,10 @@ export const Header: React.FC = () => {
                             )}
                         </button>
 
-                        {/* Notifications - Icon Only */}
-                        <button
-                            onClick={() => {}}
-                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors relative hidden lg:flex"
-                            title="Notifications"
-                        >
-                            <Bell className="w-5 h-5 text-gray-600 dark:text-slate-400" />
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-                        </button>
+                        {/* Notifications Bell */}
+                        <div className="hidden lg:block">
+                            <NotificationBell />
+                        </div>
 
                         {/* Messages - Icon Only */}
                         <button
