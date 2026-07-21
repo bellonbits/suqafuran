@@ -241,6 +241,14 @@ Thanks!`;
     }
   };
 
+  const handleWhatsApp = () => {
+    handleContactSeller('whatsapp');
+  };
+
+  const handleMessage = () => {
+    handleContactSeller('message');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
       {/* Header */}
