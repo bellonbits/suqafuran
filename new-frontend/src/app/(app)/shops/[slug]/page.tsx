@@ -66,6 +66,7 @@ export default function ShopDetailPage() {
     const { city } = useLocationStore();
 
     const [shopName, setShopName] = useState('');
+    const [shopOwnerName, setShopOwnerName] = useState('');
     const [shopLogo, setShopLogo] = useState('');
     const [shopAvatar, setShopAvatar] = useState('');
     const [shopPhone, setShopPhone] = useState<string | null>(null);
@@ -234,6 +235,7 @@ export default function ShopDetailPage() {
                     console.log(' Retrieved shop listings:', shopListings);
 
                     setShopName(currentShop.shop_name || 'Shop');
+                    setShopOwnerName(currentShop.owner_name || '');
                     setShopLogo(currentShop.cover_image || '');
                     setShopAvatar(resolveMediaUrl(currentShop.user?.avatar_url) || '');
                     setShopPhone(currentShop.phone || null);
@@ -261,6 +263,7 @@ export default function ShopDetailPage() {
                     console.error('Shop not found in public shops list. Setting fallback data.');
                     // Fallback: use shop name from URL slug
                     setShopName(shopSlug || 'Shop');
+                    setShopOwnerName('');
                     setAllListings([]);
                 }
             } catch (error) {
