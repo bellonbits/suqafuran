@@ -92,34 +92,6 @@ class ConversionFunnel(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 
-class ClickEvent(SQLModel, table=True):
-    """Track click/heatmap data for analytics."""
-
-    __tablename__ = "click_event"
-
-    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
-    user_id: Optional[int] = Field(foreign_key="user.id", index=True)
-    session_id: Optional[str] = Field(foreign_key="user_session.id", index=True)
-
-    # Click details
-    element_id: Optional[str] = None
-    element_class: Optional[str] = None
-    element_type: str  # button, link, input, etc.
-    text: Optional[str] = None
-
-    # Position
-    x: int  # pixel coordinates
-    y: int
-    page_width: int
-    page_height: int
-
-    # Page context
-    page_url: str = Field(index=True)
-
-    # Timing
-    timestamp: datetime = Field(default_factory=datetime.utcnow, index=True)
-
-
 class ItemView(SQLModel, table=True):
     """Track item/listing views for engagement analytics."""
 
