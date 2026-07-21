@@ -15,6 +15,9 @@ depends_on = None
 
 
 def upgrade() -> None:
+    # Drop old click_event table from analytics_001 (pixel tracking, different schema)
+    op.execute('DROP TABLE IF EXISTS click_event CASCADE')
+
     # SearchEvent table
     op.create_table(
         'search_event',
@@ -35,7 +38,7 @@ def upgrade() -> None:
         sa.Index('ix_search_event_searched_at', 'searched_at'),
     )
 
-    # ClickEvent table
+    # ClickEvent table (user actions: chat, call, favorite)
     op.create_table(
         'click_event',
         sa.Column('id', sa.String(), nullable=False),
