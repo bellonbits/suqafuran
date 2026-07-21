@@ -157,11 +157,17 @@ function MessagesPageContent() {
                                     onClick={() => setSelectedUserId(conv.other_user_id)}
                                     className={`w-full p-4 flex gap-3 text-left transition-all ${selectedUserId === conv.other_user_id ? 'bg-white dark:bg-slate-900' : 'hover:bg-white/50 dark:hover:bg-slate-900/50'}`}
                                 >
-                                    <img
-                                        src={conv.other_user_avatar || 'https://via.placeholder.com/44'}
-                                        alt={conv.other_user_name}
-                                        className="h-11 w-11 rounded-2xl object-cover shrink-0"
-                                    />
+                                    {conv.other_user_avatar ? (
+                                        <img
+                                            src={conv.other_user_avatar}
+                                            alt={conv.other_user_name}
+                                            className="h-11 w-11 rounded-2xl object-cover shrink-0"
+                                        />
+                                    ) : (
+                                        <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center shrink-0 text-white font-black text-sm">
+                                            {(conv.other_user_name || 'U').charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
                                     <div className="flex-1 flex flex-col justify-between py-0.5 min-w-0">
                                         <div className="flex justify-between items-start gap-2 min-w-0">
                                             <h4 className="text-xs font-black text-gray-900 dark:text-slate-100 truncate">
@@ -200,11 +206,17 @@ function MessagesPageContent() {
                                     <button onClick={() => setSelectedUserId(null)} className="md:hidden -ml-1 mr-1 text-gray-400 hover:text-gray-700 dark:hover:text-slate-200">
                                         <ArrowLeft className="h-5 w-5" />
                                     </button>
-                                    <img
-                                        src={selectedConversation.other_user_avatar || 'https://via.placeholder.com/40'}
-                                        alt={selectedConversation.other_user_name}
-                                        className="h-10 w-10 rounded-2xl object-cover"
-                                    />
+                                    {selectedConversation.other_user_avatar ? (
+                                        <img
+                                            src={selectedConversation.other_user_avatar}
+                                            alt={selectedConversation.other_user_name}
+                                            className="h-10 w-10 rounded-2xl object-cover"
+                                        />
+                                    ) : (
+                                        <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-xs">
+                                            {(selectedConversation.other_user_name || 'U').charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
                                     <div>
                                         <h3 className="text-xs font-black text-gray-900 dark:text-slate-100">
                                             {selectedConversation.other_user_name || `User ${selectedConversation.other_user_id}`}
