@@ -5,6 +5,12 @@ import Providers from "./providers";
 export const metadata: Metadata = {
   title: "Suqafuran - Africa's Marketplace",
   description: "Buy, sell, track orders, and chat directly with verified sellers across Africa on Suqafuran.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon.png", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({
