@@ -280,6 +280,45 @@ export default function ShopDetailPage() {
         fetchData();
     }, [shopId, city, isHydrated]);
 
+    // Fetch user's follow/review/feedback status when component mounts or user changes
+    useEffect(() => {
+        if (!isAuthenticated || !shopOwnerId || !user?.id) return;
+
+        const fetchUserStatus = async () => {
+            try {
+                // Fetch user's follows to check if following this shop
+                const followsRes = await api.get('/follows/my/following');
+                const followingUsers = followsRes.data || [];
+                const isUserFollowing = followingUsers.some((f: any) => f.id === Number(shopOwnerId));
+                setIsFollowing(isUserFollowing);
+            } catch (err) {
+                console.error('Failed to fetch follow status:', err);
+            }
+
+            try {
+                // Fetch user's reviews for this shop
+                const reviewsRes = await api.get(`/reviews?shop_owner_id=${shopOwnerId}`);
+                const userReviews = (reviewsRes.data || []).filter((r: any) => r.author_id === user.id);
+                setUserHasReviewed(userReviews.length > 0);
+            } catch (err) {
+                console.error('Failed to fetch review status:', err);
+            }
+
+            try {
+                // Fetch user's feedback for this shop
+                const feedbackRes = await api.get(`/feedback/user/${user.id}/feedback`);
+                const userFeedback = (feedbackRes.data || []).find((f: any) => f.target_user_id === Number(shopOwnerId));
+                if (userFeedback) {
+                    setFeedbackText(userFeedback.comment || '');
+                }
+            } catch (err) {
+                console.error('Failed to fetch feedback status:', err);
+            }
+        };
+
+        fetchUserStatus();
+    }, [isAuthenticated, shopOwnerId, user?.id]);
+
 
     const filteredListings = useMemo(() => {
         if (!searchQuery.trim()) return allListings;
