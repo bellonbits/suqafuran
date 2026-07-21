@@ -431,7 +431,18 @@ export default function ShopDetailPage() {
         );
     }
 
-    const shopInitial = shopName?.[0]?.toUpperCase() || 'S';
+    const getInitials = () => {
+        let initials = shopName?.[0]?.toUpperCase() || 'S';
+        if (shopOwnerName && shopOwnerName.length > 0) {
+            const nameParts = shopOwnerName.trim().split(' ');
+            if (nameParts.length > 1) {
+                initials = (shopName?.[0] || 'S') + (nameParts[nameParts.length - 1]?.[0] || '');
+                return initials.toUpperCase();
+            }
+        }
+        return initials;
+    };
+    const shopInitials = getInitials();
 
     return (
         <div className="min-h-screen bg-white dark:bg-slate-950">
@@ -474,8 +485,8 @@ export default function ShopDetailPage() {
                         {shopAvatar ? (
                             <img src={shopAvatar} alt={shopName} className="w-full h-full object-cover" />
                         ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-xl">
-                                {shopInitial}
+                            <div className="w-full h-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-sm">
+                                {shopInitials}
                             </div>
                         )}
                     </div>
