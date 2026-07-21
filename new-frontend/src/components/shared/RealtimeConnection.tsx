@@ -10,7 +10,8 @@ const RECONNECT_DELAY_MS = 4000;
 function buildSocketUrl(token: string): string {
     try {
         const apiUrl = typeof window !== 'undefined' ? window.location.origin + '/api/v1' : API_BASE_URL;
-        const wsBase = apiUrl.replace(/^https?/, 'ws');
+        // Replace https with wss, http with ws
+        const wsBase = apiUrl.replace(/^https:/, 'wss:').replace(/^http:/, 'ws:');
         return `${wsBase}/notifications/ws?token=${encodeURIComponent(token)}`;
     } catch (error) {
         console.error('[WebSocket] Failed to build socket URL:', error);

@@ -63,21 +63,31 @@ export default function SellerDashboard() {
       ]);
 
       console.log('[DEBUG] Stats response:', statsRes?.data);
-      if (statsRes?.data) {
-        setStats(statsRes.data);
+      const productsArray = Array.isArray(productsRes?.data) ? productsRes.data : [];
+      const ordersArray = Array.isArray(ordersRes?.data) ? ordersRes.data : ordersRes?.data?.orders || [];
+
+      console.log('[DEBUG] Products loaded:', productsArray.length);
+      console.log('[DEBUG] Orders loaded:', ordersArray.length);
+
+      if (statsRes?.data || (productsArray.length > 0 || ordersArray.length > 0)) {
+        // Calculate real stats from data
+        const totalRevenue = ordersArray.reduce((sum: number, order: any) => sum + (order.total_amount || 0), 0);
+        const totalOrders = ordersArray.length;
+        const totalProducts = productsArray.length;
+
+        setStats({
+          ...statsRes?.data,
+          total_orders: totalOrders,
+          balance: totalRevenue,
+          listings: totalProducts,
+        });
       }
-      
-      console.log('[DEBUG] Products response:', productsRes?.data);
-      if (productsRes?.data) {
-        const listingsArray = Array.isArray(productsRes.data) ? productsRes.data : [];
-        console.log('[DEBUG] Products loaded:', listingsArray.length);
-        setTopProducts(listingsArray.slice(0, 4));
+
+      if (productsArray.length > 0) {
+        setTopProducts(productsArray.slice(0, 4));
       }
-      
-      console.log('[DEBUG] Orders response:', ordersRes?.data);
-      if (ordersRes?.data) {
-        const ordersArray = Array.isArray(ordersRes.data) ? ordersRes.data : ordersRes.data.orders || [];
-        console.log('[DEBUG] Orders loaded:', ordersArray.length);
+
+      if (ordersArray.length > 0) {
         setRecentOrders(ordersArray.slice(0, 5));
       }
 

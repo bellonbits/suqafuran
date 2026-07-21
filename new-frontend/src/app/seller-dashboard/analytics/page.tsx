@@ -11,6 +11,7 @@ import api from '@/services/api';
 export default function AnalyticsPage() {
   const [stats, setStats] = useState<any>(null);
   const [chartData, setChartData] = useState<any[]>([]);
+  const [statusData, setStatusData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -54,22 +55,41 @@ export default function AnalyticsPage() {
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     });
 
-    const viewsData = last7Days.map((date, i) => ({
-      date,
-      views: Math.floor(Math.random() * 150) + 50,
-      orders: Math.floor(Math.random() * 15) + 2,
-    }));
+    // Group orders by date and count views/orders per day
+    const viewsData = last7Days.map((dateStr) => {
+      const ordersForDate = orders.filter((o: any) => {
+        const orderDate = new Date(o.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        return orderDate === dateStr;
+      });
 
-    const statusData = [
-      { name: 'Pending', value: orders.filter((o: any) => o.status === 'pending').length, color: '#f59e0b' },
-      { name: 'Processing', value: orders.filter((o: any) => o.status === 'processing').length, color: '#3b82f6' },
-      { name: 'Completed', value: orders.filter((o: any) => o.status === 'completed' || o.status === 'delivered').length, color: '#10b981' },
+      return {
+        date: dateStr,
+        views: Math.max(1, ordersForDate.length * 3), // Estimate views based on orders
+        orders: ordersForDate.length,
+      };
+    });
+
+    // Calculate status data from real orders
+    const realStatusData = [
+      {
+        name: 'Pending',
+        value: orders.filter((o: any) => o.status === 'pending').length,
+        color: '#f59e0b'
+      },
+      {
+        name: 'Processing',
+        value: orders.filter((o: any) => o.status === 'processing').length,
+        color: '#3b82f6'
+      },
+      {
+        name: 'Completed',
+        value: orders.filter((o: any) => o.status === 'completed' || o.status === 'delivered' || o.status === 'confirmed').length,
+        color: '#10b981'
+      },
     ];
 
-    setChartData([]);
-    setTimeout(() => {
-      setChartData(viewsData);
-    }, 100);
+    setChartData(viewsData);
+    setStatusData(realStatusData);
   };
 
   if (loading) {
@@ -83,11 +103,6 @@ export default function AnalyticsPage() {
     );
   }
 
-  const statusData = [
-    { name: 'Pending', value: 12, color: '#f59e0b' },
-    { name: 'Processing', value: 8, color: '#3b82f6' },
-    { name: 'Completed', value: 35, color: '#10b981' },
-  ];
 
   return (
     <div className="space-y-6">
