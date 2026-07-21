@@ -814,7 +814,8 @@ def get_public_shops(
                    COALESCE(u.free_delivery, false),
                    ss.listing_count,
                    ss.latest_listing,
-                   COALESCE(u.market, 'Eastleigh Market')
+                   COALESCE(u.market, 'Eastleigh Market'),
+                   u.phone
             FROM "user" u
             INNER JOIN shop_stats ss ON ss.owner_id = u.id
             WHERE u.is_verified = true
@@ -868,6 +869,7 @@ def get_public_shops(
                 "is_featured": row[8],
                 "free_delivery": row[9],
                 "market": row[12],
+                "phone": row[13],
             })
 
         # Get total count of distinct shops in category

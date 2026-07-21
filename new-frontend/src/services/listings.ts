@@ -34,6 +34,11 @@ export interface PublicShop {
     response_time?: string;
     is_featured?: boolean;
     free_delivery?: boolean;
+    phone?: string;  // Seller phone number
+    user?: {
+        id: string;
+        avatar_url?: string;
+    };
 }
 
 export const listingsService = {
