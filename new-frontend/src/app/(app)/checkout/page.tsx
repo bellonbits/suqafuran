@@ -605,6 +605,3 @@ Thanks!`;
     </div>
   );
 }
-    } finally {
-      setIsProcessing(false);
-    }
