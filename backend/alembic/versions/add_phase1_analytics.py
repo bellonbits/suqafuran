@@ -16,7 +16,14 @@ depends_on = None
 
 def upgrade() -> None:
     # Drop old click_event table from analytics_001 (pixel tracking, different schema)
-    op.execute('DROP TABLE IF EXISTS click_event CASCADE')
+    # Use raw SQL to handle table that may exist with different schema
+    from sqlalchemy import text
+    bind = op.get_context().bind
+
+    # Check if click_event exists and drop it
+    inspector = sa.inspect(bind)
+    if 'click_event' in inspector.get_table_names():
+        op.drop_table('click_event')
 
     # SearchEvent table
     op.create_table(
