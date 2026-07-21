@@ -17,6 +17,29 @@ export const Turnstile: React.FC<TurnstileProps> = ({ onToken, onError }) => {
       return;
     }
 
+    // Only load script if it hasn't been loaded already
+    if ((window as any).turnstile) {
+      // Script already loaded, render immediately
+      if (containerRef.current) {
+        (window as any).turnstile.render('#turnstile-container', {
+          sitekey: sitekey,
+          theme: 'light',
+          callback: (token: string) => {
+            onToken(token);
+          },
+          'error-callback': () => {
+            onError?.();
+          },
+        });
+      }
+      return;
+    }
+
+    // Check if script is already in DOM
+    if (document.querySelector('script[src*="turnstile"]')) {
+      return;
+    }
+
     const script = document.createElement('script');
     script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
     script.async = true;
@@ -35,12 +58,6 @@ export const Turnstile: React.FC<TurnstileProps> = ({ onToken, onError }) => {
             onError?.();
           },
         });
-      }
-    };
-
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
       }
     };
   }, [sitekey, onToken, onError]);
