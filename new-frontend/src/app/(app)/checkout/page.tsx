@@ -177,7 +177,8 @@ Your delivery: Arrange with seller
       return;
     }
 
-    setIsProcessing(true);
+    try {
+      setIsProcessing(true);
 
     // Group items by seller
     const sellerGroups = new Map();
@@ -197,7 +198,6 @@ Your delivery: Arrange with seller
 
     if (sellerGroups.size === 0) {
       alert('No seller information available');
-      setIsProcessing(false);
       return;
     }
 
@@ -235,10 +235,11 @@ Thanks!`;
         whatsappPhone = '254' + whatsappPhone;
       }
       window.open(`https://wa.me/${whatsappPhone}?text=${encodedMessage}`, '_blank');
-      setIsProcessing(false);
     } else if (method === 'message') {
-      setIsProcessing(false);
       router.push(`/messages`);
+      }
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -604,3 +605,6 @@ Thanks!`;
     </div>
   );
 }
+    } finally {
+      setIsProcessing(false);
+    }
