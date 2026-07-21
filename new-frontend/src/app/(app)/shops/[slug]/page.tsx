@@ -1325,7 +1325,7 @@ export default function ShopDetailPage() {
                                             try {
                                                 setIsSubmittingFeedback(true);
                                                 await api.post('/feedback/feedback', {
-                                                    target_user_id: ownerId,
+                                                    target_user_id: shopOwnerId,
                                                     comment: feedbackText,
                                                     rating: 5
                                                 });
@@ -1409,11 +1409,11 @@ export default function ShopDetailPage() {
                                             try {
                                                 setIsSubmittingFollow(true);
                                                 if (isFollowing) {
-                                                    await api.delete(`/follows/unfollow/${ownerId}`);
+                                                    await api.delete(`/follows/unfollow/${shopOwnerId}`);
                                                     setIsFollowing(false);
                                                     alert('You unfollowed this shop');
                                                 } else {
-                                                    await api.post(`/follows/follow/${ownerId}`);
+                                                    await api.post(`/follows/follow/${shopOwnerId}`);
                                                     setIsFollowing(true);
                                                     alert('You are now following this shop!');
                                                 }
