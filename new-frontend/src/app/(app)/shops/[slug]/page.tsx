@@ -1319,7 +1319,6 @@ export default function ShopDetailPage() {
 
                             {/* FEEDBACK SECTION */}
                             <div className="mt-8">
-                                <h3 className="text-xl font-black text-gray-900 dark:text-white mb-4">Shop Feedback</h3>
                                 <div className="bg-white dark:bg-slate-900 rounded-lg p-6 border border-gray-100 dark:border-slate-800">
                                     <textarea
                                         placeholder="Share your experience with this shop..."
