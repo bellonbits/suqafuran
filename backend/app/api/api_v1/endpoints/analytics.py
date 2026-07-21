@@ -1,191 +1,318 @@
-"""Analytics endpoints for admin dashboard."""
+"""Analytics endpoints for tracking and reporting engagement metrics."""
 
-from fastapi import APIRouter, Depends, Query
-from sqlmodel import Session, select, func, desc
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from sqlmodel import Session, select, func
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Any, List, Optional
 from app.api import deps
-from app.models.analytics import UserSession, UserActivity, ConversionFunnel, ClickEvent
-from app.core.config import settings
+from app.models.analytics import ItemView, ShopView
+from app.models.user import User
 
 router = APIRouter()
 
 
-# ────────────────────────────────────────────────────────────────────────────
-# ACTIVE SESSIONS
-# ────────────────────────────────────────────────────────────────────────────
-
-@router.get("/sessions/active")
-async def get_active_sessions(
+@router.post("/track/item-view")
+def track_item_view(
+    *,
     db: Session = Depends(deps.get_db),
-    limit: int = Query(50, ge=1, le=500),
-):
-    """Get currently active user sessions."""
+    listing_id: int,
+    time_spent_seconds: int = 0,
+    device_type: Optional[str] = None,
+    referrer: Optional[str] = None,
+    request: Request,
+    current_user: Optional[User] = Depends(deps.get_current_user),
+) -> Any:
+    """Track when a user/guest views an item listing."""
+    item_view = ItemView(
+        listing_id=listing_id,
+        user_id=current_user.id if current_user else None,
+        device_type=device_type,
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+        time_spent_seconds=time_spent_seconds,
+        referrer=referrer,
+    )
+    db.add(item_view)
+    db.commit()
+    db.refresh(item_view)
+    return {"status": "ok", "view_id": item_view.id}
 
-    # Sessions active in last 5 minutes
-    cutoff = datetime.utcnow() - timedelta(minutes=5)
 
-    sessions = db.exec(
-        select(UserSession)
-        .where(UserSession.is_active == True)
-        .where(UserSession.last_activity_at >= cutoff)
-        .order_by(desc(UserSession.last_activity_at))
+@router.post("/track/shop-view")
+def track_shop_view(
+    *,
+    db: Session = Depends(deps.get_db),
+    shop_owner_id: int,
+    time_spent_seconds: int = 0,
+    device_type: Optional[str] = None,
+    referrer: Optional[str] = None,
+    request: Request,
+    current_user: Optional[User] = Depends(deps.get_current_user),
+) -> Any:
+    """Track when a user/guest views a shop profile."""
+    shop_view = ShopView(
+        shop_owner_id=shop_owner_id,
+        user_id=current_user.id if current_user else None,
+        device_type=device_type,
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+        time_spent_seconds=time_spent_seconds,
+        referrer=referrer,
+    )
+    db.add(shop_view)
+    db.commit()
+    db.refresh(shop_view)
+    return {"status": "ok", "view_id": shop_view.id}
+
+
+@router.get("/admin/top-items")
+def get_top_items(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    days: int = Query(7, ge=1, le=90),
+    limit: int = Query(20, ge=1, le=100),
+) -> Any:
+    """Get top viewed items for admin dashboard."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+    # Get top items by view count
+    statement = (
+        select(
+            ItemView.listing_id,
+            func.count(ItemView.id).label("view_count"),
+            func.count(func.distinct(ItemView.user_id)).label("unique_users"),
+            func.count(func.distinct(ItemView.ip_address)).label("unique_guests"),
+        )
+        .where(ItemView.viewed_at >= cutoff_date)
+        .group_by(ItemView.listing_id)
+        .order_by(func.count(ItemView.id).desc())
         .limit(limit)
-    ).all()
+    )
+
+    results = db.exec(statement).all()
 
     return {
-        "total": len(sessions),
-        "sessions": [
+        "period_days": days,
+        "items": [
             {
-                "session_id": s.id,
-                "user_id": s.user_id,
-                "started_at": s.started_at,
-                "last_activity_at": s.last_activity_at,
-                "current_page": s.current_page,
-                "duration_minutes": (datetime.utcnow() - s.started_at).seconds // 60,
-                "device_type": s.device_type,
-                "total_interactions": s.total_interactions,
+                "listing_id": r[0],
+                "view_count": r[1],
+                "unique_users": r[2],
+                "unique_guests": r[3],
+                "total_unique_visitors": r[2] + r[3],
             }
-            for s in sessions
+            for r in results
         ]
     }
 
 
-# ────────────────────────────────────────────────────────────────────────────
-# USER ACTIVITY FEED
-# ────────────────────────────────────────────────────────────────────────────
-
-@router.get("/activities/feed")
-async def get_activity_feed(
+@router.get("/admin/top-shops")
+def get_top_shops(
+    *,
     db: Session = Depends(deps.get_db),
-    limit: int = Query(100, ge=1, le=500),
-    hours: int = Query(24, ge=1, le=720),
-):
-    """Get real-time user activity feed."""
+    current_user: User = Depends(deps.get_current_active_user),
+    days: int = Query(7, ge=1, le=90),
+    limit: int = Query(20, ge=1, le=100),
+) -> Any:
+    """Get top viewed shops for admin dashboard."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
 
-    cutoff = datetime.utcnow() - timedelta(hours=hours)
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
 
-    activities = db.exec(
-        select(UserActivity)
-        .where(UserActivity.timestamp >= cutoff)
-        .order_by(desc(UserActivity.timestamp))
+    # Get top shops by view count
+    statement = (
+        select(
+            ShopView.shop_owner_id,
+            func.count(ShopView.id).label("view_count"),
+            func.count(func.distinct(ShopView.user_id)).label("unique_users"),
+            func.count(func.distinct(ShopView.ip_address)).label("unique_guests"),
+        )
+        .where(ShopView.viewed_at >= cutoff_date)
+        .group_by(ShopView.shop_owner_id)
+        .order_by(func.count(ShopView.id).desc())
         .limit(limit)
-    ).all()
+    )
+
+    results = db.exec(statement).all()
 
     return {
-        "total": len(activities),
-        "activities": [
+        "period_days": days,
+        "shops": [
             {
-                "activity_id": a.id,
-                "user_id": a.user_id,
-                "action_type": a.action_type,
-                "action_category": a.action_category,
-                "resource_id": a.resource_id,
-                "timestamp": a.timestamp.isoformat(),
-                "page_url": a.page_url,
-                "search_query": a.search_query,
+                "shop_owner_id": r[0],
+                "view_count": r[1],
+                "unique_users": r[2],
+                "unique_guests": r[3],
+                "total_unique_visitors": r[2] + r[3],
             }
-            for a in activities
+            for r in results
         ]
     }
 
 
-# ────────────────────────────────────────────────────────────────────────────
-# CONVERSION FUNNEL
-# ────────────────────────────────────────────────────────────────────────────
-
-@router.get("/funnel/stats")
-async def get_funnel_stats(
+@router.get("/admin/live-views")
+def get_live_views(
+    *,
     db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    minutes: int = Query(5, ge=1, le=60),
+) -> Any:
+    """Get real-time view activity from the last N minutes."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    cutoff_time = datetime.utcnow() - timedelta(minutes=minutes)
+
+    # Recent item views
+    item_views = db.exec(
+        select(ItemView)
+        .where(ItemView.viewed_at >= cutoff_time)
+        .order_by(ItemView.viewed_at.desc())
+        .limit(50)
+    ).all()
+
+    # Recent shop views
+    shop_views = db.exec(
+        select(ShopView)
+        .where(ShopView.viewed_at >= cutoff_time)
+        .order_by(ShopView.viewed_at.desc())
+        .limit(50)
+    ).all()
+
+    # Count totals
+    item_view_count = db.exec(
+        select(func.count(ItemView.id)).where(ItemView.viewed_at >= cutoff_time)
+    ).one()
+
+    shop_view_count = db.exec(
+        select(func.count(ShopView.id)).where(ShopView.viewed_at >= cutoff_time)
+    ).one()
+
+    return {
+        "time_window_minutes": minutes,
+        "item_views_count": item_view_count,
+        "shop_views_count": shop_view_count,
+        "recent_item_views": [
+            {
+                "id": v.id,
+                "listing_id": v.listing_id,
+                "user_id": v.user_id,
+                "device_type": v.device_type,
+                "viewed_at": v.viewed_at.isoformat(),
+            }
+            for v in item_views
+        ],
+        "recent_shop_views": [
+            {
+                "id": v.id,
+                "shop_owner_id": v.shop_owner_id,
+                "user_id": v.user_id,
+                "device_type": v.device_type,
+                "viewed_at": v.viewed_at.isoformat(),
+            }
+            for v in shop_views
+        ]
+    }
+
+
+@router.get("/admin/item-stats/{listing_id}")
+def get_item_stats(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    listing_id: int,
     days: int = Query(30, ge=1, le=365),
-):
-    """Get conversion funnel statistics."""
+) -> Any:
+    """Get detailed stats for a specific item."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+    total_views = db.exec(
+        select(func.count(ItemView.id))
+        .where(ItemView.listing_id == listing_id, ItemView.viewed_at >= cutoff_date)
+    ).one()
+
+    unique_users = db.exec(
+        select(func.count(func.distinct(ItemView.user_id)))
+        .where(ItemView.listing_id == listing_id, ItemView.viewed_at >= cutoff_date)
+    ).one()
+
+    unique_guests = db.exec(
+        select(func.count(func.distinct(ItemView.ip_address)))
+        .where(
+            ItemView.listing_id == listing_id,
+            ItemView.user_id.is_(None),
+            ItemView.viewed_at >= cutoff_date,
+        )
+    ).one()
+
+    avg_time_spent = db.exec(
+        select(func.avg(ItemView.time_spent_seconds))
+        .where(ItemView.listing_id == listing_id, ItemView.viewed_at >= cutoff_date)
+    ).one()
 
     return {
-        "signup": {
-            "count": 0,
-            "percentage": 100,
-        },
-        "first_search": {
-            "count": 0,
-            "percentage": 0,
-        },
-        "first_view": {
-            "count": 0,
-            "percentage": 0,
-        },
-        "first_purchase": {
-            "count": 0,
-            "percentage": 0,
-        },
+        "listing_id": listing_id,
+        "period_days": days,
+        "total_views": total_views or 0,
+        "unique_user_views": unique_users or 0,
+        "unique_guest_views": unique_guests or 0,
+        "total_unique_visitors": (unique_users or 0) + (unique_guests or 0),
+        "avg_time_spent_seconds": round(avg_time_spent) if avg_time_spent else 0,
     }
 
 
-# ────────────────────────────────────────────────────────────────────────────
-# AUDIT LOG VIEWER
-# ────────────────────────────────────────────────────────────────────────────
-
-@router.get("/audit/logs")
-async def get_audit_logs(
+@router.get("/admin/shop-stats/{shop_owner_id}")
+def get_shop_stats(
+    *,
     db: Session = Depends(deps.get_db),
-    user_id: Optional[int] = Query(None),
-    action_type: Optional[str] = Query(None),
-    action_category: Optional[str] = Query(None),
-    start_date: Optional[datetime] = Query(None),
-    end_date: Optional[datetime] = Query(None),
-    limit: int = Query(100, ge=1, le=500),
-):
-    """Get searchable audit logs."""
+    current_user: User = Depends(deps.get_current_active_user),
+    shop_owner_id: int,
+    days: int = Query(30, ge=1, le=365),
+) -> Any:
+    """Get detailed stats for a specific shop."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
 
-    query = select(UserActivity)
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
 
-    if user_id:
-        query = query.where(UserActivity.user_id == user_id)
-    if action_type:
-        query = query.where(UserActivity.action_type == action_type)
-    if action_category:
-        query = query.where(UserActivity.action_category == action_category)
-    if start_date:
-        query = query.where(UserActivity.timestamp >= start_date)
-    if end_date:
-        query = query.where(UserActivity.timestamp <= end_date)
+    total_views = db.exec(
+        select(func.count(ShopView.id))
+        .where(ShopView.shop_owner_id == shop_owner_id, ShopView.viewed_at >= cutoff_date)
+    ).one()
 
-    logs = db.exec(
-        query
-        .order_by(desc(UserActivity.timestamp))
-        .limit(limit)
-    ).all()
+    unique_users = db.exec(
+        select(func.count(func.distinct(ShopView.user_id)))
+        .where(ShopView.shop_owner_id == shop_owner_id, ShopView.viewed_at >= cutoff_date)
+    ).one()
+
+    unique_guests = db.exec(
+        select(func.count(func.distinct(ShopView.ip_address)))
+        .where(
+            ShopView.shop_owner_id == shop_owner_id,
+            ShopView.user_id.is_(None),
+            ShopView.viewed_at >= cutoff_date,
+        )
+    ).one()
+
+    avg_time_spent = db.exec(
+        select(func.avg(ShopView.time_spent_seconds))
+        .where(ShopView.shop_owner_id == shop_owner_id, ShopView.viewed_at >= cutoff_date)
+    ).one()
 
     return {
-        "total": len(logs),
-        "logs": [
-            {
-                "id": log.id,
-                "user_id": log.user_id,
-                "action_type": log.action_type,
-                "action_category": log.action_category,
-                "resource_id": log.resource_id,
-                "timestamp": log.timestamp.isoformat(),
-                "page_url": log.page_url,
-            }
-            for log in logs
-        ]
-    }
-
-
-# ────────────────────────────────────────────────────────────────────────────
-# CLICK HEATMAP DATA
-# ────────────────────────────────────────────────────────────────────────────
-
-@router.get("/heatmap/data")
-async def get_heatmap_data(
-    db: Session = Depends(deps.get_db),
-    page_url: str = Query(...),
-    hours: int = Query(24, ge=1, le=720),
-):
-    """Get click heatmap data for a specific page."""
-    return {
-        "page_url": page_url,
-        "total_clicks": 0,
-        "clicks": []
+        "shop_owner_id": shop_owner_id,
+        "period_days": days,
+        "total_views": total_views or 0,
+        "unique_user_views": unique_users or 0,
+        "unique_guest_views": unique_guests or 0,
+        "total_unique_visitors": (unique_users or 0) + (unique_guests or 0),
+        "avg_time_spent_seconds": round(avg_time_spent) if avg_time_spent else 0,
     }

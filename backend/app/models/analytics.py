@@ -118,3 +118,53 @@ class ClickEvent(SQLModel, table=True):
 
     # Timing
     timestamp: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+
+class ItemView(SQLModel, table=True):
+    """Track item/listing views for engagement analytics."""
+
+    __tablename__ = "item_view"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    listing_id: int = Field(foreign_key="listing.id", index=True)
+    user_id: Optional[int] = Field(foreign_key="user.id", index=True)
+    session_id: Optional[str] = None
+
+    # Device & Location
+    device_type: Optional[str] = None  # mobile, tablet, desktop
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+
+    # Engagement duration
+    time_spent_seconds: int = 0
+
+    # Referrer
+    referrer: Optional[str] = None
+
+    # Timestamp
+    viewed_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+
+class ShopView(SQLModel, table=True):
+    """Track shop profile views for engagement analytics."""
+
+    __tablename__ = "shop_view"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    shop_owner_id: int = Field(foreign_key="user.id", index=True)
+    user_id: Optional[int] = Field(foreign_key="user.id", index=True)
+    session_id: Optional[str] = None
+
+    # Device & Location
+    device_type: Optional[str] = None  # mobile, tablet, desktop
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+
+    # Engagement duration
+    time_spent_seconds: int = 0
+
+    # Referrer
+    referrer: Optional[str] = None
+
+    # Timestamp
+    viewed_at: datetime = Field(default_factory=datetime.utcnow, index=True)
