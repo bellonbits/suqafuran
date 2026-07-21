@@ -127,7 +127,7 @@ export default function ShopDetailPage() {
     const [isSendingMessage, setIsSendingMessage] = useState(false);
 
     const { items: cartItems, addItem, updateQuantity: updateCartQuantity, getTotalPrice } = useCart();
-    const { user } = useAuthStore();
+    const { user, token } = useAuthStore();
 
     const categoryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
     const scrollRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -530,7 +530,7 @@ export default function ShopDetailPage() {
                                 </button>
                                 <button
                                     onClick={() => {
-                                        if (!user) {
+                                        if (!token && !user) {
                                             alert('Please log in to message this seller');
                                             return;
                                         }
@@ -1402,7 +1402,7 @@ export default function ShopDetailPage() {
 
                                     <button
                                         onClick={async () => {
-                                            if (!user) {
+                                            if (!token && !user) {
                                                 alert('Please log in to follow shops');
                                                 return;
                                             }
