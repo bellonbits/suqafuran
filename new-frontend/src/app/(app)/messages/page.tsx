@@ -2,19 +2,18 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Send, CheckCheck, Phone, Video, Search, MessageSquare, AlertCircle, ShoppingBag, ArrowLeft } from 'lucide-react';
-import { businessService } from '../../../services/business';
+import { Send, Search, AlertCircle, ShoppingBag, ArrowLeft } from 'lucide-react';
+import api from '../../../services/api';
 import { listingsService } from '../../../services/listings';
 import type { ChatMessage, Listing } from '../../../types';
 
-interface Contact {
-    id: number;
-    name: string;
-    avatar: string;
-    lastMessage: string;
-    time: string;
-    unreadCount: number;
-    isOnline: boolean;
+interface Conversation {
+    other_user_id: number;
+    other_user_name?: string;
+    other_user_avatar?: string;
+    last_message?: string;
+    last_message_time?: string;
+    unread_count?: number;
 }
 
 function MessagesPageContent() {
@@ -22,44 +21,31 @@ function MessagesPageContent() {
     const targetUserId = searchParams.get('userId');
     const sharedProductId = searchParams.get('productId');
 
-    const [contacts, setContacts] = useState<Contact[]>([]);
-    const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+    const [conversations, setConversations] = useState<Conversation[]>([]);
+    const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputText, setInputText] = useState('');
     const [sharedProduct, setSharedProduct] = useState<Listing | null>(null);
-    const [isLoadingChats, setIsLoadingChats] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSending, setIsSending] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
-    // Initial mock contacts matching WhatsApp structure
+    // Load conversations from API
     useEffect(() => {
-        setContacts([
-            {
-                id: 105,
-                name: 'Ahmed Liban (Sneaker Store)',
-                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop',
-                lastMessage: 'Sure, we can arrange delivery to Mogadishu tomorrow morning.',
-                time: '10:42 AM',
-                unreadCount: 1,
-                isOnline: true
-            },
-            {
-                id: 106,
-                name: 'Halima Express Store',
-                avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop',
-                lastMessage: 'Your order is being prepared. ETA 20 mins!',
-                time: 'Yesterday',
-                unreadCount: 0,
-                isOnline: false
-            },
-            {
-                id: 107,
-                name: 'Garaad Tech',
-                avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?q=80&w=200&auto=format&fit=crop',
-                lastMessage: 'Is the price negotiable for the laptop charger?',
-                time: '2 days ago',
-                unreadCount: 0,
-                isOnline: false
+        const loadConversations = async () => {
+            try {
+                setIsLoading(true);
+                const response = await api.get('/messages/conversations');
+                setConversations(response.data || []);
+            } catch (error) {
+                console.error('Failed to load conversations:', error);
+                setConversations([]);
+            } finally {
+                setIsLoading(false);
             }
-        ]);
+        };
+
+        loadConversations();
     }, []);
 
     // Load shared product if present in parameters
@@ -71,219 +57,183 @@ function MessagesPageContent() {
         }
     }, [sharedProductId]);
 
-    // Handle initial target contact from query params
+    // Handle initial target user from query params
     useEffect(() => {
-        if (targetUserId && contacts.length > 0) {
-            const contact = contacts.find(c => c.id === Number(targetUserId));
-            if (contact) {
-                setSelectedContact(contact);
-            } else {
-                // If contact is not in list, add it
-                const newContact: Contact = {
-                    id: Number(targetUserId),
-                    name: 'Ahmed Liban',
-                    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop',
-                    lastMessage: 'Starting connection...',
-                    time: 'Now',
-                    unreadCount: 0,
-                    isOnline: true
-                };
-                setContacts(prev => [newContact, ...prev]);
-                setSelectedContact(newContact);
-            }
-        } else if (contacts.length > 0 && !selectedContact && typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches) {
-            // Only auto-open the first conversation on desktop's two-pane layout —
-            // on mobile this would skip the list view entirely on first load.
-            setSelectedContact(contacts[0]);
+        if (targetUserId) {
+            setSelectedUserId(Number(targetUserId));
+        } else if (conversations.length > 0 && !selectedUserId && typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches) {
+            setSelectedUserId(conversations[0].other_user_id);
         }
-    }, [targetUserId, contacts]);
+    }, [targetUserId, conversations, selectedUserId]);
 
-    // Load messages when contact changes
+    // Load messages when selected user changes
     useEffect(() => {
-        if (!selectedContact) return;
+        if (!selectedUserId) return;
 
-        setIsLoadingChats(true);
-        // Replicate fetching messages
-        businessService.getCustomerChatHistory('mock-business-id', selectedContact.id)
-            .then(data => {
-                setMessages(data);
-            })
-            .catch(() => {
-                // Seed mock chat list if endpoint error (common when no active auth)
-                const mockMessages: ChatMessage[] = [
-                    {
-                        id: 1,
-                        sender_id: selectedContact.id,
-                        content: `Hello! Welcome to ${selectedContact.name}. How can we assist you today?`,
-                        is_read: true,
-                        created_at: new Date(Date.now() - 3600000).toISOString()
-                    },
-                    {
-                        id: 2,
-                        sender_id: 999, // current user
-                        content: 'Hi! I am interested in your listing.',
-                        is_read: true,
-                        created_at: new Date(Date.now() - 1800000).toISOString()
-                    }
-                ];
+        const loadMessages = async () => {
+            try {
+                setIsLoading(true);
+                const response = await api.get(`/messages/${selectedUserId}`);
+                setMessages(response.data || []);
+            } catch (error) {
+                console.error('Failed to load messages:', error);
+                setMessages([]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
-                // Append shared product if present
-                if (sharedProduct && selectedContact.id === 105) {
-                    mockMessages.push({
-                        id: 3,
-                        sender_id: 999,
-                        content: 'Sharing listing details:',
-                        is_read: true,
-                        created_at: new Date().toISOString(),
-                        product_shared: sharedProduct
-                    });
-                }
+        loadMessages();
+    }, [selectedUserId]);
 
-                setMessages(mockMessages);
-            })
-            .finally(() => {
-                setIsLoadingChats(false);
-            });
-    }, [selectedContact, sharedProduct]);
+    // Filter conversations by search query
+    const filteredConversations = conversations.filter(conv =>
+        (conv.other_user_name || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!inputText.trim() || !selectedContact) return;
+        if (!inputText.trim() || !selectedUserId) return;
 
         const text = inputText.trim();
         setInputText('');
 
-        const newMsg: ChatMessage = {
-            id: Date.now(),
-            sender_id: 999,
-            content: text,
-            is_read: false,
-            created_at: new Date().toISOString()
-        };
-
-        setMessages(prev => [...prev, newMsg]);
-
         try {
-            await businessService.sendCustomerChatMessage('mock-business-id', selectedContact.id, text);
-        } catch (err) {
-            console.error('Send message simulation complete', err);
+            setIsSending(true);
+            await api.post('/messages/', {
+                receiver_id: selectedUserId,
+                content: text
+            });
+
+            // Reload messages after sending
+            const response = await api.get(`/messages/${selectedUserId}`);
+            setMessages(response.data || []);
+        } catch (error) {
+            console.error('Failed to send message:', error);
+            inputText !== '' && setInputText(text);
+        } finally {
+            setIsSending(false);
         }
     };
+
+    const selectedConversation = conversations.find(c => c.other_user_id === selectedUserId);
 
     return (
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 h-[calc(100vh-8rem)]">
             <div className="h-full rounded-[32px] overflow-hidden bg-white border border-gray-100 shadow-2xl dark:bg-slate-900 dark:border-slate-800 flex">
-                
+
                 {/* Conversations Left Panel */}
-                <aside className={`${selectedContact ? 'hidden md:flex' : 'flex'} w-full md:w-80 shrink-0 border-r border-gray-100 dark:border-slate-800 flex-col h-full bg-slate-50/50 dark:bg-slate-950/20`}>
+                <aside className={`${selectedUserId ? 'hidden md:flex' : 'flex'} w-full md:w-80 shrink-0 border-r border-gray-100 dark:border-slate-800 flex-col h-full bg-slate-50/50 dark:bg-slate-950/20`}>
                     <div className="p-4 space-y-3">
-                        <h2 className="text-base font-black text-gray-900 dark:text-slate-100 font-poppins">Chats</h2>
+                        <h2 className="text-base font-black text-gray-900 dark:text-slate-100">Messages</h2>
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                            <input 
+                            <input
                                 type="text"
                                 placeholder="Search conversations..."
-                                className="w-full rounded-2xl border border-gray-200 bg-white px-9 py-2 text-xs font-semibold outline-none focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full rounded-2xl border border-gray-200 bg-white px-9 py-2 text-xs font-semibold outline-none focus:border-[#00a082] dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
                             />
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-slate-800/50">
-                        {contacts.map((contact) => (
-                            <button
-                                key={contact.id}
-                                onClick={() => setSelectedContact(contact)}
-                                className={`w-full p-4 flex gap-3 text-left transition-all ${selectedContact?.id === contact.id ? 'bg-white dark:bg-slate-900' : 'hover:bg-white/50 dark:hover:bg-slate-900/50'}`}
-                            >
-                                <div className="relative shrink-0">
-                                    <img src={contact.avatar} alt={contact.name} className="h-11 w-11 rounded-2xl object-cover" />
-                                    {contact.isOnline && (
-                                        <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-accent border-2 border-white dark:border-slate-900" />
-                                    )}
-                                </div>
-                                <div className="overflow-hidden flex-1 flex flex-col justify-between py-0.5">
-                                    <div className="flex justify-between items-baseline gap-2">
-                                        <h4 className="text-xs font-black text-gray-900 dark:text-slate-100 truncate">{contact.name}</h4>
-                                        <span className="text-[9px] text-gray-400 dark:text-slate-500 font-bold shrink-0">{contact.time}</span>
+                    {isLoading ? (
+                        <div className="flex-1 flex items-center justify-center text-xs text-gray-400">
+                            Loading conversations...
+                        </div>
+                    ) : filteredConversations.length === 0 ? (
+                        <div className="flex-1 flex items-center justify-center text-center p-4">
+                            <div className="space-y-2">
+                                <MessageSquare className="h-8 w-8 text-gray-300 dark:text-slate-700 mx-auto" />
+                                <p className="text-xs text-gray-400 dark:text-slate-500">No conversations yet</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-slate-800/50">
+                            {filteredConversations.map((conv) => (
+                                <button
+                                    key={conv.other_user_id}
+                                    onClick={() => setSelectedUserId(conv.other_user_id)}
+                                    className={`w-full p-4 flex gap-3 text-left transition-all ${selectedUserId === conv.other_user_id ? 'bg-white dark:bg-slate-900' : 'hover:bg-white/50 dark:hover:bg-slate-900/50'}`}
+                                >
+                                    <div className="relative shrink-0">
+                                        <img
+                                            src={conv.other_user_avatar || 'https://via.placeholder.com/44'}
+                                            alt={conv.other_user_name}
+                                            className="h-11 w-11 rounded-2xl object-cover"
+                                        />
                                     </div>
-                                    <div className="flex justify-between items-center gap-2">
-                                        <p className="text-[11px] text-gray-400 dark:text-slate-500 truncate font-semibold">{contact.lastMessage}</p>
-                                        {contact.unreadCount > 0 && (
-                                            <span className="h-4 min-w-4 px-1 rounded-full bg-primary text-white text-[9px] font-black flex items-center justify-center shrink-0">
-                                                {contact.unreadCount}
-                                            </span>
-                                        )}
+                                    <div className="overflow-hidden flex-1 flex flex-col justify-between py-0.5">
+                                        <div className="flex justify-between items-baseline gap-2">
+                                            <h4 className="text-xs font-black text-gray-900 dark:text-slate-100 truncate">
+                                                {conv.other_user_name || `User ${conv.other_user_id}`}
+                                            </h4>
+                                            {conv.last_message_time && (
+                                                <span className="text-[9px] text-gray-400 dark:text-slate-500 font-bold shrink-0">
+                                                    {new Date(conv.last_message_time).toLocaleDateString()}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="flex justify-between items-center gap-2">
+                                            <p className="text-[11px] text-gray-400 dark:text-slate-500 truncate font-semibold">
+                                                {conv.last_message || 'No messages yet'}
+                                            </p>
+                                            {(conv.unread_count ?? 0) > 0 && (
+                                                <span className="h-4 min-w-4 px-1 rounded-full bg-[#00a082] text-white text-[9px] font-black flex items-center justify-center shrink-0">
+                                                    {conv.unread_count}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            </button>
-                        ))}
-                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </aside>
 
                 {/* Conversation Right Panel */}
-                <div className={`${selectedContact ? 'flex' : 'hidden md:flex'} flex-1 flex-col h-full bg-white dark:bg-slate-900`}>
-                    {selectedContact ? (
+                <div className={`${selectedUserId ? 'flex' : 'hidden md:flex'} flex-1 flex-col h-full bg-white dark:bg-slate-900`}>
+                    {selectedUserId && selectedConversation ? (
                         <>
                             {/* Chat Header */}
                             <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <button onClick={() => setSelectedContact(null)} className="md:hidden -ml-1 mr-1 text-gray-400 hover:text-gray-700 dark:hover:text-slate-200">
+                                    <button onClick={() => setSelectedUserId(null)} className="md:hidden -ml-1 mr-1 text-gray-400 hover:text-gray-700 dark:hover:text-slate-200">
                                         <ArrowLeft className="h-5 w-5" />
                                     </button>
-                                    <img src={selectedContact.avatar} alt={selectedContact.name} className="h-10 w-10 rounded-2xl object-cover" />
+                                    <img
+                                        src={selectedConversation.other_user_avatar || 'https://via.placeholder.com/40'}
+                                        alt={selectedConversation.other_user_name}
+                                        className="h-10 w-10 rounded-2xl object-cover"
+                                    />
                                     <div>
-                                        <h3 className="text-xs font-black text-gray-900 dark:text-slate-100">{selectedContact.name}</h3>
-                                        <span className="text-[9px] font-bold text-accent">
-                                            {selectedContact.isOnline ? 'Online' : 'Offline'}
-                                        </span>
+                                        <h3 className="text-xs font-black text-gray-900 dark:text-slate-100">
+                                            {selectedConversation.other_user_name || `User ${selectedConversation.other_user_id}`}
+                                        </h3>
                                     </div>
-                                </div>
-
-                                <div className="flex items-center gap-4 text-gray-400">
-                                    <button className="hover:text-primary"><Phone className="h-4.5 w-4.5" /></button>
-                                    <button className="hover:text-primary"><Video className="h-4.5 w-4.5" /></button>
                                 </div>
                             </div>
 
                             {/* Chat History View */}
                             <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/40 dark:bg-slate-950/10">
-                                {isLoadingChats ? (
-                                    <div className="text-center py-8 text-xs text-gray-400">Loading conversation history...</div>
+                                {isLoading ? (
+                                    <div className="text-center py-8 text-xs text-gray-400">Loading messages...</div>
+                                ) : messages.length === 0 ? (
+                                    <div className="text-center py-8 text-xs text-gray-400">No messages yet. Start the conversation!</div>
                                 ) : (
                                     messages.map((msg) => {
-                                        const isCurrentUser = msg.sender_id === 999;
                                         return (
-                                            <div 
+                                            <div
                                                 key={msg.id}
-                                                className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
+                                                className={`flex ${msg.sender_id === selectedUserId ? 'justify-start' : 'justify-end'}`}
                                             >
-                                                <div className={`max-w-[70%] rounded-2xl p-4 space-y-2 shadow-sm ${isCurrentUser ? 'bg-primary text-white rounded-br-none' : 'bg-white border border-gray-100 text-gray-800 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 rounded-bl-none'}`}>
+                                                <div className={`max-w-[70%] rounded-2xl p-4 space-y-2 shadow-sm ${msg.sender_id === selectedUserId ? 'bg-white border border-gray-100 text-gray-800 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 rounded-bl-none' : 'bg-[#00a082] text-white rounded-br-none'}`}>
                                                     <p className="text-xs font-semibold leading-relaxed break-words">{msg.content}</p>
-
-                                                    {/* Shared Product Preview Attachment Card */}
-                                                    {msg.product_shared && (
-                                                        <div className="mt-2 p-2 bg-white/10 dark:bg-slate-950/40 border border-white/15 rounded-xl flex gap-2">
-                                                            <img 
-                                                                src={msg.product_shared.images?.[0]} 
-                                                                alt="" 
-                                                                className="h-12 w-12 rounded-lg object-cover shrink-0" 
-                                                            />
-                                                            <div className="overflow-hidden flex flex-col justify-between py-0.5">
-                                                                <span className="text-[10px] font-black truncate block">{msg.product_shared.title_en}</span>
-                                                                <span className="text-[11px] font-bold text-accent dark:text-sky-400">
-                                                                    {msg.product_shared.currency} {msg.product_shared.price}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    )}
-
                                                     <div className="flex items-center justify-end gap-1.5 pt-0.5">
                                                         <span className="text-[8px] opacity-75 font-semibold">
                                                             {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                         </span>
-                                                        {isCurrentUser && (
-                                                            <CheckCheck className="h-3 w-3 opacity-90" />
-                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -299,11 +249,13 @@ function MessagesPageContent() {
                                     placeholder="Type a message..."
                                     value={inputText}
                                     onChange={(e) => setInputText(e.target.value)}
-                                    className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-2.5 text-xs font-semibold outline-none focus:border-primary focus:bg-white dark:text-slate-100"
+                                    disabled={isSending}
+                                    className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-2.5 text-xs font-semibold outline-none focus:border-[#00a082] focus:bg-white dark:text-slate-100 disabled:opacity-50"
                                 />
                                 <button
                                     type="submit"
-                                    className="btn-premium p-2.5 bg-primary text-white rounded-2xl shadow hover:bg-primary-dark cursor-pointer shrink-0"
+                                    disabled={isSending || !inputText.trim()}
+                                    className="p-2.5 bg-[#00a082] text-white rounded-2xl shadow hover:bg-[#008f73] cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     <Send className="h-4.5 w-4.5" />
                                 </button>
@@ -316,9 +268,9 @@ function MessagesPageContent() {
                                 <MessageSquare className="h-8 w-8" />
                             </div>
                             <div className="space-y-1">
-                                <h3 className="text-sm font-black text-gray-900 dark:text-slate-100 font-poppins">No Chat Selected</h3>
+                                <h3 className="text-sm font-black text-gray-900 dark:text-slate-100">No Conversation Selected</h3>
                                 <p className="text-xs text-gray-400 dark:text-slate-500 font-semibold max-w-xs leading-relaxed">
-                                    Choose a conversation from the sidebar or click "Chat Seller" from a listing details page to start.
+                                    Select a conversation from the sidebar or start a new message.
                                 </p>
                             </div>
                         </div>
