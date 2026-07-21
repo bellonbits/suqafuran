@@ -648,3 +648,226 @@ def get_conversion_funnel(
             },
         ]
     }
+
+
+# Phase 2: Listing, Shop, Geographic, User Analytics
+
+@router.get("/admin/listing-stats/{listing_id}")
+def get_listing_stats(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    listing_id: int,
+    days: int = Query(30, ge=1, le=365),
+) -> Any:
+    """Get detailed stats for a specific listing."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    from app.models.analytics import ItemView, ClickEvent
+
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+    # Views
+    total_views = db.exec(
+        select(func.count(ItemView.id))
+        .where(ItemView.listing_id == listing_id, ItemView.viewed_at >= cutoff_date)
+    ).one() or 0
+
+    unique_viewers = db.exec(
+        select(func.count(func.distinct(ItemView.user_id)))
+        .where(ItemView.listing_id == listing_id, ItemView.viewed_at >= cutoff_date)
+    ).one() or 0
+
+    # Clicks
+    chat_clicks = db.exec(
+        select(func.count(ClickEvent.id))
+        .where(
+            ClickEvent.listing_id == listing_id,
+            ClickEvent.event_type == "chat",
+            ClickEvent.clicked_at >= cutoff_date,
+        )
+    ).one() or 0
+
+    favorites = db.exec(
+        select(func.count(ClickEvent.id))
+        .where(
+            ClickEvent.listing_id == listing_id,
+            ClickEvent.event_type == "favorite",
+            ClickEvent.clicked_at >= cutoff_date,
+        )
+    ).one() or 0
+
+    whatsapp_clicks = db.exec(
+        select(func.count(ClickEvent.id))
+        .where(
+            ClickEvent.listing_id == listing_id,
+            ClickEvent.event_type == "whatsapp",
+            ClickEvent.clicked_at >= cutoff_date,
+        )
+    ).one() or 0
+
+    return {
+        "listing_id": listing_id,
+        "period_days": days,
+        "total_views": total_views,
+        "unique_viewers": unique_viewers,
+        "chat_clicks": chat_clicks,
+        "whatsapp_clicks": whatsapp_clicks,
+        "favorites": favorites,
+        "engagement_rate": round((chat_clicks / total_views * 100) if total_views > 0 else 0, 2),
+    }
+
+
+@router.get("/admin/geographic-analytics")
+def get_geographic_analytics(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    days: int = Query(7, ge=1, le=90),
+    limit: int = Query(20, ge=1, le=100),
+) -> Any:
+    """Get visitor analytics by city/country with map coordinates."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    from app.models.analytics import GeographicEvent
+
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+    # Visitors by city
+    city_stats = db.exec(
+        select(
+            GeographicEvent.city,
+            GeographicEvent.latitude,
+            GeographicEvent.longitude,
+            GeographicEvent.country,
+            func.count(GeographicEvent.id).label("visitor_count"),
+            func.count(func.distinct(GeographicEvent.user_id)).label("unique_users"),
+        )
+        .where(
+            GeographicEvent.created_at >= cutoff_date,
+            GeographicEvent.city.isnot(None),
+        )
+        .group_by(
+            GeographicEvent.city,
+            GeographicEvent.latitude,
+            GeographicEvent.longitude,
+            GeographicEvent.country,
+        )
+        .order_by(func.count(GeographicEvent.id).desc())
+        .limit(limit)
+    ).all()
+
+    # Visitors by country
+    country_stats = db.exec(
+        select(
+            GeographicEvent.country,
+            func.count(GeographicEvent.id).label("visitor_count"),
+            func.count(func.distinct(GeographicEvent.user_id)).label("unique_users"),
+        )
+        .where(
+            GeographicEvent.created_at >= cutoff_date,
+            GeographicEvent.country.isnot(None),
+        )
+        .group_by(GeographicEvent.country)
+        .order_by(func.count(GeographicEvent.id).desc())
+        .limit(limit)
+    ).all()
+
+    return {
+        "period_days": days,
+        "cities": [
+            {
+                "city": c[0],
+                "latitude": c[1],
+                "longitude": c[2],
+                "country": c[3],
+                "visitor_count": c[4],
+                "unique_users": c[5],
+            }
+            for c in city_stats
+        ],
+        "countries": [
+            {
+                "country": c[0],
+                "visitor_count": c[1],
+                "unique_users": c[2],
+            }
+            for c in country_stats
+        ],
+    }
+
+
+@router.get("/admin/user-analytics")
+def get_user_analytics(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    days: int = Query(7, ge=1, le=90),
+) -> Any:
+    """Get user cohort analytics: new, returning, sellers."""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    from app.models.analytics import UserCohort
+
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+    # New users (first visit in period)
+    new_users = db.exec(
+        select(func.count(UserCohort.id))
+        .where(UserCohort.first_visit_at >= cutoff_date)
+    ).one() or 0
+
+    # Returning users (visited before period)
+    returning_users = db.exec(
+        select(func.count(UserCohort.id))
+        .where(
+            UserCohort.first_visit_at < cutoff_date,
+            UserCohort.last_visit_at >= cutoff_date,
+        )
+    ).one() or 0
+
+    # Active sellers
+    active_sellers = db.exec(
+        select(func.count(UserCohort.id))
+        .where(UserCohort.is_seller == True)
+    ).one() or 0
+
+    # Verified sellers
+    verified_sellers = db.exec(
+        select(func.count(UserCohort.id))
+        .where(UserCohort.is_seller == True, UserCohort.is_verified == True)
+    ).one() or 0
+
+    # Top users by activity
+    top_users = db.exec(
+        select(
+            UserCohort.user_id,
+            UserCohort.total_searches,
+            UserCohort.total_clicks,
+            UserCohort.total_chats,
+            UserCohort.visit_count,
+        )
+        .order_by(UserCohort.total_chats.desc())
+        .limit(10)
+    ).all()
+
+    return {
+        "period_days": days,
+        "new_users": new_users,
+        "returning_users": returning_users,
+        "total_active_sellers": active_sellers,
+        "verified_sellers": verified_sellers,
+        "top_users": [
+            {
+                "user_id": u[0],
+                "searches": u[1],
+                "clicks": u[2],
+                "chats": u[3],
+                "visits": u[4],
+            }
+            for u in top_users
+        ],
+    }

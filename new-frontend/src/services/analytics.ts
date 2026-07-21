@@ -219,3 +219,61 @@ async getConversionFunnel(days = 7) {
     throw error;
   }
 }
+
+// Phase 2: Geographic, User, Listing, Shop Analytics
+
+async getGeographicAnalytics(days = 7, limit = 20) {
+  try {
+    return await api.get(`/analytics/admin/geographic-analytics?days=${days}&limit=${limit}`);
+  } catch (error) {
+    console.error('Failed to fetch geographic analytics:', error);
+    throw error;
+  }
+}
+
+async getUserAnalytics(days = 7) {
+  try {
+    return await api.get(`/analytics/admin/user-analytics?days=${days}`);
+  } catch (error) {
+    console.error('Failed to fetch user analytics:', error);
+    throw error;
+  }
+}
+
+async getListingStats(listingId: number, days = 30) {
+  try {
+    return await api.get(`/analytics/admin/listing-stats/${listingId}?days=${days}`);
+  } catch (error) {
+    console.error('Failed to fetch listing stats:', error);
+    throw error;
+  }
+}
+
+// Phase 2: Tracking methods
+
+async trackGeographic(city: string, country: string, lat: number, lng: number, eventType: string) {
+  try {
+    const queryParams = new URLSearchParams();
+    queryParams.append('city', city);
+    queryParams.append('country', country);
+    queryParams.append('latitude', lat.toString());
+    queryParams.append('longitude', lng.toString());
+    queryParams.append('event_type', eventType);
+    queryParams.append('device_type', this.getDeviceType());
+
+    return await api.post(`/analytics/track/geographic?${queryParams.toString()}`);
+  } catch (error) {
+    console.error('Failed to track geographic:', error);
+  }
+}
+
+async trackUserCohort(isNew: boolean) {
+  try {
+    const queryParams = new URLSearchParams();
+    queryParams.append('is_new', isNew.toString());
+
+    return await api.post(`/analytics/track/user-cohort?${queryParams.toString()}`);
+  } catch (error) {
+    console.error('Failed to track user cohort:', error);
+  }
+}

@@ -231,3 +231,54 @@ class ConversionFunnelEvent(SQLModel, table=True):
 
     # Timestamp
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+
+class GeographicEvent(SQLModel, table=True):
+    """Track user location/city for geographic analytics."""
+
+    __tablename__ = "geographic_event"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    city: Optional[str] = Field(index=True)
+    country: Optional[str] = Field(index=True)
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    user_id: Optional[int] = Field(foreign_key="user.id", index=True)
+    session_id: Optional[str] = None
+
+    # Event context
+    event_type: str = Field(index=True)  # "view", "search", "click", "chat"
+    listing_id: Optional[int] = Field(index=True)
+    shop_id: Optional[int] = Field(index=True)
+
+    # Device
+    device_type: Optional[str] = None
+    ip_address: Optional[str] = None
+
+    # Timestamp
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+
+class UserCohort(SQLModel, table=True):
+    """Track user cohorts: new, returning, verified sellers."""
+
+    __tablename__ = "user_cohort"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    user_id: int = Field(foreign_key="user.id", index=True)
+
+    # Cohort info
+    first_visit_at: datetime = Field(index=True)
+    last_visit_at: datetime
+    visit_count: int = 0
+    is_seller: bool = False
+    is_verified: bool = False
+
+    # Activity
+    total_searches: int = 0
+    total_clicks: int = 0
+    total_chats: int = 0
+
+    # Timestamp
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
