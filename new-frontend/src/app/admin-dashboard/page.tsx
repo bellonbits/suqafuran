@@ -7,7 +7,7 @@ import Image from 'next/image';
 import {
   LayoutDashboard, Package, Users, DollarSign, TrendingUp,
   ShoppingCart, AlertCircle, Eye, UserCheck, BarChart3,
-  Truck, MapPin, Clock, CheckCircle, AlertTriangle, XCircle,
+  Clock, CheckCircle, AlertTriangle, XCircle,
   ArrowLeft, Menu, X, Bell, Search, Loader, Zap, Grid3x3,
   FileText, MessageSquare, Shield, Tag, Percent, TrendingDown,
   Activity, Radio, Network
@@ -25,7 +25,6 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
-  const [deliveries, setDeliveries] = useState<any[]>([]);
 
   useEffect(() => {
     loadDashboardData();
@@ -44,10 +43,6 @@ const AdminDashboard = () => {
       // Fetch recent transactions
       const txRes = await api.get('/promotions/agent/payment-queue').catch(() => null);
       if (txRes?.data) setTransactions(Array.isArray(txRes.data) ? txRes.data.slice(0, 5) : []);
-
-      // Fetch deliveries
-      const delRes = await api.get('/delivery/my/delivery?limit=10').catch(() => null);
-      if (delRes?.data) setDeliveries(Array.isArray(delRes.data) ? delRes.data : []);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
@@ -64,7 +59,6 @@ const AdminDashboard = () => {
     { label: 'Verifications', icon: <UserCheck className="w-5 h-5" />, href: '/admin-verifications' },
     { label: 'Orders', icon: <ShoppingCart className="w-5 h-5" />, href: '/admin-orders' },
     { label: 'Transactions', icon: <DollarSign className="w-5 h-5" />, href: '/admin-transactions' },
-    { label: 'Deliveries', icon: <Truck className="w-5 h-5" />, href: '/admin-deliveries' },
     { label: 'Sellers', icon: <Package className="w-5 h-5" />, href: '/admin-sellers' },
     { label: 'Categories', icon: <Zap className="w-5 h-5" />, href: '/admin-categories' },
     { label: 'Vouchers', icon: <Tag className="w-5 h-5" />, href: '/admin-vouchers' },
@@ -105,15 +99,6 @@ const AdminDashboard = () => {
       trend: 'up' as const,
       trendPercent: 23,
       color: 'purple' as const,
-    },
-    {
-      icon: <Truck className="w-6 h-6" />,
-      label: 'Active Deliveries',
-      value: stats?.active_deliveries?.toString() || '0',
-      subtext: `${stats?.delayed_deliveries || 0} delayed`,
-      trend: 'down' as const,
-      trendPercent: 5,
-      color: 'orange' as const,
     },
   ];
 
@@ -217,7 +202,7 @@ const AdminDashboard = () => {
 
       {/* Tabs */}
       <div className="flex gap-4 mb-6 border-b border-gray-200">
-        {['overview', 'monitoring', 'transactions', 'deliveries'].map((tab) => (
+        {['overview', 'monitoring', 'transactions'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -445,182 +430,6 @@ const AdminDashboard = () => {
           ) : (
             <div className="p-8 text-center text-gray-500">
               <p>No transactions available</p>
-            </div>
-          )}
-        </motion.div>
-      )}
-
-      {/* Deliveries Tab */}
-      {activeTab === 'deliveries' && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="space-y-6"
-        >
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-black text-gray-900">All Deliveries</h2>
-              <div className="flex gap-2">
-                <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-semibold transition-colors">
-                  Filter
-                </button>
-                <button className="px-4 py-2 bg-[#5bc0e8] hover:bg-sky-700 text-white rounded-lg text-sm font-semibold transition-colors">
-                  Real-time Map
-                </button>
-              </div>
-            </div>
-
-            {deliveries.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4">
-                {deliveries.map((delivery) => (
-                  <div
-                    key={delivery.id}
-                    className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <div className="flex items-center gap-3">
-                          <span className="font-semibold text-gray-900">Delivery #{delivery.id}</span>
-                          {delivery.order && <span className="text-xs text-gray-500">Order {delivery.order}</span>}
-                        </div>
-                        {(delivery.from || delivery.to) && (
-                          <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-                            <div className="flex items-center gap-1">
-                              <MapPin className="w-4 h-4" />
-                              {delivery.from} → {delivery.to}
-                            </div>
-                          </div>
-                        )}
-                        {delivery.rider && <div className="text-sm text-gray-600 mt-2">Rider: {delivery.rider}</div>}
-                      </div>
-                      {delivery.status && (
-                        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(delivery.status)}`}>
-                          {getStatusIcon(delivery.status)}
-                          {delivery.status}
-                        </div>
-                      )}
-                    </div>
-
-                    {delivery.progress !== undefined && (
-                      <div className="space-y-3">
-                        {/* Progress Bar */}
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-semibold text-gray-600">Progress</span>
-                            <span className="text-xs font-bold text-gray-900">{delivery.progress}%</span>
-                          </div>
-                          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full transition-all ${
-                                delivery.status === 'Delivered'
-                                  ? 'bg-[#02CCFE]'
-                                  : delivery.status === 'Delayed'
-                                    ? 'bg-orange-500'
-                                    : 'bg-[#e0f7ff]0'
-                              }`}
-                              style={{ width: `${delivery.progress}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* ETA */}
-                        {delivery.eta && (
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <Clock className="w-4 h-4" />
-                              ETA: {delivery.eta}
-                            </div>
-                            <button className="text-xs text-[#6cd4ff] hover:text-sky-700 font-semibold">
-                              Track on Map →
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-8 text-center text-gray-500">
-                <p>No deliveries available</p>
-              </div>
-            )}
-          </div>
-
-          {/* Delivery Statistics - Only show if we have delivery data */}
-          {(stats?.deliveries_in_transit || stats?.deliveries_delivered || stats?.deliveries_delayed || stats?.avg_delivery_time) && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {stats?.deliveries_in_transit !== undefined && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="bg-white rounded-xl border border-gray-200 p-6"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-2">In Transit</p>
-                      <p className="text-3xl font-black text-[#5bc0e8]">{stats.deliveries_in_transit}</p>
-                    </div>
-                    <Truck className="w-12 h-12 text-blue-100" />
-                  </div>
-                </motion.div>
-              )}
-
-              {stats?.deliveries_delivered !== undefined && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.1 }}
-                  className="bg-white rounded-xl border border-gray-200 p-6"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-2">Delivered</p>
-                      <p className="text-3xl font-black text-green-600">{stats.deliveries_delivered.toLocaleString()}</p>
-                    </div>
-                    <CheckCircle className="w-12 h-12 text-green-100" />
-                  </div>
-                </motion.div>
-              )}
-
-              {stats?.deliveries_delayed !== undefined && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2 }}
-                  className="bg-white rounded-xl border border-gray-200 p-6"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-2">Delayed</p>
-                      <p className="text-3xl font-black text-orange-600">{stats.deliveries_delayed}</p>
-                    </div>
-                    <AlertTriangle className="w-12 h-12 text-orange-100" />
-                  </div>
-                </motion.div>
-              )}
-
-              {stats?.avg_delivery_time && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.3 }}
-                  className="bg-white rounded-xl border border-gray-200 p-6"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-2">Avg Time</p>
-                      <p className="text-3xl font-black text-purple-600">{stats.avg_delivery_time}m</p>
-                    </div>
-                    <Clock className="w-12 h-12 text-purple-100" />
-                  </div>
-                </motion.div>
-              )}
             </div>
           )}
         </motion.div>
