@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Save, Loader, Upload, X, MapPin, Clock, Tag, ChevronDown, Crosshair, FileText, Palette } from 'lucide-react';
+import { Save, Loader, Upload, X, MapPin, Clock, Tag, ChevronDown, Crosshair, FileText, Palette, ShoppingCart, Package, Eye, TrendingUp, ArrowRight } from 'lucide-react';
 import api from '@/services/api';
 import { imageService } from '@/services/imageService';
 import { loadGoogleMapsScript } from '@/lib/googleMaps';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 
 interface ShopData {
   name: string;
@@ -78,6 +79,8 @@ export default function ShopPage() {
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [shopStats, setShopStats] = useState<any>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<google.maps.Map | null>(null);
   const markerRef = useRef<google.maps.Marker | null>(null);
@@ -86,7 +89,36 @@ export default function ShopPage() {
 
   useEffect(() => {
     loadShopData();
+    loadShopStats();
   }, []);
+
+  const loadShopStats = async () => {
+    try {
+      const [statsRes, productsRes, ordersRes] = await Promise.all([
+        api.get('/dashboard/stats').catch(() => null),
+        api.get('/listings/me?limit=100').catch(() => null),
+        api.get('/orders?limit=50').catch(() => null),
+      ]);
+
+      if (statsRes?.data) {
+        const products = Array.isArray(productsRes?.data) ? productsRes.data : [];
+        const orders = Array.isArray(ordersRes?.data) ? ordersRes.data : [];
+
+        setShopStats({
+          total_products: products.length,
+          total_views: statsRes.data.views || 0,
+          total_orders: orders.length,
+          low_stock_products: products.filter((p: any) => (p.quantity || p.stock || 0) > 0 && (p.quantity || p.stock || 0) <= 20).length,
+          out_of_stock: products.filter((p: any) => (p.quantity || p.stock || 0) === 0).length,
+          revenue: orders.reduce((sum: number, o: any) => sum + (o.total_amount || 0), 0),
+        });
+      }
+    } catch (error) {
+      console.error('Error loading shop stats:', error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
 
   // Initialize Google Map
   useEffect(() => {
@@ -367,11 +399,72 @@ export default function ShopPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Shop Management</h1>
-        <p className="text-gray-600 dark:text-slate-400">Manage your shop information, branding, and policies</p>
+        <p className="text-gray-600 dark:text-slate-400">Manage your shop information, branding, policies, inventory, and orders</p>
+      </div>
+
+      {/* Quick Stats */}
+      {!statsLoading && shopStats && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+          <Link href="/seller-dashboard" className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800 hover:border-orange-500 transition-colors">
+            <p className="text-gray-600 dark:text-slate-400 text-xs font-semibold">Products</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{shopStats.total_products}</p>
+          </Link>
+          <Link href="/seller-dashboard/analytics" className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800 hover:border-orange-500 transition-colors">
+            <p className="text-gray-600 dark:text-slate-400 text-xs font-semibold">Views</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{(shopStats.total_views || 0).toLocaleString()}</p>
+          </Link>
+          <Link href="/seller-dashboard/orders" className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800 hover:border-orange-500 transition-colors">
+            <p className="text-gray-600 dark:text-slate-400 text-xs font-semibold">Orders</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{shopStats.total_orders}</p>
+          </Link>
+          <Link href="/seller-dashboard/inventory" className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800 hover:border-yellow-500 transition-colors">
+            <p className="text-gray-600 dark:text-slate-400 text-xs font-semibold">Low Stock</p>
+            <p className="text-2xl font-bold text-yellow-600">{shopStats.low_stock_products}</p>
+          </Link>
+          <Link href="/seller-dashboard/inventory" className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800 hover:border-red-500 transition-colors">
+            <p className="text-gray-600 dark:text-slate-400 text-xs font-semibold">Out of Stock</p>
+            <p className="text-2xl font-bold text-red-600">{shopStats.out_of_stock}</p>
+          </Link>
+          <Link href="/seller-dashboard" className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800 hover:border-green-500 transition-colors">
+            <p className="text-gray-600 dark:text-slate-400 text-xs font-semibold">Revenue</p>
+            <p className="text-2xl font-bold text-green-600">KSh {(shopStats.revenue || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
+          </Link>
+        </div>
+      )}
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Link href="/seller-dashboard/products" className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/10 rounded-lg p-4 border border-blue-200 dark:border-blue-800 hover:shadow-lg transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-1">Manage Products</p>
+              <p className="text-xs text-blue-700 dark:text-blue-400">Add, edit, or delete products</p>
+            </div>
+            <Package className="w-5 h-5 text-blue-600" />
+          </div>
+        </Link>
+        <Link href="/seller-dashboard/inventory" className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-900/10 rounded-lg p-4 border border-amber-200 dark:border-amber-800 hover:shadow-lg transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-amber-900 dark:text-amber-300 mb-1">Update Inventory</p>
+              <p className="text-xs text-amber-700 dark:text-amber-400">Manage stock levels</p>
+            </div>
+            <TrendingUp className="w-5 h-5 text-amber-600" />
+          </div>
+        </Link>
+        <Link href="/seller-dashboard/orders" className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/10 rounded-lg p-4 border border-green-200 dark:border-green-800 hover:shadow-lg transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-green-900 dark:text-green-300 mb-1">View Orders</p>
+              <p className="text-xs text-green-700 dark:text-green-400">Track customer orders</p>
+            </div>
+            <ShoppingCart className="w-5 h-5 text-green-600" />
+          </div>
+        </Link>
       </div>
 
       {/* Toast Notification */}
@@ -391,7 +484,7 @@ export default function ShopPage() {
       </AnimatePresence>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-gray-200 dark:border-slate-800 overflow-x-auto">
+      <div className="flex gap-2 border-b border-gray-200 dark:border-slate-800 overflow-x-auto max-w-6xl">
         {[
           { id: 'basic', label: 'Basic Info' },
           { id: 'branding', label: 'Branding' },
@@ -429,7 +522,7 @@ export default function ShopPage() {
       </div>
 
       {/* Tab Content */}
-      <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 p-6">
+      <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 p-6 max-w-6xl">
         {/* Basic Info Tab */}
         {activeTab === 'basic' && (
           <div className="space-y-4">
