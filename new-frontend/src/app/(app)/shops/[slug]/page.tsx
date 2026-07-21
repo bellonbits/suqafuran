@@ -548,7 +548,7 @@ export default function ShopDetailPage() {
                                             router.push('/login?returnUrl=' + encodeURIComponent(window.location.pathname));
                                             return;
                                         }
-                                        setMessagingModalOpen(true);
+                                        router.push('/messages');
                                     }}
                                     className="w-10 h-10 rounded-lg hover:scale-110 transition-transform flex items-center justify-center"
                                     title="Message Seller"
