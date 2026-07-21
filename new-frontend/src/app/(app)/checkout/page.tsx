@@ -6,9 +6,11 @@ import { useCart } from '../../../store/useCart';
 import { useLocationStore } from '../../../store/useLocation';
 import { useAuthStore } from '../../../store/useAuth';
 import html2canvas from 'html2canvas';
-import { ChevronLeft, MapPin, Download, Send, MessageCircle, Phone, CheckCircle, AlertCircle, Map, Package, User, DollarSign, BarChart3, MessageSquare } from 'lucide-react';
+import { ChevronLeft, MapPin, Download, Send, Phone, CheckCircle, AlertCircle, Map, Package, User, DollarSign, BarChart3 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+import { FaWhatsapp } from 'react-icons/fa';
+import { MdMessage } from 'react-icons/md';
 interface CheckoutItem {
   id: string;
   title: string;
@@ -573,7 +575,7 @@ Thanks!`;
                   disabled={isProcessing}
                   className="w-full flex items-center justify-center gap-3 bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white font-bold py-4 rounded-xl transition-colors"
                 >
-                  <MessageCircle className="w-6 h-6" />
+                  <FaWhatsapp className="w-6 h-6" />
                   Send via WhatsApp
                 </motion.button>
 
@@ -584,7 +586,7 @@ Thanks!`;
                   disabled={isProcessing}
                   className="w-full flex items-center justify-center gap-3 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white font-bold py-4 rounded-xl transition-colors"
                 >
-                  <MessageSquare className="w-6 h-6" />
+                  <MdMessage className="w-6 h-6" />
                   Send via Message
                 </motion.button>
               </div>
