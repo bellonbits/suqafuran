@@ -1348,94 +1348,106 @@ export default function ShopDetailPage() {
                         </div>
 
                         {/* Rating Summary - Right */}
-                        {shopRating !== null && (
-                            <div className="col-span-12 lg:col-span-4">
-                                <div className="bg-white dark:bg-slate-900 rounded-lg p-6 border border-gray-100 dark:border-slate-800 sticky top-28">
-                                    <div className="text-center mb-6">
-                                        <div className="text-5xl font-black text-gray-900 dark:text-white mb-2">
-                                            {shopRating.toFixed(1)}
+                        <div className="col-span-12 lg:col-span-4">
+                            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 border border-gray-100 dark:border-slate-800 sticky top-28">
+                                {shopRating !== null ? (
+                                    <>
+                                        <div className="text-center mb-6">
+                                            <div className="text-5xl font-black text-gray-900 dark:text-white mb-2">
+                                                {shopRating.toFixed(1)}
+                                            </div>
+                                            <div className="flex justify-center gap-0.5 mb-3">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <Star
+                                                        key={i}
+                                                        className={`w-5 h-5 ${
+                                                            i < Math.floor(shopRating)
+                                                                ? 'fill-yellow-400 text-yellow-400'
+                                                                : 'text-gray-300 dark:text-slate-600'
+                                                        }`}
+                                                    />
+                                                ))}
+                                            </div>
+                                            <p className="text-sm text-gray-600 dark:text-slate-400">
+                                                {totalReviews} total reviews
+                                            </p>
                                         </div>
-                                        <div className="flex justify-center gap-0.5 mb-3">
-                                            {[...Array(5)].map((_, i) => (
-                                                <Star
-                                                    key={i}
-                                                    className={`w-5 h-5 ${
-                                                        i < Math.floor(shopRating)
-                                                            ? 'fill-yellow-400 text-yellow-400'
-                                                            : 'text-gray-300 dark:text-slate-600'
-                                                    }`}
-                                                />
-                                            ))}
-                                        </div>
-                                        <p className="text-sm text-gray-600 dark:text-slate-400">
-                                            {totalReviews} total reviews
-                                        </p>
-                                    </div>
 
-                                    <div className="space-y-3 pt-6 border-t border-gray-200 dark:border-slate-800">
-                                        <div>
-                                            <p className="text-xs text-gray-600 dark:text-slate-400 mb-1">
-                                                Verified Reviews
-                                            </p>
-                                            <p className="font-bold text-gray-900 dark:text-white">
-                                                {verifiedReviewsCount}
-                                            </p>
+                                        <div className="space-y-3 pt-6 border-t border-gray-200 dark:border-slate-800">
+                                            <div>
+                                                <p className="text-xs text-gray-600 dark:text-slate-400 mb-1">
+                                                    Verified Reviews
+                                                </p>
+                                                <p className="font-bold text-gray-900 dark:text-white">
+                                                    {verifiedReviewsCount}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-gray-600 dark:text-slate-400 mb-1">
+                                                    Community Reviews
+                                                </p>
+                                                <p className="font-bold text-gray-900 dark:text-white">
+                                                    {totalReviews - verifiedReviewsCount}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-xs text-gray-600 dark:text-slate-400 mb-1">
-                                                Community Reviews
-                                            </p>
-                                            <p className="font-bold text-gray-900 dark:text-white">
-                                                {totalReviews - verifiedReviewsCount}
-                                            </p>
-                                        </div>
-                                    </div>
 
-                                    {!userHasReviewed && (
+                                        {!userHasReviewed && (
+                                            <button
+                                                onClick={() => setRatingModalOpen(true)}
+                                                className="w-full bg-[#00a082] hover:bg-[#008f73] text-white font-bold py-2 px-4 rounded-lg transition-colors mt-6"
+                                            >
+                                                Write a Review
+                                            </button>
+                                        )}
+                                    </>
+                                ) : (
+                                    <div className="text-center py-6">
+                                        <p className="text-sm text-gray-600 dark:text-slate-400 mb-4">No reviews yet</p>
                                         <button
                                             onClick={() => setRatingModalOpen(true)}
-                                            className="w-full bg-[#00a082] hover:bg-[#008f73] text-white font-bold py-2 px-4 rounded-lg transition-colors mt-6"
+                                            className="w-full bg-[#00a082] hover:bg-[#008f73] text-white font-bold py-2 px-4 rounded-lg transition-colors"
                                         >
-                                            Write a Review
+                                            Write First Review
                                         </button>
-                                    )}
+                                    </div>
+                                )}
 
-                                    <button
-                                        onClick={async () => {
-                                            if (!isAuthenticated) {
-                                                router.push('/login?returnUrl=' + encodeURIComponent(window.location.pathname));
-                                                return;
+                                <button
+                                    onClick={async () => {
+                                        if (!isAuthenticated) {
+                                            router.push('/login?returnUrl=' + encodeURIComponent(window.location.pathname));
+                                            return;
+                                        }
+                                        try {
+                                            setIsSubmittingFollow(true);
+                                            if (isFollowing) {
+                                                await api.delete(`/follows/unfollow/${shopOwnerId}`);
+                                                setIsFollowing(false);
+                                                alert('You unfollowed this shop');
+                                            } else {
+                                                await api.post(`/follows/follow/${shopOwnerId}`);
+                                                setIsFollowing(true);
+                                                alert('You are now following this shop!');
                                             }
-                                            try {
-                                                setIsSubmittingFollow(true);
-                                                if (isFollowing) {
-                                                    await api.delete(`/follows/unfollow/${shopOwnerId}`);
-                                                    setIsFollowing(false);
-                                                    alert('You unfollowed this shop');
-                                                } else {
-                                                    await api.post(`/follows/follow/${shopOwnerId}`);
-                                                    setIsFollowing(true);
-                                                    alert('You are now following this shop!');
-                                                }
-                                            } catch (error) {
-                                                console.error('Failed to follow shop:', error);
-                                                alert('Failed to follow shop. Please try again.');
-                                            } finally {
-                                                setIsSubmittingFollow(false);
-                                            }
-                                        }}
-                                        disabled={isSubmittingFollow}
-                                        className={`w-full font-bold py-2 px-4 rounded-lg transition-colors mt-3 ${
-                                            isFollowing
-                                                ? 'bg-[#00a082] text-white cursor-default'
-                                                : 'bg-white dark:bg-slate-800 border-2 border-[#00a082] text-[#00a082] dark:text-[#00a082] hover:bg-[#00a082]/5'
-                                        }`}
-                                    >
-                                        {isSubmittingFollow ? 'Following...' : isFollowing ? 'Following' : 'Follow Shop'}
-                                    </button>
-                                </div>
+                                        } catch (error) {
+                                            console.error('Failed to follow shop:', error);
+                                            alert('Failed to follow shop. Please try again.');
+                                        } finally {
+                                            setIsSubmittingFollow(false);
+                                        }
+                                    }}
+                                    disabled={isSubmittingFollow}
+                                    className={`w-full font-bold py-2 px-4 rounded-lg transition-colors mt-6 ${
+                                        isFollowing
+                                            ? 'bg-[#00a082] text-white cursor-default'
+                                            : 'bg-white dark:bg-slate-800 border-2 border-[#00a082] text-[#00a082] dark:text-[#00a082] hover:bg-[#00a082]/5'
+                                    }`}
+                                >
+                                    {isSubmittingFollow ? 'Following...' : isFollowing ? 'Following' : 'Follow Shop'}
+                                </button>
                             </div>
-                        )}
+                        </div>
                     </div>
                 </div>
             )}
