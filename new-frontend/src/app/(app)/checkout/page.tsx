@@ -240,9 +240,6 @@ Thanks!`;
         router.push('/messages');
       }, 100);
     }
-    } finally {
-      setIsProcessing(false);
-    }
   };
 
   return (
