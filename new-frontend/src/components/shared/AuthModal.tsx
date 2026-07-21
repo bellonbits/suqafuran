@@ -47,9 +47,13 @@ export const AuthModal: React.FC = () => {
             setError('');
             setPassword('');
             setTurnstileToken('');
-            // Reset Turnstile widget
-            if ((window as any).turnstile) {
-                (window as any).turnstile.reset();
+            // Reset Turnstile widget only if it exists and is loaded
+            if ((window as any).turnstile?.reset) {
+                try {
+                    (window as any).turnstile.reset();
+                } catch (e) {
+                    // Widget may not be ready yet, that's ok
+                }
             }
         }
     }, [isOpen, mode, method]);
