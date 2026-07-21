@@ -568,27 +568,27 @@ Thanks!`;
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Contact Seller(s)</h2>
               <p className="text-gray-600 dark:text-slate-400 mb-6">Choose how you want to contact the seller. They'll see your location and order details.</p>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center justify-center gap-8">
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.3 }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => handleContactSeller('whatsapp')}
                   disabled={isProcessing}
-                  className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white font-bold py-4 rounded-xl transition-colors"
+                  className="text-[#25D366] hover:text-[#20BA5A] disabled:opacity-50 transition-colors p-2"
+                  title="Contact via WhatsApp"
                 >
-                  <FaWhatsapp className="w-5 h-5" />
-                  <span>WhatsApp</span>
+                  <FaWhatsapp className="w-12 h-12" />
                 </motion.button>
 
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.3 }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => handleContactSeller('message')}
                   disabled={isProcessing}
-                  className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white font-bold py-4 rounded-xl transition-colors"
+                  className="text-blue-500 hover:text-blue-600 disabled:opacity-50 transition-colors p-2"
+                  title="Contact via Message"
                 >
-                  <MdMessage className="w-5 h-5" />
-                  Send via Message
+                  <MdMessage className="w-12 h-12" />
                 </motion.button>
               </div>
             </div>
