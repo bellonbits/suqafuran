@@ -80,15 +80,19 @@ def get_top_items(
     cutoff_date = datetime.utcnow() - timedelta(days=days)
 
     # Get top items by view count
+    from app.models.listing import Listing
+    
     statement = (
         select(
             ItemView.listing_id,
+            Listing.title,
             func.count(ItemView.id).label("view_count"),
             func.count(func.distinct(ItemView.user_id)).label("unique_users"),
             func.count(func.distinct(ItemView.ip_address)).label("unique_guests"),
         )
+        .join(Listing, ItemView.listing_id == Listing.id)
         .where(ItemView.viewed_at >= cutoff_date)
-        .group_by(ItemView.listing_id)
+        .group_by(ItemView.listing_id, Listing.title)
         .order_by(func.count(ItemView.id).desc())
         .limit(limit)
     )
@@ -100,10 +104,11 @@ def get_top_items(
         "items": [
             {
                 "listing_id": r[0],
-                "view_count": r[1],
-                "unique_users": r[2],
-                "unique_guests": r[3],
-                "total_unique_visitors": r[2] + r[3],
+                "listing_title": r[1] or f"Listing #{r[0]}",
+                "view_count": r[2],
+                "unique_users": r[3],
+                "unique_guests": r[4],
+                "total_unique_visitors": r[3] + r[4],
             }
             for r in results
         ]
@@ -128,12 +133,14 @@ def get_top_shops(
     statement = (
         select(
             ShopView.shop_owner_id,
+            User.full_name,
             func.count(ShopView.id).label("view_count"),
             func.count(func.distinct(ShopView.user_id)).label("unique_users"),
             func.count(func.distinct(ShopView.ip_address)).label("unique_guests"),
         )
+        .join(User, ShopView.shop_owner_id == User.id)
         .where(ShopView.viewed_at >= cutoff_date)
-        .group_by(ShopView.shop_owner_id)
+        .group_by(ShopView.shop_owner_id, User.full_name)
         .order_by(func.count(ShopView.id).desc())
         .limit(limit)
     )
@@ -145,10 +152,11 @@ def get_top_shops(
         "shops": [
             {
                 "shop_owner_id": r[0],
-                "view_count": r[1],
-                "unique_users": r[2],
-                "unique_guests": r[3],
-                "total_unique_visitors": r[2] + r[3],
+                "shop_owner_name": r[1] or f"Shop #{r[0]}",
+                "view_count": r[2],
+                "unique_users": r[3],
+                "unique_guests": r[4],
+                "total_unique_visitors": r[3] + r[4],
             }
             for r in results
         ]
@@ -665,8 +673,13 @@ def get_listing_stats(
         raise HTTPException(status_code=403, detail="Admin access required")
 
     from app.models.analytics import ItemView, ClickEvent
+    from app.models.listing import Listing
 
     cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+    # Get listing title
+    listing = db.get(Listing, listing_id)
+    listing_title = listing.title if listing else f"Listing #{listing_id}"
 
     # Views
     total_views = db.exec(
@@ -709,6 +722,7 @@ def get_listing_stats(
 
     return {
         "listing_id": listing_id,
+        "listing_title": listing_title,
         "period_days": days,
         "total_views": total_views,
         "unique_viewers": unique_viewers,
@@ -841,15 +855,19 @@ def get_user_analytics(
         .where(UserCohort.is_seller == True, UserCohort.is_verified == True)
     ).one() or 0
 
-    # Top users by activity
+    # Top users by activity (with names)
+    from app.models.user import User as UserModel
+    
     top_users = db.exec(
         select(
             UserCohort.user_id,
+            UserModel.full_name,
             UserCohort.total_searches,
             UserCohort.total_clicks,
             UserCohort.total_chats,
             UserCohort.visit_count,
         )
+        .join(UserModel, UserCohort.user_id == UserModel.id)
         .order_by(UserCohort.total_chats.desc())
         .limit(10)
     ).all()
@@ -863,10 +881,11 @@ def get_user_analytics(
         "top_users": [
             {
                 "user_id": u[0],
-                "searches": u[1],
-                "clicks": u[2],
-                "chats": u[3],
-                "visits": u[4],
+                "user_name": u[1] or f"User #{u[0]}",
+                "searches": u[2],
+                "clicks": u[3],
+                "chats": u[4],
+                "visits": u[5],
             }
             for u in top_users
         ],

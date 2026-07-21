@@ -11,6 +11,7 @@ interface UserStats {
   verified_sellers: number;
   top_users: Array<{
     user_id: number;
+    user_name: string;
     searches: number;
     clicks: number;
     chats: number;
@@ -116,7 +117,7 @@ export default function UserAnalytics() {
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-slate-800">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 dark:text-slate-300">User ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 dark:text-slate-300">User Name</th>
                     <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 dark:text-slate-300">Visits</th>
                     <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 dark:text-slate-300">Searches</th>
                     <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 dark:text-slate-300">Clicks</th>
@@ -126,7 +127,10 @@ export default function UserAnalytics() {
                 <tbody className="divide-y divide-gray-200 dark:divide-slate-800">
                   {stats.top_users.map((user, idx) => (
                     <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-slate-800">
-                      <td className="px-6 py-3 text-sm font-semibold text-gray-900 dark:text-white">#{user.user_id}</td>
+                      <td className="px-6 py-3 text-sm font-semibold text-gray-900 dark:text-white">
+                        <div>{user.user_name}</div>
+                        <div className="text-xs text-gray-500 dark:text-slate-400">#{user.user_id}</div>
+                      </td>
                       <td className="px-6 py-3 text-sm text-gray-900 dark:text-white">{user.visits}</td>
                       <td className="px-6 py-3 text-sm text-gray-900 dark:text-white">{user.searches}</td>
                       <td className="px-6 py-3 text-sm text-gray-900 dark:text-white">{user.clicks}</td>
