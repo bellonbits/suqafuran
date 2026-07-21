@@ -177,8 +177,7 @@ Your delivery: Arrange with seller
       return;
     }
 
-    try {
-      setIsProcessing(true);
+    setIsProcessing(true);
 
     // Group items by seller
     const sellerGroups = new Map();
