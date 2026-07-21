@@ -85,14 +85,14 @@ def get_top_items(
     statement = (
         select(
             ItemView.listing_id,
-            Listing.title,
+            Listing.title_en,
             func.count(ItemView.id).label("view_count"),
             func.count(func.distinct(ItemView.user_id)).label("unique_users"),
             func.count(func.distinct(ItemView.ip_address)).label("unique_guests"),
         )
         .join(Listing, ItemView.listing_id == Listing.id)
         .where(ItemView.viewed_at >= cutoff_date)
-        .group_by(ItemView.listing_id, Listing.title)
+        .group_by(ItemView.listing_id, Listing.title_en)
         .order_by(func.count(ItemView.id).desc())
         .limit(limit)
     )
@@ -679,7 +679,7 @@ def get_listing_stats(
 
     # Get listing title
     listing = db.get(Listing, listing_id)
-    listing_title = listing.title if listing else f"Listing #{listing_id}"
+    listing_title = listing.title_en if listing else f"Listing #{listing_id}"
 
     # Views
     total_views = db.exec(
