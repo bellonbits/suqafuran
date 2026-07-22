@@ -21,12 +21,15 @@ export default function ReportsPage() {
 
   const loadReportsData = async () => {
     try {
-      // Set default stats - reports endpoint may not be available
-      setStats({
-        total_reports: 0,
-        last_generated: 'Never',
-        report_size: 'N/A',
-      });
+      const res = await api.get('/reports/stats').catch(() => null);
+
+      if (res?.data) {
+        setStats({
+          total_reports: res.data.total_reports || 0,
+          last_generated: res.data.last_generated || 'Never',
+          report_size: res.data.report_size || 'N/A',
+        });
+      }
     } catch (error) {
       console.error('Error loading reports:', error);
     } finally {
