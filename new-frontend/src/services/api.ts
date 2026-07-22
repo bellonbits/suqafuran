@@ -72,10 +72,6 @@ api.interceptors.request.use(
         if (config.data instanceof FormData) {
             delete config.headers['Content-Type'];
             delete config.headers['content-type'];
-            if (config.headers && typeof (config.headers as any).delete === 'function') {
-                (config.headers as any).delete('Content-Type');
-                (config.headers as any).delete('content-type');
-            }
         }
 
         if (typeof window !== 'undefined') {

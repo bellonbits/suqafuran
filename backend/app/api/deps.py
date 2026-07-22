@@ -17,13 +17,6 @@ reusable_oauth2 = OAuth2PasswordBearer(
     auto_error=False
 )
 
-def get_token_from_header(request: Request) -> Optional[str]:
-    """Extract Bearer token from Authorization header."""
-    auth_header = request.headers.get("Authorization", "")
-    if auth_header.startswith("Bearer "):
-        return auth_header[7:]  # Remove "Bearer " prefix
-    return None
-
 
 def get_db() -> Generator:
     with DbSession(engine) as session:
@@ -31,14 +24,10 @@ def get_db() -> Generator:
 
 
 def get_current_user(
-    request: Request,
     db: Session = Depends(get_db),
     token: Optional[str] = Depends(reusable_oauth2),
 ) -> User:
-    # Try to get token from both reusable_oauth2 and direct Authorization header
-    final_token = token or get_token_from_header(request)
-
-    if not final_token:
+    if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",
@@ -46,7 +35,7 @@ def get_current_user(
         )
     try:
         payload = jwt.decode(
-            final_token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
         )
         token_data = payload.get("sub")
         if not token_data:
@@ -86,17 +75,14 @@ def get_current_user(
 
 
 def get_current_user_optional(
-    request: Request,
     db: Session = Depends(get_db),
     token: Optional[str] = Depends(reusable_oauth2),
 ) -> Optional[User]:
-    final_token = token or get_token_from_header(request)
-
-    if not final_token:
+    if not token:
         return None
     try:
         payload = jwt.decode(
-            final_token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
         )
         token_data = payload.get("sub")
         if not token_data:
