@@ -71,7 +71,7 @@ const VerificationPage = lazyNamed(() => import('./pages/VerificationPage'), 'Ve
 const PhoneVerificationPage = lazyNamed(() => import('./pages/PhoneVerificationPage'), 'PhoneVerificationPage');
 const EmailVerificationPage = lazyNamed(() => import('./pages/EmailVerificationPage'), 'EmailVerificationPage');
 const CategoryListingPage = lazyNamed(() => import('./pages/CategoryListingPage'), 'CategoryListingPage');
-const PostAdPage = lazyNamed(() => import('./pages/PostAdPage'), 'PostAdPage');
+const ListingFormPage = lazyNamed(() => import('./pages/ListingFormPage'), 'ListingFormPage');
 const ProductDetailPage = lazyNamed(() => import('./pages/ProductDetailPage'), 'ProductDetailPage'); // Was ListingDetailsPage
 const MyAdsPage = lazyNamed(() => import('./pages/MyAdsPage'), 'MyAdsPage');
 const SettingsPage = lazyNamed(() => import('./pages/SettingsPage'), 'SettingsPage'); // Was ProfilePage
@@ -80,7 +80,7 @@ const FavoritesPage = lazyNamed(() => import('./pages/FavoritesPage'), 'Favorite
 const HelpCenterPage = lazyNamed(() => import('./pages/HelpCenterPage'), 'HelpCenterPage'); // Was HelpPage
 const AdminDashboard = lazyNamed(() => import('./pages/AdminDashboard'), 'AdminDashboard');
 const OverviewDashboard = lazyNamed(() => import('./pages/OverviewDashboard'), 'OverviewDashboard');
-const EditAdPage = lazyNamed(() => import('./pages/EditAdPage'), 'EditAdPage');
+const ListingDetailPage = lazyNamed(() => import('./pages/ListingDetailPage'), 'ListingDetailPage');
 const SellerProfilePage = lazyNamed(() => import('./pages/SellerProfilePage'), 'SellerProfilePage');
 const ShopProfile = lazyNamed(() => import('./pages/ShopProfile'), 'ShopProfile');
 const ShopsPage = lazyNamed(() => import('./pages/ShopsPage'), 'ShopsPage');
@@ -370,8 +370,10 @@ const App: React.FC = () => {
             {/* Protected Routes */}
             <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
               <Route path="/dashboard" element={<OverviewDashboard />} />
-              <Route path="/post-ad" element={<PostAdPage />} />
-              <Route path="/edit-ad/:id" element={<EditAdPage />} />
+              <Route path="/post-ad" element={<ListingFormPage />} />
+              <Route path="/sell" element={<ListingFormPage />} />
+              <Route path="/edit-ad/:id" element={<ListingFormPage />} />
+              <Route path="/listings/:listingId" element={<ListingDetailPage />} />
               <Route path="/my-ads" element={<MyAdsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
