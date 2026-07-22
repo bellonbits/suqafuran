@@ -104,6 +104,146 @@ const NAIROBI_LOCATIONS = [
   'South C, Nairobi',
 ];
 
+// Common brands across categories
+const COMMON_BRANDS = [
+  'Apple',
+  'Samsung',
+  'LG',
+  'Sony',
+  'Dell',
+  'HP',
+  'Lenovo',
+  'ASUS',
+  'Canon',
+  'Nikon',
+  'Nike',
+  'Adidas',
+  'Puma',
+  'Gucci',
+  'Louis Vuitton',
+  'Zara',
+  'H&M',
+  'Forever 21',
+  'Cerave',
+  'Neutrogena',
+  'CeraVe',
+  'Olay',
+  'Dove',
+  'Lux',
+  'Dettol',
+  'Johnson & Johnson',
+  'Unilever',
+  'Nestlé',
+  'Coca-Cola',
+  'Pepsi',
+  'Cadbury',
+  'Mars',
+  'Ferrero',
+  'Kraft',
+  'Heinz',
+  'Danone',
+  'Kimberly-Clark',
+  'Procter & Gamble',
+  'Colgate',
+  'Oral-B',
+  'Crest',
+  'Gillette',
+  'Schick',
+  'Philips',
+  'Panasonic',
+  'Toshiba',
+  'Siemens',
+  'Bosch',
+  'AEG',
+  'Electrolux',
+  'Whirlpool',
+  'Indesit',
+  'Ariston',
+  'Baumatic',
+  'Zanussi',
+  'Beko',
+  'Vestel',
+  'Hotpoint',
+  'Maytag',
+  'GE Appliances',
+  'Frigidaire',
+  'KitchenAid',
+  'Dyson',
+  'Shark',
+  'Bissell',
+  'Hoover',
+  'Eureka',
+  'Kärcher',
+  'Vileda',
+  'Scotch-Brite',
+  '3M',
+  'WD-40',
+  'Rust-Oleum',
+  'Rustoleum',
+  'Dulux',
+  'Asian Paints',
+  'Berger',
+  'Nippon Paint',
+  'ICI Paints',
+  'Ferrari',
+  'Lamborghini',
+  'Porsche',
+  'BMW',
+  'Mercedes-Benz',
+  'Audi',
+  'Volkswagen',
+  'Ford',
+  'Chevrolet',
+  'GMC',
+  'Tesla',
+  'Toyota',
+  'Honda',
+  'Nissan',
+  'Mazda',
+  'Hyundai',
+  'Kia',
+  'Suzuki',
+  'Datsun',
+  'Renault',
+  'Peugeot',
+  'Citroën',
+  'Fiat',
+  'Alfa Romeo',
+  'Lancia',
+  'Jeep',
+  'Dodge',
+  'Ram',
+  'Chevrolet',
+  'Volvo',
+  'Iveco',
+  'Scania',
+  'MAN',
+  'DAF',
+  'Caterpillar',
+  'Komatsu',
+  'JCB',
+  'Kubota',
+  'John Deere',
+  'AGCO',
+  'CNH Industrial',
+  'Briggs & Stratton',
+  'Honda',
+  'Yamaha',
+  'Kawasaki',
+  'Harley-Davidson',
+  'KTM',
+  'Ducati',
+  'BMW Motorrad',
+  'Triumph',
+  'Royal Enfield',
+  'Hero MotoCorp',
+  'Bajaj',
+  'TVS',
+  'Vespa',
+  'Piaggio',
+  'Others'
+].sort().filter((brand, index, array) => array.indexOf(brand) === index);
+
 export const ListingWizard: React.FC = () => {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
@@ -126,6 +266,7 @@ export const ListingWizard: React.FC = () => {
   const [error, setError] = useState('');
   const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  const [isCustomBrand, setIsCustomBrand] = useState(false);
   const locationInputRef = useRef<HTMLInputElement>(null);
 
   const updateFormData = (data: Partial<ListingFormData>) => {
@@ -353,13 +494,49 @@ export const ListingWizard: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Brand</label>
-                <input
-                  type="text"
-                  value={formData.brand || ''}
-                  onChange={(e) => updateFormData({ brand: e.target.value })}
-                  placeholder="e.g., Cerave"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                />
+                {!isCustomBrand ? (
+                  <select
+                    value={formData.brand || ''}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === 'Others') {
+                        setIsCustomBrand(true);
+                        updateFormData({ brand: '' });
+                      } else {
+                        updateFormData({ brand: value });
+                      }
+                    }}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  >
+                    <option value="">Select brand</option>
+                    {COMMON_BRANDS.filter(b => b !== 'Others').map((brand) => (
+                      <option key={brand} value={brand}>
+                        {brand}
+                      </option>
+                    ))}
+                    <option value="Others">Others - Custom</option>
+                  </select>
+                ) : (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={formData.brand || ''}
+                      onChange={(e) => updateFormData({ brand: e.target.value })}
+                      placeholder="Enter your brand"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsCustomBrand(false);
+                        updateFormData({ brand: '' });
+                      }}
+                      className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      Back to list
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div>
