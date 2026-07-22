@@ -194,7 +194,7 @@ export const listingsService = {
     },
 
     async getCategoryAttributes(slug: string): Promise<any> {
-        const response = await api.get(`/listings/categories/${slug}/attributes/`);
+        const response = await api.get(`/listings/categories/${slug}/attributes`);
         return response.data;
     },
 
