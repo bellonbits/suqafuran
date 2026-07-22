@@ -6,7 +6,7 @@ from sqlmodel import Field, SQLModel, Relationship
 class SubcategoryBase(SQLModel):
     category_id: int = Field(foreign_key="category.id", index=True)
     name_en: str
-    name_so: str
+    name_so: Optional[str] = None
     slug: str = Field(unique=True, index=True)
     icon_name: Optional[str] = None
     image_url: Optional[str] = None
