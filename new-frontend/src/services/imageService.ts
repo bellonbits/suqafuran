@@ -5,7 +5,7 @@ export const imageService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await api.post('/listings/upload/', formData);
+    const response = await api.post('/listings/upload', formData);
 
     return response.data;
   },
@@ -16,7 +16,7 @@ export const imageService = {
       formData.append('files', file);
     });
 
-    const response = await api.post('/listings/upload-multiple/', formData);
+    const response = await api.post('/listings/upload-multiple', formData);
 
     return response.data;
   },
@@ -25,7 +25,7 @@ export const imageService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await api.post('/listings/upload-video/', formData);
+    const response = await api.post('/listings/upload-video', formData);
 
     return response.data;
   },
