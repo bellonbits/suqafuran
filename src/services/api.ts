@@ -27,6 +27,11 @@ api.interceptors.request.use(
             delete config.headers['Content-Type'];
         }
 
+        // Increase timeout for file uploads
+        if (config.url?.includes('/upload')) {
+            config.timeout = 300000; // 5 minutes for file uploads
+        }
+
         // Layer 1.1: Advanced Device Fingerprinting (Sync Signals)
         const fingerprintData = {
             ua: navigator.userAgent,
