@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { useAuthStore } from '../store/useAuth';
-import { useAuthModal } from '../store/useAuthModal';
+import { useAuthStore } from '@/store/useAuth';
+import { useAuthModal } from '@/store/useAuthModal';
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -59,9 +59,13 @@ const api = axios.create({
 
 api.interceptors.request.use(
     (config) => {
-        const token = useAuthStore.getState().token;
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+        try {
+            const token = useAuthStore.getState().token;
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+        } catch (err) {
+            console.error('Failed to retrieve auth token:', err);
         }
 
         // Let browser handle content-type for FormData (multipart/form-data with boundary)
@@ -106,12 +110,16 @@ api.interceptors.response.use(
     (response) => response,
     async (error) => {
         if (error.response?.status === 401) {
-            const wasAuthenticated = useAuthStore.getState().isAuthenticated;
-            useAuthStore.getState().logout();
-            // Surface the sign-in modal in place rather than yanking the user to a
-            // different page and losing whatever they were doing.
-            if (wasAuthenticated) {
-                useAuthModal.getState().open('signin');
+            try {
+                const wasAuthenticated = useAuthStore.getState().isAuthenticated;
+                useAuthStore.getState().logout();
+                // Surface the sign-in modal in place rather than yanking the user to a
+                // different page and losing whatever they were doing.
+                if (wasAuthenticated) {
+                    useAuthModal.getState().open('signin');
+                }
+            } catch (err) {
+                console.error('Failed to handle auth error:', err);
             }
         }
         return Promise.reject(error);
