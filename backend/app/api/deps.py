@@ -17,6 +17,13 @@ reusable_oauth2 = OAuth2PasswordBearer(
     auto_error=False
 )
 
+def get_token_from_header(request: Request) -> Optional[str]:
+    """Extract Bearer token from Authorization header."""
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        return auth_header[7:]  # Remove "Bearer " prefix
+    return None
+
 
 def get_db() -> Generator:
     with DbSession(engine) as session:
@@ -24,33 +31,51 @@ def get_db() -> Generator:
 
 
 def get_current_user(
+    request: Request,
     db: Session = Depends(get_db),
     token: Optional[str] = Depends(reusable_oauth2),
 ) -> User:
-    # Token is extracted from query params by middleware and added to Authorization header
-    # So reusable_oauth2 will get it from there
+    # Try to get token from both reusable_oauth2 and direct Authorization header
+    final_token = token or get_token_from_header(request)
 
-    if not token:
+    if not final_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
         )
     try:
         payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+            final_token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
         )
         token_data = payload.get("sub")
-    except (jwt.JWTError, ValidationError):
+        if not token_data:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token payload",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    except jwt.JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except ValidationError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
     user = db.get(User, token_data)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Bind user context to logs
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     structlog.contextvars.bind_contextvars(
         user_id=user.id,
         user_email=user.email,
@@ -61,16 +86,17 @@ def get_current_user(
 
 
 def get_current_user_optional(
+    request: Request,
     db: Session = Depends(get_db),
     token: Optional[str] = Depends(reusable_oauth2),
 ) -> Optional[User]:
-    # Token is extracted from query params by middleware and added to Authorization header
-    
-    if not token:
+    final_token = token or get_token_from_header(request)
+
+    if not final_token:
         return None
     try:
         payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+            final_token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
         )
         token_data = payload.get("sub")
         if not token_data:

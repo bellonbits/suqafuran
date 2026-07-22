@@ -33,6 +33,8 @@ async def upload_image(
     """
     Upload a single image for a listing.
     """
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file provided")
 
@@ -67,6 +69,8 @@ async def upload_multiple_images(
     Upload multiple images for a listing.
     Returns list of uploaded image info with url and filename.
     """
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
     if not files:
         raise HTTPException(status_code=400, detail="No files provided")
 
@@ -109,6 +113,8 @@ async def upload_video(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """Upload a video for a listing (up to 100 MB)."""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file provided")
 
