@@ -157,7 +157,7 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
             <div className="absolute bottom-2.5 left-3 w-10 h-10 rounded-full bg-white dark:bg-slate-900 border-2 border-white dark:border-slate-700 shadow-md overflow-hidden flex items-center justify-center">
               {(shop.logo_url || shop.owner_avatar_url) ? (
                 <img
-                  src={shop.logo_url || shop.owner_avatar_url || ''}
+                  src={resolveMediaUrl(shop.logo_url || shop.owner_avatar_url) || ''}
                   alt={shop.shop_name}
                   className="w-full h-full object-cover"
                   onError={(e) => {
