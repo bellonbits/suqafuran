@@ -3,7 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Backgro
 from sqlmodel import Session, select, func
 from app.api import deps
 from app.crud import crud_listing
-from app.models.listing import Listing, ListingBase, ListingRead, Category, SubCategory, SubSubCategory
+from app.models.listing import Listing, ListingBase, ListingRead, Category, SubSubCategory
+from app.models.subcategory import Subcategory
 from app.core.metrics import LISTINGS_CREATED_TOTAL
 from app.models.user import User
 from app.models.audit import AuditLog
@@ -305,18 +306,16 @@ def create_subcategory(
     """
     Create a new subcategory (Admin only).
     """
-    from app.models.listing import SubCategory
     # Check if slug exists
     if crud_listing.get_subcategory_by_slug(db, subcategory_in["slug"]):
         raise HTTPException(status_code=400, detail="Subcategory slug already exists")
-    
-    subcat = SubCategory(
+
+    subcat = Subcategory(
         name_en=subcategory_in["name_en"],
         name_so=subcategory_in.get("name_so"),
         slug=subcategory_in["slug"],
         image_url=subcategory_in.get("image_url"),
         category_id=subcategory_in["category_id"],
-        attributes_schema=subcategory_in.get("attributes_schema", {})
     )
     result = crud_listing.create_subcategory(db, subcategory_in=subcat)
     cache.delete_pattern("cache:categories:*")
@@ -334,8 +333,7 @@ def update_subcategory(
     """
     Update a subcategory (Admin only).
     """
-    from app.models.listing import SubCategory
-    subcat = db.get(SubCategory, id)
+    subcat = db.get(Subcategory, id)
     if not subcat:
         raise HTTPException(status_code=404, detail="Subcategory not found")
     

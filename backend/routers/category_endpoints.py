@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from typing import List, Optional
 
-from app.models.listing import Category, SubCategory, SubSubCategory
+from app.models.listing import Category, SubSubcategory
+from app.models.subcategory import Subcategory
 from app.models.user import User
 from app.db import get_session
 from app.utils.security import get_current_user, require_admin
@@ -30,7 +31,7 @@ async def list_categories(
         query = select(Category)
     else:
         # Get subcategories for a parent
-        query = select(SubCategory).where(SubCategory.category_id == parent_id)
+        query = select(Subcategory).where(Subcategory.category_id == parent_id)
 
     items = session.exec(query).all()
 
@@ -58,7 +59,7 @@ async def get_category(
         raise HTTPException(status_code=404, detail="Category not found")
 
     subcategories = session.exec(
-        select(SubCategory).where(SubCategory.category_id == category_id)
+        select(Subcategory).where(Subcategory.category_id == category_id)
     ).all()
 
     return {
@@ -93,7 +94,7 @@ async def get_subcategories(
         raise HTTPException(status_code=404, detail="Category not found")
 
     subcategories = session.exec(
-        select(SubCategory).where(SubCategory.category_id == category_id)
+        select(Subcategory).where(Subcategory.category_id == category_id)
     ).all()
 
     return [
@@ -183,15 +184,15 @@ async def create_subcategory(
 
     # Check if slug already exists for this category
     existing = session.exec(
-        select(SubCategory).where(
-            SubCategory.category_id == category_id,
-            SubCategory.slug == slug
+        select(Subcategory).where(
+            Subcategory.category_id == category_id,
+            Subcategory.slug == slug
         )
     ).first()
     if existing:
         raise HTTPException(status_code=409, detail="Slug already exists in this category")
 
-    subcategory = SubCategory(
+    subcategory = Subcategory(
         category_id=category_id,
         name_en=name_en,
         name_so=name_so,
@@ -262,7 +263,7 @@ async def delete_category(
 
     # Check if has subcategories
     sub_count = session.exec(
-        select(SubCategory).where(SubCategory.category_id == category_id)
+        select(Subcategory).where(Subcategory.category_id == category_id)
     ).first()
     if sub_count:
         raise HTTPException(status_code=409, detail="Category has subcategories - delete them first")

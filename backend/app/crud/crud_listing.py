@@ -1,7 +1,8 @@
 from typing import List, Optional
 from sqlmodel import Session, select, func
 from sqlalchemy.orm import selectinload
-from app.models.listing import Listing, ListingBase, Category, SubCategory, SubSubCategory
+from app.models.listing import Listing, ListingBase, Category, SubSubcategory
+from app.models.subcategory import Subcategory
 
 
 def get_listing(db: Session, id: int) -> Optional[Listing]:
@@ -68,9 +69,9 @@ def get_listings(
         
         if subcategory_name and category_id:
             sc = db.exec(
-                select(SubCategory).where(
-                    SubCategory.category_id == category_id,
-                    (SubCategory.name_en == subcategory_name) | (SubCategory.name_so == subcategory_name),
+                select(Subcategory).where(
+                    Subcategory.category_id == category_id,
+                    (Subcategory.name_en == subcategory_name) | (Subcategory.name_so == subcategory_name),
                 )
             ).first()
             if sc:
@@ -79,9 +80,9 @@ def get_listings(
                 # If we also have a subsubcategory name, filter by it under the found subcategory
                 if subsubcategory_name:
                     ssc = db.exec(
-                        select(SubSubCategory).where(
-                            SubSubCategory.subcategory_id == sc.id,
-                            (SubSubCategory.name_en == subsubcategory_name) | (SubSubCategory.name_so == subsubcategory_name),
+                        select(SubSubcategory).where(
+                            SubSubcategory.subcategory_id == sc.id,
+                            (SubSubcategory.name_en == subsubcategory_name) | (SubSubcategory.name_so == subsubcategory_name),
                         )
                     ).first()
                     if ssc:
@@ -130,7 +131,7 @@ def remove_listing(db: Session, *, id: int) -> Listing:
 def get_categories(db: Session) -> List[Category]:
     return db.exec(
         select(Category).options(
-            selectinload(Category.subcategories).selectinload(SubCategory.subsubcategories)
+            selectinload(Category.subcategories).selectinload(Subcategory.subsubcategories)
         )
     ).all()
 
@@ -153,17 +154,17 @@ def remove_category(db: Session, *, id: int) -> Category:
     return obj
 
 
-def get_subcategories(db: Session, *, category_id: Optional[int] = None) -> List[SubCategory]:
-    from app.models.listing import SubCategory
-    statement = select(SubCategory)
+def get_subcategories(db: Session, *, category_id: Optional[int] = None) -> List[Subcategory]:
+    from app.models.listing import Subcategory
+    statement = select(Subcategory)
     if category_id:
-        statement = statement.where(SubCategory.category_id == category_id)
+        statement = statement.where(Subcategory.category_id == category_id)
     return db.exec(statement).all()
 
 
-def get_subcategory_by_slug(db: Session, slug: str) -> Optional[SubCategory]:
-    from app.models.listing import SubCategory
-    return db.exec(select(SubCategory).where(SubCategory.slug == slug)).first()
+def get_subcategory_by_slug(db: Session, slug: str) -> Optional[Subcategory]:
+    from app.models.listing import Subcategory
+    return db.exec(select(Subcategory).where(Subcategory.slug == slug)).first()
 
 
 def create_subcategory(db: Session, *, subcategory_in: any) -> any:
@@ -184,8 +185,8 @@ def update_subcategory(db: Session, *, db_obj: any, subcategory_in: dict) -> any
 
 
 def remove_subcategory(db: Session, *, id: int) -> any:
-    from app.models.listing import SubCategory
-    obj = db.get(SubCategory, id)
+    from app.models.listing import Subcategory
+    obj = db.get(Subcategory, id)
     db.delete(obj)
     db.commit()
     return obj
