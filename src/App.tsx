@@ -370,9 +370,8 @@ const App: React.FC = () => {
             {/* Protected Routes */}
             <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
               <Route path="/dashboard" element={<OverviewDashboard />} />
-              <Route path="/post-ad" element={<ListingFormPage />} />
               <Route path="/sell" element={<ListingFormPage />} />
-              <Route path="/edit-ad/:id" element={<ListingFormPage />} />
+              <Route path="/sell/:listingId" element={<ListingFormPage />} />
               <Route path="/listings/:listingId" element={<ListingDetailPage />} />
               <Route path="/my-ads" element={<MyAdsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
