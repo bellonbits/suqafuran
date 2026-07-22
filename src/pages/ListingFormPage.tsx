@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ChevronLeft, Trash2 } from 'lucide-react';
 import api from '@/services/api';
 import ListingAttributeForm from '@/components/ListingAttributeForm';
 import StepIndicator from '@/components/StepIndicator';
@@ -532,9 +533,10 @@ const ListingFormPage: React.FC = () => {
                 type="button"
                 onClick={handlePrevStep}
                 disabled={step === 'details'}
-                className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2"
               >
-                ← Back
+                <ChevronLeft size={18} />
+                Back
               </button>
 
               {step === 'submit' ? (

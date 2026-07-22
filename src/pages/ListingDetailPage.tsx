@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ChevronLeft, MapPin, CheckCircle, AlertTriangle } from 'lucide-react';
 import api from '@/services/api';
 
 interface Listing {
@@ -94,7 +95,8 @@ const ListingDetailPage: React.FC = () => {
             onClick={() => navigate(-1)}
             className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
           >
-            ← Back
+            <ChevronLeft size={20} />
+            Back
           </button>
           <div className="flex gap-3">
             <button
@@ -187,7 +189,8 @@ const ListingDetailPage: React.FC = () => {
                   {listing.title_en}
                 </h2>
                 <p className="text-gray-600 flex items-center gap-2">
-                  📍 {listing.location}
+                  <MapPin size={18} />
+                  {listing.location}
                 </p>
               </div>
 
@@ -210,7 +213,8 @@ const ListingDetailPage: React.FC = () => {
                       </p>
                       {listing.owner.is_verified && (
                         <p className="text-green-600 text-xs flex items-center gap-1">
-                          ✓ Verified
+                          <CheckCircle size={14} />
+                          Verified
                         </p>
                       )}
                     </div>
@@ -263,7 +267,10 @@ const ListingDetailPage: React.FC = () => {
 
         {/* Safety Tips */}
         <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-          <p className="font-semibold text-yellow-900 mb-2">⚠️ Safety Tips</p>
+          <p className="font-semibold text-yellow-900 mb-2 flex items-center gap-2">
+            <AlertTriangle size={20} />
+            Safety Tips
+          </p>
           <ul className="text-sm text-yellow-800 space-y-1">
             <li>• Meet in public places</li>
             <li>• Inspect the item before making payment</li>
