@@ -255,7 +255,8 @@ export const sellerDashboardService = {
     const fd = new FormData();
     files.forEach(f => fd.append('files', f));
     const res = await api.post('/listings/upload-multiple', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-    return res.data.urls || res.data;
+    const data = Array.isArray(res.data) ? res.data : res.data.urls || [];
+    return data.map((item: any) => item.url || item);
   },
 
   async getCategories(): Promise<any[]> {

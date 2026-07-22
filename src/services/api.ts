@@ -21,7 +21,12 @@ api.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
-        
+
+        // Let browser handle content-type for FormData (multipart/form-data with boundary)
+        if (config.data instanceof FormData) {
+            delete config.headers['Content-Type'];
+        }
+
         // Layer 1.1: Advanced Device Fingerprinting (Sync Signals)
         const fingerprintData = {
             ua: navigator.userAgent,
@@ -32,7 +37,7 @@ api.interceptors.request.use(
             hc: navigator.hardwareConcurrency || 'unknown'
         };
         config.headers['X-Device-Fingerprint'] = btoa(JSON.stringify(fingerprintData));
-        
+
         return config;
     },
     (error) => Promise.reject(error)

@@ -122,24 +122,20 @@ const ListingFormPage: React.FC = () => {
     loadData();
   }, [isEditing, listingId]);
 
-  // Load subcategories when category changes
+  // Extract subcategories from selected category
   useEffect(() => {
     if (!formData.category_id) {
       setSubcategories([]);
       return;
     }
 
-    const fetchSubcategories = async () => {
-      try {
-        const response = await api.get(`/subcategories?category_id=${formData.category_id}`);
-        setSubcategories(response.data);
-      } catch (err) {
-        console.error('Failed to load subcategories:', err);
-      }
-    };
-
-    fetchSubcategories();
-  }, [formData.category_id]);
+    const selectedCategory = categories.find((cat) => cat.id.toString() === formData.category_id);
+    if (selectedCategory && selectedCategory.subcategories) {
+      setSubcategories(selectedCategory.subcategories);
+    } else {
+      setSubcategories([]);
+    }
+  }, [formData.category_id, categories]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
