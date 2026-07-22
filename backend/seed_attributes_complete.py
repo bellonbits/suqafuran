@@ -279,16 +279,22 @@ def seed_attributes():
 
                 # Assign attribute to category
                 if isinstance(cat_id, int):
-                    conn.execute(text("""
-                        INSERT INTO category_attribute (category_id, attribute_id, required, sort_order)
-                        VALUES (:cat_id, :attr_id, :required, :sort_order)
-                        ON CONFLICT (category_id, attribute_id) DO NOTHING
-                    """), {
-                        "cat_id": int(cat_id),
-                        "attr_id": attr_id,
-                        "required": attr_cfg.get("required", False),
-                        "sort_order": list(cat_config.get("attributes", [])).index(attr_cfg)
-                    })
+                    # Check if already exists
+                    existing = conn.execute(text("""
+                        SELECT id FROM category_attribute
+                        WHERE category_id = :cat_id AND attribute_id = :attr_id
+                    """), {"cat_id": int(cat_id), "attr_id": attr_id}).first()
+
+                    if not existing:
+                        conn.execute(text("""
+                            INSERT INTO category_attribute (category_id, attribute_id, required, sort_order)
+                            VALUES (:cat_id, :attr_id, :required, :sort_order)
+                        """), {
+                            "cat_id": int(cat_id),
+                            "attr_id": attr_id,
+                            "required": attr_cfg.get("required", False),
+                            "sort_order": list(cat_config.get("attributes", [])).index(attr_cfg)
+                        })
 
         conn.commit()
         print(f"✅ Created {attr_count} attributes")
