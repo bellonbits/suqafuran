@@ -73,7 +73,7 @@ api.interceptors.request.use(
 
         // Override timeout for slow endpoints
         if (config.url?.includes('/listings/upload')) {
-            config.timeout = 300000; // 5 minutes for file uploads (can be slow)
+            config.timeout = 120000; // 2 minutes for file uploads
         } else if (config.url?.includes('/listings/')) {
             config.timeout = 60000; // 60s for listings queries (database is slow)
         } else if (config.url?.includes('/admin/shops')) {

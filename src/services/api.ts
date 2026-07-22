@@ -29,7 +29,7 @@ api.interceptors.request.use(
 
         // Increase timeout for file uploads
         if (config.url?.includes('/upload')) {
-            config.timeout = 300000; // 5 minutes for file uploads
+            config.timeout = 120000; // 2 minutes for file uploads
         }
 
         // Layer 1.1: Advanced Device Fingerprinting (Sync Signals)

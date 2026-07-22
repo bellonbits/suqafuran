@@ -50,15 +50,14 @@ async def upload_image(
     try:
         url, phash = await storage_service.upload_file(contents, filename)
 
-        # AI Image Intelligence moved to background
-        from app.services.ai_service import ai_service
-        background_tasks.add_task(ai_service.analyze_image, url)
+        # AI Image Intelligence disabled for faster uploads
+        # from app.services.ai_service import ai_service
+        # background_tasks.add_task(ai_service.analyze_image, url)
 
         return {
             "filename": filename,
             "url": url,
-            "phash": phash,
-            "analysis": "processing_in_background"
+            "phash": phash
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")
