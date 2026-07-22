@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '@/services/api';
+import { useRouter } from 'next/navigation';
+import axios from 'axios';
 
 interface FilterOption {
   value: string;
@@ -52,7 +52,7 @@ const ListingSearch: React.FC<ListingSearchProps> = ({
   subcategoryId,
   onResultsChange,
 }) => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
@@ -70,7 +70,7 @@ const ListingSearch: React.FC<ListingSearchProps> = ({
 
     const fetchFilters = async () => {
       try {
-        const response = await api.get(`/attribute-filters/${categoryId}`);
+        const response = await axios.get(`/api/v1/attribute-filters/${categoryId}`);
         setFilterConfig(response.data);
       } catch (err) {
         console.error('Failed to load filters:', err);
@@ -102,7 +102,7 @@ const ListingSearch: React.FC<ListingSearchProps> = ({
         params.append('attributes', JSON.stringify(attributeFilters));
       }
 
-      const response = await api.get(`/listings/search`, { params });
+      const response = await axios.get(`/api/v1/listings/search`, { params });
       setResults(response.data);
       onResultsChange?.(response.data);
     } catch (err) {
@@ -243,7 +243,7 @@ const ListingSearch: React.FC<ListingSearchProps> = ({
               {results.map((listing) => (
                 <div
                   key={listing.id}
-                  onClick={() => navigate(`/listings/${listing.id}`)}
+                  onClick={() => router.push(`/listings/${listing.id}`)}
                   className="bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer overflow-hidden"
                 >
                   {/* Image */}
