@@ -242,7 +242,7 @@ def seed_attributes():
                 if "condition" in attr_cfg["slug"]:
                     group_id = group_map["condition"]
                 elif any(x in attr_cfg["slug"] for x in ["processor", "ram", "storage", "screen", "graphics"]):
-                    group_id = group_map["technical specs"]
+                    group_id = group_map["technical-specs"]
                 elif "details" in cat_config["name"].lower():
                     group_id = group_map["details"]
 
