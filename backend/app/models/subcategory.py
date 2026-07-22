@@ -19,7 +19,7 @@ class Subcategory(SubcategoryBase, table=True):
     status: str = Field(default="active")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    attributes_schema: dict = Field(default={}, sa_column=Column(JSON))
+    attributes_schema: Optional[dict] = Field(default=None, sa_column=Column(JSON))
 
 
 class SubcategoryCreate(SubcategoryBase):
@@ -46,4 +46,4 @@ class SubcategoryRead(SQLModel):
     status: str
     created_at: datetime
     updated_at: datetime
-    attributes_schema: dict = {}
+    attributes_schema: Optional[dict] = Field(default=None)

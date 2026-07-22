@@ -448,20 +448,19 @@ def read_subcategory_attributes(
 ) -> Any:
     """
     Get dynamic attribute schema for a specific subcategory.
-    Currently returns an empty dict or brand list if defined.
+    Returns an empty dict if no attributes defined.
     """
     subcategory = db.get(Subcategory, id)
     if not subcategory:
         raise HTTPException(status_code=404, detail="Subcategory not found")
-    # Return attributes_schema if it exists, otherwise empty dict
-    attrs = getattr(subcategory, 'attributes_schema', {})
+    attrs = subcategory.attributes_schema
     if isinstance(attrs, str):
         try:
             import json
             attrs = json.loads(attrs)
         except:
             attrs = {}
-    return attrs or {}
+    return attrs if attrs else {}
 
 
 @router.get("/subsubcategories/{id}/attributes", response_model=dict)
@@ -472,20 +471,19 @@ def read_subsubcategory_attributes(
 ) -> Any:
     """
     Get dynamic attribute schema for a specific sub-subcategory.
-    Currently returns an empty dict or brand list if defined.
+    Returns an empty dict if no attributes defined.
     """
     subsubcategory = db.get(SubSubCategory, id)
     if not subsubcategory:
         raise HTTPException(status_code=404, detail="Sub-subcategory not found")
-    # Return attributes_schema if it exists, otherwise empty dict
-    attrs = getattr(subsubcategory, 'attributes_schema', {})
+    attrs = subsubcategory.attributes_schema
     if isinstance(attrs, str):
         try:
             import json
             attrs = json.loads(attrs)
         except:
             attrs = {}
-    return attrs or {}
+    return attrs if attrs else {}
 
 
 @router.get("/me", response_model=List[ListingRead])
