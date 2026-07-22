@@ -56,24 +56,6 @@ def get_current_user(
         user_email=user.email,
         is_admin=user.is_admin
     )
-    
-    # Layer 1.1: Capture Signals
-    changed = False
-    if request:
-        fingerprint = request.headers.get("X-Device-Fingerprint")
-        if fingerprint and user.device_fingerprint != fingerprint:
-            user.device_fingerprint = fingerprint
-            changed = True
-        
-        ip = request.client.host
-        if ip and user.last_ip != ip:
-            user.last_ip = ip
-            changed = True
-            
-    if changed:
-        db.add(user)
-        db.commit()
-        db.refresh(user)
 
     return user
 
