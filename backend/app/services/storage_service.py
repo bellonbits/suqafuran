@@ -74,13 +74,13 @@ class CloudinaryStorage:
             upload_format = None
             transformation = None
         elif not is_video and not is_pdf:
-            # Resize in thread pool — CPU-bound
-            resized = await asyncio.to_thread(_resize_to_bytes, file_content)
+            # Skip resize for fast uploads — let Cloudinary handle transformations
+            resized = file_content
             # phash runs in background after we return — don't block the response
             phash_task = asyncio.create_task(asyncio.to_thread(calculate_phash, file_content))
             resource_type = "image"
-            upload_format = "webp"
-            transformation = [{"quality": "auto", "fetch_format": "auto"}]
+            upload_format = None
+            transformation = [{"quality": "auto", "fetch_format": "auto", "width": 1200, "crop": "scale"}]
         elif is_pdf:
             resized = file_content
             phash_task = None
