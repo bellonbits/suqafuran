@@ -84,12 +84,12 @@ async def logging_middleware(request: Request, call_next):
 
 @app.middleware("http")
 async def query_token_to_header_middleware(request: Request, call_next):
-    """Extract token from query params and add to Authorization header."""
+    """Extract token from query params and add to Authorization header in ASGI scope."""
     if "token" in request.query_params and "authorization" not in request.headers:
         token = request.query_params["token"]
-        from starlette.datastructures import MutableHeaders
-        headers = MutableHeaders(request.headers)
-        headers["authorization"] = f"Bearer {token}"
+        raw_headers = list(request.scope.get("headers", []))
+        raw_headers.append((b"authorization", f"Bearer {token}".encode("latin-1")))
+        request.scope["headers"] = raw_headers
     response = await call_next(request)
     return response
 

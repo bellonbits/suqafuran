@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Body, BackgroundTasks, Re
 from sqlmodel import Session
 from app.api import deps
 from app.crud import crud_user
-from app.models.user import UserCreate, User, UserUpdate, PasswordChange
+from app.models.user import UserCreate, User, UserUpdate, PasswordChange, UserResponse
 from app.utils.email import send_verification_email
 from app.utils.redis import set_verification_code, get_verification_code, delete_verification_code
 from app.services.storage_service import storage_service
@@ -17,7 +17,7 @@ def generate_verification_code(length: int = 6) -> str:
     return "".join(secrets.choice(string.digits) for _ in range(length))
 
 
-@router.post("/signup", response_model=User)
+@router.post("/signup", response_model=UserResponse)
 def create_user_signup(
     *,
     db: Session = Depends(deps.get_db),
@@ -75,7 +75,7 @@ def create_user_signup(
     return user
 
 
-@router.get("/me", response_model=User)
+@router.get("/me", response_model=UserResponse)
 def read_user_me(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
@@ -129,7 +129,7 @@ def track_user_view(
     return {"message": "View tracked"}
 
 
-@router.patch("/me", response_model=User)
+@router.patch("/me", response_model=UserResponse)
 def update_user_me(
     *,
     db: Session = Depends(deps.get_db),
@@ -198,7 +198,7 @@ def remove_device_token(
     return {"status": "ok"}
 
 
-@router.post("/me/avatar", response_model=User)
+@router.post("/me/avatar", response_model=UserResponse)
 async def upload_avatar(
     *,
     db: Session = Depends(deps.get_db),

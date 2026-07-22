@@ -127,3 +127,10 @@ class UserUpdate(SQLModel):
 class PasswordChange(SQLModel):
     current_password: str
     new_password: str
+
+
+class UserResponse(UserBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
