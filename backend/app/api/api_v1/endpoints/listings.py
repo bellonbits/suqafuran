@@ -12,7 +12,6 @@ from app.models.marketing_code import MarketingCode
 from app.services.cache_service import cache
 from app.services.security_service import security_service
 from app.services.moderation_service import moderation_service
-from app.services.ai_service import ai_service
 from app.core.security import risk_security
 from app.core.config import settings
 import uuid
@@ -49,11 +48,6 @@ async def upload_image(
 
     try:
         url, phash = await storage_service.upload_file(contents, filename)
-
-        # AI Image Intelligence disabled for faster uploads
-        # from app.services.ai_service import ai_service
-        # background_tasks.add_task(ai_service.analyze_image, url)
-
         return {
             "filename": filename,
             "url": url,
@@ -648,9 +642,6 @@ async def create_listing(
             if duplicates > 0:
                 flags.append("duplicate_image_detected")
                 break
-    
-    # Layer 4: AI Analysis
-    ai_mod = ai_service.check_moderation(listing_in.dict())
     
     # Layer 6: Status Logic
     status = "active"
