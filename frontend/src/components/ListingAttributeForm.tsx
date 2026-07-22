@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '@/services/api';
 
 interface AttributeOption {
   id: number;
@@ -56,18 +56,18 @@ const ListingAttributeForm: React.FC<ListingAttributeFormProps> = ({
       try {
         let endpoint = '';
         if (subcategoryId) {
-          endpoint = `/api/v1/category-attributes/subcategory/${subcategoryId}`;
+          endpoint = `/category-attributes/subcategory/${subcategoryId}`;
         } else {
-          endpoint = `/api/v1/category-attributes/category/${categoryId}`;
+          endpoint = `/category-attributes/category/${categoryId}`;
         }
 
-        const response = await axios.get(endpoint);
+        const response = await api.get(endpoint);
         const categoryAttrs: CategoryAttribute[] = response.data;
 
         // Fetch full attribute details
         const attrIds = categoryAttrs.map((ca) => ca.attribute_id);
         const attrResponses = await Promise.all(
-          attrIds.map((id) => axios.get(`/api/v1/attributes/${id}`))
+          attrIds.map((id) => api.get(`/attributes/${id}`))
         );
 
         const attrs = attrResponses.map((r) => r.data).sort((a, b) => {

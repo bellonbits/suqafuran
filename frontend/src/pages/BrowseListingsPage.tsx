@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useSearchParams } from 'react-router-dom';
+import api from '@/services/api';
 import ListingSearch from '@/components/ListingSearch';
 
 interface Category {
@@ -22,7 +22,7 @@ const BrowseListingsPage: React.FC = () => {
     const fetchCategories = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('/api/v1/listings/categories');
+        const response = await api.get('/listings/categories');
         setCategories(response.data);
       } catch (err) {
         console.error('Failed to load categories:', err);

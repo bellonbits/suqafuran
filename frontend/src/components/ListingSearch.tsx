@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import api from '@/services/api';
 
 interface FilterOption {
   value: string;
@@ -70,7 +70,7 @@ const ListingSearch: React.FC<ListingSearchProps> = ({
 
     const fetchFilters = async () => {
       try {
-        const response = await axios.get(`/api/v1/attribute-filters/${categoryId}`);
+        const response = await api.get(`/attribute-filters/${categoryId}`);
         setFilterConfig(response.data);
       } catch (err) {
         console.error('Failed to load filters:', err);
@@ -102,7 +102,7 @@ const ListingSearch: React.FC<ListingSearchProps> = ({
         params.append('attributes', JSON.stringify(attributeFilters));
       }
 
-      const response = await axios.get(`/api/v1/listings/search`, { params });
+      const response = await api.get(`/listings/search`, { params });
       setResults(response.data);
       onResultsChange?.(response.data);
     } catch (err) {

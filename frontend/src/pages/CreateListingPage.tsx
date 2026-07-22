@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '@/services/api';
 import ListingAttributeForm from '@/components/ListingAttributeForm';
 
 interface Category {
@@ -44,7 +44,7 @@ const CreateListingPage: React.FC = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get('/api/v1/listings/categories');
+        const response = await api.get('/listings/categories');
         setCategories(response.data);
       } catch (err) {
         setError('Failed to load categories');
@@ -104,7 +104,7 @@ const CreateListingPage: React.FC = () => {
         const formDataImg = new FormData();
         formDataImg.append('file', files[i]);
 
-        const response = await axios.post('/api/v1/listings/upload', formDataImg, {
+        const response = await api.post('/listings/upload', formDataImg, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
 
@@ -151,7 +151,7 @@ const CreateListingPage: React.FC = () => {
         attributes,
       };
 
-      const response = await axios.post('/api/v1/listings', payload);
+      const response = await api.post('/listings', payload);
 
       setSuccess('Listing created successfully!');
       setFormData({
