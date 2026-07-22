@@ -28,10 +28,10 @@ def get_current_user(
     token: Optional[str] = Depends(reusable_oauth2),
     request: Request = None
 ) -> User:
-    # Try getting token from: cookie → header → query param
+    # Try getting token from cookie first
     if request:
-        token = request.cookies.get("access_token") or token or request.query_params.get("token")
-
+        token = request.cookies.get("access_token") or token
+    
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
