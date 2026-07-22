@@ -109,13 +109,16 @@ async def upload_multiple_images(
     return results
 
 
-@router.post("/upload-video")
+@router.post("/upload-video", response_model=dict)
 async def upload_video(
     *,
     file: UploadFile = File(...),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """Upload a video for a listing (up to 100 MB)."""
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+
     extension = file.filename.split(".")[-1].lower()
     if extension not in settings.ALLOWED_VIDEO_EXTENSIONS:
         raise HTTPException(status_code=400, detail="Video format not supported. Use mp4, webm, or mov.")
