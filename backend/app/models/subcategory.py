@@ -35,5 +35,15 @@ class SubcategoryUpdate(SQLModel):
     status: Optional[str] = None
 
 
-class SubcategoryRead(Subcategory):
-    pass
+class SubcategoryRead(SQLModel):
+    id: int
+    category_id: int
+    name_en: str
+    name_so: Optional[str] = None
+    slug: str
+    icon_name: Optional[str] = None
+    image_url: Optional[str] = None
+    status: str
+    created_at: datetime
+    updated_at: datetime
+    attributes_schema: dict = {}
