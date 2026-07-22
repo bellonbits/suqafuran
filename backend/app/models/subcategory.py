@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from sqlmodel import Field, SQLModel, Relationship
+from sqlalchemy import Column, JSON
 
 
 class SubcategoryBase(SQLModel):
@@ -10,6 +11,7 @@ class SubcategoryBase(SQLModel):
     slug: str = Field(unique=True, index=True)
     icon_name: Optional[str] = None
     image_url: Optional[str] = None
+    attributes_schema: dict = Field(default={}, sa_column=Column(JSON))
 
 
 class Subcategory(SubcategoryBase, table=True):

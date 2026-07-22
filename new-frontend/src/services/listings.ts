@@ -198,13 +198,13 @@ export const listingsService = {
         return response.data;
     },
 
-    async getSubcategoryAttributes(slug: string): Promise<any> {
-        const response = await api.get(`/listings/subcategories/${slug}/attributes`);
+    async getSubcategoryAttributes(id: number | string): Promise<any> {
+        const response = await api.get(`/listings/subcategories/${id}/attributes`);
         return response.data;
     },
 
-    async getSubsubcategoryAttributes(slug: string): Promise<any> {
-        const response = await api.get(`/listings/subsubcategories/${slug}/attributes`);
+    async getSubsubcategoryAttributes(id: number | string): Promise<any> {
+        const response = await api.get(`/listings/subsubcategories/${id}/attributes`);
         return response.data;
     },
 
