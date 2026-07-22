@@ -29,6 +29,21 @@ export interface ListingFormData {
   sku?: string;
 }
 
+interface CategoryData {
+  id: number;
+  name: string;
+  name_en?: string;
+  slug?: string;
+}
+
+interface SubcategoryData extends CategoryData {
+  category_id: number;
+}
+
+interface SubsubcategoryData extends SubcategoryData {
+  subcategory_id: number;
+}
+
 const STEPS = [
   { id: 1, number: '01', title: 'Category' },
   { id: 2, number: '02', title: 'Details' },
@@ -346,6 +361,7 @@ export const ListingWizard: React.FC = () => {
   const [isCustomBrand, setIsCustomBrand] = useState(false);
   const [categoryBrands, setCategoryBrands] = useState<string[]>([]);
   const [categorySubcategories, setCategorySubcategories] = useState<Array<{ id: number; name: string }>>([]);
+  const [subcategorySubsubcategories, setSubcategorySubsubcategories] = useState<Array<{ id: number; name: string }>>([]);
   const [allCategories, setAllCategories] = useState<Array<{ id: number; name: string; name_en?: string }>>([]);
   const locationInputRef = useRef<HTMLInputElement>(null);
 
@@ -369,6 +385,7 @@ export const ListingWizard: React.FC = () => {
   useEffect(() => {
     if (!formData.category_id) {
       setCategorySubcategories([]);
+      setSubcategorySubsubcategories([]);
       return;
     }
 
@@ -390,6 +407,30 @@ export const ListingWizard: React.FC = () => {
 
     fetchSubcategories();
   }, [formData.category_id]);
+
+  // Fetch subsubcategories when subcategory changes
+  useEffect(() => {
+    if (!formData.subcategory_id) {
+      setSubcategorySubsubcategories([]);
+      return;
+    }
+
+    const fetchSubsubcategories = async () => {
+      try {
+        const subsubcats = await listingsService.getSubsubcategories(formData.subcategory_id);
+        if (Array.isArray(subsubcats) && subsubcats.length > 0) {
+          setSubcategorySubsubcategories(subsubcats);
+        } else {
+          setSubcategorySubsubcategories([]);
+        }
+      } catch (err) {
+        console.error('Failed to fetch subsubcategories from API:', err);
+        setSubcategorySubsubcategories([]);
+      }
+    };
+
+    fetchSubsubcategories();
+  }, [formData.subcategory_id]);
 
   // Fetch category attributes to get brand options
   useEffect(() => {
@@ -413,46 +454,70 @@ export const ListingWizard: React.FC = () => {
         // Get default brands for this category
         const defaultBrands = BRANDS_BY_CATEGORY[formData.category_id] || [];
 
-        // Try to fetch from API
-        try {
-          const catName = category.name || category.name_en || '';
-          const slugFormats = [
-            catName.toLowerCase().replace(/\s+&\s+/g, '-and-').replace(/\s+/g, '-'),
-            catName.toLowerCase().replace(/\s+/g, '-'),
-            catName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-            category.slug || '', // Use slug from API if available
-          ].filter(Boolean);
+        // Try to fetch from API in this order: subsubcategory → subcategory → category
+        let response = null;
 
-          let response = null;
-          for (const slug of slugFormats) {
-            try {
-              response = await listingsService.getCategoryAttributes(slug);
-              break;
-            } catch (err) {
-              continue;
-            }
+        // 1. Try subsubcategory attributes first
+        if (formData.subsubcategory_id) {
+          try {
+            const subsubcatSlug = formData.subsubcategory_id.toString();
+            response = await listingsService.getSubsubcategoryAttributes(subsubcatSlug);
+          } catch (err) {
+            console.debug('Subsubcategory attributes not found');
           }
-
-          if (response) {
-            const brandAttribute = response.find(
-              (attr: any) => attr.name === 'brand' || attr.name.toLowerCase().includes('brand')
-            );
-
-            if (brandAttribute?.options && Array.isArray(brandAttribute.options)) {
-              const apiBrands = brandAttribute.options
-                .map((opt: any) => (typeof opt === 'string' ? opt : opt.value || opt.name))
-                .filter((b: string) => b.toLowerCase() !== 'other');
-              // Merge API brands with defaults, API takes priority
-              const mergedBrands = [...new Set([...apiBrands, ...defaultBrands])];
-              setCategoryBrands(mergedBrands);
-              return;
-            }
-          }
-        } catch (err) {
-          console.error('Failed to fetch category brands from API:', err);
         }
 
-        // Fallback to default brands for category
+        // 2. Try subcategory attributes
+        if (!response && formData.subcategory_id) {
+          try {
+            const subcatSlug = formData.subcategory_id.toString();
+            response = await listingsService.getSubcategoryAttributes(subcatSlug);
+          } catch (err) {
+            console.debug('Subcategory attributes not found');
+          }
+        }
+
+        // 3. Try category attributes
+        if (!response) {
+          try {
+            const catName = category.name || category.name_en || '';
+            const slugFormats = [
+              catName.toLowerCase().replace(/\s+&\s+/g, '-and-').replace(/\s+/g, '-'),
+              catName.toLowerCase().replace(/\s+/g, '-'),
+              catName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+              category.slug || '',
+            ].filter(Boolean);
+
+            for (const slug of slugFormats) {
+              try {
+                response = await listingsService.getCategoryAttributes(slug);
+                if (response) break;
+              } catch (err) {
+                continue;
+              }
+            }
+          } catch (err) {
+            console.error('Failed to fetch category attributes:', err);
+          }
+        }
+
+        if (response) {
+          const brandAttribute = response.find(
+            (attr: any) => attr.name === 'brand' || attr.name.toLowerCase().includes('brand')
+          );
+
+          if (brandAttribute?.options && Array.isArray(brandAttribute.options)) {
+            const apiBrands = brandAttribute.options
+              .map((opt: any) => (typeof opt === 'string' ? opt : opt.value || opt.name))
+              .filter((b: string) => b.toLowerCase() !== 'other');
+            // Merge API brands with defaults
+            const mergedBrands = [...new Set([...apiBrands, ...defaultBrands])];
+            setCategoryBrands(mergedBrands);
+            return;
+          }
+        }
+
+        // Fallback to default brands
         setCategoryBrands(defaultBrands);
       } catch (err) {
         console.error('Failed to load category brands:', err);
@@ -461,7 +526,7 @@ export const ListingWizard: React.FC = () => {
     };
 
     fetchCategoryBrands();
-  }, [formData.category_id]);
+  }, [formData.category_id, formData.subcategory_id, formData.subsubcategory_id]);
 
   const updateFormData = (data: Partial<ListingFormData>) => {
     setFormData((prev) => ({ ...prev, ...data }));
@@ -616,7 +681,7 @@ export const ListingWizard: React.FC = () => {
                 <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Subcategory *</label>
                 <select
                   value={formData.subcategory_id || ''}
-                  onChange={(e) => updateFormData({ subcategory_id: parseInt(e.target.value) })}
+                  onChange={(e) => updateFormData({ subcategory_id: parseInt(e.target.value), subsubcategory_id: undefined })}
                   disabled={!formData.category_id}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all disabled:opacity-50"
                 >
@@ -628,6 +693,24 @@ export const ListingWizard: React.FC = () => {
                   ))}
                 </select>
               </div>
+
+              {subcategorySubsubcategories.length > 0 && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Sub-Subcategory</label>
+                  <select
+                    value={formData.subsubcategory_id || ''}
+                    onChange={(e) => updateFormData({ subsubcategory_id: e.target.value ? parseInt(e.target.value) : undefined })}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  >
+                    <option value="">Select sub-subcategory (optional)</option>
+                    {subcategorySubsubcategories.map((subsubcat: any) => (
+                      <option key={subsubcat.id} value={subsubcat.id}>
+                        {subsubcat.name || subsubcat.name_en || 'Unnamed'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
 
             <div className="relative">

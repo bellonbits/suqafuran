@@ -198,6 +198,16 @@ export const listingsService = {
         return response.data;
     },
 
+    async getSubcategoryAttributes(slug: string): Promise<any> {
+        const response = await api.get(`/listings/subcategories/${slug}/attributes`);
+        return response.data;
+    },
+
+    async getSubsubcategoryAttributes(slug: string): Promise<any> {
+        const response = await api.get(`/listings/subsubcategories/${slug}/attributes`);
+        return response.data;
+    },
+
     async getSubcategories(categoryId: number): Promise<any[]> {
         const response = await api.get('/subcategories', { params: { category_id: categoryId } });
         return response.data;
