@@ -5,26 +5,18 @@ export const imageService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await api.post('/listings/upload/', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await api.post('/listings/upload/', formData);
 
     return response.data;
   },
 
   async uploadMultipleImages(files: File[]): Promise<Array<{ url: string; filename: string }>> {
     const formData = new FormData();
-    files.forEach((file, index) => {
-      formData.append(`files`, file);
+    files.forEach((file) => {
+      formData.append('files', file);
     });
 
-    const response = await api.post('/listings/upload-multiple/', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await api.post('/listings/upload-multiple/', formData);
 
     return response.data;
   },
@@ -33,11 +25,7 @@ export const imageService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await api.post('/listings/upload-video/', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await api.post('/listings/upload-video/', formData);
 
     return response.data;
   },
