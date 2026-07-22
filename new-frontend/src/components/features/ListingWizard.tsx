@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { ListingStep1Details } from './listing-wizard/Step1Details';
-import { ListingStep2Category } from './listing-wizard/Step2Category';
 import { ListingStep3Images } from './listing-wizard/Step3Images';
 import { ListingStep4Review } from './listing-wizard/Step4Review';
 import { listingsService } from '../../services/listings';
@@ -28,16 +27,60 @@ export interface ListingFormData {
 }
 
 const STEPS = [
-  { id: 1, number: '01', title: 'Shop', description: 'Select shop' },
-  { id: 2, number: '02', title: 'Category', description: 'Select category' },
-  { id: 3, number: '03', title: 'Subcategory', description: 'Select subcategory' },
-  { id: 4, number: '04', title: 'Details', description: 'Add details' },
-  { id: 5, number: '05', title: 'Media', description: 'Add photos' },
-  { id: 6, number: '06', title: 'Attributes', description: 'Product attributes' },
-  { id: 7, number: '07', title: 'Pricing', description: 'Set price' },
-  { id: 8, number: '08', title: 'Preview', description: 'Review listing' },
-  { id: 9, number: '09', title: 'Publish', description: 'Publish' },
+  { id: 1, number: '01', title: 'Shop' },
+  { id: 2, number: '02', title: 'Category' },
+  { id: 3, number: '03', title: 'Details' },
+  { id: 4, number: '04', title: 'Media' },
+  { id: 5, number: '05', title: 'Attributes' },
+  { id: 6, number: '06', title: 'Pricing' },
+  { id: 7, number: '07', title: 'Preview' },
+  { id: 8, number: '08', title: 'Publish' },
 ];
+
+// Mock categories - replace with API call
+const CATEGORIES = [
+  { id: 1, name: 'Commercial Equipment' },
+  { id: 2, name: 'Electronics' },
+  { id: 3, name: 'Land & Farms' },
+  { id: 4, name: 'Repair & Construction' },
+  { id: 5, name: 'Leisure & Sports' },
+  { id: 6, name: 'Clothing & Shoes' },
+  { id: 7, name: 'Household Items' },
+  { id: 8, name: 'Vehicles' },
+  { id: 9, name: 'Livestock' },
+  { id: 10, name: 'Property' },
+  { id: 11, name: 'Services' },
+  { id: 12, name: 'Food & Groceries' },
+  { id: 13, name: 'Agriculture & Food' },
+  { id: 14, name: 'Beauty & Personal Care' },
+  { id: 15, name: 'Phones' },
+  { id: 16, name: 'Jobs' },
+  { id: 17, name: 'Babies & Kids' },
+];
+
+// Mock subcategories by category - replace with API call
+const SUBCATEGORIES_BY_CATEGORY: Record<number, Array<{ id: number; name: string }>> = {
+  1: [
+    { id: 101, name: 'Construction Equipment' },
+    { id: 102, name: 'Industrial Machines' },
+    { id: 103, name: 'Generators' },
+    { id: 104, name: 'Restaurant Equipment' },
+  ],
+  2: [
+    { id: 201, name: 'TVs' },
+    { id: 202, name: 'Laptops' },
+    { id: 203, name: 'Gaming' },
+    { id: 204, name: 'Cameras' },
+    { id: 205, name: 'Audio Systems' },
+    { id: 206, name: 'Accessories' },
+  ],
+  15: [
+    { id: 1501, name: 'Smartphones' },
+    { id: 1502, name: 'Feature Phones' },
+    { id: 1503, name: 'Tablets' },
+    { id: 1504, name: 'Accessories' },
+  ],
+};
 
 export const ListingWizard: React.FC = () => {
   const router = useRouter();
@@ -67,26 +110,29 @@ export const ListingWizard: React.FC = () => {
     if (currentStep === 1 && !formData.shop_id) {
       setError('Please select a shop');
       return;
-    } else if (currentStep === 2 && !formData.category_id) {
-      setError('Please select a category');
-      return;
-    } else if (currentStep === 3 && !formData.subcategory_id) {
-      setError('Please select a subcategory');
-      return;
-    } else if (currentStep === 4) {
+    } else if (currentStep === 2) {
+      if (!formData.category_id) {
+        setError('Please select a category');
+        return;
+      }
+      if (!formData.subcategory_id) {
+        setError('Please select a subcategory');
+        return;
+      }
+    } else if (currentStep === 3) {
       if (!formData.title.trim() || !formData.description.trim() || !formData.location?.trim()) {
         setError('Please fill in all required fields');
         return;
       }
-    } else if (currentStep === 5 && formData.images.length === 0) {
+    } else if (currentStep === 4 && formData.images.length === 0) {
       setError('Please upload at least one image');
       return;
-    } else if (currentStep === 7 && formData.price <= 0) {
+    } else if (currentStep === 6 && formData.price <= 0) {
       setError('Please set a valid price');
       return;
     }
 
-    if (currentStep < 9) {
+    if (currentStep < 8) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -149,25 +195,45 @@ export const ListingWizard: React.FC = () => {
         );
 
       case 2:
-        return <ListingStep2Category data={formData} onUpdate={updateFormData} onError={setError} />;
-
-      case 3:
         return (
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Subcategory *</label>
+              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Main Category *</label>
               <select
-                value={formData.subcategory_id || ''}
-                onChange={(e) => updateFormData({ subcategory_id: parseInt(e.target.value) })}
+                value={formData.category_id || ''}
+                onChange={(e) => updateFormData({ category_id: parseInt(e.target.value), subcategory_id: undefined })}
                 className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               >
-                <option value="">Choose the subcategory</option>
+                <option value="">Select a category</option>
+                {CATEGORIES.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
               </select>
             </div>
+
+            {formData.category_id && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Subcategory *</label>
+                <select
+                  value={formData.subcategory_id || ''}
+                  onChange={(e) => updateFormData({ subcategory_id: parseInt(e.target.value) })}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                >
+                  <option value="">Select a subcategory</option>
+                  {(SUBCATEGORIES_BY_CATEGORY[formData.category_id] || []).map((subcat) => (
+                    <option key={subcat.id} value={subcat.id}>
+                      {subcat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         );
 
-      case 4:
+      case 3:
         return (
           <div className="space-y-6">
             <div>
@@ -222,10 +288,10 @@ export const ListingWizard: React.FC = () => {
           </div>
         );
 
-      case 5:
+      case 4:
         return <ListingStep3Images data={formData} onUpdate={updateFormData} onError={setError} />;
 
-      case 6:
+      case 5:
         return (
           <div className="space-y-6">
             <div>
@@ -235,7 +301,7 @@ export const ListingWizard: React.FC = () => {
           </div>
         );
 
-      case 7:
+      case 6:
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
@@ -268,10 +334,10 @@ export const ListingWizard: React.FC = () => {
           </div>
         );
 
-      case 8:
+      case 7:
         return <ListingStep4Review data={formData} />;
 
-      case 9:
+      case 8:
         return (
           <div className="space-y-6">
             <div>
@@ -380,7 +446,7 @@ export const ListingWizard: React.FC = () => {
             Back
           </button>
 
-          {currentStep === 9 ? (
+          {currentStep === 8 ? (
             <button
               onClick={handleSubmit}
               disabled={loading}
