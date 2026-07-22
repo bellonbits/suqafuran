@@ -5,6 +5,8 @@ import { Upload, X, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { imageService } from '../../services/imageService';
 
+import { resolveMediaUrl } from '../../services/api';
+
 interface ImageUploaderProps {
   onImagesUpload: (images: Array<{ url: string; filename: string }>) => void;
   maxImages?: number;
@@ -140,7 +142,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
                 className="relative group"
               >
                 <img
-                  src={image.url}
+                  src={resolveMediaUrl(image.url) || image.url}
                   alt={`Upload preview ${index + 1}`}
                   className="w-full aspect-square rounded-lg object-cover"
                 />

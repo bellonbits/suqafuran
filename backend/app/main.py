@@ -116,8 +116,9 @@ app.add_middleware(
 )
 
 # Serve uploaded files
-if Path(settings.UPLOAD_DIR).exists():
-    app.mount("/api/v1/listings/images", StaticFiles(directory=settings.UPLOAD_DIR), name="images")
+import os
+os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+app.mount("/api/v1/listings/images", StaticFiles(directory=settings.UPLOAD_DIR), name="images")
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 

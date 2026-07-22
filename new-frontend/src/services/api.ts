@@ -17,8 +17,18 @@ const API_ORIGIN = typeof window !== 'undefined'
 // so it doesn't 404 against whatever origin the frontend happens to be on.
 export function resolveMediaUrl(url?: string | null): string | null {
     if (!url || typeof url !== 'string') return null;
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    return `${API_ORIGIN}${url.startsWith('/') ? '' : '/'}${url}`;
+    const cleanUrl = url.trim();
+    if (!cleanUrl) return null;
+    if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) return cleanUrl;
+
+    let path = cleanUrl.startsWith('/') ? cleanUrl : '/' + cleanUrl;
+    if (path.startsWith('/api/v1')) {
+        return `${API_ORIGIN}${path}`;
+    }
+    if (path.startsWith('/listings/images')) {
+        return `${API_ORIGIN}/api/v1${path}`;
+    }
+    return `${API_ORIGIN}/api/v1/listings/images${path}`;
 }
 
 // Optimize Cloudinary URLs for high-quality display
@@ -57,6 +67,11 @@ api.interceptors.request.use(
         // Let browser handle content-type for FormData (multipart/form-data with boundary)
         if (config.data instanceof FormData) {
             delete config.headers['Content-Type'];
+            delete config.headers['content-type'];
+            if (config.headers && typeof (config.headers as any).delete === 'function') {
+                (config.headers as any).delete('Content-Type');
+                (config.headers as any).delete('content-type');
+            }
         }
 
         if (typeof window !== 'undefined') {

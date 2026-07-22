@@ -72,17 +72,13 @@ export default function AccountPage() {
 
     try {
       setUploading(true);
-      const formData = new FormData();
-      formData.append('file', file);
+      const res = await authService.uploadAvatar(file);
 
-      const response = await api.post('/users/me/avatar', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      if (response.data && response.data.avatar_url) {
-        setProfile({ ...profile, avatar_url: response.data.avatar_url });
+      if (res && res.avatar_url) {
+        setProfile((prev: any) => ({ ...prev, avatar_url: res.avatar_url }));
+        if (user) {
+          useAuthStore.getState().setUser({ ...user, avatar_url: res.avatar_url });
+        }
         setAvatarPreview(null);
       }
     } catch (err) {
@@ -133,6 +129,8 @@ export default function AccountPage() {
     );
   }
 
+  const resolvedAvatar = avatarPreview || resolveMediaUrl(profile.avatar_url);
+
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 pt-32 pb-20">
       <div className="max-w-2xl mx-auto px-4 sm:px-6">
@@ -152,17 +150,24 @@ export default function AccountPage() {
 
         <div className="mb-8">
           <div className="relative w-fit">
-            {avatarPreview || profile.avatar_url ? (
+            {resolvedAvatar ? (
               <img
-                src={avatarPreview || resolveMediaUrl(profile.avatar_url)}
+                src={resolvedAvatar}
                 alt={profile.full_name}
                 className="w-24 h-24 rounded-2xl object-cover"
+                onError={(e) => {
+                  (e.currentTarget as HTMLElement).style.display = 'none';
+                  const fallback = e.currentTarget.parentElement?.querySelector('.avatar-fallback') as HTMLElement;
+                  if (fallback) fallback.style.display = 'flex';
+                }}
               />
-            ) : (
-              <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center text-white font-black text-3xl">
-                {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
-              </div>
-            )}
+            ) : null}
+            <div
+              className="avatar-fallback w-24 h-24 rounded-2xl bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center text-white font-black text-3xl"
+              style={{ display: resolvedAvatar ? 'none' : 'flex' }}
+            >
+              {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
+            </div>
 
             <button
               onClick={handleAvatarClick}

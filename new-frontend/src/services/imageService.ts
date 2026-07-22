@@ -28,9 +28,6 @@ export const imageService = {
 
     const response = await api.post('/listings/upload-multiple', formData, {
       params,
-      headers: {
-        // Let axios handle Content-Type for FormData
-      },
     });
 
     return response.data;

@@ -18,10 +18,11 @@ import {
   CheckCircle,
   Loader,
   Shield,
+  Star,
   Edit as EditIcon,
 } from 'lucide-react';
 import Link from 'next/link';
-import api from '@/services/api';
+import api, { resolveMediaUrl } from '@/services/api';
 
 interface Listing {
   id: number;
@@ -390,11 +391,14 @@ export default function ListingDetailPage() {
               className="bg-gray-50 dark:bg-slate-900 rounded-xl p-6 border border-gray-200 dark:border-slate-800"
             >
               <div className="flex items-start gap-4 mb-4">
-                {listing.owner.avatar_url && (
+                {resolveMediaUrl(listing.owner.avatar_url) && (
                   <img
-                    src={listing.owner.avatar_url}
+                    src={resolveMediaUrl(listing.owner.avatar_url)!}
                     alt={listing.owner.full_name}
                     className="w-16 h-16 rounded-full object-cover bg-gray-200"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLElement).style.display = 'none';
+                    }}
                   />
                 )}
                 <div className="flex-1">
@@ -416,7 +420,7 @@ export default function ListingDetailPage() {
 
               <div className="space-y-3">
                 {/* Ratings Section */}
-                {listing.owner.rating && (
+                {(listing.owner as any).rating && (
                   <div className="bg-white dark:bg-slate-800 rounded-lg p-3 border border-gray-100 dark:border-slate-700">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="flex items-center gap-0.5">
@@ -424,18 +428,18 @@ export default function ListingDetailPage() {
                           <Star
                             key={i}
                             className={`w-4 h-4 ${
-                              i < Math.round(listing.owner.rating)
+                              i < Math.round((listing.owner as any).rating)
                                 ? 'fill-amber-400 text-amber-400'
                                 : 'text-gray-300 dark:text-slate-600'
                             }`}
                           />
                         ))}
                       </div>
-                      <span className="font-bold text-gray-900 dark:text-white">{listing.owner.rating.toFixed(1)}</span>
+                      <span className="font-bold text-gray-900 dark:text-white">{(listing.owner as any).rating.toFixed(1)}</span>
                     </div>
-                    {listing.owner.reviews_count && (
+                    {(listing.owner as any).reviews_count && (
                       <p className="text-xs text-gray-600 dark:text-slate-400">
-                        Based on {listing.owner.reviews_count} reviews
+                        Based on {(listing.owner as any).reviews_count} reviews
                       </p>
                     )}
                   </div>

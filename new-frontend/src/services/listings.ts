@@ -241,9 +241,7 @@ export const listingsService = {
     async uploadImage(file: File): Promise<{ filename: string; url: string }> {
         const formData = new FormData();
         formData.append('file', file);
-        const response = await api.post('/listings/upload/', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        const response = await api.post('/listings/upload/', formData);
         return response.data;
     },
 };

@@ -217,7 +217,6 @@ export default function EditShopPage() {
           `/admin/shops/${shopId}/banners/upload?banner_type=${bannerType}`,
           uploadFormData,
           {
-            headers: { 'Content-Type': 'multipart/form-data' },
             timeout: 30000, // 30 second timeout (increased from 15s)
           }
         );

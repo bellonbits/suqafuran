@@ -76,9 +76,7 @@ export const sellerService = {
     async uploadVerificationDocuments(files: File[]): Promise<{ message: string; document_urls: string[] }> {
         const formData = new FormData();
         files.forEach((file) => formData.append('documents', file));
-        const response = await api.post('/sellers/me/verification-documents', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        const response = await api.post('/sellers/me/verification-documents', formData);
         return response.data;
     },
 

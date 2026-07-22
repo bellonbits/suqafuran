@@ -12,7 +12,7 @@ import { useT } from '../../lib/i18n';
 import { LocationPickerModal } from './LocationPickerModal';
 import NotificationCenter from '../NotificationCenter';
 import { NotificationBell } from './NotificationBell';
-import api from '../../services/api';
+import api, { resolveMediaUrl } from '../../services/api';
 
 export const Header: React.FC = () => {
     const router = useRouter();
@@ -23,9 +23,11 @@ export const Header: React.FC = () => {
     const t = useT();
     const [searchQuery, setSearchQuery] = useState('');
     const [darkMode, setDarkMode] = useState(false);
-    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
-    const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+    const [unreadMessages, setUnreadMessages] = useState(0);
+    const [profileMenuOpen, setProfileMenuOpen] = useState(false);
     const [isVerifiedSeller, setIsVerifiedSeller] = useState(false);
     const [userRole, setUserRole] = useState<'admin' | 'agent' | 'seller' | null>(null);
     const [cartOpen, setCartOpen] = useState(false);
@@ -229,17 +231,24 @@ export const Header: React.FC = () => {
                                     className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center"
                                     title="Profile menu"
                                 >
-                                    {(user as any).avatar_url ? (
+                                    {resolveMediaUrl((user as any).avatar_url) ? (
                                         <img
-                                            src={(user as any).avatar_url}
+                                            src={resolveMediaUrl((user as any).avatar_url)!}
                                             alt={user.full_name}
                                             className="w-8 h-8 rounded-full object-cover"
+                                            onError={(e) => {
+                                                (e.currentTarget as HTMLElement).style.display = 'none';
+                                                const fallback = e.currentTarget.parentElement?.querySelector('.avatar-header-fallback') as HTMLElement;
+                                                if (fallback) fallback.style.display = 'flex';
+                                            }}
                                         />
-                                    ) : (
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-orange-600 flex items-center justify-center text-white text-xs font-bold">
-                                            {user.full_name?.charAt(0).toUpperCase()}
-                                        </div>
-                                    )}
+                                    ) : null}
+                                    <div
+                                        className="avatar-header-fallback w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-orange-600 flex items-center justify-center text-white text-xs font-bold"
+                                        style={{ display: resolveMediaUrl((user as any).avatar_url) ? 'none' : 'flex' }}
+                                    >
+                                        {user.full_name?.charAt(0).toUpperCase()}
+                                    </div>
                                 </button>
 
                                 {profileMenuOpen && (
