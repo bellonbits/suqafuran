@@ -1,7 +1,7 @@
 from typing import List, Optional
 from sqlmodel import Session, select, func
 from sqlalchemy.orm import selectinload
-from app.models.listing import Listing, ListingBase, Category, SubSubcategory
+from app.models.listing import Listing, ListingBase, Category, SubSubCategory
 from app.models.subcategory import Subcategory
 
 
@@ -80,9 +80,9 @@ def get_listings(
                 # If we also have a subsubcategory name, filter by it under the found subcategory
                 if subsubcategory_name:
                     ssc = db.exec(
-                        select(SubSubcategory).where(
-                            SubSubcategory.subcategory_id == sc.id,
-                            (SubSubcategory.name_en == subsubcategory_name) | (SubSubcategory.name_so == subsubcategory_name),
+                        select(SubSubCategory).where(
+                            SubSubCategory.subcategory_id == sc.id,
+                            (SubSubCategory.name_en == subsubcategory_name) | (SubSubCategory.name_so == subsubcategory_name),
                         )
                     ).first()
                     if ssc:
