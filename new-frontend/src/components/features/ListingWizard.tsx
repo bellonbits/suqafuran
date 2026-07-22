@@ -282,9 +282,27 @@ export const ListingWizard: React.FC = () => {
         const category = CATEGORIES.find((c) => c.id === formData.category_id);
         if (!category) return;
 
-        const response = await listingsService.getCategoryAttributes(
-          category.name.toLowerCase().replace(/\s+/g, '-')
-        );
+        // Try multiple slug formats to handle different naming conventions
+        const slugFormats = [
+          category.name.toLowerCase().replace(/\s+&\s+/g, '-and-').replace(/\s+/g, '-'),
+          category.name.toLowerCase().replace(/\s+/g, '-'),
+          category.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        ];
+
+        let response = null;
+        for (const slug of slugFormats) {
+          try {
+            response = await listingsService.getCategoryAttributes(slug);
+            break;
+          } catch (err) {
+            continue;
+          }
+        }
+
+        if (!response) {
+          setCategoryBrands([]);
+          return;
+        }
 
         const brandAttribute = response.find(
           (attr: any) => attr.name === 'brand' || attr.name.toLowerCase().includes('brand')
