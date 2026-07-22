@@ -57,6 +57,27 @@ const CATEGORIES = [
   { id: 17, name: 'Babies & Kids' },
 ];
 
+// Category-specific brands as fallback
+const BRANDS_BY_CATEGORY: Record<number, string[]> = {
+  1: ['Caterpillar', 'JCB', 'Komatsu', 'Volvo', 'Hyundai', 'Doosan'],
+  2: ['Apple', 'Samsung', 'LG', 'Sony', 'Dell', 'HP', 'Lenovo', 'ASUS', 'Canon', 'Nikon'],
+  3: ['Farmland Pro', 'Agriculture Plus', 'Local Farms', 'Agro Solutions'],
+  4: ['Bosch', 'Makita', 'DeWalt', 'Stanley', 'Hilti', 'Metabo'],
+  5: ['Nike', 'Adidas', 'Puma', 'Decathlon', 'Reebok', 'Asics'],
+  6: ['Zara', 'H&M', 'Forever 21', 'ASOS', 'Shein', 'Mango'],
+  7: ['IKEA', 'Furniture Plus', 'Home Decor Ltd', 'Interiors Pro'],
+  8: ['Toyota', 'Honda', 'Nissan', 'Mazda', 'Hyundai', 'Kia', 'Mitsubishi'],
+  9: ['Local Farms', 'Agro Exports', 'Livestock Plus', 'Pastoral'],
+  10: ['Real Estate Ltd', 'Property Plus', 'Land Development'],
+  11: ['Service Providers', 'Professional Services', 'Local Services'],
+  12: ['Nestlé', 'Cadbury', 'Coca-Cola', 'Pepsi', 'Kimbo', 'Ushindi'],
+  13: ['Agronomics', 'Farm Produce', 'Food Exports', 'Agriculture Hub'],
+  14: ['Cerave', 'Neutrogena', 'Dove', 'Olay', 'Nivea', 'Vaseline'],
+  15: ['Apple', 'Samsung', 'Tecno', 'Infinix', 'Itel', 'Xiaomi', 'Huawei'],
+  16: ['Job Portal', 'Employment Agency', 'Professional Services'],
+  17: ['Pampers', 'Huggies', 'Chicco', 'Mothercare', 'Baby Plus'],
+};
+
 // Mock subcategories by category - replace with API call
 const SUBCATEGORIES_BY_CATEGORY: Record<number, Array<{ id: number; name: string }>> = {
   1: [
@@ -301,43 +322,55 @@ export const ListingWizard: React.FC = () => {
     const fetchCategoryBrands = async () => {
       try {
         const category = CATEGORIES.find((c) => c.id === formData.category_id);
-        if (!category) return;
-
-        // Try multiple slug formats to handle different naming conventions
-        const slugFormats = [
-          category.name.toLowerCase().replace(/\s+&\s+/g, '-and-').replace(/\s+/g, '-'),
-          category.name.toLowerCase().replace(/\s+/g, '-'),
-          category.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-        ];
-
-        let response = null;
-        for (const slug of slugFormats) {
-          try {
-            response = await listingsService.getCategoryAttributes(slug);
-            break;
-          } catch (err) {
-            continue;
-          }
-        }
-
-        if (!response) {
+        if (!category) {
           setCategoryBrands([]);
           return;
         }
 
-        const brandAttribute = response.find(
-          (attr: any) => attr.name === 'brand' || attr.name.toLowerCase().includes('brand')
-        );
+        // Get default brands for this category
+        const defaultBrands = BRANDS_BY_CATEGORY[formData.category_id] || [];
 
-        if (brandAttribute?.options && Array.isArray(brandAttribute.options)) {
-          // Extract brand names from options
-          const brands = brandAttribute.options
-            .map((opt: any) => (typeof opt === 'string' ? opt : opt.value || opt.name))
-            .filter((b: string) => b.toLowerCase() !== 'other');
-          setCategoryBrands(brands);
+        // Try to fetch from API
+        try {
+          const slugFormats = [
+            category.name.toLowerCase().replace(/\s+&\s+/g, '-and-').replace(/\s+/g, '-'),
+            category.name.toLowerCase().replace(/\s+/g, '-'),
+            category.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          ];
+
+          let response = null;
+          for (const slug of slugFormats) {
+            try {
+              response = await listingsService.getCategoryAttributes(slug);
+              break;
+            } catch (err) {
+              continue;
+            }
+          }
+
+          if (response) {
+            const brandAttribute = response.find(
+              (attr: any) => attr.name === 'brand' || attr.name.toLowerCase().includes('brand')
+            );
+
+            if (brandAttribute?.options && Array.isArray(brandAttribute.options)) {
+              const apiBrands = brandAttribute.options
+                .map((opt: any) => (typeof opt === 'string' ? opt : opt.value || opt.name))
+                .filter((b: string) => b.toLowerCase() !== 'other');
+              // Merge API brands with defaults, API takes priority
+              const mergedBrands = [...new Set([...apiBrands, ...defaultBrands])];
+              setCategoryBrands(mergedBrands);
+              return;
+            }
+          }
+        } catch (err) {
+          console.error('Failed to fetch category brands from API:', err);
         }
+
+        // Fallback to default brands for category
+        setCategoryBrands(defaultBrands);
       } catch (err) {
-        console.error('Failed to fetch category brands:', err);
+        console.error('Failed to load category brands:', err);
         setCategoryBrands([]);
       }
     };
