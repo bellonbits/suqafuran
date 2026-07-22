@@ -198,6 +198,11 @@ export const listingsService = {
         return response.data;
     },
 
+    async getSubcategories(categoryId: number): Promise<any[]> {
+        const response = await api.get('/subcategories', { params: { category_id: categoryId } });
+        return response.data;
+    },
+
     async uploadImage(file: File): Promise<{ filename: string; url: string }> {
         const formData = new FormData();
         formData.append('file', file);

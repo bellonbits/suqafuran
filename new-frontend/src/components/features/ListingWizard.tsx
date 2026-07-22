@@ -268,7 +268,28 @@ export const ListingWizard: React.FC = () => {
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [isCustomBrand, setIsCustomBrand] = useState(false);
   const [categoryBrands, setCategoryBrands] = useState<string[]>([]);
+  const [categorySubcategories, setCategorySubcategories] = useState<Array<{ id: number; name: string }>>([]);
   const locationInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch subcategories when category changes
+  useEffect(() => {
+    if (!formData.category_id) {
+      setCategorySubcategories([]);
+      return;
+    }
+
+    const fetchSubcategories = async () => {
+      try {
+        const subcats = await listingsService.getSubcategories(formData.category_id);
+        setCategorySubcategories(Array.isArray(subcats) ? subcats : []);
+      } catch (err) {
+        console.error('Failed to fetch subcategories:', err);
+        setCategorySubcategories([]);
+      }
+    };
+
+    fetchSubcategories();
+  }, [formData.category_id]);
 
   // Fetch category attributes to get brand options
   useEffect(() => {
@@ -478,13 +499,17 @@ export const ListingWizard: React.FC = () => {
                 <select
                   value={formData.subcategory_id || ''}
                   onChange={(e) => updateFormData({ subcategory_id: parseInt(e.target.value) })}
-                  disabled={!formData.category_id}
+                  disabled={!formData.category_id || categorySubcategories.length === 0}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all disabled:opacity-50"
                 >
-                  <option value="">Select subcategory</option>
-                  {(SUBCATEGORIES_BY_CATEGORY[formData.category_id] || []).map((subcat) => (
+                  <option value="">
+                    {categorySubcategories.length === 0
+                      ? 'Loading subcategories...'
+                      : 'Select subcategory'}
+                  </option>
+                  {categorySubcategories.map((subcat: any) => (
                     <option key={subcat.id} value={subcat.id}>
-                      {subcat.name}
+                      {subcat.name || subcat.name_en}
                     </option>
                   ))}
                 </select>
