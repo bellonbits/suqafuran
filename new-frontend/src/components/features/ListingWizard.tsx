@@ -400,9 +400,11 @@ export const ListingWizard: React.FC = () => {
 
     const fetchCategoryBrands = async () => {
       try {
-        const category = (allCategories.length > 0 ? allCategories : CATEGORIES).find(
-          (c: any) => c.id === formData.category_id
-        );
+        const catList = allCategories.length > 0 ? allCategories : CATEGORIES;
+        const category = Array.isArray(catList)
+          ? catList.find((c: any) => c.id === formData.category_id)
+          : null;
+
         if (!category) {
           setCategoryBrands([]);
           return;

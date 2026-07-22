@@ -11,12 +11,22 @@ export const imageService = {
   },
 
   async uploadMultipleImages(files: File[]): Promise<Array<{ url: string; filename: string }>> {
+    if (!files || files.length === 0) {
+      throw new Error('No files provided for upload');
+    }
+
     const formData = new FormData();
-    files.forEach((file) => {
-      formData.append('files', file);
+    files.forEach((file, index) => {
+      if (file && file.size > 0) {
+        formData.append('files', file, file.name);
+      }
     });
 
-    const response = await api.post('/listings/upload-multiple', formData);
+    const response = await api.post('/listings/upload-multiple', formData, {
+      headers: {
+        // Don't set Content-Type - let axios/browser set it with boundary
+      },
+    });
 
     return response.data;
   },
