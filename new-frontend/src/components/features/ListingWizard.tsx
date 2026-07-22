@@ -267,7 +267,44 @@ export const ListingWizard: React.FC = () => {
   const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [isCustomBrand, setIsCustomBrand] = useState(false);
+  const [categoryBrands, setCategoryBrands] = useState<string[]>([]);
   const locationInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch category attributes to get brand options
+  useEffect(() => {
+    if (!formData.category_id) {
+      setCategoryBrands([]);
+      return;
+    }
+
+    const fetchCategoryBrands = async () => {
+      try {
+        const category = CATEGORIES.find((c) => c.id === formData.category_id);
+        if (!category) return;
+
+        const response = await listingsService.getCategoryAttributes(
+          category.name.toLowerCase().replace(/\s+/g, '-')
+        );
+
+        const brandAttribute = response.find(
+          (attr: any) => attr.name === 'brand' || attr.name.toLowerCase().includes('brand')
+        );
+
+        if (brandAttribute?.options && Array.isArray(brandAttribute.options)) {
+          // Extract brand names from options
+          const brands = brandAttribute.options
+            .map((opt: any) => (typeof opt === 'string' ? opt : opt.value || opt.name))
+            .filter((b: string) => b.toLowerCase() !== 'other');
+          setCategoryBrands(brands);
+        }
+      } catch (err) {
+        console.error('Failed to fetch category brands:', err);
+        setCategoryBrands([]);
+      }
+    };
+
+    fetchCategoryBrands();
+  }, [formData.category_id]);
 
   const updateFormData = (data: Partial<ListingFormData>) => {
     setFormData((prev) => ({ ...prev, ...data }));
@@ -506,10 +543,15 @@ export const ListingWizard: React.FC = () => {
                         updateFormData({ brand: value });
                       }
                     }}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    disabled={categoryBrands.length === 0}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all disabled:opacity-50"
                   >
-                    <option value="">Select brand</option>
-                    {COMMON_BRANDS.filter(b => b !== 'Others').map((brand) => (
+                    <option value="">
+                      {categoryBrands.length === 0
+                        ? 'Select category first'
+                        : 'Select brand'}
+                    </option>
+                    {categoryBrands.map((brand) => (
                       <option key={brand} value={brand}>
                         {brand}
                       </option>
