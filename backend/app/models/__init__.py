@@ -39,6 +39,13 @@ from app.models.seller_profile import SellerProfile
 from app.models.seller_settings import SellerSettings
 from app.models.conversation import Conversation, ConversationMessage
 from app.models.report import SalesReport
+from app.models.subcategory import Subcategory
+from app.models.attribute_group import AttributeGroup
+from app.models.attribute import Attribute
+from app.models.attribute_option import AttributeOption
+from app.models.category_attribute import CategoryAttribute
+from app.models.subcategory_attribute import SubcategoryAttribute
+from app.models.listing_attribute import ListingAttribute
 
 __all__ = [
     "User",
@@ -96,4 +103,11 @@ __all__ = [
     "Conversation",
     "ConversationMessage",
     "SalesReport",
+    "Subcategory",
+    "AttributeGroup",
+    "Attribute",
+    "AttributeOption",
+    "CategoryAttribute",
+    "SubcategoryAttribute",
+    "ListingAttribute",
 ]

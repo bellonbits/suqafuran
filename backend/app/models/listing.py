@@ -80,21 +80,6 @@ class Category(SQLModel, table=True):
     image_url: Optional[str] = None
     attributes_schema: dict = Field(default={}, sa_column=Column(JSON))
 
-    subcategories: List["SubCategory"] = Relationship(back_populates="category", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
-
-
-class SubCategory(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    name_en: str = Field(index=True)
-    name_so: Optional[str] = Field(default=None)
-    slug: str = Field(index=True)
-    image_url: Optional[str] = None
-    category_id: int = Field(foreign_key="category.id")
-    attributes_schema: dict = Field(default={}, sa_column=Column(JSON))
-
-    category: Optional[Category] = Relationship(back_populates="subcategories")
-    subsubcategories: List["SubSubCategory"] = Relationship(back_populates="subcategory", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
-
 
 class SubSubCategory(SQLModel, table=True):
     __tablename__ = "subsubcategory"
@@ -105,6 +90,4 @@ class SubSubCategory(SQLModel, table=True):
     slug: str = Field(index=True)
     image_url: Optional[str] = None
     subcategory_id: int = Field(foreign_key="subcategory.id")
-
-    subcategory: Optional[SubCategory] = Relationship(back_populates="subsubcategories")
 
