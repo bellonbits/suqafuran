@@ -545,21 +545,15 @@ export const ListingWizard: React.FC = () => {
 
     try {
       const payload = {
-        title: formData.title,
-        description: formData.description,
+        title_en: formData.title,
+        description_en: formData.description,
         price: formData.price,
         condition: formData.condition,
-        negotiable: formData.negotiable,
         category_id: formData.category_id,
         subcategory_id: formData.subcategory_id,
         location: formData.location,
         images: formData.images.map((img) => img.url),
         attributes: formData.attributes || {},
-        price_type: formData.price_type,
-        tags: formData.tags || [],
-        brand: formData.brand || '',
-        stock_quantity: formData.stock_quantity || 1,
-        sku: formData.sku || '',
       };
 
       const result = await listingsService.createListing(payload);
