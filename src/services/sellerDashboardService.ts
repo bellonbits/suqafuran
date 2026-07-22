@@ -1,4 +1,5 @@
 import api from './api';
+import { useAuthStore } from '../store/useAuthStore';
 
 // ── Formatting ──────────────────────────────────────────────────────────────
 export const fmtKSh = (amount: number | null | undefined): string => {
@@ -254,7 +255,9 @@ export const sellerDashboardService = {
   async uploadMultipleImages(files: File[]): Promise<string[]> {
     const fd = new FormData();
     files.forEach(f => fd.append('files', f));
-    const res = await api.post('/listings/upload-multiple', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+    const token = useAuthStore.getState().token;
+    const params = token ? { token } : {};
+    const res = await api.post('/listings/upload-multiple', fd, { params, headers: { 'Content-Type': 'multipart/form-data' } });
     const data = Array.isArray(res.data) ? res.data : res.data.urls || [];
     return data.map((item: any) => item.url || item);
   },
