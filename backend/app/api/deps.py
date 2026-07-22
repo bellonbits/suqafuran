@@ -24,9 +24,9 @@ def get_db() -> Generator:
 
 
 def get_current_user(
+    request: Request,
     db: Session = Depends(get_db),
     token: Optional[str] = Depends(reusable_oauth2),
-    request: Request
 ) -> User:
     # Try getting token from: cookie → header → query param
     if request:
@@ -81,9 +81,9 @@ def get_current_user(
 
 
 def get_current_user_optional(
+    request: Request,
     db: Session = Depends(get_db),
     token: Optional[str] = Depends(reusable_oauth2),
-    request: Request
 ) -> Optional[User]:
     # Try getting token from cookie first
     if request:
