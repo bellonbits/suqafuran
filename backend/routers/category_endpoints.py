@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from typing import List, Optional
 
-from app.models.listing import Category, SubSubcategory
+from app.models.listing import Category, SubSubCategory
 from app.models.subcategory import Subcategory
 from app.models.user import User
 from app.db import get_session
