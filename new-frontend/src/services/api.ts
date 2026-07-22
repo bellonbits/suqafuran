@@ -54,6 +54,11 @@ api.interceptors.request.use(
             config.headers.Authorization = `Bearer ${token}`;
         }
 
+        // Let browser handle content-type for FormData (multipart/form-data with boundary)
+        if (config.data instanceof FormData) {
+            delete config.headers['Content-Type'];
+        }
+
         if (typeof window !== 'undefined') {
             const fingerprintData = {
                 ua: navigator.userAgent,

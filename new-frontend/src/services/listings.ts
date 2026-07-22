@@ -209,23 +209,33 @@ export const listingsService = {
     },
 
     async getSubcategories(categoryId: number): Promise<any[]> {
-        const response = await api.get('/subcategories', { params: { category_id: categoryId } });
-        return response.data;
+        const categories = await this.getCategories();
+        const category = categories.find(c => c.id === categoryId);
+        return category?.subcategories || [];
     },
 
     async getAllSubcategories(): Promise<any[]> {
-        const response = await api.get('/subcategories');
-        return response.data;
+        const categories = await this.getCategories();
+        return categories.flatMap(c => c.subcategories || []);
     },
 
     async getSubsubcategories(subcategoryId: number): Promise<any[]> {
-        const response = await api.get('/subsubcategories', { params: { subcategory_id: subcategoryId } });
-        return response.data;
+        const categories = await this.getCategories();
+        for (const category of categories) {
+            for (const subcategory of category.subcategories || []) {
+                if (subcategory.id === subcategoryId) {
+                    return subcategory.subsubcategories || [];
+                }
+            }
+        }
+        return [];
     },
 
     async getAllSubsubcategories(): Promise<any[]> {
-        const response = await api.get('/subsubcategories');
-        return response.data;
+        const categories = await this.getCategories();
+        return categories.flatMap(c =>
+            (c.subcategories || []).flatMap(s => s.subsubcategories || [])
+        );
     },
 
     async uploadImage(file: File): Promise<{ filename: string; url: string }> {
