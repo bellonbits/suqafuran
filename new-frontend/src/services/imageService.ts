@@ -1,5 +1,4 @@
 import api from './api';
-import { useAuthStore } from '../store/useAuth';
 
 export const imageService = {
   async uploadImage(file: File): Promise<{ url: string; filename: string }> {
@@ -17,18 +16,13 @@ export const imageService = {
     }
 
     const formData = new FormData();
-    files.forEach((file, index) => {
+    files.forEach((file) => {
       if (file && file.size > 0) {
         formData.append('files', file, file.name);
       }
     });
 
-    const token = useAuthStore.getState().token;
-    const params = token ? { token } : {};
-
-    const response = await api.post('/listings/upload-multiple', formData, {
-      params,
-    });
+    const response = await api.post('/listings/upload-multiple', formData);
 
     return response.data;
   },
