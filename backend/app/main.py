@@ -81,6 +81,19 @@ async def logging_middleware(request: Request, call_next):
     response.headers["X-Request-ID"] = request_id
     return response
 
+
+@app.middleware("http")
+async def query_token_to_header_middleware(request: Request, call_next):
+    """Extract token from query params and add to Authorization header."""
+    if "token" in request.query_params and "authorization" not in request.headers:
+        token = request.query_params["token"]
+        from starlette.datastructures import MutableHeaders
+        headers = MutableHeaders(request.headers)
+        headers["authorization"] = f"Bearer {token}"
+    response = await call_next(request)
+    return response
+
+
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 

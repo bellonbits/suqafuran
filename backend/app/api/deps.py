@@ -24,17 +24,11 @@ def get_db() -> Generator:
 
 
 def get_current_user(
-    request: Request,
     db: Session = Depends(get_db),
     token: Optional[str] = Depends(reusable_oauth2),
 ) -> User:
-    # Try getting token from: cookie → header → query param
-    if request:
-        query_token = request.query_params.get("token")
-        if query_token:
-            token = query_token
-        elif not token:
-            token = request.cookies.get("access_token")
+    # Token is extracted from query params by middleware and added to Authorization header
+    # So reusable_oauth2 will get it from there
 
     if not token:
         raise HTTPException(
@@ -85,13 +79,10 @@ def get_current_user(
 
 
 def get_current_user_optional(
-    request: Request,
     db: Session = Depends(get_db),
     token: Optional[str] = Depends(reusable_oauth2),
 ) -> Optional[User]:
-    # Try getting token from cookie first
-    if request:
-        token = request.cookies.get("access_token") or token
+    # Token is extracted from query params by middleware and added to Authorization header
     
     if not token:
         return None
