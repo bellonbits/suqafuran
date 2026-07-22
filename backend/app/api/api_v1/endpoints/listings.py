@@ -157,20 +157,15 @@ def read_categories(
             try: cat_attrs = json.loads(cat_attrs)
             except: cat_attrs = {}
 
+        subs = crud_listing.get_subcategories(db, category_id=cat.id)
         subcategories = []
-        for sub in (cat.subcategories or []):
-            sub_attrs = sub.attributes_schema
-            if isinstance(sub_attrs, str):
-                try: sub_attrs = json.loads(sub_attrs)
-                except: sub_attrs = []
-
+        for sub in (subs or []):
             subcategories.append({
                 "id": sub.id,
                 "name_en": sub.name_en,
                 "name_so": sub.name_so,
                 "slug": sub.slug,
                 "image_url": sub.image_url,
-                "attributes_schema": sub_attrs,
                 "subsubcategories": [
                     {
                         "id": ssub.id,
@@ -179,7 +174,7 @@ def read_categories(
                         "slug": ssub.slug,
                         "image_url": ssub.image_url,
                     }
-                    for ssub in (sub.subsubcategories or [])
+                    for ssub in db.exec(select(SubSubCategory).where(SubSubCategory.subcategory_id == sub.id)).all() or []
                 ],
             })
 

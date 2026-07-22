@@ -129,11 +129,7 @@ def remove_listing(db: Session, *, id: int) -> Listing:
 
 
 def get_categories(db: Session) -> List[Category]:
-    return db.exec(
-        select(Category).options(
-            selectinload(Category.subcategories).selectinload(Subcategory.subsubcategories)
-        )
-    ).all()
+    return db.exec(select(Category)).all()
 
 
 def get_category_by_slug(db: Session, slug: str) -> Optional[Category]:
@@ -155,7 +151,6 @@ def remove_category(db: Session, *, id: int) -> Category:
 
 
 def get_subcategories(db: Session, *, category_id: Optional[int] = None) -> List[Subcategory]:
-    from app.models.listing import Subcategory
     statement = select(Subcategory)
     if category_id:
         statement = statement.where(Subcategory.category_id == category_id)
@@ -163,7 +158,6 @@ def get_subcategories(db: Session, *, category_id: Optional[int] = None) -> List
 
 
 def get_subcategory_by_slug(db: Session, slug: str) -> Optional[Subcategory]:
-    from app.models.listing import Subcategory
     return db.exec(select(Subcategory).where(Subcategory.slug == slug)).first()
 
 
@@ -185,7 +179,6 @@ def update_subcategory(db: Session, *, db_obj: any, subcategory_in: dict) -> any
 
 
 def remove_subcategory(db: Session, *, id: int) -> any:
-    from app.models.listing import Subcategory
     obj = db.get(Subcategory, id)
     db.delete(obj)
     db.commit()
