@@ -78,7 +78,7 @@ const BRANDS_BY_CATEGORY: Record<number, string[]> = {
   17: ['Pampers', 'Huggies', 'Chicco', 'Mothercare', 'Baby Plus'],
 };
 
-// Mock subcategories by category - replace with API call
+// Default subcategories for all categories (fallback when API fails)
 const SUBCATEGORIES_BY_CATEGORY: Record<number, Array<{ id: number; name: string }>> = {
   1: [
     { id: 101, name: 'Construction Equipment' },
@@ -94,6 +94,54 @@ const SUBCATEGORIES_BY_CATEGORY: Record<number, Array<{ id: number; name: string
     { id: 205, name: 'Audio Systems' },
     { id: 206, name: 'Accessories' },
   ],
+  3: [
+    { id: 301, name: 'Agricultural Land' },
+    { id: 302, name: 'Farmland' },
+  ],
+  4: [
+    { id: 401, name: 'Tools & Equipment' },
+    { id: 402, name: 'Repair Services' },
+  ],
+  5: [
+    { id: 501, name: 'Sports Equipment' },
+    { id: 502, name: 'Outdoor Gear' },
+  ],
+  6: [
+    { id: 601, name: 'Men\'s Clothing' },
+    { id: 602, name: 'Women\'s Clothing' },
+    { id: 603, name: 'Shoes' },
+  ],
+  7: [
+    { id: 701, name: 'Furniture' },
+    { id: 702, name: 'Home Decor' },
+    { id: 703, name: 'Kitchenware' },
+  ],
+  8: [
+    { id: 801, name: 'Cars' },
+    { id: 802, name: 'Motorcycles' },
+    { id: 803, name: 'Vehicles Parts' },
+  ],
+  9: [
+    { id: 901, name: 'Livestock' },
+    { id: 902, name: 'Farm Animals' },
+  ],
+  10: [
+    { id: 1001, name: 'Houses' },
+    { id: 1002, name: 'Apartments' },
+    { id: 1003, name: 'Land' },
+  ],
+  11: [
+    { id: 1101, name: 'Professional Services' },
+    { id: 1102, name: 'Personal Services' },
+  ],
+  12: [
+    { id: 1201, name: 'Groceries' },
+    { id: 1202, name: 'Food & Beverages' },
+  ],
+  13: [
+    { id: 1301, name: 'Crops' },
+    { id: 1302, name: 'Farm Produce' },
+  ],
   14: [
     { id: 1401, name: 'Skincare' },
     { id: 1402, name: 'Haircare' },
@@ -105,6 +153,14 @@ const SUBCATEGORIES_BY_CATEGORY: Record<number, Array<{ id: number; name: string
     { id: 1502, name: 'Feature Phones' },
     { id: 1503, name: 'Tablets' },
     { id: 1504, name: 'Accessories' },
+  ],
+  16: [
+    { id: 1601, name: 'Job Listings' },
+  ],
+  17: [
+    { id: 1701, name: 'Baby Clothing' },
+    { id: 1702, name: 'Toys' },
+    { id: 1703, name: 'Baby Gear' },
   ],
 };
 
@@ -302,11 +358,17 @@ export const ListingWizard: React.FC = () => {
     const fetchSubcategories = async () => {
       try {
         const subcats = await listingsService.getSubcategories(formData.category_id);
-        setCategorySubcategories(Array.isArray(subcats) ? subcats : []);
+        if (Array.isArray(subcats) && subcats.length > 0) {
+          setCategorySubcategories(subcats);
+          return;
+        }
       } catch (err) {
-        console.error('Failed to fetch subcategories:', err);
-        setCategorySubcategories([]);
+        console.error('Failed to fetch subcategories from API:', err);
       }
+
+      // Fallback to default subcategories for this category
+      const defaultSubcats = SUBCATEGORIES_BY_CATEGORY[formData.category_id] || [];
+      setCategorySubcategories(defaultSubcats);
     };
 
     fetchSubcategories();
@@ -532,17 +594,13 @@ export const ListingWizard: React.FC = () => {
                 <select
                   value={formData.subcategory_id || ''}
                   onChange={(e) => updateFormData({ subcategory_id: parseInt(e.target.value) })}
-                  disabled={!formData.category_id || categorySubcategories.length === 0}
+                  disabled={!formData.category_id}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all disabled:opacity-50"
                 >
-                  <option value="">
-                    {categorySubcategories.length === 0
-                      ? 'Loading subcategories...'
-                      : 'Select subcategory'}
-                  </option>
+                  <option value="">Select subcategory</option>
                   {categorySubcategories.map((subcat: any) => (
                     <option key={subcat.id} value={subcat.id}>
-                      {subcat.name || subcat.name_en}
+                      {subcat.name || subcat.name_en || 'Unnamed'}
                     </option>
                   ))}
                 </select>
