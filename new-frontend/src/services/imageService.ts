@@ -1,4 +1,5 @@
 import api from './api';
+import { useAuthStore } from '../store/useAuth';
 
 export const imageService = {
   async uploadImage(file: File): Promise<{ url: string; filename: string }> {
@@ -22,7 +23,11 @@ export const imageService = {
       }
     });
 
+    const token = useAuthStore.getState().token;
+    const params = token ? { token } : {};
+
     const response = await api.post('/listings/upload-multiple', formData, {
+      params,
       headers: {
         // Let axios handle Content-Type for FormData
       },
