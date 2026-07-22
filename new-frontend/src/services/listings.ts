@@ -203,6 +203,21 @@ export const listingsService = {
         return response.data;
     },
 
+    async getAllSubcategories(): Promise<any[]> {
+        const response = await api.get('/subcategories');
+        return response.data;
+    },
+
+    async getSubsubcategories(subcategoryId: number): Promise<any[]> {
+        const response = await api.get('/subsubcategories', { params: { subcategory_id: subcategoryId } });
+        return response.data;
+    },
+
+    async getAllSubsubcategories(): Promise<any[]> {
+        const response = await api.get('/subsubcategories');
+        return response.data;
+    },
+
     async uploadImage(file: File): Promise<{ filename: string; url: string }> {
         const formData = new FormData();
         formData.append('file', file);

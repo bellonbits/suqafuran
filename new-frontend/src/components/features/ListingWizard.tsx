@@ -346,7 +346,24 @@ export const ListingWizard: React.FC = () => {
   const [isCustomBrand, setIsCustomBrand] = useState(false);
   const [categoryBrands, setCategoryBrands] = useState<string[]>([]);
   const [categorySubcategories, setCategorySubcategories] = useState<Array<{ id: number; name: string }>>([]);
+  const [allCategories, setAllCategories] = useState<Array<{ id: number; name: string; name_en?: string }>>([]);
   const locationInputRef = useRef<HTMLInputElement>(null);
+
+  // Load all categories from API on mount
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const cats = await listingsService.getCategories();
+        if (Array.isArray(cats)) {
+          setAllCategories(cats);
+        }
+      } catch (err) {
+        console.error('Failed to fetch categories:', err);
+        setAllCategories(CATEGORIES);
+      }
+    };
+    loadCategories();
+  }, []);
 
   // Fetch subcategories when category changes
   useEffect(() => {
@@ -383,7 +400,9 @@ export const ListingWizard: React.FC = () => {
 
     const fetchCategoryBrands = async () => {
       try {
-        const category = CATEGORIES.find((c) => c.id === formData.category_id);
+        const category = (allCategories.length > 0 ? allCategories : CATEGORIES).find(
+          (c: any) => c.id === formData.category_id
+        );
         if (!category) {
           setCategoryBrands([]);
           return;
@@ -394,11 +413,13 @@ export const ListingWizard: React.FC = () => {
 
         // Try to fetch from API
         try {
+          const catName = category.name || category.name_en || '';
           const slugFormats = [
-            category.name.toLowerCase().replace(/\s+&\s+/g, '-and-').replace(/\s+/g, '-'),
-            category.name.toLowerCase().replace(/\s+/g, '-'),
-            category.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-          ];
+            catName.toLowerCase().replace(/\s+&\s+/g, '-and-').replace(/\s+/g, '-'),
+            catName.toLowerCase().replace(/\s+/g, '-'),
+            catName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            category.slug || '', // Use slug from API if available
+          ].filter(Boolean);
 
           let response = null;
           for (const slug of slugFormats) {
@@ -581,9 +602,9 @@ export const ListingWizard: React.FC = () => {
                   className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                 >
                   <option value="">Select category</option>
-                  {CATEGORIES.map((cat) => (
+                  {(allCategories.length > 0 ? allCategories : CATEGORIES).map((cat: any) => (
                     <option key={cat.id} value={cat.id}>
-                      {cat.name}
+                      {cat.name || cat.name_en}
                     </option>
                   ))}
                 </select>
