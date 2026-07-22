@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
-import { ListingStep1Details } from './listing-wizard/Step1Details';
 import { ListingStep3Images } from './listing-wizard/Step3Images';
 import { ListingStep4Review } from './listing-wizard/Step4Review';
 import { listingsService } from '../../services/listings';
@@ -19,22 +18,22 @@ export interface ListingFormData {
   location?: string;
   condition: 'new' | 'like_new' | 'good' | 'fair';
   images: Array<{ url: string; filename: string }>;
+  videos?: string[];
   attributes?: Record<string, any>;
   price: number;
   negotiable: boolean;
   price_type: 'fixed' | 'negotiable' | 'contact';
   tags?: string[];
+  brand?: string;
+  stock_quantity?: number;
+  sku?: string;
 }
 
 const STEPS = [
-  { id: 1, number: '01', title: 'Shop' },
-  { id: 2, number: '02', title: 'Category' },
-  { id: 3, number: '03', title: 'Details' },
-  { id: 4, number: '04', title: 'Media' },
-  { id: 5, number: '05', title: 'Attributes' },
-  { id: 6, number: '06', title: 'Pricing' },
-  { id: 7, number: '07', title: 'Preview' },
-  { id: 8, number: '08', title: 'Publish' },
+  { id: 1, number: '01', title: 'Category' },
+  { id: 2, number: '02', title: 'Details' },
+  { id: 3, number: '03', title: 'Media & Pricing' },
+  { id: 4, number: '04', title: 'Review' },
 ];
 
 // Mock categories - replace with API call
@@ -74,6 +73,12 @@ const SUBCATEGORIES_BY_CATEGORY: Record<number, Array<{ id: number; name: string
     { id: 205, name: 'Audio Systems' },
     { id: 206, name: 'Accessories' },
   ],
+  14: [
+    { id: 1401, name: 'Skincare' },
+    { id: 1402, name: 'Haircare' },
+    { id: 1403, name: 'Makeup' },
+    { id: 1404, name: 'Fragrances' },
+  ],
   15: [
     { id: 1501, name: 'Smartphones' },
     { id: 1502, name: 'Feature Phones' },
@@ -81,6 +86,23 @@ const SUBCATEGORIES_BY_CATEGORY: Record<number, Array<{ id: number; name: string
     { id: 1504, name: 'Accessories' },
   ],
 };
+
+// Mock location suggestions - in production, use Google Maps API
+const NAIROBI_LOCATIONS = [
+  'Eastleigh, Nairobi',
+  'Westlands, Nairobi',
+  'Karen, Nairobi',
+  'Riverside, Nairobi',
+  'Upper Hill, Nairobi',
+  'Kilimani, Nairobi',
+  'Lavington, Nairobi',
+  'Parklands, Nairobi',
+  'Gigiri, Nairobi',
+  'Muthaiga, Nairobi',
+  'Nairobi City Centre',
+  'South B, Nairobi',
+  'South C, Nairobi',
+];
 
 export const ListingWizard: React.FC = () => {
   const router = useRouter();
@@ -96,21 +118,48 @@ export const ListingWizard: React.FC = () => {
     price_type: 'fixed',
     tags: [],
     location: '',
+    brand: '',
+    stock_quantity: 1,
+    sku: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  const locationInputRef = useRef<HTMLInputElement>(null);
 
   const updateFormData = (data: Partial<ListingFormData>) => {
     setFormData((prev) => ({ ...prev, ...data }));
   };
 
+  // Handle location autocomplete
+  const handleLocationChange = (value: string) => {
+    updateFormData({ location: value });
+    if (value.length > 1) {
+      const filtered = NAIROBI_LOCATIONS.filter((loc) =>
+        loc.toLowerCase().includes(value.toLowerCase())
+      );
+      setLocationSuggestions(filtered);
+      setShowLocationSuggestions(true);
+    } else {
+      setLocationSuggestions([]);
+      setShowLocationSuggestions(false);
+    }
+  };
+
+  const selectLocation = (location: string) => {
+    updateFormData({ location });
+    setShowLocationSuggestions(false);
+  };
+
   const handleNext = async () => {
     setError('');
 
-    if (currentStep === 1 && !formData.shop_id) {
-      setError('Please select a shop');
-      return;
-    } else if (currentStep === 2) {
+    if (currentStep === 1) {
+      if (!formData.shop_id) {
+        setError('Please select a shop');
+        return;
+      }
       if (!formData.category_id) {
         setError('Please select a category');
         return;
@@ -119,20 +168,31 @@ export const ListingWizard: React.FC = () => {
         setError('Please select a subcategory');
         return;
       }
-    } else if (currentStep === 3) {
-      if (!formData.title.trim() || !formData.description.trim() || !formData.location?.trim()) {
-        setError('Please fill in all required fields');
+      if (!formData.location?.trim()) {
+        setError('Please enter a location');
         return;
       }
-    } else if (currentStep === 4 && formData.images.length === 0) {
-      setError('Please upload at least one image');
-      return;
-    } else if (currentStep === 6 && formData.price <= 0) {
-      setError('Please set a valid price');
-      return;
+    } else if (currentStep === 2) {
+      if (!formData.title.trim()) {
+        setError('Please enter a product title');
+        return;
+      }
+      if (!formData.description.trim()) {
+        setError('Please enter a product description');
+        return;
+      }
+    } else if (currentStep === 3) {
+      if (formData.images.length === 0) {
+        setError('Please upload at least one image');
+        return;
+      }
+      if (formData.price <= 0) {
+        setError('Please set a valid price');
+        return;
+      }
     }
 
-    if (currentStep < 8) {
+    if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -162,6 +222,9 @@ export const ListingWizard: React.FC = () => {
         attributes: formData.attributes || {},
         price_type: formData.price_type,
         tags: formData.tags || [],
+        brand: formData.brand || '',
+        stock_quantity: formData.stock_quantity || 1,
+        sku: formData.sku || '',
       };
 
       const result = await listingsService.createListing(payload);
@@ -173,6 +236,11 @@ export const ListingWizard: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSaveDraft = async () => {
+    console.log('Save draft:', formData);
+    // Implement draft saving logic
   };
 
   const renderStepContent = () => {
@@ -191,37 +259,33 @@ export const ListingWizard: React.FC = () => {
                 <option value="1">My Shop</option>
               </select>
             </div>
-          </div>
-        );
 
-      case 2:
-        return (
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Main Category *</label>
-              <select
-                value={formData.category_id || ''}
-                onChange={(e) => updateFormData({ category_id: parseInt(e.target.value), subcategory_id: undefined })}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-              >
-                <option value="">Select a category</option>
-                {CATEGORIES.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Main Category *</label>
+                <select
+                  value={formData.category_id || ''}
+                  onChange={(e) => updateFormData({ category_id: parseInt(e.target.value), subcategory_id: undefined })}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                >
+                  <option value="">Select category</option>
+                  {CATEGORIES.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            {formData.category_id && (
               <div>
                 <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Subcategory *</label>
                 <select
                   value={formData.subcategory_id || ''}
                   onChange={(e) => updateFormData({ subcategory_id: parseInt(e.target.value) })}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  disabled={!formData.category_id}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all disabled:opacity-50"
                 >
-                  <option value="">Select a subcategory</option>
+                  <option value="">Select subcategory</option>
                   {(SUBCATEGORIES_BY_CATEGORY[formData.category_id] || []).map((subcat) => (
                     <option key={subcat.id} value={subcat.id}>
                       {subcat.name}
@@ -229,33 +293,71 @@ export const ListingWizard: React.FC = () => {
                   ))}
                 </select>
               </div>
-            )}
+            </div>
+
+            <div className="relative">
+              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Location *</label>
+              <input
+                ref={locationInputRef}
+                type="text"
+                value={formData.location || ''}
+                onChange={(e) => handleLocationChange(e.target.value)}
+                onFocus={() => formData.location && setShowLocationSuggestions(true)}
+                placeholder="e.g., Eastleigh, Nairobi"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              />
+              {showLocationSuggestions && locationSuggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                  {locationSuggestions.map((location) => (
+                    <button
+                      key={location}
+                      onClick={() => selectLocation(location)}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-gray-900 dark:text-white text-sm"
+                    >
+                      {location}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         );
 
-      case 3:
+      case 2:
         return (
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Location *</label>
+              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Product Title *</label>
               <input
                 type="text"
-                value={formData.location || ''}
-                onChange={(e) => updateFormData({ location: e.target.value })}
-                placeholder="Type Address"
+                value={formData.title}
+                onChange={(e) => updateFormData({ title: e.target.value })}
+                placeholder="e.g., Cerave Moisturizing Cream"
+                maxLength={100}
                 className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              />
+              <p className="text-xs text-gray-500 mt-1">{formData.title.length}/100</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Description *</label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => updateFormData({ description: e.target.value })}
+                placeholder="Describe your product. Be specific about condition, features, and why you're selling."
+                rows={5}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Title *</label>
+                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Brand</label>
                 <input
                   type="text"
-                  value={formData.title}
-                  onChange={(e) => updateFormData({ title: e.target.value })}
-                  placeholder="Product Title"
-                  maxLength={100}
+                  value={formData.brand || ''}
+                  onChange={(e) => updateFormData({ brand: e.target.value })}
+                  placeholder="e.g., Cerave"
                   className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                 />
               </div>
@@ -276,80 +378,88 @@ export const ListingWizard: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Description *</label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => updateFormData({ description: e.target.value })}
-                placeholder="Type any message"
-                rows={4}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
+              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Tags</label>
+              <input
+                type="text"
+                value={formData.tags?.join(', ') || ''}
+                onChange={(e) => updateFormData({ tags: e.target.value.split(',').map((t) => t.trim()).filter(Boolean) })}
+                placeholder="e.g., organic, moisturizer, skincare"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               />
+              <p className="text-xs text-gray-500 mt-1">Separate with commas</p>
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Images & Videos</h3>
+              <ListingStep3Images data={formData} onUpdate={updateFormData} onError={setError} />
+            </div>
+
+            <div className="border-t border-gray-200 dark:border-slate-700 pt-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Pricing</h3>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Price (KES) *</label>
+                  <input
+                    type="number"
+                    value={formData.price || ''}
+                    onChange={(e) => updateFormData({ price: parseFloat(e.target.value) || 0 })}
+                    placeholder="5000"
+                    step="1"
+                    min="0"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Price Type *</label>
+                  <select
+                    value={formData.price_type}
+                    onChange={(e) => updateFormData({ price_type: e.target.value as any })}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  >
+                    <option value="fixed">Fixed Price</option>
+                    <option value="negotiable">Negotiable</option>
+                    <option value="contact">Contact Seller</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Stock Quantity</label>
+                  <input
+                    type="number"
+                    value={formData.stock_quantity || 1}
+                    onChange={(e) => updateFormData({ stock_quantity: parseInt(e.target.value) || 1 })}
+                    placeholder="1"
+                    min="1"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">SKU</label>
+                  <input
+                    type="text"
+                    value={formData.sku || ''}
+                    onChange={(e) => updateFormData({ sku: e.target.value })}
+                    placeholder="Optional product SKU"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         );
 
       case 4:
-        return <ListingStep3Images data={formData} onUpdate={updateFormData} onError={setError} />;
-
-      case 5:
-        return (
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Attributes</label>
-              <p className="text-gray-600 dark:text-slate-400 text-sm">Category-specific attributes form</p>
-            </div>
-          </div>
-        );
-
-      case 6:
-        return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Price (KES) *</label>
-                <input
-                  type="number"
-                  value={formData.price || ''}
-                  onChange={(e) => updateFormData({ price: parseFloat(e.target.value) || 0 })}
-                  placeholder="5000"
-                  step="1"
-                  min="0"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Price Type *</label>
-                <select
-                  value={formData.price_type}
-                  onChange={(e) => updateFormData({ price_type: e.target.value as any })}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                >
-                  <option value="fixed">Fixed Price</option>
-                  <option value="negotiable">Negotiable</option>
-                  <option value="contact">Contact Seller</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        );
-
-      case 7:
         return <ListingStep4Review data={formData} />;
-
-      case 8:
-        return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Ready to Publish?</h3>
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-900 rounded-lg p-4">
-                <p className="text-green-900 dark:text-green-200 text-sm">
-                  ✓ All required fields are complete. Your listing will be visible to buyers immediately.
-                </p>
-              </div>
-            </div>
-          </div>
-        );
 
       default:
         return null;
@@ -364,7 +474,7 @@ export const ListingWizard: React.FC = () => {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Suqafuran</h1>
-              <p className="text-gray-600 dark:text-slate-400 text-sm mt-1">Marketplace Listing</p>
+              <p className="text-gray-600 dark:text-slate-400 text-sm mt-1">Post a Listing</p>
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-600 dark:text-slate-400">Step {currentStep} of {STEPS.length}</p>
@@ -377,7 +487,7 @@ export const ListingWizard: React.FC = () => {
               <div key={step.id} className="flex items-center flex-1">
                 <div className="relative z-10">
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
+                    className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
                       idx + 1 <= currentStep
                         ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
                         : 'bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-slate-300'
@@ -385,9 +495,11 @@ export const ListingWizard: React.FC = () => {
                   >
                     {step.number}
                   </div>
-                  <p className={`text-xs font-semibold mt-2 text-center whitespace-nowrap ${
-                    idx + 1 <= currentStep ? 'text-gray-900 dark:text-white' : 'text-gray-400'
-                  }`}>
+                  <p
+                    className={`text-xs font-semibold mt-2 text-center whitespace-nowrap ${
+                      idx + 1 <= currentStep ? 'text-gray-900 dark:text-white' : 'text-gray-400'
+                    }`}
+                  >
                     {step.title}
                   </p>
                 </div>
@@ -428,7 +540,10 @@ export const ListingWizard: React.FC = () => {
               {STEPS[currentStep - 1]?.title}
             </h2>
             <p className="text-gray-600 dark:text-slate-400 text-sm">
-              Fill in the details below to move to the next step.
+              {currentStep === 1 && 'Select your shop, category, and location'}
+              {currentStep === 2 && 'Tell buyers about your product'}
+              {currentStep === 3 && 'Add photos/videos and set your price'}
+              {currentStep === 4 && 'Review your listing before publishing'}
             </p>
           </div>
 
@@ -436,34 +551,45 @@ export const ListingWizard: React.FC = () => {
         </motion.div>
 
         {/* Navigation */}
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center gap-4">
           <button
             onClick={handlePrevious}
             disabled={currentStep === 1}
-            className="flex items-center gap-2 px-6 py-2 text-gray-700 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:text-gray-900 dark:hover:text-white transition-colors"
+            className="flex items-center gap-2 px-6 py-3 text-gray-700 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             <ChevronLeft size={20} />
             Back
           </button>
 
-          {currentStep === 8 ? (
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="flex items-center gap-2 px-8 py-3 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-full font-semibold hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            >
-              {loading ? 'Publishing...' : 'Publish'}
-              <ChevronRight size={20} />
-            </button>
-          ) : (
-            <button
-              onClick={handleNext}
-              className="flex items-center gap-2 px-8 py-3 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-full font-semibold hover:bg-gray-800 dark:hover:bg-gray-200 transition-all"
-            >
-              Next
-              <ChevronRight size={20} />
-            </button>
-          )}
+          <div className="flex gap-3">
+            {currentStep === 4 && (
+              <button
+                onClick={handleSaveDraft}
+                className="px-8 py-3 border border-gray-300 dark:border-slate-600 text-gray-900 dark:text-white rounded-full font-semibold hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
+              >
+                Save Draft
+              </button>
+            )}
+
+            {currentStep === 4 ? (
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="flex items-center gap-2 px-8 py-3 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-full font-semibold hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                {loading ? 'Publishing...' : 'Publish Listing'}
+                <ChevronRight size={20} />
+              </button>
+            ) : (
+              <button
+                onClick={handleNext}
+                className="flex items-center gap-2 px-8 py-3 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-full font-semibold hover:bg-gray-800 dark:hover:bg-gray-200 transition-all"
+              >
+                Next
+                <ChevronRight size={20} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
