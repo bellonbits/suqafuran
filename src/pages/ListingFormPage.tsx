@@ -560,15 +560,15 @@ const ListingFormPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Price (USD) *
+                    Price (KES) *
                   </label>
                   <input
                     type="number"
                     name="price"
                     value={formData.price}
                     onChange={handleInputChange}
-                    placeholder="0.00"
-                    step="0.01"
+                    placeholder="e.g., 5000, 25000, 150000"
+                    step="1"
                     min="0"
                     required
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -692,7 +692,7 @@ const ListingFormPage: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-gray-600 text-sm">Price</p>
-                      <p className="text-2xl font-bold text-blue-600">${parseFloat(formData.price).toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-blue-600">KES {parseFloat(formData.price).toLocaleString()}</p>
                     </div>
                     <div>
                       <p className="text-gray-600 text-sm">Location</p>
