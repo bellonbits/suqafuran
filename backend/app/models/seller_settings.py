@@ -11,7 +11,8 @@ class SellerSettingsBase(SQLModel):
     low_stock_alerts: bool = Field(default=True)
 
 
-class SellerSettings(SellerSettingsBase, table=True, tablename="seller_settings"):
+class SellerSettings(SellerSettingsBase, table=True):
+    __tablename__ = "seller_settings"
     id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)

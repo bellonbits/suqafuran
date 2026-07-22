@@ -9,7 +9,8 @@ class SalesReportBase(SQLModel):
     status: str = Field(default="pending")  # pending, completed, failed
 
 
-class SalesReport(SalesReportBase, table=True, tablename="sales_report"):
+class SalesReport(SalesReportBase, table=True):
+    __tablename__ = "sales_report"
     id: Optional[int] = Field(default=None, primary_key=True)
     last_generated: Optional[datetime] = None
     report_size: int = Field(default=0)  # Size in bytes
