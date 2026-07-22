@@ -30,7 +30,11 @@ def get_current_user(
 ) -> User:
     # Try getting token from: cookie → header → query param
     if request:
-        token = request.cookies.get("access_token") or token or request.query_params.get("token")
+        query_token = request.query_params.get("token")
+        if query_token:
+            token = query_token
+        elif not token:
+            token = request.cookies.get("access_token")
 
     if not token:
         raise HTTPException(
