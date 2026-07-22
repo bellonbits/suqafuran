@@ -451,73 +451,8 @@ export const ListingWizard: React.FC = () => {
           return;
         }
 
-        // Get default brands for this category
+        // Use default brands for this category (API fetching removed due to schema issues)
         const defaultBrands = BRANDS_BY_CATEGORY[formData.category_id] || [];
-
-        // Try to fetch from API in this order: subsubcategory → subcategory → category
-        let response = null;
-
-        // 1. Try subsubcategory attributes first
-        if (formData.subsubcategory_id) {
-          try {
-            const subsubcatSlug = formData.subsubcategory_id.toString();
-            response = await listingsService.getSubsubcategoryAttributes(subsubcatSlug);
-          } catch (err) {
-            console.debug('Subsubcategory attributes not found');
-          }
-        }
-
-        // 2. Try subcategory attributes
-        if (!response && formData.subcategory_id) {
-          try {
-            const subcatSlug = formData.subcategory_id.toString();
-            response = await listingsService.getSubcategoryAttributes(subcatSlug);
-          } catch (err) {
-            console.debug('Subcategory attributes not found');
-          }
-        }
-
-        // 3. Try category attributes
-        if (!response) {
-          try {
-            const catName = category.name || category.name_en || '';
-            const slugFormats = [
-              catName.toLowerCase().replace(/\s+&\s+/g, '-and-').replace(/\s+/g, '-'),
-              catName.toLowerCase().replace(/\s+/g, '-'),
-              catName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-              category.slug || '',
-            ].filter(Boolean);
-
-            for (const slug of slugFormats) {
-              try {
-                response = await listingsService.getCategoryAttributes(slug);
-                if (response) break;
-              } catch (err) {
-                continue;
-              }
-            }
-          } catch (err) {
-            console.error('Failed to fetch category attributes:', err);
-          }
-        }
-
-        if (response) {
-          const brandAttribute = response.find(
-            (attr: any) => attr.name === 'brand' || attr.name.toLowerCase().includes('brand')
-          );
-
-          if (brandAttribute?.options && Array.isArray(brandAttribute.options)) {
-            const apiBrands = brandAttribute.options
-              .map((opt: any) => (typeof opt === 'string' ? opt : opt.value || opt.name))
-              .filter((b: string) => b.toLowerCase() !== 'other');
-            // Merge API brands with defaults
-            const mergedBrands = [...new Set([...apiBrands, ...defaultBrands])];
-            setCategoryBrands(mergedBrands);
-            return;
-          }
-        }
-
-        // Fallback to default brands
         setCategoryBrands(defaultBrands);
       } catch (err) {
         console.error('Failed to load category brands:', err);
