@@ -11,7 +11,6 @@ class SubcategoryBase(SQLModel):
     slug: str = Field(unique=True, index=True)
     icon_name: Optional[str] = None
     image_url: Optional[str] = None
-    attributes_schema: dict = Field(default={}, sa_column=Column(JSON))
 
 
 class Subcategory(SubcategoryBase, table=True):
@@ -20,6 +19,7 @@ class Subcategory(SubcategoryBase, table=True):
     status: str = Field(default="active")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+    attributes_schema: dict = Field(default={}, sa_column=Column(JSON))
 
 
 class SubcategoryCreate(SubcategoryBase):
