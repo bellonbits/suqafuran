@@ -24,7 +24,7 @@ from datetime import datetime, timedelta
 router = APIRouter()
 
 
-@router.post("/upload")
+@router.post("/upload", response_model=dict)
 async def upload_image(
     *,
     file: UploadFile = File(...),
@@ -32,29 +32,30 @@ async def upload_image(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
-    Upload an image for a listing.
+    Upload a single image for a listing.
     """
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+
     extension = file.filename.split(".")[-1].lower()
     if extension not in settings.ALLOWED_EXTENSIONS:
         raise HTTPException(status_code=400, detail="File extension not allowed")
-    
-    # Check file size (simulated, better to check actual content if possible)
-    # FastAPI doesn't easily give size without reading it
+
     contents = await file.read(settings.MAX_FILE_SIZE + 1)
     if len(contents) > settings.MAX_FILE_SIZE:
         raise HTTPException(status_code=400, detail="File too large")
-    
+
     filename = f"{uuid.uuid4()}.{extension}"
-    
+
     try:
         url, phash = await storage_service.upload_file(contents, filename)
-        
+
         # AI Image Intelligence moved to background
         from app.services.ai_service import ai_service
         background_tasks.add_task(ai_service.analyze_image, url)
-        
+
         return {
-            "filename": filename, 
+            "filename": filename,
             "url": url,
             "phash": phash,
             "analysis": "processing_in_background"
@@ -63,7 +64,7 @@ async def upload_image(
         raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")
 
 
-@router.post("/upload-multiple")
+@router.post("/upload-multiple", response_model=List[dict])
 async def upload_multiple_images(
     *,
     files: List[UploadFile] = File(...),
@@ -71,30 +72,40 @@ async def upload_multiple_images(
 ) -> Any:
     """
     Upload multiple images for a listing.
+    Returns list of uploaded image info with url and filename.
     """
+    if not files:
+        raise HTTPException(status_code=400, detail="No files provided")
+
     results = []
     for file in files:
+        if not file.filename:
+            continue
+
         extension = file.filename.split(".")[-1].lower()
         if extension not in settings.ALLOWED_EXTENSIONS:
             continue
-            
+
         contents = await file.read(settings.MAX_FILE_SIZE + 1)
         if len(contents) > settings.MAX_FILE_SIZE:
             continue
-            
+
         filename = f"{uuid.uuid4()}.{extension}"
-        
+
         try:
             url, phash = await storage_service.upload_file(contents, filename)
             results.append({
-                "filename": filename, 
+                "filename": filename,
                 "url": url,
                 "phash": phash
             })
         except Exception as e:
-            # For multiple uploads, we might just skip the failed ones or log them
+            # Skip failed files and continue with others
             continue
-    
+
+    if not results:
+        raise HTTPException(status_code=400, detail="No valid files were uploaded")
+
     return results
 
 
