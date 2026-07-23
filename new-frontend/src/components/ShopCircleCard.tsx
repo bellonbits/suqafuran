@@ -1,9 +1,9 @@
 "use client";
 
 import React from 'react';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { optimizeCloudinaryUrl } from '@/services/api';
 
 interface ShopCircleCardProps {
   id: number;
@@ -38,11 +38,10 @@ export const ShopCircleCard: React.FC<ShopCircleCardProps> = ({
 
         {/* Image */}
         {image ? (
-          <Image
-            src={image}
+          <img
+            src={optimizeCloudinaryUrl(image, { width: 300, quality: 'auto', fetch_format: 'auto' }) || image}
             alt={name}
-            fill
-            className="object-cover group-hover:scale-110 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-400">
