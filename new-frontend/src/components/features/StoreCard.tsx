@@ -254,7 +254,7 @@ export const StoreCard: React.FC<StoreCardProps> = ({
   return (
     <div className="cursor-pointer" onClick={handleCardClick}>
       {/* CARD - Image Banner Only */}
-      <div className="relative w-full bg-gray-200 dark:bg-slate-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow" style={{ aspectRatio: '16 / 9' }}>
+      <div className="relative w-full bg-gray-200 dark:bg-slate-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow" style={{ aspectRatio: '16 / 10', minHeight: '120px' }}>
         {/* Banner Image */}
         {!imageError ? (
           <img
@@ -278,52 +278,43 @@ export const StoreCard: React.FC<StoreCardProps> = ({
       </div>
 
       {/* TEXT CONTENT - Below Card */}
-      <div className="pt-2">
-        {/* Shop Name */}
-        <h3 className="font-bold text-gray-900 dark:text-white text-sm line-clamp-1">
+      <div className="pt-3 px-0">
+        {/* Shop Name - Larger */}
+        <h3 className="font-bold text-gray-900 dark:text-white text-base line-clamp-1">
           {name}
         </h3>
 
-        {/* Subcategories Stickers */}
+        {/* Location - Secondary text */}
+        <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 line-clamp-1">
+          Eastleigh Market
+        </p>
+
+        {/* Rating + Stats Row */}
+        <div className="flex items-center gap-2 text-xs text-gray-700 dark:text-slate-300 mt-2">
+          <span className="font-bold text-gray-900 dark:text-white flex items-center gap-0.5">
+            ⭐ {(rating || 4.5).toFixed(1)}
+          </span>
+          <span className="text-gray-400">•</span>
+          <span className="text-gray-600 dark:text-slate-400">
+            {productCount || 150} Products
+          </span>
+        </div>
+
+        {/* Categories - if available */}
         {subcategories && subcategories.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2">
-            {subcategories.slice(0, 2).map((subCat) => (
-              <span
-                key={subCat}
-                className="px-2 py-0.5 bg-[#e0f7ff] text-blue-700 rounded text-xs font-semibold line-clamp-1"
-              >
-                {subCat}
-              </span>
-            ))}
-            {subcategories.length > 2 && (
-              <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-semibold">
-                +{subcategories.length - 2}
-              </span>
-            )}
+          <div className="mt-2">
+            <span className="text-xs text-gray-600 dark:text-slate-400 line-clamp-1">
+              {subcategories.slice(0, 2).join(' • ')}
+            </span>
           </div>
         )}
 
-        {/* Metadata Row */}
-        <div className="flex items-center gap-1 text-xs text-gray-700 dark:text-slate-300 mt-2">
-          {isFreeDelivery && (
-            <>
-              <span className="bg-red-600 text-white px-2 py-0.5 rounded font-bold">
-                Free
-              </span>
-              <span className="text-gray-400">•</span>
-            </>
-          )}
-
-          <span className="text-gray-600 dark:text-slate-400">
-            {deliveryTime}
-          </span>
-
-          <span className="text-gray-400">•</span>
-
-          <span className="font-bold text-gray-900 dark:text-white">
-            {ratingPercent}%{reviewCount > 0 && ` (${reviewCount})`}
-          </span>
-        </div>
+        {/* Verified Badge */}
+        {isVerified && (
+          <div className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-green-600 dark:text-green-400">
+            ✓ Verified Seller
+          </div>
+        )}
       </div>
     </div>
   );

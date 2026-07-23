@@ -470,7 +470,7 @@ function ShopsPageContent() {
 
         {/* Grid Container — 4 cols on lg+, 3 on md, 2 on sm */}
         {loading ? (
-          <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {Array.from({ length: 10 }).map((_, i) => (
               <SkeletonCard key={i} />
             ))}
@@ -487,7 +487,7 @@ function ShopsPageContent() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {shops.map((shop, i) => (
                 <GlovoShopCard key={shop.id} shop={shop} index={i} />
               ))}
