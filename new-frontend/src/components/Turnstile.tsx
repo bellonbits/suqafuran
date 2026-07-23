@@ -9,6 +9,7 @@ interface TurnstileProps {
 
 export const Turnstile: React.FC<TurnstileProps> = ({ onToken, onError }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const renderedRef = useRef(false);
   const sitekey = process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY;
 
   useEffect(() => {
@@ -17,10 +18,17 @@ export const Turnstile: React.FC<TurnstileProps> = ({ onToken, onError }) => {
       return;
     }
 
-    // Only load script if it hasn't been loaded already
-    if ((window as any).turnstile) {
-      // Script already loaded, render immediately
-      if (containerRef.current) {
+    // Prevent multiple renders
+    if (renderedRef.current) return;
+
+    const renderTurnstile = () => {
+      if (!containerRef.current || renderedRef.current) return;
+      if (!(window as any).turnstile) return;
+
+      // Clear previous instances
+      containerRef.current.innerHTML = '';
+
+      try {
         (window as any).turnstile.render('#turnstile-container', {
           sitekey: sitekey,
           theme: 'light',
@@ -31,7 +39,15 @@ export const Turnstile: React.FC<TurnstileProps> = ({ onToken, onError }) => {
             onError?.();
           },
         });
+        renderedRef.current = true;
+      } catch (error) {
+        console.warn('Turnstile render error:', error);
       }
+    };
+
+    // If script is already loaded
+    if ((window as any).turnstile) {
+      renderTurnstile();
       return;
     }
 
@@ -40,25 +56,26 @@ export const Turnstile: React.FC<TurnstileProps> = ({ onToken, onError }) => {
       return;
     }
 
+    // Load script
     const script = document.createElement('script');
     script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
     script.async = true;
-    script.defer = true;
     document.body.appendChild(script);
 
     script.onload = () => {
-      if (containerRef.current && (window as any).turnstile) {
-        (window as any).turnstile.render('#turnstile-container', {
-          sitekey: sitekey,
-          theme: 'light',
-          callback: (token: string) => {
-            onToken(token);
-          },
-          'error-callback': () => {
-            onError?.();
-          },
-        });
+      renderTurnstile();
+    };
+
+    return () => {
+      // Cleanup: remove Turnstile widget on unmount
+      if (containerRef.current && (window as any).turnstile?.remove) {
+        try {
+          (window as any).turnstile.remove('#turnstile-container');
+        } catch (e) {
+          // Ignore removal errors
+        }
       }
+      renderedRef.current = false;
     };
   }, [sitekey, onToken, onError]);
 
