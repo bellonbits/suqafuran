@@ -90,8 +90,8 @@ class User(UserBase, table=True, tablename="user"):
     def has_verification_level(self, required_level: UserVerifiedLevel) -> bool:
         """Check if user has at least the required verification level."""
         try:
-            required_index = self._TIER_HIERARCHY.index(required_level)
-            current_index = self._TIER_HIERARCHY.index(self.verified_level)
+            required_index = User._TIER_HIERARCHY.index(required_level)
+            current_index = User._TIER_HIERARCHY.index(self.verified_level)
             return current_index >= required_index
         except ValueError:
             return False
