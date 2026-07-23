@@ -600,6 +600,14 @@ async def create_listing(
     """
     Create new listing.
     """
+    # Verify user has at least tier1 trust level to create listings
+    from app.models.user import UserVerifiedLevel
+    if current_user.verified_level.value < UserVerifiedLevel.tier1.value:
+        raise HTTPException(
+            status_code=403,
+            detail="Account verification required to sell. Please complete your profile verification to create listings."
+        )
+
     # Prevent duplicated active listings from the same user (allow reposting sold/closed/deleted ones)
     existing_duplicate = db.exec(
         select(Listing).where(
