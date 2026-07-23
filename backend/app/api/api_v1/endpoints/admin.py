@@ -1254,12 +1254,16 @@ async def upload_shop_banner_file(
     file: UploadFile = File(...),
     *,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_superuser),
+    current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """Upload banner file to Cloudinary and store URL."""
     try:
         if banner_type not in ["shop_page_banner", "shop_detail_banner"]:
             raise HTTPException(status_code=400, detail="Invalid banner_type")
+
+        # Only allow users to upload banners for their own shops
+        if current_user.id != user_id:
+            raise HTTPException(status_code=403, detail="You can only upload banners for your own shop")
 
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
