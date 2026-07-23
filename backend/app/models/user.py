@@ -29,6 +29,19 @@ class TrustLevel(str, enum.Enum):
     TRUSTED = "TRUSTED"     # Platinum
 
 
+# Verification tier hierarchy (must be in ascending order of trust)
+TIER_HIERARCHY = [
+    "guest",
+    "phone",
+    "id",
+    "tier1",
+    "tier2",
+    "tier3",
+    "premium",
+    "trusted",
+]
+
+
 class UserBase(SQLModel):
     full_name: Optional[str] = None
     email: str = Field(unique=True, index=True)
@@ -75,23 +88,11 @@ class User(UserBase, table=True, tablename="user"):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    # Verification tier hierarchy (must be in ascending order of trust)
-    _TIER_HIERARCHY = [
-        UserVerifiedLevel.guest,
-        UserVerifiedLevel.phone,
-        UserVerifiedLevel.id,
-        UserVerifiedLevel.tier1,
-        UserVerifiedLevel.tier2,
-        UserVerifiedLevel.tier3,
-        UserVerifiedLevel.premium,
-        UserVerifiedLevel.trusted,
-    ]
-
     def has_verification_level(self, required_level: UserVerifiedLevel) -> bool:
         """Check if user has at least the required verification level."""
         try:
-            required_index = User._TIER_HIERARCHY.index(required_level)
-            current_index = User._TIER_HIERARCHY.index(self.verified_level)
+            required_index = TIER_HIERARCHY.index(required_level.value)
+            current_index = TIER_HIERARCHY.index(self.verified_level.value)
             return current_index >= required_index
         except ValueError:
             return False
