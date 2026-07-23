@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Any, Optional
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from sqlmodel import Session, select
 from sqlalchemy.exc import IntegrityError
@@ -15,7 +16,8 @@ from app.services.africastalking_service import africastalking_service
 from app.services.kafka_producer import publish_signup_event, publish_signin_event
 from pydantic import BaseModel
 from app.core.metrics import USER_REGISTRATIONS_TOTAL, SUCCESSFUL_LOGINS_TOTAL
-import asyncio
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -88,7 +90,7 @@ def signup(
 
 
 @router.post("/verify-otp", response_model=AuthOut)
-def verify_otp(
+async def verify_otp(
     response: Response,
     payload: VerifyOtpIn,
     db: Session = Depends(deps.get_db)
@@ -138,13 +140,16 @@ def verify_otp(
             # Send welcome email
             email_service.send_welcome_email(user.email, user.full_name, user.id)
 
-            # Publish signup event to Kafka (async, non-blocking)
-            asyncio.create_task(publish_signup_event(
-                user_id=user.id,
-                email=user.email,
-                phone=user.phone,
-                promo_code=user.referral_code,
-            ))
+            # Publish signup event to Kafka (non-blocking)
+            try:
+                await publish_signup_event(
+                    user_id=user.id,
+                    email=user.email,
+                    phone=user.phone,
+                    promo_code=user.referral_code,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to publish signup event: {e}")
 
             # Track business metric
             USER_REGISTRATIONS_TOTAL.labels(method="email_otp").inc()
@@ -167,12 +172,15 @@ def verify_otp(
         db.commit()
         db.refresh(user)
 
-        # Publish signin event to Kafka (async, non-blocking)
-        asyncio.create_task(publish_signin_event(
-            user_id=user.id,
-            email=user.email,
-            auth_method="email_otp",
-        ))
+        # Publish signin event to Kafka (non-blocking)
+        try:
+            await publish_signin_event(
+                user_id=user.id,
+                email=user.email,
+                auth_method="email_otp",
+            )
+        except Exception as e:
+            logger.warning(f"Failed to publish signin event: {e}")
 
         # Track business metric
         SUCCESSFUL_LOGINS_TOTAL.inc()
@@ -251,7 +259,7 @@ def request_phone_otp(
 
 
 @router.post("/verify-phone-otp", response_model=AuthOut)
-def verify_phone_otp(
+async def verify_phone_otp(
     response: Response,
     payload: VerifyPhoneOtpIn,
     db: Session = Depends(deps.get_db),
@@ -308,13 +316,16 @@ def verify_phone_otp(
             db.refresh(user)
             africastalking_service.delete_pending_signup(phone)
 
-            # Publish signup event to Kafka (async, non-blocking)
-            asyncio.create_task(publish_signup_event(
-                user_id=user.id,
-                email=user.email,
-                phone=user.phone,
-                promo_code=user.referral_code,
-            ))
+            # Publish signup event to Kafka (non-blocking)
+            try:
+                await publish_signup_event(
+                    user_id=user.id,
+                    email=user.email,
+                    phone=user.phone,
+                    promo_code=user.referral_code,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to publish signup event: {e}")
 
             USER_REGISTRATIONS_TOTAL.labels(method="phone_otp").inc()
         except IntegrityError:
@@ -330,12 +341,15 @@ def verify_phone_otp(
         db.commit()
         db.refresh(user)
 
-        # Publish signin event to Kafka (async, non-blocking)
-        asyncio.create_task(publish_signin_event(
-            user_id=user.id,
-            email=user.email,
-            auth_method="phone_otp",
-        ))
+        # Publish signin event to Kafka (non-blocking)
+        try:
+            await publish_signin_event(
+                user_id=user.id,
+                email=user.email,
+                auth_method="phone_otp",
+            )
+        except Exception as e:
+            logger.warning(f"Failed to publish signin event: {e}")
 
         SUCCESSFUL_LOGINS_TOTAL.inc()
 
