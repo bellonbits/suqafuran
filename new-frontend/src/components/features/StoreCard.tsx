@@ -254,7 +254,7 @@ export const StoreCard: React.FC<StoreCardProps> = ({
   return (
     <div className="cursor-pointer" onClick={handleCardClick}>
       {/* CARD - Image Banner Only */}
-      <div className="relative w-full bg-gray-200 dark:bg-slate-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow" style={{ aspectRatio: '1.6 / 1' }}>
+      <div className="relative w-full bg-gray-200 dark:bg-slate-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow" style={{ aspectRatio: '16 / 9' }}>
         {/* Banner Image */}
         {!imageError ? (
           <img
