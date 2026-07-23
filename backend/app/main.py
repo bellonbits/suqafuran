@@ -25,6 +25,7 @@ from app.services.kafka_websocket_integration import integrate_kafka_with_websoc
 from app.services.kafka_producer import kafka_producer
 from app.services.kafka_admin import get_kafka_admin
 from app.services.kafka_monitoring_consumer import monitoring_consumer
+from app.services.kafka_email_notifier import email_notifier
 
 # Initialize structured logging
 setup_logging()
@@ -184,12 +185,19 @@ async def start_background_event_consumer():
     logger.info("=" * 60)
     monitoring_consumer.start()
 
+    # Start email notifier (sends events to admin email)
+    logger.info("=" * 60)
+    logger.info("Starting Kafka Email Notifier...")
+    logger.info("=" * 60)
+    email_notifier.start()
+
 
 @app.on_event("shutdown")
 async def stop_kafka_services():
     """Gracefully shut down Kafka services."""
     await kafka_producer.stop()
     monitoring_consumer.stop()
+    email_notifier.stop()
 
 
 
