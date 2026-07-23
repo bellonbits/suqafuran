@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Image from 'next/image';
+import { optimizeCloudinaryUrl } from '@/services/api';
 import { Upload, Loader, AlertCircle, ChevronLeft, X } from 'lucide-react';
 import api from '@/services/api';
 
@@ -407,11 +407,9 @@ export default function EditListingPage() {
                 <div className="grid grid-cols-3 gap-3">
                   {images.map((img, idx) => (
                     <div key={idx} className="relative group">
-                      <Image
-                        src={img}
+                      <img
+                        src={optimizeCloudinaryUrl(img, { width: 300, quality: 'auto', fetch_format: 'auto' }) || img}
                         alt={`Image ${idx}`}
-                        width={150}
-                        height={150}
                         className="w-full h-32 object-cover rounded-lg"
                       />
                       <button
@@ -434,11 +432,9 @@ export default function EditListingPage() {
                 <div className="grid grid-cols-3 gap-3">
                   {newImages.map((file, idx) => (
                     <div key={idx} className="relative group">
-                      <Image
+                      <img
                         src={URL.createObjectURL(file)}
                         alt={`New ${idx}`}
-                        width={150}
-                        height={150}
                         className="w-full h-32 object-cover rounded-lg"
                       />
                       <button
