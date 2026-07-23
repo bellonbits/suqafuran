@@ -54,7 +54,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller })
                 onClick={handleOpenModal}
                 className="block group w-full text-left hover:no-underline"
             >
-                <div className="relative aspect-square rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-900 cursor-pointer">
+                <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-900 cursor-pointer">
                     <img
                         src={displayImage}
                         alt={listing.title_en}
