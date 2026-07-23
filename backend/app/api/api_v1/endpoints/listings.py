@@ -841,9 +841,9 @@ def get_public_shops(
             params["shop_id"] = int(shop_id) if shop_id.isdigit() else shop_id
 
         if category_id is not None:
-            # Filter by primary_category_id instead of listing categories
-            # This ensures each shop only appears once (in their primary category)
-            category_filter = "AND u.primary_category_id = :category_id"
+            # TODO: Re-enable primary_category_id filter once column is added to database
+            # For now, filter by actual listing categories to show shops with items in this category
+            category_filter = "AND EXISTS (SELECT 1 FROM listing l WHERE l.owner_id = u.id AND l.subcategory_id IN (SELECT id FROM subcategory WHERE category_id = :category_id) AND l.status = 'active')"
             params["category_id"] = category_id
 
         # Cache key for category views
