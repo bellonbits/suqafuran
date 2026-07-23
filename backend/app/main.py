@@ -1,5 +1,6 @@
 import warnings
-warnings.filterwarnings("ignore", message="Field name.*shadows an attribute in parent")
+warnings.filterwarnings("ignore", category=UserWarning, module="pydantic.*")
+warnings.filterwarnings("ignore", message=".*shadows an attribute in parent.*")
 
 from pathlib import Path
 from fastapi import FastAPI, Request
