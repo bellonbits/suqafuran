@@ -520,7 +520,7 @@ export default function ShopDetailPage() {
 
                         {/* Cart Icon */}
                         <button
-                            onClick={() => router.push('/cart')}
+                            onClick={() => router.push('/checkout')}
                             className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-400 transition-colors"
                             title="View cart"
                         >
@@ -538,7 +538,7 @@ export default function ShopDetailPage() {
             {/* HERO BANNER & INFO (Glovo Style) */}
             <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4">
                 {/* BANNER WITH SHOP LOGO OVERLAY */}
-                <div className="relative bg-gray-200 dark:bg-slate-800 h-44 md:h-72 rounded-xl overflow-hidden mb-6 shadow-md border border-gray-100 dark:border-slate-800">
+                <div className="relative bg-gray-200 dark:bg-slate-800 h-40 md:h-56 rounded-xl overflow-hidden mb-6 shadow-md border border-gray-100 dark:border-slate-800">
                     {bannerImage && (
                         <>
                             <img
@@ -1042,7 +1042,7 @@ export default function ShopDetailPage() {
                                     {/* Horizontal Carousel */}
                                     <div
                                         ref={(el) => { if (el) scrollRefs.current[category.id] = el; }}
-                                        className="flex gap-3 overflow-x-auto pb-2 -mx-8 px-8 snap-x snap-mandatory"
+                                        className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory"
                                     >
                                         {(() => {
                                             const filtered = category.products.filter((product) => {
