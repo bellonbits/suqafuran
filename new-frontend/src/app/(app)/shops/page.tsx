@@ -349,7 +349,7 @@ function ShopsPageContent() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search..."
-              className="w-full bg-transparent text-sm focus:outline-none placeholder:text-gray-500 text-gray-900 dark:text-white"
+              className="w-full pl-6 bg-transparent text-sm focus:outline-none placeholder:text-gray-500 text-gray-900 dark:text-white"
             />
             {search && (
               <button
