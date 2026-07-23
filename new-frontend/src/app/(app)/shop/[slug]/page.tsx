@@ -613,7 +613,7 @@ export default function PublicShopPage() {
                       <p className="text-gray-600 dark:text-slate-400">Try adjusting your filters or search.</p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-20">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 pb-8">
                       {listings.filter((product) => {
                         const matchesSearch = !searchQuery ||
                           product.title_en.toLowerCase().includes(searchQuery.toLowerCase());
