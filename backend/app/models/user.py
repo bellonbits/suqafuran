@@ -66,7 +66,6 @@ class UserBase(SQLModel):
     shop_detail_banner: Optional[str] = Field(default=None)  # Banner for shop detail page
     is_featured: bool = Field(default=False)  # Featured shop status
     free_delivery: bool = Field(default=False)  # Free delivery badge
-    # primary_category_id: Optional[int] = Field(default=None, foreign_key="category.id", index=True)  # Primary category based on listing count
 
 
 class User(UserBase, table=True, tablename="user"):
