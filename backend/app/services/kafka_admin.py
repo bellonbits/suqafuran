@@ -133,10 +133,11 @@ class KafkaAdminClient:
             'suqafuran-events': (3, 1),
 
             # User monitoring & analytics
-            'suqafuran-signup': (2, 1),      # User registration events
-            'suqafuran-signin': (3, 1),      # User login events (high volume)
-            'suqafuran-tracking': (3, 1),    # Analytics & user behavior tracking
-            'suqafuran-checkout': (3, 1),    # Purchase/checkout events
+            'suqafuran-signup': (2, 1),           # User registration events
+            'suqafuran-signin': (3, 1),           # User login events (high volume)
+            'suqafuran-tracking': (3, 1),         # Analytics & user behavior tracking
+            'suqafuran-checkout': (3, 1),         # Purchase/checkout events
+            'suqafuran-upload-failures': (2, 1),  # Image/file upload failure tracking
         }
 
         for attempt in range(1, retries + 1):

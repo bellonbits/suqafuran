@@ -95,6 +95,7 @@ class Settings(BaseSettings):
     KAFKA_TOPIC_SIGNIN: str = "suqafuran-signin"
     KAFKA_TOPIC_TRACKING: str = "suqafuran-tracking"
     KAFKA_TOPIC_CHECKOUT: str = "suqafuran-checkout"
+    KAFKA_TOPIC_UPLOAD_FAILURES: str = "suqafuran-upload-failures"
 
     # EMAIL
     EMAILS_ENABLED: bool = True
