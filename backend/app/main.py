@@ -24,6 +24,7 @@ from app.services.kafka_service import kafka_service, ws_manager
 from app.services.kafka_websocket_integration import integrate_kafka_with_websocket
 from app.services.kafka_producer import kafka_producer
 from app.services.kafka_admin import get_kafka_admin
+from app.services.kafka_monitoring_consumer import monitoring_consumer
 
 # Initialize structured logging
 setup_logging()
@@ -177,11 +178,18 @@ async def start_background_event_consumer():
     # Start Kafka consumer
     kafka_service.start_consumer(SessionLocal)
 
+    # Start monitoring consumer (auto-subscribes to monitoring topics)
+    logger.info("=" * 60)
+    logger.info("Starting Kafka Monitoring Consumer...")
+    logger.info("=" * 60)
+    monitoring_consumer.start()
+
 
 @app.on_event("shutdown")
-async def stop_kafka_producer():
-    """Gracefully shut down Kafka producer."""
+async def stop_kafka_services():
+    """Gracefully shut down Kafka services."""
     await kafka_producer.stop()
+    monitoring_consumer.stop()
 
 
 
