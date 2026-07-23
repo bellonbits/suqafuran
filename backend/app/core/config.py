@@ -85,7 +85,16 @@ class Settings(BaseSettings):
     KAFKA_SASL_PASSWORD: Optional[str] = None
     KAFKA_SECURITY_PROTOCOL: str = "PLAINTEXT"
     KAFKA_SASL_MECHANISM: str = "PLAIN"
+
+    # Kafka Topics
     KAFKA_TOPIC_BUSINESS_EVENTS: str = "suqafuran-business-events"
+    KAFKA_TOPIC_ORDERS: str = "suqafuran-orders"
+    KAFKA_TOPIC_PAYMENTS: str = "suqafuran-payments"
+    KAFKA_TOPIC_NOTIFICATIONS: str = "suqafuran-notifications"
+    KAFKA_TOPIC_SIGNUP: str = "suqafuran-signup"
+    KAFKA_TOPIC_SIGNIN: str = "suqafuran-signin"
+    KAFKA_TOPIC_TRACKING: str = "suqafuran-tracking"
+    KAFKA_TOPIC_CHECKOUT: str = "suqafuran-checkout"
 
     # EMAIL
     EMAILS_ENABLED: bool = True

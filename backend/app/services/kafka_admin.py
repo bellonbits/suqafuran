@@ -119,14 +119,24 @@ class KafkaAdminClient:
             return False
 
         # Define topic names and configurations
+        # Format: (num_partitions, replication_factor)
         default_topics = {
+            # Core business events
             'suqafuran-orders': (3, 1),
             'suqafuran-payments': (3, 1),
             'suqafuran-deliveries': (2, 1),
+            'suqafuran-business-events': (3, 1),
+
+            # System notifications
             'suqafuran-alerts': (1, 1),
             'suqafuran-notifications': (2, 1),
             'suqafuran-events': (3, 1),
-            'suqafuran-business-events': (3, 1),
+
+            # User monitoring & analytics
+            'suqafuran-signup': (2, 1),      # User registration events
+            'suqafuran-signin': (3, 1),      # User login events (high volume)
+            'suqafuran-tracking': (3, 1),    # Analytics & user behavior tracking
+            'suqafuran-checkout': (3, 1),    # Purchase/checkout events
         }
 
         for attempt in range(1, retries + 1):
