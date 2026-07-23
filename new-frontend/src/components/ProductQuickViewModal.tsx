@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, ShoppingCart, Star } from 'lucide-react';
+import { optimizeCloudinaryUrl } from '@/services/api';
 
 interface ProductQuickViewModalProps {
   isOpen: boolean;
@@ -83,11 +83,10 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
               >
                 {/* Product Image */}
                 <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center mb-6">
-                  <Image
-                    src={product.image}
+                  <img
+                    src={optimizeCloudinaryUrl(product.image, { width: 600, quality: 'auto', fetch_format: 'auto' }) || product.image}
                     alt={product.name}
-                    fill
-                    className="object-cover hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   />
 
                   {/* Discount Badge - Glovo Style */}
