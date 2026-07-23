@@ -365,7 +365,7 @@ function ShopsPageContent() {
           <select
             value={selectedMarket || ''}
             onChange={(e) => setSelectedMarket(e.target.value || null)}
-            className="px-4 py-2.5 rounded-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer max-w-sm shrink-0"
+            className="px-3 py-2.5 rounded-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer max-w-xs shrink-0"
           >
             <option value="">All Markets</option>
             {Object.keys(MARKET_TO_CITY).sort().map((market) => (
