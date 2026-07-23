@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Heart, ShoppingCart } from 'lucide-react';
+import { optimizeCloudinaryUrl } from '@/services/api';
 import { ProductQuickViewModal } from './ProductQuickViewModal';
 
 interface ProductCardProps {
@@ -63,11 +63,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       >
       {/* Image Container */}
       <div className="relative h-64 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
-        <Image
-          src={image}
+        <img
+          src={optimizeCloudinaryUrl(image, { width: 500, quality: 'auto', fetch_format: 'auto' }) || image}
           alt={name}
-          fill
-          className="object-cover group-hover:scale-110 transition-transform duration-300"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
         />
 
         {/* Discount Badge */}
