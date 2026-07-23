@@ -561,7 +561,16 @@ export const ListingWizard: React.FC = () => {
         router.push(`/listings/${result.id}`);
       }
     } catch (err: any) {
-      setError(err?.response?.data?.detail || err?.message || 'Failed to create listing');
+      const statusCode = err?.response?.status;
+      const detail = err?.response?.data?.detail || err?.message || 'Failed to create listing';
+
+      // Redirect to verification if user is not verified (tier1+)
+      if (statusCode === 403 && detail.includes('verification')) {
+        router.push('/profile?tab=verification');
+        return;
+      }
+
+      setError(detail);
     } finally {
       setLoading(false);
     }
