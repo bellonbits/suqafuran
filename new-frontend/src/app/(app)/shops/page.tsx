@@ -341,31 +341,31 @@ function ShopsPageContent() {
       {/* ── Search & Filter Row ─────────────────────────────────────────── */}
       <div className="max-w-[1440px] mx-auto px-8 pb-8">
         <div className="flex gap-3 items-center justify-between">
-          {/* Search Box - Pill Shape */}
-          <div className="relative flex-1">
+          {/* Search Box - Pill Shape - Constrained */}
+          <div className="relative px-3 py-2.5 rounded-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 shrink-0 max-w-xs">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search shops..."
-              className="w-full pl-12 pr-10 py-2.5 rounded-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder:text-gray-500 text-gray-900 dark:text-white"
+              placeholder="Search..."
+              className="w-full bg-transparent text-sm focus:outline-none placeholder:text-gray-500 text-gray-900 dark:text-white"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"
               >
                 <X className="w-4 h-4" />
               </button>
             )}
           </div>
 
-          {/* Market Filter Dropdown - Pill Shape - Right Side */}
+          {/* Market Filter Dropdown - Pill Shape - Right Side - Full Width */}
           <select
             value={selectedMarket || ''}
             onChange={(e) => setSelectedMarket(e.target.value || null)}
-            className="px-3 py-2.5 rounded-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer whitespace-nowrap shrink-0 max-w-xs"
+            className="flex-1 px-4 py-2.5 rounded-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer"
           >
             <option value="">All Markets</option>
             {Object.keys(MARKET_TO_CITY).sort().map((market) => (
