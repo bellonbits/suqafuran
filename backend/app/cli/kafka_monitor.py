@@ -109,8 +109,15 @@ def subscribe_to_topics(topics: List[str], group_id: str = "monitoring-group", m
         consumer.close()
 
 
+def normalize_topic_name(topic: str) -> str:
+    """Add suqafuran- prefix if not present."""
+    if not topic.startswith('suqafuran-'):
+        return f'suqafuran-{topic}'
+    return topic
+
+
 @click.command()
-@click.option('--topic', default=None, help='Single topic to monitor')
+@click.option('--topic', default=None, help='Single topic to monitor (auto-prefixes with suqafuran-)')
 @click.option('--topics', default=None, help='Comma-separated topics (e.g., signup,signin,tracking)')
 @click.option('--group-id', default='monitoring-group', help='Consumer group ID')
 @click.option('--max-messages', type=int, default=None, help='Stop after N messages')
@@ -120,10 +127,10 @@ def main(topic: Optional[str], topics: Optional[str], group_id: str, max_message
     # Determine which topics to subscribe to
     if topic:
         # Single topic specified
-        topics_list = [topic]
+        topics_list = [normalize_topic_name(topic)]
     elif topics:
         # Multiple topics specified
-        topics_list = [t.strip() for t in topics.split(',')]
+        topics_list = [normalize_topic_name(t.strip()) for t in topics.split(',')]
     else:
         # Subscribe to all monitoring topics by default
         topics_list = [
