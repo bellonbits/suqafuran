@@ -132,6 +132,9 @@ def verify_otp(
             db.commit()
             db.refresh(user)
 
+            # Send welcome email
+            email_service.send_welcome_email(user.email, user.full_name, user.id)
+
             # Track business metric
             USER_REGISTRATIONS_TOTAL.labels(method="email_otp").inc()
         except IntegrityError as e:
