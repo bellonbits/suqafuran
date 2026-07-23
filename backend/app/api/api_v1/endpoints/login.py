@@ -1,5 +1,6 @@
 from datetime import timedelta
 from typing import Any
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from pydantic import BaseModel
 from sqlmodel import Session
@@ -7,6 +8,9 @@ from app.api import deps
 from app.core import security
 from app.core.config import settings
 from app.crud import crud_user
+from app.services.kafka_producer import publish_signin_event
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -17,7 +21,7 @@ class LoginRequest(BaseModel):
 
 
 @router.post("/login/access-token")
-def login_access_token(
+async def login_access_token(
     response: Response,
     credentials: LoginRequest,
     db: Session = Depends(deps.get_db)
@@ -51,6 +55,18 @@ def login_access_token(
         samesite="lax",
         secure=False,
     )
+
+    # Publish signin event to Kafka (non-blocking)
+    logger.info(f"🔔 Attempting to publish signin event for user {user.id} ({user.email})")
+    try:
+        result = await publish_signin_event(
+            user_id=user.id,
+            email=user.email,
+            auth_method="password",
+        )
+        logger.info(f"✅ Signin event published: {result}")
+    except Exception as e:
+        logger.error(f"❌ Failed to publish signin event: {e}", exc_info=True)
 
     return {
         "access_token": access_token,
