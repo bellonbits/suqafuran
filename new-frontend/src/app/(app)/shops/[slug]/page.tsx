@@ -506,6 +506,32 @@ export default function ShopDetailPage() {
                         <ChevronRight className="w-3 h-3 text-gray-400" />
                         <span className="text-gray-900 dark:text-white truncate">{shopName}</span>
                     </div>
+
+                    {/* Right side icons: Location + Cart */}
+                    <div className="flex items-center gap-4">
+                        {/* Location Icon */}
+                        <button
+                            onClick={() => setIsLocationModalOpen(true)}
+                            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-400 transition-colors"
+                            title="Change location"
+                        >
+                            <MapPin className="w-5 h-5" />
+                        </button>
+
+                        {/* Cart Icon */}
+                        <button
+                            onClick={() => router.push('/cart')}
+                            className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-400 transition-colors"
+                            title="View cart"
+                        >
+                            <ShoppingBag className="w-5 h-5" />
+                            {Object.keys(cartItems).length > 0 && (
+                                <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                    {Object.keys(cartItems).length}
+                                </span>
+                            )}
+                        </button>
+                    </div>
                 </div>
             </div>
 
