@@ -331,7 +331,7 @@ function ShopsPageContent() {
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 pb-20">
       {/* ── Page Title ─────────────────────────────────────────────────── */}
-      <div className="max-w-[1440px] mx-auto px-8 pt-8 pb-6">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 pt-8 pb-6">
         <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Shops</h1>
         <p className="text-gray-600 dark:text-slate-400 text-sm font-semibold mt-1">
           {total} shops in All Markets
@@ -339,10 +339,10 @@ function ShopsPageContent() {
       </div>
 
       {/* ── Search & Filter Row ─────────────────────────────────────────── */}
-      <div className="max-w-[1440px] mx-auto px-8 pb-8">
-        <div className="flex gap-3 items-center justify-between">
-          {/* Search Box - Pill Shape - Constrained */}
-          <div className="relative px-3 py-2.5 rounded-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 shrink-0 max-w-xs">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 pb-8">
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Search Box - Full width on mobile, flex-1 on desktop */}
+          <div className="relative flex-1 px-3 py-2.5 rounded-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
@@ -361,11 +361,11 @@ function ShopsPageContent() {
             )}
           </div>
 
-          {/* Market Filter Dropdown - Pill Shape - Right Side */}
+          {/* Market Filter Dropdown - Full width on mobile, w-64 on desktop */}
           <select
             value={selectedMarket || ''}
             onChange={(e) => setSelectedMarket(e.target.value || null)}
-            className="px-3 py-2.5 rounded-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer max-w-xs shrink-0 truncate"
+            className="w-full sm:w-64 px-3 py-2.5 rounded-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer truncate"
           >
             <option value="">All Markets</option>
             {Object.keys(MARKET_TO_CITY).sort().map((market) => (
@@ -378,9 +378,9 @@ function ShopsPageContent() {
       </div>
 
       {/* ── Category Stickers ───────────────────────────────────────────── */}
-      <div className="max-w-[1440px] mx-auto px-8 pb-8">
-        <div className="w-full overflow-x-auto hide-scrollbar">
-          <div className="flex flex-row flex-nowrap items-start gap-4 pb-2 pt-0">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 pb-8">
+        <div className="w-full overflow-x-auto overscroll-x-contain hide-scrollbar">
+          <div className="flex flex-row flex-nowrap items-start gap-4 pb-2 pt-0 min-w-max">
 
             {/* ALL STICKER */}
             <div
@@ -454,7 +454,7 @@ function ShopsPageContent() {
       </div>
 
       {/* ── Stores Grid ─────────────────────────────────────────────────── */}
-      <div className="max-w-[1440px] mx-auto px-8">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8">
         {/* Error */}
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 text-center mb-6">
