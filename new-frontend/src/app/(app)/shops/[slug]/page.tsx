@@ -1014,9 +1014,9 @@ export default function ShopDetailPage() {
                                     </div>
 
                                     {/* Horizontal Carousel */}
-                                    <div 
+                                    <div
                                         ref={(el) => { if (el) scrollRefs.current[category.id] = el; }}
-                                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+                                        className="flex gap-3 overflow-x-auto pb-2 -mx-8 px-8 snap-x snap-mandatory"
                                     >
                                         {(() => {
                                             const filtered = category.products.filter((product) => {
@@ -1094,13 +1094,13 @@ export default function ShopDetailPage() {
                                             const cartQty = getCartQuantity(String(product.id));
 
                                             return (
-                                                <div 
-                                                    key={product.id} 
+                                                <div
+                                                    key={product.id}
                                                     onClick={() => {
                                                         setSelectedProduct(product);
                                                         setModalQuantity(cartQty || 1);
                                                     }}
-                                                    className="cursor-pointer group"
+                                                    className="cursor-pointer group flex-shrink-0 w-40 snap-start"
                                                 >
                                                     {/* Card Image Container */}
                                                     <div className="relative bg-gray-50 dark:bg-slate-900/60 aspect-square rounded-lg overflow-hidden border border-gray-100 dark:border-slate-800/80 mb-2.5 flex items-center justify-center transition-shadow group-hover:shadow-md">
