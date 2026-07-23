@@ -231,3 +231,122 @@ async def publish_notification_dispatch(
         user_id=user_id,
         **kwargs
     )
+
+
+# ─── Monitoring & Analytics Topics ──────────────────────────────────────────
+
+async def publish_signup_event(
+    user_id: int,
+    email: str,
+    phone: Optional[str] = None,
+    promo_code: Optional[str] = None,
+    **kwargs
+):
+    """Publish user signup event to monitoring topic."""
+    await kafka_producer.publish_event(
+        topic=settings.KAFKA_TOPIC_SIGNUP,
+        event_type="user.signup.completed",
+        payload={
+            "user_id": user_id,
+            "email": email,
+            "phone": phone,
+            "promo_code": promo_code,
+        },
+        partition_key=str(user_id),
+        user_id=str(user_id),
+        **kwargs
+    )
+
+
+async def publish_signin_event(
+    user_id: int,
+    email: str,
+    auth_method: str = "email_otp",
+    **kwargs
+):
+    """Publish user signin event to monitoring topic."""
+    await kafka_producer.publish_event(
+        topic=settings.KAFKA_TOPIC_SIGNIN,
+        event_type="user.signin.completed",
+        payload={
+            "user_id": user_id,
+            "email": email,
+            "auth_method": auth_method,
+        },
+        partition_key=str(user_id),
+        user_id=str(user_id),
+        **kwargs
+    )
+
+
+async def publish_tracking_event(
+    user_id: Optional[int] = None,
+    event_type: str = "page_view",
+    page: Optional[str] = None,
+    action: Optional[str] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+    **kwargs
+):
+    """Publish user tracking/analytics event."""
+    await kafka_producer.publish_event(
+        topic=settings.KAFKA_TOPIC_TRACKING,
+        event_type=f"tracking.{event_type}",
+        payload={
+            "page": page,
+            "action": action,
+            "metadata": metadata or {},
+        },
+        partition_key=str(user_id) if user_id else "anonymous",
+        user_id=str(user_id) if user_id else None,
+        **kwargs
+    )
+
+
+async def publish_checkout_event(
+    order_id: str,
+    user_id: int,
+    amount: float,
+    currency: str = "KES",
+    status: str = "initiated",
+    **kwargs
+):
+    """Publish checkout/purchase event."""
+    await kafka_producer.publish_event(
+        topic=settings.KAFKA_TOPIC_CHECKOUT,
+        event_type="checkout.event",
+        payload={
+            "order_id": order_id,
+            "user_id": user_id,
+            "amount": amount,
+            "currency": currency,
+            "status": status,
+        },
+        partition_key=str(order_id),
+        user_id=str(user_id),
+        **kwargs
+    )
+
+
+async def publish_upload_failure_event(
+    user_id: int,
+    endpoint: str,
+    filename: str,
+    error: str,
+    file_type: str = "image",
+    **kwargs
+):
+    """Publish file upload failure event for debugging."""
+    await kafka_producer.publish_event(
+        topic=settings.KAFKA_TOPIC_UPLOAD_FAILURES,
+        event_type="upload.failed",
+        payload={
+            "user_id": user_id,
+            "endpoint": endpoint,
+            "filename": filename,
+            "error": error,
+            "file_type": file_type,
+        },
+        partition_key=str(user_id),
+        user_id=str(user_id),
+        **kwargs
+    )

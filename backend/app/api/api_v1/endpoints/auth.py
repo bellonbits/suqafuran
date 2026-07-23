@@ -12,8 +12,10 @@ from app.models.audit import AuditLog
 from app.models.marketing_code import MarketingCode
 from app.services.email_service import email_service
 from app.services.africastalking_service import africastalking_service
+from app.services.kafka_producer import publish_signup_event, publish_signin_event
 from pydantic import BaseModel
 from app.core.metrics import USER_REGISTRATIONS_TOTAL, SUCCESSFUL_LOGINS_TOTAL
+import asyncio
 
 router = APIRouter()
 
@@ -136,6 +138,14 @@ def verify_otp(
             # Send welcome email
             email_service.send_welcome_email(user.email, user.full_name, user.id)
 
+            # Publish signup event to Kafka (async, non-blocking)
+            asyncio.create_task(publish_signup_event(
+                user_id=user.id,
+                email=user.email,
+                phone=user.phone,
+                promo_code=user.referral_code,
+            ))
+
             # Track business metric
             USER_REGISTRATIONS_TOTAL.labels(method="email_otp").inc()
         except IntegrityError as e:
@@ -156,6 +166,13 @@ def verify_otp(
         ))
         db.commit()
         db.refresh(user)
+
+        # Publish signin event to Kafka (async, non-blocking)
+        asyncio.create_task(publish_signin_event(
+            user_id=user.id,
+            email=user.email,
+            auth_method="email_otp",
+        ))
 
         # Track business metric
         SUCCESSFUL_LOGINS_TOTAL.inc()
@@ -290,6 +307,15 @@ def verify_phone_otp(
             db.commit()
             db.refresh(user)
             africastalking_service.delete_pending_signup(phone)
+
+            # Publish signup event to Kafka (async, non-blocking)
+            asyncio.create_task(publish_signup_event(
+                user_id=user.id,
+                email=user.email,
+                phone=user.phone,
+                promo_code=user.referral_code,
+            ))
+
             USER_REGISTRATIONS_TOTAL.labels(method="phone_otp").inc()
         except IntegrityError:
             db.rollback()
@@ -303,6 +329,14 @@ def verify_phone_otp(
         ))
         db.commit()
         db.refresh(user)
+
+        # Publish signin event to Kafka (async, non-blocking)
+        asyncio.create_task(publish_signin_event(
+            user_id=user.id,
+            email=user.email,
+            auth_method="phone_otp",
+        ))
+
         SUCCESSFUL_LOGINS_TOTAL.inc()
 
     access_token = security.create_access_token(
