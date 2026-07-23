@@ -1,4 +1,5 @@
 from typing import Any, List, Optional
+import logging
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, BackgroundTasks, Header
 from sqlmodel import Session, select, func
 from app.api import deps
@@ -14,12 +15,15 @@ from app.services.security_service import security_service
 from app.services.moderation_service import moderation_service
 from app.core.security import risk_security
 from app.core.config import settings
+from app.services.kafka_producer import publish_upload_failure_event, publish_tracking_event
 import uuid
 import os
 from app.services.storage_service import storage_service
 from app.services.screening_service import calculate_listing_risk
 from app.services.shop_category_service import update_shop_primary_category
 from datetime import datetime, timedelta
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -57,7 +61,20 @@ async def upload_image(
             "phash": phash
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")
+        error_msg = str(e)
+        logger.error(f"❌ Failed to upload image {filename}: {error_msg}")
+        # Publish upload failure event
+        try:
+            await publish_upload_failure_event(
+                user_id=current_user.id,
+                endpoint="/listings/upload",
+                filename=filename,
+                error=error_msg,
+                file_type="image",
+            )
+        except Exception as pub_err:
+            logger.warning(f"Failed to publish upload failure event: {pub_err}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload image: {error_msg}")
 
 
 @router.post("/upload-multiple", response_model=List[dict])
@@ -98,6 +115,19 @@ async def upload_multiple_images(
                 "phash": phash
             })
         except Exception as e:
+            error_msg = str(e)
+            logger.warning(f"⚠️ Failed to upload image {filename}: {error_msg}")
+            # Publish upload failure event
+            try:
+                await publish_upload_failure_event(
+                    user_id=current_user.id,
+                    endpoint="/listings/upload-multiple",
+                    filename=filename,
+                    error=error_msg,
+                    file_type="image",
+                )
+            except Exception as pub_err:
+                logger.debug(f"Failed to publish upload failure event: {pub_err}")
             # Skip failed files and continue with others
             continue
 
@@ -132,7 +162,20 @@ async def upload_video(
         url, _ = await storage_service.upload_file(contents, filename)
         return {"filename": filename, "url": url}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to upload video: {str(e)}")
+        error_msg = str(e)
+        logger.error(f"❌ Failed to upload video {filename}: {error_msg}")
+        # Publish upload failure event
+        try:
+            await publish_upload_failure_event(
+                user_id=current_user.id,
+                endpoint="/listings/upload-video",
+                filename=filename,
+                error=error_msg,
+                file_type="video",
+            )
+        except Exception as pub_err:
+            logger.warning(f"Failed to publish upload failure event: {pub_err}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload video: {error_msg}")
 
 
 @router.get("/categories", response_model=List[Any])
@@ -793,6 +836,23 @@ async def create_listing(
         body=f"'{listing.title_en}' is under review. We'll notify you soon.",
         data={"type": "ad_posted", "listing_id": str(listing.id), "path": f"/listing/{listing.id}"}
     )
+
+    # Publish tracking event for listing creation
+    try:
+        await publish_tracking_event(
+            user_id=effective_owner_id,
+            event_type="listing_created",
+            page="/listings/create",
+            action="create_listing",
+            metadata={
+                "listing_id": listing.id,
+                "title": listing.title_en,
+                "category": listing.category_id,
+                "price": float(listing.price),
+            }
+        )
+    except Exception as e:
+        logger.debug(f"Failed to publish tracking event: {e}")
 
     return listing
 

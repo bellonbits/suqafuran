@@ -13,6 +13,7 @@ from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 from app.core import security
 from app.api import deps
+from app.services.kafka_producer import publish_checkout_event
 
 # Import models from legacy structure
 import sys
