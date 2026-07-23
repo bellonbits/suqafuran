@@ -1,7 +1,7 @@
 """Add primary_category_id to users table for shop categorization
 
 Revision ID: primary_category_001
-Revises:
+Revises: shop_mgmt_001
 Create Date: 2026-07-23 12:00:00.000000
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'primary_category_001'
-down_revision = None
+down_revision = 'shop_mgmt_001'
 branch_labels = None
 depends_on = None
 
