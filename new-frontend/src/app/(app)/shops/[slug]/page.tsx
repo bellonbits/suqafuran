@@ -538,7 +538,7 @@ export default function ShopDetailPage() {
             {/* HERO BANNER & INFO (Glovo Style) */}
             <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4">
                 {/* BANNER WITH SHOP LOGO OVERLAY */}
-                <div className="relative bg-gray-200 dark:bg-slate-800 h-40 md:h-56 rounded-xl overflow-hidden mb-6 shadow-md border border-gray-100 dark:border-slate-800">
+                <div className="relative bg-gray-200 dark:bg-slate-800 h-32 md:h-44 rounded-xl overflow-hidden mb-6 shadow-md border border-gray-100 dark:border-slate-800">
                     {bannerImage && (
                         <>
                             <img
