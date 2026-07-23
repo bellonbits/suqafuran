@@ -1261,8 +1261,8 @@ async def upload_shop_banner_file(
         if banner_type not in ["shop_page_banner", "shop_detail_banner"]:
             raise HTTPException(status_code=400, detail="Invalid banner_type")
 
-        # Only allow users to upload banners for their own shops
-        if current_user.id != user_id:
+        # Allow superusers to upload for any shop, or users to upload for their own
+        if not current_user.is_superuser and current_user.id != user_id:
             raise HTTPException(status_code=403, detail="You can only upload banners for your own shop")
 
         user = db.query(User).filter(User.id == user_id).first()
