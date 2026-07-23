@@ -111,9 +111,8 @@ def verify_otp(
             )
             user.email_verified = True
             user.phone_verified = True
-            # Start as guest, promote to tier1 after email verification
-            # Users start as guest until they complete additional verification
-            user.verified_level = UserVerifiedLevel.guest
+            # Promote to tier1 after email verification
+            user.verified_level = UserVerifiedLevel.tier1
 
             # Apply marketing promo code if present and valid
             promo_code_val = signup_data.get("promo_code")
@@ -271,8 +270,8 @@ def verify_phone_otp(
                 phone=phone,
             )
             user.phone_verified = True
-            # Users start as guest until they complete additional verification
-            user.verified_level = UserVerifiedLevel.guest
+            # Promote to tier1 after phone verification
+            user.verified_level = UserVerifiedLevel.tier1
 
             promo_code_val = signup_data.get("promo_code")
             if promo_code_val:
