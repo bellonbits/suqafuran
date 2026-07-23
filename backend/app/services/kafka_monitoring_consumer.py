@@ -60,8 +60,10 @@ class KafkaMonitoringConsumer:
             }
 
             self.consumer = Consumer(config)
+            logger.info(f"🔌 Kafka monitoring consumer connecting to {settings.KAFKA_BOOTSTRAP_SERVERS}...")
             self.consumer.subscribe(self.monitoring_topics)
             logger.info(f"📡 Subscribed to monitoring topics: {self.monitoring_topics}")
+            logger.info(f"⏳ Waiting for messages (offset=latest)...")
 
             while self.running:
                 msg = self.consumer.poll(timeout=1.0)

@@ -76,7 +76,7 @@ class KafkaEventProducer:
             True if published successfully, False if Kafka unavailable
         """
         if not self.is_connected or not self.producer:
-            logger.warning(f"Kafka not available, skipping event: {event_type}")
+            logger.error(f"❌ Kafka producer not available! is_connected={self.is_connected}, producer={self.producer is not None}. Skipping event: {event_type}")
             return False
 
         try:
@@ -95,6 +95,8 @@ class KafkaEventProducer:
             # Use partition_key for ordering guarantee (same entity stays on same partition)
             key = (partition_key or user_id or "").encode('utf-8') if partition_key or user_id else None
 
+            logger.info(f"📤 Publishing {event_type} to {topic}...")
+
             # Publish asynchronously
             await self.producer.send_and_wait(
                 topic,
@@ -102,11 +104,11 @@ class KafkaEventProducer:
                 key=key,
             )
 
-            logger.info(f"Published {event_type} to {topic} (id: {event['event_id']})")
+            logger.info(f"✅ Published {event_type} to {topic} (id: {event['event_id']})")
             return True
 
         except Exception as e:
-            logger.error(f"Failed to publish event {event_type}: {e}")
+            logger.error(f"❌ Failed to publish event {event_type}: {e}", exc_info=True)
             return False
 
 

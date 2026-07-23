@@ -173,14 +173,16 @@ async def verify_otp(
         db.refresh(user)
 
         # Publish signin event to Kafka (non-blocking)
+        logger.info(f"🔔 Attempting to publish signin event for user {user.id} ({user.email})")
         try:
-            await publish_signin_event(
+            result = await publish_signin_event(
                 user_id=user.id,
                 email=user.email,
                 auth_method="email_otp",
             )
+            logger.info(f"✅ Signin event published: {result}")
         except Exception as e:
-            logger.warning(f"Failed to publish signin event: {e}")
+            logger.error(f"❌ Failed to publish signin event: {e}", exc_info=True)
 
         # Track business metric
         SUCCESSFUL_LOGINS_TOTAL.inc()
