@@ -342,7 +342,7 @@ function ShopsPageContent() {
       <div className="max-w-[1440px] mx-auto px-8 pb-8">
         <div className="flex gap-3 items-center justify-between">
           {/* Search Box - Pill Shape */}
-          <div className="relative max-w-md flex-1">
+          <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
@@ -365,7 +365,7 @@ function ShopsPageContent() {
           <select
             value={selectedMarket || ''}
             onChange={(e) => setSelectedMarket(e.target.value || null)}
-            className="px-4 py-2.5 rounded-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer whitespace-nowrap shrink-0"
+            className="px-3 py-2.5 rounded-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer whitespace-nowrap shrink-0 max-w-xs"
           >
             <option value="">All Markets</option>
             {Object.keys(MARKET_TO_CITY).sort().map((market) => (
