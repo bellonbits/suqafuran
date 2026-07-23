@@ -210,19 +210,38 @@ export default function EditShopPage() {
           `Image compressed: ${(file.size / 1024).toFixed(2)}KB → ${(compressedFile.size / 1024).toFixed(2)}KB`
         );
 
-        const uploadFormData = new FormData();
-        uploadFormData.append('file', compressedFile);
+        // Upload DIRECTLY to Cloudinary (bypasses backend/Cloudflare)
+        const cloudinaryFormData = new FormData();
+        cloudinaryFormData.append('file', compressedFile);
+        cloudinaryFormData.append('upload_preset', 'suqafuran_unsigned');
+        cloudinaryFormData.append('folder', 'suqafuran/banners');
 
-        const response = await api.post(
-          `/admin/shops/${shopId}/banners/upload?banner_type=${bannerType}`,
-          uploadFormData,
+        const cloudinaryResponse = await fetch(
+          'https://api.cloudinary.com/v1_1/dyyo8cnqc/image/upload',
           {
-            timeout: 30000, // 30 second timeout (increased from 15s)
+            method: 'POST',
+            body: cloudinaryFormData,
+            timeout: 30000,
           }
         );
 
-        console.log(` ${bannerType} uploaded successfully:`, response.data.url);
-        setPreviews({ ...previews, [bannerType]: response.data.url });
+        if (!cloudinaryResponse.ok) {
+          throw new Error(`Cloudinary upload failed: ${cloudinaryResponse.statusText}`);
+        }
+
+        const cloudinaryData = await cloudinaryResponse.json();
+        const imageUrl = cloudinaryData.secure_url;
+
+        console.log(`✅ ${bannerType} uploaded to Cloudinary:`, imageUrl);
+
+        // Now send ONLY the URL to backend to save to database
+        const response = await api.put(
+          `/admin/shops/${shopId}`,
+          { [bannerType]: imageUrl }
+        );
+
+        console.log(`✅ ${bannerType} saved to database`);
+        setPreviews({ ...previews, [bannerType]: imageUrl });
         return;
       } catch (error: any) {
         lastError = error;
@@ -242,7 +261,7 @@ export default function EditShopPage() {
 
     // All retries failed
     throw new Error(
-      `Failed to upload ${bannerType} after ${retries} attempts: ${lastError.response?.data?.detail || lastError.message}`
+      `Failed to upload ${bannerType} after ${retries} attempts: ${lastError.message}`
     );
   };
 
