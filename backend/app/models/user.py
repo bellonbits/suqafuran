@@ -66,6 +66,7 @@ class UserBase(SQLModel):
     shop_detail_banner: Optional[str] = Field(default=None)  # Banner for shop detail page
     is_featured: bool = Field(default=False)  # Featured shop status
     free_delivery: bool = Field(default=False)  # Free delivery badge
+    primary_category_id: Optional[int] = Field(default=None, foreign_key="category.id", index=True)  # Primary category based on listing count
 
 
 class User(UserBase, table=True, tablename="user"):
@@ -73,6 +74,27 @@ class User(UserBase, table=True, tablename="user"):
     hashed_password: Optional[str] = Field(default=None)  # Keep optional for backward compat/admin
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    # Verification tier hierarchy (must be in ascending order of trust)
+    _TIER_HIERARCHY = [
+        UserVerifiedLevel.guest,
+        UserVerifiedLevel.phone,
+        UserVerifiedLevel.id,
+        UserVerifiedLevel.tier1,
+        UserVerifiedLevel.tier2,
+        UserVerifiedLevel.tier3,
+        UserVerifiedLevel.premium,
+        UserVerifiedLevel.trusted,
+    ]
+
+    def has_verification_level(self, required_level: UserVerifiedLevel) -> bool:
+        """Check if user has at least the required verification level."""
+        try:
+            required_index = self._TIER_HIERARCHY.index(required_level)
+            current_index = self._TIER_HIERARCHY.index(self.verified_level)
+            return current_index >= required_index
+        except ValueError:
+            return False
 
     listings: List["Listing"] = Relationship(
         back_populates="owner",

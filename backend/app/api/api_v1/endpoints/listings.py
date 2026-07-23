@@ -18,6 +18,7 @@ import uuid
 import os
 from app.services.storage_service import storage_service
 from app.services.screening_service import calculate_listing_risk
+from app.services.shop_category_service import update_shop_primary_category
 from datetime import datetime, timedelta
 
 router = APIRouter()
@@ -600,12 +601,12 @@ async def create_listing(
     """
     Create new listing.
     """
-    # Verify user has at least tier1 trust level to create listings
+    # Verify user has at least tier2 trust level (ID/business verification) to create listings
     from app.models.user import UserVerifiedLevel
-    if current_user.verified_level.value < UserVerifiedLevel.tier1.value:
+    if not current_user.has_verification_level(UserVerifiedLevel.tier2):
         raise HTTPException(
             status_code=403,
-            detail="Account verification required to sell. Please complete your profile verification to create listings."
+            detail="Account verification required to sell. Please verify your identity or business details to create listings."
         )
 
     # Prevent duplicated active listings from the same user (allow reposting sold/closed/deleted ones)
@@ -710,6 +711,12 @@ async def create_listing(
 
     db.commit()
     db.refresh(listing)
+
+    # Update shop's primary category based on listing distribution
+    try:
+        update_shop_primary_category(db, current_user.id)
+    except Exception:
+        pass  # Never fail request due to category update
 
     # Publish Kafka event for moderation
     try:
@@ -834,7 +841,9 @@ def get_public_shops(
             params["shop_id"] = int(shop_id) if shop_id.isdigit() else shop_id
 
         if category_id is not None:
-            category_filter = "AND l.category_id = :category_id"
+            # Filter by primary_category_id instead of listing categories
+            # This ensures each shop only appears once (in their primary category)
+            category_filter = "AND u.primary_category_id = :category_id"
             params["category_id"] = category_id
 
         # Cache key for category views
@@ -850,13 +859,14 @@ def get_public_shops(
                 pass
 
         # Fast CTE-based aggregation
+        # Count all active listings per shop (not filtered by category)
         query_str = f"""
             WITH shop_stats AS (
                 SELECT l.owner_id,
                        COUNT(l.id) as listing_count,
                        MAX(l.created_at) as latest_listing
                 FROM listing l
-                WHERE l.status = 'active' {category_filter}
+                WHERE l.status = 'active'
                 GROUP BY l.owner_id
             )
             SELECT u.id,
@@ -876,6 +886,7 @@ def get_public_shops(
             FROM "user" u
             INNER JOIN shop_stats ss ON ss.owner_id = u.id
             WHERE u.is_verified = true
+              {category_filter}
               {search_filter}
             ORDER BY ss.listing_count DESC, ss.latest_listing DESC
             LIMIT :limit OFFSET :skip
@@ -885,8 +896,9 @@ def get_public_shops(
         count_query_str = f"""
             SELECT COUNT(DISTINCT u.id)
             FROM "user" u
-            INNER JOIN listing l ON l.owner_id = u.id AND l.status = 'active' {category_filter}
+            INNER JOIN listing l ON l.owner_id = u.id AND l.status = 'active'
             WHERE u.is_verified = true
+              {category_filter}
               {search_filter.replace('AND (u.business_name', 'AND (u.business_name') if search_filter else ''}
         """
 
@@ -929,12 +941,13 @@ def get_public_shops(
                 "phone": row[13],
             })
 
-        # Get total count of distinct shops in category
+        # Get total count of distinct shops matching filters
         count_query_str = f"""
             SELECT COUNT(DISTINCT u.id)
             FROM "user" u
-            INNER JOIN listing l ON l.owner_id = u.id
-            WHERE u.is_verified = true AND l.status = 'active' {category_filter}
+            INNER JOIN listing l ON l.owner_id = u.id AND l.status = 'active'
+            WHERE u.is_verified = true
+              {category_filter}
               {search_filter}
         """
         count_query = text(count_query_str)

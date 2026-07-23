@@ -566,7 +566,7 @@ export const ListingWizard: React.FC = () => {
 
       // Redirect to verification if user is not verified (tier1+)
       if (statusCode === 403 && detail.includes('verification')) {
-        router.push('/profile?tab=verification');
+        router.push('/account?tab=verification');
         return;
       }
 

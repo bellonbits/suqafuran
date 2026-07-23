@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuth';
 import { authService } from '@/services/authService';
 import { Mail, Phone, MapPin, Shield, Calendar, LogOut, Loader2, AlertCircle, Copy, Check, Camera } from 'lucide-react';
 import api, { resolveMediaUrl } from '@/services/api';
+import { VerificationSection } from '@/components/features/VerificationSection';
 
-export default function AccountPage() {
+function AccountPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, isAuthenticated, logout } = useAuthStore();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -16,6 +18,7 @@ export default function AccountPage() {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'profile' | 'verification'>('profile');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -38,7 +41,13 @@ export default function AccountPage() {
     };
 
     fetchProfile();
-  }, [isAuthenticated, router]);
+
+    // Check if verification tab should be active from URL params
+    const tab = searchParams.get('tab');
+    if (tab === 'verification') {
+      setActiveTab('verification');
+    }
+  }, [isAuthenticated, router, searchParams]);
 
   const handleCopy = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -133,11 +142,11 @@ export default function AccountPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 pt-32 pb-20">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
         <div className="flex items-start justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2">Account Profile</h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage your account information</p>
+            <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2">Account Settings</h1>
+            <p className="text-gray-600 dark:text-gray-400">Manage your profile and verification</p>
           </div>
           <button
             onClick={handleLogout}
@@ -148,6 +157,33 @@ export default function AccountPage() {
           </button>
         </div>
 
+        {/* Tab Navigation */}
+        <div className="flex gap-2 mb-8 border-b border-gray-200 dark:border-slate-800">
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`px-6 py-3 font-bold text-sm border-b-2 transition-colors ${
+              activeTab === 'profile'
+                ? 'border-sky-500 text-gray-900 dark:text-white'
+                : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+            }`}
+          >
+            Profile
+          </button>
+          <button
+            onClick={() => setActiveTab('verification')}
+            className={`px-6 py-3 font-bold text-sm border-b-2 transition-colors flex items-center gap-2 ${
+              activeTab === 'verification'
+                ? 'border-sky-500 text-gray-900 dark:text-white'
+                : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+            }`}
+          >
+            <Shield className="w-4 h-4" />
+            Verification
+          </button>
+        </div>
+
+        {/* Profile Tab */}
+        {activeTab === 'profile' && (
         <div className="mb-8">
           <div className="relative w-fit">
             {resolvedAvatar ? (
@@ -198,7 +234,10 @@ export default function AccountPage() {
             </div>
           )}
         </div>
+        )}
 
+        {activeTab === 'profile' && (
+        <>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800">
             <h3 className="text-xs font-black text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-3">Full Name</h3>
@@ -303,7 +342,29 @@ export default function AccountPage() {
             </div>
           </div>
         </div>
+        </>
+        )}
+
+        {/* Verification Tab */}
+        {activeTab === 'verification' && (
+          <VerificationSection />
+        )}
       </div>
     </div>
+  );
+}
+
+export default function AccountPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950">
+        <div className="flex items-center gap-3">
+          <Loader2 className="w-6 h-6 animate-spin text-[#6cd4ff]" />
+          <p className="text-gray-600 dark:text-gray-400">Loading account...</p>
+        </div>
+      </div>
+    }>
+      <AccountPageContent />
+    </Suspense>
   );
 }
