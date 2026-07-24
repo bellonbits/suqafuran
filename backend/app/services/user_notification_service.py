@@ -2,9 +2,11 @@
 
 import logging
 from typing import Optional
-from sqlmodel import Session
+from sqlmodel import Session, select
 from app.models.user import User
+from app.models.notification_preferences import NotificationPreferences
 from app.services.email_service import email_service
+from app.db.session import engine
 
 logger = logging.getLogger(__name__)
 
@@ -15,11 +17,22 @@ class UserNotificationService:
     def __init__(self):
         self.email_service = email_service
 
-    def _should_send_email(self, user: Optional[User]) -> bool:
-        """Check if user exists and has email notifications enabled."""
+    def _get_preferences(self, user: Optional[User]) -> Optional[NotificationPreferences]:
+        """Get notification preferences for a user."""
+        if not user:
+            return None
+        with Session(engine) as db:
+            stmt = select(NotificationPreferences).where(NotificationPreferences.user_id == user.id)
+            return db.exec(stmt).first()
+
+    def _should_send_email(self, user: Optional[User], pref_field: str = "email_messages") -> bool:
+        """Check if user exists and has email notifications enabled for specific type."""
         if not user:
             return False
-        return user.email_notifications is not False
+        prefs = self._get_preferences(user)
+        if not prefs:
+            return True  # Default to true if no preferences set yet
+        return getattr(prefs, pref_field, True)
 
     def notify_new_message(
         self,
@@ -29,7 +42,7 @@ class UserNotificationService:
         listing_title: Optional[str] = None,
     ) -> bool:
         """Send email when user receives a message."""
-        if not self._should_send_email(receiver):
+        if not self._should_send_email(receiver, "email_messages"):
             return False
 
         try:
@@ -56,7 +69,7 @@ class UserNotificationService:
         offer_id: int,
     ) -> bool:
         """Send email when seller receives an offer."""
-        if not self._should_send_email(seller):
+        if not self._should_send_email(seller, "email_offers"):
             return False
 
         try:
@@ -84,7 +97,7 @@ class UserNotificationService:
         image_url: Optional[str] = None,
     ) -> bool:
         """Send email when watched item price drops."""
-        if not self._should_send_email(user):
+        if not self._should_send_email(user, "email_price_drops"):
             return False
 
         try:
@@ -109,7 +122,7 @@ class UserNotificationService:
         matched_listings: list,
     ) -> bool:
         """Send email when new listings match saved search."""
-        if not self._should_send_email(user):
+        if not self._should_send_email(user, "email_search_matches"):
             return False
 
         try:
@@ -145,7 +158,7 @@ class UserNotificationService:
         delivery_estimate: str = "2-3 business days",
     ) -> bool:
         """Send email when order status updates."""
-        if not self._should_send_email(user):
+        if not self._should_send_email(user, "email_order_updates"):
             return False
 
         try:
