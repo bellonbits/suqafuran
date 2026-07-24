@@ -183,10 +183,15 @@ export const AuthModal: React.FC = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-3.5">
                     {step === 'otp' ? (
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-gray-600 dark:text-slate-400">
-                                Enter the code sent to {method === 'email' ? email : phone}
-                            </label>
+                        <div className="space-y-3">
+                            <div>
+                                <label className="text-xs font-bold text-gray-600 dark:text-slate-400 block mb-1">
+                                    Verification Code
+                                </label>
+                                <p className="text-[10px] text-gray-500 dark:text-slate-500 mb-2">
+                                    We sent a code to {method === 'email' ? email : phone}
+                                </p>
+                            </div>
                             <input
                                 type="text"
                                 required
@@ -195,16 +200,22 @@ export const AuthModal: React.FC = () => {
                                 placeholder="6-digit code"
                                 value={otp}
                                 onChange={(e) => setOtp(e.target.value)}
-                                className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-3 text-sm font-bold tracking-widest text-center outline-none focus:border-primary focus:bg-white dark:text-slate-100"
+                                maxLength={6}
+                                className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-3 text-lg font-bold tracking-[0.25em] text-center outline-none focus:border-primary focus:bg-white dark:text-slate-100"
                             />
-                            <button
-                                type="button"
-                                onClick={handleResend}
-                                disabled={cooldown > 0}
-                                className="text-[11px] font-bold text-primary dark:text-sky-400 disabled:text-gray-400 disabled:dark:text-slate-600"
-                            >
-                                {cooldown > 0 ? `Resend code in ${cooldown}s` : 'Resend code'}
-                            </button>
+                            <div className="flex items-center justify-between pt-1">
+                                <span className="text-[10px] text-gray-500 dark:text-slate-500">
+                                    Didn't receive the code?
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={handleResend}
+                                    disabled={cooldown > 0}
+                                    className="text-[11px] font-bold text-primary dark:text-sky-400 hover:underline disabled:text-gray-400 disabled:dark:text-slate-600 disabled:cursor-not-allowed"
+                                >
+                                    {cooldown > 0 ? `Resend in ${cooldown}s` : '🔄 Resend code'}
+                                </button>
+                            </div>
                         </div>
                     ) : (
                         <>
@@ -268,7 +279,16 @@ export const AuthModal: React.FC = () => {
 
                             {mode === 'signin' && method === 'email' && (
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-600 dark:text-slate-400">Password</label>
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-xs font-bold text-gray-600 dark:text-slate-400">Password</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => window.location.href = '/reset-password'}
+                                            className="text-[10px] font-bold text-primary dark:text-sky-400 hover:underline"
+                                        >
+                                            Forgot?
+                                        </button>
+                                    </div>
                                     <div className="relative">
                                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                                         <input
