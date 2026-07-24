@@ -1,11 +1,6 @@
-from __future__ import annotations
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 from sqlmodel import Field, SQLModel, Relationship
-
-if TYPE_CHECKING:
-    from app.models.user import User
-    from app.models.listing import Listing
 
 
 class OfferBase(SQLModel):
@@ -21,18 +16,18 @@ class Offer(OfferBase, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    buyer: Optional[User] = Relationship(
+    buyer: Optional["User"] = Relationship(
         back_populates="offers_made",
         sa_relationship_kwargs={"foreign_keys": "Offer.buyer_id"}
     )
-    listing: Optional[Listing] = Relationship()
+    listing: Optional["Listing"] = Relationship()
 
 
 class OfferRead(OfferBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    buyer: Optional[User] = None
+    buyer: Optional["User"] = None
 
 
 class OfferCreate(SQLModel):

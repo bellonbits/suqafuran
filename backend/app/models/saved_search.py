@@ -1,10 +1,6 @@
-from __future__ import annotations
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 from sqlmodel import Field, SQLModel, Relationship
-
-if TYPE_CHECKING:
-    from app.models.user import User
 
 
 class SavedSearchBase(SQLModel):
@@ -24,7 +20,7 @@ class SavedSearch(SavedSearchBase, table=True):
     last_matched_at: Optional[datetime] = None
     match_count: int = Field(default=0)
 
-    user: Optional[User] = Relationship(
+    user: Optional["User"] = Relationship(
         back_populates="saved_searches",
         sa_relationship_kwargs={"foreign_keys": "SavedSearch.user_id"}
     )

@@ -1,9 +1,5 @@
-from __future__ import annotations
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 from sqlmodel import Field, SQLModel, Relationship
-
-if TYPE_CHECKING:
-    from app.models.user import User
 
 
 class NotificationPreferencesBase(SQLModel):
@@ -19,7 +15,7 @@ class NotificationPreferencesBase(SQLModel):
 class NotificationPreferences(NotificationPreferencesBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
 
-    user: Optional[User] = Relationship(
+    user: Optional["User"] = Relationship(
         back_populates="notification_preferences",
         sa_relationship_kwargs={"foreign_keys": "NotificationPreferences.user_id"}
     )

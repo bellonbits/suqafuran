@@ -1,11 +1,6 @@
-from __future__ import annotations
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 from sqlmodel import Field, SQLModel, Relationship
-
-if TYPE_CHECKING:
-    from app.models.user import User
-    from app.models.listing import Listing
 
 
 class PriceAlertBase(SQLModel):
@@ -21,11 +16,11 @@ class PriceAlert(PriceAlertBase, table=True):
     last_notified_at: Optional[datetime] = None
     last_price: Optional[float] = None
 
-    user: Optional[User] = Relationship(
+    user: Optional["User"] = Relationship(
         back_populates="price_alerts",
         sa_relationship_kwargs={"foreign_keys": "PriceAlert.user_id"}
     )
-    listing: Optional[Listing] = Relationship()
+    listing: Optional["Listing"] = Relationship()
 
 
 class PriceAlertRead(PriceAlertBase):
