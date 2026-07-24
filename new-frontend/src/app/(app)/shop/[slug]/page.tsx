@@ -78,8 +78,6 @@ export default function PublicShopPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [priceRange, setPriceRange] = useState({ min: 0, max: 100000 });
   const [favorites, setFavorites] = useState<Set<string | number>>(new Set());
-  const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 12; // 3 rows × 4 columns on desktop
 
   const { addItem } = useCart();
   const cartItems = useCart((state) => state.items);
@@ -91,10 +89,6 @@ export default function PublicShopPage() {
   useEffect(() => {
     fetchShopData();
   }, [shopSlug]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedCategory, priceRange]);
 
   useEffect(() => {
     // Check if current user is admin or agent
@@ -620,14 +614,14 @@ export default function PublicShopPage() {
                     </div>
                   ) : (
                     <div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-8">
+                      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 pb-4">
                         {listings.filter((product) => {
                           const matchesSearch = !searchQuery ||
                             product.title_en.toLowerCase().includes(searchQuery.toLowerCase());
                           const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
                           const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
                           return matchesSearch && matchesPrice && matchesCategory;
-                        }).slice((currentPage - 1) * productsPerPage, currentPage * productsPerPage).map((product) => {
+                        }).map((product) => {
                         const cartQty = getCartQuantity(String(product.id));
                         const isFavorite = favorites.has(product.id);
                         return (
@@ -705,56 +699,6 @@ export default function PublicShopPage() {
                         );
                       })}
                       </div>
-
-                      {/* Pagination Controls */}
-                      {listings.filter((product) => {
-                        const matchesSearch = !searchQuery ||
-                          product.title_en.toLowerCase().includes(searchQuery.toLowerCase());
-                        const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
-                        const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
-                        return matchesSearch && matchesPrice && matchesCategory;
-                      }).length > productsPerPage && (
-                        <div className="flex items-center justify-center gap-4 mt-8 pb-8">
-                          <button
-                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                            disabled={currentPage === 1}
-                            className="px-4 py-2 bg-gray-200 dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
-                          >
-                            ← Previous
-                          </button>
-                          <span className="text-gray-700 dark:text-slate-300 font-semibold">
-                            Page {currentPage} of {Math.ceil(listings.filter((product) => {
-                              const matchesSearch = !searchQuery ||
-                                product.title_en.toLowerCase().includes(searchQuery.toLowerCase());
-                              const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
-                              const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
-                              return matchesSearch && matchesPrice && matchesCategory;
-                            }).length / productsPerPage)}
-                          </span>
-                          <button
-                            onClick={() => {
-                              const maxPage = Math.ceil(listings.filter((product) => {
-                                const matchesSearch = !searchQuery ||
-                                  product.title_en.toLowerCase().includes(searchQuery.toLowerCase());
-                                const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
-                                const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
-                                return matchesSearch && matchesPrice && matchesCategory;
-                              }).length / productsPerPage);
-                              setCurrentPage(Math.min(maxPage, currentPage + 1));
-                            }}
-                            disabled={currentPage >= Math.ceil(listings.filter((product) => {
-                              const matchesSearch = !searchQuery ||
-                                product.title_en.toLowerCase().includes(searchQuery.toLowerCase());
-                              const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
-                              const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
-                              return matchesSearch && matchesPrice && matchesCategory;
-                            }).length / productsPerPage)}
-                            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
-                          >
-                            Next →
-                          </button>
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
