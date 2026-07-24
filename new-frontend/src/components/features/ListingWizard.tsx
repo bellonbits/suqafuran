@@ -870,8 +870,7 @@ export const ListingWizard: React.FC = () => {
         <div className="mb-12">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Suqafuran</h1>
-              <p className="text-gray-600 dark:text-slate-400 text-sm mt-1">Post a Listing</p>
+              <p className="text-gray-600 dark:text-slate-400 text-sm">Post a Listing</p>
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-600 dark:text-slate-400">Step {currentStep} of {STEPS.length}</p>
