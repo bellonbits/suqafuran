@@ -623,7 +623,7 @@ export default function PublicShopPage() {
                     </div>
                   ) : (
                     <div>
-                      <div className="w-full grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 pb-4">
+                      <div className="w-full min-w-0 grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 pb-4">
                         {filteredProducts.map((product) => {
                         const cartQty = getCartQuantity(String(product.id));
                         const isFavorite = favorites.has(product.id);

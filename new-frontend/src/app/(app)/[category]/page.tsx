@@ -477,7 +477,7 @@ export default function CategoryPage({ params }: PageProps) {
                                 {/* Product slider list */}
                                 <div 
                                     ref={el => { sliderRefs.current.set(sliderKey, el); }}
-                                    className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-2"
+                                    className="w-full min-w-0 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-2"
                                 >
                                     {listings.map(listing => (
                                         <CategoryProductCard 
