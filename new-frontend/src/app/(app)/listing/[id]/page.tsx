@@ -194,10 +194,10 @@ export default function ProductDetailPage({ params }: PageProps) {
                     <span>Back</span>
                 </button>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 bg-white dark:bg-slate-900 rounded-lg p-6 md:p-8">
-                    {/* Left: Product Images */}
-                    <div className="md:col-span-1 space-y-4">
-                        <div className="aspect-square overflow-hidden rounded-lg border border-gray-200 dark:border-slate-800 bg-gray-100 dark:bg-slate-800 relative">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-6 bg-white dark:bg-slate-900 rounded-lg p-4 md:p-6">
+                    {/* Left: Product Images - Smaller */}
+                    <div className="md:col-span-2 space-y-3">
+                        <div className="aspect-square overflow-hidden rounded-lg border border-gray-200 dark:border-slate-800 bg-gray-100 dark:bg-slate-800 relative max-w-sm">
                             <img
                                 src={activeImage}
                                 alt={field(listing.title_en, listing.title_so)}
@@ -211,7 +211,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                                     <button
                                         key={idx}
                                         onClick={() => setActiveImage(img)}
-                                        className={`h-16 w-16 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${activeImage === img ? 'border-orange-500' : 'border-gray-200 dark:border-slate-700'}`}
+                                        className={`h-14 w-14 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${activeImage === img ? 'border-orange-500' : 'border-gray-200 dark:border-slate-700'}`}
                                     >
                                         <img src={img} alt="" className="h-full w-full object-cover" />
                                     </button>
@@ -220,16 +220,16 @@ export default function ProductDetailPage({ params }: PageProps) {
                         )}
                     </div>
 
-                    {/* Right: Product Information */}
-                    <div className="md:col-span-2 space-y-6">
+                    {/* Right: Product Information - Larger */}
+                    <div className="md:col-span-3 space-y-5">
                         {/* Title and Metadata */}
                         <div>
-                            <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                            <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-3">
                                 {field(listing.title_en, listing.title_so)}
                             </h1>
 
                             {/* Star Rating and Reviews */}
-                            <div className="flex items-center gap-4 mb-4">
+                            <div className="flex items-center gap-3 mb-3">
                                 {ratingAvg !== null ? (
                                     <div className="flex items-center gap-2">
                                         <div className="flex items-center gap-1">
@@ -251,56 +251,56 @@ export default function ProductDetailPage({ params }: PageProps) {
                         </div>
 
                         {/* Price Section */}
-                        <div className="bg-blue-600 dark:bg-blue-700 rounded-lg p-6 text-white">
-                            <div className="text-sm font-medium opacity-90 mb-2">Price</div>
-                            <div className="text-3xl font-bold mb-4">
+                        <div className="bg-blue-600 dark:bg-blue-700 rounded-lg p-4 text-white">
+                            <div className="text-xs font-medium opacity-90 mb-2">Price</div>
+                            <div className="text-2xl font-bold mb-3">
                                 {formatConvertedPrice(listing.price, listing.currency || 'USD', displayCurrency)}
                             </div>
-                            <div className="flex gap-3">
+                            <div className="flex gap-2">
                                 <button
                                     onClick={handleToggleFavorite}
-                                    className={`flex-1 rounded-lg py-3 font-semibold transition-all ${isFavorite ? 'bg-white text-blue-600' : 'bg-white/20 hover:bg-white/30 text-white'}`}
+                                    className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-all ${isFavorite ? 'bg-white text-blue-600' : 'bg-white/20 hover:bg-white/30 text-white'}`}
                                 >
-                                    <Heart className={`h-5 w-5 inline mr-2 ${isFavorite ? 'fill-current' : ''}`} />
+                                    <Heart className={`h-4 w-4 inline mr-1 ${isFavorite ? 'fill-current' : ''}`} />
                                     {isFavorite ? 'Liked' : 'Like'}
                                 </button>
                                 <Link
                                     href={`/messages?userId=${listing.owner_id}&productId=${listing.id}`}
-                                    className="flex-1 bg-white text-blue-600 rounded-lg py-3 font-semibold hover:bg-gray-50 transition-all"
+                                    className="flex-1 bg-white text-blue-600 rounded-lg py-2 text-sm font-semibold hover:bg-gray-50 transition-all"
                                 >
-                                    <MessageSquare className="h-5 w-5 inline mr-2" />
-                                    Contact Seller
+                                    <MessageSquare className="h-4 w-4 inline mr-1" />
+                                    Contact
                                 </Link>
                             </div>
                         </div>
 
                         {/* Stock and Shipping */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                                <div className="text-xs font-semibold text-green-700 dark:text-green-400 mb-1">In Stock</div>
-                                <div className="text-sm text-gray-700 dark:text-slate-300">Available now</div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                                <div className="text-xs font-semibold text-green-700 dark:text-green-400">In Stock</div>
+                                <div className="text-xs text-gray-700 dark:text-slate-300">Available now</div>
                             </div>
-                            <div className="border border-gray-200 dark:border-slate-700 rounded-lg p-4">
-                                <div className="text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">Location</div>
-                                <div className="text-sm text-gray-600 dark:text-slate-400">{listing.location || 'Somalia'}</div>
+                            <div className="border border-gray-200 dark:border-slate-700 rounded-lg p-3">
+                                <div className="text-xs font-semibold text-gray-700 dark:text-slate-300">Location</div>
+                                <div className="text-xs text-gray-600 dark:text-slate-400">{listing.location || 'Somalia'}</div>
                             </div>
                         </div>
 
                         {/* Seller Information Card */}
                         {listing.owner && (
-                            <div className="border border-gray-200 dark:border-slate-700 rounded-lg p-4">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-sm">
+                            <div className="border border-gray-200 dark:border-slate-700 rounded-lg p-3">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-9 w-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-xs">
                                             {listing.owner.full_name.charAt(0).toUpperCase()}
                                         </div>
                                         <div>
-                                            <div className="flex items-center gap-2">
-                                                <div className="font-semibold text-gray-900 dark:text-white">
+                                            <div className="flex items-center gap-1">
+                                                <div className="font-semibold text-sm text-gray-900 dark:text-white">
                                                     {listing.owner.full_name}
                                                 </div>
                                                 {listing.owner.is_verified && (
-                                                    <ShieldCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                                    <ShieldCheck className="h-3 w-3 text-green-600 dark:text-green-400" />
                                                 )}
                                             </div>
                                             <div className="text-xs text-gray-500 dark:text-slate-400">
@@ -312,47 +312,47 @@ export default function ProductDetailPage({ params }: PageProps) {
                                 {listing.owner.phone && (
                                     <a
                                         href={`tel:${listing.owner.phone}`}
-                                        className="w-full bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg py-2 font-semibold text-gray-700 dark:text-slate-300 transition-all text-center"
+                                        className="w-full bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg py-2 text-xs font-semibold text-gray-700 dark:text-slate-300 transition-all text-center"
                                     >
-                                        <Phone className="h-4 w-4 inline mr-2" />
-                                        Call Seller
+                                        <Phone className="h-3 w-3 inline mr-1" />
+                                        Call
                                     </a>
                                 )}
                             </div>
                         )}
 
                         {/* Description */}
-                        <div>
-                            <h3 className="font-bold text-gray-900 dark:text-white mb-2">About this item</h3>
-                            <p className="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">
+                        <div className="border-t border-gray-200 dark:border-slate-700 pt-3">
+                            <h3 className="font-bold text-sm text-gray-900 dark:text-white mb-2">About this item</h3>
+                            <p className="text-xs text-gray-600 dark:text-slate-300 line-clamp-3">
                                 {field(listing.description_en, listing.description_so)}
                             </p>
                         </div>
 
                         {/* Share Section */}
-                        <div className="border-t border-gray-200 dark:border-slate-700 pt-4">
-                            <div className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-3">Share this product</div>
-                            <div className="flex gap-3">
-                                <a href="#" className="h-10 w-10 rounded-full border border-gray-200 dark:border-slate-700 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-slate-800 transition-all">
-                                    <Facebook className="h-5 w-5 text-blue-600" />
+                        <div className="border-t border-gray-200 dark:border-slate-700 pt-3">
+                            <div className="text-xs font-semibold text-gray-700 dark:text-slate-300 mb-2">Share this product</div>
+                            <div className="flex gap-2">
+                                <a href="#" className="h-8 w-8 rounded-full border border-gray-200 dark:border-slate-700 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-slate-800 transition-all">
+                                    <Facebook className="h-4 w-4 text-blue-600" />
                                 </a>
-                                <a href="#" className="h-10 w-10 rounded-full border border-gray-200 dark:border-slate-700 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-slate-800 transition-all">
-                                    <X className="h-5 w-5 text-gray-900 dark:text-white" />
+                                <a href="#" className="h-8 w-8 rounded-full border border-gray-200 dark:border-slate-700 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-slate-800 transition-all">
+                                    <X className="h-4 w-4 text-gray-900 dark:text-white" />
                                 </a>
-                                <a href="#" className="h-10 w-10 rounded-full border border-gray-200 dark:border-slate-700 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-slate-800 transition-all">
-                                    <MessageCircle className="h-5 w-5 text-green-600" />
+                                <a href="#" className="h-8 w-8 rounded-full border border-gray-200 dark:border-slate-700 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-slate-800 transition-all">
+                                    <MessageCircle className="h-4 w-4 text-green-600" />
                                 </a>
                             </div>
                         </div>
 
                         {/* Report Listing */}
-                        <div className="border-t border-gray-200 dark:border-slate-700 pt-4">
+                        <div className="border-t border-gray-200 dark:border-slate-700 pt-3">
                             <button
                                 onClick={() => setShowReportModal(true)}
-                                className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium flex items-center gap-2"
+                                className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium flex items-center gap-1"
                             >
-                                <AlertTriangle className="h-4 w-4" />
-                                Report incorrect product information
+                                <AlertTriangle className="h-3 w-3" />
+                                Report product
                             </button>
                         </div>
                     </div>
