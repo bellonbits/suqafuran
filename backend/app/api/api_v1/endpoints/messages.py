@@ -8,7 +8,6 @@ from app.services.moderation_service import moderation_service
 from app.core.security import risk_security
 from app.models.user import User
 from app.services.user_notification_service import user_notification_service
-from app.crud.crud_user import crud_user
 
 router = APIRouter()
 
@@ -81,7 +80,7 @@ def send_message(
 
     # Email notification
     try:
-        receiver = crud_user.get(db, id=message_in.receiver_id)
+        receiver = db.get(User, message_in.receiver_id)
         if receiver:
             user_notification_service.notify_new_message(
                 receiver=receiver,
