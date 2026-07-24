@@ -43,7 +43,7 @@ def create_offer(
     offer = crud_offer.create(
         db,
         obj_in=offer_in.model_dump(),
-        extra_data={"buyer_id": current_user.id},
+        buyer_id=current_user.id,
     )
 
     # Send email notification to seller
@@ -137,7 +137,7 @@ def delete_offer(
     db: Session = Depends(deps.get_db),
     offer_id: int,
     current_user: User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> None:
     """
     Withdraw an offer (buyer only).
     """
