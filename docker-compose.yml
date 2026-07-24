@@ -16,26 +16,26 @@ services:
       - suqafuran-network
     restart: unless-stopped
 
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: suqafuran-postgres
-    environment:
-      POSTGRES_USER: suqafuran
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-suqafuran}
-      POSTGRES_DB: suqafuran
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U suqafuran"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - suqafuran-network
-    restart: unless-stopped
+  # PostgreSQL Database (Disabled - using remote DigitalOcean)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: suqafuran-postgres
+  #   environment:
+  #     POSTGRES_USER: suqafuran
+  #     POSTGRES_PASSWORD: ${DB_PASSWORD:-suqafuran}
+  #     POSTGRES_DB: suqafuran
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U suqafuran"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - suqafuran-network
+  #   restart: unless-stopped
 
   # Redis for caching & Celery
   redis:
