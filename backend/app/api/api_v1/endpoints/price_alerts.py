@@ -38,7 +38,7 @@ def watch_listing(
     alert = crud_price_alert.create(
         db,
         obj_in=alert_in.model_dump(),
-        extra_data={"user_id": current_user.id, "last_price": listing.price},
+        user_id=current_user.id,
     )
 
     return alert
@@ -50,7 +50,7 @@ def unwatch_listing(
     db: Session = Depends(deps.get_db),
     listing_id: int,
     current_user: User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> None:
     """
     Stop watching a listing.
     """

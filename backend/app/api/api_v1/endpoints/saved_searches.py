@@ -24,7 +24,7 @@ def create_saved_search(
     search = crud_saved_search.create(
         db,
         obj_in=search_in.model_dump(),
-        extra_data={"user_id": current_user.id},
+        user_id=current_user.id,
     )
     return search
 
@@ -93,7 +93,7 @@ def delete_saved_search(
     db: Session = Depends(deps.get_db),
     search_id: int,
     current_user: User = Depends(deps.get_current_active_user),
-) -> Any:
+) -> None:
     """
     Delete a saved search.
     """
