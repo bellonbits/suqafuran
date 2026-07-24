@@ -27,7 +27,6 @@ class OfferRead(OfferBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    buyer: Optional["User"] = None
 
 
 class OfferCreate(SQLModel):
