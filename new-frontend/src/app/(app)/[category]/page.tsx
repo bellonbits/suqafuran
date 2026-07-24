@@ -137,7 +137,7 @@ function CategoryProductCard({ listing, onAddToCart }: { listing: Listing; onAdd
     return (
         <Link 
             href={`/listings/${listing.id}`}
-            className="shrink-0 w-[140px] sm:w-[150px] group cursor-pointer flex flex-col justify-between"
+            className="group cursor-pointer flex flex-col justify-between"
         >
             <div className="space-y-2">
                 {/* Image Box */}
@@ -477,7 +477,7 @@ export default function CategoryPage({ params }: PageProps) {
                                 {/* Product slider list */}
                                 <div 
                                     ref={el => { sliderRefs.current.set(sliderKey, el); }}
-                                    className="flex gap-4 overflow-x-auto pb-2 scrollbar-none hide-scrollbar scroll-smooth"
+                                    className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-2"
                                 >
                                     {listings.map(listing => (
                                         <CategoryProductCard 
