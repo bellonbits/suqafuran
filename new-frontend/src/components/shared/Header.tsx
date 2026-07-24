@@ -12,6 +12,7 @@ import { useT } from '../../lib/i18n';
 import { LocationPickerModal } from './LocationPickerModal';
 import NotificationCenter from '../NotificationCenter';
 import { NotificationBell } from './NotificationBell';
+import { MarketplaceMenu } from './MarketplaceMenu';
 import api, { resolveMediaUrl } from '../../services/api';
 
 export const Header: React.FC = () => {
@@ -160,6 +161,9 @@ export const Header: React.FC = () => {
 
                     {/* Right: Action Buttons */}
                     <div className="flex items-center gap-4 shrink-0">
+
+                        {/* Marketplace Menu */}
+                        <MarketplaceMenu />
 
                         {/* Dark Mode - Icon Only */}
                         <button
