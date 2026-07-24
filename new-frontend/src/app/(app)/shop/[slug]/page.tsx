@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import api, { resolveMediaUrl, optimizeCloudinaryUrl } from '../../../../services/api';
@@ -82,6 +82,17 @@ export default function PublicShopPage() {
   const { addItem } = useCart();
   const cartItems = useCart((state) => state.items);
 
+  // Memoized filtered products for performance
+  const filteredProducts = useMemo(() => {
+    return listings.filter((product) => {
+      const matchesSearch = !searchQuery ||
+        product.title_en.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
+      const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
+      return matchesSearch && matchesPrice && matchesCategory;
+    });
+  }, [listings, searchQuery, selectedCategory, priceRange]);
+
   const getCartQuantity = (productId: string) => {
     return cartItems.find((item) => item.id === String(productId))?.quantity || 0;
   };
@@ -110,50 +121,58 @@ export default function PublicShopPage() {
   const fetchShopData = async () => {
     try {
       setLoading(true);
+      let shopProfile: any = null;
 
-      // Resolve slug to shop ID
-      const shopsRes = await api.get('/listings/shops', {
-        params: { limit: 500, skip: 0 }
-      });
-
-      const shop = (shopsRes.data.shops || []).find((s: any) =>
-        s.slug?.toLowerCase() === shopSlug.toLowerCase()
-      );
-
-      if (!shop) {
-        setLoading(false);
-        return;
-      }
-
-      // Fetch full shop profile
+      // Fetch shop by slug (more efficient than fetching all shops)
       try {
-        const profileRes = await api.get('/seller/profile');
-        const shopProfile = profileRes.data;
+        const shopRes = await api.get(`/listings/shops/${shopSlug}`);
+        const shop = shopRes.data;
+
+        if (!shop) {
+          setLoading(false);
+          return;
+        }
+
+        shopProfile = shop;
 
         setShopData({
           id: shop.id,
           user_id: shop.user_id,
-          shop_name: shopProfile.shop_name || shop.shop_name,
-          description: shopProfile.description || '',
-          phone: shopProfile.phone || '',
-          email: shopProfile.email || '',
-          logo_url: shopProfile.logo_url,
-          banner_url: shopProfile.banner_url,
-          address: shopProfile.address,
-          latitude: shopProfile.latitude,
-          longitude: shopProfile.longitude,
-          city: shopProfile.city,
-          operating_hours: shopProfile.operating_hours,
-          categories: shopProfile.categories,
-          return_policy: shopProfile.return_policy,
-          delivery_policy: shopProfile.delivery_policy,
+          shop_name: shop.shop_name,
+          description: shop.description || '',
+          phone: shop.phone || '',
+          email: shop.email || '',
+          logo_url: shop.logo_url,
+          banner_url: shop.banner_url,
+          address: shop.address,
+          latitude: shop.latitude,
+          longitude: shop.longitude,
+          city: shop.city,
+          operating_hours: shop.operating_hours,
+          categories: shop.categories,
+          return_policy: shop.return_policy,
+          delivery_policy: shop.delivery_policy,
           is_verified: shop.is_verified,
           rating: shop.rating,
           review_count: shop.review_count || 0,
           follower_count: shop.follower_count || 0,
         });
       } catch (err) {
-        // Fallback to shop data if profile fetch fails
+        // Fallback: fetch from listings/shops with slug search
+        const shopsRes = await api.get('/listings/shops', {
+          params: { limit: 100, skip: 0 }
+        });
+
+        const shop = (shopsRes.data.shops || []).find((s: any) =>
+          s.slug?.toLowerCase() === shopSlug.toLowerCase()
+        );
+
+        if (!shop) {
+          setLoading(false);
+          return;
+        }
+
+        shopProfile = shop;
         setShopData({
           id: shop.id,
           user_id: shop.user_id,
@@ -170,22 +189,18 @@ export default function PublicShopPage() {
 
       // Fetch products
       const listingsRes = await listingsService.getListings({
-        owner_id: Number(shop.user_id),
+        owner_id: Number(shopProfile.user_id),
         limit: 200
       });
       setListings(listingsRes || []);
 
-      // Fetch reviews (mock for now)
-      setReviews([
-        {
-          id: '1',
-          rating: 5,
-          comment: 'Excellent service and quality products!',
-          reviewer_name: 'Customer',
-          created_at: new Date().toISOString(),
-          helpful_count: 23
-        }
-      ]);
+      // Fetch reviews from backend
+      try {
+        const reviewsRes = await api.get(`/shops/${shopProfile.id}/reviews`);
+        setReviews(reviewsRes.data || []);
+      } catch {
+        setReviews([]);
+      }
 
       setIsOpen(isShopOpen(shopProfile?.operating_hours || []));
     } catch (error) {
@@ -600,13 +615,7 @@ export default function PublicShopPage() {
               ) : (
                 <div>
                   {/* Filtered Products Grid */}
-                  {listings.filter((product) => {
-                    const matchesSearch = !searchQuery ||
-                      product.title_en.toLowerCase().includes(searchQuery.toLowerCase());
-                    const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
-                    const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
-                    return matchesSearch && matchesPrice && matchesCategory;
-                  }).length === 0 ? (
+                  {filteredProducts.length === 0 ? (
                     <div className="text-center py-16">
                       <Package className="w-12 h-12 text-gray-300 dark:text-slate-700 mx-auto mb-3" />
                       <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">No products found</h3>
@@ -615,13 +624,7 @@ export default function PublicShopPage() {
                   ) : (
                     <div>
                       <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 pb-4">
-                        {listings.filter((product) => {
-                          const matchesSearch = !searchQuery ||
-                            product.title_en.toLowerCase().includes(searchQuery.toLowerCase());
-                          const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
-                          const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
-                          return matchesSearch && matchesPrice && matchesCategory;
-                        }).map((product) => {
+                        {filteredProducts.map((product) => {
                         const cartQty = getCartQuantity(String(product.id));
                         const isFavorite = favorites.has(product.id);
                         return (
