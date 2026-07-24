@@ -1042,7 +1042,7 @@ export default function ShopDetailPage() {
                                     {/* Horizontal Carousel */}
                                     <div
                                         ref={(el) => { if (el) scrollRefs.current[category.id] = el; }}
-                                        className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory"
+                                        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pb-2"
                                     >
                                         {(() => {
                                             const filtered = category.products.filter((product) => {
@@ -1126,7 +1126,7 @@ export default function ShopDetailPage() {
                                                         setSelectedProduct(product);
                                                         setModalQuantity(cartQty || 1);
                                                     }}
-                                                    className="cursor-pointer group flex-shrink-0 w-40 snap-start"
+                                                    className="cursor-pointer group"
                                                 >
                                                     {/* Card Image Container */}
                                                     <div className="relative bg-gray-50 dark:bg-slate-900/60 aspect-square rounded-lg overflow-hidden border border-gray-100 dark:border-slate-800/80 mb-2.5 flex items-center justify-center transition-shadow group-hover:shadow-md">
