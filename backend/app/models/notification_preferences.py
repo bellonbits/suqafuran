@@ -15,11 +15,6 @@ class NotificationPreferencesBase(SQLModel):
 class NotificationPreferences(NotificationPreferencesBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
 
-    user: Optional["User"] = Relationship(
-        back_populates="notification_preferences",
-        sa_relationship_kwargs={"foreign_keys": "NotificationPreferences.user_id"}
-    )
-
 
 class NotificationPreferencesRead(NotificationPreferencesBase):
     id: int

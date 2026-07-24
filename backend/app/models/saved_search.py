@@ -20,11 +20,6 @@ class SavedSearch(SavedSearchBase, table=True):
     last_matched_at: Optional[datetime] = None
     match_count: int = Field(default=0)
 
-    user: Optional["User"] = Relationship(
-        back_populates="saved_searches",
-        sa_relationship_kwargs={"foreign_keys": "SavedSearch.user_id"}
-    )
-
 
 class SavedSearchRead(SavedSearchBase):
     id: int

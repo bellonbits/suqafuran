@@ -16,12 +16,6 @@ class Offer(OfferBase, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    buyer: Optional["User"] = Relationship(
-        back_populates="offers_made",
-        sa_relationship_kwargs={"foreign_keys": "Offer.buyer_id"}
-    )
-    listing: Optional["Listing"] = Relationship()
-
 
 class OfferRead(OfferBase):
     id: int
