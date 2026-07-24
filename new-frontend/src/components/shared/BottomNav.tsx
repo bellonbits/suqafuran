@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Heart, PlusCircle, MessageCircleMore, CircleUser } from 'lucide-react';
+import { Home, Heart, PlusCircle, MessageCircleMore, CircleUser, ShoppingBag, Zap, Search } from 'lucide-react';
 import { useT } from '../../lib/i18n';
 
 export const BottomNav: React.FC = () => {

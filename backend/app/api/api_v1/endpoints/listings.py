@@ -1698,3 +1698,64 @@ async def on_featured_listing_payment_failed(
         logging.getLogger("listings_api").warning(f"Failed to publish failure event: {e}")
 
     return {"status": "failed", "reason": failure_reason}
+
+
+# ============== LISTING REPORT ENDPOINT ==============
+
+@router.post("/report")
+def report_listing(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    report_in: dict,
+) -> Any:
+    """
+    Report a listing for incorrect information or policy violations.
+    """
+    from app.models.report import ListingReport
+
+    listing_id = report_in.get("listing_id")
+    reason = report_in.get("reason")
+    description = report_in.get("description")
+
+    if not listing_id or not reason:
+        raise HTTPException(status_code=400, detail="listing_id and reason are required")
+
+    # Verify listing exists
+    listing = db.get(Listing, listing_id)
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+
+    # Prevent self-reporting
+    if listing.owner_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot report your own listing")
+
+    # Check for duplicate recent reports
+    from datetime import datetime, timedelta
+    recent_report = db.exec(
+        select(ListingReport).where(
+            ListingReport.listing_id == listing_id,
+            ListingReport.reporter_id == current_user.id,
+            ListingReport.created_at > datetime.utcnow() - timedelta(days=1)
+        )
+    ).first()
+
+    if recent_report:
+        raise HTTPException(
+            status_code=400,
+            detail="You have already reported this listing in the past 24 hours"
+        )
+
+    # Create report
+    report = ListingReport(
+        listing_id=listing_id,
+        reporter_id=current_user.id,
+        reason=reason,
+        description=description,
+        status="pending"
+    )
+    db.add(report)
+    db.commit()
+    db.refresh(report)
+
+    return {"id": report.id, "status": "pending", "message": "Thank you for your report. We will review it shortly."}
