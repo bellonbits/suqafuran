@@ -1,14 +1,17 @@
-"""Price alert model for watching price drops."""
-
+from __future__ import annotations
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 from sqlmodel import Field, SQLModel, Relationship
+
+if TYPE_CHECKING:
+    from app.models.user import User
+    from app.models.listing import Listing
 
 
 class PriceAlertBase(SQLModel):
     listing_id: int = Field(foreign_key="listing.id", index=True)
     user_id: int = Field(foreign_key="user.id", index=True)
-    target_price: Optional[float] = None  # Alert when price drops below this
+    target_price: Optional[float] = None
     is_active: bool = Field(default=True, index=True)
 
 
@@ -16,14 +19,13 @@ class PriceAlert(PriceAlertBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
     last_notified_at: Optional[datetime] = None
-    last_price: Optional[float] = None  # Last price when checked
+    last_price: Optional[float] = None
 
-    # Relationships
-    user: Optional["User"] = Relationship(
+    user: Optional[User] = Relationship(
         back_populates="price_alerts",
         sa_relationship_kwargs={"foreign_keys": "PriceAlert.user_id"}
     )
-    listing: Optional["Listing"] = Relationship()
+    listing: Optional[Listing] = Relationship()
 
 
 class PriceAlertRead(PriceAlertBase):

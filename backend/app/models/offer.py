@@ -1,9 +1,11 @@
-"""Offer model for marketplace negotiations."""
-
+from __future__ import annotations
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 from sqlmodel import Field, SQLModel, Relationship
-from sqlalchemy import Column, JSON
+
+if TYPE_CHECKING:
+    from app.models.user import User
+    from app.models.listing import Listing
 
 
 class OfferBase(SQLModel):
@@ -11,7 +13,7 @@ class OfferBase(SQLModel):
     buyer_id: int = Field(foreign_key="user.id", index=True)
     amount: float
     message: Optional[str] = None
-    status: str = Field(default="pending", index=True)  # pending, accepted, rejected, withdrawn
+    status: str = Field(default="pending", index=True)
 
 
 class Offer(OfferBase, table=True):
@@ -19,19 +21,18 @@ class Offer(OfferBase, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    # Relationships
-    buyer: Optional["User"] = Relationship(
+    buyer: Optional[User] = Relationship(
         back_populates="offers_made",
         sa_relationship_kwargs={"foreign_keys": "Offer.buyer_id"}
     )
-    listing: Optional["Listing"] = Relationship()
+    listing: Optional[Listing] = Relationship()
 
 
 class OfferRead(OfferBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    buyer: Optional["User"] = None
+    buyer: Optional[User] = None
 
 
 class OfferCreate(SQLModel):
