@@ -50,13 +50,13 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 min-h-screen"
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="bg-white rounded-3xl w-full max-w-md p-8 relative max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-3xl w-full max-w-md p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto"
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
