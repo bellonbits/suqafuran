@@ -58,16 +58,21 @@ app.add_middleware(
         "https://suqafuran.com",
         "https://www.suqafuran.com",
         "https://app.suqafuran.com",
+        "http://159.223.98.137",
         "http://localhost:3000",
         "http://localhost:8000",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8000",
-        "*",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Handle OPTIONS requests for CORS preflight
+@app.options("/{full_path:path}")
+async def preflight_handler(full_path: str):
+    return {"message": "ok"}
 
 # Register routers (new endpoints before old ones to avoid auth conflicts)
 if HAS_APP_MODULE and api_router:
