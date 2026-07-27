@@ -102,8 +102,8 @@ export default function FeaturedAdsPage() {
   if (loading) return <div className="p-6">Loading...</div>;
 
   const activePlacements = placements.filter(p => p.is_active);
-  const selectedPrice = selectedPlacement && pricing ? (pricing as any)[selectedPlacement]?.price : 0;
-  const totalCost = selectedPrice * (duration / (selectedPlacement?.includes('product') ? 1 : 7));
+  const selectedPrice = selectedPlacement && pricing ? (pricing as any)[selectedPlacement]?.price || 0 : 0;
+  const totalCost = selectedPrice * (duration / (selectedPlacement && selectedPlacement.includes('product') ? 1 : 7));
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl space-y-8">
@@ -134,7 +134,7 @@ export default function FeaturedAdsPage() {
                       {placement.days_remaining} days remaining
                     </p>
                     <p className="text-sm font-semibold text-gray-900 mt-1">
-                      KSh {placement.price_kes.toLocaleString()}
+                      KSh {(placement.price_kes || 0).toLocaleString()}
                     </p>
                   </div>
                   <Button variant="outline" size="sm">
