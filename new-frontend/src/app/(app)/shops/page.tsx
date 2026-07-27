@@ -3,7 +3,6 @@
 export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
-import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
