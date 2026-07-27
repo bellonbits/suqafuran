@@ -1,0 +1,185 @@
+SUQAFURAN - TURJUMAADA BOGGA HORE (LANDING PAGE)
+=================================================
+FORMAT: Af Ingiriis = Af Soomaali
+=================================================
+
+
+══════════════════════════════════════════════════════════════════
+[NAVIGATION & HEADER] = [HOGAANKA & CINWAANKA]
+══════════════════════════════════════════════════════════════════
+
+Home                            = Hoyga
+Saved                           = La Keydsaday
+Sell                            = Iibi
+Messages                        = Farriimaha
+Profile                         = Xogta Shakhsiga
+Alerts                          = Ogeysiisyada
+Boost                           = Kor u qaad
+Sign In                         = Gal
+Sign Up                         = Is Diiwaanji
+Search listings…                = Raadi xayeysiisyada…
+Sell (Button)                   = Iibi
+
+
+══════════════════════════════════════════════════════════════════
+[HERO SECTION] = [QAYBTA HORE]
+══════════════════════════════════════════════════════════════════
+
+Discover Great Deals Near You!              = Hel Heshiisyo Fiican Oo Kuu Dhow!
+Find the best deals in your area            = Hel heshiisyada ugu fiican deegaankaaga
+Search listings, categories...              = Raadi xayeysiisyada, qaybaha...
+Search (Button)                             = Raadi
+All (Categories)                            = Dhammaan
+All Locations                               = Dhammaan Goobaha
+What are you looking for?                   = Maxaad raadinaysaa?
+I am looking for...                         = Waxaan raadinayaa...
+
+
+══════════════════════════════════════════════════════════════════
+[SELL PROMO BANNER] = [XAYEYSIISKA IIBKA]
+══════════════════════════════════════════════════════════════════
+
+100% Free                                   = 100% Bilaash
+Sell Anything, Reach Everyone               = Iibi Wax Kasta, Gaadh Qof Kasta
+List in 2 minutes · Buyers are waiting now  = Ku dar 2 daqiiqadood · Iibsadayaashu hadda wey sugayaan
+Post Free Ad                                = Xayeysiis Bilaash ah Ku Dar
+Sell Something Today                        = Wax Maanta Iibi
+Buyers are waiting now                      = Iibsadayaashu hadda wey sugayaan
+List your item in minutes                   = Badeecdaada daqiiqado gudahood ku dar
+
+
+══════════════════════════════════════════════════════════════════
+[CATEGORY SECTION] = [QAYBTA NOOCYADA]
+══════════════════════════════════════════════════════════════════
+
+Categories                                  = Noocyada
+Browse Categories                           = Eeg Noocyada
+All Categories                              = Dhammaan Noocyada
+View all                                    = Dhammaan Eeg
+View All Listings                           = Dhammaan Xayeysiisyada Eeg
+subcategories                               = noocyada hoose
+types                                       = noocyo
+
+
+══════════════════════════════════════════════════════════════════
+[FEATURED ADS SECTION] = [XAYEYSIISYADA CALAAMADAYSAN]
+══════════════════════════════════════════════════════════════════
+
+Featured Ads                                = Xayeysiisyada Muhiimka ah
+See All                                     = Dhammaan Arag
+Sponsored                                   = La Maalgeliyay
+Popular                                     = Caanka ah
+Verified Seller                             = Iibiyaha La Xaqiijiyay
+Verified ID                                 = Aqoonsi La Xaqiijiyay
+3+ Years                                    = 3+ Sano
+Enterprise                                  = Ganacsiga Weyn
+New                                         = Cusub
+Used                                        = La Isticmaalay
+Negotiable                                  = Wax Laga Xoogsado
+
+
+══════════════════════════════════════════════════════════════════
+[SAFETY & CTA SECTION] = [AMNIGA & BALLAMAHA]
+══════════════════════════════════════════════════════════════════
+
+Stay safe when buying & selling             = Amanaan markaad iibisato iyo markaad iibiso
+Safety Tips                                 = Tilmaamaha Amniga
+Learn How to Sell                           = Baaro Sida Loo Iibiyo
+Ready to sell something today?              = Ma diyaar baad u tahay inaad maanta wax iibiso?
+Thousands of buyers are searching right now = Kumaan iibsade hadda ayey raadinayaan
+Start in under 2 minutes                    = Bilow 2 daqiiqadood gudahood
+Post an Ad Now                              = Xayeysiis Hadda Ku Dar
+Post Ad                                     = Xayeysiis Ku Dar
+
+
+══════════════════════════════════════════════════════════════════
+[FOOTER & SITE DETAILS] = [HOOSAADKA & FAAHFAAHINTA]
+══════════════════════════════════════════════════════════════════
+
+About Suqafuran                             = Ku Saabsan Suqafuran
+About Us                                    = Naga Xog
+Contact Us                                  = Nala Xiriir
+Terms & Conditions                          = Shuruudaha & Heshiisyada
+Support                                     = Caawimo
+Help Center                                 = Xarunta Caawimaada
+Safety Tips                                 = Tilmaamaha Amniga
+Privacy Policy                              = Siyaasadda Sirta
+Digital Address                             = Cinwaanka Dijital
+Get KH-PIN                                  = Hel KH-PIN
+Landmark Directory                          = Tusmooyinka Meelaha
+Emergency Contacts                          = Lambaryada Xaaladda Deg-Deg
+Connect                                     = Xiriir
+© 2026 Suqafuran. Buy. Sell. Connect.      = © 2026 Suqafuran. Iibi. Iibso. Xiriir.
+WhatsApp Support                            = Caawimada WhatsApp
+Pay With                                    = Ku bixi
+
+
+══════════════════════════════════════════════════════════════════
+[LOCATION PICKER] = [DOORASHADA GOB/DEGAANKA]
+══════════════════════════════════════════════════════════════════
+
+Select Location                             = Goob Dooro
+All Locations                               = Dhammaan Goobaha
+Search location...                          = Goob Raadi...
+Mogadishu                                   = Mogadishu (Muqdisho)
+Hargeisa                                    = Hargeysa
+Bosasso                                     = Boosaaso
+Kismayo                                     = Kismaayo
+Baidoa                                      = Baydhabo
+Garowe                                      = Garoowe
+Galkayo                                     = Gaalkacyo
+Berbera                                     = Berbera
+Other Cities                                = Magaalooyinka Kale
+
+
+══════════════════════════════════════════════════════════════════
+[PRODUCT CARD LABELS] = [CALAAMADAHA BADEECADAHA]
+══════════════════════════════════════════════════════════════════
+
+Price                                       = Qiimaha
+Negotiable                                  = Wax Laga Xoogsado
+Free                                        = Bilaash
+Contact Seller                              = La Xiriir Iibiyaha
+Save                                        = Kaydi
+Share                                       = La Wadaag
+Report                                      = Warbixin
+Condition: New                              = Xaalad: Cusub
+Condition: Used                             = Xaalad: La Isticmaalay
+Posted                                      = La Daabacay
+ago                                         = ka hor
+Today                                       = Maanta
+Yesterday                                   = Shalay
+
+
+══════════════════════════════════════════════════════════════════
+[GENERAL UI MESSAGES] = [FARIIMAHA GUUD]
+══════════════════════════════════════════════════════════════════
+
+Loading...                                  = La soo rarayo...
+Something went wrong                        = Wax ayaa khalad ahayd
+Retry                                       = Mar wax ku celi
+Operation failed                            = Hawshu ku guul dartay
+No results found                            = Wax lama helin
+No categories found                         = Nooca lama helin
+No listings found                           = Xayeysiis lama helin
+Try again                                   = Isku day mar kale
+Save changes                                = Isbeddelada Kaydi
+Cancel                                      = Jooji
+Confirm                                     = Xaqiiji
+Back                                        = Dib u laabo
+Next                                        = Xiga
+Done                                        = La dhammeeyay
+Submit                                      = Dir
+Close                                       = Xidh
+Search                                      = Raadi
+Filter                                      = Shaandee
+Sort by                                     = Ku kala sooc
+Newest                                      = Ugu cuslaan
+Lowest Price                                = Qiimaha Ugu Yar
+Highest Price                               = Qiimaha Ugu Sarreeya
+Most Popular                                = Ugu Caansan
+
+
+=================================================
+DHAMMAAD / END
+=================================================

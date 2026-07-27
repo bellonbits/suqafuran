@@ -1,0 +1,43 @@
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useAuthStore } from '../store/useAuth';
+import { useFavoritesStore } from '../store/useFavorites';
+import { analyticsTracker } from '../services/analytics-tracking';
+import { RealtimeConnection } from '../components/shared/RealtimeConnection';
+import { NotificationToast } from '../components/shared/NotificationToast';
+// import { BottomNavigation } from '../components/shared/BottomNavigation';
+
+export default function Providers({ children }: { children: React.ReactNode }) {
+    const [queryClient] = useState(() => new QueryClient({
+        defaultOptions: {
+            queries: {
+                staleTime: 5 * 60 * 1000,
+                gcTime: 30 * 60 * 1000,
+                refetchOnWindowFocus: false,
+                retry: false
+            }
+        }
+    }));
+
+    const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+    const isHydrated = useAuthStore((s) => s.isHydrated);
+
+    useEffect(() => {
+        if (isHydrated && isAuthenticated) {
+            useFavoritesStore.getState().hydrate();
+        }
+    }, [isHydrated, isAuthenticated]);
+
+    return (
+        <QueryClientProvider client={queryClient}>
+            <RealtimeConnection />
+            <NotificationToast />
+            <div className="sm:pb-0 pb-20">
+                {children}
+            </div>
+            {/* <BottomNavigation /> */}
+        </QueryClientProvider>
+    );
+}

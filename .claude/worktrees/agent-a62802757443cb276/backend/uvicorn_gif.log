@@ -1,0 +1,46 @@
+Redis password authentication failed (server password mismatch). Falling back to passwordless connection.
+Redis password authentication failed (server password mismatch). Falling back to passwordless connection.
+Redis password authentication failed (server password mismatch). Falling back to passwordless connection.
+Redis password authentication failed (server password mismatch). Falling back to passwordless connection.
+Redis password authentication failed (server password mismatch). Falling back to passwordless connection.
+INFO:     Started server process [31101]
+INFO:     Waiting for application startup.
+[Email] Redis connected OK
+[AT Init] Username: suqafuran
+[AT Init] API Key present: True
+[AT Init] API Key length: 77
+[AT Init] Sender ID: SUQAFURAN
+[AT Init] Environment: production
+[AT Init] Successfully initialized with username: suqafuran
+[AT Init] Redis connected successfully
+Initialized Mock Kafka Consumer.
+Mock Consumer subscribed to: ['suqafuran-business-events']
+Started Kafka Background Consumer Thread.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:49801 - "WebSocket /api/v1/notifications/ws?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTM2ODY1MTAsInN1YiI6IjEifQ.meHRda9EuWWGyBcdXhgduxyVk_-lz4-gnc4FtU1TPXc" [accepted]
+WebSocket connected for user 1. Active: 1
+INFO:     connection open
+{"status_code": 200, "latency_ms": 2.16, "event": "http_request", "client_ip": "127.0.0.1", "path": "/docs", "method": "GET", "trace_id": null, "request_id": "74cc0089-a6c7-46be-a4ca-b64e2c8590b5", "level": "info", "timestamp": "2026-06-22T18:26:53.672673Z"}
+INFO:     127.0.0.1:49803 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49823 - "OPTIONS /api/v1/listings/?category_id=leisure-sports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49825 - "OPTIONS /api/v1/listings/?category_id=leisure-sports HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 7911.46, "event": "http_request", "client_ip": "127.0.0.1", "path": "/api/v1/listings/", "method": "GET", "trace_id": null, "request_id": "ae6c4e27-419a-4df4-9c57-3c32478fdc90", "level": "info", "timestamp": "2026-06-22T18:29:39.143133Z"}
+INFO:     127.0.0.1:49823 - "GET /api/v1/listings/?category_id=leisure-sports HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 2966.03, "event": "http_request", "client_ip": "127.0.0.1", "path": "/api/v1/listings/", "method": "GET", "trace_id": null, "request_id": "65a22e54-6aff-4867-bef1-2055b9a9b8b5", "level": "info", "timestamp": "2026-06-22T18:29:42.115334Z"}
+INFO:     127.0.0.1:49830 - "GET /api/v1/listings/?category_id=leisure-sports HTTP/1.1" 200 OK
+[Email] Generated OTP for admin@suqafuran.com: 289741
+[Email] OTP sent via Resend to admin@suqafuran.com
+{"status_code": 200, "latency_ms": 3693.7, "event": "http_request", "client_ip": "127.0.0.1", "path": "/api/v1/auth/request-otp", "method": "POST", "trace_id": null, "request_id": "87d3944a-04e1-4fb7-a315-d7d6c705463a", "level": "info", "timestamp": "2026-06-22T18:36:38.818827Z"}
+INFO:     127.0.0.1:49890 - "POST /api/v1/auth/request-otp HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 5490.78, "event": "http_request", "client_ip": "127.0.0.1", "path": "/api/v1/auth/verify-otp", "method": "POST", "trace_id": null, "request_id": "bd27ac6d-ebbb-4eb7-9f2e-ddbf507ff5d0", "level": "info", "timestamp": "2026-06-22T18:36:45.366497Z"}
+INFO:     127.0.0.1:49895 - "POST /api/v1/auth/verify-otp HTTP/1.1" 200 OK
+{"status_code": 400, "latency_ms": 2882.88, "event": "http_request", "client_ip": "127.0.0.1", "path": "/api/v1/listings/upload", "method": "POST", "trace_id": null, "request_id": "cba18f41-b326-467c-8930-77af109b3d9b", "level": "info", "timestamp": "2026-06-22T18:36:48.286252Z"}
+INFO:     127.0.0.1:49899 - "POST /api/v1/listings/upload HTTP/1.1" 400 Bad Request
+INFO:     Shutting down
+INFO:     Waiting for background tasks to complete. (CTRL+C to force quit)
+WebSocket disconnected for user 1
+INFO:     connection closed
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [31101]

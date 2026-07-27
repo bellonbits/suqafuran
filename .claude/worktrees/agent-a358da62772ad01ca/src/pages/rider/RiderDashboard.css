@@ -1,0 +1,343 @@
+.rider-dashboard {
+    padding: 1rem;
+    background: #f5f5f5;
+    min-height: 100vh;
+}
+
+.dashboard-header {
+    margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    color: #1a1a1a;
+}
+
+.dashboard-header .user-name {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+}
+
+.stat-meta {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+/* Next Delivery Alert */
+.next-delivery-alert {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.alert-icon {
+    font-size: 2rem;
+}
+
+.alert-content {
+    flex: 1;
+}
+
+.alert-content h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.1rem;
+}
+
+.alert-content p {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.95rem;
+}
+
+.alert-content small {
+    opacity: 0.9;
+}
+
+.view-btn {
+    background: white;
+    color: #667eea;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 0.2s;
+}
+
+.view-btn:hover {
+    transform: scale(1.05);
+}
+
+/* Map Section */
+.map-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.map-section h2 {
+    margin: 0 0 1rem 0;
+    font-size: 1.3rem;
+    color: #1a1a1a;
+}
+
+.map-container {
+    height: 400px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #eee;
+}
+
+.rider-map {
+    width: 100%;
+    height: 100%;
+}
+
+/* Deliveries Section */
+.deliveries-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.deliveries-section h2 {
+    margin: 0 0 1.5rem 0;
+    font-size: 1.3rem;
+    color: #1a1a1a;
+}
+
+.deliveries-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.delivery-card {
+    background: #f9f9f9;
+    border: 2px solid #eee;
+    padding: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.delivery-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+}
+
+.delivery-card.selected {
+    border-color: #667eea;
+    background: #f0f4ff;
+}
+
+.delivery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.delivery-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #1a1a1a;
+    flex: 1;
+}
+
+.distance {
+    background: #e8eaf6;
+    color: #667eea;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    margin-left: 0.5rem;
+}
+
+.delivery-info {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.delivery-fee {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: white;
+    border-radius: 6px;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+}
+
+.fee-label {
+    color: #666;
+}
+
+.fee-amount {
+    font-weight: 700;
+    color: #2ecc71;
+    font-size: 1.1rem;
+}
+
+.delivery-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.accept-btn,
+.decline-btn {
+    flex: 1;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.accept-btn {
+    background: #667eea;
+    color: white;
+}
+
+.accept-btn:hover {
+    background: #5568d3;
+}
+
+.decline-btn {
+    background: #f0f0f0;
+    color: #666;
+}
+
+.decline-btn:hover {
+    background: #e0e0e0;
+}
+
+.loading,
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #999;
+}
+
+.empty-state {
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+}
+
+.empty-state .hint {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .map-container {
+        height: 300px;
+    }
+
+    .next-delivery-alert {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .delivery-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .distance {
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .rider-dashboard {
+        padding: 0.75rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .delivery-info {
+        flex-wrap: wrap;
+    }
+
+    .delivery-actions {
+        gap: 0.5rem;
+    }
+}

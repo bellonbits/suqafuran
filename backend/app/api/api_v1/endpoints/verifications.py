@@ -1,0 +1,186 @@
+from typing import Any, List, Optional
+from fastapi import APIRouter, Depends, HTTPException, Body, File, UploadFile, Form
+from sqlmodel import Session, select
+from sqlalchemy.orm import selectinload
+from app.api import deps
+from app.models.user import User
+from app.models.verification import (
+    VerificationRequest,
+    VerificationStatus,
+    VerificationRequestRead
+)
+from app.services.storage_service import storage_service
+
+router = APIRouter()
+
+@router.post("/apply", response_model=VerificationRequest)
+async def apply_for_verification(
+    *,
+    db: Session = Depends(deps.get_db),
+    # verification_in: VerificationRequestBase, # Cannot use Pydantic model with Form/File mix easily in FastAPI
+    document_type: str = Form(...),
+    id_number: Optional[str] = Form(None),
+    notes: Optional[str] = Form(None),
+    document_files: List[UploadFile] = File(...),
+    selfie_file: UploadFile = File(...),
+    tier: str = Form("tier2"),
+    proof_of_address_file: Optional[UploadFile] = File(None),
+    video_selfie_file: Optional[UploadFile] = File(None),
+    facial_match_score: float = Form(0.0),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """Submit a verification request with ID documents and a selfie."""
+
+    existing = db.exec(
+        select(VerificationRequest)
+        .where(VerificationRequest.user_id == current_user.id)
+        .where(VerificationRequest.status == VerificationStatus.PENDING)
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="A verification request is already pending")
+
+    # Upload document files via storage_service (Cloudinary)
+    document_urls = []
+    for file in document_files:
+        if not file.filename:
+            continue
+        ext = file.filename.rsplit(".", 1)[-1].lower()
+        if ext not in ["jpg", "jpeg", "png", "pdf"]:
+            continue
+        content = await file.read()
+        url, _ = await storage_service.upload_file(content, file.filename)
+        document_urls.append(url)
+
+    if not document_urls:
+        raise HTTPException(status_code=400, detail="No valid document files uploaded")
+
+    # Upload selfie via storage_service (Cloudinary)
+    selfie_content = await selfie_file.read()
+    selfie_url, _ = await storage_service.upload_file(
+        selfie_content, selfie_file.filename or "selfie.jpg"
+    )
+
+    # Proof of Address
+    address_url = None
+    if proof_of_address_file:
+        content = await proof_of_address_file.read()
+        address_url, _ = await storage_service.upload_file(content, proof_of_address_file.filename or "address.pdf")
+
+    # Video Selfie
+    video_url = None
+    if video_selfie_file:
+        content = await video_selfie_file.read()
+        video_url, _ = await storage_service.upload_file(content, video_selfie_file.filename or "video.mp4")
+
+    db_obj = VerificationRequest(
+        user_id=current_user.id,
+        document_type=document_type,
+        id_number=id_number,
+        tier=tier,
+        notes=notes,
+        status=VerificationStatus.PENDING,
+        document_urls=document_urls,
+        selfie_url=selfie_url,
+        proof_of_address_url=address_url,
+        video_selfie_url=video_url,
+        facial_match_score=facial_match_score,
+        auto_verification_status="manual_review"
+    )
+    db.add(db_obj)
+    db.commit()
+    db.refresh(db_obj)
+    return db_obj
+
+@router.get("/me", response_model=Optional[VerificationRequest])
+def get_my_verification_status(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Get current user's verification status.
+    """
+    return db.exec(
+        select(VerificationRequest)
+        .where(VerificationRequest.user_id == current_user.id)
+        .order_by(VerificationRequest.created_at.desc())
+    ).first()
+
+@router.get("/", response_model=List[VerificationRequestRead])
+def list_verification_requests(
+    *,
+    db: Session = Depends(deps.get_db),
+    skip: int = 0,
+    limit: int = 100,
+) -> Any:
+    """
+    (Admin) List all verification requests.
+    """
+    from sqlmodel import select, join
+
+    # Optimized: Fetch verifications with joined user data in one query
+    requests = db.exec(
+        select(VerificationRequest)
+        .order_by(VerificationRequest.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+    ).all()
+
+    # Fetch all user IDs at once instead of N+1 queries
+    user_ids = [req.user_id for req in requests]
+    users = {}
+    if user_ids:
+        user_list = db.exec(select(User).where(User.id.in_(user_ids))).all()
+        users = {u.id: u for u in user_list}
+
+    result = []
+    for req in requests:
+        user = users.get(req.user_id)
+        data = req.dict()
+        if user:
+            data["user"] = {
+                "full_name": user.full_name,
+                "business_name": user.business_name,
+                "phone": user.phone,
+                "email": user.email,
+                "is_verified": user.is_verified,
+                "avatar_url": user.avatar_url,
+            }
+        result.append(data)
+    return result
+
+@router.patch("/{id}", response_model=VerificationRequest)
+def update_verification_status(
+    *,
+    db: Session = Depends(deps.get_db),
+    id: int,
+    status: VerificationStatus = Body(..., embed=True),
+) -> Any:
+    """
+    (Admin) Approve or reject a verification request.
+    """
+    request = db.get(VerificationRequest, id)
+    if not request:
+        raise HTTPException(status_code=404, detail="Verification request not found")
+    
+    request.status = status
+    db.add(request)
+    
+    # If approved, update user's verification status
+    if status == VerificationStatus.APPROVED:
+        from app.models.user import UserVerifiedLevel
+        user = db.get(User, request.user_id)
+        if user:
+            user.is_verified = True
+            # Map request tier to UserVerifiedLevel
+            if request.tier == "premium":
+                user.verified_level = UserVerifiedLevel.premium
+            elif request.tier == "tier3":
+                user.verified_level = UserVerifiedLevel.tier3
+            else:
+                user.verified_level = UserVerifiedLevel.tier2
+            db.add(user)
+            
+    db.commit()
+    db.refresh(request)
+    return request

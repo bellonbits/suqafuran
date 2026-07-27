@@ -1,0 +1,38 @@
+from fastapi import APIRouter
+from app.api.api_v1.endpoints import auth, users, listings, admin, favorites, notifications, dashboard, verifications, wallet, boosts, interactions, meetings, deals, trust_ops, promotions, login, mobile_money, audit, kh, messages, translate, feedback, follows, content, ai, marketing, support, verification_check, seo, businesses, addresses
+
+api_router = APIRouter()
+api_router.include_router(login.router, tags=["login"])
+api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
+api_router.include_router(users.router, prefix="/users", tags=["users"])
+api_router.include_router(listings.router, prefix="/listings", tags=["listings"])
+api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
+api_router.include_router(messages.router, prefix="/messages", tags=["messages"])
+api_router.include_router(favorites.router, prefix="/favorites", tags=["favorites"])
+api_router.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
+api_router.include_router(verifications.router, prefix="/verifications", tags=["verifications"])
+api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
+# api_router.include_router(social_auth.router, prefix="/auth", tags=["auth"]) # Replaced by auth.router
+api_router.include_router(wallet.router, prefix="/wallet", tags=["wallet"])
+api_router.include_router(boosts.router, prefix="/boosts", tags=["boosts"])
+api_router.include_router(interactions.router, prefix="/interactions", tags=["interactions"])
+api_router.include_router(meetings.router, prefix="/meetings", tags=["meetings"])
+api_router.include_router(deals.router, prefix="/deals", tags=["deals"])
+api_router.include_router(trust_ops.router, prefix="/trust_ops", tags=["trust"])
+api_router.include_router(promotions.router, prefix="/promotions", tags=["promotions"])
+api_router.include_router(mobile_money.router, prefix="/mobile-money", tags=["mobile-money"])
+api_router.include_router(audit.router, prefix="/audit", tags=["audit"])
+api_router.include_router(kh.router, prefix="/kh", tags=["kaalay-heedhe"])
+
+api_router.include_router(feedback.router, prefix="/feedback", tags=["feedback"])
+api_router.include_router(follows.router, prefix="/follows", tags=["follows"])
+api_router.include_router(translate.router, tags=["translate"])
+api_router.include_router(content.router, prefix="/content", tags=["content"])
+api_router.include_router(ai.router, prefix="/ai", tags=["ai"])
+api_router.include_router(marketing.router, prefix="/marketing", tags=["marketing"])
+api_router.include_router(support.router, prefix="/support", tags=["support"])
+api_router.include_router(verification_check.router, prefix="/ai/verifications", tags=["ai-verifications"])
+api_router.include_router(seo.router, prefix="/seo", tags=["seo"])
+api_router.include_router(businesses.router, prefix="/businesses", tags=["businesses"])
+api_router.include_router(addresses.router, prefix="/addresses", tags=["addresses"])
+

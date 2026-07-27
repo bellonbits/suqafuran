@@ -1,0 +1,21 @@
+SUQAFURAN MESSAGES & CHAT CONTENT FOR TRANSLATION (ENGLISH)
+===================================================
+
+[MESSAGES LIST]
+My messages
+Search
+All / Unread / Spam
+No conversations yet
+You have no messages yet.
+Find things to discuss or sell something
+Unknown User
+Active
+
+[CHAT INTERFACE]
+Start the conversation
+Type a message…
+Send Message
+Sign in to view messages
+You need to be logged in to send and receive messages.
+Select a conversation to start chatting
+===================================================

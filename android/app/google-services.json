@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "276812048210",
+    "project_id": "suqafuran",
+    "storage_bucket": "suqafuran.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:276812048210:android:4d4af819ed7f974beb7c8b",
+        "android_client_info": {
+          "package_name": "com.suqafuran.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCxPwtxhUfKuBSc_5W_1MZBFQfr0mHhre8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

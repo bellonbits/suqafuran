@@ -1,0 +1,91 @@
+SUQAFURAN DASHBOARD CONTENT FOR TRANSLATION (ENGLISH)
+===================================================
+
+[SIDEBAR & NAVIGATION]
+Overview
+My Wallet
+My Ads
+Saved Ads
+Notifications
+Help Center
+Account Settings
+Verification
+Alerts
+Pro Sales
+Premium Services
+My Balance
+Followers
+Request help
+FAQ
+Logout
+
+[DASHBOARD OVERVIEW]
+Hello
+Welcome back to your marketplace manager.
+Total Ads
+Total Views
+Balance
+Active Boosts
+Become a Verified Seller
+Verified sellers receive a special badge, rank higher in search results, and build more trust with potential buyers.
+Start Verification
+Tips for Selling Faster
+Use clear, high-quality photos
+Set a competitive market price
+Respond to messages promptly
+Write a detailed description
+View Seller Guide →
+
+[MY ADS / LISTINGS]
+My Listings
+Manage, edit and boost your ads performance.
+Delete Ad?
+This action cannot be undone. All views and leads will be lost.
+No active ads yet
+You haven't posted any items for sale. Start now and make some cash!
+Post Your First Ad
+Views
+Leads
+Upgrade to Premium
+
+[WALLET & PAYMENTS]
+Available Balance
+Tokens
+Add Funds
+Redeem Code
+Total Spent
+Active Boosts
+Recent Transactions
+Loading transactions...
+No transactions yet
+Deposit
+Amount (Tokens)
+Recharge Code
+
+[SETTINGS & PROFILE]
+Personal Information
+Update your profile details
+Full Name
+Email Address
+Phone Number
+Security
+Manage your password and account safety
+Current Password
+New Password
+Confirm New Password
+Delete Account
+This action cannot be undone
+
+[AGENT & ADMIN TOOLS]
+Agent Tools
+Agent Portal
+Admin Tools
+Admin Panel
+All Listings
+Promotions
+Categories
+Verifications
+Web Editor
+Moderation Queue
+Platform Analytics
+===================================================

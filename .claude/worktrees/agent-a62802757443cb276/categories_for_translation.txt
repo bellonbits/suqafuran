@@ -1,0 +1,109 @@
+SUQAFURAN CATEGORIES FOR TRANSLATION (ENGLISH)
+===================================================
+
+[ROOT & MAIN CATEGORIES]
+Property
+Jobs
+Services
+Vehicles
+Electronics
+Livestock
+Food & Groceries
+Clothing & Shoes
+Babies & Kids
+Beauty & Personal Care
+Building & Construction
+Home Decor
+Sports Equipment
+Education & Training
+Repair & Construction
+
+[PROPERTY & LAND]
+Houses for Rent
+Houses for Sale
+Vacant Land
+Farms
+Agricultural Land
+Offices & Commercial
+Short Stay
+Other Commercial
+
+[VEHICLES & TRANSPORT]
+Cars
+Motorcycles
+Trucks & Buses
+Tuk-tuks
+Vehicle Parts & Accessories
+Car Services
+Driver & Transport
+
+[ELECTRONICS & TECH]
+Mobile Phones
+Computers
+Computer & IT
+Audio & Headphones
+Cameras
+TVs
+Gaming
+Networking
+Other Electronics
+Solar Energy
+
+[FOOD & AGRICULTURE]
+Meat
+Poultry
+Seafood
+Milk & Dairy
+Eggs
+Fruits
+Vegetables
+Rice & Pasta
+Spices & Condiments
+Market Gardens
+Agricultural Equipment
+
+[BEAUTY & WELLNESS]
+Body Care
+Face Care
+Hair Beauty
+Makeup
+Fragrance
+Vitamins & Supplements
+Healthcare
+Beauty Treatments
+
+[BUILDING & HOME]
+Building Materials
+Electrical Supplies
+Plumbing
+Doors, Windows & Steel
+Hand & Power Tools
+Furniture
+Kitchenware
+Bedding
+Household Items
+Cleaning Supplies
+
+[LIFE & JOBS]
+Men's Clothing
+Women's Clothing
+Kids Clothing
+Children's Clothing
+Clothing Accessories
+Shoes
+Baby Gear
+Baby Food
+Toys & Games
+Books & Magazines
+Art & Collectibles
+Musical Instruments
+Travel & Tourism
+Hobbies
+Leisure & Sports
+Legal & Financial
+Sales & Marketing
+Medical & Health Jobs
+Tech & IT
+Admin & Office
+Other Jobs
+===================================================

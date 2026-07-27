@@ -1,0 +1,56 @@
+Found 2 duplicate/null phone groups.
+Group: None, Count: 3
+  Keeping ID: 2
+  Reassigning dependencies for ID: 3 to ID: 2
+  Deleting ID: 3
+  Reassigning dependencies for ID: 4 to ID: 2
+  Deleting ID: 4
+Traceback (most recent call last):
+  File "/mnt/c/Users/learn/Desktop/suqafuran/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/mnt/c/Users/learn/Desktop/suqafuran/venv/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.ForeignKeyViolation: update or delete on table "user" violates foreign key constraint "message_sender_id_fkey" on table "message"
+DETAIL:  Key (id)=(4) is still referenced from table "message".
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/mnt/c/Users/learn/Desktop/suqafuran/backend/cleanup_duplicates.py", line 35, in <module>
+    session.execute(text("DELETE FROM \"user\" WHERE id = :id"), {"id": d_id})
+  File "/mnt/c/Users/learn/Desktop/suqafuran/venv/lib/python3.11/site-packages/sqlmodel/orm/session.py", line 142, in execute
+    return super().execute(
+           ^^^^^^^^^^^^^^^^
+  File "/mnt/c/Users/learn/Desktop/suqafuran/venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/c/Users/learn/Desktop/suqafuran/venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2258, in _execute_internal
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "/mnt/c/Users/learn/Desktop/suqafuran/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "/mnt/c/Users/learn/Desktop/suqafuran/venv/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/c/Users/learn/Desktop/suqafuran/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/c/Users/learn/Desktop/suqafuran/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/c/Users/learn/Desktop/suqafuran/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/mnt/c/Users/learn/Desktop/suqafuran/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/mnt/c/Users/learn/Desktop/suqafuran/venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/mnt/c/Users/learn/Desktop/suqafuran/venv/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.IntegrityError: (psycopg2.errors.ForeignKeyViolation) update or delete on table "user" violates foreign key constraint "message_sender_id_fkey" on table "message"
+DETAIL:  Key (id)=(4) is still referenced from table "message".
+
+[SQL: DELETE FROM "user" WHERE id = %(id)s]
+[parameters: {'id': 4}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)

@@ -1,0 +1,34 @@
+import React from 'react';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useAuthStore } from '../store/useAuthStore';
+
+interface ProtectedRouteProps {
+    children?: React.ReactNode;
+    requireAdmin?: boolean;
+    requireAgent?: boolean;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin, requireAgent }) => {
+    const { isAuthenticated, user } = useAuthStore();
+    const location = useLocation();
+
+    if (!isAuthenticated) {
+        // Redirect them to the /login page, but save the current location they were
+        // trying to go to when they were redirected. This allows us to send them
+        // along to that page after they login, which is a nicer user experience
+        // than dropping them off on the home page.
+        return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    if (requireAdmin && !user?.is_admin) {
+        return <Navigate to="/dashboard" replace />;
+    }
+
+    if (requireAgent && !user?.is_agent && !user?.is_admin) {
+        return <Navigate to="/dashboard" replace />;
+    }
+
+    return children ? <>{children}</> : <Outlet />;
+};
+
+export { ProtectedRoute };

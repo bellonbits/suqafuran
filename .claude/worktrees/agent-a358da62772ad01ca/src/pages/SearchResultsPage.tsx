@@ -1,0 +1,179 @@
+import React from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { PublicLayout } from '../layouts/PublicLayout';
+import { ProductCard } from '../components/ProductCard';
+import { listingService } from '../services/listingService';
+import { Search, SlidersHorizontal, Info } from 'lucide-react';
+import { Button } from '../components/Button';
+import { FilterSidebar } from '../components/FilterSidebar';
+
+const SKELETON_COUNT = 10;
+const SkeletonCard = () => (
+    <div className="bg-white rounded-xl overflow-hidden card-shadow animate-pulse">
+        <div className="aspect-[16/9] bg-gray-200" />
+        <div className="px-2.5 pt-2 pb-2.5 space-y-2">
+            <div className="h-3 bg-gray-200 rounded w-4/5" />
+            <div className="h-3 bg-gray-200 rounded w-3/5" />
+            <div className="h-3 bg-gray-100 rounded w-2/5" />
+        </div>
+    </div>
+);
+
+const SearchResultsPage: React.FC = () => {
+    const { t } = useTranslation();
+    const [searchParams] = useSearchParams();
+    const query = searchParams.get('q') || '';
+    const initialLocation = searchParams.get('location') || '';
+    const [showFilters, setShowFilters] = React.useState(false);
+
+    // Filter State
+    const [location, setLocation] = React.useState(initialLocation);
+    const [minPrice, setMinPrice] = React.useState('');
+    const [maxPrice, setMaxPrice] = React.useState('');
+    const [attributeFilters, setAttributeFilters] = React.useState<Record<string, any>>({});
+
+
+
+
+    const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+        queryKey: ['listings', 'search', query, location, minPrice, maxPrice, attributeFilters],
+        queryFn: ({ pageParam = 0 }) => listingService.getListings({
+            q: query,
+            ...(location ? { location } : {}),
+            ...(minPrice !== '' ? { min_price: minPrice } : {}),
+            ...(maxPrice !== '' ? { max_price: maxPrice } : {}),
+            attrs: Object.keys(attributeFilters).length > 0 ? JSON.stringify(attributeFilters) : undefined,
+            limit: 24,
+            skip: pageParam,
+        }),
+        getNextPageParam: (lastPage, allPages) => lastPage.length === 24 ? allPages.length * 24 : undefined,
+        initialPageParam: 0,
+    });
+
+    const results = data?.pages.flat() || [];
+
+    return (
+        <PublicLayout>
+            <div className="container mx-auto px-4 py-8">
+                <div className="flex items-center justify-between mb-8">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">
+                            {query ? `${t('search.resultsFor')} "${query}"` : t('search.allListings')}
+                        </h1>
+                        <p className="text-sm text-gray-500 mt-1">{results.length} items found</p>
+                        
+
+
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="md:hidden flex gap-2"
+                        onClick={() => setShowFilters(!showFilters)}
+                    >
+                        <SlidersHorizontal className="h-4 w-4" />
+                        Filters
+                    </Button>
+                </div>
+
+                <div className="flex flex-col lg:flex-row gap-6">
+                    {/* Reusable Filter Sidebar */}
+                    <FilterSidebar
+                        showFilters={showFilters}
+                        onClose={() => setShowFilters(false)}
+                        // categoryId is unknown in global search, so specific filters won't show
+                        // prompting user to select category would be a future enhancement
+                        location={location}
+                        setLocation={setLocation}
+                        minPrice={minPrice}
+                        setMinPrice={setMinPrice}
+                        maxPrice={maxPrice}
+                        setMaxPrice={setMaxPrice}
+                        attributeFilters={attributeFilters}
+                        setAttributeFilters={setAttributeFilters}
+                    />
+
+                    <div className="flex-1 min-w-0">
+                        {isLoading ? (
+                            <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                                {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+                                    <SkeletonCard key={i} />
+                                ))}
+                            </div>
+                        ) : results.length > 0 ? (
+                            <>
+                                <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                                    {results.map((ad) => (
+                                        <ProductCard
+                                            key={ad.id}
+                                            id={String(ad.id)}
+                                            ownerId={ad.owner_id}
+                                            title_en={ad.title_en}
+                                            title_so={ad.title_so}
+                                            price={ad.price}
+                                            currency={ad.currency}
+                                            location={ad.location}
+                                            imageUrl={ad.images?.[0] || ''}
+                                            isVerified={ad.owner?.is_verified}
+                                            verifiedLevel={ad.owner?.verified_level}
+                                            isNegotiable={ad.is_negotiable || ad.attributes?.negotiable === 'yes'}
+                                            hasBulkPrice={!!ad.attributes?.bulk_price}
+                                        />
+                                    ))}
+                                </div>
+                                
+                                {hasNextPage && (
+                                    <div className="mt-12 flex justify-center">
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => fetchNextPage()}
+                                            disabled={isFetchingNextPage}
+                                            className="rounded-xl px-8 shadow-sm"
+                                        >
+                                            {isFetchingNextPage ? t('common.loading', 'Loading...') : t('search.loadMore', 'Load More')}
+                                        </Button>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
+                                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                                    <Search className="h-8 w-8 text-gray-300" />
+                                </div>
+                                <h2 className="text-xl font-bold text-gray-900 mb-2">No results found</h2>
+                                <p className="text-gray-500 max-w-sm text-center">
+                                    We couldn't find anything matching your search. Try adjusting your filters or keywords.
+                                </p>
+
+
+                                <Button
+                                    className="mt-6 rounded-full px-8 bg-primary-300 hover:bg-primary-400 text-white"
+                                    onClick={() => {
+                                        setLocation('');
+                                        setMinPrice('');
+                                        setMaxPrice('');
+                                        setAttributeFilters({});
+                                    }}
+                                >
+                                    Clear Filters
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Pro tip */}
+                <div className="mt-12 p-4 bg-primary-50 rounded-xl border border-primary-100 flex gap-3">
+                    <Info className="h-5 w-5 text-primary-600 shrink-0" />
+                    <p className="text-xs text-primary-800 leading-normal">
+                        <strong>{t('search.tip')}:</strong> {t('search.tipText')}
+                    </p>
+                </div>
+            </div>
+        </PublicLayout>
+    );
+};
+
+export { SearchResultsPage };

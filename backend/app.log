@@ -1,0 +1,297 @@
+INFO:     Started server process [46354]
+INFO:     Waiting for application startup.
+[Email] Redis connected OK
+[AT Init] Username: suqafuran
+[AT Init] API Key present: True
+[AT Init] API Key length: 77
+[AT Init] Sender ID: SUQAFURAN
+[AT Init] Environment: production
+[AT Init] Successfully initialized with username: suqafuran
+[AT Init] Redis connected successfully
+Initialized Mock Kafka Consumer.
+Mock Consumer subscribed to: ['suqafuran-business-events']
+Started Kafka Background Consumer Thread.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+{"status_code": 200, "latency_ms": 5537.54, "event": "http_request", "method": "GET", "client_ip": "127.0.0.1", "request_id": "4ef3aba2-befd-4121-b10f-3635768f994d", "path": "/api/v1/admin/shops", "trace_id": null, "level": "info", "timestamp": "2026-07-07T05:01:38.250443Z"}
+INFO:     127.0.0.1:60754 - "GET /api/v1/admin/shops?limit=1 HTTP/1.1" 200 OK
+[WebSocket] 🔌 ENDPOINT HIT from Address(host='127.0.0.1', port=60797)
+[WebSocket] 🔌 Connection attempt from Address(host='127.0.0.1', port=60797)
+[WebSocket] ✅ Token decoded successfully for user 332
+INFO:     127.0.0.1:60797 - "WebSocket /api/v1/notifications/ws?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTQ5MzU1NTcsInN1YiI6IjMzMiJ9.gqRqe-Stq3DQyPMPSUIaTRtZwSdjYXIgAvn-pU9bM-4" [accepted]
+WebSocket connected for user 332. Active: 1
+[WebSocket] Accepted connection for user 332
+[WebSocket] User 332 connected, listening for messages...
+INFO:     connection open
+INFO:     connection closed
+[WebSocket] 🔌 ENDPOINT HIT from Address(host='127.0.0.1', port=61048)
+[WebSocket] 🔌 Connection attempt from Address(host='127.0.0.1', port=61048)
+[WebSocket] ✅ Token decoded successfully for user 332
+INFO:     127.0.0.1:61048 - "WebSocket /api/v1/notifications/ws?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MTQ5MzU1NTcsInN1YiI6IjMzMiJ9.gqRqe-Stq3DQyPMPSUIaTRtZwSdjYXIgAvn-pU9bM-4" [accepted]
+WebSocket connected for user 332. Active: 2
+[WebSocket] Accepted connection for user 332
+[WebSocket] User 332 connected, listening for messages...
+INFO:     connection open
+2026-07-07 08:02:44,136 INFO sqlalchemy.engine.Engine select pg_catalog.version()
+select pg_catalog.version()
+2026-07-07 08:02:44,136 INFO sqlalchemy.engine.Engine [raw sql] {}
+[raw sql] {}
+2026-07-07 08:02:44,745 INFO sqlalchemy.engine.Engine select current_schema()
+select current_schema()
+2026-07-07 08:02:44,745 INFO sqlalchemy.engine.Engine [raw sql] {}
+[raw sql] {}
+2026-07-07 08:02:45,371 INFO sqlalchemy.engine.Engine show standard_conforming_strings
+show standard_conforming_strings
+2026-07-07 08:02:45,372 INFO sqlalchemy.engine.Engine [raw sql] {}
+[raw sql] {}
+{"status_code": 200, "latency_ms": 2433.83, "event": "http_request", "method": "GET", "client_ip": "127.0.0.1", "request_id": "33a4ad10-ef9d-41d7-8a1b-245a5350d957", "path": "/api/v1/addresses/", "trace_id": null, "level": "info", "timestamp": "2026-07-07T05:02:45.382461Z"}
+INFO:     127.0.0.1:61054 - "GET /api/v1/addresses/ HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 4204.37, "event": "http_request", "method": "GET", "client_ip": "127.0.0.1", "request_id": "09b3128c-cef9-459a-ae9c-d3d6980b6a3c", "path": "/api/v1/favorites/", "trace_id": null, "level": "info", "timestamp": "2026-07-07T05:02:45.638566Z"}
+INFO:     127.0.0.1:61052 - "GET /api/v1/favorites/ HTTP/1.1" 200 OK
+2026-07-07 08:02:45,893 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+BEGIN (implicit)
+2026-07-07 08:02:45,896 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.email AS users_email, users.phone AS users_phone, users.full_name AS users_full_name, users.hashed_password AS users_hashed_password, users.is_active AS users_is_active, users.is_verified AS users_is_verified, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s
+SELECT users.id AS users_id, users.email AS users_email, users.phone AS users_phone, users.full_name AS users_full_name, users.hashed_password AS users_hashed_password, users.is_active AS users_is_active, users.is_verified AS users_is_verified, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s
+2026-07-07 08:02:45,897 INFO sqlalchemy.engine.Engine [generated in 0.00059s] {'id_1': '332', 'param_1': 1}
+[generated in 0.00059s] {'id_1': '332', 'param_1': 1}
+2026-07-07 08:02:46,431 INFO sqlalchemy.engine.Engine ROLLBACK
+ROLLBACK
+{"error": "(psycopg2.errors.UndefinedTable) relation \"users\" does not exist\nLINE 2: FROM users \n             ^\n\n[SQL: SELECT users.id AS users_id, users.email AS users_email, users.phone AS users_phone, users.full_name AS users_full_name, users.hashed_password AS users_hashed_password, users.is_active AS users_is_active, users.is_verified AS users_is_verified, users.created_at AS users_created_at, users.updated_at AS users_updated_at \nFROM users \nWHERE users.id = %(id_1)s \n LIMIT %(param_1)s]\n[parameters: {'id_1': '332', 'param_1': 1}]\n(Background on this error at: https://sqlalche.me/e/20/f405)", "event": "unhandled_exception", "method": "GET", "client_ip": "127.0.0.1", "request_id": "d07bb46e-a55f-43ec-a4f9-203bf5b72137", "path": "/api/v1/sellers/me", "trace_id": null, "level": "error", "exception": "Traceback (most recent call last):\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py\", line 1969, in _exec_single_context\n    self.dialect.do_execute(\n    ~~~~~~~~~~~~~~~~~~~~~~~^\n        cursor, str_statement, effective_parameters, context\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py\", line 952, in do_execute\n    cursor.execute(statement, parameters)\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^\npsycopg2.errors.UndefinedTable: relation \"users\" does not exist\nLINE 2: FROM users \n             ^\n\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/Users/mac/suqafuran/backend/app/main.py\", line 56, in logging_middleware\n    response = await call_next(request)\n               ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/middleware/base.py\", line 168, in call_next\n    raise app_exc from app_exc.__cause__ or app_exc.__context__\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/middleware/base.py\", line 144, in coro\n    await self.app(scope, receive_or_disconnect, send_no_error)\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/middleware/exceptions.py\", line 63, in __call__\n    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app\n    raise exc\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app\n    await app(scope, receive, sender)\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py\", line 18, in __call__\n    await self.app(scope, receive, send)\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/routing.py\", line 660, in __call__\n    await self.middleware_stack(scope, receive, send)\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py\", line 2543, in app\n    await route.handle(scope, receive, send)\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py\", line 1700, in handle\n    await self.original_router.handle(scope, receive, send)\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py\", line 2598, in handle\n    await included_router._handle_selected(scope, receive, send)\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py\", line 1711, in _handle_selected\n    await route.handle(scope, receive, send)\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py\", line 1700, in handle\n    await self.original_router.handle(scope, receive, send)\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py\", line 2598, in handle\n    await included_router._handle_selected(scope, receive, send)\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py\", line 1720, in _handle_selected\n    await original_route.handle(scope, receive, send)\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py\", line 1239, in handle\n    await app(scope, receive, send)\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py\", line 150, in app\n    await wrap_app_handling_exceptions(app, request)(scope, receive, send)\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py\", line 53, in wrapped_app\n    raise exc\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py\", line 42, in wrapped_app\n    await app(scope, receive, sender)\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py\", line 136, in app\n    response = await f(request)\n               ^^^^^^^^^^^^^^^^\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py\", line 473, in app\n    solved_result = await solve_dependencies(\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^\n    ...<6 lines>...\n    )\n    ^\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/dependencies/utils.py\", line 680, in solve_dependencies\n    solved = await run_in_threadpool(call, **solved_result.values)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/concurrency.py\", line 34, in run_in_threadpool\n    return await anyio.to_thread.run_sync(func)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/anyio/to_thread.py\", line 63, in run_sync\n    return await get_async_backend().run_sync_in_worker_thread(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py\", line 2596, in run_sync_in_worker_thread\n    return await future\n           ^^^^^^^^^^^^\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py\", line 1029, in run\n    result = context.run(func, *args)\n  File \"/Users/mac/suqafuran/backend/utils/security.py\", line 42, in get_current_user\n    user = db.query(User).filter(User.id == user_id).first()\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py\", line 2766, in first\n    return self.limit(1)._iter().first()  # type: ignore\n           ~~~~~~~~~~~~~~~~~~~^^\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py\", line 2864, in _iter\n    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(\n                                                  ~~~~~~~~~~~~~~~~~~~~^\n        statement,\n        ^^^^^^^^^^\n        params,\n        ^^^^^^^\n        execution_options={\"_sa_orm_load_options\": self.load_options},\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py\", line 2373, in execute\n    return self._execute_internal(\n           ~~~~~~~~~~~~~~~~~~~~~~^\n        statement,\n        ^^^^^^^^^^\n    ...<4 lines>...\n        _add_event=_add_event,\n        ^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py\", line 2271, in _execute_internal\n    result: Result[Any] = compile_state_cls.orm_execute_statement(\n                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\n        self,\n        ^^^^^\n    ...<4 lines>...\n        conn,\n        ^^^^^\n    )\n    ^\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py\", line 306, in orm_execute_statement\n    result = conn.execute(\n        statement, params or {}, execution_options=execution_options\n    )\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py\", line 1421, in execute\n    return meth(\n        self,\n        distilled_parameters,\n        execution_options or NO_OPTIONS,\n    )\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py\", line 526, in _execute_on_connection\n    return connection._execute_clauseelement(\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\n        self, distilled_params, execution_options\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py\", line 1643, in _execute_clauseelement\n    ret = self._execute_context(\n        dialect,\n    ...<8 lines>...\n        cache_hit=cache_hit,\n    )\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py\", line 1848, in _execute_context\n    return self._exec_single_context(\n           ~~~~~~~~~~~~~~~~~~~~~~~~~^\n        dialect, context, statement, parameters\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py\", line 1988, in _exec_single_context\n    self._handle_dbapi_exception(\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\n        e, str_statement, effective_parameters, cursor, context\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py\", line 2365, in _handle_dbapi_exception\n    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py\", line 1969, in _exec_single_context\n    self.dialect.do_execute(\n    ~~~~~~~~~~~~~~~~~~~~~~~^\n        cursor, str_statement, effective_parameters, context\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py\", line 952, in do_execute\n    cursor.execute(statement, parameters)\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^\nsqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) relation \"users\" does not exist\nLINE 2: FROM users \n             ^\n\n[SQL: SELECT users.id AS users_id, users.email AS users_email, users.phone AS users_phone, users.full_name AS users_full_name, users.hashed_password AS users_hashed_password, users.is_active AS users_is_active, users.is_verified AS users_is_verified, users.created_at AS users_created_at, users.updated_at AS users_updated_at \nFROM users \nWHERE users.id = %(id_1)s \n LIMIT %(param_1)s]\n[parameters: {'id_1': '332', 'param_1': 1}]\n(Background on this error at: https://sqlalche.me/e/20/f405)", "timestamp": "2026-07-07T05:02:46.718012Z"}
+INFO:     127.0.0.1:61050 - "GET /api/v1/sellers/me HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "users" does not exist
+LINE 2: FROM users 
+             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/uvicorn/protocols/http/httptools_impl.py", line 421, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/uvicorn/middleware/proxy_headers.py", line 62, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/applications.py", line 1163, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/prometheus_fastapi_instrumentator/middleware.py", line 176, in __call__
+    raise exc
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/prometheus_fastapi_instrumentator/middleware.py", line 174, in __call__
+    await self.app(scope, receive, send_wrapper)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/middleware/cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/middleware/cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/middleware/sessions.py", line 88, in __call__
+    await self.app(scope, receive, send_wrapper)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/middleware/gzip.py", line 29, in __call__
+    await responder(scope, receive, send)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/middleware/gzip.py", line 130, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/middleware/gzip.py", line 46, in __call__
+    await self.app(scope, receive, self.send_with_compression)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mac/suqafuran/backend/app/main.py", line 59, in logging_middleware
+    raise e
+  File "/Users/mac/suqafuran/backend/app/main.py", line 56, in logging_middleware
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 2543, in app
+    await route.handle(scope, receive, send)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 1700, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 2598, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 1711, in _handle_selected
+    await route.handle(scope, receive, send)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 1700, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 2598, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 1720, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 1239, in handle
+    await app(scope, receive, send)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 150, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 136, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 473, in app
+    solved_result = await solve_dependencies(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/fastapi/dependencies/utils.py", line 680, in solve_dependencies
+    solved = await run_in_threadpool(call, **solved_result.values)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/starlette/concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/anyio/to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 2596, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 1029, in run
+    result = context.run(func, *args)
+  File "/Users/mac/suqafuran/backend/utils/security.py", line 42, in get_current_user
+    user = db.query(User).filter(User.id == user_id).first()
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py", line 2766, in first
+    return self.limit(1)._iter().first()  # type: ignore
+           ~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py", line 2864, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+        params,
+        ^^^^^^^
+        execution_options={"_sa_orm_load_options": self.load_options},
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py", line 2373, in execute
+    return self._execute_internal(
+           ~~~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        _add_event=_add_event,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self,
+        ^^^^^
+    ...<4 lines>...
+        conn,
+        ^^^^^
+    )
+    ^
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+        statement, params or {}, execution_options=execution_options
+    )
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 1421, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/mac/suqafuran/backend/.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) relation "users" does not exist
+LINE 2: FROM users 
+             ^
+
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.phone AS users_phone, users.full_name AS users_full_name, users.hashed_password AS users_hashed_password, users.is_active AS users_is_active, users.is_verified AS users_is_verified, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'id_1': '332', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+{"status_code": 200, "latency_ms": 2172.93, "event": "http_request", "method": "GET", "client_ip": "127.0.0.1", "request_id": "318b7bac-889e-4405-bbf1-c331564d2f5e", "path": "/api/v1/addresses/", "trace_id": null, "level": "info", "timestamp": "2026-07-07T05:02:47.562554Z"}
+INFO:     127.0.0.1:61077 - "GET /api/v1/addresses/ HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 11.41, "event": "http_request", "method": "GET", "client_ip": "127.0.0.1", "request_id": "0de9e705-d201-4a86-8851-2e8000908342", "path": "/api/v1/listings/categories", "trace_id": null, "level": "info", "timestamp": "2026-07-07T05:02:56.522637Z"}
+INFO:     127.0.0.1:61124 - "GET /api/v1/listings/categories HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 3811.59, "event": "http_request", "method": "GET", "client_ip": "127.0.0.1", "request_id": "d93f1996-799d-4c3e-a879-fa93d941e80a", "path": "/api/v1/listings/", "trace_id": null, "level": "info", "timestamp": "2026-07-07T05:03:00.358123Z"}
+INFO:     127.0.0.1:61124 - "GET /api/v1/listings/?limit=100&skip=0 HTTP/1.1" 200 OK
+{"status_code": 200, "latency_ms": 2160.44, "event": "http_request", "method": "GET", "client_ip": "127.0.0.1", "request_id": "760d9bd2-2a72-4404-9b31-3b378da241a7", "path": "/api/v1/listings/", "trace_id": null, "level": "info", "timestamp": "2026-07-07T05:03:02.531164Z"}
+INFO:     127.0.0.1:61124 - "GET /api/v1/listings/?limit=100&skip=100 HTTP/1.1" 200 OK
+{"status_code": 404, "latency_ms": 2.28, "event": "http_request", "method": "GET", "client_ip": "127.0.0.1", "request_id": "f5d2d92d-39ac-4727-9c02-10dec83a9df8", "path": "/openapi.json", "trace_id": null, "level": "info", "timestamp": "2026-07-07T05:03:35.368301Z"}
+INFO:     127.0.0.1:61292 - "GET /openapi.json HTTP/1.1" 404 Not Found
+{"status_code": 200, "latency_ms": 57379.27, "event": "http_request", "method": "GET", "client_ip": "127.0.0.1", "request_id": "6232a0e1-53ec-4c84-bb90-f3d79ddf2f5d", "path": "/api/v1/admin/shops", "trace_id": null, "level": "info", "timestamp": "2026-07-07T05:03:40.333678Z"}

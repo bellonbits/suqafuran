@@ -1,0 +1,40 @@
+SUQAFURAN AUTH & ACCOUNT CONTENT FOR TRANSLATION (ENGLISH)
+===================================================
+
+[LOGIN & SIGNUP]
+Welcome Back
+Sign in to your Suqafuran account to continue.
+Join Suqafuran to start buying and selling
+Your Gateway to Africa's Marketplace.
+Login / Logout / Register
+Phone Number
+Password / Confirm Password
+Full Name
+Email Address
+OTP Code
+Send OTP
+Verify OTP
+Forgot Password?
+Enter your email and we'll send you a code to reset your password.
+Check Your Email
+We've sent a 6-digit code to {{email}}
+Verify & Continue
+Didn't receive the code? Resend code
+Create Account
+
+[ACCOUNT SECURITY]
+Reset Password
+Enter the reset code sent to your email and your new password.
+New Password
+Confirm New Password
+Password Reset!
+Your password has been successfully updated.
+
+[ERRORS]
+Invalid email or password
+Passwords do not match
+Password must be at least 8 characters
+Invalid phone number
+Email already exists
+Network error: Cannot reach the server.
+===================================================

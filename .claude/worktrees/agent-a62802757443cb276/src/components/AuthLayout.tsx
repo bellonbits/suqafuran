@@ -1,0 +1,100 @@
+import { memo } from 'react';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { ArrowLeft, MapPin, Tag, Search, ListFilter } from 'lucide-react';
+import { Logo } from './Logo';
+
+interface AuthLayoutProps {
+    children: React.ReactNode;
+    title: string;
+    subtitle: React.ReactNode;
+    imageCaption?: string;
+}
+
+const AuthLayout: React.FC<AuthLayoutProps> = memo(({
+    children,
+    title,
+    subtitle,
+    imageCaption
+}) => {
+    const { t } = useTranslation();
+    const defaultCaption = t('auth.imageCaption', 'Connecting Africa, One Listing at a Time.');
+    const displayCaption = imageCaption || defaultCaption;
+    return (
+        <div className="min-h-screen w-full flex flex-col lg:flex-row bg-gray-50 text-gray-900">
+            {/* Left Side - Image/Visuals (Hidden on mobile) */}
+            <div className="hidden lg:flex lg:w-1/2 relative p-4 lg:fixed lg:inset-y-0 lg:left-0">
+                <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl bg-primary-500">
+                    {/* Background Pattern with Icons */}
+                    <div className="absolute inset-0 opacity-10">
+                        <div className="grid grid-cols-6 gap-8 p-8 transform -rotate-12 scale-110">
+                            {[...Array(24)].map((_, i) => (
+                                <div key={i} className="flex justify-center items-center">
+                                    {i % 4 === 0 && <MapPin className="w-12 h-12 text-white" />}
+                                    {i % 4 === 1 && <Tag className="w-12 h-12 text-white" />}
+                                    {i % 4 === 2 && <Search className="w-12 h-12 text-white" />}
+                                    {i % 4 === 3 && <ListFilter className="w-12 h-12 text-white" />}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Brand Content */}
+                    <div className="absolute inset-0 p-12 flex flex-col justify-between pointer-events-none">
+                        <div className="flex items-center justify-between pointer-events-auto">
+                            <Logo size="lg" className="brightness-0" />
+                            <Link
+                                to="/"
+                                className="flex items-center text-sm font-medium text-white hover:text-white/80 transition-colors bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20"
+                            >
+                                {t('auth.backToWebsite')} <ArrowLeft className="ml-2 w-4 h-4 rotate-180" />
+                            </Link>
+                        </div>
+
+                        <div className="max-w-md relative z-10">
+                            <h2 className="text-4xl font-bold text-white tracking-tight leading-tight drop-shadow-sm">
+                                {displayCaption}
+                            </h2>
+                            <div className="mt-6 flex gap-2">
+                                <div className="w-8 h-1 bg-white/30 rounded-full" />
+                                <div className="w-8 h-1 bg-white/30 rounded-full" />
+                                <div className="w-12 h-1 bg-white rounded-full" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex-1 flex flex-col justify-start lg:justify-center items-center px-6 lg:px-20 py-12 lg:py-6 relative bg-white lg:ml-[50%] w-full overflow-x-hidden">
+                <div className="w-full max-w-[440px] space-y-6 pb-6 mx-auto">
+                    {/* Mobile top bar — back button + logo */}
+                    <div className="lg:hidden flex items-center justify-between mb-4">
+                        <Link
+                            to="/"
+                            className="flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-primary-500 active:scale-95 transition-all bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-full"
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                            {t('auth.backBtn')}
+                        </Link>
+                        <Logo size="md" className="brightness-0" />
+                        <div className="w-16" />
+                    </div>
+                    <div className="space-y-3 text-center lg:text-left">
+                        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+                            {title}
+                        </h1>
+                        <div className="text-gray-500 font-medium">
+                            {subtitle}
+                        </div>
+                    </div>
+
+                    <div className="mt-8">
+                        {children}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}) as React.FC<AuthLayoutProps>;
+
+export { AuthLayout };

@@ -1,0 +1,234 @@
+services:
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:latest
+    container_name: suqafuran-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - suqafuran-network
+    restart: unless-stopped
+
+  # PostgreSQL Database (Disabled - using remote DigitalOcean)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: suqafuran-postgres
+  #   environment:
+  #     POSTGRES_USER: suqafuran
+  #     POSTGRES_PASSWORD: ${DB_PASSWORD:-suqafuran}
+  #     POSTGRES_DB: suqafuran
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U suqafuran"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - suqafuran-network
+  #   restart: unless-stopped
+
+  # Redis for caching & Celery
+  redis:
+    image: redis:7-alpine
+    container_name: suqafuran-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "PING"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - suqafuran-network
+    restart: unless-stopped
+
+  # Kafka for event streaming
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: suqafuran-kafka
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    networks:
+      - suqafuran-network
+    restart: unless-stopped
+
+  # Zookeeper for Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: suqafuran-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+    networks:
+      - suqafuran-network
+    restart: unless-stopped
+
+  # Jaeger v2 for distributed tracing (OpenTelemetry based)
+  jaeger:
+    image: jaegertracing/jaeger:latest
+    container_name: suqafuran-jaeger
+    environment:
+      # Storage configuration
+      SPAN_STORAGE_TYPE: badger
+      BADGER_EPHEMERAL: "false"
+      BADGER_DIRECTORY_VALUE: /badger/data
+      BADGER_DIRECTORY_KEY: /badger/key
+      # Ports configuration (Jaeger v2 uses environment variables)
+      COLLECTOR_GRPC_HOST_PORT: "0.0.0.0:4317"
+      COLLECTOR_HTTP_HOST_PORT: "0.0.0.0:4318"
+      QUERY_HTTP_SERVER_HOST_PORT: "0.0.0.0:16686"
+      ADMIN_HTTP_HOST_PORT: "0.0.0.0:14269"
+    ports:
+      - "4317:4317"    # OTLP gRPC receiver
+      - "4318:4318"    # OTLP HTTP receiver
+      - "16686:16686"  # Query UI
+      - "14269:14269"  # Admin API
+    volumes:
+      - jaeger_data:/badger
+    networks:
+      - suqafuran-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:16686/"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: suqafuran-backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      JAEGER_QUERY_URL: http://jaeger:16686
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      # OpenTelemetry (OTEL) Configuration for Jaeger v2
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_SERVICE_NAME: suqafuran-backend
+      OTEL_SDK_DISABLED: "false"
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: otlp
+      OTEL_LOGS_EXPORTER: otlp
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+      jaeger:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    networks:
+      - suqafuran-network
+    restart: unless-stopped
+
+  # Celery Worker
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: suqafuran-celery
+    command: celery -A app.tasks.celery_app worker -l info -c 4
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - redis
+    volumes:
+      - ./backend:/app
+    networks:
+      - suqafuran-network
+    restart: unless-stopped
+
+  # Celery Beat
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: suqafuran-celery-beat
+    command: celery -A app.tasks.celery_app beat -l info --pidfile=/tmp/celerybeat.pid
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - redis
+    volumes:
+      - ./backend:/app
+      - celerybeat_data:/app/celerybeat
+    networks:
+      - suqafuran-network
+    restart: unless-stopped
+
+  # Frontend (Next.js)
+  frontend:
+    build:
+      context: ./new-frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://backend:8000/api/v1}
+        NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:-AIzaSyAk6rrT_DxxSanx0pwKjLruI-XhgN_zsko}
+        NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY}
+    container_name: suqafuran-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - suqafuran-network
+    restart: unless-stopped
+
+  # Kafka UI
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: suqafuran-kafka-ui
+    environment:
+      KAFKA_CLUSTERS_0_NAME: suqafuran
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+    networks:
+      - suqafuran-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  zookeeper_data:
+  celerybeat_data:
+  jaeger_data:
+  nginx_logs:
+
+networks:
+  suqafuran-network:
+    driver: bridge

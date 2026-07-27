@@ -1,0 +1,28 @@
+# Node
+node_modules/
+.next/
+out/
+dist/
+
+# Python
+.venv/
+__pycache__/
+
+# Claude
+.claude/
+
+# Android
+*.apk
+*.aab
+
+# Archives
+*.zip
+*.rar
+*.7z
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.*

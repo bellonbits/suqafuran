@@ -1,0 +1,53 @@
+SUQAFURAN POST AD & LISTING CONTENT FOR TRANSLATION (ENGLISH)
+===================================================
+
+[POST AD FORM]
+Post Ad
+What are you selling?
+e.g. iPhone 15 Pro Max 256GB – Clean
+Description
+Describe what you are selling. Mention its condition, any flaws, or why you are selling.
+Price
+Category
+Subcategory
+Location
+Select location (State › Region › Town)
+Add Photos
+Click to upload photos
+Save Changes
+Next / Back / Submit
+Basic Info
+Pricing
+Condition
+Brand New / Used / Refurbished
+Negotiable
+
+[LISTING DETAIL PAGE]
+Contact Seller
+Make Offer
+Reveal Phone / Call Seller
+Show contact
+Start chat
+Request call back
+Mark unavailable
+Report Abuse
+Send Message
+Related Listings
+USD ($) / KSh (KSh)
+Verified Seller Guarantee
+Safety tips: Never pay in advance. Meet in a public place. Inspect before you pay.
+
+[SEARCH & FILTERS]
+Search results for
+All Listings
+Tip: Be specific. Instead of "car", try "Toyota Corolla 2015" for better results.
+Filters
+Sort: Newest
+No listings found
+Price Range ($)
+Under $10
+$10 – $50
+$50 – $200
+$200 – $500
+More than $500
+===================================================

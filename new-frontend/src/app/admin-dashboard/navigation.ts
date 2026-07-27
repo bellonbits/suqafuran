@@ -1,0 +1,30 @@
+import {
+  LayoutDashboard, Users, ShoppingCart, CheckCircle, Layers,
+  Gift, Megaphone, MessageSquare, BarChart3, FileText,
+  AlertTriangle, AlertCircle, TrendingUp, Store, Grid3x3,
+  DollarSign, Package, AlertOctagon, CreditCard, Star
+} from 'lucide-react';
+
+export const ADMIN_NAV_ITEMS = [
+  { label: 'Dashboard', icon: LayoutDashboard, href: '/admin-dashboard' },
+  { label: 'Agent Dashboard', icon: TrendingUp, href: '/agent-dashboard' },
+  { label: 'Users', icon: Users, href: '/admin-users' },
+  { label: 'Shops', icon: Store, href: '/admin-shops' },
+  { label: 'Listings', icon: Grid3x3, href: '/admin-listings' },
+  { label: 'Verifications', icon: CheckCircle, href: '/admin-verifications' },
+  { label: 'Orders', icon: ShoppingCart, href: '/admin-orders' },
+  { label: 'Transactions', icon: DollarSign, href: '/admin-transactions' },
+  { label: 'Sellers', icon: Package, href: '/admin-sellers' },
+  { label: 'Categories', icon: Layers, href: '/admin-categories' },
+  { label: 'Vouchers', icon: Gift, href: '/admin-vouchers' },
+  { label: 'Promotions', icon: Megaphone, href: '/admin-promotions' },
+  { label: 'Support', icon: MessageSquare, href: '/admin-support' },
+  { label: 'Disputes', icon: AlertOctagon, href: '/admin-disputes' },
+  { label: 'Fraud', icon: AlertTriangle, href: '/admin-fraud' },
+  { label: 'Unusual Accounts', icon: AlertCircle, href: '/admin-unusual-accounts' },
+  { label: 'Marketing', icon: BarChart3, href: '/admin-marketing' },
+  { label: 'Reports', icon: FileText, href: '/admin-reports' },
+  { label: 'Analytics', icon: BarChart3, href: '/admin-analytics' },
+  { label: 'Subscriptions', icon: CreditCard, href: '/admin-dashboard/subscriptions' },
+  { label: 'Featured Ads', icon: Star, href: '/admin-dashboard/featured-ads' },
+];
