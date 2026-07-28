@@ -1,11 +1,7 @@
 {
-  "buildCommand": "cd new-frontend && npm run build",
-  "outputDirectory": "new-frontend/.next",
-  "installCommand": "cd new-frontend && npm install",
-  "env": {
-    "NEXT_PUBLIC_API_URL": "https://app.suqafuran.com/api/v1",
-    "NEXT_PUBLIC_APP_NAME": "Suqafuran",
-    "NEXT_PUBLIC_ENVIRONMENT": "production",
-    "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY": "AIzaSyAk6rrT_DxxSanx0pwKjLruI-XhgN_zsko"
-  }
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "rootDirectory": "new-frontend"
 }
