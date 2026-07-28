@@ -231,10 +231,11 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
             <div
-                className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-slate-900 border border-gray-100 dark:border-slate-800 flex flex-col max-h-[85vh] animate-scale-in"
+                className="w-full max-w-md max-h-[90vh] overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-slate-900 border border-gray-100 dark:border-slate-800 flex flex-col animate-scale-in"
                 onClick={(e) => e.stopPropagation()}
+                style={{ maxWidth: '28rem' }}
             >
                 <div className="flex justify-between items-center p-5 pb-3">
                     <h3 className="text-sm font-black text-gray-900 dark:text-slate-100 font-poppins flex items-center gap-1.5">
