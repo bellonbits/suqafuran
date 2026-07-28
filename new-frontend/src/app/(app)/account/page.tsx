@@ -140,18 +140,18 @@ function AccountPageContent() {
   const resolvedAvatar = avatarPreview || resolveMediaUrl(profile.avatar_url);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 pt-32 pb-32">
+    <div className="min-h-screen bg-white dark:bg-slate-950 pt-20 pb-32">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
 
         {/* Header Section with Avatar + Info */}
-        <div className="flex flex-col md:flex-row gap-8 md:gap-12 mb-12 items-start md:items-center">
+        <div className="flex flex-col md:flex-row gap-6 md:gap-10 mb-8 items-start md:items-start">
           {/* Avatar */}
           <div className="relative flex-shrink-0">
             {resolvedAvatar ? (
               <img
                 src={resolvedAvatar}
                 alt={profile.full_name}
-                className="w-40 h-40 rounded-3xl object-cover shadow-lg"
+                className="w-32 h-32 rounded-2xl object-cover shadow-lg"
                 onError={(e) => {
                   (e.currentTarget as HTMLElement).style.display = 'none';
                   const fallback = e.currentTarget.parentElement?.querySelector('.avatar-fallback') as HTMLElement;
@@ -160,7 +160,7 @@ function AccountPageContent() {
               />
             ) : null}
             <div
-              className="avatar-fallback w-40 h-40 rounded-3xl bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center text-white font-black text-6xl shadow-lg"
+              className="avatar-fallback w-32 h-32 rounded-2xl bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center text-white font-black text-4xl shadow-lg"
               style={{ display: resolvedAvatar ? 'none' : 'flex' }}
             >
               {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
@@ -191,37 +191,37 @@ function AccountPageContent() {
 
           {/* Profile Info */}
           <div className="flex-1">
-            <h1 className="text-5xl font-black text-gray-900 dark:text-white mb-2">{profile.full_name}</h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400 mb-6 font-medium">Account Member</p>
+            <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-1">{profile.full_name}</h1>
+            <p className="text-base text-gray-600 dark:text-gray-400 mb-4 font-medium">Account Member</p>
 
             {/* Contact Info Grid */}
-            <div className="grid grid-cols-2 gap-4 mb-8">
+            <div className="grid grid-cols-2 gap-3 mb-6">
               <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-[#6cd4ff]" />
+                <Mail className="w-3.5 h-3.5 text-[#6cd4ff] flex-shrink-0" />
                 <div className="min-w-0">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{profile.email}</p>
+                  <p className="text-xs font-semibold text-gray-900 dark:text-white truncate">{profile.email}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-[#6cd4ff]" />
+                <Phone className="w-3.5 h-3.5 text-[#6cd4ff] flex-shrink-0" />
                 <div className="min-w-0">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Phone</p>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{profile.phone || 'N/A'}</p>
+                  <p className="text-xs font-semibold text-gray-900 dark:text-white">{profile.phone || 'N/A'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-[#6cd4ff]" />
+                <Shield className="w-3.5 h-3.5 text-[#6cd4ff] flex-shrink-0" />
                 <div className="min-w-0">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Status</p>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{profile.is_verified ? '✓ Verified' : 'Pending'}</p>
+                  <p className="text-xs font-semibold text-gray-900 dark:text-white">{profile.is_verified ? '✓ Verified' : 'Pending'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-[#6cd4ff]" />
+                <Calendar className="w-3.5 h-3.5 text-[#6cd4ff] flex-shrink-0" />
                 <div className="min-w-0">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Member Since</p>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                  <p className="text-xs font-semibold text-gray-900 dark:text-white">
                     {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                   </p>
                 </div>
@@ -240,7 +240,7 @@ function AccountPageContent() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-6 mb-12 border-b border-gray-200 dark:border-slate-800">
+        <div className="flex gap-6 mb-8 border-b border-gray-200 dark:border-slate-800">
           <button
             onClick={() => setActiveTab('profile')}
             className={`px-2 py-4 font-bold text-base border-b-2 transition-colors ${
