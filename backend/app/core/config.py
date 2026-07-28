@@ -124,7 +124,7 @@ class Settings(BaseSettings):
         "http://localhost:3000", "http://localhost:3002", "http://localhost:3004",
         "http://localhost:5173", "http://localhost", "https://localhost",
         "capacitor://localhost", "capacitor://app", "https://suqafuran.vercel.app",
-        "https://app.suqafuran.com", "https://www.suqafuran.com",
+        "https://app.suqafuran.com", "https://www.suqafuran.com", "https://suqafuran.com",
         "http://143.198.30.249:8888", "http://143.198.30.249",
         "http://api.guri24.com:8888", "http://api.guri24.com",
         "http://165.22.13.173:3000", "http://165.22.13.173:8000", "http://165.22.13.173"
