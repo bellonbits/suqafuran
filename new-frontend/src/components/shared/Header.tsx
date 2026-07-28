@@ -362,13 +362,13 @@ export const Header: React.FC = () => {
                         </button>
                     </div>
                 </div>
-
-                {/* Location Modal */}
-                <LocationPickerModal
-                    isOpen={isLocationModalOpen}
-                    onClose={() => setIsLocationModalOpen(false)}
-                />
             </header>
+
+            {/* Location Modal - Outside header for proper fixed positioning */}
+            <LocationPickerModal
+                isOpen={isLocationModalOpen}
+                onClose={() => setIsLocationModalOpen(false)}
+            />
 
             {/* Mobile Menu */}
             {isMobileMenuOpen && (
