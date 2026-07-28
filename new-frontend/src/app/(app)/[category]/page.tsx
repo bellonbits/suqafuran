@@ -171,7 +171,7 @@ function CategoryProductCard({ listing, onAddToCart }: { listing: Listing; onAdd
                 {/* Text meta */}
                 <div className="space-y-0.5 px-0.5">
                     <span className="text-xs font-extrabold text-gray-900 dark:text-slate-100">
-                        {formatConvertedPrice(listing.price, listing.currency, displayCurrency)}
+                        {formatConvertedPrice(listing?.price ?? 0, listing.currency, displayCurrency)}
                     </span>
                     <h4 className="text-xs font-semibold text-gray-800 dark:text-slate-200 line-clamp-2 mt-0.5 leading-snug">
                         {field(listing.title_en, listing.title_so)}

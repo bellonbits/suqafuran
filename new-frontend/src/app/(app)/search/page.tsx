@@ -63,10 +63,10 @@ function SearchPageContent() {
         }
 
         if (priceMin) {
-            results = results.filter(l => l.price >= Number(priceMin));
+            results = results.filter(l => ((l?.price ?? 0) >= Number(priceMin));
         }
         if (priceMax) {
-            results = results.filter(l => l.price <= Number(priceMax));
+            results = results.filter(l => ((l?.price ?? 0) <= Number(priceMax));
         }
 
         if (location !== 'all') {
@@ -74,9 +74,9 @@ function SearchPageContent() {
         }
 
         if (sortBy === 'price-asc') {
-            results.sort((a, b) => a.price - b.price);
+            results.sort((a, b) => (a?.price ?? 0) - (b?.price ?? 0));
         } else if (sortBy === 'price-desc') {
-            results.sort((a, b) => b.price - a.price);
+            results.sort((a, b) => (b?.price ?? 0) - (a?.price ?? 0));
         } else if (sortBy === 'views') {
             results.sort((a, b) => (b.views || 0) - (a.views || 0));
         }

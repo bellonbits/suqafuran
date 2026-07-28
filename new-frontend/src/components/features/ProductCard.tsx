@@ -79,7 +79,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller })
 
                 <div className="pt-2.5 space-y-1">
                     <div className="text-base font-black text-gray-900 dark:text-slate-100">
-                        {formatConvertedPrice(listing.price, listing.currency, displayCurrency)}
+                        {formatConvertedPrice(listing?.price ?? 0, listing.currency, displayCurrency)}
                     </div>
 
                     <h3 className="line-clamp-2 text-sm font-semibold text-gray-700 dark:text-slate-300 leading-snug">

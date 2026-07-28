@@ -254,7 +254,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                         <div className="bg-blue-600 dark:bg-blue-700 rounded-lg p-4 text-white">
                             <div className="text-xs font-medium opacity-90 mb-2">Price</div>
                             <div className="text-2xl font-bold mb-3">
-                                {formatConvertedPrice(listing.price, listing.currency || 'USD', displayCurrency)}
+                                {formatConvertedPrice(listing?.price ?? 0, listing.currency || 'USD', displayCurrency)}
                             </div>
                             <div className="flex gap-2">
                                 <button

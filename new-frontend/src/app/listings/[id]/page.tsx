@@ -340,7 +340,7 @@ export default function ListingDetailPage() {
               className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl p-8 shadow-lg"
             >
               <p className="text-sm font-medium text-blue-100 mb-2">Price</p>
-              <h2 className="text-4xl font-bold mb-6">{formatPrice(listing.price)}</h2>
+              <h2 className="text-4xl font-bold mb-6">{formatPrice(listing?.price ?? 0)}</h2>
 
               <div className="space-y-3">
                 <button
