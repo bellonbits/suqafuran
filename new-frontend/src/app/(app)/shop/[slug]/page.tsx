@@ -714,7 +714,7 @@ export default function PublicShopPage() {
                                 {product.title_en}
                               </h3>
                               <p className="text-sm font-black text-gray-900 dark:text-white mt-1">
-                                {product.price.toLocaleString()}
+                                {(product?.price || 0).toLocaleString()}
                               </p>
                             </div>
                           </div>

@@ -1226,7 +1226,7 @@ export default function ShopDetailPage() {
                                                     
                                                     <div className="mt-2 flex flex-col">
                                                         <span className="text-sm font-black text-gray-900 dark:text-white">
-                                                            KSh {product.price.toLocaleString()}
+                                                            KSh {(product?.price || 0).toLocaleString()}
                                                         </span>
                                                         {hasPromo && (
                                                             <span className="text-[10px] text-gray-400 dark:text-slate-500 line-through">
