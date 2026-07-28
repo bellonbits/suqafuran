@@ -158,8 +158,8 @@ export default function FeaturedAdsPage() {
                 <PlacementOption
                   name="Featured Product"
                   price={pricing?.featured_product?.price ?? 0}
-                  unit={pricing.featured_product.unit}
-                  description={pricing.featured_product.description}
+                  unit={pricing?.featured_product?.unit ?? 'day'}
+                  description={pricing?.featured_product?.description ?? ''}
                   selected={selectedPlacement === 'featured_product'}
                   onClick={() => setSelectedPlacement('featured_product')}
                   icon={<Zap className="w-5 h-5" />}
@@ -167,8 +167,8 @@ export default function FeaturedAdsPage() {
                 <PlacementOption
                   name="Featured Shop"
                   price={pricing?.featured_shop?.price ?? 0}
-                  unit={pricing.featured_shop.unit}
-                  description={pricing.featured_shop.description}
+                  unit={pricing?.featured_shop?.unit ?? 'week'}
+                  description={pricing?.featured_shop?.description ?? ''}
                   selected={selectedPlacement === 'featured_shop'}
                   onClick={() => setSelectedPlacement('featured_shop')}
                   icon={<TrendingUp className="w-5 h-5" />}
@@ -176,8 +176,8 @@ export default function FeaturedAdsPage() {
                 <PlacementOption
                   name="Homepage Banner"
                   price={pricing?.homepage_banner?.price ?? 0}
-                  unit={pricing.homepage_banner.unit}
-                  description={pricing.homepage_banner.description}
+                  unit={pricing?.homepage_banner?.unit ?? 'week'}
+                  description={pricing?.homepage_banner?.description ?? ''}
                   selected={selectedPlacement === 'homepage_banner'}
                   onClick={() => setSelectedPlacement('homepage_banner')}
                   icon={<TrendingUp className="w-5 h-5" />}
@@ -185,8 +185,8 @@ export default function FeaturedAdsPage() {
                 <PlacementOption
                   name="Category Featured"
                   price={pricing?.category_featured?.price ?? 0}
-                  unit={pricing.category_featured.unit}
-                  description={pricing.category_featured.description}
+                  unit={pricing?.category_featured?.unit ?? 'week'}
+                  description={pricing?.category_featured?.description ?? ''}
                   selected={selectedPlacement === 'category_featured'}
                   onClick={() => setSelectedPlacement('category_featured')}
                   icon={<Zap className="w-5 h-5" />}
