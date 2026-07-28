@@ -135,73 +135,39 @@ def get_current_seller(
 ) -> Any:
     """
     Get the current authenticated user's seller profile.
-    Returns 404 if the user is not a qualified seller.
     """
-    try:
-        query = text("""
-            SELECT
-                u.id,
-                u.full_name,
-                u.email,
-                u.phone,
-                u.business_name,
-                u.shop_description,
-                u.shop_page_banner,
-                u.shop_detail_banner,
-                u.avatar_url,
-                u.logo_url,
-                u.is_verified,
-                u.is_featured,
-                u.free_delivery,
-                u.verified_level,
-                u.trust_score,
-                u.trust_level,
-                u.location,
-                u.response_time,
-                u.created_at,
-                COUNT(DISTINCT l.id) AS listings_count
-            FROM "user" u
-            LEFT JOIN listing l
-                ON l.owner_id = u.id
-                AND l.status = 'active'
-                AND l.moderation_status = 'approved'
-            WHERE u.id = :user_id
-            GROUP BY u.id
-        """)
+    from sqlalchemy import func
+    from app.models.listing import Listing
 
-        row = db.execute(query, {"user_id": current_user.id}).fetchone()
-        if not row:
-            raise HTTPException(status_code=404, detail="User not found")
+    listings_count = db.query(func.count(Listing.id)).filter(
+        Listing.owner_id == current_user.id,
+        Listing.status == "active",
+        Listing.moderation_status == "approved"
+    ).scalar() or 0
 
-        return {
-            "id": row[0],
-            "user_id": row[0],
-            "full_name": row[1],
-            "email": row[2],
-            "phone": row[3],
-            "business_name": row[4] or row[1],
-            "shop_description": row[5],
-            "shop_page_banner": row[6],
-            "shop_detail_banner": row[7],
-            "avatar_url": row[8],
-            "logo_url": row[9],
-            "is_verified": bool(row[10]),
-            "is_featured": bool(row[11]),
-            "free_delivery": bool(row[12]),
-            "verified_level": row[13],
-            "trust_score": row[14] or 0,
-            "trust_level": row[15] or "NEW",
-            "location": row[16],
-            "response_time": row[17] or "Typically responds in a few hours",
-            "created_at": str(row[18]),
-            "listings_count": int(row[19]),
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+    return {
+        "id": current_user.id,
+        "user_id": current_user.id,
+        "full_name": current_user.full_name,
+        "email": current_user.email,
+        "phone": getattr(current_user, "phone", None),
+        "business_name": getattr(current_user, "business_name", None) or current_user.full_name,
+        "shop_description": getattr(current_user, "shop_description", None),
+        "shop_page_banner": getattr(current_user, "shop_page_banner", None),
+        "shop_detail_banner": getattr(current_user, "shop_detail_banner", None),
+        "avatar_url": getattr(current_user, "avatar_url", None),
+        "logo_url": getattr(current_user, "logo_url", None),
+        "is_verified": getattr(current_user, "is_verified", False),
+        "is_featured": getattr(current_user, "is_featured", False),
+        "free_delivery": getattr(current_user, "free_delivery", False),
+        "verified_level": getattr(current_user, "verified_level", None),
+        "trust_score": getattr(current_user, "trust_score", 0) or 0,
+        "trust_level": getattr(current_user, "trust_level", "NEW") or "NEW",
+        "location": getattr(current_user, "location", None),
+        "response_time": getattr(current_user, "response_time", "Typically responds in a few hours") or "Typically responds in a few hours",
+        "created_at": str(getattr(current_user, "created_at", "")),
+        "listings_count": listings_count,
+    }
 
 
 @router.get("/count")
