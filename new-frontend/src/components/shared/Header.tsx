@@ -23,9 +23,10 @@ export const Header: React.FC = () => {
     const { getTotalCount } = useCart();
     const t = useT();
     const [searchQuery, setSearchQuery] = useState('');
+    // Always default to light theme unless explicitly saved as dark
     const [darkMode, setDarkMode] = useState(
         typeof window !== 'undefined'
-            ? document.documentElement.classList.contains('dark')
+            ? localStorage.getItem('theme') === 'dark'
             : false
     );
     const [scrolled, setScrolled] = useState(false);
@@ -44,23 +45,6 @@ export const Header: React.FC = () => {
                 setScrolled(window.scrollY > 10);
             };
             window.addEventListener('scroll', handleScroll, { passive: true });
-            
-            const savedTheme = localStorage.getItem('theme');
-            let isDark = false;
-            
-            if (savedTheme) {
-                isDark = savedTheme === 'dark';
-            } else {
-                isDark = document.documentElement.classList.contains('dark') ||
-                         window.matchMedia('(prefers-color-scheme: dark)').matches;
-            }
-            
-            setDarkMode(isDark);
-            if (isDark) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
             return () => window.removeEventListener('scroll', handleScroll);
         }
     }, []);

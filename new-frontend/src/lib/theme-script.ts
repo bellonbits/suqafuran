@@ -1,22 +1,14 @@
 /**
  * Theme detection script that runs synchronously before React hydration
- * Prevents flash of wrong theme on page load
+ * Always defaults to light theme unless user has previously selected dark
  */
 export const getThemeScript = () => {
   return `
     (function() {
       try {
-        // Get saved theme or detect system preference
+        // Only use dark theme if explicitly saved by user
         const savedTheme = localStorage.getItem('theme');
-        let isDark = false;
-
-        if (savedTheme) {
-          // Use saved preference
-          isDark = savedTheme === 'dark';
-        } else {
-          // Detect system preference
-          isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        }
+        const isDark = savedTheme === 'dark';
 
         // Apply theme immediately before React renders
         if (isDark) {
@@ -25,8 +17,8 @@ export const getThemeScript = () => {
           document.documentElement.classList.remove('dark');
         }
       } catch (e) {
-        // Fail silently
-        console.log('Theme detection failed:', e);
+        // Fail silently - defaults to light
+        console.log('Theme initialization failed:', e);
       }
     })();
   `;
