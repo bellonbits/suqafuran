@@ -128,7 +128,7 @@ services:
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
       JAEGER_QUERY_URL: http://jaeger:16686
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      CORS_ORIGINS: ${CORS_ORIGINS}
+      CORS_ORIGINS: "https://suqafuran.com,https://www.suqafuran.com,https://app.suqafuran.com,https://suqafuran.vercel.app,http://localhost:3000,http://127.0.0.1:3000,http://165.22.13.173:3000"
       # OpenTelemetry (OTEL) Configuration for Jaeger v2
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
       OTEL_EXPORTER_OTLP_PROTOCOL: grpc
