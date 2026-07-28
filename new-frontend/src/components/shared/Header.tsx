@@ -125,13 +125,13 @@ export const Header: React.FC = () => {
                             <img src="/icon1.png" alt="Suqafuran" className="h-9 md:h-10 w-auto object-contain" />
                         </Link>
 
-                        {/* Location Selector - Compact Pill */}
+                        {/* Location Selector - Compact Pill - Visible on all screens */}
                         <button
                             onClick={() => setIsLocationModalOpen(true)}
-                            className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-full bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors border border-gray-200 dark:border-slate-700"
+                            className="flex items-center gap-2 px-2 md:px-3 py-2 rounded-full bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors border border-gray-200 dark:border-slate-700"
                         >
                             <MapPin className="w-4 h-4 text-orange-600 dark:text-orange-500 shrink-0" />
-                            <span className="text-xs font-medium text-gray-700 dark:text-slate-300 truncate max-w-[150px]">
+                            <span className="text-xs md:text-xs font-medium text-gray-700 dark:text-slate-300 truncate max-w-[100px] md:max-w-[150px]">
                                 {city || 'Location'}
                             </span>
                         </button>
