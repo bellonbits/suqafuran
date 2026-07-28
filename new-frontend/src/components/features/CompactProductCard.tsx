@@ -71,7 +71,7 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
                 <div className="flex items-end justify-between gap-2">
                     <div onClick={(e) => e.stopPropagation()}>
                         <p className="font-bold text-gray-900 dark:text-white text-sm">
-                            KSh {product.price.toLocaleString()}
+                            KSh {(product?.price || 0).toLocaleString()}
                         </p>
                         {product.original_price && (
                             <p className="text-xs text-gray-400 line-through">

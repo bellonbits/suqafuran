@@ -293,7 +293,7 @@ const ListingSearch: React.FC<ListingSearchProps> = ({
                       )}
                     </div>
                     <p className="text-blue-600 font-bold text-lg mt-2">
-                      KSh {listing.price.toLocaleString()}
+                      KSh {(listing?.price || 0).toLocaleString()}
                     </p>
                     <p className="text-gray-600 text-sm mt-1">{listing.location}</p>
                     <p className="text-gray-500 text-xs mt-2">

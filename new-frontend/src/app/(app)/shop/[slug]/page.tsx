@@ -878,7 +878,7 @@ export default function PublicShopPage() {
 
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-black text-gray-900 dark:text-white">
-                    KSh {selectedProduct.price.toLocaleString()}
+                    KSh {(selectedProduct?.price || 0).toLocaleString()}
                   </span>
                 </div>
 

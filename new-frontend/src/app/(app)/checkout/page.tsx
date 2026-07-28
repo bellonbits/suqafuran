@@ -115,7 +115,7 @@ export default function CheckoutPage() {
 
   const generateReceipt = () => {
     const itemsText = cartItems
-      .map((item: CheckoutItem, idx: number) => `${idx + 1}. ${item.title || item.title_en || 'Product'} - ${item.price.toLocaleString()}`)
+      .map((item: CheckoutItem, idx: number) => `${idx + 1}. ${item.title || item.title_en || 'Product'} - ${(item?.price || 0).toLocaleString()}`)
       .join('\n');
 
     const receipt = `SUQAFURAN ORDER RECEIPT
@@ -225,7 +225,7 @@ Your delivery: Arrange with seller
       : { phone: '', name: 'Seller', items: cartItems as any[] };
 
     const itemsList = (firstSeller.items as CheckoutItem[])
-      .map((item) => `• ${item.title || item.title_en || 'Product'} - KSh ${item.price.toLocaleString()}`)
+      .map((item) => `• ${item.title || item.title_en || 'Product'} - KSh ${(item?.price || 0).toLocaleString()}`)
       .join('\n');
 
     const message = `Hi ${firstSeller.name},
@@ -380,7 +380,7 @@ Thanks!`;
                       <p className="font-semibold text-gray-900 dark:text-white">{item.title || item.title_en || 'Product'}</p>
                       <p className="text-sm text-gray-600 dark:text-slate-400">from {item.owner?.full_name}</p>
                     </div>
-                    <p className="font-bold text-gray-900 dark:text-white">KSh {item.price.toLocaleString()}</p>
+                    <p className="font-bold text-gray-900 dark:text-white">KSh {(item?.price || 0).toLocaleString()}</p>
                   </div>
                 ))}
               </div>
@@ -523,7 +523,7 @@ Thanks!`;
                                   )}
                                 </div>
                                 <div className="text-right whitespace-nowrap">
-                                  <p className="font-bold text-orange-600 dark:text-orange-500 text-base">{item.price.toLocaleString()}</p>
+                                  <p className="font-bold text-orange-600 dark:text-orange-500 text-base">{(item?.price || 0).toLocaleString()}</p>
                                 </div>
                               </div>
                             </div>

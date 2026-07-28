@@ -1598,7 +1598,7 @@ export default function ShopDetailPage() {
                                 {/* Prices */}
                                 <div className="flex items-baseline gap-2">
                                     <span className="text-2xl font-black text-gray-900 dark:text-white">
-                                        KSh {selectedProduct.price.toLocaleString()}
+                                        KSh {(selectedProduct?.price || 0).toLocaleString()}
                                     </span>
                                     {getMockProductInfo(selectedProduct).hasPromo && (
                                         <span className="text-sm text-gray-400 dark:text-slate-500 line-through font-semibold">

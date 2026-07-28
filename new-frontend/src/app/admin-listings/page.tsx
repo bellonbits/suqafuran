@@ -413,7 +413,7 @@ const ListingsManagementPage = () => {
                         </td>
                         <td className="px-4 py-4">
                           <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                            {listing.currency} {listing.price ? listing.price.toLocaleString() : '0'}
+                            {listing.currency} {listing.price ? (listing?.price || 0).toLocaleString() : '0'}
                           </p>
                         </td>
                         <td className="px-4 py-4">

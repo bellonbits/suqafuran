@@ -98,7 +98,7 @@ export const ListingStep4Review: React.FC<Step4Props> = ({ data }) => {
             Price
           </p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
-            KSh {data.price.toLocaleString()}
+            KSh {(data?.price || 0).toLocaleString()}
           </p>
           {data.negotiable && (
             <p className="text-xs text-green-600 dark:text-green-400 mt-1">
