@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuth';
 import { authService } from '@/services/authService';
-import { Mail, Phone, MapPin, Shield, Calendar, LogOut, Loader2, AlertCircle, Copy, Check, Camera } from 'lucide-react';
+import { Mail, Phone, MapPin, Shield, Calendar, LogOut, Loader2, AlertCircle, Copy, Check, Camera, ExternalLink } from 'lucide-react';
 import api, { resolveMediaUrl } from '@/services/api';
 import { VerificationSection } from '@/components/features/VerificationSection';
 
@@ -42,7 +42,6 @@ function AccountPageContent() {
 
     fetchProfile();
 
-    // Check if verification tab should be active from URL params
     const tab = searchParams.get('tab');
     if (tab === 'verification') {
       setActiveTab('verification');
@@ -141,27 +140,110 @@ function AccountPageContent() {
   const resolvedAvatar = avatarPreview || resolveMediaUrl(profile.avatar_url);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 pt-40 pb-40">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 md:px-8">
-        <div className="flex items-start justify-between mb-12 gap-6">
-          <div className="flex-1">
-            <h1 className="text-5xl md:text-6xl font-black text-gray-900 dark:text-white mb-3 leading-tight">Account Settings</h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400 font-medium">Manage your profile and verification</p>
+    <div className="min-h-screen bg-white dark:bg-slate-950 pt-32 pb-32">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+
+        {/* Header Section with Avatar + Info */}
+        <div className="flex flex-col md:flex-row gap-8 md:gap-12 mb-12 items-start md:items-center">
+          {/* Avatar */}
+          <div className="relative flex-shrink-0">
+            {resolvedAvatar ? (
+              <img
+                src={resolvedAvatar}
+                alt={profile.full_name}
+                className="w-40 h-40 rounded-3xl object-cover shadow-lg"
+                onError={(e) => {
+                  (e.currentTarget as HTMLElement).style.display = 'none';
+                  const fallback = e.currentTarget.parentElement?.querySelector('.avatar-fallback') as HTMLElement;
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div
+              className="avatar-fallback w-40 h-40 rounded-3xl bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center text-white font-black text-6xl shadow-lg"
+              style={{ display: resolvedAvatar ? 'none' : 'flex' }}
+            >
+              {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
+            </div>
+
+            <button
+              onClick={handleAvatarClick}
+              disabled={uploading}
+              className="absolute bottom-2 right-2 p-3 bg-[#6cd4ff] hover:bg-[#5bc0e8] disabled:bg-slate-400 text-white rounded-full shadow-lg transition-colors"
+              title="Change profile picture"
+            >
+              {uploading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Camera className="w-5 h-5" />
+              )}
+            </button>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileSelect}
+              disabled={uploading}
+            />
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-5 py-3 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold text-sm hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex-shrink-0 mt-2"
-          >
-            <LogOut className="w-4 h-4" />
-            Sign Out
-          </button>
+
+          {/* Profile Info */}
+          <div className="flex-1">
+            <h1 className="text-5xl font-black text-gray-900 dark:text-white mb-2">{profile.full_name}</h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400 mb-6 font-medium">Account Member</p>
+
+            {/* Contact Info Grid */}
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-[#6cd4ff]" />
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{profile.email}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-[#6cd4ff]" />
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Phone</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{profile.phone || 'N/A'}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-[#6cd4ff]" />
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Status</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{profile.is_verified ? '✓ Verified' : 'Pending'}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-[#6cd4ff]" />
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Member Since</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-6 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </button>
+          </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex gap-2 mb-12 border-b border-gray-200 dark:border-slate-800">
+        {/* Tabs */}
+        <div className="flex gap-6 mb-12 border-b border-gray-200 dark:border-slate-800">
           <button
             onClick={() => setActiveTab('profile')}
-            className={`px-6 py-4 font-bold text-base border-b-2 transition-colors ${
+            className={`px-2 py-4 font-bold text-base border-b-2 transition-colors ${
               activeTab === 'profile'
                 ? 'border-sky-500 text-gray-900 dark:text-white'
                 : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -171,7 +253,7 @@ function AccountPageContent() {
           </button>
           <button
             onClick={() => setActiveTab('verification')}
-            className={`px-6 py-4 font-bold text-base border-b-2 transition-colors flex items-center gap-2 ${
+            className={`px-2 py-4 font-bold text-base border-b-2 transition-colors flex items-center gap-2 ${
               activeTab === 'verification'
                 ? 'border-sky-500 text-gray-900 dark:text-white'
                 : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
@@ -182,171 +264,128 @@ function AccountPageContent() {
           </button>
         </div>
 
-        {/* Profile Tab */}
+        {/* Profile Tab Content */}
         {activeTab === 'profile' && (
-        <div className="mb-12">
-          <div className="flex flex-col items-center">
-            <div className="relative w-fit">
-              {resolvedAvatar ? (
-                <img
-                  src={resolvedAvatar}
-                  alt={profile.full_name}
-                  className="w-32 h-32 rounded-3xl object-cover shadow-xl"
-                  onError={(e) => {
-                    (e.currentTarget as HTMLElement).style.display = 'none';
-                    const fallback = e.currentTarget.parentElement?.querySelector('.avatar-fallback') as HTMLElement;
-                    if (fallback) fallback.style.display = 'flex';
-                  }}
-                />
-              ) : null}
-              <div
-                className="avatar-fallback w-32 h-32 rounded-3xl bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center text-white font-black text-5xl shadow-xl"
-                style={{ display: resolvedAvatar ? 'none' : 'flex' }}
-              >
-                {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
+        <div className="space-y-12">
+
+          {/* Account Status Section */}
+          <div>
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">Account Status</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-bold uppercase">Active Status</p>
+                <div className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${profile.is_active ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  <span className="font-bold text-gray-900 dark:text-white">{profile.is_active ? 'Active' : 'Inactive'}</span>
+                </div>
               </div>
 
-              <button
-                onClick={handleAvatarClick}
-                disabled={uploading}
-                className="absolute bottom-0 right-0 p-3 bg-[#6cd4ff] hover:bg-[#5bc0e8] disabled:bg-slate-400 text-white rounded-full shadow-lg transition-colors"
-                title="Change profile picture"
-              >
-                {uploading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Camera className="w-5 h-5" />
+              <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-bold uppercase">Verification</p>
+                <div className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${profile.is_verified ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+                  <span className="font-bold text-gray-900 dark:text-white">{profile.is_verified ? 'Verified' : 'Pending'}</span>
+                </div>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-bold uppercase">Account Health</p>
+                <div className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${!profile.is_suspended ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  <span className="font-bold text-gray-900 dark:text-white">{!profile.is_suspended ? 'Good' : 'Suspended'}</span>
+                </div>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-bold uppercase">Trust Score</p>
+                <p className="font-bold text-gray-900 dark:text-white text-lg">{profile.trust_score || 0}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Security Information */}
+          <div>
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">Security Information</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+              {/* Email Card */}
+              <div className="p-7 rounded-3xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 shadow-md">
+                <div className="flex items-center justify-between mb-5">
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase mb-2">Email Address</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-white break-all">{profile.email}</p>
+                  </div>
+                  {profile.email_verified && (
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-full flex-shrink-0">
+                      <Shield className="w-3.5 h-3.5" /> Verified
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => handleCopy(profile.email, 'email')}
+                  className="flex items-center gap-2 text-sm font-semibold text-[#6cd4ff] hover:text-sky-700 transition-colors"
+                >
+                  {copiedField === 'email' ? (<><Check className="w-4 h-4" /> Copied</>) : (<><Copy className="w-4 h-4" /> Copy</>)}
+                </button>
+              </div>
+
+              {/* Phone Card */}
+              <div className="p-7 rounded-3xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 shadow-md">
+                <div className="flex items-center justify-between mb-5">
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase mb-2">Phone Number</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">{profile.phone || 'Not provided'}</p>
+                  </div>
+                  {profile.phone_verified && (
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-full flex-shrink-0">
+                      <Shield className="w-3.5 h-3.5" /> Verified
+                    </div>
+                  )}
+                </div>
+                {profile.phone && (
+                  <button
+                    onClick={() => handleCopy(profile.phone, 'phone')}
+                    className="flex items-center gap-2 text-sm font-semibold text-[#6cd4ff] hover:text-sky-700 transition-colors"
+                  >
+                    {copiedField === 'phone' ? (<><Check className="w-4 h-4" /> Copied</>) : (<><Copy className="w-4 h-4" /> Copy</>)}
+                  </button>
                 )}
-              </button>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileSelect}
-                disabled={uploading}
-              />
-            </div>
-
-            {avatarPreview && (
-              <div className="mt-6 text-sm text-slate-600 dark:text-slate-400 text-center">
-                <p className="font-semibold">{uploading ? 'Uploading image...' : 'Image ready to upload'}</p>
               </div>
-            )}
-
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white mt-6">{profile.full_name}</h2>
+            </div>
           </div>
+
+          {/* Additional Info */}
+          <div>
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">Additional Information</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+              <div className="p-7 rounded-3xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 shadow-md">
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase mb-3">Trust Level</p>
+                <p className="text-3xl font-black text-gray-900 dark:text-white mb-2">{profile.trust_level || 'NEW'}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Score: {profile.trust_score || 0}</p>
+              </div>
+
+              <div className="p-7 rounded-3xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 shadow-md">
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase mb-3">Account Age</p>
+                <p className="text-2xl font-black text-gray-900 dark:text-white">
+                  {Math.floor((new Date().getTime() - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24))} days
+                </p>
+              </div>
+
+              <div className="p-7 rounded-3xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 shadow-md">
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase mb-3">Member Since</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-white">
+                  {new Date(profile.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </p>
+              </div>
+            </div>
+          </div>
+
         </div>
-        )}
-
-        {activeTab === 'profile' && (
-        <>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-md hover:shadow-lg transition-shadow">
-            <h3 className="text-xs font-black text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-4">Full Name</h3>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{profile.full_name}</p>
-            <button
-              onClick={() => handleCopy(profile.full_name, 'fullname')}
-              className="flex items-center gap-2 text-sm font-semibold text-[#6cd4ff] hover:text-sky-700 transition-colors"
-            >
-              {copiedField === 'fullname' ? (<><Check className="w-4 h-4" /> Copied</>) : (<><Copy className="w-4 h-4" /> Copy</>)}
-            </button>
-          </div>
-
-          <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-md hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-black text-gray-400 dark:text-slate-500 uppercase tracking-wider">Email</h3>
-              {profile.email_verified && (
-                <span className="flex items-center gap-1.5 text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-full">
-                  <Shield className="w-3.5 h-3.5" /> Verified
-                </span>
-              )}
-            </div>
-            <p className="text-xl font-bold text-gray-900 dark:text-white break-all mb-6">{profile.email}</p>
-            <button
-              onClick={() => handleCopy(profile.email, 'email')}
-              className="flex items-center gap-2 text-sm font-semibold text-[#6cd4ff] hover:text-sky-700 transition-colors"
-            >
-              {copiedField === 'email' ? (<><Check className="w-4 h-4" /> Copied</>) : (<><Copy className="w-4 h-4" /> Copy</>)}
-            </button>
-          </div>
-
-          <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-md hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-black text-gray-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                <Phone className="w-4 h-4" /> Phone
-              </h3>
-              {profile.phone_verified && (
-                <span className="flex items-center gap-1.5 text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-full">
-                  <Shield className="w-3.5 h-3.5" /> Verified
-                </span>
-              )}
-            </div>
-            <p className="text-xl font-bold text-gray-900 dark:text-white mb-6">{profile.phone || 'Not provided'}</p>
-            {profile.phone && (
-              <button
-                onClick={() => handleCopy(profile.phone, 'phone')}
-                className="flex items-center gap-2 text-sm font-semibold text-[#6cd4ff] hover:text-sky-700 transition-colors"
-              >
-                {copiedField === 'phone' ? (<><Check className="w-4 h-4" /> Copied</>) : (<><Copy className="w-4 h-4" /> Copy</>)}
-              </button>
-            )}
-          </div>
-
-          <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-md hover:shadow-lg transition-shadow">
-            <h3 className="text-xs font-black text-gray-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-4">
-              <MapPin className="w-4 h-4" /> Location
-            </h3>
-            <p className="text-xl font-bold text-gray-900 dark:text-white">{profile.location || 'Not specified'}</p>
-          </div>
-
-          <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-md hover:shadow-lg transition-shadow">
-            <h3 className="text-xs font-black text-gray-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-4">
-              <Shield className="w-4 h-4" /> Trust Level
-            </h3>
-            <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">{profile.trust_level || 'NEW'}</span>
-              <span className="text-base font-semibold text-gray-600 dark:text-gray-400">(Score: {profile.trust_score || 0})</span>
-            </div>
-          </div>
-
-          <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-md hover:shadow-lg transition-shadow">
-            <h3 className="text-xs font-black text-gray-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-4">
-              <Calendar className="w-4 h-4" /> Member Since
-            </h3>
-            <p className="text-xl font-bold text-gray-900 dark:text-white">
-              {new Date(profile.created_at).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </p>
-          </div>
-        </div>
-
-        <div className="p-8 rounded-3xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 shadow-md">
-          <h3 className="font-bold text-blue-900 dark:text-blue-200 text-lg mb-6">Account Status</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="flex items-center gap-3">
-              <div className={`w-3.5 h-3.5 rounded-full ${profile.is_active ? 'bg-[#02CCFE]' : 'bg-red-500'}`}></div>
-              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{profile.is_active ? 'Active' : 'Inactive'}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className={`w-3.5 h-3.5 rounded-full ${profile.is_verified ? 'bg-[#02CCFE]' : 'bg-yellow-500'}`}></div>
-              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{profile.is_verified ? 'Verified' : 'Not Verified'}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className={`w-3.5 h-3.5 rounded-full ${!profile.is_suspended ? 'bg-[#02CCFE]' : 'bg-red-500'}`}></div>
-              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{!profile.is_suspended ? 'Good' : 'Suspended'}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className={`w-3.5 h-3.5 rounded-full ${!profile.is_flagged ? 'bg-[#02CCFE]' : 'bg-orange-500'}`}></div>
-              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{!profile.is_flagged ? 'Clean' : 'Flagged'}</span>
-            </div>
-          </div>
-        </div>
-        </>
         )}
 
         {/* Verification Tab */}
