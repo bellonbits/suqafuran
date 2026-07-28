@@ -73,8 +73,8 @@ export const ShopNameEditModal: React.FC<ShopNameEditModalProps> = ({
   if (!shop) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-lg max-w-md w-full shadow-lg">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50 }}>
+      <div className="bg-white dark:bg-slate-900 rounded-lg max-w-md w-full shadow-lg mx-4">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">

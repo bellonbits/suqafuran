@@ -143,8 +143,8 @@ export function UpgradeModal({ sellerId, isOpen, onClose }: UpgradeModalProps) {
     : selectedPlan?.annual_price;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50 }}>
+      <Card className="w-full mx-4 max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="p-6 space-y-6">
           {/* Header */}
           <div className="flex items-start justify-between">

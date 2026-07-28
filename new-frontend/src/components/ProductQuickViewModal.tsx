@@ -55,7 +55,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/40 z-50 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/40 z-50"
           />
 
           {/* Modal - Glovo Style */}
@@ -63,9 +63,9 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+            className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
           >
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto relative pointer-events-auto">
+            <div className="bg-white rounded-3xl shadow-2xl w-full mx-4 max-w-md max-h-[90vh] overflow-y-auto relative pointer-events-auto">
               {/* Close Button */}
               <motion.button
                 whileHover={{ scale: 1.1 }}

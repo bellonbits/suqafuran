@@ -119,10 +119,10 @@ export const AuthModal: React.FC = () => {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={close}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60" onClick={close} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 100 }}>
             <div
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md rounded-3xl bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto animate-scale-in"
+                className="w-full mx-4 max-w-md rounded-3xl bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto animate-scale-in"
             >
                 <div className="flex items-center justify-between">
                     <h2 className="text-xl font-black text-gray-900 dark:text-slate-100 font-poppins">Sign in or Sign up</h2>
