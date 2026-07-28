@@ -58,6 +58,7 @@ app.add_middleware(
         "https://suqafuran.com",
         "https://www.suqafuran.com",
         "https://app.suqafuran.com",
+        "https://suqafuran.vercel.app",
         "http://159.223.98.137",
         "http://localhost:3000",
         "http://localhost:8000",
