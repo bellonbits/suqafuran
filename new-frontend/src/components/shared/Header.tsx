@@ -23,7 +23,11 @@ export const Header: React.FC = () => {
     const { getTotalCount } = useCart();
     const t = useT();
     const [searchQuery, setSearchQuery] = useState('');
-    const [darkMode, setDarkMode] = useState(false);
+    const [darkMode, setDarkMode] = useState(
+        typeof window !== 'undefined'
+            ? document.documentElement.classList.contains('dark')
+            : false
+    );
     const [scrolled, setScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);

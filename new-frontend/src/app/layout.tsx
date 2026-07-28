@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Providers from "./providers";
 import { CacheBuster } from "@/components/shared/CacheBuster";
+import { getThemeScript } from "@/lib/theme-script";
 
 export const dynamicParams = false;
 
@@ -30,6 +31,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Theme detection script runs before React hydration to prevent flash */}
+        <script
+          dangerouslySetInnerHTML={{ __html: getThemeScript() }}
+          suppressHydrationWarning
+        />
+      </head>
       <body className="antialiased bg-[#F8FAFC] text-[#0F172A] dark:bg-[#0B132B] dark:text-[#F8FAFC] overflow-x-hidden">
         <CacheBuster />
         <Providers>
