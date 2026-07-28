@@ -115,12 +115,7 @@ def create_payment(
         if listing.owner_id != current_user.id:
             raise HTTPException(status_code=403, detail="Not authorized to feature this listing")
 
-    # Get seller's shop
-    from app.models.shop import Shop
-    shop_query = select(Shop).where(Shop.seller_id == current_user.id)
-    shop = db.exec(shop_query).first()
-    if not shop:
-        raise HTTPException(status_code=400, detail="Seller must have a shop to advertise")
+    # Seller must exist (already authenticated)
 
     # Calculate price (backend validation)
     price_per_unit = plan.price_per_day or plan.price_per_week or plan.price_per_month or 0
@@ -182,16 +177,8 @@ def get_seller_advertisements(
     """
     Get all advertisements for the current seller.
     """
-    from app.models.shop import Shop
-
-    # Get seller's shop
-    shop_query = select(Shop).where(Shop.seller_id == current_user.id)
-    shop = db.exec(shop_query).first()
-    if not shop:
-        raise HTTPException(status_code=400, detail="Seller has no shop")
-
-    # Query advertisements
-    query = select(Advertisement).where(Advertisement.shop_id == shop.id)
+    # Query advertisements for current seller
+    query = select(Advertisement).where(Advertisement.seller_id == current_user.id)
 
     if status:
         query = query.where(Advertisement.status == status)
@@ -237,9 +224,7 @@ def get_advertisement(
         raise HTTPException(status_code=404, detail="Advertisement not found")
 
     # Verify ownership
-    shop_query = select(Shop).where(Shop.id == ad.shop_id, Shop.seller_id == current_user.id)
-    shop = db.exec(shop_query).first()
-    if not shop:
+    if ad.seller_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to view this advertisement")
 
     plan = db.get(AdvertisingPlan, ad.plan_id)
@@ -275,9 +260,7 @@ def cancel_advertisement(
         raise HTTPException(status_code=404, detail="Advertisement not found")
 
     # Verify ownership
-    shop_query = select(Shop).where(Shop.id == ad.shop_id, Shop.seller_id == current_user.id)
-    shop = db.exec(shop_query).first()
-    if not shop:
+    if ad.seller_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to cancel this advertisement")
 
     if ad.status in [AdvertisementStatus.EXPIRED, AdvertisementStatus.CANCELLED]:
@@ -289,7 +272,3 @@ def cancel_advertisement(
     db.commit()
 
     return {"message": "Advertisement cancelled successfully"}
-
-
-# Import Shop model at bottom to avoid circular imports
-from app.models.shop import Shop
