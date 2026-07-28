@@ -1,7 +1,6 @@
 {
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "framework": "nextjs",
-  "rootDirectory": "new-frontend"
+  "buildCommand": "cd new-frontend && npm run build",
+  "devCommand": "cd new-frontend && npm run dev",
+  "installCommand": "cd new-frontend && npm install",
+  "framework": "nextjs"
 }
