@@ -100,7 +100,7 @@ api_router.include_router(featured_advertising.router, tags=["featured-advertisi
 
 # Advertising System (new comprehensive advertising platform)
 api_router.include_router(advertising.router, prefix="/advertising", tags=["advertising"])
-api_router.include_router(admin_advertising.router, tags=["admin-advertising"])
+api_router.include_router(admin_advertising.router, prefix="/admin/advertising", tags=["admin-advertising"])
 api_router.include_router(advertising_public.router, tags=["advertising-public"])
 
 # Marketplace Features Endpoints
