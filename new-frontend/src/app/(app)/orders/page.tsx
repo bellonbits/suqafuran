@@ -326,7 +326,7 @@ export default function OrdersPage() {
                                                         <p className="font-semibold text-gray-900 dark:text-white">{item.title}</p>
                                                         <p className="text-sm text-gray-600 dark:text-gray-400">Qty: {item.quantity}</p>
                                                     </div>
-                                                    <p className="font-bold text-gray-900 dark:text-white">KSh {(item.price * item.quantity).toLocaleString()}</p>
+                                                    <p className="font-bold text-gray-900 dark:text-white">KSh {(item?.price ?? 0) * (item?.quantity ?? 0).toLocaleString()}</p>
                                                 </div>
                                             ))}
                                         </div>

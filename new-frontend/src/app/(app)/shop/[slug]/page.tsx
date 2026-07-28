@@ -917,7 +917,7 @@ export default function PublicShopPage() {
                   className="w-full bg-orange-600 hover:bg-orange-700 text-white font-black py-4 px-6 rounded-full transition-colors flex items-center justify-between text-sm shadow-md"
                 >
                   <span>Add {modalQuantity} to order</span>
-                  <span>KSh {(selectedProduct.price * modalQuantity).toLocaleString()}</span>
+                  <span>KSh {(selectedProduct?.price ?? 0) * (modalQuantity ?? 1).toLocaleString()}</span>
                 </button>
               </div>
             </motion.div>

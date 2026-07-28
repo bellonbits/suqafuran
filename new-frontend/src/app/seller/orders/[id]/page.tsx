@@ -179,8 +179,8 @@ export default function SellerOrderDetailPage() {
                       <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-gray-900">Ksh {(item.price * item.quantity).toLocaleString()}</p>
-                      <p className="text-sm text-gray-600">Ksh {item.price}/unit</p>
+                      <p className="font-bold text-gray-900">Ksh {(item?.price ?? 0) * (item?.quantity ?? 0).toLocaleString()}</p>
+                      <p className="text-sm text-gray-600">Ksh {item?.price ?? 0}/unit</p>
                     </div>
                   </div>
                 ))}

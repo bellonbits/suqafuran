@@ -1269,7 +1269,7 @@ export default function ShopDetailPage() {
                                                         {item.title}
                                                     </p>
                                                     <p className="text-gray-500 dark:text-slate-400 font-bold text-[10px] mt-0.5">
-                                                        KSh {(item.price * item.quantity).toLocaleString()}
+                                                        KSh {(item?.price ?? 0) * (item?.quantity ?? 0).toLocaleString()}
                                                     </p>
                                                 </div>
                                                 <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-800 px-2 py-0.5 rounded-full border border-gray-100 dark:border-slate-800 shrink-0">
@@ -1651,7 +1651,7 @@ export default function ShopDetailPage() {
                                     className="w-full bg-[#00a082] hover:bg-[#008f73] text-white font-black py-4 px-6 rounded-full transition-colors flex items-center justify-between text-sm shadow-md mt-4"
                                 >
                                     <span>Add {modalQuantity} to order</span>
-                                    <span>KSh {(selectedProduct.price * modalQuantity).toLocaleString()}</span>
+                                    <span>KSh {(selectedProduct?.price ?? 0) * (modalQuantity ?? 1).toLocaleString()}</span>
                                 </button>
                             </div>
                         </motion.div>

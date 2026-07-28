@@ -383,7 +383,7 @@ function DashboardContent() {
                                                         <div>
                                                             <h4 className="text-xs font-black text-gray-900 dark:text-slate-100 truncate">{prod.name_en}</h4>
                                                             <span className="text-[10px] font-bold text-primary dark:text-sky-400">
-                                                                USD {prod.price}
+                                                                USD {prod?.price ?? 0}
                                                             </span>
                                                         </div>
                                                         <div className="flex items-center justify-between">
