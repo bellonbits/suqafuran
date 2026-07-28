@@ -19,25 +19,32 @@ services:
     restart: unless-stopped
 
   # Certbot for Let's Encrypt SSL certificates
-  certbot:
-    image: certbot/certbot:latest
-    container_name: suqafuran-certbot
-    volumes:
-      - letsencrypt:/etc/letsencrypt
-      - certbot_data:/var/www/certbot
-    entrypoint: >
-      sh -c "
-      if [ ! -f /etc/letsencrypt/live/suqafuran.com/cert.pem ]; then
-        echo 'Generating SSL certificates for suqafuran.com...';
-        certbot certonly --standalone --non-interactive --agree-tos --email petergatitu61@gmail.com -d suqafuran.com -d www.suqafuran.com -d app.suqafuran.com;
-      else
-        echo 'SSL certificates already exist. Running renewal check...';
-        certbot renew --non-interactive;
-      fi
-      "
-    networks:
-      - suqafuran-network
-    restart: on-failure
+  # Disabled temporarily due to rate limit. Will retry after 2026-07-28 16:11:30 UTC
+  # To retry: docker-compose up -d certbot
+  # certbot:
+  #   image: certbot/certbot:latest
+  #   container_name: suqafuran-certbot
+  #   volumes:
+  #     - letsencrypt:/etc/letsencrypt
+  #     - certbot_data:/var/www/certbot
+  #   entrypoint: >
+  #     sh -c "
+  #     if [ ! -f /etc/letsencrypt/live/suqafuran.com/cert.pem ]; then
+  #       echo 'Generating SSL certificates for suqafuran.com...';
+  #       echo 'Waiting 10 seconds for nginx to start...';
+  #       sleep 10;
+  #       certbot certonly --webroot -w /var/www/certbot --non-interactive --agree-tos --email petergatitu61@gmail.com -d suqafuran.com -d www.suqafuran.com -d app.suqafuran.com || true;
+  #     else
+  #       echo 'SSL certificates already exist.';
+  #     fi;
+  #     echo 'Keeping certbot container alive...';
+  #     tail -f /dev/null
+  #     "
+  #   depends_on:
+  #     - nginx
+  #   networks:
+  #     - suqafuran-network
+  #   restart: unless-stopped
 
   # PostgreSQL Database (Disabled - using remote DigitalOcean)
   # postgres:
