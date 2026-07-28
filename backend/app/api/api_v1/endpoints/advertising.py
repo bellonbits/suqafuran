@@ -135,7 +135,7 @@ def create_payment(
 
     # Create advertisement record
     advertisement = Advertisement(
-        shop_id=shop.id,
+        seller_id=current_user.id,
         listing_id=payment_in.listing_id,
         plan_id=payment_in.plan_id,
         placement_type=plan.placement_type,
