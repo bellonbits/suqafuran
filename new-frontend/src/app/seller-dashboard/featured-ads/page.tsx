@@ -7,33 +7,43 @@ import { Card } from '@/components/ui/card';
 import { useAuthStore } from '@/store/useAuth';
 import api from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
-import { TrendingUp, Zap, AlertCircle, CheckCircle } from 'lucide-react';
+import { TrendingUp, Zap, AlertCircle, CheckCircle, Mail } from 'lucide-react';
 
-interface FeaturedPlacement {
+interface AdvertisingPlan {
   id: number;
+  name: string;
   placement_type: string;
-  is_active: boolean;
-  is_paid: boolean;
-  starts_at: string;
-  ends_at: string;
-  price_kes: number;
-  days_remaining: number;
+  description: string;
+  price_per_day: number | null;
+  price_per_week: number | null;
+  price_per_month: number | null;
 }
 
-interface Pricing {
-  featured_product: { price: number; unit: string; description: string };
-  featured_shop: { price: number; unit: string; description: string };
-  homepage_banner: { price: number; unit: string; description: string };
-  category_featured: { price: number; unit: string; description: string };
+interface Advertisement {
+  id: number;
+  shop_id: number;
+  listing_id: number | null;
+  plan_id: number;
+  placement_type: string;
+  start_date: string;
+  end_date: string;
+  amount_paid: number;
+  status: string;
+  created_at: string;
+  stats?: {
+    impressions: number;
+    clicks: number;
+    ctr: number;
+  };
 }
 
 export default function FeaturedAdsPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { toast } = useToast();
-  const [placements, setPlacements] = useState<FeaturedPlacement[]>([]);
-  const [pricing, setPricing] = useState<Pricing | null>(null);
-  const [selectedPlacement, setSelectedPlacement] = useState<string | null>(null);
+  const [plans, setPlans] = useState<AdvertisingPlan[]>([]);
+  const [myAds, setMyAds] = useState<Advertisement[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<AdvertisingPlan | null>(null);
   const [duration, setDuration] = useState(7);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
@@ -46,17 +56,17 @@ export default function FeaturedAdsPage() {
 
     const fetchData = async () => {
       try {
-        const [placementsRes, pricingRes] = await Promise.all([
-          api.get(`/featured/sellers/${user.id}/placements`),
-          api.get('/featured/pricing'),
+        const [plansRes, adsRes] = await Promise.all([
+          api.get('/advertising/plans'),
+          api.get('/advertising/my-ads'),
         ]);
-        setPlacements(placementsRes.data.placements);
-        setPricing(pricingRes.data);
+        setPlans(plansRes.data);
+        setMyAds(adsRes.data);
       } catch (error) {
         console.error('Failed to fetch data:', error);
         toast({
           title: 'Error',
-          description: 'Failed to load featured advertising data',
+          description: 'Failed to load advertising data',
           variant: 'destructive',
         });
       } finally {
@@ -68,29 +78,31 @@ export default function FeaturedAdsPage() {
   }, [user, router, toast]);
 
   const handlePurchase = async () => {
-    if (!selectedPlacement) return;
+    if (!selectedPlan) return;
 
     setPurchasing(true);
     try {
-      const response = await api.post(`/featured/sellers/${user?.id}/purchase`, {
-        placement_type: selectedPlacement,
-        duration_days: duration,
+      const response = await api.post('/advertising/create-payment', {
+        plan_id: selectedPlan.id,
+        listing_id: null,
+        duration: duration,
       });
 
       toast({
         title: 'Success',
-        description: `Featured ${selectedPlacement} created. Total: KSh ${response.data.price_kes}`,
+        description: `Payment created. Total: KSh ${response.data.amount}`,
         variant: 'default',
       });
 
-      // Refresh placements
-      const res = await api.get(`/featured/sellers/${user?.id}/placements`);
-      setPlacements(res.data.placements);
-      setSelectedPlacement(null);
+      // TODO: Redirect to M-Pesa payment flow
+      // Refresh ads
+      const res = await api.get('/advertising/my-ads');
+      setMyAds(res.data);
+      setSelectedPlan(null);
     } catch (error: any) {
       toast({
         title: 'Error',
-        description: error.response?.data?.detail || 'Failed to purchase placement',
+        description: error.response?.data?.detail || 'Failed to create payment',
         variant: 'destructive',
       });
     } finally {
@@ -101,9 +113,21 @@ export default function FeaturedAdsPage() {
   if (!user) return null;
   if (loading) return <div className="p-6">Loading...</div>;
 
-  const activePlacements = placements.filter(p => p.is_active);
-  const selectedPrice = selectedPlacement && pricing ? (pricing as any)[selectedPlacement]?.price || 0 : 0;
-  const totalCost = selectedPrice * (duration / (selectedPlacement && selectedPlacement.includes('product') ? 1 : 7));
+  const activeAds = myAds.filter(ad => ad.status === 'active');
+
+  // Calculate price based on plan and duration
+  const getPricePerUnit = (plan: AdvertisingPlan) => {
+    return plan.price_per_day || plan.price_per_week || plan.price_per_month || 0;
+  };
+
+  const getDurationUnit = (plan: AdvertisingPlan) => {
+    if (plan.price_per_day) return 'day';
+    if (plan.price_per_week) return 'week';
+    return 'month';
+  };
+
+  const selectedPrice = selectedPlan ? getPricePerUnit(selectedPlan) : 0;
+  const totalCost = selectedPrice * duration;
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl space-y-8">
@@ -116,26 +140,33 @@ export default function FeaturedAdsPage() {
       </div>
 
       {/* Active Placements */}
-      {activePlacements.length > 0 && (
+      {activeAds.length > 0 && (
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Your Active Placements</h2>
           <div className="grid md:grid-cols-2 gap-4">
-            {activePlacements.map(placement => (
-              <Card key={placement.id} className="p-4 border-green-200 bg-green-50">
+            {activeAds.map(ad => (
+              <Card key={ad.id} className="p-4 border-green-200 bg-green-50">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <CheckCircle className="w-5 h-5 text-green-600" />
                       <h3 className="font-semibold text-gray-900 capitalize">
-                        {placement.placement_type.replace(/_/g, ' ')}
+                        {ad.placement_type.replace(/_/g, ' ')}
                       </h3>
                     </div>
                     <p className="text-sm text-gray-600 mt-2">
-                      {placement.days_remaining} days remaining
+                      {Math.ceil((new Date(ad.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days remaining
                     </p>
                     <p className="text-sm font-semibold text-gray-900 mt-1">
-                      KSh {(placement.price_kes || 0).toLocaleString()}
+                      KSh {(ad.amount_paid || 0).toLocaleString()}
                     </p>
+                    {ad.stats && (
+                      <div className="text-xs text-gray-500 mt-2 space-y-1">
+                        <p>Views: {ad.stats.impressions}</p>
+                        <p>Clicks: {ad.stats.clicks}</p>
+                        <p>CTR: {ad.stats.ctr.toFixed(2)}%</p>
+                      </div>
+                    )}
                   </div>
                   <Button variant="outline" size="sm">
                     Renew
@@ -153,57 +184,25 @@ export default function FeaturedAdsPage() {
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Available Placements</h2>
           <div className="space-y-3">
-            {pricing && (
-              <>
-                <PlacementOption
-                  name="Featured Product"
-                  price={pricing?.featured_product?.price ?? 0}
-                  unit={pricing?.featured_product?.unit ?? 'day'}
-                  description={pricing?.featured_product?.description ?? ''}
-                  selected={selectedPlacement === 'featured_product'}
-                  onClick={() => setSelectedPlacement('featured_product')}
-                  icon={<Zap className="w-5 h-5" />}
-                />
-                <PlacementOption
-                  name="Featured Shop"
-                  price={pricing?.featured_shop?.price ?? 0}
-                  unit={pricing?.featured_shop?.unit ?? 'week'}
-                  description={pricing?.featured_shop?.description ?? ''}
-                  selected={selectedPlacement === 'featured_shop'}
-                  onClick={() => setSelectedPlacement('featured_shop')}
-                  icon={<TrendingUp className="w-5 h-5" />}
-                />
-                <PlacementOption
-                  name="Homepage Banner"
-                  price={pricing?.homepage_banner?.price ?? 0}
-                  unit={pricing?.homepage_banner?.unit ?? 'week'}
-                  description={pricing?.homepage_banner?.description ?? ''}
-                  selected={selectedPlacement === 'homepage_banner'}
-                  onClick={() => setSelectedPlacement('homepage_banner')}
-                  icon={<TrendingUp className="w-5 h-5" />}
-                />
-                <PlacementOption
-                  name="Category Featured"
-                  price={pricing?.category_featured?.price ?? 0}
-                  unit={pricing?.category_featured?.unit ?? 'week'}
-                  description={pricing?.category_featured?.description ?? ''}
-                  selected={selectedPlacement === 'category_featured'}
-                  onClick={() => setSelectedPlacement('category_featured')}
-                  icon={<Zap className="w-5 h-5" />}
-                />
-              </>
-            )}
+            {plans.map(plan => (
+              <PlacementOption
+                key={plan.id}
+                plan={plan}
+                selected={selectedPlan?.id === plan.id}
+                onClick={() => setSelectedPlan(plan)}
+              />
+            ))}
           </div>
         </div>
 
         {/* Purchase Form */}
-        {selectedPlacement && (
+        {selectedPlan && (
           <Card className="p-6 h-fit border-blue-200 bg-blue-50">
             <div className="space-y-4">
               <div>
                 <h3 className="font-semibold text-gray-900">Purchase Details</h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  {(pricing as any)[selectedPlacement]?.description}
+                  {selectedPlan.description}
                 </p>
               </div>
 
@@ -222,7 +221,7 @@ export default function FeaturedAdsPage() {
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
                   <span className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-600">
-                    {selectedPlacement.includes('product') ? 'days' : 'weeks'}
+                    {getDurationUnit(selectedPlan)}(s)
                   </span>
                 </div>
               </div>
@@ -232,7 +231,7 @@ export default function FeaturedAdsPage() {
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Price:</span>
                   <span className="font-semibold">
-                    KSh {selectedPrice.toLocaleString()}/{selectedPlacement.includes('product') ? 'day' : 'week'}
+                    KSh {selectedPrice.toLocaleString()}/{getDurationUnit(selectedPlan)}
                   </span>
                 </div>
                 <div className="flex justify-between text-lg font-bold">
@@ -262,14 +261,47 @@ export default function FeaturedAdsPage() {
         )}
       </div>
 
+      {/* Homepage Banner Premium Section */}
+      <Card className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200">
+        <div className="flex items-start gap-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="inline-block px-3 py-1 bg-purple-600 text-white text-xs font-bold rounded-full">PREMIUM</span>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Homepage Banner</h2>
+            <p className="text-gray-600 mb-4">
+              Get featured on Suqafuran's homepage. This premium placement is reserved and managed by our team to ensure the highest quality and maximum visibility.
+            </p>
+            <p className="text-sm text-gray-700 mb-4">
+              <strong>Perfect for:</strong> Seasonal campaigns, new product launches, partnerships, and top-performing sellers.
+            </p>
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => {
+                // TODO: Open request modal
+                toast({
+                  title: 'Contact Our Team',
+                  description: 'Email sales@suqafuran.com to discuss homepage banner opportunities',
+                  variant: 'default',
+                });
+              }}
+            >
+              <Mail className="w-4 h-4" />
+              Request Homepage Banner
+            </Button>
+          </div>
+        </div>
+      </Card>
+
       {/* Benefits */}
-      <Card className="p-6 bg-gradient-to-r from-purple-50 to-blue-50">
+      <Card className="p-6 bg-gradient-to-r from-blue-50 to-cyan-50">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Why Featured Ads?</h2>
         <div className="grid md:grid-cols-3 gap-4">
           <div className="space-y-2">
             <h3 className="font-semibold text-gray-900">Increase Visibility</h3>
             <p className="text-sm text-gray-600">
-              Get featured placement in search results, homepage, and category pages
+              Get featured placement in search results, category pages, and shop listings
             </p>
           </div>
           <div className="space-y-2">
@@ -279,9 +311,9 @@ export default function FeaturedAdsPage() {
             </p>
           </div>
           <div className="space-y-2">
-            <h3 className="font-semibold text-gray-900">Flexible Duration</h3>
+            <h3 className="font-semibold text-gray-900">Track Performance</h3>
             <p className="text-sm text-gray-600">
-              Choose your placement duration from 1 day to 1 year
+              Monitor impressions, clicks, and CTR for each of your active placements
             </p>
           </div>
         </div>
@@ -291,22 +323,31 @@ export default function FeaturedAdsPage() {
 }
 
 function PlacementOption({
-  name,
-  price,
-  unit,
-  description,
+  plan,
   selected,
   onClick,
-  icon,
 }: {
-  name: string;
-  price: number;
-  unit: string;
-  description: string;
+  plan: AdvertisingPlan;
   selected: boolean;
   onClick: () => void;
-  icon: React.ReactNode;
 }) {
+  const getIcon = (type: string) => {
+    if (type.includes('product')) return <Zap className="w-5 h-5" />;
+    if (type.includes('shop')) return <TrendingUp className="w-5 h-5" />;
+    if (type.includes('category')) return <TrendingUp className="w-5 h-5" />;
+    return <Zap className="w-5 h-5" />;
+  };
+
+  const getPricePerUnit = (plan: AdvertisingPlan) => {
+    return plan.price_per_day || plan.price_per_week || plan.price_per_month || 0;
+  };
+
+  const getUnit = (plan: AdvertisingPlan) => {
+    if (plan.price_per_day) return 'day';
+    if (plan.price_per_week) return 'week';
+    return 'month';
+  };
+
   return (
     <button
       onClick={onClick}
@@ -318,15 +359,15 @@ function PlacementOption({
     >
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3 flex-1">
-          <div className={selected ? 'text-blue-600' : 'text-gray-400'}>{icon}</div>
+          <div className={selected ? 'text-blue-600' : 'text-gray-400'}>{getIcon(plan.placement_type)}</div>
           <div>
-            <h3 className="font-semibold text-gray-900">{name}</h3>
-            <p className="text-sm text-gray-600 mt-1">{description}</p>
+            <h3 className="font-semibold text-gray-900">{plan.name}</h3>
+            <p className="text-sm text-gray-600 mt-1">{plan.description}</p>
           </div>
         </div>
         <div className="text-right ml-4">
-          <p className="text-lg font-bold text-gray-900">KSh {price.toLocaleString()}</p>
-          <p className="text-xs text-gray-600">/{unit}</p>
+          <p className="text-lg font-bold text-gray-900">KSh {getPricePerUnit(plan).toLocaleString()}</p>
+          <p className="text-xs text-gray-600">/{getUnit(plan)}</p>
         </div>
       </div>
     </button>
