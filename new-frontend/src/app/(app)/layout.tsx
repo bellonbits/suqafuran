@@ -4,6 +4,7 @@ import { BottomNav } from "../../components/shared/BottomNav";
 import { Footer } from "../../components/shared/Footer";
 import { AuthModal } from "../../components/shared/AuthModal";
 import { RealtimeConnection } from "../../components/shared/RealtimeConnection";
+import { HomepageBannerRotation } from "../../components/ads/HomepageBannerRotation";
 
 export default function AppShellLayout({
   children,
@@ -17,6 +18,14 @@ export default function AppShellLayout({
         {/* Spacer = safe-area-inset-top + h-12 nav height on mobile */}
         <div style={{ height: 'calc(env(safe-area-inset-top, 0px) + 3rem)' }} className="shrink-0 w-full md:hidden" />
         <div className="shrink-0 w-full hidden md:block h-16" />
+
+        {/* Homepage Banner */}
+        <div className="w-full bg-white dark:bg-slate-950 px-4 py-4 md:px-6 md:py-6">
+          <Suspense fallback={null}>
+            <HomepageBannerRotation />
+          </Suspense>
+        </div>
+
         <div className="flex flex-1 min-w-0 bg-white dark:bg-slate-950">
           <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-slate-950">
             <main className="flex-1 bg-white dark:bg-slate-950">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Eye, Heart, ShieldCheck, Star } from 'lucide-react';
 import { useFavoritesStore } from '../../store/useFavorites';
@@ -10,6 +10,8 @@ import { useCurrencyStore } from '../../store/useCurrency';
 import { formatConvertedPrice } from '../../lib/currency';
 import { useLocalizedField } from '../../lib/i18n';
 import { ProductQuickViewModal } from '../ProductQuickViewModal';
+import { FeaturedBadge } from '../ads/FeaturedBadge';
+import { advertisingService } from '@/services/advertising';
 import type { Listing } from '../../types';
 
 interface ProductCardProps {
@@ -20,12 +22,26 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isFeatured, setIsFeatured] = useState(false);
     const { isAuthenticated } = useAuthStore();
     const openAuthModal = useAuthModal((s) => s.open);
     const isFavorite = useFavoritesStore((s) => s.isFavorite(listing.id));
     const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
     const displayCurrency = useCurrencyStore((s) => s.currency);
     const field = useLocalizedField();
+
+    // Check if listing is featured
+    useEffect(() => {
+        const checkFeatured = async () => {
+            const featured = await advertisingService.isListingFeatured(listing.id);
+            setIsFeatured(featured);
+            // Track impression
+            if (featured) {
+                await advertisingService.trackListingImpression(listing.id);
+            }
+        };
+        checkFeatured();
+    }, [listing.id]);
 
     const handleToggleFavorite = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -62,8 +78,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller })
                         loading="lazy"
                     />
 
+                    {isFeatured && (
+                        <div className="absolute top-2 left-2 z-10">
+                            <FeaturedBadge size="sm" />
+                        </div>
+                    )}
+
                     {listing.condition && listing.condition !== 'New' && (
-                        <span className="absolute left-2 top-2 rounded-full bg-slate-900/75 backdrop-blur-md px-2.5 py-1 text-[9px] font-black text-white uppercase tracking-wider">
+                        <span className={`absolute left-2 top-2 rounded-full bg-slate-900/75 backdrop-blur-md px-2.5 py-1 text-[9px] font-black text-white uppercase tracking-wider ${isFeatured ? 'mt-6' : ''}`}>
                             {listing.condition}
                         </span>
                     )}
