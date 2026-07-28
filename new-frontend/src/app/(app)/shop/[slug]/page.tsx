@@ -89,7 +89,7 @@ export default function PublicShopPage() {
     return listings.filter((product) => {
       const matchesSearch = !searchQuery ||
         product.title_en.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesPrice = ((product?.price ?? 0) >= priceRange.min && ((product?.price ?? 0) <= priceRange.max;
+      const matchesPrice = (product?.price ?? 0) >= priceRange.min && (product?.price ?? 0) <= priceRange.max;
       const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
       return matchesSearch && matchesPrice && matchesCategory;
     });

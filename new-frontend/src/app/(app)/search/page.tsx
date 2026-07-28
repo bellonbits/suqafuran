@@ -63,10 +63,10 @@ function SearchPageContent() {
         }
 
         if (priceMin) {
-            results = results.filter(l => ((l?.price ?? 0) >= Number(priceMin));
+            results = results.filter(l => (l?.price ?? 0) >= Number(priceMin));
         }
         if (priceMax) {
-            results = results.filter(l => ((l?.price ?? 0) <= Number(priceMax));
+            results = results.filter(l => (l?.price ?? 0) <= Number(priceMax));
         }
 
         if (location !== 'all') {
