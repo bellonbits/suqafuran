@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuth';
 import { authService } from '@/services/authService';
-import { Mail, Phone, MapPin, Shield, Calendar, LogOut, Loader2, AlertCircle, Copy, Check, Camera, ExternalLink } from 'lucide-react';
+import { Mail, Phone, MapPin, Shield, Calendar, LogOut, Loader2, AlertCircle, Copy, Check, Camera, ExternalLink, Edit2, X, Save } from 'lucide-react';
 import api, { resolveMediaUrl } from '@/services/api';
 import { VerificationSection } from '@/components/features/VerificationSection';
 
@@ -20,6 +20,9 @@ function AccountPageContent() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'profile' | 'verification'>('profile');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editFormData, setEditFormData] = useState({ full_name: '', phone: '', email: '' });
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -104,6 +107,54 @@ function AccountPageContent() {
   const handleLogout = () => {
     logout();
     router.push('/');
+  };
+
+  const handleEditClick = () => {
+    setEditFormData({
+      full_name: profile.full_name || '',
+      phone: profile.phone || '',
+      email: profile.email || '',
+    });
+    setIsEditing(true);
+  };
+
+  const handleEditCancel = () => {
+    setIsEditing(false);
+    setEditFormData({ full_name: '', phone: '', email: '' });
+  };
+
+  const handleSaveProfile = async () => {
+    if (!editFormData.full_name.trim()) {
+      alert('Full name is required');
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      await authService.updateProfile({
+        full_name: editFormData.full_name,
+        phone: editFormData.phone,
+      });
+
+      setProfile((prev: any) => ({
+        ...prev,
+        full_name: editFormData.full_name,
+        phone: editFormData.phone,
+      }));
+
+      if (user) {
+        useAuthStore.getState().setUser({
+          ...user,
+          full_name: editFormData.full_name,
+        });
+      }
+
+      setIsEditing(false);
+    } catch (err: any) {
+      alert(err.message || 'Failed to update profile');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (!isAuthenticated) {
@@ -191,51 +242,105 @@ function AccountPageContent() {
 
           {/* Profile Info */}
           <div className="flex-1">
-            <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-1">{profile.full_name}</h1>
-            <p className="text-base text-gray-600 dark:text-gray-400 mb-4 font-medium">Account Member</p>
+            {isEditing ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-2">Full Name</label>
+                  <input
+                    type="text"
+                    value={editFormData.full_name}
+                    onChange={(e) => setEditFormData({ ...editFormData, full_name: e.target.value })}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#6cd4ff]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-2">Phone Number</label>
+                  <input
+                    type="tel"
+                    value={editFormData.phone}
+                    onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#6cd4ff]"
+                  />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={handleSaveProfile}
+                    disabled={isSaving}
+                    className="flex items-center gap-2 px-5 py-2 bg-[#6cd4ff] hover:bg-[#5bc0e8] disabled:bg-slate-400 text-white font-bold rounded-lg transition-colors"
+                  >
+                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    Save
+                  </button>
+                  <button
+                    onClick={handleEditCancel}
+                    disabled={isSaving}
+                    className="flex items-center gap-2 px-5 py-2 bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 dark:hover:bg-slate-700 text-gray-900 dark:text-white font-bold rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    <X className="w-4 h-4" />
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-1">{profile.full_name}</h1>
+                    <p className="text-base text-gray-600 dark:text-gray-400 font-medium">Account Member</p>
+                  </div>
+                  <button
+                    onClick={handleEditClick}
+                    className="p-2 rounded-lg bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+                    title="Edit profile"
+                  >
+                    <Edit2 className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                  </button>
+                </div>
 
-            {/* Contact Info Grid */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              <div className="flex items-center gap-2">
-                <Mail className="w-3.5 h-3.5 text-[#6cd4ff] flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
-                  <p className="text-xs font-semibold text-gray-900 dark:text-white truncate">{profile.email}</p>
+                {/* Contact Info Grid */}
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-3.5 h-3.5 text-[#6cd4ff] flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
+                      <p className="text-xs font-semibold text-gray-900 dark:text-white truncate">{profile.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-3.5 h-3.5 text-[#6cd4ff] flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Phone</p>
+                      <p className="text-xs font-semibold text-gray-900 dark:text-white">{profile.phone || 'N/A'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-3.5 h-3.5 text-[#6cd4ff] flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Status</p>
+                      <p className="text-xs font-semibold text-gray-900 dark:text-white">{profile.is_verified ? '✓ Verified' : 'Pending'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-3.5 h-3.5 text-[#6cd4ff] flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Member Since</p>
+                      <p className="text-xs font-semibold text-gray-900 dark:text-white">
+                        {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 text-[#6cd4ff] flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Phone</p>
-                  <p className="text-xs font-semibold text-gray-900 dark:text-white">{profile.phone || 'N/A'}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Shield className="w-3.5 h-3.5 text-[#6cd4ff] flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Status</p>
-                  <p className="text-xs font-semibold text-gray-900 dark:text-white">{profile.is_verified ? '✓ Verified' : 'Pending'}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="w-3.5 h-3.5 text-[#6cd4ff] flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Member Since</p>
-                  <p className="text-xs font-semibold text-gray-900 dark:text-white">
-                    {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                  </p>
-                </div>
-              </div>
-            </div>
 
-            {/* Action Buttons */}
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-6 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              Sign Out
-            </button>
+                {/* Action Buttons */}
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-6 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </button>
+              </>
+            )}
           </div>
         </div>
 
