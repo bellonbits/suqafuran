@@ -31,9 +31,9 @@ if phase4_riders:
 if websocket_routes:
     api_router.include_router(websocket_routes.router, tags=["websocket"])
 
-# Phase 2 Seller Endpoints (mock data for seller dashboard)
-if phase2_seller_endpoints:
-    api_router.include_router(phase2_seller_endpoints.router, tags=["sellers"])
+# Phase 2 Seller Endpoints (disabled - using API v1 sellers.py instead)
+# if phase2_seller_endpoints:
+#     api_router.include_router(phase2_seller_endpoints.router, tags=["sellers"])
 
 # Comprehensive API Endpoints
 api_router.include_router(login.router, tags=["login"])
