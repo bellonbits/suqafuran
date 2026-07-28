@@ -23,6 +23,7 @@ function AccountPageContent() {
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState({ full_name: '', phone: '', email: '' });
   const [isSaving, setIsSaving] = useState(false);
+  const [editSuccess, setEditSuccess] = useState('');
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -129,27 +130,46 @@ function AccountPageContent() {
       return;
     }
 
+    if (editFormData.email && !editFormData.email.includes('@')) {
+      alert('Please enter a valid email address');
+      return;
+    }
+
     try {
       setIsSaving(true);
-      await authService.updateProfile({
+      setEditSuccess('');
+
+      const updateData: any = {
         full_name: editFormData.full_name,
         phone: editFormData.phone,
-      });
+      };
+
+      if (editFormData.email && editFormData.email !== profile.email) {
+        updateData.email = editFormData.email;
+      }
+
+      await authService.updateProfile(updateData);
 
       setProfile((prev: any) => ({
         ...prev,
         full_name: editFormData.full_name,
         phone: editFormData.phone,
+        email: editFormData.email,
       }));
 
       if (user) {
         useAuthStore.getState().setUser({
           ...user,
           full_name: editFormData.full_name,
+          email: editFormData.email,
         });
       }
 
-      setIsEditing(false);
+      setEditSuccess('Profile updated successfully!');
+      setTimeout(() => {
+        setIsEditing(false);
+        setEditSuccess('');
+      }, 1500);
     } catch (err: any) {
       alert(err.message || 'Failed to update profile');
     } finally {
@@ -244,12 +264,28 @@ function AccountPageContent() {
           <div className="flex-1">
             {isEditing ? (
               <div className="space-y-4">
+                {editSuccess && (
+                  <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                    <p className="text-sm font-semibold text-green-600 dark:text-green-400 flex items-center gap-2">
+                      <Check className="w-4 h-4" /> {editSuccess}
+                    </p>
+                  </div>
+                )}
                 <div>
                   <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-2">Full Name</label>
                   <input
                     type="text"
                     value={editFormData.full_name}
                     onChange={(e) => setEditFormData({ ...editFormData, full_name: e.target.value })}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#6cd4ff]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-2">Email Address</label>
+                  <input
+                    type="email"
+                    value={editFormData.email}
+                    onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#6cd4ff]"
                   />
                 </div>
