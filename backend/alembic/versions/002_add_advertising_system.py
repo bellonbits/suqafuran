@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '002_advertising_system'
-down_revision = '001_add_moderation_and_featured_listing'
+down_revision = 'add_shop_logo'
 branch_labels = None
 depends_on = None
 
@@ -50,7 +50,7 @@ def upgrade() -> None:
     op.create_table(
         'advertisement',
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('shop_id', sa.Integer(), nullable=False),
+        sa.Column('seller_id', sa.Integer(), nullable=False),
         sa.Column('listing_id', sa.Integer(), nullable=True),
         sa.Column('plan_id', sa.Integer(), nullable=False),
         sa.Column('placement_type', sa.String(), nullable=False),
@@ -61,12 +61,12 @@ def upgrade() -> None:
         sa.Column('status', sa.String(), nullable=False),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),
-        sa.ForeignKeyConstraint(['shop_id'], ['shop.id'], ),
+        sa.ForeignKeyConstraint(['seller_id'], ['user.id'], ),
         sa.ForeignKeyConstraint(['listing_id'], ['listing.id'], ),
         sa.ForeignKeyConstraint(['plan_id'], ['advertising_plan.id'], ),
         sa.PrimaryKeyConstraint('id'),
     )
-    op.create_index('ix_advertisement_shop_id', 'advertisement', ['shop_id'])
+    op.create_index('ix_advertisement_seller_id', 'advertisement', ['seller_id'])
     op.create_index('ix_advertisement_listing_id', 'advertisement', ['listing_id'])
     op.create_index('ix_advertisement_plan_id', 'advertisement', ['plan_id'])
     op.create_index('ix_advertisement_placement_type', 'advertisement', ['placement_type'])
@@ -94,7 +94,7 @@ def upgrade() -> None:
     op.create_table(
         'homepage_banner',
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('shop_id', sa.Integer(), nullable=False),
+        sa.Column('seller_id', sa.Integer(), nullable=False),
         sa.Column('title', sa.String(), nullable=False),
         sa.Column('subtitle', sa.String(), nullable=True),
         sa.Column('image_url', sa.String(), nullable=False),
@@ -108,11 +108,11 @@ def upgrade() -> None:
         sa.Column('created_by_admin_id', sa.Integer(), nullable=False),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),
-        sa.ForeignKeyConstraint(['shop_id'], ['shop.id'], ),
+        sa.ForeignKeyConstraint(['seller_id'], ['user.id'], ),
         sa.ForeignKeyConstraint(['created_by_admin_id'], ['user.id'], ),
         sa.PrimaryKeyConstraint('id'),
     )
-    op.create_index('ix_homepage_banner_shop_id', 'homepage_banner', ['shop_id'])
+    op.create_index('ix_homepage_banner_seller_id', 'homepage_banner', ['seller_id'])
     op.create_index('ix_homepage_banner_start_date', 'homepage_banner', ['start_date'])
     op.create_index('ix_homepage_banner_end_date', 'homepage_banner', ['end_date'])
     op.create_index('ix_homepage_banner_status', 'homepage_banner', ['status'])

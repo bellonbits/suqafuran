@@ -53,7 +53,7 @@ class Advertisement(SQLModel, table=True):
     __tablename__ = "advertisement"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    shop_id: int = Field(foreign_key="shop.id", index=True)
+    seller_id: int = Field(foreign_key="user.id", index=True)
     listing_id: Optional[int] = Field(foreign_key="listing.id", index=True)  # For featured products
     plan_id: int = Field(foreign_key="advertising_plan.id", index=True)
 
@@ -95,7 +95,7 @@ class HomepageBanner(SQLModel, table=True):
     __tablename__ = "homepage_banner"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    shop_id: int = Field(foreign_key="shop.id", index=True)
+    seller_id: int = Field(foreign_key="user.id", index=True)
 
     # Banner content
     title: str  # Headline
