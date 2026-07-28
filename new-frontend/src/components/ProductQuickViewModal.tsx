@@ -105,7 +105,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
                 {/* Price - Glovo Style */}
                 <div className="flex items-baseline gap-3 mb-6">
                   <span className="text-3xl font-black text-gray-900">
-                    KSh{product.price.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                    KSh{(product?.price ?? 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                   </span>
                   {product.originalPrice > product.price && (
                     <span className="text-lg text-gray-400 line-through">
@@ -148,7 +148,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
                   }}
                   className="w-full bg-#6cd4ff hover:bg-#5bc0e8 text-white font-black py-4 px-6 rounded-full text-lg transition-colors shadow-lg"
                 >
-                  Add {quantity} for KSh{(product.price * quantity).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  Add {quantity} for KSh{((product?.price ?? 0) * quantity).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                 </motion.button>
 
                 {/* Favorite Button - Bottom */}

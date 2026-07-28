@@ -133,7 +133,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller })
                     name: listing.title_en,
                     category: 'Product',
                     image: displayImage,
-                    price: listing.price,
+                    price: listing?.price ?? 0,
                     originalPrice: listing.price,
                     rating: 4.5,
                     reviews: listing.views || 0,

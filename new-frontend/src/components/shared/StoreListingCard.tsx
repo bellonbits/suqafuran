@@ -62,7 +62,7 @@ export const StoreListingCard: React.FC<{ store: DerivedStore }> = ({ store }) =
                 {/* Top-left promo tag: real listing title + price from the active slide, shown only while hovered/touched */}
                 {isActive && active && (
                     <span className="absolute left-2.5 top-2.5 max-w-[85%] truncate rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-gray-800 shadow">
-                        {active.title} - {formatConvertedPrice(active.price, active.currency, displayCurrency)}
+                        {active.title} - {formatConvertedPrice(active?.price ?? 0, active.currency, displayCurrency)}
                     </span>
                 )}
 

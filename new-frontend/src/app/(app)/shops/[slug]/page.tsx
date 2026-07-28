@@ -22,7 +22,7 @@ function getMockProductInfo(product: any) {
   const idNum = typeof product.id === 'number' ? product.id : (parseInt(String(product.id).slice(0, 4), 16) || 123);
   const discountPercent = 10 + (idNum % 4) * 5; // 10%, 15%, 20%, 25%
   const hasPromo = (idNum % 3) !== 0; // 66% of items have promo
-  const originalPrice = hasPromo ? Math.round(product.price * (1 + discountPercent / 100)) : product.price;
+  const originalPrice = hasPromo ? Math.round((product?.price ?? 0) * (1 + discountPercent / 100)) : product.price;
   const promoText = hasPromo ? `-${discountPercent}%` : null;
   return { hasPromo, discountPercent, originalPrice, promoText };
 }
@@ -1194,7 +1194,7 @@ export default function ShopDetailPage() {
                                                                     owner_id: shopOwnerId ?? undefined,
                                                                     id: String(product.id),
                                                                     title: product.title_en,
-                                                                    price: product.price,
+                                                                    price: product?.price ?? 0,
                                                                     image: product.images?.[0],
                                                                     quantity: cartQty + 1
                                                                 });
@@ -1642,7 +1642,7 @@ export default function ShopDetailPage() {
                                                                     owner_id: shopOwnerId ?? undefined,
                                             id: String(selectedProduct.id),
                                             title: selectedProduct.title_en,
-                                            price: selectedProduct.price,
+                                            price: selectedProduct?.price ?? 0,
                                             image: selectedProduct.images?.[0],
                                             quantity: modalQuantity
                                         });

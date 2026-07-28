@@ -33,7 +33,7 @@ export function deriveStoresFromListings(listings: Listing[]): DerivedStore[] {
     listings.forEach((l) => {
         if (!l.owner) return;
         const item: PreviewItem | null = l.images?.[0]
-            ? { image: l.images[0], title: l.title_en, price: l.price, currency: l.currency }
+            ? { image: l.images[0], title: l.title_en, price: l?.price ?? 0, currency: l.currency }
             : null;
 
         const existing = map.get(l.owner_id);

@@ -114,7 +114,7 @@ const ListingsManagementPage = () => {
       title_so: l.title_so,
       description_en: l.description_en,
       description_so: l.description_so,
-      price: l.price,
+      price: l?.price ?? 0,
       currency: l.currency,
       category: getCategoryName(l.category_id),
       condition: l.condition,

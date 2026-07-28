@@ -146,7 +146,7 @@ export default function ProductDetailPage({ params }: PageProps) {
             await businessService.recordOrder('generic-business-id', {
                 customer_id: 999, // current user ID simulated
                 items: [{ product_id: listing.id, quantity: orderDetails.quantity }],
-                total_amount: listing.price * orderDetails.quantity,
+                total_amount: (listing?.price ?? 0) * orderDetails.quantity,
                 notes: `Location: ${orderDetails.location}. Notes: ${orderDetails.notes}`
             });
         } catch (err) {

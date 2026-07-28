@@ -486,7 +486,7 @@ export default function CategoryPage({ params }: PageProps) {
                                             onAddToCart={() => addItem({
                                                 id: String(listing.id),
                                                 title: field(listing.title_en, listing.title_so) || 'Product',
-                                                price: listing.price,
+                                                price: listing?.price ?? 0,
                                                 quantity: 1,
                                                 image: listing.images?.[0] ? resolveMediaUrl(listing.images[0]) || '/categories/grocery.jpg' : '/categories/grocery.jpg'
                                             })}

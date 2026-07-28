@@ -25,7 +25,7 @@ export interface SellerNotification {
 export const sendWhatsAppNotification = async (notification: SellerNotification) => {
   try {
     const itemsList = notification.items
-      .map((item) => `• ${item.title} - KSh ${item.price.toLocaleString()}`)
+      .map((item) => `• ${item.title} - KSh ${(item?.price ?? 0).toLocaleString()}`)
       .join('\n');
 
     const message = `

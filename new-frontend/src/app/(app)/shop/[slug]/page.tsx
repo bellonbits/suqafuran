@@ -89,7 +89,7 @@ export default function PublicShopPage() {
     return listings.filter((product) => {
       const matchesSearch = !searchQuery ||
         product.title_en.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
+      const matchesPrice = ((product?.price ?? 0) >= priceRange.min && ((product?.price ?? 0) <= priceRange.max;
       const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
       return matchesSearch && matchesPrice && matchesCategory;
     });
@@ -684,7 +684,7 @@ export default function PublicShopPage() {
                                     owner_id: shopData.user_id,
                                     id: String(product.id),
                                     title: product.title_en,
-                                    price: product.price,
+                                    price: product?.price ?? 0,
                                     image: product.images?.[0],
                                     quantity: cartQty + 1
                                   });
@@ -908,7 +908,7 @@ export default function PublicShopPage() {
                       owner_id: shopData.user_id,
                       id: String(selectedProduct.id),
                       title: selectedProduct.title_en,
-                      price: selectedProduct.price,
+                      price: selectedProduct?.price ?? 0,
                       image: selectedProduct.images?.[0],
                       quantity: modalQuantity
                     });

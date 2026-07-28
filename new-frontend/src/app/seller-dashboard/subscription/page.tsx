@@ -159,13 +159,13 @@ function PricingCard({ plan, annual, onUpgrade, currentPlan }: { plan: typeof PL
       <div className="mb-5">
         <div className="flex items-baseline gap-1">
           <span className="text-3xl font-black text-gray-900 dark:text-white">
-            {plan.price === 0 ? 'Free' : `KSh ${price.toLocaleString()}`}
+            {((plan?.price ?? 0) === 0 ? 'Free' : `KSh ${price.toLocaleString()}`}
           </span>
-          {plan.price > 0 && <span className="text-sm text-gray-400">/mo</span>}
+          {((plan?.price ?? 0) > 0 && <span className="text-sm text-gray-400">/mo</span>}
         </div>
         {annual && plan.annualPrice > 0 && (
           <p className="text-xs text-green-600 font-semibold mt-0.5">
-            KSh {plan.annualPrice.toLocaleString()}/year · Save KSh {(plan.price * 12 - plan.annualPrice).toLocaleString()}
+            KSh {plan.annualPrice.toLocaleString()}/year · Save KSh {(((plan?.price ?? 0) * 12 - plan.annualPrice).toLocaleString()}
           </p>
         )}
         {plan.trial && (

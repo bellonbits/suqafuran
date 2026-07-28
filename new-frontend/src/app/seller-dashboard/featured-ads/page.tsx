@@ -157,7 +157,7 @@ export default function FeaturedAdsPage() {
               <>
                 <PlacementOption
                   name="Featured Product"
-                  price={pricing.featured_product.price}
+                  price={pricing?.featured_product?.price ?? 0}
                   unit={pricing.featured_product.unit}
                   description={pricing.featured_product.description}
                   selected={selectedPlacement === 'featured_product'}
@@ -166,7 +166,7 @@ export default function FeaturedAdsPage() {
                 />
                 <PlacementOption
                   name="Featured Shop"
-                  price={pricing.featured_shop.price}
+                  price={pricing?.featured_shop?.price ?? 0}
                   unit={pricing.featured_shop.unit}
                   description={pricing.featured_shop.description}
                   selected={selectedPlacement === 'featured_shop'}
@@ -175,7 +175,7 @@ export default function FeaturedAdsPage() {
                 />
                 <PlacementOption
                   name="Homepage Banner"
-                  price={pricing.homepage_banner.price}
+                  price={pricing?.homepage_banner?.price ?? 0}
                   unit={pricing.homepage_banner.unit}
                   description={pricing.homepage_banner.description}
                   selected={selectedPlacement === 'homepage_banner'}
@@ -184,7 +184,7 @@ export default function FeaturedAdsPage() {
                 />
                 <PlacementOption
                   name="Category Featured"
-                  price={pricing.category_featured.price}
+                  price={pricing?.category_featured?.price ?? 0}
                   unit={pricing.category_featured.unit}
                   description={pricing.category_featured.description}
                   selected={selectedPlacement === 'category_featured'}
