@@ -165,7 +165,7 @@ function PricingCard({ plan, annual, onUpgrade, currentPlan }: { plan: typeof PL
         </div>
         {annual && plan.annualPrice > 0 && (
           <p className="text-xs text-green-600 font-semibold mt-0.5">
-            KSh {plan.annualPrice.toLocaleString()}/year · Save KSh {(((plan?.price ?? 0) * 12 - plan.annualPrice).toLocaleString()}
+            KSh {plan.annualPrice.toLocaleString()}/year · Save KSh {((plan?.price ?? 0) * 12 - plan.annualPrice).toLocaleString()}
           </p>
         )}
         {plan.trial && (
