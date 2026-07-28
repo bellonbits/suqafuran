@@ -88,11 +88,17 @@ export const authService = {
   async updateProfile(data: Partial<{
     full_name: string;
     phone: string;
+    email: string;
     bio: string;
     avatar_url: string;
   }>): Promise<any> {
-    const response = await api.patch('/users/me', data);
-    return response.data;
+    try {
+      const response = await api.patch('/users/me', data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to update profile';
+      throw new Error(errorMessage);
+    }
   },
 
   // Upload avatar

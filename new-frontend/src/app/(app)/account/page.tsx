@@ -24,6 +24,7 @@ function AccountPageContent() {
   const [editFormData, setEditFormData] = useState({ full_name: '', phone: '', email: '' });
   const [isSaving, setIsSaving] = useState(false);
   const [editSuccess, setEditSuccess] = useState('');
+  const [editError, setEditError] = useState('');
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -125,19 +126,22 @@ function AccountPageContent() {
   };
 
   const handleSaveProfile = async () => {
+    setEditError('');
+    setEditSuccess('');
+
+    // Validation
     if (!editFormData.full_name.trim()) {
-      alert('Full name is required');
+      setEditError('Full name is required');
       return;
     }
 
     if (editFormData.email && !editFormData.email.includes('@')) {
-      alert('Please enter a valid email address');
+      setEditError('Please enter a valid email address');
       return;
     }
 
     try {
       setIsSaving(true);
-      setEditSuccess('');
 
       const updateData: any = {
         full_name: editFormData.full_name,
@@ -165,13 +169,26 @@ function AccountPageContent() {
         });
       }
 
-      setEditSuccess('Profile updated successfully!');
+      setEditSuccess('✓ Profile updated successfully!');
       setTimeout(() => {
         setIsEditing(false);
         setEditSuccess('');
       }, 1500);
     } catch (err: any) {
-      alert(err.message || 'Failed to update profile');
+      const errorMessage = err.response?.data?.detail || err.message || 'Failed to update profile';
+
+      // Specific error messages
+      if (errorMessage.includes('already') || errorMessage.includes('exists')) {
+        setEditError('This email address is already in use. Please use a different one.');
+      } else if (errorMessage.includes('email')) {
+        setEditError('Email update failed. Please check your email and try again.');
+      } else if (errorMessage.includes('phone')) {
+        setEditError('Phone update failed. Please check your phone number and try again.');
+      } else if (errorMessage.includes('name')) {
+        setEditError('Name update failed. Please try again.');
+      } else {
+        setEditError(errorMessage);
+      }
     } finally {
       setIsSaving(false);
     }
@@ -264,6 +281,14 @@ function AccountPageContent() {
           <div className="flex-1">
             {isEditing ? (
               <div className="space-y-4">
+                {editError && (
+                  <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <p className="text-sm font-semibold text-red-600 dark:text-red-400 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4" /> {editError}
+                    </p>
+                  </div>
+                )}
+
                 {editSuccess && (
                   <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                     <p className="text-sm font-semibold text-green-600 dark:text-green-400 flex items-center gap-2">
