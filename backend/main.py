@@ -405,32 +405,16 @@ def get_seller_profile(
     db: Session = Depends(get_db)
 ):
     try:
-        from sqlalchemy import text
-
         seller = db.query(Seller).filter(Seller.user_id == str(current_user.id)).first()
         if not seller:
             raise HTTPException(status_code=404, detail="Seller profile not found")
 
-        # Check if seller has at least 1 active listing using raw SQL
-        listing_count = db.execute(
-            text("""
-                SELECT COUNT(*) FROM listing
-                WHERE owner_id = :user_id AND status = 'active'
-            """),
-            {"user_id": current_user.id}
-        ).scalar()
-
-        # Only show as verified seller if they have at least 1 active listing
-        if seller.verification_status == "verified" and listing_count > 0:
-            return seller
-
-        # Otherwise, seller doesn't meet criteria
-        raise HTTPException(status_code=404, detail="Seller must be verified and have at least 1 active listing")
+        return seller
 
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=404, detail="Seller profile not found")
+        raise HTTPException(status_code=500, detail="Error fetching seller profile")
 
 # Health check
 @app.get("/health")
