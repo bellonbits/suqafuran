@@ -419,7 +419,7 @@ async def list_all_subscriptions(
         raise HTTPException(status_code=403, detail="Admin only")
 
     from app.models.business import Business
-    from sqlmodel import join
+    from app.models.user import User
 
     subs = session.exec(select(SellerSubscription)).all()
 
@@ -427,9 +427,19 @@ async def list_all_subscriptions(
     for s in subs:
         business = session.exec(select(Business).where(Business.owner_id == s.seller_id)).first()
         plan = session.get(SubscriptionPlan, s.plan_id) if s.plan_id else None
+
+        # Get shop name from Business, fallback to User full_name
+        shop_name = "Unknown Shop"
+        if business:
+            shop_name = business.name
+        else:
+            user = session.get(User, s.seller_id)
+            if user and user.full_name:
+                shop_name = user.full_name
+
         result.append({
             "seller_id": s.seller_id,
-            "shop_name": business.name if business else "Unknown Shop",
+            "shop_name": shop_name,
             "plan_name": plan.name if plan else "unknown",
             "monthly_price": plan.monthly_price if plan else 0,
             "status": s.status,
