@@ -28,8 +28,8 @@ export function middleware(request: NextRequest) {
   const referer = request.headers.get('referer') || '';
   const host = request.headers.get('host') || '';
 
-  // If referrer is from old domain, force new site
-  if (referer.includes('old-domain.com') || referer.includes('localhost:3000')) {
+  // Only redirect if referrer is from old domain (not localhost)
+  if (referer.includes('old-domain.com')) {
     return NextResponse.redirect(new URL('/', request.url), 307);
   }
 
