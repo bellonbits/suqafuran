@@ -41,6 +41,10 @@ api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(payments.router, tags=["payments"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(listings.router, prefix="/listings", tags=["listings"])
+
+# Shop Subscription Features (must come before admin to match /admin/shops/search before /admin/shops/{shop_id})
+api_router.include_router(subscriptions.router, tags=["subscriptions"])
+
 api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
 api_router.include_router(monitoring_router.router, tags=["admin-monitoring"])
 api_router.include_router(messages.router, prefix="/messages", tags=["messages"])
@@ -88,9 +92,6 @@ api_router.include_router(subcategories.router, prefix="/subcategories", tags=["
 api_router.include_router(attributes.router, prefix="/attributes", tags=["attributes"])
 api_router.include_router(category_attributes.router, prefix="/category-attributes", tags=["category-attributes"])
 api_router.include_router(search.router, tags=["search"])
-
-# Shop Subscription Features
-api_router.include_router(subscriptions.router, tags=["subscriptions"])
 
 # Discount Codes / Marketing Codes
 api_router.include_router(discount_codes.router, tags=["discount-codes"])
