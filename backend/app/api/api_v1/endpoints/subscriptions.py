@@ -522,25 +522,32 @@ async def search_shops(
     session: Session = Depends(get_db),
     q: str = Query(default=""),
 ):
-    """Search shops by name for admin subscription assignment."""
+    """Search shops by business name for admin subscription assignment."""
 
     # Verify admin
     if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Admin only")
 
-    from app.models.business import Business
+    from app.models.user import User
     from sqlalchemy import func
 
-    shops = session.exec(
-        select(Business).where(
-            func.lower(Business.name).contains(q.lower())
-        ).limit(10)
-    ).all()
+    query = select(User).where(User.business_name.isnot(None))
+
+    if q:
+        search_term = f"%{q.lower()}%"
+        query = query.where(func.lower(User.business_name).like(search_term))
+
+    shops = session.exec(query.limit(10)).all()
 
     return [
         {
-            "id": shop.owner_id,
-            "name": shop.name,
+            "id": shop.id,
+            "business_name": shop.business_name,
+            "full_name": shop.full_name,
+            "email": shop.email,
+            "phone": shop.phone,
+            "is_verified": shop.is_verified,
+            "is_active": shop.is_active,
         }
         for shop in shops
     ]
