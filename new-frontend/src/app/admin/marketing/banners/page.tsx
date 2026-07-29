@@ -146,71 +146,79 @@ export default function BannerManagementPage() {
 
   const content = (
     <div className="space-y-8 pb-8">
-      {/* Hero Carousel Section */}
+      {/* Promotional Banners Carousel */}
       {activeBanners.length > 0 && (
-        <div className="relative w-full h-96 md:h-[500px] bg-gray-900 overflow-hidden rounded-xl shadow-lg">
-          <img
-            src={currentBanner?.image_url}
-            alt={currentBanner?.title}
-            className="w-full h-full object-cover transition-opacity duration-500"
-          />
+        <div className="relative w-full overflow-hidden">
+          <div className="relative bg-gray-50 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+            {/* Banner Card - 21:9 Aspect Ratio */}
+            <div className="relative w-full aspect-[21/9] overflow-hidden">
+              <img
+                src={currentBanner?.image_url}
+                alt={currentBanner?.title}
+                className="w-full h-full object-cover transition-opacity duration-500"
+              />
 
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
 
-          <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-12 text-white">
-            {currentBanner && (
-              <div className="space-y-4 max-w-2xl">
-                <h2 className="text-3xl md:text-5xl font-bold leading-tight">
-                  {currentBanner.title}
-                </h2>
-                {currentBanner.subtitle && (
-                  <p className="text-lg md:text-xl text-gray-100">
-                    {currentBanner.subtitle}
-                  </p>
+              {/* Content Overlay */}
+              <div className="absolute inset-0 flex flex-col justify-center p-6 md:p-12 text-white">
+                {currentBanner && (
+                  <div className="space-y-3 max-w-xl">
+                    <h2 className="text-2xl md:text-3xl font-bold leading-tight">
+                      {currentBanner.title}
+                    </h2>
+                    {currentBanner.subtitle && (
+                      <p className="text-base md:text-lg text-gray-100 line-clamp-2">
+                        {currentBanner.subtitle}
+                      </p>
+                    )}
+                    <div>
+                      <Button
+                        onClick={() => window.open(currentBanner.button_link, '_blank')}
+                        className="bg-white text-gray-900 hover:bg-gray-100 font-semibold px-6 py-2"
+                        size="sm"
+                      >
+                        {currentBanner.button_text}
+                      </Button>
+                    </div>
+                  </div>
                 )}
-                <div>
-                  <Button
-                    onClick={() => window.open(currentBanner.button_link, '_blank')}
-                    className="bg-white text-gray-900 hover:bg-gray-100 font-semibold px-8"
-                    size="lg"
+              </div>
+
+              {/* Navigation Arrows */}
+              {activeBanners.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setCurrentSlide((prev) => (prev - 1 + activeBanners.length) % activeBanners.length)}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full transition-colors z-10"
                   >
-                    {currentBanner.button_text}
-                  </Button>
-                </div>
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => setCurrentSlide((prev) => (prev + 1) % activeBanners.length)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full transition-colors z-10"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Dot Indicators */}
+            {activeBanners.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                {activeBanners.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentSlide(idx)}
+                    className={`h-2 rounded-full transition-all ${
+                      idx === currentSlide ? 'bg-white w-8' : 'bg-white/50 w-2 hover:bg-white/75'
+                    }`}
+                  />
+                ))}
               </div>
             )}
           </div>
-
-          {activeBanners.length > 1 && (
-            <>
-              <button
-                onClick={() => setCurrentSlide((prev) => (prev - 1 + activeBanners.length) % activeBanners.length)}
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full transition-colors z-10"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-              <button
-                onClick={() => setCurrentSlide((prev) => (prev + 1) % activeBanners.length)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full transition-colors z-10"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-            </>
-          )}
-
-          {activeBanners.length > 1 && (
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-              {activeBanners.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentSlide(idx)}
-                  className={`h-2 rounded-full transition-all ${
-                    idx === currentSlide ? 'bg-white w-8' : 'bg-white/50 w-2 hover:bg-white/75'
-                  }`}
-                />
-              ))}
-            </div>
-          )}
         </div>
       )}
 
