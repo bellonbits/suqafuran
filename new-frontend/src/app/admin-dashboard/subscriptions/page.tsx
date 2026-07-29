@@ -150,7 +150,7 @@ export default function AdminSubscriptionsPage() {
 
     setManualLoading(true);
     try {
-      const response = await api.post(`/subscriptions/admin/apply`, {
+      const response = await api.post(`/admin/apply`, {
         seller_id: parseInt(manualSellerId),
         plan_id: parseInt(manualPlanId),
         reason: 'payment_failure_manual_grant',
