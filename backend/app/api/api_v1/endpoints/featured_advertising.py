@@ -12,6 +12,7 @@ from app.services.featured_advertising_service import featured_advertising_servi
 from app.services.subscription_service import subscription_service
 from app.api.deps import get_current_user
 from app.core.logging_config import get_logger
+from app.models.advertising import Advertisement, AdvertisementStatus
 
 logger = get_logger("featured_advertising_api")
 
@@ -213,7 +214,7 @@ async def get_featured_advertising_stats(
         raise HTTPException(status_code=403, detail="Admin only")
 
     # Get all placements
-    all_placements = session.exec(select(FeaturedSelling)).all()
+    all_placements = session.exec(select(Advertisement)).all()
     active_placements = [p for p in all_placements if p.is_active and p.ends_at > datetime.utcnow()]
 
     # Calculate revenue by type
@@ -249,9 +250,9 @@ async def list_featured_placements(
         raise HTTPException(status_code=403, detail="Admin only")
 
     placements = session.exec(
-        select(FeaturedSelling).where(
-            FeaturedSelling.is_active == True,
-            FeaturedSelling.ends_at > datetime.utcnow(),
+        select(Advertisement).where(
+            Advertisement.status == AdvertisementStatus.ACTIVE,
+            Advertisement.end_date > datetime.utcnow(),
         )
     ).all()
 
