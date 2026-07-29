@@ -278,7 +278,7 @@ export default function SubscriptionPage() {
             <thead>
               <tr className="bg-gray-50 dark:bg-slate-800">
                 <th className="text-left py-4 px-5 font-bold text-gray-500 dark:text-slate-400 w-40">Feature</th>
-                {['Free', 'Starter', 'Business', 'Enterprise'].map((p) => (
+                {['Free', 'Starter', 'Business'].map((p) => (
                   <th key={p} className={`text-center py-4 px-4 font-black text-sm ${p === 'Business' ? 'text-orange-600 dark:text-orange-400' : 'text-gray-700 dark:text-slate-300'}`}>
                     {p}
                   </th>
