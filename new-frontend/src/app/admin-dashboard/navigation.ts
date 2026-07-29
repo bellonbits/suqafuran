@@ -2,7 +2,7 @@ import {
   LayoutDashboard, Users, ShoppingCart, CheckCircle, Layers,
   Gift, Megaphone, MessageSquare, BarChart3, FileText,
   AlertTriangle, AlertCircle, TrendingUp, Store, Grid3x3,
-  DollarSign, Package, AlertOctagon, CreditCard, Star, Mail
+  DollarSign, Package, AlertOctagon, CreditCard, Star, Mail, MessageCircle
 } from 'lucide-react';
 
 export const ADMIN_NAV_ITEMS = [
@@ -24,6 +24,7 @@ export const ADMIN_NAV_ITEMS = [
   { label: 'Unusual Accounts', icon: AlertCircle, href: '/admin-unusual-accounts' },
   { label: 'Marketing', icon: BarChart3, href: '/admin-marketing' },
   { label: 'Email Analytics', icon: Mail, href: '/admin-dashboard/email-analytics' },
+  { label: 'System Messages', icon: MessageCircle, href: '/admin-dashboard/system-messages' },
   { label: 'Reports', icon: FileText, href: '/admin-reports' },
   { label: 'Analytics', icon: TrendingUp, href: '/admin-dashboard/analytics' },
   { label: 'Subscriptions', icon: CreditCard, href: '/admin-dashboard/subscriptions' },

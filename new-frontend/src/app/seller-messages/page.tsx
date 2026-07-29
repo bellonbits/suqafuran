@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { MessageSquare, Send, Search, ArrowLeft, Clock, Loader } from 'lucide-react';
+import { MessageSquare, Send, Search, ArrowLeft, Clock, Loader, CheckCircle2 } from 'lucide-react';
 import api from '@/services/api';
 
 export default function SellerMessagesPage() {
@@ -97,25 +97,38 @@ export default function SellerMessagesPage() {
           {conversations.length === 0 ? (
             <div className="p-4 text-center text-slate-400">No conversations</div>
           ) : (
-            conversations.map((conv) => (
-              <motion.button
-                key={conv.other_user.id}
-                onClick={() => handleSelectChat(conv.other_user.id)}
-                className={`w-full p-4 border-b border-slate-700 text-left transition-colors ${
-                  selectedChat === conv.other_user.id ? 'bg-slate-700' : 'hover:bg-slate-700/50'
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#5bc0e8] flex items-center justify-center text-white font-bold">
-                    {conv.other_user.full_name?.charAt(0).toUpperCase()}
+            conversations.map((conv) => {
+              const isSystemConversation = conv.other_user.id === 1; // System user
+              const bgColor = isSystemConversation ? 'bg-blue-600' : 'bg-[#5bc0e8]';
+
+              return (
+                <motion.button
+                  key={conv.other_user.id}
+                  onClick={() => handleSelectChat(conv.other_user.id)}
+                  className={`w-full p-4 border-b border-slate-700 text-left transition-colors ${
+                    selectedChat === conv.other_user.id ? 'bg-slate-700' : 'hover:bg-slate-700/50'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`w-10 h-10 rounded-full ${bgColor} flex items-center justify-center text-white font-bold relative`}>
+                      {isSystemConversation ? 'S' : conv.other_user.full_name?.charAt(0).toUpperCase()}
+                      {isSystemConversation && (
+                        <CheckCircle2 className="w-4 h-4 text-white fill-white absolute -bottom-1 -right-1" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-white">{conv.other_user.full_name}</h3>
+                        {isSystemConversation && (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 fill-blue-400" />
+                        )}
+                      </div>
+                      <p className="text-sm text-slate-400 truncate">{conv.last_message || '—'}</p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-white">{conv.other_user.full_name}</h3>
-                    <p className="text-sm text-slate-400 truncate">{conv.last_message || '—'}</p>
-                  </div>
-                </div>
-              </motion.button>
-            ))
+                </motion.button>
+              );
+            })
           )}
         </div>
       </div>
@@ -126,34 +139,79 @@ export default function SellerMessagesPage() {
           <>
             {/* Header */}
             <div className="p-6 border-b border-slate-700 bg-slate-800">
-              <h2 className="text-xl font-black text-white">
-                {conversations.find(c => c.other_user.id === selectedChat)?.other_user.full_name}
-              </h2>
+              {(() => {
+                const conv = conversations.find(c => c.other_user.id === selectedChat);
+                const isSystemConversation = selectedChat === 1;
+                return (
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-black text-white">
+                      {conv?.other_user.full_name}
+                    </h2>
+                    {isSystemConversation && (
+                      <CheckCircle2 className="w-5 h-5 text-blue-400 fill-blue-400" />
+                    )}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              {messages.map((msg, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`flex ${msg.sender_id !== selectedChat ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-xs px-4 py-2 rounded-lg ${
-                      msg.sender_id !== selectedChat
-                        ? 'bg-[#5bc0e8] text-white'
-                        : 'bg-slate-700 text-slate-100'
-                    }`}
+              {messages.map((msg, idx) => {
+                const isSystemMessage = msg.sender_id === 1; // System user ID
+                const isOwnMessage = msg.sender_id !== selectedChat;
+
+                if (isSystemMessage) {
+                  return (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex justify-start"
+                    >
+                      <div className="flex gap-3 max-w-md">
+                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                          <span className="text-white text-xs font-bold">S</span>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm font-bold text-blue-400">Suqafuran</span>
+                            <CheckCircle2 className="w-4 h-4 text-blue-500 fill-blue-500" />
+                          </div>
+                          <div className="bg-blue-500/20 border border-blue-500/40 text-slate-100 px-4 py-2 rounded-lg">
+                            <p className="text-sm">{msg.content}</p>
+                            <span className="text-xs opacity-60 mt-1 block">
+                              {new Date(msg.created_at).toLocaleTimeString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                }
+
+                return (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
                   >
-                    <p className="text-sm">{msg.content}</p>
-                    <span className="text-xs opacity-75 mt-1 block">
-                      {new Date(msg.created_at).toLocaleTimeString()}
-                    </span>
-                  </div>
-                </motion.div>
-              ))}
+                    <div
+                      className={`max-w-xs px-4 py-2 rounded-lg ${
+                        isOwnMessage
+                          ? 'bg-[#5bc0e8] text-white'
+                          : 'bg-slate-700 text-slate-100'
+                      }`}
+                    >
+                      <p className="text-sm">{msg.content}</p>
+                      <span className="text-xs opacity-75 mt-1 block">
+                        {new Date(msg.created_at).toLocaleTimeString()}
+                      </span>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
 
             {/* Input */}

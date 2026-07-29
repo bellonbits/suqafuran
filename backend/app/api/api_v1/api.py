@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.api_v1.endpoints import marketing, auth, users, listings, admin, favorites, notifications, dashboard, verifications, wallet, boosts, interactions, meetings, deals, trust_ops, promotions, login, mobile_money, audit, kh, messages, translate, feedback, follows, content, ai, marketing, support, verification_check, seo, businesses, addresses, payments, sellers, diagnostics, analytics, analytics_tracking, bulk_products, delivery_zones, reviews, campaigns, seller_profile, seller_settings, conversations, reports, subcategories, attributes, category_attributes, search, offers, price_alerts, saved_searches, notification_preferences, chat_ws, subscriptions, featured_advertising, discount_codes, analytics_sellers, notifications_ws, advertising, admin_advertising, advertising_public, admin_email_analytics
+from app.api.api_v1.endpoints import marketing, auth, users, listings, admin, favorites, notifications, dashboard, verifications, wallet, boosts, interactions, meetings, deals, trust_ops, promotions, login, mobile_money, audit, kh, messages, translate, feedback, follows, content, ai, marketing, support, verification_check, seo, businesses, addresses, payments, sellers, diagnostics, analytics, analytics_tracking, bulk_products, delivery_zones, reviews, campaigns, seller_profile, seller_settings, conversations, reports, subcategories, attributes, category_attributes, search, offers, price_alerts, saved_searches, notification_preferences, chat_ws, subscriptions, featured_advertising, discount_codes, analytics_sellers, notifications_ws, advertising, admin_advertising, advertising_public, admin_email_analytics, admin_system_messaging
 from app.api.api_v1.admin import monitoring_router
 
 # Import Phase 4 routers from root routers directory
@@ -107,6 +107,9 @@ api_router.include_router(advertising_public.router, tags=["advertising-public"]
 
 # Email Analytics Dashboard
 api_router.include_router(admin_email_analytics.router, prefix="/admin/email-analytics", tags=["admin-email-analytics"])
+
+# System Messaging (Suqafuran announcements)
+api_router.include_router(admin_system_messaging.router, prefix="/admin/system-messages", tags=["admin-system-messages"])
 
 # Marketplace Features Endpoints
 api_router.include_router(offers.router, prefix="/offers", tags=["offers"])
