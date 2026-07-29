@@ -337,6 +337,8 @@ function ShopsPageContent() {
 
   const [shops, setShops] = useState<PublicShop[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [banners, setBanners] = useState<PromotionalBanner[]>([]);
+  const [bannersLoading, setBannersLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -349,12 +351,26 @@ function ShopsPageContent() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const categoryParam = searchParams.get('category');
 
-  // Show scroll-to-top button after scrolling 300px
+  // Fetch promotional banners
+  const fetchBanners = useCallback(async () => {
+    try {
+      const res = await api.get('/admin/advertising/banners');
+      const activeBanners = res.data.filter((b: any) => b.status === 'active').sort((a: any, b: any) => b.priority - a.priority).slice(0, 5);
+      setBanners(activeBanners);
+    } catch (error) {
+      console.error('Failed to fetch banners:', error);
+    } finally {
+      setBannersLoading(false);
+    }
+  }, []);
+
+  // Show scroll-to-top button after scrolling 300px & fetch banners
   useEffect(() => {
     const handleScroll = () => setShowScrollTop(window.scrollY > 300);
     window.addEventListener('scroll', handleScroll, { passive: true });
+    fetchBanners();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [fetchBanners]);
 
   // Change page and always scroll to top
   const goToPage = (pg: number) => {
@@ -406,17 +422,6 @@ function ShopsPageContent() {
     setPage(1);
   }, [debouncedSearch, selectedCategoryId, selectedMarket]);
 
-    const fetchBanners = async () => {
-    try {
-      const res = await api.get('/admin/advertising/banners');
-      const activeBanners = res.data.filter((b: any) => b.status === 'active').sort((a: any, b: any) => b.priority - a.priority).slice(0, 5);
-      setBanners(activeBanners);
-    } catch (error) {
-      console.error('Failed to fetch banners:', error);
-    } finally {
-      setBannersLoading(false);
-    }
-  };
 
   const fetchShops = useCallback(async () => {
     // Clear browser cache to get fresh banners
