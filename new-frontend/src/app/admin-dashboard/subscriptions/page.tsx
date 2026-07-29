@@ -102,13 +102,28 @@ export default function AdminSubscriptionsPage() {
       setShopSuggestions([]);
       return;
     }
+
     try {
       const response = await api.get(`/admin/shops/search?q=${encodeURIComponent(query)}`);
-      setShopSuggestions(response.data || []);
-      setShowShopSuggestions(true);
+      if (response.data && response.data.length > 0) {
+        setShopSuggestions(response.data);
+        setShowShopSuggestions(true);
+        return;
+      }
     } catch (error) {
-      console.error('Failed to search shops:', error);
+      console.error('Failed to search shops via API:', error);
     }
+
+    // Fallback: Search in local subscriptions data
+    const localSuggestions = subscriptions
+      .map(sub => ({ id: sub.seller_id, name: sub.shop_name }))
+      .filter(shop =>
+        shop.name.toLowerCase().includes(query.toLowerCase())
+      )
+      .slice(0, 10);
+
+    setShopSuggestions(localSuggestions);
+    setShowShopSuggestions(localSuggestions.length > 0);
   };
 
   const handleSelectShop = (shopId: number, shopName: string) => {
