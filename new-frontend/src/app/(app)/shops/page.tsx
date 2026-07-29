@@ -119,83 +119,62 @@ function BannerCarousel({ banners }: { banners: PromotionalBanner[] }) {
     return () => clearInterval(interval);
   }, [banners.length]);
 
-  if (banners.length === 0) return null;
+  if (!banners || banners.length === 0) {
+    return null;
+  }
 
   const currentBanner = banners[currentIndex];
 
-  const handlePrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length);
-  };
-
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % banners.length);
-  };
-
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 mb-8">
-      <div className="relative w-full rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow bg-gray-100 dark:bg-slate-800">
-        {/* Banner - 21:9 Aspect Ratio */}
+      <div className="relative w-full rounded-xl overflow-hidden shadow-md bg-gray-900">
         <div className="relative w-full aspect-[21/9] overflow-hidden">
           <img
             src={currentBanner.image_url}
             alt={currentBanner.title}
-            className="w-full h-full object-cover transition-opacity duration-500"
+            className="w-full h-full object-cover"
           />
-
-          {/* Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
-
-          {/* Content */}
-          <div className="absolute inset-0 flex flex-col justify-center p-6 md:p-10 lg:p-12 text-white">
+          <div className="absolute inset-0 flex flex-col justify-center p-6 md:p-12 text-white">
             <div className="max-w-2xl">
-              <h2 className="text-2xl md:text-3xl font-bold leading-tight">
-                {currentBanner.title}
-              </h2>
+              <h2 className="text-2xl md:text-3xl font-bold">{currentBanner.title}</h2>
               {currentBanner.subtitle && (
-                <p className="text-base md:text-lg text-gray-100 mt-2 line-clamp-2">
-                  {currentBanner.subtitle}
-                </p>
+                <p className="text-base md:text-lg text-gray-100 mt-2">{currentBanner.subtitle}</p>
               )}
               <div className="mt-4">
                 <button
                   onClick={() => window.open(currentBanner.button_link, '_blank')}
-                  className="bg-white text-gray-900 hover:bg-gray-100 font-semibold px-6 py-2 rounded-lg transition-colors"
+                  className="bg-white text-gray-900 hover:bg-gray-100 font-semibold px-6 py-2 rounded-lg"
                 >
                   {currentBanner.button_text}
                 </button>
               </div>
             </div>
           </div>
-
-          {/* Navigation Arrows */}
           {banners.length > 1 && (
             <>
               <button
-                onClick={handlePrev}
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full transition-colors z-10"
+                onClick={() => setCurrentIndex((p) => (p - 1 + banners.length) % banners.length)}
+                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full z-10"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <button
-                onClick={handleNext}
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full transition-colors z-10"
+                onClick={() => setCurrentIndex((p) => (p + 1) % banners.length)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full z-10"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
             </>
           )}
         </div>
-
-        {/* Dot Indicators */}
         {banners.length > 1 && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
             {banners.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentIndex(idx)}
-                className={`h-2 rounded-full transition-all ${
-                  idx === currentIndex ? 'bg-white w-8' : 'bg-white/50 w-2 hover:bg-white/75'
-                }`}
+                className={`h-2 rounded-full ${idx === currentIndex ? 'bg-white w-8' : 'bg-white/50 w-2'}`}
               />
             ))}
           </div>
@@ -204,6 +183,8 @@ function BannerCarousel({ banners }: { banners: PromotionalBanner[] }) {
     </div>
   );
 }
+
+
 
 // ─── Glovo Shop Card ────────────────────────────────────────────────────
 function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
