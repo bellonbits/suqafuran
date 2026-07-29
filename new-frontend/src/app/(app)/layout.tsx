@@ -6,6 +6,8 @@ import { AuthModal } from "../../components/shared/AuthModal";
 import { RealtimeConnection } from "../../components/shared/RealtimeConnection";
 import { HomepageBannerRotation } from "../../components/ads/HomepageBannerRotation";
 
+export const revalidate = 0;
+
 export default function AppShellLayout({
   children,
 }: Readonly<{
