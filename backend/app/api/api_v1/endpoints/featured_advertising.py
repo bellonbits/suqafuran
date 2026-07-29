@@ -4,7 +4,7 @@ Handles featured product, featured shop, and homepage banner placements.
 """
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session
+from sqlmodel import Session, select
 from typing import Optional
 
 from app.db.session import get_db
