@@ -3,7 +3,7 @@ Seller subscription management endpoints.
 Handles subscription creation, billing, and feature access.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks, Body
+from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks, Body, Query
 from sqlmodel import Session, select
 from typing import Optional
 
@@ -22,10 +22,10 @@ from app.api.deps import get_current_user
 
 logger = get_logger("subscriptions_api")
 
-router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
+router = APIRouter(tags=["subscriptions"])
 
 
-@router.get("/plans")
+@router.get("/subscriptions/plans")
 async def get_subscription_plans(session: Session = Depends(get_db)):
     """Get all available subscription plans."""
     plans = session.exec(
@@ -58,7 +58,7 @@ async def get_subscription_plans(session: Session = Depends(get_db)):
     ]
 
 
-@router.get("/sellers/{seller_id}/current")
+@router.get("/subscriptions/sellers/{seller_id}/current")
 async def get_seller_subscription(
     seller_id: int,
     current_user = Depends(get_current_user),
@@ -101,7 +101,7 @@ async def get_seller_subscription(
     }
 
 
-@router.post("/sellers/{seller_id}/start-trial")
+@router.post("/subscriptions/sellers/{seller_id}/start-trial")
 async def start_trial_subscription(
     seller_id: int,
     payload: dict = Body(...),
@@ -159,7 +159,7 @@ async def start_trial_subscription(
     }
 
 
-@router.post("/sellers/{seller_id}/upgrade")
+@router.post("/subscriptions/sellers/{seller_id}/upgrade")
 async def upgrade_to_paid(
     seller_id: int,
     payload: dict = Body(...),
@@ -228,7 +228,7 @@ async def upgrade_to_paid(
     }
 
 
-@router.post("/mpesa-callback")
+@router.post("/subscriptions/mpesa-callback")
 async def handle_mpesa_callback(
     request: Request,
     background_tasks: BackgroundTasks,
@@ -253,7 +253,7 @@ async def handle_mpesa_callback(
         return {"ResultCode": 1, "ResultDesc": "Error processing callback"}
 
 
-@router.post("/sellers/{seller_id}/verify-payment")
+@router.post("/subscriptions/sellers/{seller_id}/verify-payment")
 async def verify_payment(
     seller_id: int,
     payload: dict,
@@ -278,7 +278,7 @@ async def verify_payment(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/sellers/{seller_id}/cancel")
+@router.post("/subscriptions/sellers/{seller_id}/cancel")
 async def cancel_subscription(
     seller_id: int,
     payload: dict,
@@ -314,7 +314,7 @@ async def cancel_subscription(
     return {"status": "cancelled", "message": "Subscription cancelled successfully"}
 
 
-@router.get("/sellers/{seller_id}/features")
+@router.get("/subscriptions/sellers/{seller_id}/features")
 async def get_seller_features(
     seller_id: int,
     current_user = Depends(get_current_user),
@@ -497,7 +497,7 @@ async def admin_apply_subscription(
 
 @router.get("/admin/shops/search")
 async def search_shops(
-    q: str,
+    q: str = Query(..., min_length=1),
     current_user = Depends(get_current_user),
     session: Session = Depends(get_db),
 ):
@@ -525,7 +525,7 @@ async def search_shops(
     ]
 
 
-@router.post("/sellers/{seller_id}/verification/auto-verify")
+@router.post("/subscriptions/sellers/{seller_id}/verification/auto-verify")
 async def auto_verify_seller(
     seller_id: int,
     current_user = Depends(get_current_user),
@@ -563,7 +563,7 @@ async def auto_verify_seller(
         }
 
 
-@router.get("/sellers/{seller_id}/verification/status")
+@router.get("/subscriptions/sellers/{seller_id}/verification/status")
 async def get_verification_status(
     seller_id: int,
     current_user = Depends(get_current_user),

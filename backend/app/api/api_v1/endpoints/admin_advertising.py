@@ -15,7 +15,7 @@ from app.models.advertising import (
 from app.models.user import User
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/admin/advertising", tags=["admin-advertising"])
+router = APIRouter(tags=["admin-advertising"])
 
 
 # ============================================================================
