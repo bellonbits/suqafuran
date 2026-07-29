@@ -14,6 +14,8 @@ from app.models.marketing_code import MarketingCode
 from app.services.email_service import email_service
 from app.services.africastalking_service import africastalking_service
 from app.services.kafka_producer import publish_signup_event, publish_signin_event
+from app.services.marketing_service import marketing_service
+from app.models.marketing import EmailEventType
 from pydantic import BaseModel
 from app.core.metrics import USER_REGISTRATIONS_TOTAL, SUCCESSFUL_LOGINS_TOTAL
 
@@ -136,6 +138,23 @@ async def verify_otp(
             ))
             db.commit()
             db.refresh(user)
+
+            # Send signup email via marketing automation
+            try:
+                await marketing_service.send_event_email(
+                    session=db,
+                    user_id=user.id,
+                    event_type=EmailEventType.SIGNUP,
+                    context={
+                        "first_name": user.full_name.split()[0] if user.full_name else "User",
+                        "complete_profile_link": f"{settings.FRONTEND_URL}/settings/profile",
+                        "create_shop_link": f"{settings.FRONTEND_URL}/shops/create",
+                        "post_listing_link": f"{settings.FRONTEND_URL}/dashboard/listings",
+                        "download_app_link": "https://suqafuran.com/app"
+                    }
+                )
+            except Exception as e:
+                logger.warning(f"Failed to send signup marketing email: {e}")
 
             # Send welcome email
             email_service.send_welcome_email(user.email, user.full_name, user.id)

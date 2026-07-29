@@ -14,6 +14,8 @@ from app.models.marketing_code import MarketingCode
 from app.services.cache_service import cache
 from app.services.security_service import security_service
 from app.services.moderation_service import moderation_service
+from app.services.marketing_service import marketing_service
+from app.models.marketing import EmailEventType
 from app.core.security import risk_security
 from app.core.config import settings
 from app.services.kafka_producer import publish_upload_failure_event, publish_tracking_event
@@ -1481,6 +1483,27 @@ async def approve_listing(
         import logging
         logging.getLogger("listings_api").warning(f"Failed to publish approval event: {e}")
 
+    # Send listing approved email via marketing automation
+    try:
+        seller = db.get(User, listing.owner_id)
+        if seller:
+            await marketing_service.send_event_email(
+                session=db,
+                user_id=listing.owner_id,
+                event_type=EmailEventType.LISTING_APPROVED,
+                context={
+                    "first_name": seller.full_name.split()[0] if seller.full_name else "Seller",
+                    "listing_title": listing.title_en or listing.title,
+                    "listing_price": f"{listing.price} {listing.currency}",
+                    "listing_link": f"{settings.FRONTEND_URL}/listings/{listing.id}",
+                    "shop_link": f"{settings.FRONTEND_URL}/shops/{listing.owner_id}",
+                    "share_whatsapp_link": f"https://api.whatsapp.com/send?text={listing.title_en}%20{settings.FRONTEND_URL}/listings/{listing.id}",
+                    "share_facebook_link": f"https://www.facebook.com/sharer/sharer.php?u={settings.FRONTEND_URL}/listings/{listing.id}"
+                }
+            )
+    except Exception as e:
+        logger.warning(f"Failed to send listing approved marketing email: {e}")
+
     return {"status": "approved", "listing_id": listing.id, "approved_by_user_id": current_user.id}
 
 
@@ -1563,10 +1586,29 @@ async def reject_listing(
         import logging
         logging.getLogger("listings_api").warning(f"Failed to publish rejection event: {e}")
 
+    # Send listing rejected email via marketing automation
+    try:
+        seller = db.get(User, listing.owner_id)
+        if seller:
+            await marketing_service.send_event_email(
+                session=db,
+                user_id=listing.owner_id,
+                event_type=EmailEventType.LISTING_REJECTED,
+                context={
+                    "first_name": seller.full_name.split()[0] if seller.full_name else "Seller",
+                    "listing_title": listing.title_en or listing.title,
+                    "rejection_reason": rejection_req.reason,
+                    "support_email": "support@suqafuran.com",
+                    "support_link": f"{settings.FRONTEND_URL}/support"
+                }
+            )
+    except Exception as e:
+        logger.warning(f"Failed to send listing rejected marketing email: {e}")
+
     return {
         "status": "rejected",
         "listing_id": listing.id,
-        "reason": reason,
+        "reason": rejection_req.reason,
         "rejected_at": listing.rejected_at.isoformat() if listing.rejected_at else None
     }
 
