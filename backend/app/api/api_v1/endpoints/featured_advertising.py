@@ -215,7 +215,7 @@ async def get_featured_advertising_stats(
 
     # Get all placements
     all_placements = session.exec(select(Advertisement)).all()
-    active_placements = [p for p in all_placements if p.is_active and p.ends_at > datetime.utcnow()]
+    active_placements = [p for p in all_placements if p.status == AdvertisementStatus.ACTIVE and p.end_date > datetime.utcnow()]
 
     # Calculate revenue by type
     by_type = {}
@@ -223,7 +223,7 @@ async def get_featured_advertising_stats(
     for ptype in ["featured_product", "featured_shop", "homepage_banner", "category_featured"]:
         placements_of_type = [p for p in all_placements if p.placement_type == ptype]
         by_type[ptype] = len(placements_of_type)
-        by_type_revenue[ptype] = sum(p.price_kes for p in placements_of_type if p.is_paid)
+        by_type_revenue[ptype] = sum(p.amount or 0 for p in placements_of_type if p.status == AdvertisementStatus.ACTIVE)
 
     total_revenue = sum(by_type_revenue.values())
 
@@ -261,10 +261,10 @@ async def list_featured_placements(
             {
                 "seller_id": p.seller_id,
                 "placement_type": p.placement_type,
-                "days_remaining": max(0, (p.ends_at - datetime.utcnow()).days),
-                "price_kes": p.price_kes,
-                "starts_at": p.starts_at,
-                "ends_at": p.ends_at,
+                "days_remaining": max(0, (p.end_date - datetime.utcnow()).days),
+                "amount": p.amount or 0,
+                "start_date": p.start_date,
+                "end_date": p.end_date,
             }
             for p in placements
         ]
