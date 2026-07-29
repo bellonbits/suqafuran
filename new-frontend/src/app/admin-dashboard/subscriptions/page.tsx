@@ -103,18 +103,7 @@ export default function AdminSubscriptionsPage() {
       return;
     }
 
-    try {
-      const response = await api.get(`/admin/shops/search?q=${encodeURIComponent(query)}`);
-      if (response.data && response.data.length > 0) {
-        setShopSuggestions(response.data);
-        setShowShopSuggestions(true);
-        return;
-      }
-    } catch (error) {
-      console.error('Failed to search shops via API:', error);
-    }
-
-    // Fallback: Search in local subscriptions data
+    // Always search in local subscriptions data for instant suggestions
     const localSuggestions = subscriptions
       .map(sub => ({ id: sub.seller_id, name: sub.shop_name }))
       .filter(shop =>
@@ -124,6 +113,23 @@ export default function AdminSubscriptionsPage() {
 
     setShopSuggestions(localSuggestions);
     setShowShopSuggestions(localSuggestions.length > 0);
+
+    // Also try API as secondary source for additional results
+    try {
+      const response = await api.get(`/admin/shops/search?q=${encodeURIComponent(query)}`);
+      if (response.data && response.data.length > 0) {
+        // Combine API results with local suggestions (avoid duplicates)
+        const apiIds = new Set(response.data.map((shop: any) => shop.id));
+        const combined = [
+          ...localSuggestions.filter(s => !apiIds.has(s.id)),
+          ...response.data.slice(0, 10)
+        ].slice(0, 10);
+        setShopSuggestions(combined);
+      }
+    } catch (error) {
+      console.error('Failed to search shops via API:', error);
+      // Keep local suggestions if API fails
+    }
   };
 
   const handleSelectShop = (shopId: number, shopName: string) => {
