@@ -513,7 +513,7 @@ async def admin_apply_subscription(
 
 @router.get("/admin/shops/search")
 async def search_shops(
-    q: str = Query(..., min_length=1),
+    q: str = Query(),
     current_user = Depends(get_current_user),
     session: Session = Depends(get_db),
 ):
