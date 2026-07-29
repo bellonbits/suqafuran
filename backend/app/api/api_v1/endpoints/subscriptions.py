@@ -369,17 +369,22 @@ async def get_subscription_stats(
     if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Admin only")
 
-    # Get all subscriptions
+    # Get all subscriptions with plans
     all_subs = session.exec(select(SellerSubscription)).all()
     active_subs = [s for s in all_subs if s.is_active]
 
-    # Calculate stats
-    total_revenue = sum(
-        s.plan.monthly_price * 12 if s.billing_frequency == BillingFrequency.ANNUAL
-        else s.plan.monthly_price
-        for s in active_subs
-        if s.plan
-    )
+    # Calculate stats using plan_id
+    total_revenue = 0
+    monthly_revenue = 0
+    for s in active_subs:
+        if s.plan_id:
+            plan = session.get(SubscriptionPlan, s.plan_id)
+            if plan:
+                if s.billing_frequency == BillingFrequency.ANNUAL:
+                    total_revenue += plan.monthly_price * 12
+                else:
+                    total_revenue += plan.monthly_price
+                monthly_revenue += plan.monthly_price
 
     tier_distribution = {}
     for plan_name in ["free", "starter", "business", "enterprise"]:
@@ -393,9 +398,9 @@ async def get_subscription_stats(
     return {
         "total_subscriptions": len(all_subs),
         "active_subscriptions": len(active_subs),
-        "total_revenue_monthly": sum(s.plan.monthly_price for s in active_subs if s.plan),
+        "total_revenue_monthly": monthly_revenue,
         "total_revenue_annual": total_revenue,
-        "avg_arpu": sum(s.plan.monthly_price for s in active_subs if s.plan) / max(len(active_subs), 1),
+        "avg_arpu": monthly_revenue / max(len(active_subs), 1),
         "tier_distribution": tier_distribution,
         "trial_conversions": len([s for s in active_subs if s.trial_ends_at]),
         "churn_rate": len([s for s in all_subs if not s.is_active and s.cancelled_at]) / max(len(all_subs), 1) * 100,
@@ -421,11 +426,12 @@ async def list_all_subscriptions(
     result = []
     for s in subs:
         business = session.exec(select(Business).where(Business.owner_id == s.seller_id)).first()
+        plan = session.get(SubscriptionPlan, s.plan_id) if s.plan_id else None
         result.append({
             "seller_id": s.seller_id,
             "shop_name": business.name if business else "Unknown Shop",
-            "plan_name": s.plan.name if s.plan else "unknown",
-            "monthly_price": s.plan.monthly_price if s.plan else 0,
+            "plan_name": plan.name if plan else "unknown",
+            "monthly_price": plan.monthly_price if plan else 0,
             "status": s.status,
             "created_at": s.created_at,
             "trial_ends_at": s.trial_ends_at,
