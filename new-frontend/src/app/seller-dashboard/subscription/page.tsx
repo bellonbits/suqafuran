@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Check, Zap, Building2, Rocket, ChevronDown, ChevronUp,
+  Check, Zap, Building2, ChevronDown, ChevronUp,
   ShieldCheck, BarChart3, Tag, Package, TrendingUp, Palette,
-  Upload, Users, Headphones, Globe, Key, Phone, Loader, Crown
+  Upload, Users, Headphones, Phone, Loader, Crown
 } from 'lucide-react';
 import { SubscriptionCard } from '@/components/seller/SubscriptionCard';
 import { UpgradeModal } from '@/components/seller/UpgradeModal';
@@ -73,42 +73,19 @@ const PLANS = [
     ],
     color: 'orange',
   },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: 10000,
-    annualPrice: 100000,
-    tagline: 'For large businesses',
-    icon: Rocket,
-    highlighted: false,
-    badge: null,
-    trial: null,
-    ctaText: 'Contact Sales',
-    features: [
-      'Everything in Business',
-      'Unlimited products & storage',
-      'Staff accounts (10)',
-      'API access (ERP/POS sync)',
-      'Custom domain',
-      'Dedicated account manager',
-    ],
-    color: 'purple',
-  },
 ];
 
 const FEATURE_MATRIX = [
-  { label: 'Products', free: '20', starter: '200', business: 'Unlimited', enterprise: 'Unlimited', icon: Package },
-  { label: 'Analytics', free: '—', starter: '✓ Basic', business: '✓ Advanced', enterprise: '✓ Advanced', icon: BarChart3 },
-  { label: 'Verified Badge', free: '—', starter: '✓', business: '✓', enterprise: '✓', icon: ShieldCheck },
-  { label: 'Discount Codes', free: '—', starter: '✓', business: '✓', enterprise: '✓', icon: Tag },
-  { label: 'Priority Ranking', free: '—', starter: '—', business: '✓', enterprise: '✓', icon: TrendingUp },
-  { label: 'Custom Branding', free: '—', starter: '—', business: '✓', enterprise: '✓', icon: Palette },
-  { label: 'Bulk Import', free: '—', starter: '—', business: '✓', enterprise: '✓', icon: Upload },
-  { label: 'Staff Accounts', free: '—', starter: '—', business: '3', enterprise: '10', icon: Users },
-  { label: 'API Access', free: '—', starter: '—', business: '—', enterprise: '✓', icon: Key },
-  { label: 'Custom Domain', free: '—', starter: '—', business: '—', enterprise: '✓', icon: Globe },
-  { label: 'Support', free: 'Community', starter: 'Email 24h', business: 'Live chat 2–4h', enterprise: 'Dedicated 30–60m', icon: Headphones },
-  { label: 'Advertising Credits', free: '—', starter: '—', business: 'KSh 500/mo', enterprise: 'KSh 1,500/mo', icon: Crown },
+  { label: 'Products', free: '20', starter: '200', business: 'Unlimited', icon: Package },
+  { label: 'Analytics', free: '—', starter: '✓ Basic', business: '✓ Advanced', icon: BarChart3 },
+  { label: 'Verified Badge', free: '—', starter: '✓', business: '✓', icon: ShieldCheck },
+  { label: 'Discount Codes', free: '—', starter: '✓', business: '✓', icon: Tag },
+  { label: 'Priority Ranking', free: '—', starter: '—', business: '✓', icon: TrendingUp },
+  { label: 'Custom Branding', free: '—', starter: '—', business: '✓', icon: Palette },
+  { label: 'Bulk Import', free: '—', starter: '—', business: '✓', icon: Upload },
+  { label: 'Staff Accounts', free: '—', starter: '—', business: '3', icon: Users },
+  { label: 'Support', free: 'Community', starter: 'Email 24h', business: 'Live chat 2–4h', icon: Headphones },
+  { label: 'Advertising Credits', free: '—', starter: '—', business: 'KSh 500/mo', icon: Crown },
 ];
 
 const FAQS = [
@@ -124,7 +101,6 @@ const PLAN_COLOR_MAP: Record<string, { card: string; btn: string; badge: string 
   gray: { card: 'border-gray-200 dark:border-slate-800', btn: 'bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-white hover:bg-gray-200', badge: '' },
   blue: { card: 'border-blue-300 dark:border-blue-800', btn: 'bg-blue-600 hover:bg-blue-700 text-white', badge: 'bg-blue-100 text-blue-700' },
   orange: { card: 'border-orange-400 dark:border-orange-600 ring-2 ring-orange-400 dark:ring-orange-600', btn: 'bg-orange-600 hover:bg-orange-700 text-white', badge: 'bg-orange-100 text-orange-700' },
-  purple: { card: 'border-purple-300 dark:border-purple-800', btn: 'bg-purple-600 hover:bg-purple-700 text-white', badge: 'bg-purple-100 text-purple-700' },
 };
 
 function PricingCard({ plan, annual, onUpgrade, currentPlan }: { plan: typeof PLANS[0]; annual: boolean; onUpgrade: () => void; currentPlan: string }) {
@@ -145,7 +121,6 @@ function PricingCard({ plan, annual, onUpgrade, currentPlan }: { plan: typeof PL
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
           plan.color === 'orange' ? 'bg-orange-100 text-orange-600' :
           plan.color === 'blue' ? 'bg-blue-100 text-blue-600' :
-          plan.color === 'purple' ? 'bg-purple-100 text-purple-600' :
           'bg-gray-100 text-gray-600'
         }`}>
           <Icon className="w-5 h-5" />
