@@ -7,7 +7,9 @@ import { Card } from '@/components/ui/card';
 import { useAuthStore } from '@/store/useAuth';
 import api from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit2, Trash2, Play, Pause, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Edit2, Trash2, Play, Pause, Upload, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
+import { DashboardLayout } from '@/components/DashboardLayout';
+import { ADMIN_NAV_ITEMS } from '../../navigation';
 
 interface HomepageBanner {
   id: number;
@@ -29,6 +31,12 @@ interface HomepageBanner {
     clicks: number;
     ctr: number;
   };
+}
+
+interface Shop {
+  id: number;
+  business_name: string;
+  full_name: string;
 }
 
 export default function BannerManagementPage() {
@@ -135,24 +143,20 @@ export default function BannerManagementPage() {
   const currentBanner = activeBanners[currentSlide];
 
   if (!user?.is_admin) return null;
-  if (loading) return <div className="p-6">Loading...</div>;
 
-  return (
-    <div className="space-y-8">
+  const content = (
+    <div className="space-y-8 pb-8">
       {/* Hero Carousel Section */}
       {activeBanners.length > 0 && (
-        <div className="relative w-full h-96 md:h-[500px] bg-gray-900 overflow-hidden rounded-xl">
-          {/* Carousel Image */}
+        <div className="relative w-full h-96 md:h-[500px] bg-gray-900 overflow-hidden rounded-xl shadow-lg">
           <img
             src={currentBanner?.image_url}
             alt={currentBanner?.title}
             className="w-full h-full object-cover transition-opacity duration-500"
           />
 
-          {/* Dark Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
 
-          {/* Content Overlay */}
           <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-12 text-white">
             {currentBanner && (
               <div className="space-y-4 max-w-2xl">
@@ -177,7 +181,6 @@ export default function BannerManagementPage() {
             )}
           </div>
 
-          {/* Navigation Arrows */}
           {activeBanners.length > 1 && (
             <>
               <button
@@ -195,7 +198,6 @@ export default function BannerManagementPage() {
             </>
           )}
 
-          {/* Dot Indicators */}
           {activeBanners.length > 1 && (
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
               {activeBanners.map((_, idx) => (
@@ -203,9 +205,7 @@ export default function BannerManagementPage() {
                   key={idx}
                   onClick={() => setCurrentSlide(idx)}
                   className={`h-2 rounded-full transition-all ${
-                    idx === currentSlide
-                      ? 'bg-white w-8'
-                      : 'bg-white/50 w-2 hover:bg-white/75'
+                    idx === currentSlide ? 'bg-white w-8' : 'bg-white/50 w-2 hover:bg-white/75'
                   }`}
                 />
               ))}
@@ -215,202 +215,207 @@ export default function BannerManagementPage() {
       )}
 
       {/* Header Section */}
-      <div className="container mx-auto px-4 max-w-7xl">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Homepage Banners</h1>
-            <p className="text-gray-600 mt-1">Manage rotating premium homepage advertising placements</p>
-          </div>
-          <Button
-            onClick={() => setShowCreateForm(!showCreateForm)}
-            className="gap-2 bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-            Create Banner
-          </Button>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Homepage Banners</h1>
+          <p className="text-gray-600 mt-2">Manage rotating premium homepage advertising placements</p>
         </div>
+        <Button
+          onClick={() => setShowCreateForm(!showCreateForm)}
+          className="gap-2 bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
+        >
+          <Plus className="w-4 h-4" />
+          Create Banner
+        </Button>
       </div>
 
       {/* Create Form */}
       {showCreateForm && (
-        <div className="container mx-auto px-4 max-w-7xl">
-          <Card className="p-6 border-blue-200 bg-blue-50">
-            <CreateBannerForm
-              onSuccess={() => {
-                setShowCreateForm(false);
-                fetchBanners();
-              }}
-            />
-          </Card>
-        </div>
+        <Card className="p-6 border-blue-200 bg-blue-50">
+          <CreateBannerForm
+            onSuccess={() => {
+              setShowCreateForm(false);
+              fetchBanners();
+            }}
+          />
+        </Card>
       )}
 
       {/* Stats Overview */}
       {banners.length > 0 && (
-        <div className="container mx-auto px-4 max-w-7xl">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <StatCard
-              label="Total Banners"
-              value={banners.length}
-              subtext={`${activeBanners.length} active`}
-            />
-            <StatCard
-              label="Total Impressions"
-              value={banners.reduce((sum, b) => sum + (b.stats?.impressions || 0), 0).toLocaleString()}
-            />
-            <StatCard
-              label="Total Clicks"
-              value={banners.reduce((sum, b) => sum + (b.stats?.clicks || 0), 0).toLocaleString()}
-            />
-            <StatCard
-              label="Avg CTR"
-              value={`${(
-                banners.reduce((sum, b) => sum + (b.stats?.ctr || 0), 0) / (banners.length || 1)
-              ).toFixed(2)}%`}
-            />
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <StatCard
+            label="Total Banners"
+            value={banners.length}
+            subtext={`${activeBanners.length} active`}
+          />
+          <StatCard
+            label="Total Impressions"
+            value={banners.reduce((sum, b) => sum + (b.stats?.impressions || 0), 0).toLocaleString()}
+          />
+          <StatCard
+            label="Total Clicks"
+            value={banners.reduce((sum, b) => sum + (b.stats?.clicks || 0), 0).toLocaleString()}
+          />
+          <StatCard
+            label="Avg CTR"
+            value={`${(
+              banners.reduce((sum, b) => sum + (b.stats?.ctr || 0), 0) / (banners.length || 1)
+            ).toFixed(2)}%`}
+          />
         </div>
       )}
 
       {/* Banners Management */}
-      <div className="container mx-auto px-4 max-w-7xl">
-        {banners.length === 0 ? (
-          <Card className="p-12 text-center">
-            <p className="text-gray-600 mb-4">No banners yet</p>
-            <Button
-              onClick={() => setShowCreateForm(true)}
-              variant="outline"
-            >
-              Create the first banner
-            </Button>
-          </Card>
-        ) : (
+      {banners.length === 0 ? (
+        <Card className="p-12 text-center">
+          <p className="text-gray-600 mb-4">No banners yet</p>
+          <Button
+            onClick={() => setShowCreateForm(true)}
+            variant="outline"
+          >
+            Create the first banner
+          </Button>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-gray-900">All Banners</h2>
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900 mt-8">All Banners</h2>
-            <div className="grid gap-4">
-              {banners.map(banner => (
-                <Card key={banner.id} className="p-6 hover:shadow-lg transition-shadow">
-                  <div className="grid md:grid-cols-4 gap-6">
-                    {/* Thumbnail */}
-                    <div className="md:col-span-1">
-                      <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                        <img
-                          src={banner.image_url}
-                          alt={banner.title}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-semibold ${
-                          banner.status === 'active'
-                            ? 'bg-green-500 text-white'
-                            : banner.status === 'scheduled'
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-500 text-white'
-                        }`}>
-                          {banner.status.charAt(0).toUpperCase() + banner.status.slice(1)}
-                        </div>
+            {banners.map(banner => (
+              <Card key={banner.id} className="p-6 hover:shadow-lg transition-shadow">
+                <div className="grid md:grid-cols-4 gap-6">
+                  {/* Thumbnail */}
+                  <div className="md:col-span-1">
+                    <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                      <img
+                        src={banner.image_url}
+                        alt={banner.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-semibold ${
+                        banner.status === 'active'
+                          ? 'bg-green-500 text-white'
+                          : banner.status === 'scheduled'
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-500 text-white'
+                      }`}>
+                        {banner.status.charAt(0).toUpperCase() + banner.status.slice(1)}
                       </div>
                     </div>
+                  </div>
 
-                    {/* Details */}
-                    <div className="md:col-span-3 flex flex-col justify-between">
+                  {/* Details */}
+                  <div className="md:col-span-3 flex flex-col justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">{banner.title}</h3>
+                      {banner.subtitle && (
+                        <p className="text-sm text-gray-600 mt-1">{banner.subtitle}</p>
+                      )}
+                      <p className="text-sm text-blue-600 font-medium mt-2">{banner.button_text}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 py-4 border-t border-gray-200">
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900">{banner.title}</h3>
-                        {banner.subtitle && (
-                          <p className="text-sm text-gray-600 mt-1">{banner.subtitle}</p>
-                        )}
-                        <p className="text-sm text-blue-600 font-medium mt-2">{banner.button_text}</p>
+                        <p className="text-xs text-gray-500">Starts</p>
+                        <p className="font-semibold text-sm">{new Date(banner.start_date).toLocaleDateString()}</p>
                       </div>
-
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 py-4 border-t border-gray-200">
-                        <div>
-                          <p className="text-xs text-gray-500">Starts</p>
-                          <p className="font-semibold text-sm">{new Date(banner.start_date).toLocaleDateString()}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-500">Ends</p>
-                          <p className="font-semibold text-sm">{new Date(banner.end_date).toLocaleDateString()}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-500">Priority</p>
-                          <p className="font-semibold text-sm">{banner.priority}/100</p>
-                        </div>
-                        {banner.stats && (
-                          <div>
-                            <p className="text-xs text-gray-500">CTR</p>
-                            <p className="font-semibold text-sm">{banner.stats.ctr.toFixed(2)}%</p>
-                          </div>
-                        )}
+                      <div>
+                        <p className="text-xs text-gray-500">Ends</p>
+                        <p className="font-semibold text-sm">{new Date(banner.end_date).toLocaleDateString()}</p>
                       </div>
-
-                      {/* Analytics Cards */}
+                      <div>
+                        <p className="text-xs text-gray-500">Priority</p>
+                        <p className="font-semibold text-sm">{banner.priority}/100</p>
+                      </div>
                       {banner.stats && (
-                        <div className="grid grid-cols-3 gap-3 mt-4 bg-gray-50 p-3 rounded-lg">
-                          <div className="text-center">
-                            <p className="text-xs text-gray-600">Impressions</p>
-                            <p className="font-bold text-gray-900">{banner.stats.impressions.toLocaleString()}</p>
-                          </div>
-                          <div className="text-center border-l border-r border-gray-200">
-                            <p className="text-xs text-gray-600">Clicks</p>
-                            <p className="font-bold text-gray-900">{banner.stats.clicks.toLocaleString()}</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-xs text-gray-600">CTR</p>
-                            <p className="font-bold text-gray-900">{banner.stats.ctr.toFixed(2)}%</p>
-                          </div>
+                        <div>
+                          <p className="text-xs text-gray-500">CTR</p>
+                          <p className="font-semibold text-sm">{banner.stats.ctr.toFixed(2)}%</p>
                         </div>
                       )}
+                    </div>
 
-                      {/* Actions */}
-                      <div className="flex gap-2 flex-wrap mt-4">
-                        {banner.status === 'draft' && (
-                          <Button
-                            onClick={() => handlePublish(banner.id)}
-                            size="sm"
-                            className="gap-2 bg-green-600 hover:bg-green-700"
-                          >
-                            <Play className="w-4 h-4" />
-                            Publish
-                          </Button>
-                        )}
-                        {banner.status === 'active' && (
-                          <Button
-                            onClick={() => handlePause(banner.id)}
-                            variant="outline"
-                            size="sm"
-                            className="gap-2"
-                          >
-                            <Pause className="w-4 h-4" />
-                            Pause
-                          </Button>
-                        )}
+                    {banner.stats && (
+                      <div className="grid grid-cols-3 gap-3 mt-4 bg-gray-50 p-3 rounded-lg">
+                        <div className="text-center">
+                          <p className="text-xs text-gray-600">Impressions</p>
+                          <p className="font-bold text-gray-900">{banner.stats.impressions.toLocaleString()}</p>
+                        </div>
+                        <div className="text-center border-l border-r border-gray-200">
+                          <p className="text-xs text-gray-600">Clicks</p>
+                          <p className="font-bold text-gray-900">{banner.stats.clicks.toLocaleString()}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-gray-600">CTR</p>
+                          <p className="font-bold text-gray-900">{banner.stats.ctr.toFixed(2)}%</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex gap-2 flex-wrap mt-4">
+                      {banner.status === 'draft' && (
                         <Button
-                          onClick={() => router.push(`/admin/marketing/banners/${banner.id}`)}
+                          onClick={() => handlePublish(banner.id)}
+                          size="sm"
+                          className="gap-2 bg-green-600 hover:bg-green-700"
+                        >
+                          <Play className="w-4 h-4" />
+                          Publish
+                        </Button>
+                      )}
+                      {banner.status === 'active' && (
+                        <Button
+                          onClick={() => handlePause(banner.id)}
                           variant="outline"
                           size="sm"
                           className="gap-2"
                         >
-                          <Edit2 className="w-4 h-4" />
-                          Edit
+                          <Pause className="w-4 h-4" />
+                          Pause
                         </Button>
-                        <Button
-                          onClick={() => handleDelete(banner.id)}
-                          variant="ghost"
-                          size="sm"
-                          className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          Delete
-                        </Button>
-                      </div>
+                      )}
+                      <Button
+                        onClick={() => router.push(`/admin/marketing/banners/${banner.id}`)}
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                        Edit
+                      </Button>
+                      <Button
+                        onClick={() => handleDelete(banner.id)}
+                        variant="ghost"
+                        size="sm"
+                        className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </Button>
                     </div>
                   </div>
-                </Card>
-              ))}
-            </div>
+                </div>
+              </Card>
+            ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
+  );
+
+  if (loading) {
+    return (
+      <DashboardLayout navItems={ADMIN_NAV_ITEMS}>
+        <div className="p-6">Loading banners...</div>
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <DashboardLayout navItems={ADMIN_NAV_ITEMS}>
+      {content}
+    </DashboardLayout>
   );
 }
 
@@ -427,12 +432,18 @@ function StatCard({ label, value, subtext }: { label: string; value: string | nu
 function CreateBannerForm({ onSuccess }: { onSuccess: () => void }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [shopSearchQuery, setShopSearchQuery] = useState('');
+  const [shopSuggestions, setShopSuggestions] = useState<Shop[]>([]);
+  const [showShopDropdown, setShowShopDropdown] = useState(false);
+  const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
+  const [desktopImageFile, setDesktopImageFile] = useState<File | null>(null);
+  const [desktopImagePreview, setDesktopImagePreview] = useState<string>('');
+  const [mobileImageFile, setMobileImageFile] = useState<File | null>(null);
+  const [mobileImagePreview, setMobileImagePreview] = useState<string>('');
+
   const [formData, setFormData] = useState({
-    shop_id: '',
     title: '',
     subtitle: '',
-    image_url: '',
-    mobile_image_url: '',
     button_text: 'Shop Now',
     button_link: '',
     start_date: new Date().toISOString().split('T')[0],
@@ -440,17 +451,103 @@ function CreateBannerForm({ onSuccess }: { onSuccess: () => void }) {
     priority: '50',
   });
 
+  const handleShopSearch = async (query: string) => {
+    setShopSearchQuery(query);
+    if (!query) {
+      setShopSuggestions([]);
+      setShowShopDropdown(false);
+      return;
+    }
+
+    try {
+      const res = await api.get(`/admin/shops/search?q=${query}`);
+      setShopSuggestions(res.data);
+      setShowShopDropdown(true);
+    } catch (error) {
+      console.error('Failed to search shops:', error);
+    }
+  };
+
+  const handleSelectShop = (shop: Shop) => {
+    setSelectedShop(shop);
+    setShopSearchQuery(shop.business_name);
+    setShowShopDropdown(false);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, isMobile: boolean) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (isMobile) {
+      setMobileImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setMobileImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setDesktopImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setDesktopImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const formDataObj = new FormData();
+    formDataObj.append('file', file);
+
+    try {
+      const res = await api.post('/users/me/avatar', formDataObj);
+      return res.data.avatar_url;
+    } catch (error) {
+      throw new Error('Failed to upload image');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!selectedShop) {
+      toast({
+        title: 'Error',
+        description: 'Please select a shop',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!desktopImageFile) {
+      toast({
+        title: 'Error',
+        description: 'Please upload a desktop image',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const desktopImageUrl = await uploadImage(desktopImageFile);
+      let mobileImageUrl = '';
+      if (mobileImageFile) {
+        mobileImageUrl = await uploadImage(mobileImageFile);
+      }
+
       await api.post('/admin/advertising/banners', {
-        ...formData,
-        shop_id: parseInt(formData.shop_id),
-        priority: parseInt(formData.priority),
+        shop_id: selectedShop.id,
+        title: formData.title,
+        subtitle: formData.subtitle,
+        image_url: desktopImageUrl,
+        mobile_image_url: mobileImageUrl,
+        button_text: formData.button_text,
+        button_link: formData.button_link,
         start_date: new Date(formData.start_date).toISOString(),
         end_date: new Date(formData.end_date).toISOString(),
+        priority: parseInt(formData.priority),
       });
 
       toast({
@@ -463,7 +560,7 @@ function CreateBannerForm({ onSuccess }: { onSuccess: () => void }) {
     } catch (error: any) {
       toast({
         title: 'Error',
-        description: error.response?.data?.detail || 'Failed to create banner',
+        description: error.response?.data?.detail || error.message || 'Failed to create banner',
         variant: 'destructive',
       });
     } finally {
@@ -472,23 +569,63 @@ function CreateBannerForm({ onSuccess }: { onSuccess: () => void }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <h3 className="text-lg font-semibold text-gray-900">Create New Banner</h3>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">Shop ID</label>
-        <input
-          type="number"
-          required
-          value={formData.shop_id}
-          onChange={(e) => setFormData({ ...formData, shop_id: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-        />
+      {/* Shop Selection */}
+      <div className="relative">
+        <label className="block text-sm font-medium text-gray-900 mb-2">Shop *</label>
+        <div className="relative">
+          <div className="relative flex items-center">
+            <Search className="absolute left-3 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search and select shop..."
+              value={shopSearchQuery}
+              onChange={(e) => handleShopSearch(e.target.value)}
+              onFocus={() => shopSuggestions.length > 0 && setShowShopDropdown(true)}
+              onBlur={() => setTimeout(() => setShowShopDropdown(false), 200)}
+              className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+            {selectedShop && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedShop(null);
+                  setShopSearchQuery('');
+                }}
+                className="absolute right-3 text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {showShopDropdown && shopSuggestions.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+              {shopSuggestions.map(shop => (
+                <button
+                  key={shop.id}
+                  type="button"
+                  onClick={() => handleSelectShop(shop)}
+                  className="w-full text-left px-4 py-3 hover:bg-blue-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                >
+                  <p className="font-medium text-gray-900">{shop.business_name}</p>
+                  <p className="text-xs text-gray-500">{shop.full_name}</p>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        {selectedShop && (
+          <p className="text-sm text-green-600 mt-1">✓ {selectedShop.business_name} selected</p>
+        )}
       </div>
 
+      {/* Title and Subtitle */}
       <div className="grid md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-1">Title *</label>
+          <label className="block text-sm font-medium text-gray-900 mb-2">Title *</label>
           <input
             type="text"
             required
@@ -499,7 +636,7 @@ function CreateBannerForm({ onSuccess }: { onSuccess: () => void }) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-1">Subtitle</label>
+          <label className="block text-sm font-medium text-gray-900 mb-2">Subtitle</label>
           <input
             type="text"
             placeholder="e.g., Up to 50% off selected items"
@@ -510,33 +647,59 @@ function CreateBannerForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
       </div>
 
+      {/* Image Uploads */}
       <div className="grid md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-1">Desktop Image URL *</label>
-          <input
-            type="url"
-            required
-            placeholder="https://example.com/banner.jpg"
-            value={formData.image_url}
-            onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          />
+          <label className="block text-sm font-medium text-gray-900 mb-2">Desktop Image *</label>
+          <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition-colors">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleImageChange(e, false)}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            {desktopImagePreview ? (
+              <div className="space-y-2">
+                <img src={desktopImagePreview} alt="Desktop preview" className="w-full h-32 object-cover rounded" />
+                <p className="text-xs text-green-600">✓ Image selected</p>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-600">Click to upload or drag and drop</p>
+              </div>
+            )}
+          </div>
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-1">Mobile Image URL</label>
-          <input
-            type="url"
-            placeholder="https://example.com/banner-mobile.jpg"
-            value={formData.mobile_image_url}
-            onChange={(e) => setFormData({ ...formData, mobile_image_url: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          />
+          <label className="block text-sm font-medium text-gray-900 mb-2">Mobile Image</label>
+          <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition-colors">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleImageChange(e, true)}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            {mobileImagePreview ? (
+              <div className="space-y-2">
+                <img src={mobileImagePreview} alt="Mobile preview" className="w-full h-32 object-cover rounded" />
+                <p className="text-xs text-green-600">✓ Image selected</p>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-600">Click to upload or drag and drop</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
+      {/* Button and Link */}
       <div className="grid md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-1">Button Text</label>
+          <label className="block text-sm font-medium text-gray-900 mb-2">Button Text</label>
           <input
             type="text"
             value={formData.button_text}
@@ -545,7 +708,7 @@ function CreateBannerForm({ onSuccess }: { onSuccess: () => void }) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-1">Button Link *</label>
+          <label className="block text-sm font-medium text-gray-900 mb-2">Button Link *</label>
           <input
             type="url"
             required
@@ -557,9 +720,10 @@ function CreateBannerForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
       </div>
 
+      {/* Dates and Priority */}
       <div className="grid md:grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-1">Start Date *</label>
+          <label className="block text-sm font-medium text-gray-900 mb-2">Start Date *</label>
           <input
             type="date"
             required
@@ -569,7 +733,7 @@ function CreateBannerForm({ onSuccess }: { onSuccess: () => void }) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-1">End Date *</label>
+          <label className="block text-sm font-medium text-gray-900 mb-2">End Date *</label>
           <input
             type="date"
             required
@@ -579,7 +743,7 @@ function CreateBannerForm({ onSuccess }: { onSuccess: () => void }) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-1">Priority (1-100)</label>
+          <label className="block text-sm font-medium text-gray-900 mb-2">Priority (1-100)</label>
           <input
             type="number"
             min="1"
@@ -591,9 +755,10 @@ function CreateBannerForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
       </div>
 
+      {/* Submit Button */}
       <div className="flex gap-2 pt-4">
         <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700">
-          {loading ? 'Creating...' : 'Create Banner'}
+          {loading ? 'Creating Banner...' : 'Create Banner'}
         </Button>
       </div>
     </form>
