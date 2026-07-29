@@ -420,22 +420,27 @@ async def list_all_subscriptions(
 
     from app.models.business import Business
     from app.models.user import User
+    from app.models.seller_profile import SellerProfile
 
     subs = session.exec(select(SellerSubscription)).all()
 
     result = []
     for s in subs:
-        business = session.exec(select(Business).where(Business.owner_id == s.seller_id)).first()
         plan = session.get(SubscriptionPlan, s.plan_id) if s.plan_id else None
 
-        # Get shop name from Business, fallback to User full_name
+        # Get shop name from SellerProfile > Business > User full_name
         shop_name = "Unknown Shop"
-        if business:
-            shop_name = business.name
+        seller_profile = session.exec(select(SellerProfile).where(SellerProfile.seller_id == s.seller_id)).first()
+        if seller_profile and seller_profile.shop_name:
+            shop_name = seller_profile.shop_name
         else:
-            user = session.get(User, s.seller_id)
-            if user and user.full_name:
-                shop_name = user.full_name
+            business = session.exec(select(Business).where(Business.owner_id == s.seller_id)).first()
+            if business:
+                shop_name = business.name
+            else:
+                user = session.get(User, s.seller_id)
+                if user and user.full_name:
+                    shop_name = user.full_name
 
         result.append({
             "seller_id": s.seller_id,
