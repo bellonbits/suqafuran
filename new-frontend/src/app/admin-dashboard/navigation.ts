@@ -24,7 +24,7 @@ export const ADMIN_NAV_ITEMS = [
   { label: 'Unusual Accounts', icon: AlertCircle, href: '/admin-unusual-accounts' },
   { label: 'Marketing', icon: BarChart3, href: '/admin-marketing' },
   { label: 'Reports', icon: FileText, href: '/admin-reports' },
-  { label: 'Analytics', icon: BarChart3, href: '/admin-analytics' },
+  { label: 'Analytics', icon: TrendingUp, href: '/admin-dashboard/analytics' },
   { label: 'Subscriptions', icon: CreditCard, href: '/admin-dashboard/subscriptions' },
   { label: 'Featured Ads', icon: Star, href: '/admin-dashboard/featured-ads' },
 ];
