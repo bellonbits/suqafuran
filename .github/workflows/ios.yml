@@ -51,8 +51,8 @@ jobs:
             npx cap add ios
           fi
 
-      - name: Capacitor copy (not sync for server mode)
-        run: npx cap copy ios
+      - name: Capacitor sync
+        run: npx cap sync ios
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
