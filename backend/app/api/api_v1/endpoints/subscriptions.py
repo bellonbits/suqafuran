@@ -413,22 +413,26 @@ async def list_all_subscriptions(
     if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Admin only")
 
+    from app.models.business import Business
+    from sqlmodel import join
+
     subs = session.exec(select(SellerSubscription)).all()
 
-    return {
-        "subscriptions": [
-            {
-                "seller_id": s.seller_id,
-                "plan_name": s.plan.name if s.plan else "unknown",
-                "monthly_price": s.plan.monthly_price if s.plan else 0,
-                "status": s.status,
-                "created_at": s.created_at,
-                "trial_ends_at": s.trial_ends_at,
-                "renews_at": s.renews_at,
-            }
-            for s in subs
-        ]
-    }
+    result = []
+    for s in subs:
+        business = session.exec(select(Business).where(Business.owner_id == s.seller_id)).first()
+        result.append({
+            "seller_id": s.seller_id,
+            "shop_name": business.name if business else "Unknown Shop",
+            "plan_name": s.plan.name if s.plan else "unknown",
+            "monthly_price": s.plan.monthly_price if s.plan else 0,
+            "status": s.status,
+            "created_at": s.created_at,
+            "trial_ends_at": s.trial_ends_at,
+            "renews_at": s.renews_at,
+        })
+
+    return {"subscriptions": result}
 
 
 @router.post("/admin/apply")
@@ -489,6 +493,36 @@ async def admin_apply_subscription(
         "plan": plan.display_name,
         "renews_at": subscription.renews_at,
     }
+
+
+@router.get("/admin/shops/search")
+async def search_shops(
+    q: str,
+    current_user = Depends(get_current_user),
+    session: Session = Depends(get_db),
+):
+    """Search shops by name for admin subscription assignment."""
+
+    # Verify admin
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin only")
+
+    from app.models.business import Business
+    from sqlalchemy import func
+
+    shops = session.exec(
+        select(Business).where(
+            func.lower(Business.name).contains(q.lower())
+        ).limit(10)
+    ).all()
+
+    return [
+        {
+            "id": shop.owner_id,
+            "name": shop.name,
+        }
+        for shop in shops
+    ]
 
 
 @router.post("/sellers/{seller_id}/verification/auto-verify")

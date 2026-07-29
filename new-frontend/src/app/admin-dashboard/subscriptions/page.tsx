@@ -31,6 +31,7 @@ interface SubscriptionStats {
 
 interface RecentSubscription {
   seller_id: number;
+  shop_name: string;
   plan_name: string;
   monthly_price: number;
   status: string;
@@ -54,9 +55,12 @@ export default function AdminSubscriptionsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPlan, setFilterPlan] = useState('all');
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [manualShopName, setManualShopName] = useState('');
   const [manualSellerId, setManualSellerId] = useState('');
   const [manualPlanId, setManualPlanId] = useState('');
   const [manualLoading, setManualLoading] = useState(false);
+  const [shopSuggestions, setShopSuggestions] = useState<Array<{id: number, name: string}>>([]);
+  const [showShopSuggestions, setShowShopSuggestions] = useState(false);
 
   const navItems = ADMIN_NAV_ITEMS.map(item => ({
     ...item,
@@ -92,11 +96,32 @@ export default function AdminSubscriptionsPage() {
     fetchData();
   }, [toast]);
 
+  const handleShopSearch = async (query: string) => {
+    setManualShopName(query);
+    if (query.length < 2) {
+      setShopSuggestions([]);
+      return;
+    }
+    try {
+      const response = await api.get(`/admin/shops/search?q=${encodeURIComponent(query)}`);
+      setShopSuggestions(response.data || []);
+      setShowShopSuggestions(true);
+    } catch (error) {
+      console.error('Failed to search shops:', error);
+    }
+  };
+
+  const handleSelectShop = (shopId: number, shopName: string) => {
+    setManualSellerId(shopId.toString());
+    setManualShopName(shopName);
+    setShowShopSuggestions(false);
+  };
+
   const handleApplySubscription = async () => {
     if (!manualSellerId || !manualPlanId) {
       toast({
         title: 'Missing Information',
-        description: 'Please enter seller ID and select a plan',
+        description: 'Please select a shop and select a plan',
         variant: 'destructive',
       });
       return;
@@ -112,10 +137,11 @@ export default function AdminSubscriptionsPage() {
 
       toast({
         title: 'Success',
-        description: `Subscription applied to seller ${manualSellerId}`,
+        description: `Subscription applied to ${manualShopName}`,
         variant: 'default',
       });
 
+      setManualShopName('');
       setManualSellerId('');
       setManualPlanId(plans.length > 0 ? plans[0].id.toString() : '');
 
@@ -136,7 +162,7 @@ export default function AdminSubscriptionsPage() {
   if (loading) return <div className="p-6">Loading...</div>;
 
   const filteredSubs = subscriptions.filter(sub => {
-    const matchesSearch = sub.seller_id.toString().includes(searchTerm) ||
+    const matchesSearch = sub.shop_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       sub.plan_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPlan = filterPlan === 'all' || sub.plan_name === filterPlan;
     return matchesSearch && matchesPlan;
@@ -224,17 +250,31 @@ export default function AdminSubscriptionsPage() {
           <p className="text-sm text-gray-600">Apply subscription to seller when payment fails or for promotional grants</p>
 
           <div className="grid md:grid-cols-3 gap-4">
-            <div>
+            <div className="relative">
               <label className="block text-sm font-medium text-gray-900 mb-2">
-                Seller ID
+                Shop Name
               </label>
               <input
-                type="number"
-                placeholder="Enter seller ID"
-                value={manualSellerId}
-                onChange={(e) => setManualSellerId(e.target.value)}
+                type="text"
+                placeholder="Search shop name..."
+                value={manualShopName}
+                onChange={(e) => handleShopSearch(e.target.value)}
+                onFocus={() => manualShopName && setShowShopSuggestions(true)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
               />
+              {showShopSuggestions && shopSuggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+                  {shopSuggestions.map(shop => (
+                    <button
+                      key={shop.id}
+                      onClick={() => handleSelectShop(shop.id, shop.name)}
+                      className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
+                    >
+                      {shop.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-900 mb-2">
@@ -275,7 +315,7 @@ export default function AdminSubscriptionsPage() {
                 <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search seller ID or plan..."
+                  placeholder="Search shop name or plan..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -300,7 +340,7 @@ export default function AdminSubscriptionsPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="px-4 py-3 text-left font-semibold">Seller ID</th>
+                  <th className="px-4 py-3 text-left font-semibold">Shop Name</th>
                   <th className="px-4 py-3 text-left font-semibold">Plan</th>
                   <th className="px-4 py-3 text-left font-semibold">Monthly Price</th>
                   <th className="px-4 py-3 text-left font-semibold">Status</th>
@@ -312,7 +352,7 @@ export default function AdminSubscriptionsPage() {
                 {filteredSubs.length > 0 ? (
                   filteredSubs.map(sub => (
                     <tr key={sub.seller_id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium">{sub.seller_id}</td>
+                      <td className="px-4 py-3 font-medium">{sub.shop_name}</td>
                       <td className="px-4 py-3">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                           sub.plan_name === 'free' ? 'bg-gray-100 text-gray-800' :
