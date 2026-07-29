@@ -22,17 +22,6 @@ interface Category {
   active_listing_count?: number;
 }
 
-// ─── Promotional Banner ────────────────────────────────────────────────────
-  id: number;
-  title: string;
-  subtitle: string | null;
-  image_url: string;
-  button_text: string;
-  button_link: string;
-  status: string;
-  priority: number;
-}
-
 // ─── Category Stickers Icon Mapping ──────────────────────────────────────────
 const CATEGORY_ICONS: Record<string, string> = {
   'food-groceries':      '/icons/fruits.png',

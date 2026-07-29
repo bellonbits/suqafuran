@@ -419,3 +419,10 @@ export default function BannerManagementPage() {
       )}
     </div>
   );
+
+  return (
+    <DashboardLayout navItems={ADMIN_NAV_ITEMS}>
+      {content}
+    </DashboardLayout>
+  );
+}
