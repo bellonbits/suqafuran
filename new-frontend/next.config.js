@@ -1,7 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // For Capacitor, we use a web server approach
-  // The .next/standalone folder can be served via a local HTTP server
   eslint: {
     ignoreDuringBuilds: true,
   },

@@ -5,8 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Suqafuran',
   webDir: 'new-frontend/public',
   server: {
-    url: 'http://192.168.100.25:3000', // Your Mac's IP - change if it changes
-    cleartext: true,
+    url: 'https://suqafuran.com', // Production frontend server
     androidScheme: 'https',
     iosScheme: 'https',
   },

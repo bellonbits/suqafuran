@@ -33,18 +33,24 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: new-frontend/package-lock.json
 
       - name: Install JS dependencies
+        working-directory: new-frontend
         run: npm ci
 
-      - name: Clean build cache
-        run: rm -rf .next .turbo dist
-
       - name: Build web app
+        working-directory: new-frontend
         run: npm run build
 
-      - name: Capacitor sync
-        run: npx cap sync ios
+      - name: Capacitor add iOS (if needed)
+        run: |
+          if [ ! -d "ios" ]; then
+            npx cap add ios
+          fi
+
+      - name: Capacitor copy (not sync for server mode)
+        run: npx cap copy ios
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
