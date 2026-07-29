@@ -294,7 +294,7 @@ export default function SubscriptionPage() {
                       <Icon className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
                       {row.label}
                     </td>
-                    {[row.free, row.starter, row.business, row.enterprise].map((val, idx) => (
+                    {[row.free, row.starter, row.business].map((val, idx) => (
                       <td key={idx} className={`text-center py-3.5 px-4 text-xs font-semibold ${
                         val === '—' ? 'text-gray-300 dark:text-slate-600' :
                         val.startsWith('✓') ? 'text-green-600 dark:text-green-400' :
