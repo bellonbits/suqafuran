@@ -1,160 +1,133 @@
-from datetime import datetime
-from typing import Any, Optional, List
+"""Marketing automation endpoints."""
+
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select
-from pydantic import BaseModel
+from sqlmodel import Session
 
-from app.api import deps
-from app.models.marketing_code import MarketingCode
+from app.db.session import get_db
+from app.api.deps import get_current_user
 from app.models.user import User
+from app.models.marketing import EmailPreference, SavedSearch, UserLifecycleStage
+from app.services.marketing_service import marketing_service
+from app.core.logging_config import get_logger
 
-router = APIRouter()
+logger = get_logger("marketing_api")
 
-
-# ── Schemas ────────────────────────────────────────────────────────────────────
-
-class MarketingCodeCreate(BaseModel):
-    code: str
-    description: str = ""
-    created_by: str = ""
-    max_uses: Optional[int] = None
-    expires_at: Optional[datetime] = None
+router = APIRouter(prefix="/marketing", tags=["marketing"])
 
 
-class MarketingCodeUpdate(BaseModel):
-    description: Optional[str] = None
-    max_uses: Optional[int] = None
-    is_active: Optional[bool] = None
-    expires_at: Optional[datetime] = None
+@router.get("/email-preferences")
+async def get_email_preferences(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_db),
+):
+    """Get user's email preferences."""
+    preference = session.query(EmailPreference).filter(
+        EmailPreference.user_id == current_user.id
+    ).first()
+    
+    if not preference:
+        # Create default preferences
+        preference = EmailPreference(user_id=current_user.id)
+        session.add(preference)
+        session.commit()
+    
+    return preference
 
 
-class MarketingCodeOut(BaseModel):
-    id: int
-    code: str
-    description: str
-    created_by: str
-    max_uses: Optional[int]
-    uses_count: int
-    ads_posted_count: int
-    conversion_rate: float        # ads_posted_count / uses_count (0 if uses_count == 0)
-    is_active: bool
-    expires_at: Optional[datetime]
-    created_at: datetime
-    is_expired: bool
+@router.put("/email-preferences")
+async def update_email_preferences(
+    data: dict,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_db),
+):
+    """Update user's email preferences."""
+    preference = session.query(EmailPreference).filter(
+        EmailPreference.user_id == current_user.id
+    ).first()
+    
+    if not preference:
+        preference = EmailPreference(user_id=current_user.id)
+        session.add(preference)
+    
+    # Update fields
+    for key, value in data.items():
+        if hasattr(preference, key):
+            setattr(preference, key, value)
+    
+    session.add(preference)
+    session.commit()
+    
+    return {"status": "preferences updated"}
 
 
-def _to_out(mc: MarketingCode) -> MarketingCodeOut:
-    now = datetime.utcnow()
-    is_expired = bool(mc.expires_at and mc.expires_at < now)
-    conversion = round(mc.ads_posted_count / mc.uses_count, 2) if mc.uses_count else 0.0
-    return MarketingCodeOut(
-        id=mc.id,
-        code=mc.code,
-        description=mc.description,
-        created_by=mc.created_by,
-        max_uses=mc.max_uses,
-        uses_count=mc.uses_count,
-        ads_posted_count=mc.ads_posted_count,
-        conversion_rate=conversion,
-        is_active=mc.is_active,
-        expires_at=mc.expires_at,
-        created_at=mc.created_at,
-        is_expired=is_expired,
+@router.post("/saved-search")
+async def create_saved_search(
+    data: dict,  # { "search_query": "iPhone", "category_id": 1, "min_price": 10000, "max_price": 50000 }
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_db),
+):
+    """Save a search for future email alerts."""
+    saved_search = SavedSearch(
+        user_id=current_user.id,
+        search_query=data.get("search_query"),
+        category_id=data.get("category_id"),
+        min_price=data.get("min_price"),
+        max_price=data.get("max_price"),
+        location=data.get("location"),
     )
+    session.add(saved_search)
+    session.commit()
+    
+    logger.info(f"User {current_user.id} saved search: {data.get('search_query')}")
+    
+    return {"id": saved_search.id, "status": "saved"}
 
 
-# ── Admin endpoints (require is_admin) ─────────────────────────────────────────
-
-@router.post("/codes", response_model=MarketingCodeOut)
-def create_code(
-    payload: MarketingCodeCreate,
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user),
-) -> Any:
-    if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin only")
-    code_val = payload.code.strip().upper()
-    if not code_val:
-        raise HTTPException(status_code=400, detail="Code cannot be empty")
-    existing = db.exec(select(MarketingCode).where(MarketingCode.code == code_val)).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Code already exists")
-    mc = MarketingCode(
-        code=code_val,
-        description=payload.description,
-        created_by=payload.created_by or current_user.full_name or current_user.email,
-        max_uses=payload.max_uses,
-        expires_at=payload.expires_at,
-    )
-    db.add(mc)
-    db.commit()
-    db.refresh(mc)
-    return _to_out(mc)
+@router.get("/saved-searches")
+async def get_saved_searches(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_db),
+):
+    """Get user's saved searches."""
+    searches = session.query(SavedSearch).filter(
+        SavedSearch.user_id == current_user.id
+    ).all()
+    
+    return searches
 
 
-@router.get("/codes", response_model=List[MarketingCodeOut])
-def list_codes(
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user),
-) -> Any:
-    if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin only")
-    codes = db.exec(select(MarketingCode).order_by(MarketingCode.created_at.desc())).all()
-    return [_to_out(c) for c in codes]
+@router.delete("/saved-search/{search_id}")
+async def delete_saved_search(
+    search_id: int,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_db),
+):
+    """Delete a saved search."""
+    search = session.query(SavedSearch).filter(
+        SavedSearch.id == search_id,
+        SavedSearch.user_id == current_user.id
+    ).first()
+    
+    if not search:
+        raise HTTPException(status_code=404, detail="Saved search not found")
+    
+    session.delete(search)
+    session.commit()
+    
+    return {"status": "deleted"}
 
 
-@router.patch("/codes/{code_id}", response_model=MarketingCodeOut)
-def update_code(
-    code_id: int,
-    payload: MarketingCodeUpdate,
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user),
-) -> Any:
-    if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin only")
-    mc = db.get(MarketingCode, code_id)
-    if not mc:
-        raise HTTPException(status_code=404, detail="Code not found")
-    if payload.description is not None:
-        mc.description = payload.description
-    if payload.max_uses is not None:
-        mc.max_uses = payload.max_uses
-    if payload.is_active is not None:
-        mc.is_active = payload.is_active
-    if payload.expires_at is not None:
-        mc.expires_at = payload.expires_at
-    db.add(mc)
-    db.commit()
-    db.refresh(mc)
-    return _to_out(mc)
-
-
-@router.delete("/codes/{code_id}", response_model=dict)
-def deactivate_code(
-    code_id: int,
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user),
-) -> Any:
-    if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin only")
-    mc = db.get(MarketingCode, code_id)
-    if not mc:
-        raise HTTPException(status_code=404, detail="Code not found")
-    mc.is_active = False
-    db.add(mc)
-    db.commit()
-    return {"success": True}
-
-
-# ── Public validate endpoint (used by signup form) ─────────────────────────────
-
-@router.get("/validate/{code}")
-def validate_code(code: str, db: Session = Depends(deps.get_db)) -> Any:
-    mc = db.exec(select(MarketingCode).where(MarketingCode.code == code.strip().upper())).first()
-    if not mc or not mc.is_active:
-        return {"valid": False, "reason": "Invalid or inactive code"}
-    if mc.expires_at and mc.expires_at < datetime.utcnow():
-        return {"valid": False, "reason": "This code has expired"}
-    if mc.max_uses is not None and mc.uses_count >= mc.max_uses:
-        return {"valid": False, "reason": "This code has reached its usage limit"}
-    return {"valid": True, "code": mc.code, "description": mc.description}
+@router.get("/user-lifecycle")
+async def get_user_lifecycle(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_db),
+):
+    """Get user's lifecycle stage and stats."""
+    lifecycle = session.query(UserLifecycleStage).filter(
+        UserLifecycleStage.user_id == current_user.id
+    ).first()
+    
+    if not lifecycle:
+        return {"stage": "signup", "days_since_signup": 0}
+    
+    return lifecycle

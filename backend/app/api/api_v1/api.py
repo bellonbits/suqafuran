@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.api_v1.endpoints import auth, users, listings, admin, favorites, notifications, dashboard, verifications, wallet, boosts, interactions, meetings, deals, trust_ops, promotions, login, mobile_money, audit, kh, messages, translate, feedback, follows, content, ai, marketing, support, verification_check, seo, businesses, addresses, payments, sellers, diagnostics, analytics, analytics_tracking, bulk_products, delivery_zones, reviews, campaigns, seller_profile, seller_settings, conversations, reports, subcategories, attributes, category_attributes, search, offers, price_alerts, saved_searches, notification_preferences, chat_ws, subscriptions, featured_advertising, discount_codes, analytics_sellers, notifications_ws, advertising, admin_advertising, advertising_public
+from app.api.api_v1.endpoints import marketing, auth, users, listings, admin, favorites, notifications, dashboard, verifications, wallet, boosts, interactions, meetings, deals, trust_ops, promotions, login, mobile_money, audit, kh, messages, translate, feedback, follows, content, ai, marketing, support, verification_check, seo, businesses, addresses, payments, sellers, diagnostics, analytics, analytics_tracking, bulk_products, delivery_zones, reviews, campaigns, seller_profile, seller_settings, conversations, reports, subcategories, attributes, category_attributes, search, offers, price_alerts, saved_searches, notification_preferences, chat_ws, subscriptions, featured_advertising, discount_codes, analytics_sellers, notifications_ws, advertising, admin_advertising, advertising_public
 from app.api.api_v1.admin import monitoring_router
 
 # Import Phase 4 routers from root routers directory
@@ -43,6 +43,7 @@ api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(listings.router, prefix="/listings", tags=["listings"])
 
 # Shop Subscription Features (must come before admin to match /admin/shops/search before /admin/shops/{shop_id})
+api_router.include_router(marketing.router, tags=['marketing'])
 api_router.include_router(subscriptions.router, tags=["subscriptions"])
 
 api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
