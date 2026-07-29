@@ -44,4 +44,51 @@ celery_app.conf.task_routes = {
 # Configure queues
 celery_app.conf.task_queues = [
     Queue("notifications", routing_key="notification.*"),
+    Queue("marketing", routing_key="marketing.*"),
 ]
+
+# Configure periodic tasks (Celery Beat)
+celery_app.conf.beat_schedule = {
+    # Send daily digest emails at 8 AM UTC
+    'send-daily-digest': {
+        'task': 'app.services.marketing_tasks.send_daily_digest_task',
+        'schedule': 86400.0,  # Every 24 hours
+        'options': {'queue': 'marketing', 'routing_key': 'marketing.digest'},
+        'kwargs': {}
+    },
+    # Send weekly digest emails every Monday at 8 AM UTC
+    'send-weekly-digest': {
+        'task': 'app.services.marketing_tasks.send_weekly_digest_task',
+        'schedule': 604800.0,  # Every 7 days
+        'options': {'queue': 'marketing', 'routing_key': 'marketing.digest'},
+        'kwargs': {}
+    },
+    # Check abandoned listings every 6 hours
+    'check-abandoned-listings': {
+        'task': 'app.services.marketing_tasks.check_abandoned_listings_task',
+        'schedule': 21600.0,  # Every 6 hours
+        'options': {'queue': 'marketing', 'routing_key': 'marketing.engagement'},
+        'kwargs': {}
+    },
+    # Check inactive sellers every 12 hours
+    'check-inactive-sellers': {
+        'task': 'app.services.marketing_tasks.check_inactive_sellers_task',
+        'schedule': 43200.0,  # Every 12 hours
+        'options': {'queue': 'marketing', 'routing_key': 'marketing.engagement'},
+        'kwargs': {}
+    },
+    # Check saved searches for new listings every 4 hours
+    'check-saved-searches': {
+        'task': 'app.services.marketing_tasks.check_saved_searches_task',
+        'schedule': 14400.0,  # Every 4 hours
+        'options': {'queue': 'marketing', 'routing_key': 'marketing.search'},
+        'kwargs': {}
+    },
+    # Send birthday emails daily (checks actual birthdays)
+    'send-birthday-emails': {
+        'task': 'app.services.marketing_tasks.send_birthday_emails_task',
+        'schedule': 86400.0,  # Every 24 hours (at 9 AM UTC)
+        'options': {'queue': 'marketing', 'routing_key': 'marketing.special'},
+        'kwargs': {}
+    },
+}
