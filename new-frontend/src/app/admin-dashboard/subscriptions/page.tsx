@@ -280,18 +280,20 @@ export default function AdminSubscriptionsPage() {
                 placeholder="Search shop name..."
                 value={manualShopName}
                 onChange={(e) => handleShopSearch(e.target.value)}
-                onFocus={() => manualShopName && setShowShopSuggestions(true)}
+                onFocus={() => shopSuggestions.length > 0 && setShowShopSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowShopSuggestions(false), 200)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
               />
               {showShopSuggestions && shopSuggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
                   {shopSuggestions.map(shop => (
                     <button
                       key={shop.id}
-                      onClick={() => handleSelectShop(shop.id, shop.name)}
-                      className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
+                      onClick={() => handleSelectShop(shop.id, shop.business_name || shop.name)}
+                      className="w-full text-left px-3 py-2 hover:bg-amber-50 border-b border-gray-100 last:border-b-0 text-sm transition-colors"
                     >
-                      {shop.name}
+                      <p className="font-medium text-gray-900">{shop.business_name || shop.name}</p>
+                      <p className="text-xs text-gray-500">{shop.full_name}</p>
                     </button>
                   ))}
                 </div>
