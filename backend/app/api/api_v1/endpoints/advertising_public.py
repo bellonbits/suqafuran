@@ -64,7 +64,20 @@ def get_active_banners(
     )
 
     banners = db.exec(query).all()
-    return [BannerDisplayResponse(**banner.dict()) for banner in banners]
+    return [
+        BannerDisplayResponse(
+            id=banner.id,
+            seller_id=banner.seller_id,
+            title=banner.title or "Promotion",
+            subtitle=banner.subtitle,
+            image_url=banner.image_url or "",
+            mobile_image_url=banner.mobile_image_url,
+            button_text=banner.button_text or "Shop Now",
+            button_link=banner.button_link or "/shops",
+            priority=banner.priority or 0,
+        )
+        for banner in banners
+    ]
 
 
 @router.get("/listing/{listing_id}/is-featured", response_model=FeaturedCheckResponse)
