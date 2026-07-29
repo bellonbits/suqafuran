@@ -49,6 +49,7 @@ const ShopsPage = () => {
   const [expandedShop, setExpandedShop] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<'name' | 'listings' | 'active'>('listings');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => { loadShops(); }, []);
 
@@ -182,14 +183,52 @@ const ShopsPage = () => {
             <p className="text-sm text-gray-500 mt-0.5">View all verified shops and their listings</p>
           </div>
           <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none z-10" />
             <input
               type="text"
               placeholder="Search shops, owners, email…"
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={e => {
+                setSearchQuery(e.target.value);
+                setShowSuggestions(e.target.value.length > 0);
+              }}
+              onFocus={() => searchQuery && setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-400 bg-white shadow-sm"
             />
+
+            {/* Autocomplete Dropdown */}
+            {showSuggestions && searchQuery && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto">
+                {shops
+                  .filter(s =>
+                    s.shop_name?.toLowerCase().startsWith(searchQuery.toLowerCase()) ||
+                    s.owner_name?.toLowerCase().startsWith(searchQuery.toLowerCase())
+                  )
+                  .slice(0, 10)
+                  .map(shop => (
+                    <button
+                      key={shop.id}
+                      onClick={() => {
+                        setSearchQuery(shop.shop_name);
+                        setShowSuggestions(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 hover:bg-sky-50 border-b border-gray-100 last:border-b-0 transition-colors flex flex-col gap-0.5"
+                    >
+                      <p className="font-semibold text-gray-900 text-sm">{shop.shop_name}</p>
+                      <p className="text-xs text-gray-500">{shop.owner_name} • {shop.total_products} products</p>
+                    </button>
+                  ))}
+                {shops.filter(s =>
+                  s.shop_name?.toLowerCase().startsWith(searchQuery.toLowerCase()) ||
+                  s.owner_name?.toLowerCase().startsWith(searchQuery.toLowerCase())
+                ).length === 0 && (
+                  <div className="px-4 py-3 text-center text-sm text-gray-500">
+                    No shops found
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
