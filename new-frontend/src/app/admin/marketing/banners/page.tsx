@@ -9,7 +9,7 @@ import api from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit2, Trash2, Play, Pause, Upload, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { ADMIN_NAV_ITEMS } from '../../navigation';
+import { ADMIN_NAV_ITEMS } from '../../../admin-dashboard/navigation';
 
 interface HomepageBanner {
   id: number;
