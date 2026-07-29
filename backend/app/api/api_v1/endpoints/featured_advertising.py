@@ -15,10 +15,10 @@ from app.core.logging_config import get_logger
 
 logger = get_logger("featured_advertising_api")
 
-router = APIRouter(prefix="/featured", tags=["featured-advertising"])
+router = APIRouter(tags=["featured-advertising"])
 
 
-@router.get("/pricing")
+@router.get("/featured/pricing")
 async def get_featured_pricing():
     """Get pricing for all featured placement types."""
     return {
@@ -52,7 +52,7 @@ async def get_featured_pricing():
     }
 
 
-@router.post("/sellers/{seller_id}/purchase")
+@router.post("/featured/sellers/{seller_id}/purchase")
 async def purchase_featured_placement(
     seller_id: int,
     payload: dict,
@@ -115,7 +115,7 @@ async def purchase_featured_placement(
         raise HTTPException(status_code=500, detail="Failed to create placement")
 
 
-@router.get("/sellers/{seller_id}/placements")
+@router.get("/featured/sellers/{seller_id}/placements")
 async def get_seller_featured_placements(
     seller_id: int,
     current_user = Depends(get_current_user),
@@ -136,7 +136,7 @@ async def get_seller_featured_placements(
     }
 
 
-@router.get("/placements/{placement_type}")
+@router.get("/featured/placements/{placement_type}")
 async def get_active_featured_placements(
     placement_type: str,
     category_id: Optional[int] = None,
@@ -165,7 +165,7 @@ async def get_active_featured_placements(
     }
 
 
-@router.post("/sellers/{seller_id}/placements/{placement_id}/cancel")
+@router.post("/featured/sellers/{seller_id}/placements/{placement_id}/cancel")
 async def cancel_featured_placement(
     seller_id: int,
     placement_id: int,
