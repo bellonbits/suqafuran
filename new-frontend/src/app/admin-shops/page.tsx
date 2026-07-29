@@ -1,11 +1,12 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Loader, Store, Package, Search, ChevronDown, ChevronUp,
   LayoutDashboard, Users, UserCheck, ShoppingCart, DollarSign,
   Truck, Grid3x3, Tag, Percent, MessageSquare, Shield,
   AlertTriangle, TrendingUp, FileText, AlertCircle, BarChart3,
-  Zap, ExternalLink, MapPin, Mail, Phone, Calendar, Download, Upload
+  Zap, ExternalLink, MapPin, Mail, Phone, Calendar, Download, Upload, Settings
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import api from '@/services/api';
@@ -41,6 +42,7 @@ function StatusDot({ active }: { active: boolean }) {
 }
 
 const ShopsPage = () => {
+  const router = useRouter();
   const [shops, setShops] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -191,8 +193,15 @@ const ShopsPage = () => {
           </div>
         </div>
 
-        {/* Export/Import buttons */}
+        {/* Export/Import and Management buttons */}
         <div className="flex gap-3 flex-wrap">
+          <button
+            onClick={() => router.push('/admin/shops')}
+            className="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold flex items-center gap-2 transition-colors shadow-sm"
+          >
+            <Settings size={16} />
+            Edit Shops
+          </button>
           <button
             onClick={handleExportCSV}
             className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold flex items-center gap-2 transition-colors shadow-sm"
