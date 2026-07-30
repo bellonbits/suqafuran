@@ -1,7 +1,7 @@
-"""SMS service for sending SMS notifications via Twilio."""
+"""SMS service for sending SMS notifications via Africa's Talking."""
 
 from typing import Optional
-from twilio.rest import Client
+import africastalking
 from app.core.config import settings
 from app.core.logging_config import get_logger
 
@@ -9,19 +9,23 @@ logger = get_logger("sms_service")
 
 
 class SMSService:
-    """Service for sending SMS messages via Twilio."""
+    """Service for sending SMS messages via Africa's Talking."""
 
     def __init__(self):
-        """Initialize Twilio client."""
-        self.enabled = bool(settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN)
+        """Initialize Africa's Talking client."""
+        self.enabled = bool(settings.AFRICASTALKING_USERNAME and settings.AFRICASTALKING_API_KEY)
 
         if self.enabled:
-            self.client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-            self.from_number = settings.TWILIO_PHONE_NUMBER
+            africastalking.initialize(
+                username=settings.AFRICASTALKING_USERNAME,
+                api_key=settings.AFRICASTALKING_API_KEY
+            )
+            self.sms = africastalking.SMS
+            self.sender_id = settings.AFRICASTALKING_SENDER_ID
         else:
-            self.client = None
-            self.from_number = None
-            logger.warning("SMS service not configured. Set TWILIO_* environment variables to enable.")
+            self.sms = None
+            self.sender_id = None
+            logger.warning("SMS service not configured. Set AFRICASTALKING_* environment variables to enable.")
 
     def send_sms(
         self,
@@ -30,7 +34,7 @@ class SMSService:
         campaign_id: Optional[int] = None
     ) -> dict:
         """
-        Send SMS message to a phone number.
+        Send SMS message to a phone number via Africa's Talking.
 
         Args:
             to_number: Recipient phone number (E.164 format recommended: +254...)
@@ -38,7 +42,7 @@ class SMSService:
             campaign_id: Optional campaign ID for tracking
 
         Returns:
-            Dict with status, SID, and other info
+            Dict with status, message ID, and other info
         """
         if not self.enabled:
             logger.warning(f"SMS service not enabled. Would send to {to_number}")
@@ -51,21 +55,23 @@ class SMSService:
             return {"status": "error", "message": "Message too long (max 1600 chars)"}
 
         try:
-            sms = self.client.messages.create(
-                body=message,
-                from_=self.from_number,
-                to=to_number
-            )
+            response = self.sms.send(message, [to_number], sender=self.sender_id)
 
-            logger.info(f"SMS sent to {to_number} (SID: {sms.sid})" + (f" Campaign: {campaign_id}" if campaign_id else ""))
+            if response["SMSMessageData"]["Message"] == "Sent":
+                msg_id = response["SMSMessageData"]["Recipients"][0]["messageId"]
+                logger.info(f"SMS sent to {to_number} (ID: {msg_id})" + (f" Campaign: {campaign_id}" if campaign_id else ""))
 
-            return {
-                "status": "sent",
-                "sid": sms.sid,
-                "to": to_number,
-                "campaign_id": campaign_id,
-                "segments": (len(message) + 159) // 160  # SMS segments
-            }
+                return {
+                    "status": "sent",
+                    "message_id": msg_id,
+                    "to": to_number,
+                    "campaign_id": campaign_id,
+                    "segments": (len(message) + 159) // 160  # SMS segments
+                }
+            else:
+                error_msg = response["SMSMessageData"]["Message"]
+                logger.error(f"Failed to send SMS to {to_number}: {error_msg}")
+                return {"status": "error", "message": error_msg}
 
         except Exception as e:
             logger.error(f"Failed to send SMS to {to_number}: {e}")
@@ -78,7 +84,7 @@ class SMSService:
         campaign_id: Optional[int] = None
     ) -> dict:
         """
-        Send SMS to multiple recipients.
+        Send SMS to multiple recipients via Africa's Talking.
 
         Args:
             phone_numbers: List of recipient phone numbers
@@ -94,35 +100,51 @@ class SMSService:
         if len(message) > 1600:
             return {"status": "error", "message": "Message too long"}
 
-        success_count = 0
-        failure_count = 0
-        results = []
+        if not phone_numbers:
+            return {"status": "error", "message": "No phone numbers provided"}
 
-        for phone_number in phone_numbers:
-            try:
-                sms = self.client.messages.create(
-                    body=message,
-                    from_=self.from_number,
-                    to=phone_number
-                )
-                success_count += 1
-                results.append({"phone": phone_number, "status": "sent", "sid": sms.sid})
+        try:
+            response = self.sms.send(message, phone_numbers, sender=self.sender_id)
 
-            except Exception as e:
-                failure_count += 1
-                logger.warning(f"Failed to send SMS to {phone_number}: {e}")
-                results.append({"phone": phone_number, "status": "failed", "error": str(e)})
+            success_count = 0
+            failure_count = 0
+            results = []
 
-        logger.info(f"Bulk SMS: {success_count} sent, {failure_count} failed" + (f" Campaign: {campaign_id}" if campaign_id else ""))
+            for recipient in response["SMSMessageData"]["Recipients"]:
+                if recipient["statusCode"] == 101:
+                    success_count += 1
+                    results.append({
+                        "phone": recipient["number"],
+                        "status": "sent",
+                        "message_id": recipient["messageId"]
+                    })
+                else:
+                    failure_count += 1
+                    results.append({
+                        "phone": recipient["number"],
+                        "status": "failed",
+                        "error": recipient["statusMessage"]
+                    })
 
-        return {
-            "status": "completed",
-            "success": success_count,
-            "failed": failure_count,
-            "total": len(phone_numbers),
-            "campaign_id": campaign_id,
-            "results": results if failure_count > 0 else None  # Only return errors
-        }
+            logger.info(f"Bulk SMS: {success_count} sent, {failure_count} failed" + (f" Campaign: {campaign_id}" if campaign_id else ""))
+
+            return {
+                "status": "completed",
+                "success": success_count,
+                "failed": failure_count,
+                "total": len(phone_numbers),
+                "campaign_id": campaign_id,
+                "results": results if failure_count > 0 else None  # Only return errors
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to send bulk SMS: {e}")
+            return {
+                "status": "error",
+                "message": str(e),
+                "success": 0,
+                "failed": len(phone_numbers)
+            }
 
     def verify_phone_number(self, phone_number: str) -> bool:
         """
@@ -143,7 +165,7 @@ class SMSService:
 
     def format_phone_number(self, phone_number: str, country_code: str = "+254") -> str:
         """
-        Format phone number to E.164 format.
+        Format phone number to E.164 format (Africa's Talking standard).
 
         Args:
             phone_number: Phone number to format

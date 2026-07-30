@@ -23,15 +23,10 @@ class Settings(BaseSettings):
     EMAIL_FROM: str = "no-reply@guri24.com"
     EMAIL_FROM_NAME: str = "Suqafuran"
 
-    # AFRICA'S TALKING (kept for legacy/SMS use)
+    # AFRICA'S TALKING (SMS notifications)
     AFRICASTALKING_USERNAME: str = "sandbox"
     AFRICASTALKING_API_KEY: str = ""
     AFRICASTALKING_SENDER_ID: str = "SUQAFURAN"
-
-    # TWILIO (SMS notifications)
-    TWILIO_ACCOUNT_SID: Optional[str] = None
-    TWILIO_AUTH_TOKEN: Optional[str] = None
-    TWILIO_PHONE_NUMBER: Optional[str] = None
 
     # M-PESA DARAJA API (for STK push subscriptions)
     MPESA_CONSUMER_KEY: str = ""
