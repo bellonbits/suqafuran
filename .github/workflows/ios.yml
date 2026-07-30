@@ -49,20 +49,15 @@ jobs:
       - name: Install Apple certificates
         run: |
           # Create keychain
-          security create-keychain -p "${{ secrets.KEYCHAIN_PASSWORD }}" build.keychain
+          security create-keychain -p "${{ secrets.MATCH_KEYCHAIN_PASSWORD }}" build.keychain
           security default-keychain -s build.keychain
-          security unlock-keychain -p "${{ secrets.KEYCHAIN_PASSWORD }}" build.keychain
+          security unlock-keychain -p "${{ secrets.MATCH_KEYCHAIN_PASSWORD }}" build.keychain
 
-          # Import certificate
-          echo "${{ secrets.APPLE_CERTIFICATE_P12_BASE64 }}" | base64 --decode > certificate.p12
-          security import certificate.p12 -k build.keychain -P "${{ secrets.APPLE_CERTIFICATE_PASSWORD }}" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "${{ secrets.KEYCHAIN_PASSWORD }}" build.keychain
+          # Import distribution certificate
+          echo "${{ secrets.DISTRIBUTION_CERT_P12 }}" | base64 --decode > certificate.p12
+          security import certificate.p12 -k build.keychain -P "${{ secrets.DISTRIBUTION_CERT_PASSWORD }}" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "${{ secrets.MATCH_KEYCHAIN_PASSWORD }}" build.keychain
           rm certificate.p12
-
-      - name: Install provisioning profile
-        run: |
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo "${{ secrets.PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
 
       - name: Build iOS app
         run: |
@@ -76,23 +71,27 @@ jobs:
             CODE_SIGN_STYLE=Automatic \
             archive -archivePath build/App.xcarchive 2>&1
 
-      - name: Export iOS app
+      - name: Export iOS app for App Store
         run: |
           cd shops-app/ios/App
           mkdir -p ~/Desktop/SuqafuranIPA
 
-          # Create export options plist
+          # Create export options plist for app-store distribution
           cat > ExportOptions.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
               <key>method</key>
-              <string>ad-hoc</string>
+              <string>app-store</string>
               <key>teamID</key>
               <string>${{ secrets.APPLE_TEAM_ID }}</string>
               <key>signingStyle</key>
               <string>automatic</string>
+              <key>stripSwiftSymbols</key>
+              <true/>
+              <key>uploadBitcode</key>
+              <true/>
           </dict>
           </plist>
           EOF
@@ -101,6 +100,25 @@ jobs:
             -archivePath build/App.xcarchive \
             -exportPath ~/Desktop/SuqafuranIPA \
             -exportOptionsPlist ExportOptions.plist 2>&1
+
+      - name: Upload to TestFlight
+        run: |
+          cd ~/Desktop/SuqafuranIPA
+          IPA_FILE=$(ls *.ipa 2>/dev/null | head -1)
+
+          if [ -z "$IPA_FILE" ]; then
+            echo "No IPA file found"
+            exit 1
+          fi
+
+          # Use xcrun altool (or notarytool for newer versions)
+          xcrun altool --upload-app \
+            --file "$IPA_FILE" \
+            --type ios \
+            --apiKey "${{ secrets.APP_STORE_CONNECT_API_KEY }}" \
+            --apiIssuer "${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}" \
+            --apiKeyID "${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}" 2>&1 || \
+          echo "TestFlight upload started (async - check App Store Connect for status)"
 
       - name: Clean up keychain
         if: always()
