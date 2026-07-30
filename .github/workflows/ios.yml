@@ -46,13 +46,11 @@ jobs:
         working-directory: shops-app
         run: npx cap sync ios
 
-      - name: Install Apple certificates and provisioning profile
+      - name: Install Apple certificates
         env:
           KEYCHAIN_PASSWORD: ${{ secrets.MATCH_KEYCHAIN_PASSWORD }}
           CERTIFICATE_P12: ${{ secrets.DISTRIBUTION_CERT_P12 }}
           CERTIFICATE_PASSWORD: ${{ secrets.DISTRIBUTION_CERT_PASSWORD }}
-          PROVISIONING_PROFILE: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           # Create keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
@@ -65,16 +63,7 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
           rm certificate.p12
 
-          # Install provisioning profile
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          if [ -n "$PROVISIONING_PROFILE" ]; then
-            echo "$PROVISIONING_PROFILE" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
-            echo "Provisioning profile installed"
-          fi
-
       - name: Build iOS app
-        env:
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           cd shops-app/ios/App
           xcodebuild -project App.xcodeproj \
@@ -82,9 +71,6 @@ jobs:
             -configuration Release \
             -derivedDataPath build \
             -allowProvisioningUpdates \
-            CODE_SIGN_STYLE=Automatic \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
-            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             archive -archivePath build/App.xcarchive 2>&1
 
       - name: Export iOS app for App Store
