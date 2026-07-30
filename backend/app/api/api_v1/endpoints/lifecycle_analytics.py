@@ -99,14 +99,14 @@ def get_lifecycle_stats(
         thirty_days_ago = datetime.utcnow() - timedelta(days=30)
         recently_churned = sum(
             1 for u in all_users
-            if u.last_login and u.last_login < thirty_days_ago
+            if u.updated_at and u.updated_at < thirty_days_ago
         )
         churn_rate = (recently_churned / total_users * 100) if total_users > 0 else 0
 
         # Calculate average lifetime
         lifetimes = []
         for user in all_users:
-            if user.last_login:
+            if user.created_at:
                 lifetime = (datetime.utcnow() - user.created_at).days
                 lifetimes.append(lifetime)
 

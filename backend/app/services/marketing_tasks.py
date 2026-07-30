@@ -214,7 +214,7 @@ def check_inactive_sellers_task(self):
 
             inactive_sellers = [
                 u for u in session.exec(
-                    select(User).where(User.last_login <= fourteen_days_ago)
+                    select(User).where(User.updated_at <= fourteen_days_ago)
                 ).all()
                 if u.id in seller_ids_set
             ]
