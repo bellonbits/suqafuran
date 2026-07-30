@@ -203,9 +203,19 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
             },
             (geoError) => {
                 setDetecting(false);
-                setError(geoError.code === geoError.PERMISSION_DENIED ? 'Location permission denied.' : `Error getting location: ${geoError.message}`);
+                let errorMsg = '';
+                if (geoError.code === geoError.PERMISSION_DENIED) {
+                    errorMsg = 'Please enable location access in your browser/app settings and try again.';
+                } else if (geoError.code === geoError.POSITION_UNAVAILABLE) {
+                    errorMsg = 'Location service is unavailable. Please search for your location instead.';
+                } else if (geoError.code === geoError.TIMEOUT) {
+                    errorMsg = 'Location detection timed out. Please try again or search manually.';
+                } else {
+                    errorMsg = 'Unable to detect your location. Please search manually.';
+                }
+                setError(errorMsg);
             },
-            { enableHighAccuracy: true, timeout: 10000 }
+            { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
         );
     };
 
