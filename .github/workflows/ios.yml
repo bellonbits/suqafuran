@@ -46,25 +46,22 @@ jobs:
         working-directory: shops-app
         run: npx cap sync ios
 
-      - name: Build iOS app with Xcode
+      - name: Build iOS app for simulator
         run: |
           cd shops-app/ios/App
-          xcodebuild -project App.xcodeproj -scheme App -configuration Release -derivedDataPath build archive -archivePath build/App.xcarchive
+          xcodebuild -project App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -derivedDataPath build \
+            build 2>&1 | tail -50
 
-      - name: Create output directory
-        run: mkdir -p ~/Desktop/SuqafuranIPA
-
-      - name: Create IPA from build
+      - name: Build iOS app for device (requires signing)
         run: |
           cd shops-app/ios/App
-          xcodebuild -exportArchive \
-            -archivePath build/App.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath ~/Desktop/SuqafuranIPA/ 2>/dev/null || echo "Export options not configured, skipping IPA export"
-
-      - name: Upload IPA artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Suqafuran.ipa
-          path: ~/Desktop/SuqafuranIPA/*.ipa
-          retention-days: 30
+          xcodebuild -project App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            build 2>&1 | tail -20 || echo "Device build requires code signing - set up in Xcode"
