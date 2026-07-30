@@ -2,7 +2,7 @@
 
 from datetime import datetime, timedelta
 from celery import shared_task
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 from app.core.config import settings
 from app.db import engine
 from app.models.marketing import (
@@ -204,12 +204,20 @@ def check_inactive_sellers_task(self):
         with Session(engine) as session:
             # Get sellers inactive for 14+ days
             fourteen_days_ago = datetime.utcnow() - timedelta(days=14)
-            inactive_sellers = session.exec(
-                select(User).where(
-                    User.is_seller == True,
-                    User.last_login <= fourteen_days_ago
+            # Get users who have active listings (sellers)
+            seller_ids = session.exec(
+                select(func.distinct(Listing.owner_id)).where(
+                    Listing.approval_status == 'approved'
                 )
             ).all()
+            seller_ids_set = set(sid for sid in seller_ids if sid)
+
+            inactive_sellers = [
+                u for u in session.exec(
+                    select(User).where(User.last_login <= fourteen_days_ago)
+                ).all()
+                if u.id in seller_ids_set
+            ]
 
             logger.info(f"Found {len(inactive_sellers)} inactive sellers")
 

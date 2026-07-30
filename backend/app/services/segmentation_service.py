@@ -58,10 +58,24 @@ class SegmentationService:
     def _evaluate_rule(user: User, field: str, operator: str, value: any) -> bool:
         """Evaluate a single rule against a user."""
         try:
-            # Get user attribute value
-            user_value = getattr(user, field, None)
+            # Special handling for is_seller (not a real field, derived from listings)
+            if field == "is_seller":
+                from sqlmodel import Session, select
+                from app.db import engine
+                from app.models.listing import Listing
+                with Session(engine) as db:
+                    has_listings = db.exec(
+                        select(Listing).where(
+                            Listing.owner_id == user.id,
+                            Listing.approval_status == 'approved'
+                        )
+                    ).first() is not None
+                user_value = has_listings
+            else:
+                # Get user attribute value
+                user_value = getattr(user, field, None)
 
-            if user_value is None:
+            if user_value is None and field != "is_seller":
                 return False
 
             # Apply operator logic

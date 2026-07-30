@@ -73,11 +73,19 @@ def get_lifecycle_stats(
         all_users = db.exec(select(User).where(User.is_active == True)).all()
         total_users = len(all_users)
 
+        # Get user IDs who have active listings (sellers)
+        seller_ids = db.exec(
+            select(func.distinct(Listing.owner_id)).where(
+                Listing.approval_status == 'approved'
+            )
+        ).all()
+        seller_ids_set = set(sid for sid in seller_ids if sid)
+
         # Count users by stage
         signup_count = total_users
         profile_complete = sum(1 for u in all_users if u.full_name)
-        active_seller = sum(1 for u in all_users if u.is_seller)
-        active_buyer = sum(1 for u in all_users if not u.is_seller and u.is_active)
+        active_seller = sum(1 for u in all_users if u.id in seller_ids_set)
+        active_buyer = sum(1 for u in all_users if u.id not in seller_ids_set and u.is_active)
         inactive = sum(1 for u in all_users if not u.is_active)
 
         # Users with at least one listing
