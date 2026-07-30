@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useAuthStore } from '@/store/useAuth';
 import { useAuthModal } from '@/store/useAuthModal';
+import { isCapacitorApp } from '@/lib/capacitor-utils';
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -59,6 +60,15 @@ const api = axios.create({
 
 api.interceptors.request.use(
     (config) => {
+        // Block admin/agent API calls on mobile apps
+        const isNativeApp = isCapacitorApp();
+        const isAdminRoute = config.url?.includes('/admin/') || config.url?.includes('/agent-dashboard') || config.url?.includes('/admin-dashboard');
+
+        if (isNativeApp && isAdminRoute) {
+            console.warn(`Blocked API call to ${config.url} on mobile app`);
+            return Promise.reject(new Error('Admin access not allowed on mobile app'));
+        }
+
         try {
             const token = useAuthStore.getState().token;
             if (token) {
