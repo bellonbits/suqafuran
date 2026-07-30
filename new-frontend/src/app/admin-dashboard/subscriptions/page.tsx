@@ -62,9 +62,9 @@ export default function AdminSubscriptionsPage() {
   const [shopSuggestions, setShopSuggestions] = useState<Array<{id: number, name: string}>>([]);
   const [showShopSuggestions, setShowShopSuggestions] = useState(false);
 
-  const navItems = ADMIN_NAV_ITEMS.map(item => ({
+  const navItems = ADMIN_NAV_ITEMS.map(({ icon: Icon, ...item }) => ({
     ...item,
-    icon: <item.icon className="w-5 h-5" />
+    icon: <Icon className="w-5 h-5" />
   }));
 
   useEffect(() => {

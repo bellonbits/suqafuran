@@ -53,9 +53,9 @@ export default function EmailAnalyticsPage() {
   const [filter, setFilter] = useState<'all' | 'week' | 'month'>('week');
   const [selectedEvent, setSelectedEvent] = useState<string>('all');
 
-  const navItems = ADMIN_NAV_ITEMS.map(item => ({
+  const navItems = ADMIN_NAV_ITEMS.map(({ icon: Icon, ...item }) => ({
     ...item,
-    icon: <item.icon className="w-5 h-5" />
+    icon: <Icon className="w-5 h-5" />
   }));
 
   useEffect(() => {
