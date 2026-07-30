@@ -277,7 +277,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
                     </button>
                 </div>
 
-                <div className="px-5 pb-3">
+                <div className="px-5 pb-3 space-y-2">
                     <button
                         onClick={handleUseCurrentLocation}
                         disabled={detecting}
@@ -286,7 +286,12 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
                         {detecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Navigation className="h-4 w-4" />}
                         {detecting ? 'Detecting Location...' : 'Use Current Location'}
                     </button>
-                    {error && <p className="text-xs font-semibold text-red-500 mt-2">{error}</p>}
+                    {error && (
+                        <div className="space-y-2">
+                            <p className="text-xs font-semibold text-red-500">{error}</p>
+                            <p className="text-xs text-gray-500">💡 On iOS Simulator: Go to Simulator → Features → Location → Select a preset</p>
+                        </div>
+                    )}
                 </div>
 
                 <div className="px-5 pb-3">
