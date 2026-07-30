@@ -34,10 +34,13 @@ export async function initCacheBuster() {
     sessionStorage.clear();
 
     // Force reload if different from expected hostname
+    // Skip this check for native Capacitor apps and localhost development
     const expectedHostnames = ['suqafuran.com', 'www.suqafuran.com', 'suqafuran.vercel.app'];
     const currentHostname = window.location.hostname;
+    const isNativeApp = window.location.protocol === 'capacitor:';
+    const isLocalhost = currentHostname === 'localhost' || currentHostname === '127.0.0.1';
 
-    if (!expectedHostnames.includes(currentHostname)) {
+    if (!isNativeApp && !isLocalhost && !expectedHostnames.includes(currentHostname)) {
       console.warn('⚠️ Wrong hostname detected:', currentHostname);
       window.location.href = `https://suqafuran.com${window.location.pathname}`;
     }

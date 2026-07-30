@@ -13,8 +13,11 @@ export function CacheBuster() {
     // Run cache buster on mount
     initCacheBuster();
 
-    // Add cache buster to all fetch requests
-    addCacheBusterToRequests();
+    // Skip fetch wrapper for native apps (Capacitor) as it can interfere with router
+    const isNativeApp = typeof window !== 'undefined' && window.location.protocol === 'capacitor:';
+    if (!isNativeApp) {
+      addCacheBusterToRequests();
+    }
 
     // Also run on visibility change (when tab becomes active)
     const handleVisibilityChange = () => {

@@ -96,8 +96,14 @@ api.interceptors.request.use(
             config.headers['X-Device-Fingerprint'] = btoa(JSON.stringify(fingerprintData));
         }
 
-        // Add headers to bypass Cloudflare bot protection for mobile apps
+        // Add browser-like headers to bypass Cloudflare bot protection
         config.headers['CF-Challenge-Bypass'] = 'mobile-app';
+        config.headers['Sec-Fetch-Site'] = 'none';
+        config.headers['Sec-Fetch-Mode'] = 'cors';
+        config.headers['Sec-Fetch-Dest'] = 'empty';
+        config.headers['Accept'] = 'application/json, text/plain, */*';
+        config.headers['Accept-Language'] = navigator.language || 'en-US';
+        config.headers['Accept-Encoding'] = 'gzip, deflate, br';
 
         // Override timeout for slow endpoints
         if (config.url?.includes('/listings/upload')) {
