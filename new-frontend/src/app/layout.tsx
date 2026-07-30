@@ -11,6 +11,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: "#ffffff",
+  userScalable: false,
+  maximumScale: 1,
+  minimumScale: 1,
 };
 
 export const metadata: Metadata = {
@@ -21,6 +24,12 @@ export const metadata: Metadata = {
       { url: "/favicon.ico" },
       { url: "/favicon.png", type: "image/png" },
     ],
+  },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Suqafuran",
   },
 };
 

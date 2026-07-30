@@ -16,12 +16,26 @@ interface LocationPickerModalProps {
     onClose: () => void;
 }
 
+const DEFAULT_KENYA_CITIES = [
+    { name: 'Nairobi', description: 'Capital City, Kenya', lat: -1.2865, lng: 36.8172 },
+    { name: 'Mombasa', description: 'Coastal City, Kenya', lat: -4.0435, lng: 39.6682 },
+    { name: 'Kisumu', description: 'Lake City, Kenya', lat: -0.1022, lng: 34.7617 },
+    { name: 'Nakuru', description: 'Central Kenya', lat: -0.2833, lng: 36.0667 },
+    { name: 'Eldoret', description: 'Uasin Gishu, Kenya', lat: 0.5143, lng: 35.2799 },
+    { name: 'Kericho', description: 'Tea Country, Kenya', lat: -0.3667, lng: 35.2833 },
+    { name: 'Nyeri', description: 'Central Kenya', lat: -0.4167, lng: 36.9500 },
+    { name: 'Machakos', description: 'Eastern Kenya', lat: -2.7149, lng: 37.2656 },
+    { name: 'Kakamega', description: 'Western Kenya', lat: 0.2838, lng: 34.7542 },
+    { name: 'Lamu', description: 'Coastal Island, Kenya', lat: -2.2625, lng: 40.9028 },
+];
+
 export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen, onClose }) => {
     const { city, lat, lng, setLocation, setPermissionAsked } = useLocationStore();
     const { isAuthenticated } = useAuthStore();
     const openAuthModal = useAuthModal((s) => s.open);
     const [query, setQuery] = useState('');
     const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
+    const [defaultCities, setDefaultCities] = useState<typeof DEFAULT_KENYA_CITIES>([]);
     const [googleReady, setGoogleReady] = useState(false);
     const [detecting, setDetecting] = useState(false);
     const [error, setError] = useState('');
@@ -61,6 +75,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
         });
         refreshSavedAddresses();
         setShowSaveForm(false);
+        setDefaultCities(DEFAULT_KENYA_CITIES);
     }, [isOpen, refreshSavedAddresses]);
 
     const fetchSuggestions = useCallback((input: string) => {
@@ -196,6 +211,11 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
 
     const handleSelectSaved = (addr: SavedAddress) => {
         setLocation(addr.formatted_address, addr.lat ?? null, addr.lng ?? null);
+        onClose();
+    };
+
+    const handleSelectDefaultCity = (city: typeof DEFAULT_KENYA_CITIES[0]) => {
+        setLocation(city.name, city.lat, city.lng, 'KE');
         onClose();
     };
 
@@ -357,6 +377,25 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
                                     )}
                                 </div>
                             )}
+
+                            <div className="pt-3 space-y-2">
+                                <h4 className="text-[11px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-wider px-0">Popular Cities in Kenya</h4>
+                                {defaultCities.map((city) => (
+                                    <button
+                                        key={city.name}
+                                        onClick={() => handleSelectDefaultCity(city)}
+                                        className="w-full flex items-start gap-3 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left cursor-pointer"
+                                    >
+                                        <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 mt-0.5">
+                                            <MapPin className="w-4 h-4 text-gray-400" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-semibold text-gray-900 dark:text-slate-100 truncate">{city.name}</p>
+                                            <p className="text-xs text-gray-400 truncate">{city.description}</p>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
 
                             <div className="pt-2 flex flex-col items-center text-center text-gray-400">
                                 <Search className="h-5 w-5 mb-1.5" />
