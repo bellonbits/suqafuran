@@ -367,7 +367,7 @@ function EmailTemplateForm({
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
             />
-            <p className="text-xs text-gray-500 mt-1">Use {{ variable_name }} for template variables</p>
+            <p className="text-xs text-gray-500 mt-1">Use {'{{'} variable_name {'}}'}  for template variables</p>
           </div>
 
           <div>
