@@ -1,8 +1,8 @@
 """Email tracking endpoints for opens and clicks."""
 
 from typing import Any
-from fastapi import APIRouter, Depends, HTTPException, Response, redirect
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi.responses import StreamingResponse, RedirectResponse
 from sqlmodel import Session
 import io
 from PIL import Image
@@ -104,10 +104,10 @@ def track_email_click(
         if decoded_target:
             # Validate it's a reasonable URL
             if decoded_target.startswith(('http://', 'https://', '/')):
-                return redirect(url=decoded_target)
+                return RedirectResponse(url=decoded_target)
             else:
                 logger.warning(f"Invalid target URL: {decoded_target}")
-                return redirect(url="/")
+                return RedirectResponse(url="/")
 
         return {"status": "tracked"}
 
@@ -117,8 +117,8 @@ def track_email_click(
         if target:
             decoded_target = urllib.parse.unquote(target)
             if decoded_target.startswith(('http://', 'https://', '/')):
-                return redirect(url=decoded_target)
-        return redirect(url="/")
+                return RedirectResponse(url=decoded_target)
+        return RedirectResponse(url="/")
 
 
 @router.get("/stats/{campaign_id}")
