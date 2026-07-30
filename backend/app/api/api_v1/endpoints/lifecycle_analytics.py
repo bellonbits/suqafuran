@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 from app.api import deps
 from app.models.user import User
-from app.models.listings import Listing
+from app.models.listing import Listing
 from app.core.logging_config import get_logger
 
 logger = get_logger("lifecycle_analytics")

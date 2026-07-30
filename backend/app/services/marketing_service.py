@@ -10,7 +10,7 @@ from app.models.marketing import (
     ListingPerformance, EmailPreference, UserLifecycleStage
 )
 from app.models.user import User
-from app.models.listings import Listing
+from app.models.listing import Listing
 from app.core.logging_config import get_logger
 from app.services.email_service import email_service
 from app.services.email_tracking_service import email_tracking_service

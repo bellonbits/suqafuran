@@ -10,7 +10,7 @@ from app.models.marketing import (
     SavedSearch, ListingPerformance, UserLifecycleStage
 )
 from app.models.user import User
-from app.models.listings import Listing
+from app.models.listing import Listing
 from app.services.marketing_service import marketing_service
 from app.core.logging_config import get_logger
 

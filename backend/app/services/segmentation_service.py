@@ -5,7 +5,7 @@ from typing import List
 from sqlmodel import Session, select, func
 from app.models.user import User
 from app.models.customer_segment import CustomerSegment
-from app.models.listings import Listing
+from app.models.listing import Listing
 from app.core.logging_config import get_logger
 
 logger = get_logger("segmentation_service")
