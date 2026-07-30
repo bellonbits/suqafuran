@@ -144,27 +144,27 @@ export default function EmailAnalyticsPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
               title="Total Sent"
-              value={stats.total_sent.toLocaleString()}
+              value={(stats.total_sent ?? 0).toLocaleString()}
               icon={<Mail className="w-6 h-6" />}
               color="blue"
             />
             <StatCard
               title="Open Rate"
-              value={`${stats.open_rate.toFixed(1)}%`}
-              subtitle={`${stats.total_opened.toLocaleString()} opens`}
+              value={`${(stats.open_rate ?? 0).toFixed(1)}%`}
+              subtitle={`${(stats.total_opened ?? 0).toLocaleString()} opens`}
               icon={<Eye className="w-6 h-6" />}
               color="green"
             />
             <StatCard
               title="Click Rate"
-              value={`${stats.click_rate.toFixed(1)}%`}
-              subtitle={`${stats.total_clicked.toLocaleString()} clicks`}
+              value={`${(stats.click_rate ?? 0).toFixed(1)}%`}
+              subtitle={`${(stats.total_clicked ?? 0).toLocaleString()} clicks`}
               icon={<Click className="w-6 h-6" />}
               color="purple"
             />
             <StatCard
               title="Performance"
-              value={stats.open_rate > 25 ? 'Excellent' : stats.open_rate > 15 ? 'Good' : 'Needs Work'}
+              value={(stats.open_rate ?? 0) > 25 ? 'Excellent' : (stats.open_rate ?? 0) > 15 ? 'Good' : 'Needs Work'}
               subtitle={`Industry avg: 21%`}
               icon={<TrendingUp className="w-6 h-6" />}
               color="orange"
@@ -310,12 +310,14 @@ function StatCard({
   icon: React.ReactNode;
   color: string;
 }) {
-  const colorClasses = {
+  const colorClasses: Record<string, string> = {
     blue: 'bg-blue-50 text-blue-600',
     green: 'bg-green-50 text-green-600',
     purple: 'bg-purple-50 text-purple-600',
     orange: 'bg-orange-50 text-orange-600',
   };
+
+  const colorClass = colorClasses[color] || colorClasses.blue;
 
   return (
     <Card className="p-6">
@@ -325,7 +327,7 @@ function StatCard({
           <p className="text-2xl font-bold text-gray-900 mt-2">{value}</p>
           {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
         </div>
-        <div className={`p-3 rounded-lg ${colorClasses[color as keyof typeof colorClasses]}`}>
+        <div className={`p-3 rounded-lg ${colorClass}`}>
           {icon}
         </div>
       </div>
