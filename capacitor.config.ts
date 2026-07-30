@@ -3,14 +3,13 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.suqafuran.app',
   appName: 'Suqafuran',
-  webDir: 'new-frontend/public',
+  // Static export: Next.js builds to new-frontend/out
+  webDir: 'new-frontend/out',
+  // App loads locally from bundled assets, not from remote server
   server: {
-    url: 'https://suqafuran.com', // Production frontend server
     androidScheme: 'https',
     iosScheme: 'https',
   },
-  // Mobile app is for sellers and buyers only - no admin/agent access
-  // Admin/agent dashboards are web-only and will be redirected on mobile
   android: {
     allowMixedContent: true,
     captureInput: true,
@@ -30,6 +29,10 @@ const config: CapacitorConfig = {
       backgroundColor: '#ffffff',
       showSpinner: false,
       fadeOutDuration: 0,
+    },
+    // Push Notifications
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert'],
     },
   },
 };

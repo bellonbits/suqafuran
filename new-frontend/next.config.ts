@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // For Capacitor, we use a web server approach
-  // The .next/standalone folder can be served via a local HTTP server
+  // Static export for Capacitor native app bundling
+  output: 'export',
+
   eslint: {
     ignoreDuringBuilds: true,
   },
