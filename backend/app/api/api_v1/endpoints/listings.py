@@ -1199,7 +1199,7 @@ def update_listing(
 
 
 @router.patch("/{id}", response_model=ListingRead)
-def patch_listing(
+async def patch_listing(
     *,
     db: Session = Depends(deps.get_db),
     id: int,
@@ -1216,6 +1216,10 @@ def patch_listing(
         raise HTTPException(status_code=400, detail="Not enough privileges")
 
     from datetime import datetime as dt
+
+    # Track old price for price drop detection
+    old_price = listing.price
+
     for field, value in listing_in.items():
         if hasattr(listing, field):
             setattr(listing, field, value)
@@ -1231,6 +1235,17 @@ def patch_listing(
     db.add(listing)
     db.commit()
     db.refresh(listing)
+
+    # Detect price drop and send notifications
+    new_price = listing.price
+    if 'price' in listing_in and old_price and new_price and new_price < old_price:
+        try:
+            # Send price drop notifications to users who saved this listing
+            # This would query saves table to find interested buyers
+            logger.info(f"Price drop detected: Listing {id} from {old_price} to {new_price}")
+            # TODO: Query saves table and send price_dropped emails
+        except Exception as e:
+            logger.warning(f"Failed to process price drop notification: {e}")
 
     # Recalculate shop's primary category after any listing change
     try:

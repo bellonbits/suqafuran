@@ -17,7 +17,10 @@ from app.api import deps
 from app.models.user import User
 from pydantic import BaseModel
 import uuid
+import logging
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 from app.services.storage_service import storage_service
 
 router = APIRouter()
@@ -323,6 +326,9 @@ def update_current_seller_profile(
     Update the current seller's profile information.
     Allows updating name, business name, shop description, location, etc.
     """
+    # Track if this is a new shop creation
+    is_new_shop = not current_user.business_name and profile_update.business_name
+
     # Update allowed fields
     if profile_update.full_name is not None:
         current_user.full_name = profile_update.full_name
@@ -340,6 +346,28 @@ def update_current_seller_profile(
     db.add(current_user)
     db.commit()
     db.refresh(current_user)
+
+    # Send shop creation email if this is a new shop
+    if is_new_shop:
+        try:
+            from app.services.marketing_service import marketing_service
+            from app.models.marketing import EmailEventType
+            import asyncio
+
+            asyncio.run(marketing_service.send_event_email(
+                session=db,
+                user_id=current_user.id,
+                event_type=EmailEventType.SHOP_CREATED,
+                context={
+                    "first_name": current_user.full_name.split()[0] if current_user.full_name else "Seller",
+                    "shop_name": profile_update.business_name or "Your Shop",
+                    "shop_link": f"{profile_update.location}/shops/{current_user.id}" if hasattr(profile_update, '__dict__') else "/shops",
+                    "add_products_link": "/dashboard/listings/create",
+                    "help_link": "/help/create-shop"
+                }
+            ))
+        except Exception as e:
+            logger.warning(f"Failed to send shop creation email: {e}")
 
     return {
         "status": "updated",

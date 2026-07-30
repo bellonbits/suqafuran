@@ -13,6 +13,9 @@ from app.models.user import User
 from app.models.listings import Listing
 from app.core.logging_config import get_logger
 from app.services.email_service import email_service
+from app.services.email_tracking_service import email_tracking_service
+import re
+import urllib.parse
 
 logger = get_logger("marketing_service")
 
@@ -192,24 +195,18 @@ class MarketingAutomationService:
         # Render template
         subject_template = Template(template_data["subject"])
         body_template = Template(template_data["template"])
-        
+
         subject = subject_template.render(**context)
         body = body_template.render(**context)
-        
+
         # Get user email
         user = session.get(User, user_id)
         if not user or not user.email:
             return
-        
+
         # Send email
         try:
-            await email_service.send_email(
-                to=user.email,
-                subject=subject,
-                html_content=body
-            )
-            
-            # Log campaign
+            # Log campaign first to get ID for tracking
             campaign = EmailCampaign(
                 user_id=user_id,
                 event_type=event_type,
@@ -220,12 +217,73 @@ class MarketingAutomationService:
             )
             session.add(campaign)
             session.commit()
-            
-            logger.info(f"Sent {event_type} email to user {user_id}")
-            
+            session.refresh(campaign)
+
+            # Add tracking to email body
+            body_with_tracking = self._add_email_tracking(body, campaign.id)
+
+            await email_service.send_email(
+                to=user.email,
+                subject=subject,
+                html_content=body_with_tracking
+            )
+
+            logger.info(f"Sent {event_type} email to user {user_id} (campaign {campaign.id})")
+
         except Exception as e:
             logger.error(f"Failed to send email: {e}")
     
+    def _add_email_tracking(self, html_body: str, campaign_id: int) -> str:
+        """
+        Add tracking pixel and wrap links with tracking URLs.
+
+        Args:
+            html_body: Original email HTML
+            campaign_id: Email campaign ID for tracking
+
+        Returns:
+            HTML body with tracking added
+        """
+        try:
+            # Add tracking pixel at end of body
+            pixel_url = email_tracking_service.generate_tracking_pixel_url(campaign_id)
+            tracking_pixel = f'<img src="{pixel_url}" width="1" height="1" alt="" style="display:none;" />'
+
+            # Wrap all links with tracking URLs
+            # Match href="..." patterns
+            def wrap_link(match):
+                full_match = match.group(0)
+                href_content = match.group(1)
+
+                # Skip if already a tracking link or anchor link
+                if "/tracking/click/" in href_content or href_content.startswith("#"):
+                    return full_match
+
+                # Generate tracking link
+                tracking_link = email_tracking_service.generate_tracking_link(
+                    campaign_id=campaign_id,
+                    original_url=href_content,
+                    link_name="email_link"
+                )
+
+                return f'href="{tracking_link}"'
+
+            # Replace all href="..." with tracking URLs
+            modified_body = re.sub(r'href="([^"]+)"', wrap_link, html_body)
+
+            # Append tracking pixel before closing body tag
+            if "</body>" in modified_body:
+                modified_body = modified_body.replace("</body>", f"{tracking_pixel}</body>")
+            else:
+                # No body tag, just append
+                modified_body = modified_body + tracking_pixel
+
+            return modified_body
+
+        except Exception as e:
+            logger.warning(f"Failed to add email tracking: {e}")
+            return html_body  # Return original if tracking fails
+
     def _should_send_email(self, event_type: EmailEventType, preference: EmailPreference) -> bool:
         """Check if user wants this email type."""
         preference_map = {
@@ -237,7 +295,7 @@ class MarketingAutomationService:
             EmailEventType.SEASONAL_CAMPAIGN: preference.promotional_emails,
             EmailEventType.VERIFICATION_CAMPAIGN: preference.verification_campaigns,
         }
-        
+
         return preference_map.get(event_type, True)
     
     async def track_listing_view(
