@@ -9,6 +9,8 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
     iosScheme: 'https',
   },
+  // Mobile app is for sellers and buyers only - no admin/agent access
+  // Admin/agent dashboards are web-only and will be redirected on mobile
   android: {
     allowMixedContent: true,
     captureInput: true,
