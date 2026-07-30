@@ -23,6 +23,7 @@ export const ADMIN_NAV_ITEMS = [
   { label: 'Fraud', icon: AlertTriangle, href: '/admin-fraud' },
   { label: 'Unusual Accounts', icon: AlertCircle, href: '/admin-unusual-accounts' },
   { label: 'Marketing', icon: BarChart3, href: '/admin-marketing' },
+  { label: 'User Lifecycle', icon: TrendingUp, href: '/admin-dashboard/user-lifecycle' },
   { label: 'Email Templates', icon: Mail, href: '/admin-dashboard/email-templates' },
   { label: 'Email Analytics', icon: Mail, href: '/admin-dashboard/email-analytics' },
   { label: 'Customer Segments', icon: Users, href: '/admin-dashboard/customer-segments' },
