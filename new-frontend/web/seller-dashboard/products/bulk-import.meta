@@ -1,0 +1,7 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/seller-dashboard/layout,_N_T_/seller-dashboard/products/layout,_N_T_/seller-dashboard/products/bulk-import/layout,_N_T_/seller-dashboard/products/bulk-import/page,_N_T_/seller-dashboard/products/bulk-import"
+  }
+}

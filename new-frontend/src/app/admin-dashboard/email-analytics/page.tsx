@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ADMIN_NAV_ITEMS } from '../navigation';
 import { useAuthStore } from '@/store/useAuth';
-import { Mail, TrendingUp, Eye, Click, Target, Calendar, Zap, TrendingDown } from 'lucide-react';
+import { Mail, TrendingUp, Eye, MousePointerClick, Target, Calendar, Zap, TrendingDown } from 'lucide-react';
 
 interface EmailStats {
   total_sent: number;
@@ -159,7 +159,7 @@ export default function EmailAnalyticsPage() {
               title="Click Rate"
               value={`${(stats.click_rate ?? 0).toFixed(1)}%`}
               subtitle={`${(stats.total_clicked ?? 0).toLocaleString()} clicks`}
-              icon={<Click className="w-6 h-6" />}
+              icon={<MousePointerClick className="w-6 h-6" />}
               color="purple"
             />
             <StatCard

@@ -34,48 +34,33 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Install root dependencies
+      - name: Install shops-app dependencies
+        working-directory: shops-app
         run: npm ci
 
-      - name: Install frontend dependencies
-        working-directory: new-frontend
-        run: npm ci
-
-      - name: Build web app
-        working-directory: new-frontend
+      - name: Build web app (Vite)
+        working-directory: shops-app
         run: npm run build
 
-      - name: Capacitor add iOS (if needed)
-        run: |
-          if [ ! -d "ios" ]; then
-            npx cap add ios
-          fi
-
-      - name: Capacitor sync
+      - name: Capacitor sync iOS
+        working-directory: shops-app
         run: npx cap sync ios
 
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-          bundler-cache: true
-          working-directory: ios/App
-
-      - name: Install Fastlane
-        run: gem install fastlane
+      - name: Build iOS app with Xcode
+        run: |
+          cd shops-app/ios/App
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -derivedDataPath build
 
       - name: Create output directory
         run: mkdir -p ~/Desktop/SuqafuranIPA
 
-      - name: Build IPA
-        working-directory: ios/App
-        run: fastlane build
-        env:
-          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          DISTRIBUTION_CERT_P12: ${{ secrets.DISTRIBUTION_CERT_P12 }}
-          DISTRIBUTION_CERT_PASSWORD: ${{ secrets.DISTRIBUTION_CERT_PASSWORD }}
+      - name: Create IPA from build
+        run: |
+          cd shops-app/ios/App
+          xcodebuild -exportArchive \
+            -archivePath build/App.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath ~/Desktop/SuqafuranIPA/
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4

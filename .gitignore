@@ -87,3 +87,19 @@ backend/.venv/
 backend/__pycache__/
 .next
 .next
+
+# Xcode
+build/
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.ipa
+*.xcarchive
+
+# Android
+android/app/build/
+android/.gradle/
+android/local.properties
+
+# Capacitor
+ios/App/public/
