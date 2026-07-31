@@ -45,6 +45,12 @@ platform :ios do
 
     profile_name = lane_context[SharedValues::SIGH_NAME]
 
+    build_number = Time.now.strftime('%Y%m%d%H%M')
+    increment_build_number(
+      build_number: build_number,
+      xcodeproj: "App.xcodeproj"
+    )
+
     build_app(
       project: "App.xcodeproj",
       scheme: "App",
