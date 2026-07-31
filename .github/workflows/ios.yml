@@ -27,12 +27,14 @@ jobs:
             fi
           fi
           xcodebuild -version
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+
+      - name: Install root dependencies
+        run: npm ci
 
       - name: Install shops-app dependencies
         working-directory: shops-app
@@ -41,6 +43,13 @@ jobs:
       - name: Build web app
         working-directory: shops-app
         run: npm run build
+
+      - name: Copy certificates from ios to shops-app/ios
+        run: |
+          if [ -d "ios" ]; then
+            mkdir -p shops-app/ios
+            cp -r ios/* shops-app/ios/ || true
+          fi
 
       - name: Capacitor add iOS (if needed)
         run: |
@@ -64,13 +73,6 @@ jobs:
 
       - name: Create output directory
         run: mkdir -p ~/Desktop/SuqafuranIPA
-
-      - name: Download provisioning profile
-        run: bash shops-app/ios/download_provisioning_profile.sh
-        env:
-          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
 
       - name: Build IPA
         working-directory: shops-app/ios/App

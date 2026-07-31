@@ -103,3 +103,13 @@ android/local.properties
 
 # Capacitor
 ios/App/public/
+
+# iOS Certificates & Provisioning (store securely in GitHub Secrets)
+*.p12
+*.cer
+*.certSigningRequest
+*.mobileprovision
+*.provisionprofile
+GoogleService-Info.plist
+shops-app/ios/App/AppStore_com.suqafuran.app.mobileprovision
+shops-app/ios/App/P72X8KV2P9.*
