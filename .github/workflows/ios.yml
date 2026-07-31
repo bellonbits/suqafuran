@@ -39,6 +39,13 @@ jobs:
         working-directory: shops-app
         run: npx cap sync
 
+      - name: Copy synced web assets into main iOS project
+        run: |
+          rm -rf ios/App/App/public
+          cp -R shops-app/ios/App/App/public ios/App/App/public
+          cp shops-app/ios/App/App/config.xml ios/App/App/config.xml
+          cp shops-app/ios/App/App/capacitor.config.json ios/App/App/capacitor.config.json
+
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.3"
