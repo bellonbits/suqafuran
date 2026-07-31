@@ -34,11 +34,29 @@ platform :ios do
         File.write(p12_path, Base64.decode64(ENV['DISTRIBUTION_CERT_P12']))
       end
 
+      # Check if p12_path is actually a PEM formatted private key
+      p12_content = File.read(p12_path)
+      if p12_content.include?("BEGIN RSA PRIVATE KEY") || p12_content.include?("BEGIN PRIVATE KEY")
+        cer_path = File.expand_path("P72X8KV2P9.cer")
+        cert_pem = File.expand_path("cert_temp.pem")
+        sh("openssl x509 -in #{cer_path} -inform DER -out #{cert_pem}")
+        
+        valid_p12 = File.expand_path("converted_dist.p12")
+        sh("openssl pkcs12 -export -out #{valid_p12} -inkey #{p12_path} -in #{cert_pem} -passout pass:'' -legacy")
+        p12_path = valid_p12
+      end
+
       import_certificate(
         certificate_path: p12_path,
         certificate_password: ENV['DISTRIBUTION_CERT_PASSWORD'] || "",
         keychain_name: keychain_name,
         keychain_password: keychain_password
+      )
+
+      set_keychain_partition_list(
+        keychain_name: keychain_name,
+        keychain_password: keychain_password,
+        dont_autorange: true
       )
 
       profile_path = File.expand_path("AppStore_com.suqafuran.app.mobileprovision")
