@@ -65,6 +65,14 @@ jobs:
       - name: Create output directory
         run: mkdir -p ~/Desktop/SuqafuranIPA
 
+      - name: Download provisioning profile
+        working-directory: shops-app/ios
+        run: bash download_provisioning_profile.sh
+        env:
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+
       - name: Build IPA
         working-directory: shops-app/ios/App
         run: fastlane build
