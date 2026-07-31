@@ -91,6 +91,7 @@ jobs:
             -configuration Release \
             -derivedDataPath build \
             -allowProvisioningUpdates \
+            PROVISIONING_PROFILE_SPECIFIER="iOS Team Provisioning Profile: com.suqafuran.app" \
             archive -archivePath build/App.xcarchive
 
           # Create export options plist
