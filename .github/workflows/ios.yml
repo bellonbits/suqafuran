@@ -45,11 +45,8 @@ jobs:
 
       - name: Install Signing Certificate
         env:
-          CERTIFICATE_BASE64: ${{ secrets.DISTRIBUTION_CERT_P12 }}
           CERTIFICATE_PASSWORD: ${{ secrets.DISTRIBUTION_CERT_PASSWORD }}
         run: |
-          echo "$CERTIFICATE_BASE64" | base64 --decode > certificate.p12
-
           security create-keychain \
             -p github build.keychain
 
@@ -59,7 +56,7 @@ jobs:
           security unlock-keychain \
             -p github build.keychain
 
-          security import certificate.p12 \
+          security import shops-app/ios/App/P72X8KV2P9.p12 \
             -k build.keychain \
             -P "$CERTIFICATE_PASSWORD" \
             -T /usr/bin/codesign \
@@ -72,12 +69,10 @@ jobs:
             build.keychain
 
       - name: Install Provisioning Profile
-        env:
-          PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE }}
         run: |
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
 
-          echo "$PROFILE_BASE64" | base64 --decode > \
+          cp shops-app/ios/App/AppStore_com.suqafuran.app.mobileprovision \
           ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
 
       - name: Verify Signing Assets
