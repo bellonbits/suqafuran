@@ -4,9 +4,8 @@ platform :ios do
   desc "Build and upload to TestFlight"
   lane :build do
     if is_ci
-      setup_ci
-
       # Use match to sync certificates and provisioning profiles
+      # match handles keychain setup, so we don't need setup_ci
       match(
         type: "appstore",
         app_identifier: "com.suqafuran.app",
