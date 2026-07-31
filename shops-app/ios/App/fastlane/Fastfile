@@ -9,9 +9,10 @@ platform :ios do
       match(
         type: "appstore",
         app_identifier: "com.suqafuran.app",
-        git_url: "https://github.com/bellonbits/suqafuran-ios-certs.git",
-        git_bearer_authorization: ENV["MATCH_PASSWORD"],
-        readonly: false
+        git_url: "https://bellonbits:#{ENV['MATCH_PASSWORD']}@github.com/bellonbits/suqafuran-ios-certs.git",
+        storage_mode: "git",
+        readonly: false,
+        skip_confirmation: true
       )
     end
 
