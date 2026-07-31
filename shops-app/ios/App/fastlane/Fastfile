@@ -90,9 +90,6 @@ platform :ios do
         }
       }
     }
-    if is_ci
-      build_opts[:keychain_path] = File.expand_path("~/Library/Keychains/fastlane_tmp_keychain-db")
-    end
 
     build_app(build_opts)
 
