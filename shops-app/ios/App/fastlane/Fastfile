@@ -33,7 +33,7 @@ platform :ios do
       output_directory: "~/Desktop/SuqafuranIPA",
       output_name: "Suqafuran.ipa",
       export_method: "app-store",
-      allow_provisioning_updates: true,
+      xcargs: "-allowProvisioningUpdates",
       export_options: {
         signingStyle: "automatic",
         teamID: "2969422VU2"
