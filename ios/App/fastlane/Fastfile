@@ -30,7 +30,7 @@ platform :ios do
 
       import_certificate(
         certificate_path: File.expand_path("../P72X8KV2P9.p12", __dir__),
-        certificate_password: "",
+        certificate_password: "suqafuran123",
         keychain_name: keychain_name,
         keychain_password: keychain_password
       )
