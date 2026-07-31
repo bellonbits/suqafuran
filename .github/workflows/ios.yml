@@ -58,32 +58,10 @@ jobs:
       - name: Install Fastlane
         run: gem install fastlane
 
-      - name: Import distribution certificate
+      - name: Setup match for certificate management
         run: |
-          echo "${{ secrets.DISTRIBUTION_CERT_P12 }}" | base64 -d > /tmp/distribution.p12
-          KEYCHAIN_PATH="$HOME/Library/Keychains/ios-build.keychain"
-          security create-keychain -p "" "$KEYCHAIN_PATH" || true
-          security import /tmp/distribution.p12 -k "$KEYCHAIN_PATH" -P "" -T /usr/bin/codesign
-          security set-keychain-settings -t 3600 "$KEYCHAIN_PATH"
-          security unlock-keychain -p "" "$KEYCHAIN_PATH"
-          security list-keychains -s "$KEYCHAIN_PATH" $(security list-keychains | tr '\n' ' ')
-          rm /tmp/distribution.p12
-
-      - name: Install provisioning profile
-        run: |
-          echo "${{ secrets.PROVISIONING_PROFILE }}" | base64 -d > /tmp/profile.mobileprovision
-
-          # Use security command to install provisioning profile
-          security install-provisioning-profile -P /tmp/profile.mobileprovision 2>&1 || echo "Warning: security install failed, trying manual install"
-
-          # Also copy to profiles directory as backup
-          PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles"
-          mkdir -p "$PROFILE_PATH"
-          cp /tmp/profile.mobileprovision "$PROFILE_PATH/Suqafuran.mobileprovision"
-
-          ls -la "$PROFILE_PATH/"
-          rm /tmp/profile.mobileprovision
-          echo "✓ Provisioning profile installed"
+          # match will automatically fetch/sync certificates and provisioning profiles
+          # from the private repo on first run
 
       - name: Create output directory
         run: mkdir -p ~/Desktop/SuqafuranIPA
