@@ -1,0 +1,32 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Build and upload to TestFlight"
+  lane :build do
+    setup_ci if is_ci
+
+    build_app(
+      workspace: "App.xcworkspace",
+      scheme: "App",
+      configuration: "Release",
+      clean: true,
+      output_directory: "~/Desktop/SuqafuranIPA",
+      output_name: "Suqafuran.ipa",
+      export_method: "app-store",
+      export_options: {
+        signingStyle: "automatic",
+        stripSwiftSymbols: true,
+        uploadBitcode: true
+      }
+    )
+
+    # Upload to TestFlight
+    upload_to_testflight(
+      api_key: ENV['APP_STORE_CONNECT_API_KEY'],
+      api_key_id: ENV['APP_STORE_CONNECT_API_KEY_ID'],
+      issuer_id: ENV['APP_STORE_CONNECT_ISSUER_ID'],
+      ipa: "~/Desktop/SuqafuranIPA/Suqafuran.ipa",
+      skip_waiting_for_build_processing: true
+    )
+  end
+end
