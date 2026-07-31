@@ -69,10 +69,45 @@ jobs:
           working-directory: shops-app/ios/App
 
       - name: Install Fastlane
-        run: gem install fastlane -v 2.220.0 || gem install fastlane
+        run: gem install fastlane
 
       - name: Create output directory
         run: mkdir -p ~/Desktop/SuqafuranIPA
+
+      - name: Import distribution certificate
+        run: |
+          # Decode base64 certificate
+          echo "${{ secrets.DISTRIBUTION_CERT_P12 }}" | base64 -d > /tmp/distribution.p12
+
+          # Create keychain
+          KEYCHAIN_PATH="$HOME/Library/Keychains/ios-build.keychain"
+          security create-keychain -p "" "$KEYCHAIN_PATH" || true
+
+          # Import certificate
+          security import /tmp/distribution.p12 \
+            -k "$KEYCHAIN_PATH" \
+            -P "${{ secrets.DISTRIBUTION_CERT_PASSWORD }}" \
+            -T /usr/bin/codesign
+
+          # Set keychain settings
+          security set-keychain-settings -t 3600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "" "$KEYCHAIN_PATH"
+
+          # Add to search list
+          security list-keychains -s "$KEYCHAIN_PATH" $(security list-keychains | tr '\n' ' ')
+
+          rm /tmp/distribution.p12
+          echo "✓ Certificate imported"
+
+      - name: Install provisioning profile
+        run: |
+          PROFILE=$(mktemp -d)/Suqafuran.mobileprovision
+          echo "${{ secrets.PROVISIONING_PROFILE }}" | base64 -d > "$PROFILE"
+
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles/"
+          cp "$PROFILE" "$HOME/Library/MobileDevice/Provisioning Profiles/Suqafuran.mobileprovision"
+
+          echo "✓ Provisioning profile installed"
 
       - name: Build IPA
         working-directory: shops-app/ios/App
@@ -81,8 +116,6 @@ jobs:
           APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          DISTRIBUTION_CERT_P12: ${{ secrets.DISTRIBUTION_CERT_P12 }}
-          DISTRIBUTION_CERT_PASSWORD: ${{ secrets.DISTRIBUTION_CERT_PASSWORD }}
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
