@@ -38,6 +38,7 @@ platform :ios do
       scheme: "App",
       configuration: "Release",
       clean: true,
+      sdk: "iphoneos",
       output_directory: "~/Desktop/SuqafuranIPA",
       output_name: "Suqafuran.ipa",
       export_method: "app-store",
