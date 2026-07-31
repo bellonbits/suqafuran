@@ -30,22 +30,23 @@ platform :ios do
 
       p12_path = File.expand_path("../P72X8KV2P9.p12", __dir__)
       if ENV['DISTRIBUTION_CERT_P12'].to_s != ''
-        p12_path = File.expand_path("dist_cert.p12")
+        env_p12_path = File.expand_path("dist_cert.p12")
         cleaned_p12_b64 = ENV['DISTRIBUTION_CERT_P12'].to_s.gsub(/\s+/, '')
-        File.write(p12_path, Base64.decode64(cleaned_p12_b64))
-      end
+        File.write(env_p12_path, Base64.decode64(cleaned_p12_b64))
 
-      # Check if p12_path is actually a PEM formatted private key
-      p12_content = File.binread(p12_path) rescue ""
-      if p12_content.include?("BEGIN RSA PRIVATE KEY") || p12_content.include?("BEGIN PRIVATE KEY")
-        cer_path = File.expand_path("../P72X8KV2P9.cer", __dir__)
-        cert_pem = File.expand_path("cert_temp.pem")
+        p12_content = File.binread(env_p12_path) rescue ""
+        if p12_content.include?("BEGIN RSA PRIVATE KEY") || p12_content.include?("BEGIN PRIVATE KEY")
+          cer_path = File.expand_path("../P72X8KV2P9.cer", __dir__)
+          cert_pem = File.expand_path("cert_temp.pem")
 
-        if File.exist?(cer_path)
-          sh("openssl x509 -in #{cer_path} -inform DER -out #{cert_pem}")
-          valid_p12 = File.expand_path("converted_dist.p12")
-          sh("openssl pkcs12 -export -out #{valid_p12} -inkey #{p12_path} -in #{cert_pem} -passout pass:'' -legacy")
-          p12_path = valid_p12
+          if File.exist?(cer_path)
+            sh("openssl x509 -in #{cer_path} -inform DER -out #{cert_pem}")
+            valid_p12 = File.expand_path("converted_dist.p12")
+            sh("openssl pkcs12 -export -out #{valid_p12} -inkey #{env_p12_path} -in #{cert_pem} -passout pass:'' -legacy")
+            p12_path = valid_p12
+          end
+        elsif p12_content.length > 500
+          p12_path = env_p12_path
         end
       end
 
