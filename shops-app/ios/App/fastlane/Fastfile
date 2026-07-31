@@ -13,6 +13,7 @@ platform :ios do
       output_directory: "~/Desktop/SuqafuranIPA",
       output_name: "Suqafuran.ipa",
       export_method: "app-store",
+      allow_provisioning_updates: true,
       export_options: {
         signingStyle: "automatic",
         stripSwiftSymbols: true,
