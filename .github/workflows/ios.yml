@@ -58,6 +58,29 @@ jobs:
       - name: Install Fastlane
         run: gem install fastlane
 
+      - name: Import distribution certificate
+        run: |
+          echo "${{ secrets.DISTRIBUTION_CERT_P12 }}" | base64 -d > /tmp/distribution.p12
+          KEYCHAIN_PATH="$HOME/Library/Keychains/ios-build.keychain"
+          security create-keychain -p "" "$KEYCHAIN_PATH" || true
+          security import /tmp/distribution.p12 -k "$KEYCHAIN_PATH" -P "" -T /usr/bin/codesign
+          security set-keychain-settings -t 3600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "" "$KEYCHAIN_PATH"
+          security list-keychains -s "$KEYCHAIN_PATH" $(security list-keychains | tr '\n' ' ')
+          rm /tmp/distribution.p12
+
+      - name: Install provisioning profile
+        run: |
+          PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILE_PATH"
+          echo "${{ secrets.PROVISIONING_PROFILE }}" | base64 -d > /tmp/profile.mobileprovision
+          PROFILE_UUID=$(security cms -D -i /tmp/profile.mobileprovision 2>/dev/null | grep -o 'UUID</key>.*<string>[^<]*</string>' | sed 's/.*<string>\([^<]*\)<.*/\1/')
+          if [ -z "$PROFILE_UUID" ]; then
+            PROFILE_UUID="Suqafuran"
+          fi
+          cp /tmp/profile.mobileprovision "$PROFILE_PATH/$PROFILE_UUID.mobileprovision"
+          rm /tmp/profile.mobileprovision
+
       - name: Create output directory
         run: mkdir -p ~/Desktop/SuqafuranIPA
 
