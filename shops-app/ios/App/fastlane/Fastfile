@@ -13,7 +13,6 @@ platform :ios do
       output_directory: "~/Desktop/SuqafuranIPA",
       output_name: "Suqafuran.ipa",
       export_method: "app-store",
-      allow_provisioning_updates: true,
       export_options: {
         signingStyle: "automatic",
         stripSwiftSymbols: true,
@@ -21,11 +20,7 @@ platform :ios do
       }
     )
 
-    # Upload to TestFlight
     upload_to_testflight(
-      api_key: ENV['APP_STORE_CONNECT_API_KEY'],
-      api_key_id: ENV['APP_STORE_CONNECT_API_KEY_ID'],
-      issuer_id: ENV['APP_STORE_CONNECT_ISSUER_ID'],
       ipa: "~/Desktop/SuqafuranIPA/Suqafuran.ipa",
       skip_waiting_for_build_processing: true
     )
