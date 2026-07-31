@@ -44,7 +44,7 @@ jobs:
         run: gem install fastlane --no-document
 
       - name: Build IPA
-        working-directory: shops-app/ios/App
+        working-directory: ios/App
         run: fastlane build
         env:
           APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
