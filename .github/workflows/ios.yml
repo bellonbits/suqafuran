@@ -52,81 +52,28 @@ jobs:
         working-directory: shops-app
         run: npx cap sync ios
 
-      - name: Install Apple certificates and provisioning profile
-        env:
-          KEYCHAIN_PASSWORD: build-keychain-temp
-          CERTIFICATE_P12: ${{ secrets.DISTRIBUTION_CERT_P12 }}
-          CERTIFICATE_PASSWORD: ${{ secrets.DISTRIBUTION_CERT_PASSWORD }}
-          PROVISIONING_PROFILE: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
-        run: |
-          # Create keychain
-          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: shops-app/ios/App
 
-          # Import distribution certificate
-          echo "$CERTIFICATE_P12" | base64 --decode > certificate.p12
-          security import certificate.p12 -k build.keychain -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
-          rm certificate.p12
-
-          # Install provisioning profile
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          if [ -n "$PROVISIONING_PROFILE" ]; then
-            echo "$PROVISIONING_PROFILE" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/Suqafuran.mobileprovision
-          fi
+      - name: Install Fastlane
+        run: gem install fastlane
 
       - name: Create output directory
         run: mkdir -p ~/Desktop/SuqafuranIPA
 
       - name: Build IPA
         working-directory: shops-app/ios/App
+        run: fastlane build
         env:
           APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-        run: |
-          xcodebuild -project App.xcodeproj \
-            -scheme App \
-            -configuration Release \
-            -derivedDataPath build \
-            -allowProvisioningUpdates \
-            archive -archivePath build/App.xcarchive
-
-          # Create export options plist
-          cat > ExportOptions.plist <<EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>method</key>
-              <string>app-store</string>
-              <key>signingStyle</key>
-              <string>automatic</string>
-              <key>stripSwiftSymbols</key>
-              <true/>
-              <key>uploadBitcode</key>
-              <true/>
-          </dict>
-          </plist>
-          EOF
-
-          xcodebuild -exportArchive \
-            -archivePath build/App.xcarchive \
-            -exportPath ~/Desktop/SuqafuranIPA \
-            -exportOptionsPlist ExportOptions.plist
-
-          # Upload to TestFlight
-          IPA_FILE=$(ls ~/Desktop/SuqafuranIPA/*.ipa 2>/dev/null | head -1)
-          if [ -n "$IPA_FILE" ]; then
-            xcrun altool --upload-app \
-              --file "$IPA_FILE" \
-              --type ios \
-              --apiKey "$APP_STORE_CONNECT_API_KEY" \
-              --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID" \
-              --apiKeyID "$APP_STORE_CONNECT_API_KEY_ID" 2>&1 || \
-            echo "TestFlight upload initiated"
-          fi
+          DISTRIBUTION_CERT_P12: ${{ secrets.DISTRIBUTION_CERT_P12 }}
+          DISTRIBUTION_CERT_PASSWORD: ${{ secrets.DISTRIBUTION_CERT_PASSWORD }}
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
@@ -134,8 +81,3 @@ jobs:
           name: Suqafuran.ipa
           path: ~/Desktop/SuqafuranIPA/*.ipa
           retention-days: 30
-
-      - name: Clean up keychain
-        if: always()
-        run: |
-          security delete-keychain build.keychain || true
