@@ -12,6 +12,16 @@ platform :ios do
       skip_set_partition_list: true
     ) if is_ci
 
+    # Get provisioning profile
+    sigh(
+      app_identifier: "com.suqafuran.app",
+      provisioning_name: "Suqafuran App Store",
+      development: false,
+      force: true,
+      readonly: false,
+      skip_certificate_verification: true
+    ) if is_ci
+
     build_app(
       project: "App.xcodeproj",
       scheme: "App",
@@ -25,7 +35,8 @@ platform :ios do
         signingStyle: "automatic",
         stripSwiftSymbols: true,
         uploadBitcode: true,
-        teamID: "2969422VU2"
+        teamID: "2969422VU2",
+        provisioningProfileName: "Suqafuran App Store"
       }
     )
 
