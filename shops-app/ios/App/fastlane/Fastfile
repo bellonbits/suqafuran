@@ -29,24 +29,22 @@ platform :ios do
       )
 
       p12_path = File.expand_path("../P72X8KV2P9.p12", __dir__)
-      use_env_cert = ENV['DISTRIBUTION_CERT_P12'].to_s != ''
-
-      if use_env_cert
+      if ENV['DISTRIBUTION_CERT_P12'].to_s != ''
         p12_path = File.expand_path("dist_cert.p12")
         File.write(p12_path, Base64.decode64(ENV['DISTRIBUTION_CERT_P12']))
-      else
-        # Check if p12_path is actually a PEM formatted private key (only for local builds)
-        p12_content = File.read(p12_path)
-        if p12_content.include?("BEGIN RSA PRIVATE KEY") || p12_content.include?("BEGIN PRIVATE KEY")
-          cer_path = File.expand_path("../P72X8KV2P9.cer", __dir__)
-          cert_pem = File.expand_path("cert_temp.pem")
+      end
 
-          if File.exist?(cer_path)
-            sh("openssl x509 -in #{cer_path} -inform DER -out #{cert_pem}")
-            valid_p12 = File.expand_path("converted_dist.p12")
-            sh("openssl pkcs12 -export -out #{valid_p12} -inkey #{p12_path} -in #{cert_pem} -passout pass:'' -legacy")
-            p12_path = valid_p12
-          end
+      # Check if p12_path is actually a PEM formatted private key
+      p12_content = File.read(p12_path)
+      if p12_content.include?("BEGIN RSA PRIVATE KEY") || p12_content.include?("BEGIN PRIVATE KEY")
+        cer_path = File.expand_path("../P72X8KV2P9.cer", __dir__)
+        cert_pem = File.expand_path("cert_temp.pem")
+
+        if File.exist?(cer_path)
+          sh("openssl x509 -in #{cer_path} -inform DER -out #{cert_pem}")
+          valid_p12 = File.expand_path("converted_dist.p12")
+          sh("openssl pkcs12 -export -out #{valid_p12} -inkey #{p12_path} -in #{cert_pem} -passout pass:'' -legacy")
+          p12_path = valid_p12
         end
       end
 
@@ -55,6 +53,12 @@ platform :ios do
         certificate_password: ENV['DISTRIBUTION_CERT_PASSWORD'] || "",
         keychain_name: keychain_name,
         keychain_password: keychain_password
+      )
+
+      update_keychain_partition_list(
+        keychain_name: keychain_name,
+        keychain_password: keychain_password,
+        dont_autorange: true
       )
 
       profile_path = File.expand_path("../AppStore_com.suqafuran.app.mobileprovision", __dir__)
