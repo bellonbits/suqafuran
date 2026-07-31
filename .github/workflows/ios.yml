@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-15     # Xcode 26 beta is available on macos-15
+    runs-on: macos-15
 
     steps:
       - name: Checkout
@@ -15,7 +15,6 @@ jobs:
 
       - name: Select Xcode 26
         run: |
-          # Use Xcode 26 beta (SDK 26) if available, otherwise latest
           if [ -d "/Applications/Xcode_26.0.app" ]; then
             sudo xcode-select -s /Applications/Xcode_26.0.app
           elif [ -d "/Applications/Xcode_26_beta.app" ]; then
@@ -27,6 +26,7 @@ jobs:
             fi
           fi
           xcodebuild -version
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -43,19 +43,6 @@ jobs:
       - name: Build web app
         working-directory: shops-app
         run: npm run build
-
-      - name: Copy certificates from ios to shops-app/ios
-        run: |
-          if [ -d "ios" ]; then
-            mkdir -p shops-app/ios
-            cp -r ios/* shops-app/ios/ || true
-          fi
-
-      - name: Capacitor add iOS (if needed)
-        run: |
-          if [ ! -d "shops-app/ios/App" ]; then
-            cd shops-app && npx cap add ios
-          fi
 
       - name: Capacitor sync
         working-directory: shops-app
@@ -76,26 +63,13 @@ jobs:
 
       - name: Import distribution certificate
         run: |
-          # Decode base64 certificate
           echo "${{ secrets.DISTRIBUTION_CERT_P12 }}" | base64 -d > /tmp/distribution.p12
-
-          # Create keychain
           KEYCHAIN_PATH="$HOME/Library/Keychains/ios-build.keychain"
           security create-keychain -p "" "$KEYCHAIN_PATH" || true
-
-          # Import certificate (using empty password)
-          security import /tmp/distribution.p12 \
-            -k "$KEYCHAIN_PATH" \
-            -P "" \
-            -T /usr/bin/codesign
-
-          # Set keychain settings
+          security import /tmp/distribution.p12 -k "$KEYCHAIN_PATH" -P "" -T /usr/bin/codesign
           security set-keychain-settings -t 3600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "" "$KEYCHAIN_PATH"
-
-          # Add to search list
           security list-keychains -s "$KEYCHAIN_PATH" $(security list-keychains | tr '\n' ' ')
-
           rm /tmp/distribution.p12
           echo "✓ Certificate imported"
 
@@ -103,31 +77,18 @@ jobs:
         run: |
           PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles"
           mkdir -p "$PROFILE_PATH"
-
-          # Decode and save provisioning profile
           echo "${{ secrets.PROVISIONING_PROFILE }}" | base64 -d > /tmp/profile.mobileprovision
-
-          # Extract UUID from provisioning profile
           PROFILE_UUID=$(security cms -D -i /tmp/profile.mobileprovision 2>/dev/null | grep -o 'UUID</key>.*<string>[^<]*</string>' | sed 's/.*<string>\([^<]*\)<.*/\1/')
-
           if [ -z "$PROFILE_UUID" ]; then
-            # Fallback to using filename if UUID extraction fails
             PROFILE_UUID="Suqafuran"
           fi
-
-          # Install profile with UUID as filename
           cp /tmp/profile.mobileprovision "$PROFILE_PATH/$PROFILE_UUID.mobileprovision"
           rm /tmp/profile.mobileprovision
-
-          echo "✓ Provisioning profile installed (UUID: $PROFILE_UUID)"
+          echo "✓ Provisioning profile installed"
 
       - name: Build IPA
         working-directory: shops-app/ios/App
         run: fastlane build
-        env:
-          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
