@@ -61,10 +61,7 @@ platform :ios do
       export_method: "app-store",
       xcargs: "-allowProvisioningUpdates",
       export_options: {
-        signingStyle: "manual",
-        provisioningProfiles: {
-          "com.suqafuran.app" => "com.suqafuran.app AppStore"
-        },
+        signingStyle: "automatic",
         teamID: "2969422VU2"
       }
     )
