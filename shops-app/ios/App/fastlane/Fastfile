@@ -1,3 +1,5 @@
+require 'base64'
+
 default_platform(:ios)
 
 platform :ios do
@@ -14,16 +16,38 @@ platform :ios do
     end
 
     if is_ci
-      match_opts = {
-        type: "appstore",
-        app_identifier: "com.suqafuran.app",
-        git_url: "https://bellonbits:#{ENV['MATCH_PASSWORD']}@github.com/bellonbits/suqafuran-ios-certs.git",
-        storage_mode: "git",
-        readonly: false,
-        skip_confirmation: true
-      }
-      match_opts[:api_key] = api_key if api_key
-      match(match_opts)
+      keychain_name = "fastlane_tmp_keychain"
+      keychain_password = "fastlane_password_123"
+
+      create_keychain(
+        name: keychain_name,
+        password: keychain_password,
+        default_keychain: true,
+        unlock: true,
+        timeout: 3600,
+        lock_when_sleeps: false
+      )
+
+      p12_path = File.expand_path("P72X8KV2P9.p12")
+      if ENV['DISTRIBUTION_CERT_P12'].to_s != ''
+        p12_path = File.expand_path("dist_cert.p12")
+        File.write(p12_path, Base64.decode64(ENV['DISTRIBUTION_CERT_P12']))
+      end
+
+      import_certificate(
+        certificate_path: p12_path,
+        certificate_password: ENV['DISTRIBUTION_CERT_PASSWORD'] || "",
+        keychain_name: keychain_name,
+        keychain_password: keychain_password
+      )
+
+      profile_path = File.expand_path("AppStore_com.suqafuran.app.mobileprovision")
+      if ENV['PROVISIONING_PROFILE'].to_s != ''
+        profile_path = File.expand_path("dist.mobileprovision")
+        File.write(profile_path, Base64.decode64(ENV['PROVISIONING_PROFILE']))
+      end
+
+      install_provisioning_profile(path: profile_path)
     end
 
     build_app(
@@ -35,11 +59,11 @@ platform :ios do
       output_directory: "~/Desktop/SuqafuranIPA",
       output_name: "Suqafuran.ipa",
       export_method: "app-store",
-      xcargs: "-allowProvisioningUpdates",
       export_options: {
-        signingStyle: "automatic",
-        stripSwiftSymbols: true,
-        uploadBitcode: true,
+        signingStyle: "manual",
+        provisioningProfiles: {
+          "com.suqafuran.app" => "com.suqafuran.app AppStore"
+        },
         teamID: "2969422VU2"
       }
     )
