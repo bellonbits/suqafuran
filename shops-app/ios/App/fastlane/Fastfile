@@ -16,50 +16,13 @@ platform :ios do
     end
 
     if is_ci
-      keychain_name = "fastlane_tmp_keychain"
-      keychain_password = "fastlane_password_123"
-
-      create_keychain(
-        name: keychain_name,
-        password: keychain_password,
-        default_keychain: true,
-        unlock: true,
-        timeout: 3600,
-        lock_when_sleeps: false
-      )
-
-      keychain_file = File.expand_path("~/Library/Keychains/#{keychain_name}-db")
-      sh("security unlock-keychain -p '#{keychain_password}' '#{keychain_file}' 2>/dev/null || true")
-
-      p12_path = File.expand_path("../P72X8KV2P9.p12", __dir__)
-      cert_password = ENV['DISTRIBUTION_CERT_PASSWORD'] || "password"
-
-      sh("security import '#{p12_path}' -k '#{keychain_file}' -P '#{cert_password}' -T /usr/bin/codesign 2>&1 || true")
-
-      sh("security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k '#{keychain_password}' '#{keychain_file}' 2>/dev/null || true")
-
-      profile_path = File.expand_path("../AppStore_com.suqafuran.app.mobileprovision", __dir__)
-      if ENV['PROVISIONING_PROFILE'].to_s != ''
-        profile_path = File.expand_path("dist.mobileprovision")
-        cleaned_prof_b64 = ENV['PROVISIONING_PROFILE'].to_s.gsub(/\s+/, '')
-        File.write(profile_path, Base64.decode64(cleaned_prof_b64))
-      end
-
-      install_provisioning_profile(path: profile_path)
-
-      prof_spec = ENV['PROVISIONING_PROFILE_SPECIFIER'] || lane_context[SharedValues::SIGH_NAME] || lane_context[SharedValues::SIGH_UDID] || "com.suqafuran.app AppStore"
-
       update_code_signing_settings(
-        use_automatic_signing: false,
+        use_automatic_signing: true,
         path: "App.xcodeproj",
         team_id: "2969422VU2",
-        bundle_identifier: "com.suqafuran.app",
-        profile_name: prof_spec,
-        code_sign_identity: "Apple Distribution"
+        bundle_identifier: "com.suqafuran.app"
       )
     end
-
-    prof_spec = ENV['PROVISIONING_PROFILE_SPECIFIER'] || lane_context[SharedValues::SIGH_NAME] || lane_context[SharedValues::SIGH_UDID] || "com.suqafuran.app AppStore"
 
     build_opts = {
       project: "App.xcodeproj",
@@ -70,13 +33,9 @@ platform :ios do
       output_directory: "~/Desktop/SuqafuranIPA",
       output_name: "Suqafuran.ipa",
       export_method: "app-store",
-      xcargs: "PROVISIONING_PROFILE_SPECIFIER='#{prof_spec}' CODE_SIGN_IDENTITY='Apple Distribution' DEVELOPMENT_TEAM='2969422VU2'",
       export_options: {
-        signingStyle: "manual",
-        teamID: "2969422VU2",
-        provisioningProfiles: {
-          "com.suqafuran.app" => prof_spec
-        }
+        signingStyle: "automatic",
+        teamID: "2969422VU2"
       }
     }
 
