@@ -5,7 +5,15 @@ platform :ios do
   lane :build do
     setup_ci if is_ci
 
+    api_key = app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_content: ENV["APP_STORE_CONNECT_API_KEY"],
+      in_house: false
+    )
+
     sigh(
+      api_key: api_key,
       app_identifier: "com.suqafuran.app",
       team_id: "2969422VU2",
       provisioning_name: "Suqafuran App Store",
