@@ -15,6 +15,7 @@ jobs:
 
       - name: Select Xcode 26
         run: |
+          # Use Xcode 26 beta (SDK 26) if available, otherwise latest
           if [ -d "/Applications/Xcode_26.0.app" ]; then
             sudo xcode-select -s /Applications/Xcode_26.0.app
           elif [ -d "/Applications/Xcode_26_beta.app" ]; then
@@ -36,13 +37,20 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
-      - name: Install shops-app dependencies
+      - name: Install frontend dependencies
         working-directory: shops-app
         run: npm ci
 
       - name: Build web app
         working-directory: shops-app
         run: npm run build
+
+      - name: Capacitor add iOS (if needed)
+        working-directory: shops-app
+        run: |
+          if [ ! -d "ios" ]; then
+            npx cap add ios
+          fi
 
       - name: Capacitor sync
         working-directory: shops-app
@@ -51,17 +59,12 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.3'
+          ruby-version: '3.2'
           bundler-cache: true
           working-directory: shops-app/ios/App
 
       - name: Install Fastlane
         run: gem install fastlane
-
-      - name: Setup match for certificate management
-        run: |
-          # match will automatically fetch/sync certificates and provisioning profiles
-          # from the private repo on first run
 
       - name: Create output directory
         run: mkdir -p ~/Desktop/SuqafuranIPA
@@ -75,6 +78,7 @@ jobs:
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           DISTRIBUTION_CERT_P12: ${{ secrets.DISTRIBUTION_CERT_P12 }}
           DISTRIBUTION_CERT_PASSWORD: ${{ secrets.DISTRIBUTION_CERT_PASSWORD }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
