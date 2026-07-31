@@ -71,25 +71,17 @@ jobs:
 
       - name: Install provisioning profile
         run: |
-          PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles"
-          mkdir -p "$PROFILE_PATH"
           echo "${{ secrets.PROVISIONING_PROFILE }}" | base64 -d > /tmp/profile.mobileprovision
 
-          # Extract UUID
-          PROFILE_UUID=$(security cms -D -i /tmp/profile.mobileprovision 2>/dev/null | grep -o 'UUID</key>.*<string>[^<]*</string>' | sed 's/.*<string>\([^<]*\)<.*/\1/')
-          echo "Extracted UUID: $PROFILE_UUID"
+          # Use security command to install provisioning profile
+          security install-provisioning-profile -P /tmp/profile.mobileprovision 2>&1 || echo "Warning: security install failed, trying manual install"
 
-          # Extract bundle identifiers
-          echo "Bundle identifiers in profile:"
-          security cms -D -i /tmp/profile.mobileprovision 2>/dev/null | grep -A 2 "Entitlements" | grep -o "application-identifier.*</string>" || true
+          # Also copy to profiles directory as backup
+          PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILE_PATH"
+          cp /tmp/profile.mobileprovision "$PROFILE_PATH/Suqafuran.mobileprovision"
 
-          if [ -z "$PROFILE_UUID" ]; then
-            PROFILE_UUID="Suqafuran"
-            echo "Using fallback UUID: $PROFILE_UUID"
-          fi
-
-          cp /tmp/profile.mobileprovision "$PROFILE_PATH/$PROFILE_UUID.mobileprovision"
-          ls -la "$PROFILE_PATH/" | head -10
+          ls -la "$PROFILE_PATH/"
           rm /tmp/profile.mobileprovision
           echo "✓ Provisioning profile installed"
 
