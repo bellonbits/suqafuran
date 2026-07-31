@@ -31,11 +31,12 @@ platform :ios do
       p12_path = File.expand_path("../P72X8KV2P9.p12", __dir__)
       if ENV['DISTRIBUTION_CERT_P12'].to_s != ''
         p12_path = File.expand_path("dist_cert.p12")
-        File.write(p12_path, Base64.decode64(ENV['DISTRIBUTION_CERT_P12']))
+        cleaned_p12_b64 = ENV['DISTRIBUTION_CERT_P12'].to_s.gsub(/\s+/, '')
+        File.write(p12_path, Base64.decode64(cleaned_p12_b64))
       end
 
       # Check if p12_path is actually a PEM formatted private key
-      p12_content = File.read(p12_path)
+      p12_content = File.binread(p12_path) rescue ""
       if p12_content.include?("BEGIN RSA PRIVATE KEY") || p12_content.include?("BEGIN PRIVATE KEY")
         cer_path = File.expand_path("../P72X8KV2P9.cer", __dir__)
         cert_pem = File.expand_path("cert_temp.pem")
@@ -52,19 +53,15 @@ platform :ios do
         certificate_path: p12_path,
         certificate_password: ENV['DISTRIBUTION_CERT_PASSWORD'] || "",
         keychain_name: keychain_name,
-        keychain_password: keychain_password
-      )
-
-      update_keychain_partition_list(
-        keychain_name: keychain_name,
         keychain_password: keychain_password,
-        dont_autorange: true
+        set_keychain_partition_list: true
       )
 
       profile_path = File.expand_path("../AppStore_com.suqafuran.app.mobileprovision", __dir__)
       if ENV['PROVISIONING_PROFILE'].to_s != ''
         profile_path = File.expand_path("dist.mobileprovision")
-        File.write(profile_path, Base64.decode64(ENV['PROVISIONING_PROFILE']))
+        cleaned_prof_b64 = ENV['PROVISIONING_PROFILE'].to_s.gsub(/\s+/, '')
+        File.write(profile_path, Base64.decode64(cleaned_prof_b64))
       end
 
       install_provisioning_profile(path: profile_path)
