@@ -74,12 +74,24 @@ jobs:
           PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles"
           mkdir -p "$PROFILE_PATH"
           echo "${{ secrets.PROVISIONING_PROFILE }}" | base64 -d > /tmp/profile.mobileprovision
+
+          # Extract UUID
           PROFILE_UUID=$(security cms -D -i /tmp/profile.mobileprovision 2>/dev/null | grep -o 'UUID</key>.*<string>[^<]*</string>' | sed 's/.*<string>\([^<]*\)<.*/\1/')
+          echo "Extracted UUID: $PROFILE_UUID"
+
+          # Extract bundle identifiers
+          echo "Bundle identifiers in profile:"
+          security cms -D -i /tmp/profile.mobileprovision 2>/dev/null | grep -A 2 "Entitlements" | grep -o "application-identifier.*</string>" || true
+
           if [ -z "$PROFILE_UUID" ]; then
             PROFILE_UUID="Suqafuran"
+            echo "Using fallback UUID: $PROFILE_UUID"
           fi
+
           cp /tmp/profile.mobileprovision "$PROFILE_PATH/$PROFILE_UUID.mobileprovision"
+          ls -la "$PROFILE_PATH/" | head -10
           rm /tmp/profile.mobileprovision
+          echo "✓ Provisioning profile installed"
 
       - name: Create output directory
         run: mkdir -p ~/Desktop/SuqafuranIPA
