@@ -73,7 +73,7 @@ platform :ios do
         team_id: "2969422VU2",
         bundle_identifier: "com.suqafuran.app",
         profile_name: prof_spec,
-        code_sign_identity: "iOS Distribution"
+        code_sign_identity: "Apple Distribution"
       )
     end
 
@@ -88,9 +88,13 @@ platform :ios do
       output_directory: "~/Desktop/SuqafuranIPA",
       output_name: "Suqafuran.ipa",
       export_method: "app-store",
+      xcargs: "PROVISIONING_PROFILE_SPECIFIER='#{prof_spec}' CODE_SIGN_IDENTITY='Apple Distribution' DEVELOPMENT_TEAM='2969422VU2'",
       export_options: {
-        signingStyle: "automatic",
-        teamID: "2969422VU2"
+        signingStyle: "manual",
+        teamID: "2969422VU2",
+        provisioningProfiles: {
+          "com.suqafuran.app" => prof_spec
+        }
       }
     )
 
