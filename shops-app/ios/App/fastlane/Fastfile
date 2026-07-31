@@ -5,6 +5,14 @@ platform :ios do
   lane :build do
     setup_ci if is_ci
 
+    sigh(
+      app_identifier: "com.suqafuran.app",
+      team_id: "2969422VU2",
+      provisioning_name: "Suqafuran App Store",
+      adhoc: false,
+      readonly: is_ci
+    )
+
     build_app(
       project: "App.xcodeproj",
       scheme: "App",
@@ -13,6 +21,7 @@ platform :ios do
       output_directory: "~/Desktop/SuqafuranIPA",
       output_name: "Suqafuran.ipa",
       export_method: "app-store",
+      xcargs: "-allowProvisioningUpdates",
       export_options: {
         signingStyle: "automatic",
         stripSwiftSymbols: true,
