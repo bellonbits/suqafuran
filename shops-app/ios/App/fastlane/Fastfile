@@ -16,7 +16,11 @@ platform :ios do
     end
 
     if is_ci
-      setup_ci
+      if api_key
+        setup_ci(api_key: api_key)
+      else
+        setup_ci
+      end
 
       sh("rm -rf ~/Library/Developer/Xcode/DerivedData/* || true")
 
