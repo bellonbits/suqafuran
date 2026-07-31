@@ -34,10 +34,7 @@ jobs:
 
       - name: Capacitor Sync
         working-directory: shops-app
-        run: |
-          npx cap sync
-          cp -r dist/. ../ios/App/App/public/
-          cp capacitor.config.json ../ios/App/App/
+        run: npx cap sync
 
       - uses: ruby/setup-ruby@v1
         with:
