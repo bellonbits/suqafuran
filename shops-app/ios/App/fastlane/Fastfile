@@ -16,6 +16,8 @@ platform :ios do
     end
 
     if is_ci
+      setup_ci
+
       update_code_signing_settings(
         use_automatic_signing: true,
         path: "App.xcodeproj",
