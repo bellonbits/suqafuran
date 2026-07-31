@@ -34,15 +34,7 @@ platform :ios do
       p12_path = File.expand_path("../P72X8KV2P9.p12", __dir__)
       cert_password = ENV['DISTRIBUTION_CERT_PASSWORD'] || "password"
 
-      UI.message("Using certificate password: #{cert_password.empty? ? '(empty)' : '***'}")
-      UI.message("P12 file exists: #{File.exist?(p12_path)}")
-
-      import_certificate(
-        certificate_path: p12_path,
-        certificate_password: cert_password,
-        keychain_name: keychain_name,
-        keychain_password: keychain_password
-      )
+      sh("security import '#{p12_path}' -k '#{keychain_file}' -P '#{cert_password}' -T /usr/bin/codesign 2>&1 || true")
 
       sh("security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k '#{keychain_password}' '#{keychain_file}' 2>/dev/null || true")
 
