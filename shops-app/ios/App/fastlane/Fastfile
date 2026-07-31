@@ -59,6 +59,7 @@ platform :ios do
       output_directory: "~/Desktop/SuqafuranIPA",
       output_name: "Suqafuran.ipa",
       export_method: "app-store",
+      xcargs: "-allowProvisioningUpdates",
       export_options: {
         signingStyle: "manual",
         provisioningProfiles: {
