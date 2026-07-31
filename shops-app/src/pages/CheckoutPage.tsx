@@ -447,7 +447,7 @@ Thanks!`;
                   <div className="text-center space-y-6">
                     {/* Logo & Celebration */}
                     <div className="flex justify-center">
-                      <img src="/icon1.png" alt="Suqafuran" className="h-12 w-auto object-contain" />
+                      <img src="/icon-only.png" alt="Suqafuran" className="h-12 w-auto object-contain" />
                     </div>
 
                     {/* Thank You Message */}

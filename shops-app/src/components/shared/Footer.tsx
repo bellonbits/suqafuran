@@ -9,7 +9,7 @@ export const Footer: React.FC = () => {
                     {/* Brand Section */}
                     <div className="col-span-2 md:col-span-1 space-y-4">
                         <Link href="/" className="inline-block hover:opacity-90 transition-opacity">
-                            <img src="/icon1.png" alt="Suqafuran Logo" className="h-8 w-auto object-contain" />
+                            <img src="/icon-only.png" alt="Suqafuran Logo" className="h-8 w-auto object-contain" />
                         </Link>
                         <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed pt-1">
                             Africa's trusted online marketplace. Buy, sell, chat, and transact securely directly with local buyers and sellers.
