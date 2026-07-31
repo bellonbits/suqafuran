@@ -1,4 +1,4 @@
-name: iOS Build & TestFlight
+name: iOS Build
 
 on:
   push:
@@ -7,34 +7,34 @@ on:
 
 jobs:
   build:
-    name: Build & Upload iOS App
+    name: Build iOS IPA
     runs-on: macos-15
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Select Xcode Version
+      - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: 'latest-stable'
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: shops-app/package-lock.json
 
-      - name: Install shops-app dependencies
+      - name: Install Dependencies
         working-directory: shops-app
         run: npm ci
 
-      - name: Build web application
+      - name: Build Web
         working-directory: shops-app
         run: npm run build
 
-      - name: Sync Capacitor iOS
+      - name: Sync Capacitor
         working-directory: shops-app
         run: npx cap sync ios
 
@@ -44,20 +44,16 @@ jobs:
           ruby-version: '3.3'
 
       - name: Install Fastlane
-        run: gem install fastlane --no-document
+        run: gem install fastlane
 
-      - name: Ensure Output Directory Exists
-        run: mkdir -p ~/Desktop/SuqafuranIPA
-
-      - name: Build IPA and Deploy via Fastlane
+      - name: Build IPA
         working-directory: shops-app/ios/App
         run: fastlane build
-        env:
-          DISTRIBUTION_CERT_PASSWORD: ${{ secrets.DISTRIBUTION_CERT_PASSWORD }}
 
-      - name: Upload IPA Artifact
+      - name: Upload IPA
         uses: actions/upload-artifact@v4
+        if: success()
         with:
-          name: Suqafuran-iOS.ipa
-          path: ~/Desktop/SuqafuranIPA/*.ipa
+          name: Suqafuran.ipa
+          path: ~/Desktop/SuqafuranIPA/Suqafuran.ipa
           retention-days: 30
