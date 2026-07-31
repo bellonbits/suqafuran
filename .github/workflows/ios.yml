@@ -83,10 +83,10 @@ jobs:
           KEYCHAIN_PATH="$HOME/Library/Keychains/ios-build.keychain"
           security create-keychain -p "" "$KEYCHAIN_PATH" || true
 
-          # Import certificate
+          # Import certificate (using empty password)
           security import /tmp/distribution.p12 \
             -k "$KEYCHAIN_PATH" \
-            -P "${{ secrets.DISTRIBUTION_CERT_PASSWORD }}" \
+            -P "" \
             -T /usr/bin/codesign
 
           # Set keychain settings
