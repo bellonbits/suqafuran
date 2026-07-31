@@ -92,12 +92,5 @@ platform :ios do
     }
 
     build_app(build_opts)
-
-    upload_opts = {
-      ipa: "~/Desktop/SuqafuranIPA/Suqafuran.ipa",
-      skip_waiting_for_build_processing: true
-    }
-    upload_opts[:api_key] = api_key if api_key
-    upload_to_testflight(upload_opts)
   end
 end
