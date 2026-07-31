@@ -46,6 +46,12 @@ jobs:
       - name: Install Fastlane
         run: gem install fastlane --no-document
 
+      - name: Install Provisioning Profile
+        run: |
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp ios/App/AppStore_com.suqafuran.app.mobileprovision \
+          ~/Library/MobileDevice/Provisioning\ Profiles/
+
       - name: Build IPA
         working-directory: ios/App
         run: fastlane build
