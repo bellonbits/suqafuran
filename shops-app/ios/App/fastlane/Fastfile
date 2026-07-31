@@ -28,7 +28,7 @@ platform :ios do
         lock_when_sleeps: false
       )
 
-      p12_path = File.expand_path("P72X8KV2P9.p12")
+      p12_path = File.expand_path("../P72X8KV2P9.p12", __dir__)
       if ENV['DISTRIBUTION_CERT_P12'].to_s != ''
         p12_path = File.expand_path("dist_cert.p12")
         File.write(p12_path, Base64.decode64(ENV['DISTRIBUTION_CERT_P12']))
@@ -37,7 +37,7 @@ platform :ios do
       # Check if p12_path is actually a PEM formatted private key
       p12_content = File.read(p12_path)
       if p12_content.include?("BEGIN RSA PRIVATE KEY") || p12_content.include?("BEGIN PRIVATE KEY")
-        cer_path = File.expand_path("P72X8KV2P9.cer")
+        cer_path = File.expand_path("../P72X8KV2P9.cer", __dir__)
         cert_pem = File.expand_path("cert_temp.pem")
         sh("openssl x509 -in #{cer_path} -inform DER -out #{cert_pem}")
         
@@ -59,7 +59,7 @@ platform :ios do
         dont_autorange: true
       )
 
-      profile_path = File.expand_path("AppStore_com.suqafuran.app.mobileprovision")
+      profile_path = File.expand_path("../AppStore_com.suqafuran.app.mobileprovision", __dir__)
       if ENV['PROVISIONING_PROFILE'].to_s != ''
         profile_path = File.expand_path("dist.mobileprovision")
         File.write(profile_path, Base64.decode64(ENV['PROVISIONING_PROFILE']))
