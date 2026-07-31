@@ -7,30 +7,40 @@ platform :ios do
 
     if is_ci
       # Create API key hash from environment variables
-      api_key = app_store_connect_api_key(
-        key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
-        issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
-        key_content: ENV["APP_STORE_CONNECT_API_KEY"]
-      )
+      begin
+        api_key = app_store_connect_api_key(
+          key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+          issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+          key_content: ENV["APP_STORE_CONNECT_API_KEY"],
+          in_house: false
+        )
+        UI.message("✓ API key loaded successfully")
+      rescue => ex
+        UI.error("Failed to load API key: #{ex.message}")
+        UI.error("Attempting to continue without API key...")
+        api_key = nil
+      end
 
-      # Ensure certificate is installed
-      cert(
-        api_key: api_key,
-        development: false,
-        force: true,
-        skip_set_partition_list: true
-      )
+      if api_key
+        # Ensure certificate is installed
+        cert(
+          api_key: api_key,
+          development: false,
+          force: true,
+          skip_set_partition_list: true
+        )
 
-      # Get provisioning profile
-      sigh(
-        api_key: api_key,
-        app_identifier: "com.suqafuran.app",
-        provisioning_name: "Suqafuran App Store",
-        development: false,
-        force: true,
-        readonly: false,
-        skip_certificate_verification: true
-      )
+        # Get provisioning profile
+        sigh(
+          api_key: api_key,
+          app_identifier: "com.suqafuran.app",
+          provisioning_name: "Suqafuran App Store",
+          development: false,
+          force: true,
+          readonly: false,
+          skip_certificate_verification: true
+        )
+      end
     end
 
     build_app(

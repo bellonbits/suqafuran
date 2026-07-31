@@ -64,12 +64,12 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.2'
+          ruby-version: '3.3'
           bundler-cache: true
           working-directory: shops-app/ios/App
 
       - name: Install Fastlane
-        run: gem install fastlane
+        run: gem install fastlane -v 2.220.0 || gem install fastlane
 
       - name: Create output directory
         run: mkdir -p ~/Desktop/SuqafuranIPA
