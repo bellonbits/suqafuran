@@ -38,11 +38,17 @@ jobs:
         working-directory: shops-app
         run: npm ci
 
-      - name: Build web app (Vite)
+      - name: Build web app
         working-directory: shops-app
         run: npm run build
 
-      - name: Capacitor sync iOS
+      - name: Capacitor add iOS (if needed)
+        run: |
+          if [ ! -d "shops-app/ios/App" ]; then
+            cd shops-app && npx cap add ios
+          fi
+
+      - name: Capacitor sync
         working-directory: shops-app
         run: npx cap sync ios
 
@@ -67,25 +73,22 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           if [ -n "$PROVISIONING_PROFILE" ]; then
             echo "$PROVISIONING_PROFILE" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/Suqafuran.mobileprovision
-            echo "✓ Provisioning profile installed"
           fi
 
-      - name: Build iOS app
+      - name: Create output directory
+        run: mkdir -p ~/Desktop/SuqafuranIPA
+
+      - name: Build IPA
+        working-directory: shops-app/ios/App
         run: |
-          cd shops-app/ios/App
           xcodebuild -project App.xcodeproj \
             -scheme App \
             -configuration Release \
             -derivedDataPath build \
             -allowProvisioningUpdates \
-            archive -archivePath build/App.xcarchive 2>&1
+            archive -archivePath build/App.xcarchive
 
-      - name: Export iOS app for App Store
-        run: |
-          cd shops-app/ios/App
-          mkdir -p ~/Desktop/SuqafuranIPA
-
-          # Create export options plist for app-store distribution
+          # Create export options plist
           cat > ExportOptions.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -93,8 +96,6 @@ jobs:
           <dict>
               <key>method</key>
               <string>app-store</string>
-              <key>teamID</key>
-              <string>${{ secrets.APPLE_TEAM_ID }}</string>
               <key>signingStyle</key>
               <string>automatic</string>
               <key>stripSwiftSymbols</key>
@@ -108,31 +109,7 @@ jobs:
           xcodebuild -exportArchive \
             -archivePath build/App.xcarchive \
             -exportPath ~/Desktop/SuqafuranIPA \
-            -exportOptionsPlist ExportOptions.plist 2>&1
-
-      - name: Upload to TestFlight
-        run: |
-          cd ~/Desktop/SuqafuranIPA
-          IPA_FILE=$(ls *.ipa 2>/dev/null | head -1)
-
-          if [ -z "$IPA_FILE" ]; then
-            echo "No IPA file found"
-            exit 1
-          fi
-
-          # Use xcrun altool (or notarytool for newer versions)
-          xcrun altool --upload-app \
-            --file "$IPA_FILE" \
-            --type ios \
-            --apiKey "${{ secrets.APP_STORE_CONNECT_API_KEY }}" \
-            --apiIssuer "${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}" \
-            --apiKeyID "${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}" 2>&1 || \
-          echo "TestFlight upload started (async - check App Store Connect for status)"
-
-      - name: Clean up keychain
-        if: always()
-        run: |
-          security delete-keychain build.keychain || true
+            -exportOptionsPlist ExportOptions.plist
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
@@ -140,4 +117,8 @@ jobs:
           name: Suqafuran.ipa
           path: ~/Desktop/SuqafuranIPA/*.ipa
           retention-days: 30
-          if-no-files-found: ignore
+
+      - name: Clean up keychain
+        if: always()
+        run: |
+          security delete-keychain build.keychain || true
