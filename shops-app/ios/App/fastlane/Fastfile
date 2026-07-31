@@ -18,6 +18,8 @@ platform :ios do
     if is_ci
       setup_ci
 
+      sh("rm -rf ~/Library/Developer/Xcode/DerivedData/* || true")
+
       update_code_signing_settings(
         use_automatic_signing: true,
         path: "App.xcodeproj",
