@@ -6,7 +6,7 @@ platform :ios do
     setup_ci if is_ci
 
     build_app(
-      workspace: "App.xcworkspace",
+      project: "App.xcodeproj",
       scheme: "App",
       configuration: "Release",
       clean: true,
