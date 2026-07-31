@@ -19,7 +19,7 @@ platform :ios do
         app_identifier: "com.suqafuran.app",
         git_url: "https://bellonbits:#{ENV['MATCH_PASSWORD']}@github.com/bellonbits/suqafuran-ios-certs.git",
         storage_mode: "git",
-        readonly: true,
+        readonly: false,
         skip_confirmation: true
       }
       match_opts[:api_key] = api_key if api_key
