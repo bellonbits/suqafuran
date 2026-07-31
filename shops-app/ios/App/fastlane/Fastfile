@@ -57,12 +57,6 @@ platform :ios do
         keychain_password: keychain_password
       )
 
-      set_keychain_partition_list(
-        keychain_name: keychain_name,
-        keychain_password: keychain_password,
-        dont_autorange: true
-      )
-
       profile_path = File.expand_path("../AppStore_com.suqafuran.app.mobileprovision", __dir__)
       if ENV['PROVISIONING_PROFILE'].to_s != ''
         profile_path = File.expand_path("dist.mobileprovision")
