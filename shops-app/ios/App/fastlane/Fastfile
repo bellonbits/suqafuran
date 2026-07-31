@@ -18,15 +18,11 @@ platform :ios do
     if is_ci
       sh("rm -rf ~/Library/Developer/Xcode/DerivedData/* || true")
 
-      profile_path = File.expand_path("../AppStore_com.suqafuran.app.mobileprovision", __dir__)
-      install_provisioning_profile(path: profile_path) if File.exist?(profile_path)
-
       update_code_signing_settings(
-        use_automatic_signing: false,
+        use_automatic_signing: true,
         path: "App.xcodeproj",
         team_id: "2969422VU2",
-        bundle_identifier: "com.suqafuran.app",
-        code_sign_identity: "Apple Distribution"
+        bundle_identifier: "com.suqafuran.app"
       )
     end
 
@@ -39,12 +35,10 @@ platform :ios do
       output_directory: "~/Desktop/SuqafuranIPA",
       output_name: "Suqafuran.ipa",
       export_method: "app-store",
+      xcargs: "-allowProvisioningUpdates",
       export_options: {
-        signingStyle: "manual",
-        teamID: "2969422VU2",
-        provisioningProfiles: {
-          "com.suqafuran.app" => "com.suqafuran.app AppStore"
-        }
+        signingStyle: "automatic",
+        teamID: "2969422VU2"
       }
     }
 
