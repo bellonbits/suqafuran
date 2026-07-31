@@ -52,10 +52,9 @@ platform :ios do
       output_directory: "~/Desktop/SuqafuranIPA",
       output_name: "Suqafuran.ipa",
       export_method: "app-store",
-      signingStyle: is_ci ? "manual" : "automatic",
-      xcargs: is_ci ? "" : "-allowProvisioningUpdates",
+      xcargs: "-allowProvisioningUpdates",
       export_options: {
-        signingStyle: is_ci ? "manual" : "automatic",
+        signingStyle: "manual",
         stripSwiftSymbols: true,
         uploadBitcode: true,
         teamID: "2969422VU2",
