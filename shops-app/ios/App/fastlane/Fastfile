@@ -32,17 +32,11 @@ platform :ios do
       sh("security unlock-keychain -p '#{keychain_password}' '#{keychain_file}' 2>/dev/null || true")
 
       p12_path = File.expand_path("../P72X8KV2P9.p12", __dir__)
-      if ENV['DISTRIBUTION_CERT_P12'].to_s != ''
-        env_p12_path = File.expand_path("dist_cert.p12")
-        cleaned_p12_b64 = ENV['DISTRIBUTION_CERT_P12'].to_s.gsub(/\s+/, '')
-        decoded_p12 = Base64.decode64(cleaned_p12_b64)
-        File.binwrite(env_p12_path, decoded_p12)
-        p12_path = env_p12_path
-      end
+      cert_password = ENV['DISTRIBUTION_CERT_PASSWORD'] || "password"
 
       import_certificate(
         certificate_path: p12_path,
-        certificate_password: ENV['DISTRIBUTION_CERT_PASSWORD'] || "",
+        certificate_password: cert_password,
         keychain_name: keychain_name,
         keychain_password: keychain_password
       )
