@@ -47,7 +47,12 @@ platform :ios do
         File.write(profile_path, Base64.decode64(ENV['PROVISIONING_PROFILE']))
       end
 
-      install_provisioning_profile(path: profile_path)
+      profile_name = install_provisioning_profile(path: profile_path)
+
+      disable_automatic_code_signing(
+        path: "App.xcodeproj",
+        team_id: "2969422VU2"
+      )
     end
 
     build_app(
@@ -59,10 +64,12 @@ platform :ios do
       output_directory: "~/Desktop/SuqafuranIPA",
       output_name: "Suqafuran.ipa",
       export_method: "app-store",
-      xcargs: "-allowProvisioningUpdates",
       export_options: {
-        signingStyle: "automatic",
-        teamID: "2969422VU2"
+        signingStyle: "manual",
+        teamID: "2969422VU2",
+        provisioningProfiles: {
+          "com.suqafuran.app" => ENV['PROVISIONING_PROFILE_SPECIFIER'] || lane_context[SharedValues::SIGH_NAME] || lane_context[SharedValues::SIGH_UDID]
+        }
       }
     )
 
