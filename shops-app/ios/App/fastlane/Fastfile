@@ -53,9 +53,11 @@ platform :ios do
         certificate_path: p12_path,
         certificate_password: ENV['DISTRIBUTION_CERT_PASSWORD'] || "",
         keychain_name: keychain_name,
-        keychain_password: keychain_password,
-        set_keychain_partition_list: true
+        keychain_password: keychain_password
       )
+
+      keychain_file = lane_context[SharedValues::KEYCHAIN_PATH] || File.expand_path("~/Library/Keychains/#{keychain_name}-db")
+      sh("security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k '#{keychain_password}' '#{keychain_file}' || true")
 
       profile_path = File.expand_path("../AppStore_com.suqafuran.app.mobileprovision", __dir__)
       if ENV['PROVISIONING_PROFILE'].to_s != ''
