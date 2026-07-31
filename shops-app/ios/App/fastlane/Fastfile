@@ -54,11 +54,10 @@ platform :ios do
       export_method: "app-store",
       xcargs: "-allowProvisioningUpdates",
       export_options: {
-        signingStyle: "manual",
+        signingStyle: "automatic",
         stripSwiftSymbols: true,
         uploadBitcode: true,
-        teamID: "2969422VU2",
-        provisioningProfileName: "Suqafuran"
+        teamID: "2969422VU2"
       }
     )
 

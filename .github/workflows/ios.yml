@@ -101,13 +101,25 @@ jobs:
 
       - name: Install provisioning profile
         run: |
-          PROFILE=$(mktemp -d)/Suqafuran.mobileprovision
-          echo "${{ secrets.PROVISIONING_PROFILE }}" | base64 -d > "$PROFILE"
+          PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILE_PATH"
 
-          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles/"
-          cp "$PROFILE" "$HOME/Library/MobileDevice/Provisioning Profiles/Suqafuran.mobileprovision"
+          # Decode and save provisioning profile
+          echo "${{ secrets.PROVISIONING_PROFILE }}" | base64 -d > /tmp/profile.mobileprovision
 
-          echo "✓ Provisioning profile installed"
+          # Extract UUID from provisioning profile
+          PROFILE_UUID=$(security cms -D -i /tmp/profile.mobileprovision 2>/dev/null | grep -o 'UUID</key>.*<string>[^<]*</string>' | sed 's/.*<string>\([^<]*\)<.*/\1/')
+
+          if [ -z "$PROFILE_UUID" ]; then
+            # Fallback to using filename if UUID extraction fails
+            PROFILE_UUID="Suqafuran"
+          fi
+
+          # Install profile with UUID as filename
+          cp /tmp/profile.mobileprovision "$PROFILE_PATH/$PROFILE_UUID.mobileprovision"
+          rm /tmp/profile.mobileprovision
+
+          echo "✓ Provisioning profile installed (UUID: $PROFILE_UUID)"
 
       - name: Build IPA
         working-directory: shops-app/ios/App
