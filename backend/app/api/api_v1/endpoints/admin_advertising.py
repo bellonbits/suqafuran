@@ -18,6 +18,30 @@ from pydantic import BaseModel
 router = APIRouter(tags=["admin-advertising"])
 
 
+def _banner_fields(banner: HomepageBanner) -> dict:
+    """
+    Explicit field extraction instead of banner.dict() — SQLModel's .dict()
+    can return an empty dict right after an insert + commit + refresh cycle,
+    even though the ORM attributes themselves are populated correctly.
+    """
+    return {
+        "id": banner.id,
+        "seller_id": banner.seller_id,
+        "title": banner.title,
+        "subtitle": banner.subtitle,
+        "image_url": banner.image_url,
+        "mobile_image_url": banner.mobile_image_url,
+        "button_text": banner.button_text,
+        "button_link": banner.button_link,
+        "start_date": banner.start_date,
+        "end_date": banner.end_date,
+        "priority": banner.priority,
+        "status": banner.status,
+        "created_at": banner.created_at,
+        "updated_at": banner.updated_at,
+    }
+
+
 # ============================================================================
 # Pydantic Schemas
 # ============================================================================
@@ -119,7 +143,7 @@ def create_homepage_banner(
     db.add(stats)
     db.commit()
 
-    return BannerResponse(**banner.dict())
+    return BannerResponse(**_banner_fields(banner))
 
 
 @router.get("/banners", response_model=List[BannerDetailResponse])
@@ -152,7 +176,7 @@ def list_homepage_banners(
             ctr = (stats.clicks / stats.impressions) * 100
 
         result.append(BannerDetailResponse(
-            **banner.dict(),
+            **_banner_fields(banner),
             stats={
                 "impressions": stats.impressions if stats else 0,
                 "clicks": stats.clicks if stats else 0,
@@ -186,7 +210,7 @@ def get_homepage_banner(
         ctr = (stats.clicks / stats.impressions) * 100
 
     return BannerDetailResponse(
-        **banner.dict(),
+        **_banner_fields(banner),
         stats={
             "impressions": stats.impressions if stats else 0,
             "clicks": stats.clicks if stats else 0,
@@ -226,7 +250,7 @@ def update_homepage_banner(
     db.commit()
     db.refresh(banner)
 
-    return BannerResponse(**banner.dict())
+    return BannerResponse(**_banner_fields(banner))
 
 
 @router.post("/banners/{banner_id}/publish", response_model=dict)
