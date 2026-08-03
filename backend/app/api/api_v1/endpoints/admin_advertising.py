@@ -335,10 +335,15 @@ def delete_banner(
     if banner.status == BannerStatus.ACTIVE:
         raise HTTPException(status_code=400, detail="Cannot delete active banners")
 
-    # Delete stats first
+    # Delete stats first, in its own flush — HomepageBanner and
+    # HomepageBannerStats aren't linked via an ORM relationship(), just a
+    # raw FK column, so SQLAlchemy's unit-of-work can't infer the delete
+    # order automatically and may try the banner first, hitting the FK
+    # constraint.
     stats = db.exec(select(HomepageBannerStats).where(HomepageBannerStats.banner_id == banner.id)).first()
     if stats:
         db.delete(stats)
+        db.flush()
 
     db.delete(banner)
     db.commit()
