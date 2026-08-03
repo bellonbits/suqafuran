@@ -130,8 +130,14 @@ export function HomepageBannerRotation() {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Banner Image */}
-      <div className="relative h-[110px] sm:h-[140px] md:h-[180px] lg:h-[210px] w-full">
+      {/* Banner Image — the uploaded creative is the whole message (title,
+          offer, and CTA are already part of the designed graphic), so the
+          entire image is just a clickable link with no extra overlay. */}
+      <button
+        onClick={handleClick}
+        className="block w-full h-[110px] sm:h-[140px] md:h-[180px] lg:h-[210px]"
+        aria-label={currentBanner.title}
+      >
         <img
           key={currentBanner.id}
           src={imageUrl}
@@ -145,34 +151,7 @@ export function HomepageBannerRotation() {
           }`}
           style={{ transitionDuration: `${TRANSITION_MS}ms` }}
         />
-
-        {/* Overlay with content */}
-        <div
-          className={`absolute inset-0 bg-black/30 flex flex-col justify-center items-start p-4 md:p-6 transition-all ease-out ${
-            isTransitioning
-              ? direction === 'next'
-                ? 'opacity-0 -translate-x-6'
-                : 'opacity-0 translate-x-6'
-              : 'opacity-100 translate-x-0'
-          }`}
-          style={{ transitionDuration: `${TRANSITION_MS}ms` }}
-        >
-          <h2 className="text-base sm:text-lg md:text-2xl font-bold text-white mb-1">
-            {currentBanner.title}
-          </h2>
-          {currentBanner.subtitle && (
-            <p className="hidden sm:block text-xs md:text-sm text-gray-100 mb-2 md:mb-3">
-              {currentBanner.subtitle}
-            </p>
-          )}
-          <button
-            onClick={handleClick}
-            className="px-3 py-1.5 md:px-5 md:py-2 text-xs md:text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
-          >
-            {currentBanner.button_text}
-          </button>
-        </div>
-      </div>
+      </button>
 
       {/* Navigation arrows (desktop only — mobile uses swipe) */}
       {banners.length > 1 && (
