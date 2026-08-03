@@ -42,6 +42,7 @@ function getPageLabel(pathname: string): string {
   if (pathname === '/seller-dashboard/featured-ads') return 'Featured Advertising';
   if (pathname === '/seller-dashboard/verification') return 'Shop Verification';
   if (pathname === '/seller-dashboard/products/bulk-import') return 'Bulk Import';
+  if (pathname === '/seller-dashboard/products/add') return 'Add Product';
   if (pathname === '/seller-dashboard/settings/staff') return 'Staff Accounts';
   const item = sellerNavItems.find(item => item.href === pathname);
   return item?.label || 'Seller Dashboard';

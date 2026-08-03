@@ -156,9 +156,10 @@ export default function App() {
       <Route element={<AppLayout><FollowingPage /></AppLayout>} path="/following" />
 
       {/* Seller Dashboard Pages */}
-      <Route element={<SellerLayout><PostAdPage /></SellerLayout>} path="/seller-dashboard" />
+      <Route element={<SellerLayout><SellerDashboardPage /></SellerLayout>} path="/seller-dashboard" />
       <Route element={<SellerLayout><SellerShopPage /></SellerLayout>} path="/seller-dashboard/shop" />
       <Route element={<SellerLayout><SellerProductsPage /></SellerLayout>} path="/seller-dashboard/products" />
+      <Route element={<SellerLayout><PostAdPage /></SellerLayout>} path="/seller-dashboard/products/add" />
       <Route element={<SellerLayout><SellerBulkImportPage /></SellerLayout>} path="/seller-dashboard/products/bulk-import" />
       <Route element={<SellerLayout><SellerOrdersPage /></SellerLayout>} path="/seller-dashboard/orders" />
       <Route element={<SellerLayout><SellerMessagesPage /></SellerLayout>} path="/seller-dashboard/messages" />

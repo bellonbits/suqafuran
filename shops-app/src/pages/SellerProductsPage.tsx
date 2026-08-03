@@ -186,7 +186,7 @@ export default function ProductsPage() {
           )}
         </div>
         <a
-          href="/sell"
+          href="/seller-dashboard/products/add"
           className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg flex items-center gap-2 transition-colors text-center"
         >
           <Plus className="w-5 h-5" />

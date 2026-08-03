@@ -28,7 +28,7 @@ export const Footer: React.FC = () => {
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/sell" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
+                                <Link href="/seller-dashboard/products/add" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
                                     Post a Listing
                                 </Link>
                             </li>
