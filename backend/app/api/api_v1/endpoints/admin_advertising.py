@@ -23,7 +23,7 @@ router = APIRouter(tags=["admin-advertising"])
 # ============================================================================
 
 class CreateBannerRequest(BaseModel):
-    shop_id: int
+    seller_id: int
     title: str
     subtitle: str | None = None
     image_url: str
@@ -50,7 +50,7 @@ class UpdateBannerRequest(BaseModel):
 
 class BannerResponse(BaseModel):
     id: int
-    shop_id: int
+    seller_id: int
     title: str
     subtitle: str | None
     image_url: str
@@ -96,7 +96,7 @@ def create_homepage_banner(
         raise HTTPException(status_code=403, detail="Admin only")
 
     banner = HomepageBanner(
-        shop_id=banner_in.shop_id,
+        seller_id=banner_in.seller_id,
         title=banner_in.title,
         subtitle=banner_in.subtitle,
         image_url=banner_in.image_url,

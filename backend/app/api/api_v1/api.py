@@ -101,9 +101,13 @@ api_router.include_router(discount_codes.router, tags=["discount-codes"])
 api_router.include_router(featured_advertising.router, tags=["featured-advertising"])
 
 # Advertising System (new comprehensive advertising platform)
+# advertising_public must be registered before advertising: both mount under
+# /advertising, and advertising's "/{ad_id}" catches static paths like
+# "/active-banners" first if it's registered earlier (Starlette matches
+# routes in registration order).
+api_router.include_router(advertising_public.router, tags=["advertising-public"])
 api_router.include_router(advertising.router, prefix="/advertising", tags=["advertising"])
 api_router.include_router(admin_advertising.router, prefix="/admin/advertising", tags=["admin-advertising"])
-api_router.include_router(advertising_public.router, tags=["advertising-public"])
 
 # Email Analytics Dashboard
 api_router.include_router(admin_email_analytics.router, prefix="/admin/email-analytics", tags=["admin-email-analytics"])
