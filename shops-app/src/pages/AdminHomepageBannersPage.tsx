@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import {
     Plus, Edit2, Trash2, Loader, X, Image as ImageIcon,
-    PlayCircle, PauseCircle, Eye, MousePointerClick,
+    PlayCircle, PauseCircle, Eye, MousePointerClick, RotateCcw,
 } from 'lucide-react';
 import api from '@/services/api';
 import { advertisingService, HomepageBannerDetail, CreateBannerPayload } from '@/services/advertising';
@@ -216,6 +216,16 @@ export default function AdminHomepageBannersPage() {
         }
     };
 
+    const handleResetStats = async (banner: HomepageBannerDetail) => {
+        if (!confirm(`Reset impressions/clicks for "${banner.title}" back to zero?`)) return;
+        try {
+            await advertisingService.resetBannerStats(banner.id);
+            await loadBanners();
+        } catch (err: any) {
+            alert(err?.response?.data?.detail || 'Failed to reset stats');
+        }
+    };
+
     if (loading) {
         return (
             <DashboardLayout title="Homepage Banners" navItems={navItems} userRole="admin">
@@ -344,6 +354,15 @@ export default function AdminHomepageBannersPage() {
                                                         title="Delete"
                                                     >
                                                         <Trash2 size={16} />
+                                                    </button>
+                                                )}
+                                                {((banner.stats?.impressions ?? 0) > 0 || (banner.stats?.clicks ?? 0) > 0) && (
+                                                    <button
+                                                        onClick={() => handleResetStats(banner)}
+                                                        className="p-2 text-gray-500 hover:bg-gray-100 rounded"
+                                                        title="Reset impressions/clicks to zero (e.g. after test traffic)"
+                                                    >
+                                                        <RotateCcw size={16} />
                                                     </button>
                                                 )}
                                             </div>

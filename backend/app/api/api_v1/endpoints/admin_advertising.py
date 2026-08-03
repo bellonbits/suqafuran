@@ -351,6 +351,35 @@ def delete_banner(
     return {"message": "Banner deleted", "banner_id": banner_id}
 
 
+@router.post("/banners/{banner_id}/reset-stats", response_model=dict)
+def reset_banner_stats(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    banner_id: int,
+) -> Any:
+    """
+    Zero out a banner's impression/click counters (admin only).
+    Useful for clearing out test traffic before a banner goes live for real.
+    """
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin only")
+
+    banner = db.get(HomepageBanner, banner_id)
+    if not banner:
+        raise HTTPException(status_code=404, detail="Banner not found")
+
+    stats = db.exec(select(HomepageBannerStats).where(HomepageBannerStats.banner_id == banner.id)).first()
+    if stats:
+        stats.impressions = 0
+        stats.clicks = 0
+        stats.updated_at = datetime.utcnow()
+        db.add(stats)
+        db.commit()
+
+    return {"message": "Stats reset", "banner_id": banner_id}
+
+
 # ============================================================================
 # Advertising Analytics Endpoints
 # ============================================================================

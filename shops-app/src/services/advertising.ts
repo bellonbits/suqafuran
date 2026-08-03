@@ -193,6 +193,13 @@ export const advertisingService = {
   },
 
   /**
+   * Zero out a banner's impression/click counters (e.g. after test traffic)
+   */
+  async resetBannerStats(bannerId: number): Promise<void> {
+    await api.post(`/admin/advertising/banners/${bannerId}/reset-stats`);
+  },
+
+  /**
    * Upload a banner image, returns the hosted URL to use as image_url/mobile_image_url
    */
   async uploadBannerImage(file: File): Promise<string> {
