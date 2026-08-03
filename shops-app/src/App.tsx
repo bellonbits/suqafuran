@@ -65,6 +65,7 @@ import AdminAnalyticsDevicesPage from './pages/AdminAnalyticsDevicesPage'
 import AdminAnalyticsGeographicPage from './pages/AdminAnalyticsGeographicPage'
 import AdminAnalyticsAlertsPage from './pages/AdminAnalyticsAlertsPage'
 import AdminBulkProductsPage from './pages/AdminBulkProductsPage'
+import AdminHomepageBannersPage from './pages/AdminHomepageBannersPage'
 import AdminCustomerSegmentsPage from './pages/AdminCustomerSegmentsPage'
 import AdminEmailAnalyticsPage from './pages/AdminEmailAnalyticsPage'
 import AdminEmailTemplatesPage from './pages/AdminEmailTemplatesPage'
@@ -205,6 +206,7 @@ export default function App() {
       <Route element={<AppLayout><AdminAnalyticsAlertsPage /></AppLayout>} path="/admin-dashboard/analytics/alerts" />
 
       {/* Admin Dashboard Features */}
+      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminHomepageBannersPage /></ProtectedRoute></AppLayout>} path="/admin-dashboard/marketing/banners" />
       <Route element={<AppLayout><AdminBulkProductsPage /></AppLayout>} path="/admin-dashboard/bulk-products" />
       <Route element={<AppLayout><AdminCustomerSegmentsPage /></AppLayout>} path="/admin-dashboard/customer-segments" />
       <Route element={<AppLayout><AdminEmailAnalyticsPage /></AppLayout>} path="/admin-dashboard/email-analytics" />

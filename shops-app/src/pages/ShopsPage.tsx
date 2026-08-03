@@ -4,11 +4,12 @@ import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'reac
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, ShieldCheck, Store, MapPin, Star, Package, X, ChevronLeft, ChevronRight, Percent, ThumbsUp } from 'lucide-react';
+import { Search, Store, MapPin, Star, Package, X, ChevronLeft, ChevronRight, Percent, ThumbsUp } from 'lucide-react';
 import { listingsService, PublicShop } from '@/services/listings';
 import api, { resolveMediaUrl } from '@/services/api';
 import { useLocationStore } from '@/store/useLocation';
 import { MARKET_TO_CITY } from '@/constants/markets';
+import { HomepageBannerRotation } from '@/components/ads/HomepageBannerRotation';
 
 interface Category {
   id: number;
@@ -344,8 +345,13 @@ function ShopsPageContent() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 pb-20">
+      {/* ── Hero Banner Carousel ───────────────────────────────────────── */}
+      <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 pt-4 md:pt-6">
+        <HomepageBannerRotation />
+      </div>
+
       {/* ── Page Title ─────────────────────────────────────────────────── */}
-      <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 pt-4 md:pt-6 pb-2 md:pb-4">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 pt-6 md:pt-8 pb-2 md:pb-4">
         <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight">Shops</h1>
         <p className="hidden md:block text-gray-600 dark:text-slate-400 text-sm font-semibold mt-1">
           {total} shops in {selectedMarket || "All Markets"}
