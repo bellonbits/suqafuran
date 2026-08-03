@@ -513,7 +513,7 @@ export default function ShopDetailPage() {
                             {city}
                         </button>
                         <ChevronRight className="w-3 h-3 text-gray-400" />
-                        <button onClick={() => router.push('/shops')} className="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                        <button onClick={() => router.push('/')} className="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                             Shops
                         </button>
                         <ChevronRight className="w-3 h-3 text-gray-400" />

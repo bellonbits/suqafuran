@@ -3,13 +3,14 @@ import type { Config } from "tailwindcss";
 const config: Config = {
   darkMode: 'class',
   content: [
+    "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
       colors: {
         primary: "#38BDF8",
-        "primary-dark": "#6cd4ff",
+        "primary-dark": "#0284C7",
         accent: "#22C55E",
         "neutral-bg": "#F8FAFC",
         "neutral-card": "#FFFFFF",

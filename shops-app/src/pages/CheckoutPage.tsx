@@ -99,7 +99,7 @@ export default function CheckoutPage() {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Cart Empty</h2>
           <p className="text-gray-600 dark:text-slate-400 mb-6">Add items to your cart before checking out.</p>
           <button
-            onClick={() => router.push('/shops')}
+            onClick={() => router.push('/')}
             className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-8 rounded-full"
           >
             Continue Shopping
@@ -447,7 +447,7 @@ Thanks!`;
                   <div className="text-center space-y-6">
                     {/* Logo & Celebration */}
                     <div className="flex justify-center">
-                      <img src="/icon-only.png" alt="Suqafuran" className="h-12 w-auto object-contain" />
+                      <img src="/icon1.png" alt="Suqafuran" className="h-12 w-auto object-contain" />
                     </div>
 
                     {/* Thank You Message */}

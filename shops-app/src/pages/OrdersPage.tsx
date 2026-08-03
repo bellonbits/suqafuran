@@ -188,7 +188,7 @@ export default function OrdersPage() {
                         <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-2">No orders yet</h2>
                         <p className="text-gray-600 dark:text-gray-400 mb-6">Start shopping to see your orders here</p>
                         <button
-                            onClick={() => router.push('/shops')}
+                            onClick={() => router.push('/')}
                             className="bg-[#5bc0e8] hover:bg-sky-700 text-white font-bold py-3 px-8 rounded-full"
                         >
                             Browse Shops

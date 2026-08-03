@@ -9,10 +9,14 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, isHydrated } = useAuthStore();
   const [hasChecked, setHasChecked] = useState(false);
 
   useEffect(() => {
+    // Wait for the persisted session to finish loading from storage before
+    // deciding to redirect — otherwise an already-logged-in user gets
+    // bounced because the store still holds its logged-out default state.
+    if (!isHydrated) return;
     if (hasChecked) return;
 
     if (!isAuthenticated || !user) {
@@ -40,9 +44,9 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
     }
 
     setHasChecked(true);
-  }, [isAuthenticated, user, requiredRole, navigate, hasChecked]);
+  }, [isHydrated, isAuthenticated, user, requiredRole, navigate, hasChecked]);
 
-  if (!hasChecked) {
+  if (!isHydrated || !hasChecked) {
     return null;
   }
 

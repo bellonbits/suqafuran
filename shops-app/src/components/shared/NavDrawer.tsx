@@ -46,7 +46,7 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({ isOpen, onClose, darkMode,
             <div className="fixed inset-0 z-[9998] bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
             <div className="fixed inset-y-0 left-0 z-[9999] w-full max-w-xs bg-white dark:bg-slate-900 shadow-2xl flex flex-col animate-scale-in overflow-y-auto">
                 <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-slate-800 shrink-0">
-                    <img src="/icon-only.png" alt="Suqafuran" className="h-7 w-auto object-contain" />
+                    <img src="/icon1.png" alt="Suqafuran" className="h-7 w-auto object-contain" />
                     <button onClick={onClose} className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-gray-500 cursor-pointer">
                         <X className="h-5 w-5" />
                     </button>

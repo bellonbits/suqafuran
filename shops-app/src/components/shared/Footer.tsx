@@ -9,7 +9,7 @@ export const Footer: React.FC = () => {
                     {/* Brand Section */}
                     <div className="col-span-2 md:col-span-1 space-y-4">
                         <Link href="/" className="inline-block hover:opacity-90 transition-opacity">
-                            <img src="/icon-only.png" alt="Suqafuran Logo" className="h-8 w-auto object-contain" />
+                            <img src="/icon1.png" alt="Suqafuran Logo" className="h-8 w-auto object-contain" />
                         </Link>
                         <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed pt-1">
                             Africa's trusted online marketplace. Buy, sell, chat, and transact securely directly with local buyers and sellers.
@@ -47,17 +47,17 @@ export const Footer: React.FC = () => {
                         </h3>
                         <ul className="mt-4 space-y-2">
                             <li>
-                                <Link href="/account" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
+                                <Link href="/help-center" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
                                     Help Center
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
+                                <Link href="/safe-trading-tips" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
                                     Safe Trading Tips
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
+                                <Link href="/terms-of-use" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
                                     Terms of Use
                                 </Link>
                             </li>

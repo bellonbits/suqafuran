@@ -70,7 +70,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           onClick={() => router.push('/')}
         >
           <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradientClass} flex items-center justify-center flex-shrink-0 shadow-lg`}>
-            <Image src="/icon-only.png" alt="Logo" width={28} height={28} className="object-contain" />
+            <Image src="/icon1.png" alt="Logo" width={28} height={28} className="object-contain" />
           </div>
           <AnimatePresence>
             {sidebarOpen && (

@@ -1,8 +1,9 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { Header } from './components/shared/Header'
 import { Footer } from './components/shared/Footer'
 import { AuthModal } from './components/shared/AuthModal'
 import ProtectedRoute from './components/ProtectedRoute'
+import { SellerLayout } from './components/SellerLayout'
 import ShopsPage from './pages/ShopsPage'
 import ShopDetailPage from './pages/ShopDetailPage'
 import CheckoutPage from './pages/CheckoutPage'
@@ -87,6 +88,9 @@ import AgentEarningsPage from './pages/AgentEarningsPage'
 import AgentAnalyticsPage from './pages/AgentAnalyticsPage'
 import AgentInquiriesPage from './pages/AgentInquiriesPage'
 import AgentListingsPage from './pages/AgentListingsPage'
+import HelpCenterPage from './pages/HelpCenterPage'
+import SafeTradingTipsPage from './pages/SafeTradingTipsPage'
+import TermsOfUsePage from './pages/TermsOfUsePage'
 
 const AdminDashboardPagePlaceholder = () => (
   <div className="w-full">
@@ -122,11 +126,18 @@ export default function App() {
     <Routes>
       {/* Marketplace Pages */}
       <Route element={<AppLayout><ShopsPage /></AppLayout>} path="/" />
+      <Route element={<Navigate to="/" replace />} path="/shops" />
       <Route element={<AppLayout><ShopDetailPage /></AppLayout>} path="/shop" />
       <Route element={<AppLayout><SearchPage /></AppLayout>} path="/search" />
       <Route element={<AppLayout><ListingDetailPage /></AppLayout>} path="/listing/:id" />
-      <Route element={<AppLayout><CategoryPage /></AppLayout>} path="/:category" />
       <Route element={<AppLayout><CheckoutPage /></AppLayout>} path="/checkout" />
+
+      {/* Support & Legal Pages */}
+      <Route element={<AppLayout><HelpCenterPage /></AppLayout>} path="/help-center" />
+      <Route element={<AppLayout><SafeTradingTipsPage /></AppLayout>} path="/safe-trading-tips" />
+      <Route element={<AppLayout><TermsOfUsePage /></AppLayout>} path="/terms-of-use" />
+
+      <Route element={<AppLayout><CategoryPage /></AppLayout>} path="/:category" />
 
       {/* Authentication Pages */}
       <Route element={<AppLayout><LoginPage /></AppLayout>} path="/login" />
@@ -144,24 +155,24 @@ export default function App() {
       <Route element={<AppLayout><FollowingPage /></AppLayout>} path="/following" />
 
       {/* Seller Dashboard Pages */}
-      <Route element={<AppLayout><PostAdPage /></AppLayout>} path="/seller-dashboard" />
-      <Route element={<AppLayout><SellerShopPage /></AppLayout>} path="/seller-dashboard/shop" />
-      <Route element={<AppLayout><SellerProductsPage /></AppLayout>} path="/seller-dashboard/products" />
-      <Route element={<AppLayout><SellerBulkImportPage /></AppLayout>} path="/seller-dashboard/products/bulk-import" />
-      <Route element={<AppLayout><SellerOrdersPage /></AppLayout>} path="/seller-dashboard/orders" />
-      <Route element={<AppLayout><SellerMessagesPage /></AppLayout>} path="/seller-dashboard/messages" />
-      <Route element={<AppLayout><SellerCustomersPage /></AppLayout>} path="/seller-dashboard/customers" />
-      <Route element={<AppLayout><SellerFinancePage /></AppLayout>} path="/seller-dashboard/finance" />
-      <Route element={<AppLayout><SellerAnalyticsPage /></AppLayout>} path="/seller-dashboard/analytics" />
-      <Route element={<AppLayout><SellerInventoryPage /></AppLayout>} path="/seller-dashboard/inventory" />
-      <Route element={<AppLayout><SellerMarketingPage /></AppLayout>} path="/seller-dashboard/marketing" />
-      <Route element={<AppLayout><SellerFeaturedAdsPage /></AppLayout>} path="/seller-dashboard/featured-ads" />
-      <Route element={<AppLayout><SellerReviewsPage /></AppLayout>} path="/seller-dashboard/reviews" />
-      <Route element={<AppLayout><SellerVerificationPage /></AppLayout>} path="/seller-dashboard/verification" />
-      <Route element={<AppLayout><SellerSettingsPage /></AppLayout>} path="/seller-dashboard/settings" />
-      <Route element={<AppLayout><SellerStaffPage /></AppLayout>} path="/seller-dashboard/settings/staff" />
-      <Route element={<AppLayout><SellerSubscriptionPage /></AppLayout>} path="/seller-dashboard/subscription" />
-      <Route element={<AppLayout><SellerReportsPage /></AppLayout>} path="/seller-dashboard/reports" />
+      <Route element={<SellerLayout><PostAdPage /></SellerLayout>} path="/seller-dashboard" />
+      <Route element={<SellerLayout><SellerShopPage /></SellerLayout>} path="/seller-dashboard/shop" />
+      <Route element={<SellerLayout><SellerProductsPage /></SellerLayout>} path="/seller-dashboard/products" />
+      <Route element={<SellerLayout><SellerBulkImportPage /></SellerLayout>} path="/seller-dashboard/products/bulk-import" />
+      <Route element={<SellerLayout><SellerOrdersPage /></SellerLayout>} path="/seller-dashboard/orders" />
+      <Route element={<SellerLayout><SellerMessagesPage /></SellerLayout>} path="/seller-dashboard/messages" />
+      <Route element={<SellerLayout><SellerCustomersPage /></SellerLayout>} path="/seller-dashboard/customers" />
+      <Route element={<SellerLayout><SellerFinancePage /></SellerLayout>} path="/seller-dashboard/finance" />
+      <Route element={<SellerLayout><SellerAnalyticsPage /></SellerLayout>} path="/seller-dashboard/analytics" />
+      <Route element={<SellerLayout><SellerInventoryPage /></SellerLayout>} path="/seller-dashboard/inventory" />
+      <Route element={<SellerLayout><SellerMarketingPage /></SellerLayout>} path="/seller-dashboard/marketing" />
+      <Route element={<SellerLayout><SellerFeaturedAdsPage /></SellerLayout>} path="/seller-dashboard/featured-ads" />
+      <Route element={<SellerLayout><SellerReviewsPage /></SellerLayout>} path="/seller-dashboard/reviews" />
+      <Route element={<SellerLayout><SellerVerificationPage /></SellerLayout>} path="/seller-dashboard/verification" />
+      <Route element={<SellerLayout><SellerSettingsPage /></SellerLayout>} path="/seller-dashboard/settings" />
+      <Route element={<SellerLayout><SellerStaffPage /></SellerLayout>} path="/seller-dashboard/settings/staff" />
+      <Route element={<SellerLayout><SellerSubscriptionPage /></SellerLayout>} path="/seller-dashboard/subscription" />
+      <Route element={<SellerLayout><SellerReportsPage /></SellerLayout>} path="/seller-dashboard/reports" />
 
       {/* Admin Panel - Main Pages - Protected */}
       <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminDashboardMainPage /></ProtectedRoute></AppLayout>} path="/admin-dashboard" />
