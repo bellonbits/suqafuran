@@ -100,19 +100,19 @@ export default function ResetPasswordPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 flex items-center justify-center p-4">
-            <div className="w-full max-w-md">
+            <div className="w-full max-w-xl">
                 {/* Header */}
                 <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-primary dark:text-sky-400 hover:text-primary-dark mb-8">
                     <ArrowLeft className="h-4 w-4" />
                     Back to home
                 </Link>
 
-                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-2xl p-8 space-y-6">
+                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-2xl p-10 space-y-7">
                     {step !== 'success' && (
                         <>
                             <div>
-                                <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100">Reset Password</h1>
-                                <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">
+                                <h1 className="text-3xl font-black text-gray-900 dark:text-slate-100">Reset Password</h1>
+                                <p className="text-base text-gray-600 dark:text-slate-400 mt-1.5">
                                     {step === 'email' && "Enter your email address to receive a reset code"}
                                     {step === 'code' && "Enter the code we sent to your email"}
                                     {step === 'password' && "Create a new password for your account"}
@@ -130,7 +130,7 @@ export default function ResetPasswordPage() {
                     {step === 'email' && (
                         <form onSubmit={handleRequestCode} className="space-y-4">
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-gray-600 dark:text-slate-400">Email Address</label>
+                                <label className="text-sm font-bold text-gray-600 dark:text-slate-400">Email Address</label>
                                 <div className="relative">
                                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                                     <input
@@ -139,7 +139,7 @@ export default function ResetPasswordPage() {
                                         placeholder="Enter your email..."
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 pl-11 pr-4 py-3 text-xs font-semibold outline-none focus:border-primary focus:bg-white dark:text-slate-100"
+                                        className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 pl-11 pr-4 py-3.5 text-sm font-semibold outline-none focus:border-primary focus:bg-white dark:text-slate-100"
                                     />
                                 </div>
                             </div>
@@ -147,7 +147,7 @@ export default function ResetPasswordPage() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="btn-premium w-full bg-primary text-white py-3 shadow-lg shadow-primary/20 hover:bg-primary-dark disabled:opacity-50 mt-2"
+                                className="btn-premium w-full bg-primary text-white py-3.5 text-base shadow-lg shadow-primary/20 hover:bg-primary-dark disabled:opacity-50 mt-2"
                             >
                                 {loading ? (
                                     <Loader2 className="h-5 w-5 animate-spin mx-auto" />
@@ -161,8 +161,8 @@ export default function ResetPasswordPage() {
                     {step === 'code' && (
                         <form onSubmit={handleVerifyCode} className="space-y-4">
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-gray-600 dark:text-slate-400">Verification Code</label>
-                                <p className="text-[10px] text-gray-500 dark:text-slate-500 mb-2">
+                                <label className="text-sm font-bold text-gray-600 dark:text-slate-400">Verification Code</label>
+                                <p className="text-xs text-gray-500 dark:text-slate-500 mb-2">
                                     We sent a code to {email}
                                 </p>
                                 <input
@@ -178,14 +178,14 @@ export default function ResetPasswordPage() {
                             </div>
 
                             <div className="flex items-center justify-between">
-                                <span className="text-[10px] text-gray-500 dark:text-slate-500">
+                                <span className="text-xs text-gray-500 dark:text-slate-500">
                                     Didn't receive the code?
                                 </span>
                                 <button
                                     type="button"
                                     onClick={handleResendCode}
                                     disabled={cooldown > 0}
-                                    className="text-[11px] font-bold text-primary dark:text-sky-400 hover:underline disabled:text-gray-400 disabled:dark:text-slate-600 disabled:cursor-not-allowed"
+                                    className="text-xs font-bold text-primary dark:text-sky-400 hover:underline disabled:text-gray-400 disabled:dark:text-slate-600 disabled:cursor-not-allowed"
                                 >
                                     {cooldown > 0 ? `Resend in ${cooldown}s` : '🔄 Resend'}
                                 </button>
@@ -194,7 +194,7 @@ export default function ResetPasswordPage() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="btn-premium w-full bg-primary text-white py-3 shadow-lg shadow-primary/20 hover:bg-primary-dark disabled:opacity-50 mt-2"
+                                className="btn-premium w-full bg-primary text-white py-3.5 text-base shadow-lg shadow-primary/20 hover:bg-primary-dark disabled:opacity-50 mt-2"
                             >
                                 {loading ? (
                                     <Loader2 className="h-5 w-5 animate-spin mx-auto" />
@@ -208,7 +208,7 @@ export default function ResetPasswordPage() {
                     {step === 'password' && (
                         <form onSubmit={handleResetPassword} className="space-y-4">
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-gray-600 dark:text-slate-400">New Password</label>
+                                <label className="text-sm font-bold text-gray-600 dark:text-slate-400">New Password</label>
                                 <div className="relative">
                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                                     <input
@@ -218,12 +218,12 @@ export default function ResetPasswordPage() {
                                         placeholder="At least 8 characters"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 pl-11 pr-16 py-3 text-xs font-semibold outline-none focus:border-primary focus:bg-white dark:text-slate-100"
+                                        className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 pl-11 pr-16 py-3.5 text-sm font-semibold outline-none focus:border-primary focus:bg-white dark:text-slate-100"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(s => !s)}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400 hover:text-primary dark:hover:text-sky-400"
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-gray-400 hover:text-primary dark:hover:text-sky-400"
                                     >
                                         {showPassword ? 'HIDE' : 'SHOW'}
                                     </button>
@@ -231,7 +231,7 @@ export default function ResetPasswordPage() {
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-gray-600 dark:text-slate-400">Confirm Password</label>
+                                <label className="text-sm font-bold text-gray-600 dark:text-slate-400">Confirm Password</label>
                                 <div className="relative">
                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                                     <input
@@ -241,12 +241,12 @@ export default function ResetPasswordPage() {
                                         placeholder="Confirm your password"
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 pl-11 pr-16 py-3 text-xs font-semibold outline-none focus:border-primary focus:bg-white dark:text-slate-100"
+                                        className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 pl-11 pr-16 py-3.5 text-sm font-semibold outline-none focus:border-primary focus:bg-white dark:text-slate-100"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowConfirm(s => !s)}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400 hover:text-primary dark:hover:text-sky-400"
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-gray-400 hover:text-primary dark:hover:text-sky-400"
                                     >
                                         {showConfirm ? 'HIDE' : 'SHOW'}
                                     </button>
@@ -256,7 +256,7 @@ export default function ResetPasswordPage() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="btn-premium w-full bg-primary text-white py-3 shadow-lg shadow-primary/20 hover:bg-primary-dark disabled:opacity-50 mt-2"
+                                className="btn-premium w-full bg-primary text-white py-3.5 text-base shadow-lg shadow-primary/20 hover:bg-primary-dark disabled:opacity-50 mt-2"
                             >
                                 {loading ? (
                                     <Loader2 className="h-5 w-5 animate-spin mx-auto" />
@@ -280,7 +280,7 @@ export default function ResetPasswordPage() {
                                 </p>
                             </div>
 
-                            <Link href="/" className="btn-premium w-full bg-primary text-white py-3 shadow-lg shadow-primary/20 hover:bg-primary-dark">
+                            <Link href="/" className="btn-premium w-full bg-primary text-white py-3.5 text-base shadow-lg shadow-primary/20 hover:bg-primary-dark">
                                 Sign In Now
                             </Link>
                         </div>
