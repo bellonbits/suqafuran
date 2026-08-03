@@ -289,7 +289,7 @@ export default function ShopsAdminPage() {
                               <Edit2 size={18} />
                             </button>
                           </Link>
-                          <a href={`/shops/${shop.id}`} target="_blank">
+                          <a href={`/shop/${shop.id}`} target="_blank">
                             <button className="p-2 text-green-600 hover:bg-green-50 rounded">
                               <Eye size={18} />
                             </button>

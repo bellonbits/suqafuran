@@ -28,7 +28,7 @@ export const ShopCircleCard: React.FC<ShopCircleCardProps> = ({
       transition={{ duration: 0.4, delay }}
       whileHover={{ scale: 1.08, y: -8 }}
       whileTap={{ scale: 0.95 }}
-      onClick={() => router.push(`/shops/${id}`)}
+      onClick={() => router.push(`/shop/${id}`)}
       className="flex flex-col items-center gap-4 cursor-pointer group"
     >
       {/* Circular Image Container */}

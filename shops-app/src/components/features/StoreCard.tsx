@@ -220,7 +220,7 @@ export const StoreCard: React.FC<StoreCardProps> = ({
   const [imageError, setImageError] = useState(false);
 
   const handleCardClick = () => {
-    router.push(`/shops/${id}`);
+    router.push(`/shop/${id}`);
   };
 
   const ratingPercent = Math.round(rating * 10);

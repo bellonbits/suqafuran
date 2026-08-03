@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocationStore } from '@/store/useLocation';
 import { LocationPickerModal } from '@/components/shared/LocationPickerModal';
@@ -63,7 +64,8 @@ function getCategoryPath(categoryId: number, subcategoryId: number | undefined, 
 export default function ShopDetailPage() {
     const params = useSearchParams();
     const router = useRouter();
-    const shopIdParam = params.get("id") as string;
+    const { slug: slugParam } = useParams<{ slug?: string }>();
+    const shopIdParam = (slugParam || params.get("id")) as string;
     const { city, isHydrated } = useLocationStore();
 
     const [shopName, setShopName] = useState('');

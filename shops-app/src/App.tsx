@@ -128,6 +128,7 @@ export default function App() {
       <Route element={<AppLayout><ShopsPage /></AppLayout>} path="/" />
       <Route element={<Navigate to="/" replace />} path="/shops" />
       <Route element={<AppLayout><ShopDetailPage /></AppLayout>} path="/shop" />
+      <Route element={<AppLayout><ShopDetailPage /></AppLayout>} path="/shop/:slug" />
       <Route element={<AppLayout><SearchPage /></AppLayout>} path="/search" />
       <Route element={<AppLayout><ListingDetailPage /></AppLayout>} path="/listing/:id" />
       <Route element={<AppLayout><CheckoutPage /></AppLayout>} path="/checkout" />
