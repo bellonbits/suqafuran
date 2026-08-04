@@ -2,7 +2,7 @@
 
 import logging
 from celery import shared_task
-from database import SessionLocal
+from app.db.session import SessionLocal
 from app.services.alert_engine import get_alert_engine
 
 logger = logging.getLogger(__name__)
