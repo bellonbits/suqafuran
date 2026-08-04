@@ -10,6 +10,7 @@ celery_app = Celery(
         "app.tasks.promotion_tasks",
         "app.tasks.email_tasks",
         "app.tasks.alert_tasks",
+        "app.tasks.subscription_tasks",
     ],
 )
 
@@ -53,6 +54,11 @@ celery_app.conf.update(
             "task": "cleanup_old_alerts",
             "schedule": 86400.0,  # Once per day
             "kwargs": {"days": 30},
+        },
+        # Downgrade sellers whose subscription/trial has ended, and notify them — every 15 minutes
+        "expire-ended-subscriptions": {
+            "task": "app.tasks.subscription_tasks.expire_ended_subscriptions",
+            "schedule": 900.0,
         },
     },
 )

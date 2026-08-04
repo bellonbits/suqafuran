@@ -501,6 +501,35 @@ class EmailService:
         )
         return self._send_and_log(email, "Welcome to Suqafuran", html_body, "onboarding_welcome", user_id)
 
+    def send_subscription_ended_email(self, email: str, name: str, plan_name: str, is_trial: bool, user_id: Optional[int] = None) -> bool:
+        noun = "free trial" if is_trial else "subscription"
+        content = f"""
+        <p style="font-size: 15px; margin-bottom: 24px; color: #475569;">
+          Hello {name},<br><br>
+          Your <strong>{plan_name}</strong> {noun} has ended, so your shop has been moved back to the Free plan.
+          Premium features like {"analytics, priority ranking, and the verified badge" if is_trial else "your priority ranking, analytics, and other Pro features"} are no longer active on your account.
+        </p>
+        <div style="background: #fff7ed; border-radius: 16px; padding: 24px; margin: 32px 0; border: 1px solid #fed7aa;">
+          <h4 style="margin: 0 0 12px 0; color: #c2410c; font-weight: 800;">Renew to keep growing your shop:</h4>
+          <ul style="margin: 0; padding-left: 20px; color: #334155; font-size: 14px; line-height: 1.8;">
+            <li>📈 <strong>Priority ranking:</strong> Show up first in shop listings.</li>
+            <li>📊 <strong>Analytics:</strong> See what's working and what isn't.</li>
+            <li>✅ <strong>Verified badge:</strong> Build instant buyer trust.</li>
+          </ul>
+        </div>
+        <div style="text-align: center; margin-bottom: 12px;">
+          <a href="{settings.FRONTEND_URL}/seller-dashboard/subscription" style="display: inline-block; background: #ea580c; color: white; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 800; font-size: 14px;">
+            Renew My Plan
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title=f"Your {plan_name} {noun} has ended",
+            subtitle="Renew now to keep your shop's premium features active.",
+            content=content
+        )
+        return self._send_and_log(email, f"Your {plan_name} {noun} has ended — renew to keep growing", html_body, "subscription_ended", user_id)
+
     def send_complete_profile_email(self, email: str, name: str, user_id: Optional[int] = None) -> bool:
         content = f"""
         <p style="font-size: 15px; margin-bottom: 24px; color: #475569;">
