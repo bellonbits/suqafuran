@@ -205,6 +205,9 @@ export const advertisingService = {
   async uploadBannerImage(file: File): Promise<string> {
     const formData = new FormData();
     formData.append('file', file);
+    // Skip the standard resize/compress pipeline — banners are marketing
+    // creatives with text/logos baked in, so they need to stay full quality.
+    formData.append('high_quality', 'true');
     const response = await api.post('/listings/upload', formData);
     return response.data.url;
   },

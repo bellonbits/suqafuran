@@ -57,17 +57,20 @@ class CloudinaryStorage:
             secure=True,
         )
 
-    async def upload_file(self, file_content: bytes, filename: str) -> tuple[str, str]:
+    async def upload_file(self, file_content: bytes, filename: str, high_quality: bool = False) -> tuple[str, str]:
         filename = filename or ""
         ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
         is_video = ext in ["mp4", "mov", "avi", "3gp", "webm", "mpeg", "mkv"]
         is_pdf = ext == "pdf"
         is_gif = ext == "gif"
 
-        if is_gif:
+        if is_gif or (high_quality and not is_video and not is_pdf):
             # Skip the PIL resize/re-encode path entirely — Image.save() without
             # save_all=True collapses an animated GIF to its first frame. Upload
             # the original bytes untouched so Cloudinary preserves the animation.
+            # Marketing creatives (high_quality=True) skip it too, so banner
+            # text/logos stay crisp instead of getting capped at 1200px + auto
+            # compression meant for regular listing photos.
             resized = file_content
             phash_task = asyncio.create_task(asyncio.to_thread(calculate_phash, file_content))
             resource_type = "image"
@@ -117,13 +120,15 @@ class LocalStorage:
     def __init__(self):
         os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 
-    async def upload_file(self, file_content: bytes, filename: str) -> tuple[str, str]:
+    async def upload_file(self, file_content: bytes, filename: str, high_quality: bool = False) -> tuple[str, str]:
         ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
 
-        if ext == "gif":
+        if ext == "gif" or high_quality:
             # Write the original bytes untouched — re-encoding through PIL
-            # without save_all=True would collapse the animation to one frame.
-            unique_name = f"{uuid.uuid4()}.gif"
+            # without save_all=True would collapse the animation to one frame,
+            # and high_quality uploads (marketing creatives) shouldn't get
+            # downscaled/recompressed either.
+            unique_name = f"{uuid.uuid4()}.{ext}"
             dest = os.path.join(settings.UPLOAD_DIR, unique_name)
             with open(dest, "wb") as f:
                 f.write(file_content)

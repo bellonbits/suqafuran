@@ -1,6 +1,6 @@
 from typing import Any, List, Optional
 import logging
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, BackgroundTasks, Header
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, BackgroundTasks, Header, Form
 from sqlmodel import Session, select, func
 from pydantic import BaseModel
 from app.api import deps
@@ -45,11 +45,16 @@ class ListingApprovalRequest(BaseModel):
 async def upload_image(
     *,
     file: UploadFile = File(...),
+    high_quality: bool = Form(False),
     background_tasks: BackgroundTasks,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Upload a single image for a listing.
+
+    high_quality=true skips the usual resize/compress pipeline (meant for
+    marketing creatives like homepage banners, where crisp text/logos
+    matter more than bandwidth) and uploads the original bytes untouched.
     """
     if not current_user:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -67,7 +72,7 @@ async def upload_image(
     filename = f"{uuid.uuid4()}.{extension}"
 
     try:
-        url, phash = await storage_service.upload_file(contents, filename)
+        url, phash = await storage_service.upload_file(contents, filename, high_quality=high_quality)
         return {
             "filename": filename,
             "url": url,
