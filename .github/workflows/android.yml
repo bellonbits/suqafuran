@@ -1,4 +1,4 @@
-name: Android Build & Deploy
+name: Android Build
 
 on:
   push:
@@ -10,8 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -25,6 +24,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: shops-app/package-lock.json
 
       - name: Install shops-app dependencies
         working-directory: shops-app
@@ -34,71 +34,23 @@ jobs:
         working-directory: shops-app
         run: npm run build
 
-      - name: Capacitor add Android (if needed)
-        run: |
-          if [ ! -d "shops-app/android" ]; then
-            cd shops-app && npx cap add android
-          fi
-
-      - name: Capacitor sync
+      - name: Capacitor Sync
         working-directory: shops-app
         run: npx cap sync android
 
-      - name: Create keystore
+      - name: Copy synced web assets into main Android project
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > shops-app/android/app/suqafuran.keystore
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          rm -rf android/app/src/main/assets/public
+          cp -R shops-app/android/app/src/main/assets/public android/app/src/main/assets/public
+          cp shops-app/android/app/src/main/assets/capacitor.config.json android/app/src/main/assets/capacitor.config.json
 
-      - name: Build Release APK
-        working-directory: shops-app/android
-        run: |
-          ./gradlew assembleRelease \
-            -Pandroid.injected.signing.store.file=app/suqafuran.keystore \
-            -Pandroid.injected.signing.store.password=${{ secrets.ANDROID_KEYSTORE_PASSWORD }} \
-            -Pandroid.injected.signing.key.alias=${{ secrets.ANDROID_KEY_ALIAS }} \
-            -Pandroid.injected.signing.key.password=${{ secrets.ANDROID_KEY_PASSWORD }}
+      - name: Build Release Bundle (.aab)
+        working-directory: android
+        run: ./gradlew bundleRelease
 
-      - name: Build Release Bundle
-        working-directory: shops-app/android
-        run: |
-          ./gradlew bundleRelease \
-            -Pandroid.injected.signing.store.file=app/suqafuran.keystore \
-            -Pandroid.injected.signing.store.password=${{ secrets.ANDROID_KEYSTORE_PASSWORD }} \
-            -Pandroid.injected.signing.key.alias=${{ secrets.ANDROID_KEY_ALIAS }} \
-            -Pandroid.injected.signing.key.password=${{ secrets.ANDROID_KEY_PASSWORD }}
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: suqafuran.apk
-          path: shops-app/android/app/build/outputs/apk/release/*.apk
-          retention-days: 30
-
-      - name: Upload Bundle artifact
+      - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
           name: suqafuran.aab
-          path: shops-app/android/app/build/outputs/bundle/release/*.aab
+          path: android/app/build/outputs/bundle/release/*.aab
           retention-days: 30
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-          bundler-cache: true
-          working-directory: shops-app/android
-
-      - name: Install Fastlane
-        run: gem install fastlane
-
-      - name: Deploy to Play Store Internal Testing
-        working-directory: shops-app/android
-        run: |
-          fastlane supply \
-            --aab app/build/outputs/bundle/release/app-release.aab \
-            --track internal \
-            --skip_upload_apk true \
-            --json_key <(echo "$PLAY_STORE_API_KEY")
-        env:
-          PLAY_STORE_API_KEY: ${{ secrets.PLAY_STORE_API_KEY }}
