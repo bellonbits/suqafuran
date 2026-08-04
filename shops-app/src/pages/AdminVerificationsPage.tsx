@@ -2,33 +2,16 @@
 import React, { useState, useEffect } from 'react';
 import {
   Search, Loader, Eye, CheckCircle, X, UserCheck,
-  LayoutDashboard, Users, ShoppingCart, DollarSign, Truck,
-  Store, Grid3x3, Tag, Percent, MessageSquare, Shield,
-  AlertTriangle, TrendingUp, FileText, AlertCircle, BarChart3,
-  Zap, Package, Clock, XCircle, FileImage, Video, ExternalLink
+  FileText, Clock, XCircle, FileImage, Video, ExternalLink
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { ADMIN_NAV_ITEMS } from '@/admin-dashboard/navigation';
 import api from '@/services/api';
 
-const adminNavItems = [
-  { label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, href: '/admin-dashboard' },
-  { label: 'Agent Dashboard', icon: <TrendingUp className="w-5 h-5" />, href: '/agent-dashboard' },
-  { label: 'Users', icon: <Users className="w-5 h-5" />, href: '/admin-users' },
-  { label: 'Shops', icon: <Store className="w-5 h-5" />, href: '/admin-shops' },
-  { label: 'Listings', icon: <Grid3x3 className="w-5 h-5" />, href: '/admin-listings' },
-  { label: 'Verifications', icon: <UserCheck className="w-5 h-5" />, href: '/admin-verifications' },
-  { label: 'Orders', icon: <ShoppingCart className="w-5 h-5" />, href: '/admin-orders' },
-  { label: 'Deliveries', icon: <Truck className="w-5 h-5" />, href: '/admin-deliveries' },
-  { label: 'Sellers', icon: <Package className="w-5 h-5" />, href: '/admin-sellers' },
-  { label: 'Categories', icon: <Zap className="w-5 h-5" />, href: '/admin-categories' },
-  { label: 'Support', icon: <MessageSquare className="w-5 h-5" />, href: '/admin-support' },
-  { label: 'Fraud', icon: <Shield className="w-5 h-5" />, href: '/admin-fraud' },
-  { label: 'Unusual Accounts', icon: <AlertTriangle className="w-5 h-5" />, href: '/admin-unusual-accounts' },
-  { label: 'Marketing', icon: <TrendingUp className="w-5 h-5" />, href: '/admin-marketing' },
-  { label: 'Reports', icon: <FileText className="w-5 h-5" />, href: '/admin-reports' },
-  { label: 'Disputes', icon: <AlertCircle className="w-5 h-5" />, href: '/admin-disputes' },
-  { label: 'Analytics', icon: <BarChart3 className="w-5 h-5" />, href: '/admin-analytics' },
-];
+const adminNavItems = ADMIN_NAV_ITEMS.map(({ icon: Icon, ...item }) => ({
+  ...item,
+  icon: <Icon className="w-5 h-5" />
+}));
 
 const AVATAR_COLORS = [
   'from-sky-400 to-blue-500',
