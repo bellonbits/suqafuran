@@ -13,7 +13,11 @@ android {
         applicationId "com.suqafuran.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 61
+        // Minutes since Unix epoch — always higher than any previous build's
+        // versionCode, so Play Console never rejects an upload for reusing
+        // an already-submitted version (fits comfortably in the int32 range
+        // Play Console requires; won't overflow until the year ~6053).
+        versionCode ((int) (System.currentTimeMillis() / 60000))
         versionName "1.8.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {

@@ -21,6 +21,13 @@
 
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <!-- Without an explicit windowSplashScreenAnimatedIcon, Android 12+
+             defaults to showing the app's launcher icon in a circle before
+             Capacitor's own branded splash screen loads. Make it invisible
+             so this OS-mandated step is just a plain white screen instead
+             of a mismatched icon. -->
+        <item name="android:windowSplashScreenBackground">@android:color/white</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@android:color/transparent</item>
         <item name="android:background">@drawable/splash</item>
     </style>
 </resources>
