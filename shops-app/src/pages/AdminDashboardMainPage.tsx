@@ -215,8 +215,6 @@ const AdminDashboard = () => {
             { label: 'Listings', icon: Grid3x3, href: '/admin-listings', color: 'green' },
             { label: 'Verifications', icon: UserCheck, href: '/admin-verifications', color: 'purple' },
             { label: 'Categories', icon: Zap, href: '/admin-categories', color: 'orange' },
-            { label: 'Vouchers', icon: Tag, href: '/admin-vouchers', color: 'pink' },
-            { label: 'Promotions', icon: Percent, href: '/admin-promotions', color: 'indigo' },
             { label: 'Support', icon: MessageSquare, href: '/admin-support', color: 'cyan' },
             { label: 'Fraud Detection', icon: Shield, href: '/admin-fraud', color: 'red' },
             { label: 'Unusual Accounts', icon: AlertTriangle, href: '/admin-unusual-accounts', color: 'yellow' },

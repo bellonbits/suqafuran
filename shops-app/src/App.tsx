@@ -47,14 +47,11 @@ import AdminShopsPage from './pages/AdminShopsPage'
 import AdminUsersPage from './pages/AdminUsersPage'
 import AdminCategoriesPage from './pages/AdminCategoriesPage'
 import AdminOrdersPage from './pages/AdminOrdersPage'
-import AdminTransactionsPage from './pages/AdminTransactionsPage'
 import AdminDisputesPage from './pages/AdminDisputesPage'
 import AdminFraudPage from './pages/AdminFraudPage'
 import AdminReportsPage from './pages/AdminReportsPage'
 import AdminSupportPage from './pages/AdminSupportPage'
 import AdminVerificationsPage from './pages/AdminVerificationsPage'
-import AdminVouchersPage from './pages/AdminVouchersPage'
-import AdminPromotionsPage from './pages/AdminPromotionsPage'
 import AdminMarketingPage from './pages/AdminMarketingPage'
 import AdminUnusualAccountsPage from './pages/AdminUnusualAccountsPage'
 import AdminAnalyticsPage from './pages/AdminAnalyticsPage'
@@ -178,65 +175,62 @@ export default function App() {
       <Route element={<SellerLayout><SellerReportsPage /></SellerLayout>} path="/seller-dashboard/reports" />
 
       {/* Admin Panel - Main Pages - Protected */}
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminDashboardMainPage /></ProtectedRoute></AppLayout>} path="/admin-dashboard" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminListingsPage /></ProtectedRoute></AppLayout>} path="/admin-listings" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminSellersPage /></ProtectedRoute></AppLayout>} path="/admin-sellers" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminShopsPage /></ProtectedRoute></AppLayout>} path="/admin-shops" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminUsersPage /></ProtectedRoute></AppLayout>} path="/admin-users" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminCategoriesPage /></ProtectedRoute></AppLayout>} path="/admin-categories" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminOrdersPage /></ProtectedRoute></AppLayout>} path="/admin-orders" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminTransactionsPage /></ProtectedRoute></AppLayout>} path="/admin-transactions" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminDisputesPage /></ProtectedRoute></AppLayout>} path="/admin-disputes" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminFraudPage /></ProtectedRoute></AppLayout>} path="/admin-fraud" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminReportsPage /></ProtectedRoute></AppLayout>} path="/admin-reports" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminSupportPage /></ProtectedRoute></AppLayout>} path="/admin-support" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminVerificationsPage /></ProtectedRoute></AppLayout>} path="/admin-verifications" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminVouchersPage /></ProtectedRoute></AppLayout>} path="/admin-vouchers" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminPromotionsPage /></ProtectedRoute></AppLayout>} path="/admin-promotions" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminMarketingPage /></ProtectedRoute></AppLayout>} path="/admin-marketing" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminUnusualAccountsPage /></ProtectedRoute></AppLayout>} path="/admin-unusual-accounts" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminAnalyticsPage /></ProtectedRoute></AppLayout>} path="/admin-analytics" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminDashboardMainPage /></ProtectedRoute>} path="/admin-dashboard" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminListingsPage /></ProtectedRoute>} path="/admin-listings" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminSellersPage /></ProtectedRoute>} path="/admin-sellers" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminShopsPage /></ProtectedRoute>} path="/admin-shops" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminUsersPage /></ProtectedRoute>} path="/admin-users" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminCategoriesPage /></ProtectedRoute>} path="/admin-categories" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminOrdersPage /></ProtectedRoute>} path="/admin-orders" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminDisputesPage /></ProtectedRoute>} path="/admin-disputes" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminFraudPage /></ProtectedRoute>} path="/admin-fraud" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminReportsPage /></ProtectedRoute>} path="/admin-reports" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminSupportPage /></ProtectedRoute>} path="/admin-support" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminVerificationsPage /></ProtectedRoute>} path="/admin-verifications" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminMarketingPage /></ProtectedRoute>} path="/admin-marketing" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminUnusualAccountsPage /></ProtectedRoute>} path="/admin-unusual-accounts" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminAnalyticsPage /></ProtectedRoute>} path="/admin-analytics" />
 
       {/* Admin Dashboard Analytics */}
-      <Route element={<AppLayout><AdminAnalyticsMainPage /></AppLayout>} path="/admin-dashboard/analytics" />
-      <Route element={<AppLayout><AdminAnalyticsUsersPage /></AppLayout>} path="/admin-dashboard/analytics/users" />
-      <Route element={<AppLayout><AdminAnalyticsSellersPage /></AppLayout>} path="/admin-dashboard/analytics/sellers" />
-      <Route element={<AppLayout><AdminAnalyticsDevicesPage /></AppLayout>} path="/admin-dashboard/analytics/devices" />
-      <Route element={<AppLayout><AdminAnalyticsGeographicPage /></AppLayout>} path="/admin-dashboard/analytics/geographic" />
-      <Route element={<AppLayout><AdminAnalyticsAlertsPage /></AppLayout>} path="/admin-dashboard/analytics/alerts" />
+      <Route element={<AdminAnalyticsMainPage />} path="/admin-dashboard/analytics" />
+      <Route element={<AdminAnalyticsUsersPage />} path="/admin-dashboard/analytics/users" />
+      <Route element={<AdminAnalyticsSellersPage />} path="/admin-dashboard/analytics/sellers" />
+      <Route element={<AdminAnalyticsDevicesPage />} path="/admin-dashboard/analytics/devices" />
+      <Route element={<AdminAnalyticsGeographicPage />} path="/admin-dashboard/analytics/geographic" />
+      <Route element={<AdminAnalyticsAlertsPage />} path="/admin-dashboard/analytics/alerts" />
 
       {/* Admin Dashboard Features */}
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminHomepageBannersPage /></ProtectedRoute></AppLayout>} path="/admin-dashboard/marketing/banners" />
-      <Route element={<AppLayout><AdminBulkProductsPage /></AppLayout>} path="/admin-dashboard/bulk-products" />
-      <Route element={<AppLayout><AdminCustomerSegmentsPage /></AppLayout>} path="/admin-dashboard/customer-segments" />
-      <Route element={<AppLayout><AdminEmailAnalyticsPage /></AppLayout>} path="/admin-dashboard/email-analytics" />
-      <Route element={<AppLayout><AdminEmailTemplatesPage /></AppLayout>} path="/admin-dashboard/email-templates" />
-      <Route element={<AppLayout><AdminFeaturedAdsPage /></AppLayout>} path="/admin-dashboard/featured-ads" />
-      <Route element={<AppLayout><AdminSubscriptionsPage /></AppLayout>} path="/admin-dashboard/subscriptions" />
-      <Route element={<AppLayout><AdminSystemMessagesPage /></AppLayout>} path="/admin-dashboard/system-messages" />
-      <Route element={<AppLayout><AdminUserLifecyclePage /></AppLayout>} path="/admin-dashboard/user-lifecycle" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminHomepageBannersPage /></ProtectedRoute>} path="/admin-dashboard/marketing/banners" />
+      <Route element={<AdminBulkProductsPage />} path="/admin-dashboard/bulk-products" />
+      <Route element={<AdminCustomerSegmentsPage />} path="/admin-dashboard/customer-segments" />
+      <Route element={<AdminEmailAnalyticsPage />} path="/admin-dashboard/email-analytics" />
+      <Route element={<AdminEmailTemplatesPage />} path="/admin-dashboard/email-templates" />
+      <Route element={<AdminFeaturedAdsPage />} path="/admin-dashboard/featured-ads" />
+      <Route element={<AdminSubscriptionsPage />} path="/admin-dashboard/subscriptions" />
+      <Route element={<AdminSystemMessagesPage />} path="/admin-dashboard/system-messages" />
+      <Route element={<AdminUserLifecyclePage />} path="/admin-dashboard/user-lifecycle" />
 
       {/* Admin Dashboard Monitoring */}
-      <Route element={<AppLayout><AdminMonitoringAlertsPage /></AppLayout>} path="/admin-dashboard/monitoring/alerts" />
-      <Route element={<AppLayout><AdminMonitoringKafkaPage /></AppLayout>} path="/admin-dashboard/monitoring/kafka" />
-      <Route element={<AppLayout><AdminMonitoringLivePage /></AppLayout>} path="/admin-dashboard/monitoring/live" />
-      <Route element={<AppLayout><AdminMonitoringNotificationsPage /></AppLayout>} path="/admin-dashboard/monitoring/notifications" />
-      <Route element={<AppLayout><AdminMonitoringTracesPage /></AppLayout>} path="/admin-dashboard/monitoring/traces" />
+      <Route element={<AdminMonitoringAlertsPage />} path="/admin-dashboard/monitoring/alerts" />
+      <Route element={<AdminMonitoringKafkaPage />} path="/admin-dashboard/monitoring/kafka" />
+      <Route element={<AdminMonitoringLivePage />} path="/admin-dashboard/monitoring/live" />
+      <Route element={<AdminMonitoringNotificationsPage />} path="/admin-dashboard/monitoring/notifications" />
+      <Route element={<AdminMonitoringTracesPage />} path="/admin-dashboard/monitoring/traces" />
 
       {/* Admin Alt Routes - Protected */}
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminShopsAltPage /></ProtectedRoute></AppLayout>} path="/admin/shops" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminMonitoringAlertsAltPage /></ProtectedRoute></AppLayout>} path="/admin/monitoring/alerts" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminMonitoringKafkaAltPage /></ProtectedRoute></AppLayout>} path="/admin/monitoring/kafka" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminMonitoringLiveAltPage /></ProtectedRoute></AppLayout>} path="/admin/monitoring/live" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminMonitoringNotificationsAltPage /></ProtectedRoute></AppLayout>} path="/admin/monitoring/notifications" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="admin"><AdminMonitoringTracesAltPage /></ProtectedRoute></AppLayout>} path="/admin/monitoring/traces" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminShopsAltPage /></ProtectedRoute>} path="/admin/shops" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminMonitoringAlertsAltPage /></ProtectedRoute>} path="/admin/monitoring/alerts" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminMonitoringKafkaAltPage /></ProtectedRoute>} path="/admin/monitoring/kafka" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminMonitoringLiveAltPage /></ProtectedRoute>} path="/admin/monitoring/live" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminMonitoringNotificationsAltPage /></ProtectedRoute>} path="/admin/monitoring/notifications" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminMonitoringTracesAltPage /></ProtectedRoute>} path="/admin/monitoring/traces" />
 
       {/* Agent Pages - Protected */}
-      <Route element={<AppLayout><ProtectedRoute requiredRole="agent"><AgentDashboardPage /></ProtectedRoute></AppLayout>} path="/agent-dashboard" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="agent"><AgentEarningsPage /></ProtectedRoute></AppLayout>} path="/agent-earnings" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="agent"><AgentAnalyticsPage /></ProtectedRoute></AppLayout>} path="/agent-analytics" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="agent"><AgentInquiriesPage /></ProtectedRoute></AppLayout>} path="/agent-inquiries" />
-      <Route element={<AppLayout><ProtectedRoute requiredRole="agent"><AgentListingsPage /></ProtectedRoute></AppLayout>} path="/agent-listings" />
+      <Route element={<ProtectedRoute requiredRole="agent"><AgentDashboardPage /></ProtectedRoute>} path="/agent-dashboard" />
+      <Route element={<ProtectedRoute requiredRole="agent"><AgentEarningsPage /></ProtectedRoute>} path="/agent-earnings" />
+      <Route element={<ProtectedRoute requiredRole="agent"><AgentAnalyticsPage /></ProtectedRoute>} path="/agent-analytics" />
+      <Route element={<ProtectedRoute requiredRole="agent"><AgentInquiriesPage /></ProtectedRoute>} path="/agent-inquiries" />
+      <Route element={<ProtectedRoute requiredRole="agent"><AgentListingsPage /></ProtectedRoute>} path="/agent-listings" />
     </Routes>
   )
 }
