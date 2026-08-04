@@ -222,7 +222,7 @@ class MarketingAutomationService:
             # Add tracking to email body
             body_with_tracking = self._add_email_tracking(body, campaign.id)
 
-            await email_service.send_email(
+            email_service.send_email(
                 to=user.email,
                 subject=subject,
                 html_content=body_with_tracking

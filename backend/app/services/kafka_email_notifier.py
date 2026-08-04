@@ -112,9 +112,9 @@ class KafkaEmailNotifier:
 
             # Send email
             email_service.send_email(
+                to=ADMIN_EMAIL,
                 subject=subject,
-                email_to=ADMIN_EMAIL,
-                body=body_html,
+                html_content=body_html,
             )
 
             logger.info(f"📧 Email sent for {event_type} (user_id: {user_id})")

@@ -473,6 +473,13 @@ class EmailService:
 
         return success
 
+    def send_email(self, to: str, subject: str, html_content: str, user_id: Optional[int] = None) -> bool:
+        """Generic send for callers with their own pre-built HTML (admin
+        notifications, marketing campaigns with their own tracking, etc).
+        Reuses the same Resend/SMTP/dev-fallback delivery chain and logging
+        as every templated send_*_email method."""
+        return self._send_and_log(to, subject, html_content, "generic", user_id)
+
     # A. Onboarding / Activation Emails
     def send_welcome_email(self, email: str, name: str, user_id: Optional[int] = None) -> bool:
         welcome_content = f"""
