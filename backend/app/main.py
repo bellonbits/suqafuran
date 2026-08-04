@@ -118,6 +118,32 @@ Instrumentator().instrument(app).expose(app)
 
 
 @app.on_event("startup")
+async def ensure_checkout_receipt_schema():
+    """
+    Creates the checkout_receipt table and extends the interaction table
+    (receipt_id column, listing_id made nullable) without going through
+    Alembic — the migration history currently has two diverged heads, so
+    a new migration isn't guaranteed to apply cleanly. This is additive
+    and safe to run on every startup.
+    """
+    from sqlalchemy import text
+    from app.db.session import engine
+    from app.models.checkout_receipt import CheckoutReceipt
+
+    try:
+        CheckoutReceipt.metadata.create_all(engine, tables=[CheckoutReceipt.__table__])
+        with engine.begin() as conn:
+            conn.execute(text(
+                "ALTER TABLE interaction ADD COLUMN IF NOT EXISTS receipt_id INTEGER "
+                "REFERENCES checkout_receipt(id)"
+            ))
+            conn.execute(text("ALTER TABLE interaction ALTER COLUMN listing_id DROP NOT NULL"))
+        logger.info("checkout_receipt schema ready")
+    except Exception as e:
+        logger.error(f"Failed to ensure checkout_receipt schema: {e}")
+
+
+@app.on_event("startup")
 async def start_background_event_consumer():
     """
     Starts the background thread that processes business/order events (stock

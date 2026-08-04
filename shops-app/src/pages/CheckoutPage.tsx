@@ -12,6 +12,7 @@ import { motion } from 'framer-motion';
 import { FaWhatsapp } from 'react-icons/fa';
 import { MdMessage } from 'react-icons/md';
 import { messageService } from '@/services/messageService';
+import { checkoutReceiptService } from '@/services/checkoutReceipt';
 interface CheckoutItem {
   id: string;
   title: string;
@@ -43,6 +44,9 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   // Map of owner_id -> { phone, full_name } fetched from backend
   const [sellerInfoMap, setSellerInfoMap] = useState<Record<string, { phone: string; full_name: string }>>({});
+  // Map of owner_id -> backend checkout receipt id, created when the buyer
+  // proceeds — used to attribute WhatsApp/call/message clicks to a real order.
+  const [receiptsBySellerId, setReceiptsBySellerId] = useState<Record<string, number>>({});
   const receiptRef = useRef<HTMLDivElement>(null);
 
   // Fetch seller info (phone) for cart items that don't have it embedded
@@ -196,9 +200,43 @@ Your delivery: Arrange with seller
     const newOrderNumber = `ORD-${Date.now()}`;
     setOrderNumber(newOrderNumber);
     setReceiptGenerated(true);
+
+    // Create a real backend receipt per seller in the cart, so admins can see
+    // actual checkout activity and whether the buyer went on to contact the
+    // seller. Best-effort — a failure here shouldn't block the buyer's flow.
+    try {
+      const groups = new Map<string, { items: CheckoutItem[]; total: number }>();
+      (cartItems as any[]).forEach((item) => {
+        const ownerId = String(item.owner_id || '');
+        if (!ownerId) return;
+        if (!groups.has(ownerId)) groups.set(ownerId, { items: [], total: 0 });
+        const group = groups.get(ownerId)!;
+        group.items.push(item);
+        group.total += (item.price || 0) * (item.quantity || 1);
+      });
+
+      const receiptEntries = await Promise.all(
+        Array.from(groups.entries()).map(async ([ownerId, group]) => {
+          const receipt = await checkoutReceiptService.createReceipt(
+            Number(ownerId),
+            group.items.map((item) => ({
+              listing_id: Number(item.id),
+              title: item.title || item.title_en || 'Product',
+              price: item.price || 0,
+              quantity: item.quantity || 1,
+            })),
+            group.total
+          );
+          return [ownerId, receipt.id] as const;
+        })
+      );
+      setReceiptsBySellerId(Object.fromEntries(receiptEntries));
+    } catch (error) {
+      console.error('Failed to create checkout receipt:', error);
+    }
   };
 
-  const handleContactSeller = (method: 'whatsapp' | 'message') => {
+  const handleContactSeller = (method: 'whatsapp' | 'call' | 'message') => {
     if (!receiptGenerated) {
       alert('Please generate receipt first');
       return;
@@ -223,6 +261,14 @@ Your delivery: Arrange with seller
     const firstSeller: SellerGroup = sellerGroups.size > 0
       ? Array.from(sellerGroups.values())[0]
       : { phone: '', name: 'Seller', items: cartItems as any[] };
+
+    // Log this contact against the real backend receipt for that seller, so
+    // admins can see whether the buyer actually followed up (best-effort).
+    const firstSellerOwnerId = String(firstSeller.items[0]?.owner_id || '');
+    const receiptId = receiptsBySellerId[firstSellerOwnerId];
+    if (receiptId) {
+      checkoutReceiptService.trackContact(receiptId, method);
+    }
 
     const itemsList = (firstSeller.items as CheckoutItem[])
       .map((item) => `• ${item.title || item.title_en || 'Product'} - KSh ${(item?.price || 0).toLocaleString()}`)
@@ -261,6 +307,12 @@ Thanks!`;
         // No phone — open WhatsApp without a pre-filled number so buyer can choose
         window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
       }
+    } else if (method === 'call') {
+      if (firstSeller.phone) {
+        window.location.href = `tel:${firstSeller.phone}`;
+      } else {
+        alert("This seller's phone number isn't available");
+      }
     } else if (method === 'message') {
       setIsProcessing(true);
       // Send message to the first seller
@@ -288,6 +340,10 @@ Thanks!`;
 
   const handleWhatsApp = () => {
     handleContactSeller('whatsapp');
+  };
+
+  const handleCall = () => {
+    handleContactSeller('call');
   };
 
   const handleMessage = () => {
@@ -624,6 +680,16 @@ Thanks!`;
                   title="Contact via WhatsApp"
                 >
                   <FaWhatsapp className="w-12 h-12" />
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.3 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handleCall}
+                  className="text-emerald-500 hover:text-emerald-600 transition-colors p-2"
+                  title="Contact via Phone Call"
+                >
+                  <Phone className="w-12 h-12" />
                 </motion.button>
 
                 <motion.button

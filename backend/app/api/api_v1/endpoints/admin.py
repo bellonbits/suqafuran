@@ -76,52 +76,67 @@ class ShopRead(BaseModel):
 
 
 @router.get("/orders")
-def list_all_orders() -> Any:
+def list_all_orders(db: Session = Depends(deps.get_db)) -> Any:
     """
-    List all orders with customer information (Admin endpoint).
+    List checkout receipts with buyer/shop info, item breakdown, and whether
+    the buyer contacted the seller (WhatsApp/call/message) — Admin endpoint.
+
+    Reads from checkout_receipt, not the legacy delivery-era "orders" table:
+    this app is a direct P2P classifieds marketplace (no delivery/logistics),
+    and neither current checkout flow ever wrote to that old table.
     """
-    try:
-        from database import engine
-        from sqlalchemy import text
+    import json
+    from sqlalchemy import text
 
-        with engine.connect() as conn:
-            # Use raw SQL to avoid ORM schema mismatch
-            result = conn.execute(text("""
-                SELECT
-                    o.id, o.user_id, o.seller_id, o.status, o.delivery_option,
-                    o.delivery_address, o.phone_number, o.total_amount, o.platform_fee,
-                    o.seller_amount, o.courier_tip, o.payment_status, o.payment_reference,
-                    o.created_at, o.updated_at,
-                    u.full_name, u.email
-                FROM orders o
-                LEFT JOIN "user" u ON o.user_id = CAST(u.id AS VARCHAR)
-                ORDER BY o.created_at DESC
-                LIMIT 100
-            """))
+    def parse_items(raw):
+        if isinstance(raw, str):
+            try:
+                return json.loads(raw)
+            except (TypeError, ValueError):
+                return []
+        return raw or []
 
-            order_data = []
-            for row in result:
-                order_info = {
-                    "id": str(row[0]),
-                    "customer": {
-                        "id": str(row[1]),
-                        "full_name": str(row[15]) if row[15] else "Unknown",
-                        "email": str(row[16]) if row[16] else "",
-                    },
-                    "status": str(row[3]),
-                    "total_amount": float(row[8]) if row[8] else 0,
-                    "platform_fee": float(row[9]) if row[9] else 0,
-                    "seller_amount": float(row[10]) if row[10] else 0,
-                    "payment_status": str(row[11]),
-                    "delivery_option": str(row[4]),
-                    "created_at": str(row[13]),
-                    "updated_at": str(row[14]),
-                }
-                order_data.append(order_info)
+    result = db.exec(text("""
+        SELECT
+            r.id, r.buyer_id, r.seller_id, r.items, r.total_amount, r.created_at,
+            buyer.full_name AS buyer_name, buyer.email AS buyer_email, buyer.phone AS buyer_phone,
+            seller.full_name AS seller_name, b.name AS shop_name,
+            COALESCE(array_agg(DISTINCT i.type) FILTER (WHERE i.type IS NOT NULL), '{}') AS contact_types,
+            MAX(i.created_at) AS last_contacted_at
+        FROM checkout_receipt r
+        LEFT JOIN "user" buyer ON buyer.id = r.buyer_id
+        LEFT JOIN "user" seller ON seller.id = r.seller_id
+        LEFT JOIN business b ON b.owner_id = r.seller_id
+        LEFT JOIN interaction i ON i.receipt_id = r.id
+        GROUP BY r.id, buyer.full_name, buyer.email, buyer.phone, seller.full_name, b.name
+        ORDER BY r.created_at DESC
+        LIMIT 100
+    """)).all()
 
-            return order_data
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+    return [
+        {
+            "id": row.id,
+            "customer": {
+                "id": row.buyer_id,
+                "full_name": row.buyer_name or "Unknown",
+                "email": row.buyer_email or "",
+                "phone": row.buyer_phone or "",
+            },
+            "seller": {
+                "id": row.seller_id,
+                "full_name": row.seller_name or "Unknown",
+                "shop_name": row.shop_name or row.seller_name or "Unknown Shop",
+            },
+            "items": parse_items(row.items),
+            "total_amount": float(row.total_amount or 0),
+            "created_at": str(row.created_at),
+            "contacted_whatsapp": "whatsapp" in (row.contact_types or []),
+            "contacted_call": "call" in (row.contact_types or []),
+            "contacted_message": "message" in (row.contact_types or []),
+            "last_contacted_at": str(row.last_contacted_at) if row.last_contacted_at else None,
+        }
+        for row in result
+    ]
 
 
 @router.get("/stats", response_model=dict)

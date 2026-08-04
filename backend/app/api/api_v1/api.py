@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.api_v1.endpoints import marketing, auth, users, listings, admin, favorites, notifications, dashboard, verifications, wallet, boosts, interactions, meetings, deals, trust_ops, promotions, login, mobile_money, audit, kh, messages, translate, feedback, follows, content, ai, marketing, support, verification_check, seo, businesses, addresses, payments, sellers, diagnostics, analytics, analytics_tracking, bulk_products, delivery_zones, reviews, campaigns, seller_profile, seller_settings, conversations, reports, subcategories, attributes, category_attributes, search, offers, price_alerts, saved_searches, notification_preferences, chat_ws, subscriptions, featured_advertising, discount_codes, analytics_sellers, notifications_ws, advertising, admin_advertising, advertising_public, admin_email_analytics, admin_system_messaging, tracking, email_templates, customer_segments, lifecycle_analytics
+from app.api.api_v1.endpoints import marketing, auth, users, listings, admin, favorites, notifications, dashboard, verifications, wallet, boosts, interactions, meetings, deals, trust_ops, promotions, login, mobile_money, audit, kh, messages, translate, feedback, follows, content, ai, marketing, support, verification_check, seo, businesses, addresses, payments, sellers, diagnostics, analytics, analytics_tracking, bulk_products, delivery_zones, reviews, campaigns, seller_profile, seller_settings, conversations, reports, subcategories, attributes, category_attributes, search, offers, price_alerts, saved_searches, notification_preferences, chat_ws, subscriptions, featured_advertising, discount_codes, analytics_sellers, notifications_ws, advertising, admin_advertising, advertising_public, admin_email_analytics, admin_system_messaging, tracking, email_templates, customer_segments, lifecycle_analytics, checkout_receipts
 from app.api.api_v1.admin import monitoring_router
 
 # Import Phase 4 routers from root routers directory
@@ -58,6 +58,7 @@ api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboar
 api_router.include_router(wallet.router, prefix="/wallet", tags=["wallet"])
 api_router.include_router(boosts.router, prefix="/boosts", tags=["boosts"])
 api_router.include_router(interactions.router, prefix="/interactions", tags=["interactions"])
+api_router.include_router(checkout_receipts.router, prefix="/checkout-receipts", tags=["checkout-receipts"])
 api_router.include_router(meetings.router, prefix="/meetings", tags=["meetings"])
 api_router.include_router(deals.router, prefix="/deals", tags=["deals"])
 api_router.include_router(trust_ops.router, prefix="/trust_ops", tags=["trust"])

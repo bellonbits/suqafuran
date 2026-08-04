@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
-  ShoppingCart, Search, Filter, MoreVertical, Loader,
-  DollarSign, CheckCircle, Clock, XCircle
+  ShoppingCart, Search, Loader, DollarSign, CheckCircle2, MessageCircle,
+  Phone, MessageSquareText, Store, Clock, RadioTower
 } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ADMIN_NAV_ITEMS } from '@/admin-dashboard/navigation';
 import api from '@/services/api';
@@ -14,57 +15,83 @@ const adminNavItems = ADMIN_NAV_ITEMS.map(({ icon: Icon, ...item }) => ({
   ...item,
   icon: <Icon className="w-5 h-5" />
 }));
-function getStatusBadge(status: string) {
-  switch (status?.toLowerCase()) {
-    case 'completed':   return 'badge badge-green';
-    case 'confirmed':   return 'badge badge-blue';
-    case 'pending':     return 'badge badge-yellow';
-    case 'payment_pending': return 'badge badge-orange';
-    case 'cancelled':   return 'badge badge-red';
-    case 'processing':  return 'badge badge-purple';
-    default:            return 'badge badge-gray';
-  }
+
+const REFRESH_INTERVAL_MS = 15000;
+
+interface ReceiptItem {
+  listing_id?: number;
+  title: string;
+  price: number;
+  quantity: number;
 }
 
-function getStatusIcon(status: string) {
-  switch (status?.toLowerCase()) {
-    case 'completed':  return <CheckCircle className="w-3.5 h-3.5" />;
-    case 'cancelled':  return <XCircle className="w-3.5 h-3.5" />;
-    default:           return <Clock className="w-3.5 h-3.5" />;
-  }
+interface Receipt {
+  id: number;
+  customer: { id: number; full_name: string; email: string; phone: string };
+  seller: { id: number; full_name: string; shop_name: string };
+  items: ReceiptItem[];
+  total_amount: number;
+  created_at: string;
+  contacted_whatsapp: boolean;
+  contacted_call: boolean;
+  contacted_message: boolean;
+  last_contacted_at: string | null;
+}
+
+function ContactBadge({ receipt }: { receipt: Receipt }) {
+  const anyContact = receipt.contacted_whatsapp || receipt.contacted_call || receipt.contacted_message;
+  return (
+    <div className="flex items-center gap-2.5">
+      <FaWhatsapp className={`w-4 h-4 ${receipt.contacted_whatsapp ? 'text-[#25D366]' : 'text-gray-300'}`} title={receipt.contacted_whatsapp ? 'Contacted via WhatsApp' : 'Not contacted via WhatsApp'} />
+      <Phone className={`w-4 h-4 ${receipt.contacted_call ? 'text-emerald-500' : 'text-gray-300'}`} title={receipt.contacted_call ? 'Called seller' : 'Did not call'} />
+      <MessageSquareText className={`w-4 h-4 ${receipt.contacted_message ? 'text-blue-500' : 'text-gray-300'}`} title={receipt.contacted_message ? 'Sent an in-app message' : 'No in-app message'} />
+      {!anyContact && <span className="text-xs text-gray-400 ml-0.5">No contact yet</span>}
+    </div>
+  );
 }
 
 export default function AdminOrdersPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [orders, setOrders] = useState<any[]>([]);
+  const [contactFilter, setContactFilter] = useState<'all' | 'contacted' | 'not_contacted'>('all');
+  const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
-  useEffect(() => { loadOrders(); }, []);
-
-  const loadOrders = async () => {
+  const loadReceipts = useCallback(async () => {
     try {
       const res = await api.get('/admin/orders');
-      setOrders(Array.isArray(res.data) ? res.data : []);
+      setReceipts(Array.isArray(res.data) ? res.data : []);
+      setLastRefreshed(new Date());
     } catch (error) {
-      console.error('Error loading orders:', error);
+      console.error('Error loading checkout receipts:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const filtered = orders.filter(o => {
-    const matchSearch = o.id?.toString().includes(searchQuery) ||
-      (o.customer?.full_name || '').toLowerCase().includes(searchQuery.toLowerCase());
-    const matchStatus = statusFilter === 'all' || o.status === statusFilter;
-    return matchSearch && matchStatus;
+  useEffect(() => {
+    loadReceipts();
+    const interval = setInterval(loadReceipts, REFRESH_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [loadReceipts]);
+
+  const filtered = receipts.filter(r => {
+    const q = searchQuery.toLowerCase();
+    const matchSearch = !q ||
+      r.id?.toString().includes(q) ||
+      (r.customer?.full_name || '').toLowerCase().includes(q) ||
+      (r.seller?.shop_name || '').toLowerCase().includes(q);
+    const anyContact = r.contacted_whatsapp || r.contacted_call || r.contacted_message;
+    const matchContact = contactFilter === 'all' ||
+      (contactFilter === 'contacted' && anyContact) ||
+      (contactFilter === 'not_contacted' && !anyContact);
+    return matchSearch && matchContact;
   });
 
-  const statuses = ['all', ...Array.from(new Set(orders.map(o => o.status).filter(Boolean)))];
-
-  const totalRevenue = orders.reduce((s, o) => s + (o.total_amount || 0), 0);
-  const pendingCount = orders.filter(o => o.status?.includes('pending')).length;
-  const completedCount = orders.filter(o => o.status === 'completed').length;
+  const totalValue = receipts.reduce((s, r) => s + (r.total_amount || 0), 0);
+  const contactedCount = receipts.filter(r => r.contacted_whatsapp || r.contacted_call || r.contacted_message).length;
+  const notContactedCount = receipts.length - contactedCount;
 
   if (loading) {
     return (
@@ -72,7 +99,7 @@ export default function AdminOrdersPage() {
         <div className="flex items-center justify-center h-64">
           <div className="flex flex-col items-center gap-3">
             <Loader className="w-8 h-8 animate-spin text-sky-500" />
-            <p className="text-gray-500 text-sm">Loading orders…</p>
+            <p className="text-gray-500 text-sm">Loading checkout activity…</p>
           </div>
         </div>
       </DashboardLayout>
@@ -84,9 +111,15 @@ export default function AdminOrdersPage() {
       {/* Page header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-2xl font-black text-gray-900">All Orders</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Monitor and manage customer orders</p>
+          <h2 className="text-2xl font-black text-gray-900">Checkout Activity</h2>
+          <p className="text-sm text-gray-500 mt-0.5">What buyers put in their cart, from which shop, and whether they followed up with the seller</p>
         </div>
+        {lastRefreshed && (
+          <div className="flex items-center gap-1.5 text-xs text-gray-400">
+            <RadioTower className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
+            Live · updated {lastRefreshed.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+          </div>
+        )}
       </div>
 
       {/* Stat cards */}
@@ -96,17 +129,17 @@ export default function AdminOrdersPage() {
             <ShoppingCart className="w-6 h-6 text-sky-600" />
           </div>
           <div>
-            <p className="text-3xl font-black text-gray-900">{orders.length}</p>
-            <p className="text-sm text-gray-500 mt-0.5">Total Orders</p>
+            <p className="text-3xl font-black text-gray-900">{receipts.length}</p>
+            <p className="text-sm text-gray-500 mt-0.5">Total Checkouts</p>
           </div>
         </div>
         <div className="stat-card flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
-            <CheckCircle className="w-6 h-6 text-emerald-600" />
+            <CheckCircle2 className="w-6 h-6 text-emerald-600" />
           </div>
           <div>
-            <p className="text-3xl font-black text-gray-900">{completedCount}</p>
-            <p className="text-sm text-gray-500 mt-0.5">Completed</p>
+            <p className="text-3xl font-black text-gray-900">{contactedCount}</p>
+            <p className="text-sm text-gray-500 mt-0.5">Contacted Seller</p>
           </div>
         </div>
         <div className="stat-card flex items-center gap-4">
@@ -114,8 +147,8 @@ export default function AdminOrdersPage() {
             <Clock className="w-6 h-6 text-amber-600" />
           </div>
           <div>
-            <p className="text-3xl font-black text-gray-900">{pendingCount}</p>
-            <p className="text-sm text-gray-500 mt-0.5">Pending</p>
+            <p className="text-3xl font-black text-gray-900">{notContactedCount}</p>
+            <p className="text-sm text-gray-500 mt-0.5">No Contact Yet</p>
           </div>
         </div>
         <div className="stat-card flex items-center gap-4">
@@ -123,8 +156,8 @@ export default function AdminOrdersPage() {
             <DollarSign className="w-6 h-6 text-purple-600" />
           </div>
           <div>
-            <p className="text-3xl font-black text-gray-900">Ksh {Math.round(totalRevenue / 1000)}k</p>
-            <p className="text-sm text-gray-500 mt-0.5">Total Revenue</p>
+            <p className="text-3xl font-black text-gray-900">Ksh {Math.round(totalValue / 1000)}k</p>
+            <p className="text-sm text-gray-500 mt-0.5">Total Cart Value</p>
           </div>
         </div>
       </div>
@@ -135,27 +168,21 @@ export default function AdminOrdersPage() {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Search by order ID or customer…"
+            placeholder="Search by receipt ID, buyer, or shop…"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-300 bg-white shadow-sm"
           />
         </div>
-        <div className="flex gap-2">
-          <select
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
-            className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-700 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-300 cursor-pointer"
-          >
-            {statuses.map(s => (
-              <option key={s} value={s}>{s === 'all' ? 'All Statuses' : s.replace('_', ' ')}</option>
-            ))}
-          </select>
-          <button className="px-4 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl flex items-center gap-2 transition-colors shadow-sm text-sm font-medium">
-            <Filter className="w-4 h-4" />
-            Export
-          </button>
-        </div>
+        <select
+          value={contactFilter}
+          onChange={e => setContactFilter(e.target.value as any)}
+          className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-700 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-300 cursor-pointer"
+        >
+          <option value="all">All Checkouts</option>
+          <option value="contacted">Contacted Seller</option>
+          <option value="not_contacted">No Contact Yet</option>
+        </select>
       </div>
 
       {/* Table */}
@@ -163,7 +190,7 @@ export default function AdminOrdersPage() {
         <div className="data-table-wrapper">
           <div className="py-20 text-center">
             <ShoppingCart className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 font-medium">No orders found</p>
+            <p className="text-gray-500 font-medium">No checkout activity found</p>
           </div>
         </div>
       ) : (
@@ -172,71 +199,92 @@ export default function AdminOrdersPage() {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Order ID</th>
-                  <th>Customer</th>
+                  <th>Receipt</th>
+                  <th>Buyer</th>
+                  <th>Shop</th>
                   <th>Items</th>
                   <th>Total</th>
-                  <th>Status</th>
+                  <th>Contact Activity</th>
                   <th>Date</th>
-                  <th className="text-right">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(order => (
-                  <motion.tr
-                    key={order.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                  >
-                    <td>
-                      <span className="font-bold text-sky-600 font-mono text-xs bg-sky-50 px-2 py-1 rounded-lg">
-                        #{order.id?.toString().slice(0, 12)}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-                          {(order.customer?.full_name || 'U').charAt(0).toUpperCase()}
+                {filtered.map(receipt => (
+                  <React.Fragment key={receipt.id}>
+                    <motion.tr
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="cursor-pointer"
+                      onClick={() => setExpandedId(expandedId === receipt.id ? null : receipt.id)}
+                    >
+                      <td>
+                        <span className="font-bold text-sky-600 font-mono text-xs bg-sky-50 px-2 py-1 rounded-lg">
+                          #{receipt.id}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                            {(receipt.customer?.full_name || 'U').charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 leading-tight">{receipt.customer?.full_name || 'Unknown'}</p>
+                            {receipt.customer?.phone && <p className="text-xs text-gray-400">{receipt.customer.phone}</p>}
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium text-gray-900 leading-tight">{order.customer?.full_name || 'Unknown'}</p>
-                          {order.customer?.phone && <p className="text-xs text-gray-400">{order.customer.phone}</p>}
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-1.5 text-gray-700">
+                          <Store className="w-3.5 h-3.5 text-gray-400" />
+                          {receipt.seller?.shop_name || 'Unknown Shop'}
                         </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="text-gray-600 font-medium">
-                        {order.items?.length || order.item_count || '—'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="font-bold text-gray-900">
-                        Ksh {Math.round(order.total_amount || 0).toLocaleString()}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={getStatusBadge(order.status)}>
-                        {getStatusIcon(order.status)}
-                        {(order.status || 'pending').replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="text-gray-500 text-xs">
-                        {new Date(order.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                      </span>
-                    </td>
-                    <td className="text-right">
-                      <button className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-400 hover:text-gray-700">
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </motion.tr>
+                      </td>
+                      <td>
+                        <span className="text-gray-600 font-medium">
+                          {receipt.items?.length || 0} item{receipt.items?.length === 1 ? '' : 's'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="font-bold text-gray-900">
+                          Ksh {Math.round(receipt.total_amount || 0).toLocaleString()}
+                        </span>
+                      </td>
+                      <td>
+                        <ContactBadge receipt={receipt} />
+                      </td>
+                      <td>
+                        <span className="text-gray-500 text-xs">
+                          {new Date(receipt.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </span>
+                      </td>
+                    </motion.tr>
+                    {expandedId === receipt.id && (
+                      <tr>
+                        <td colSpan={7} className="bg-gray-50/70 px-6 py-4">
+                          <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Items in this checkout</p>
+                          <div className="space-y-1.5">
+                            {(receipt.items || []).map((item, idx) => (
+                              <div key={idx} className="flex items-center justify-between text-sm">
+                                <span className="text-gray-700">{item.title} <span className="text-gray-400">× {item.quantity}</span></span>
+                                <span className="font-semibold text-gray-900">Ksh {Math.round((item.price || 0) * (item.quantity || 1)).toLocaleString()}</span>
+                              </div>
+                            ))}
+                          </div>
+                          {receipt.last_contacted_at && (
+                            <p className="text-xs text-gray-400 mt-3">
+                              Last contacted seller: {new Date(receipt.last_contacted_at).toLocaleString('en-GB')}
+                            </p>
+                          )}
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>
           </div>
           <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 text-xs text-gray-400">
-            Showing <span className="font-semibold text-gray-600">{filtered.length}</span> of <span className="font-semibold text-gray-600">{orders.length}</span> orders
+            Showing <span className="font-semibold text-gray-600">{filtered.length}</span> of <span className="font-semibold text-gray-600">{receipts.length}</span> checkouts
           </div>
         </div>
       )}
