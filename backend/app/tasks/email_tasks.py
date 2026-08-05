@@ -5,6 +5,83 @@ from typing import Optional, Any, Dict
 
 logger = get_task_logger(__name__)
 
+# Maps dispatch_growth_email_task's email_type keys to the EmailTemplate rows
+# seeded from these same methods (see seed_email_templates.py), so an admin
+# edit in /admin-dashboard/email-templates actually changes what gets sent.
+#
+# Deliberately excludes types whose original method renders a dynamic list of
+# items in a loop (saved_search, trending, weekly_digest, reengagement,
+# recommended, category_interest, market_summary, receipt) — the simple
+# {{variable}} Jinja2 substitution here can't reproduce a per-item loop, so
+# those always fall through to the hardcoded method below.
+DB_TEMPLATE_EVENT_TYPES = {
+    "welcome": "onboarding_welcome",
+    "complete_profile": "onboarding_complete_profile",
+    "first_action": "onboarding_first_action",
+    "new_listing": "activity_new_listing",
+    "price_drop": "activity_price_drop",
+    "message": "transaction_message",
+    "offer_received": "transaction_offer",
+    "offer_response": "transaction_offer_response",
+    "deal_update": "transaction_deal_update",
+    "payment": "transaction_payment",
+    "order_confirmation": "transaction_order_confirmation",
+    "suspicious": "safety_suspicious_login",
+    "scam_warning": "safety_scam_warning",
+    "account_protection": "safety_protection",
+    "password_change": "safety_password_change",
+    "new_device": "safety_new_device",
+    "abandoned_action": "retention_abandoned_action",
+    "seller_tips": "seller_growth_tips",
+    "listing_performance": "seller_growth_listing_performance",
+    "boost_listing": "seller_growth_boost_listing",
+    "ai_pricing": "seller_growth_ai_pricing",
+    "seller_milestone": "seller_growth_milestone",
+    "system_alert": "admin_system_alert",
+    "system_status": "admin_system_status",
+    "fraud_report": "admin_fraud_report",
+    "moderation_alert": "admin_moderation_alert",
+}
+
+
+def _try_send_from_db_template(email_type: str, email: str, context: Dict[str, Any], user_id: Optional[int], campaign_id: Optional[str]) -> bool:
+    """Render + send an active admin-edited EmailTemplate for this event_type,
+    if one exists. Returns True if it handled the send (caller should skip the
+    hardcoded fallback), False if there's no template to use."""
+    event_type = DB_TEMPLATE_EVENT_TYPES.get(email_type)
+    if not event_type:
+        return False
+
+    from sqlmodel import Session, select
+    from app.db.session import engine
+    from app.models.email_template import EmailTemplate
+    from app.services.email_service import email_service
+    from jinja2 import Template
+    import datetime
+
+    with Session(engine) as db:
+        template = db.exec(
+            select(EmailTemplate).where(
+                EmailTemplate.event_type == event_type,
+                EmailTemplate.is_active == True,
+            )
+        ).first()
+
+    if not template:
+        return False
+
+    render_ctx = {**context, "email": email, "date": datetime.date.today().strftime("%B %d, %Y")}
+    try:
+        subject = Template(template.subject).render(**render_ctx)
+        html_body = Template(template.html_content).render(**render_ctx)
+    except Exception as exc:
+        logger.warning(f"DB template render failed for '{event_type}' (id={template.id}): {exc} — falling back to hardcoded email")
+        return False
+
+    email_service._send_and_log(email, subject, html_body, event_type, user_id, campaign_id=campaign_id)
+    logger.info(f"Sent '{email_type}' using admin-edited DB template (id={template.id})")
+    return True
+
 
 @shared_task(name="app.tasks.email_tasks.send_verification_email", bind=True, max_retries=2)
 def send_verification_email_task(self, email: str, code: str):
@@ -41,6 +118,9 @@ def dispatch_growth_email_task(
     """
     from app.services.email_service import email_service
     logger.info(f"Dispatching async email type '{email_type}' to '{email}'")
+
+    if _try_send_from_db_template(email_type, email, context, user_id, campaign_id):
+        return
 
     try:
         # 1. Onboarding & Activation

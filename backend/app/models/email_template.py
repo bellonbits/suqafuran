@@ -21,6 +21,8 @@ class EmailTemplateBase(SQLModel):
 
 class EmailTemplate(EmailTemplateBase, table=True):
     """Email template stored in database."""
+    __tablename__ = "email_template"
+
     id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
