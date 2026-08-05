@@ -131,6 +131,21 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
 
   const showPreview = isHovered && previewImages && previewImages.length > 0;
 
+  // Let a finger-swipe/mouse-drag across the preview strip scroll it instead
+  // of navigating to the shop — only a real tap (no meaningful movement)
+  // should follow the link.
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
+  const handlePreviewPointerDown = (e: React.PointerEvent) => {
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+  };
+  const handlePreviewClick = (e: React.MouseEvent) => {
+    const start = dragStartRef.current;
+    if (start && (Math.abs(e.clientX - start.x) > 8 || Math.abs(e.clientY - start.y) > 8)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+
   // Use real data from API response
   const deliveryTime = shop.delivery_time || '15-30 min';
   const ratingPercent = shop.rating ? Math.round(shop.rating * 20) : 85;
@@ -151,24 +166,27 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
         className="group block"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onTouchStart={handleMouseEnter}
       >
 
         {/* ─── Banner (16:7 aspect ratio - shorter) ──────────────────────── */}
         <div className="relative aspect-[16/7] w-full rounded-lg overflow-hidden bg-gray-200 dark:bg-slate-800">
           {showPreview ? (
-            /* Hover preview: auto-scrolling strip of the shop's product photos */
-            <div className="absolute inset-0 flex">
-              <div className="flex shop-card-marquee-track">
-                {[...previewImages!, ...previewImages!].map((src, i) => (
-                  <img
-                    key={i}
-                    src={src}
-                    alt=""
-                    className="h-full aspect-square object-cover shrink-0"
-                    draggable={false}
-                  />
-                ))}
-              </div>
+            /* Preview: finger/mouse-swipeable strip of the shop's product photos */
+            <div
+              className="no-scrollbar absolute inset-0 flex overflow-x-auto snap-x snap-mandatory"
+              onPointerDown={handlePreviewPointerDown}
+              onClick={handlePreviewClick}
+            >
+              {previewImages!.map((src, i) => (
+                <img
+                  key={i}
+                  src={src}
+                  alt=""
+                  className="h-full aspect-square object-cover shrink-0 snap-start"
+                  draggable={false}
+                />
+              ))}
               <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
             </div>
           ) : banner ? (
