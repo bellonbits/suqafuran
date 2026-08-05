@@ -66,6 +66,7 @@ class ShopRead(BaseModel):
     business_name: Optional[str] = None
     full_name: Optional[str] = None
     shop_description: Optional[str] = None
+    logo_url: Optional[str] = None
     shop_page_banner: Optional[str] = None
     shop_detail_banner: Optional[str] = None
     is_featured: bool = False
@@ -1248,6 +1249,7 @@ def update_shop_details(
             # Also clear paginated list caches since shop name may have changed order
             for skip in range(0, 1000, 24):
                 cache.delete(f"admin:shops:{skip}:24")
+            cache.delete("admin:shops:0:500")
         except Exception:
             pass
 
@@ -1389,7 +1391,9 @@ def get_all_shops(
         query = text("""
             SELECT DISTINCT u.id, u.email, u.full_name, u.business_name, u.created_at,
                    COALESCE(s.shop_page_banner, u.shop_page_banner) as shop_page_banner,
-                   COALESCE(s.shop_detail_banner, u.shop_detail_banner) as shop_detail_banner
+                   COALESCE(s.shop_detail_banner, u.shop_detail_banner) as shop_detail_banner,
+                   u.shop_description, u.logo_url, u.is_featured, u.free_delivery,
+                   u.is_verified, u.is_active
             FROM "user" u
             INNER JOIN listing l ON u.id = l.owner_id
             LEFT JOIN sellers s ON s.user_id = CAST(u.id AS VARCHAR)
@@ -1409,13 +1413,14 @@ def get_all_shops(
                 email=row[1],
                 full_name=row[2],
                 business_name=row[3] or row[2],
-                shop_description="",
-                shop_page_banner=row[5] if len(row) > 5 else None,
-                shop_detail_banner=row[6] if len(row) > 6 else None,
-                is_featured=False,
-                is_verified=True,
-                free_delivery=False,
-                is_active=True,
+                shop_description=row[7] or "",
+                shop_page_banner=row[5],
+                shop_detail_banner=row[6],
+                logo_url=row[8],
+                is_featured=bool(row[9]),
+                free_delivery=bool(row[10]),
+                is_verified=bool(row[11]),
+                is_active=bool(row[12]),
             )
             shops.append(shop)
 
@@ -1570,6 +1575,7 @@ def update_shop(
             # Also clear paginated list caches since shop data has changed
             for skip in range(0, 1000, 24):
                 cache.delete(f"admin:shops:{skip}:24")
+            cache.delete("admin:shops:0:500")
             # Clear public shops cache as well
             for skip in range(0, 1000, 24):
                 cache.delete(f"public_shops:{skip}:24:all")
