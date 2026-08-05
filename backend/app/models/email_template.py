@@ -7,14 +7,16 @@ from sqlmodel import Field, SQLModel
 
 class EmailTemplateBase(SQLModel):
     """Base email template model."""
-    event_type: str = Field(index=True)  # signup, listing_approved, etc.
+    event_type: str = Field(index=True)  # signup, listing_approved, promotional, etc.
     name: str  # Display name
     subject: str
     html_content: str
     text_content: Optional[str] = None
     is_active: bool = Field(default=True)
-    description: Optional[str] = None
+    description: Optional[str] = None  # doubles as the subtitle for promotional templates
     variables: Optional[str] = None  # JSON list of template variables
+    action_text: Optional[str] = None  # CTA button label (promotional templates)
+    action_url: Optional[str] = None  # CTA button link (promotional templates)
 
 
 class EmailTemplate(EmailTemplateBase, table=True):
@@ -40,6 +42,8 @@ class EmailTemplateUpdate(SQLModel):
     is_active: Optional[bool] = None
     description: Optional[str] = None
     variables: Optional[str] = None
+    action_text: Optional[str] = None
+    action_url: Optional[str] = None
 
 
 class EmailTemplateRead(EmailTemplateBase):
