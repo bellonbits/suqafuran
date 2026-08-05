@@ -1527,7 +1527,7 @@ def update_shop(
     shop_id: int,
     shop_data: ShopManagementUpdate,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_superuser),
+    current_user: User = Depends(deps.get_current_active_agent),
 ) -> Any:
     """Update shop details."""
     try:

@@ -86,6 +86,7 @@ import AgentEarningsPage from './pages/AgentEarningsPage'
 import AgentAnalyticsPage from './pages/AgentAnalyticsPage'
 import AgentInquiriesPage from './pages/AgentInquiriesPage'
 import AgentListingsPage from './pages/AgentListingsPage'
+import AgentShopsPage from './pages/AgentShopsPage'
 import HelpCenterPage from './pages/HelpCenterPage'
 import SafeTradingTipsPage from './pages/SafeTradingTipsPage'
 import TermsOfUsePage from './pages/TermsOfUsePage'
@@ -231,6 +232,7 @@ export default function App() {
       <Route element={<ProtectedRoute requiredRole="agent"><AgentAnalyticsPage /></ProtectedRoute>} path="/agent-analytics" />
       <Route element={<ProtectedRoute requiredRole="agent"><AgentInquiriesPage /></ProtectedRoute>} path="/agent-inquiries" />
       <Route element={<ProtectedRoute requiredRole="agent"><AgentListingsPage /></ProtectedRoute>} path="/agent-listings" />
+      <Route element={<ProtectedRoute requiredRole="agent"><AgentShopsPage /></ProtectedRoute>} path="/agent-shops" />
     </Routes>
   )
 }

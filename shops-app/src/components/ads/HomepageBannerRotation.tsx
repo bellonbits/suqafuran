@@ -125,7 +125,7 @@ export function HomepageBannerRotation() {
 
   return (
     <div
-      className="relative w-full bg-gray-900 overflow-hidden"
+      className="relative w-full bg-gray-900 overflow-hidden rounded-[20px] shadow-[0_10px_40px_rgba(0,0,0,0.08)]"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}

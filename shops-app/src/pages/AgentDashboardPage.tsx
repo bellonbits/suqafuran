@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
-  Loader, TrendingUp, Users, ShoppingBag, 
-  Clock, Phone, Search, RefreshCw, 
+  Loader, TrendingUp, Users, ShoppingBag,
+  Clock, Phone, Search, RefreshCw,
   Check, XCircle, Eye, Mail, PhoneCall, MapPin,
   CheckCircle, LayoutDashboard, MessageSquare, DollarSign,
-  Truck, Shield, AlertTriangle
+  Truck, Shield, AlertTriangle, Store
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import {
@@ -51,6 +51,7 @@ const agentNavItems = [
   { label: 'Marketing Info', icon: <TrendingUp className="w-5 h-5" />, href: '/agent-dashboard' },
   { label: 'Active Signups', icon: <Users className="w-5 h-5" />, href: '/agent-dashboard' },
   { label: 'Product Database', icon: <ShoppingBag className="w-5 h-5" />, href: '/agent-dashboard' },
+  { label: 'Shops', icon: <Store className="w-5 h-5" />, href: '/agent-shops' },
 ];
 
 const AgentDashboard = () => {
