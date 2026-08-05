@@ -135,8 +135,16 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
   // of navigating to the shop — only a real tap (no meaningful movement)
   // should follow the link.
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
+  const isDraggingRef = useRef(false);
+  const stripRef = useRef<HTMLDivElement | null>(null);
   const handlePreviewPointerDown = (e: React.PointerEvent) => {
     dragStartRef.current = { x: e.clientX, y: e.clientY };
+    isDraggingRef.current = true;
+  };
+  const handlePreviewPointerUp = () => {
+    // Small delay so the auto-scroll doesn't immediately yank the strip
+    // right after the user lets go.
+    setTimeout(() => { isDraggingRef.current = false; }, 600);
   };
   const handlePreviewClick = (e: React.MouseEvent) => {
     const start = dragStartRef.current;
@@ -145,6 +153,27 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
       e.stopPropagation();
     }
   };
+
+  // Auto-scroll the preview strip on its own (pauses while the user is
+  // dragging/swiping it), looping seamlessly through the duplicated images.
+  // setInterval rather than requestAnimationFrame — rAF gets throttled in
+  // some embedded/background rendering contexts, setInterval is reliable.
+  useEffect(() => {
+    if (!showPreview) return;
+    const intervalId = setInterval(() => {
+      const el = stripRef.current;
+      if (el && !isDraggingRef.current) {
+        const half = el.scrollWidth / 2;
+        if (half > 0) {
+          el.scrollLeft += 1;
+          if (el.scrollLeft >= half) {
+            el.scrollLeft -= half;
+          }
+        }
+      }
+    }, 20);
+    return () => clearInterval(intervalId);
+  }, [showPreview]);
 
   // Use real data from API response
   const deliveryTime = shop.delivery_time || '15-30 min';
@@ -172,23 +201,28 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
         {/* ─── Banner (16:7 aspect ratio - shorter) ──────────────────────── */}
         <div className="relative aspect-[16/7] w-full rounded-lg overflow-hidden bg-gray-200 dark:bg-slate-800">
           {showPreview ? (
-            /* Preview: finger/mouse-swipeable strip of the shop's product photos */
-            <div
-              className="no-scrollbar absolute inset-0 flex overflow-x-auto snap-x snap-mandatory"
-              onPointerDown={handlePreviewPointerDown}
-              onClick={handlePreviewClick}
-            >
-              {previewImages!.map((src, i) => (
-                <img
-                  key={i}
-                  src={src}
-                  alt=""
-                  className="h-full aspect-square object-cover shrink-0 snap-start"
-                  draggable={false}
-                />
-              ))}
+            /* Preview: auto-scrolling strip of the shop's product photos,
+               finger/mouse-swipeable to browse at your own pace too */
+            <>
+              <div
+                ref={stripRef}
+                className="no-scrollbar absolute inset-0 flex overflow-x-auto"
+                onPointerDown={handlePreviewPointerDown}
+                onPointerUp={handlePreviewPointerUp}
+                onClick={handlePreviewClick}
+              >
+                {[...previewImages!, ...previewImages!].map((src, i) => (
+                  <img
+                    key={i}
+                    src={src}
+                    alt=""
+                    className="h-full aspect-square object-cover shrink-0"
+                    draggable={false}
+                  />
+                ))}
+              </div>
               <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
-            </div>
+            </>
           ) : banner ? (
             <>
               <img
