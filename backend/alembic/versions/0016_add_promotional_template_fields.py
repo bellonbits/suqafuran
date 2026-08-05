@@ -17,10 +17,13 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column('email_template', sa.Column('action_text', sa.String(), nullable=True))
-    op.add_column('email_template', sa.Column('action_url', sa.String(), nullable=True))
+    # IF NOT EXISTS: this repo's alembic_version history has pre-existing
+    # unresolved heads/mismatched stamps, so these columns may already have
+    # been applied directly against production ahead of a clean upgrade run.
+    op.execute("ALTER TABLE email_template ADD COLUMN IF NOT EXISTS action_text VARCHAR")
+    op.execute("ALTER TABLE email_template ADD COLUMN IF NOT EXISTS action_url VARCHAR")
 
 
 def downgrade() -> None:
-    op.drop_column('email_template', 'action_url')
-    op.drop_column('email_template', 'action_text')
+    op.execute("ALTER TABLE email_template DROP COLUMN IF EXISTS action_url")
+    op.execute("ALTER TABLE email_template DROP COLUMN IF EXISTS action_text")
