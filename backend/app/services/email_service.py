@@ -90,10 +90,9 @@ class EmailService:
         <body style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f6f9fc; padding: 40px 0; margin: 0;">
           <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
             <!-- Header -->
-            <div style="background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%); padding: 48px 20px; text-align: center; color: white;">
-              <img src="cid:logo_icon" alt="Suqafuran" style="height: 56px; margin-bottom: 16px; display: block; margin-left: auto; margin-right: auto;">
-              <h1 style="margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.5px;">Suqafuran</h1>
-              <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px; font-weight: 500;">The Trusted Marketplace of Africa</p>
+            <div style="background: #ffffff; padding: 40px 20px 32px; text-align: center; border-bottom: 1px solid #e2e8f0;">
+              <img src="https://suqafuran.com/icon1.png" alt="Suqafuran" style="height: 40px; margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto;">
+              <p style="margin: 0; color: #64748b; font-size: 14px; font-weight: 600;">The Trusted Marketplace of Africa</p>
             </div>
             
             <!-- Content -->
@@ -124,7 +123,7 @@ class EmailService:
               
               <div style="font-size: 12px; color: #94a3b8; line-height: 1.8;">
                 <p style="margin: 0; font-weight: 600; color: #64748b;">Suqafuran Limited</p>
-                <p style="margin: 4px 0 0 0;">Flat 13, Krishna Pointe Riverside Lane, Westlands Nairobi</p>
+                <p style="margin: 4px 0 0 0;">Muthaiga Business Center, Pangani, Nairobi, Kenya</p>
                 <p style="margin: 4px 0 0 0;">&copy; 2026 Suqafuran. All rights reserved.</p>
               </div>
               
@@ -345,13 +344,13 @@ class EmailService:
             url = match.group(1)
             if "track-click" in url or "mailto:" in url or url.startswith("#"):
                 return match.group(0)
-            tracked_url = f"{settings.FRONTEND_URL}/api/v1/content/email/track-click?token={log_entry.tracking_token}&redirect_url={quote(url)}"
+            tracked_url = f"{settings.BACKEND_URL}/api/v1/content/email/track-click?token={log_entry.tracking_token}&redirect_url={quote(url)}"
             return f'href="{tracked_url}"'
 
         html_body_tracked = re.sub(r'href=["\'](https?://[^"\']+)["\']', rewrite_link, html_body)
-        
+
         # Inject transparent 1x1 tracking pixel
-        tracking_pixel = f'<img src="{settings.FRONTEND_URL}/api/v1/content/email/track-open?token={log_entry.tracking_token}" alt="" width="1" height="1" style="display:none;" />'
+        tracking_pixel = f'<img src="{settings.BACKEND_URL}/api/v1/content/email/track-open?token={log_entry.tracking_token}" alt="" width="1" height="1" style="display:none;" />'
         if "</body>" in html_body_tracked:
             html_body_tracked = html_body_tracked.replace("</body>", f"{tracking_pixel}</body>")
         else:
@@ -365,29 +364,14 @@ class EmailService:
         if settings.RESEND_API_KEY:
             try:
                 import resend
-                import os
-                import base64
-                
+
                 resend.api_key = settings.RESEND_API_KEY
-                
-                attachments = []
-                logo_path = "/Users/mac/suqafuran/public/icon1.png"
-                if os.path.exists(logo_path):
-                    with open(logo_path, "rb") as f:
-                        content_b64 = base64.b64encode(f.read()).decode("utf-8")
-                    attachments.append({
-                        "filename": "icon1.png",
-                        "content": content_b64,
-                        "cid": "logo_icon",
-                        "disposition": "inline"
-                    })
-                
+
                 resend.Emails.send({
                     "from": f"{settings.EMAIL_FROM_NAME} <{settings.EMAIL_FROM}>",
                     "to": [email],
                     "subject": subject,
                     "html": html_body_tracked,
-                    "attachments": attachments
                 })
                 print(f"[Email] {email_type} sent via Resend to {email}")
                 success = True
@@ -400,38 +384,15 @@ class EmailService:
         if not success and settings.SMTP_HOST and settings.SMTP_USER and settings.SMTP_PASSWORD:
             try:
                 import smtplib
-                import os
                 from email.mime.multipart import MIMEMultipart
                 from email.mime.text import MIMEText
-                from email.mime.image import MIMEImage
-                
-                logo_path = "/Users/mac/suqafuran/public/icon1.png"
-                
-                if os.path.exists(logo_path):
-                    msg = MIMEMultipart("related")
-                    msg["Subject"] = subject
-                    msg["From"] = f"{settings.EMAIL_FROM_NAME} <{settings.SMTP_USER}>"
-                    msg["To"] = email
-                    
-                    # Alternative part for HTML content
-                    msg_alternative = MIMEMultipart("alternative")
-                    msg_alternative.attach(MIMEText(html_body_tracked, "html"))
-                    msg.attach(msg_alternative)
-                    
-                    # Attach inline image
-                    with open(logo_path, "rb") as f:
-                        img_data = f.read()
-                    img = MIMEImage(img_data)
-                    img.add_header("Content-ID", "<logo_icon>")
-                    img.add_header("Content-Disposition", "inline", filename="icon1.png")
-                    msg.attach(img)
-                else:
-                    msg = MIMEMultipart("alternative")
-                    msg["Subject"] = subject
-                    msg["From"] = f"{settings.EMAIL_FROM_NAME} <{settings.SMTP_USER}>"
-                    msg["To"] = email
-                    msg.attach(MIMEText(html_body_tracked, "html"))
-                
+
+                msg = MIMEMultipart("alternative")
+                msg["Subject"] = subject
+                msg["From"] = f"{settings.EMAIL_FROM_NAME} <{settings.SMTP_USER}>"
+                msg["To"] = email
+                msg.attach(MIMEText(html_body_tracked, "html"))
+
                 # Check for SSL vs TLS vs standard connection
                 if settings.SMTP_SSL:
                     with smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT) as server:
