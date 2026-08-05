@@ -17,6 +17,9 @@ const ListingsManagementPage = () => {
   const [approvalStatusFilter, setApprovalStatusFilter] = useState('all');
   const [categories, setCategories] = useState<any[]>([]);
   const [viewingListing, setViewingListing] = useState<any>(null);
+  const [editingListing, setEditingListing] = useState<any>(null);
+  const [editForm, setEditForm] = useState<any>({});
+  const [savingEdit, setSavingEdit] = useState(false);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
@@ -88,7 +91,40 @@ const ListingsManagementPage = () => {
   };
 
   const handleEdit = (id: number) => {
-    window.location.href = `/admin-listings/${id}/edit`;
+    const listing = listings.find((l) => l.id === id);
+    if (!listing) return;
+    setEditingListing(listing);
+    setEditForm({
+      title_en: listing.title_en || '',
+      title_so: listing.title_so || '',
+      description_en: listing.description_en || '',
+      description_so: listing.description_so || '',
+      price: listing.price ?? 0,
+      location: listing.location || '',
+      condition: listing.condition || '',
+      category_id: listing.category_id ?? '',
+      status: listing.status || 'active',
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingListing) return;
+    setSavingEdit(true);
+    try {
+      await api.patch(`/listings/${editingListing.id}`, {
+        ...editForm,
+        price: Number(editForm.price) || 0,
+        category_id: editForm.category_id ? Number(editForm.category_id) : null,
+      });
+      setEditingListing(null);
+      setViewingListing(null);
+      loadListings();
+    } catch (error) {
+      console.error('Error updating listing:', error);
+      alert('Failed to update listing');
+    } finally {
+      setSavingEdit(false);
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -746,6 +782,138 @@ const ListingsManagementPage = () => {
                   className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" /> Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Listing Modal */}
+      {editingListing && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Listing</h2>
+              <button
+                onClick={() => setEditingListing(null)}
+                disabled={savingEdit}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors disabled:opacity-50"
+              >
+                <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">TITLE (EN)</label>
+                  <input
+                    type="text"
+                    value={editForm.title_en}
+                    onChange={(e) => setEditForm((f: any) => ({ ...f, title_en: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">TITLE (SO)</label>
+                  <input
+                    type="text"
+                    value={editForm.title_so}
+                    onChange={(e) => setEditForm((f: any) => ({ ...f, title_so: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">PRICE</label>
+                  <input
+                    type="number"
+                    value={editForm.price}
+                    onChange={(e) => setEditForm((f: any) => ({ ...f, price: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">LOCATION</label>
+                  <input
+                    type="text"
+                    value={editForm.location}
+                    onChange={(e) => setEditForm((f: any) => ({ ...f, location: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">CONDITION</label>
+                  <input
+                    type="text"
+                    value={editForm.condition}
+                    onChange={(e) => setEditForm((f: any) => ({ ...f, condition: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">CATEGORY</label>
+                  <select
+                    value={editForm.category_id}
+                    onChange={(e) => setEditForm((f: any) => ({ ...f, category_id: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  >
+                    <option value="">Select category</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>{cat.name_en || cat.name_so}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">STATUS</label>
+                  <select
+                    value={editForm.status}
+                    onChange={(e) => setEditForm((f: any) => ({ ...f, status: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="pending">Pending</option>
+                    <option value="sold">Sold</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">DESCRIPTION (EN)</label>
+                <textarea
+                  value={editForm.description_en}
+                  onChange={(e) => setEditForm((f: any) => ({ ...f, description_en: e.target.value }))}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">DESCRIPTION (SO)</label>
+                <textarea
+                  value={editForm.description_so}
+                  onChange={(e) => setEditForm((f: any) => ({ ...f, description_so: e.target.value }))}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setEditingListing(null)}
+                  disabled={savingEdit}
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={savingEdit}
+                  className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {savingEdit ? <Loader className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  {savingEdit ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </div>
