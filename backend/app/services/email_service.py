@@ -602,6 +602,36 @@ class EmailService:
         )
         return self._send_and_log(email, title, html_body, "onboarding_first_action", user_id)
 
+    def send_promotional_email(self, email: str, name: str, user_id: Optional[int] = None) -> bool:
+        """General re-engagement/promotional email for existing customers."""
+        site_url = "https://suqafuran.com"
+        content = f"""
+        <p style="font-size: 15px; margin-bottom: 24px; color: #475569;">
+          Hello {name},<br><br>
+          It's been a while! Suqafuran has hundreds of verified shops and fresh deals waiting for you —
+          here's what you've been missing.
+        </p>
+        <div style="background: #f0f9ff; border-radius: 16px; padding: 24px; margin: 32px 0; border: 1px solid #e0f2fe;">
+          <h4 style="margin: 0 0 12px 0; color: #0369a1; font-weight: 800;">Why come back today:</h4>
+          <ul style="margin: 0; padding-left: 20px; color: #334155; font-size: 14px; line-height: 1.8;">
+            <li>🛍️ <strong>New arrivals daily:</strong> Fresh listings from verified local shops.</li>
+            <li>💬 <strong>Chat instantly:</strong> Message sellers directly, no middlemen.</li>
+            <li>🛡️ <strong>Shop with confidence:</strong> Verified badges and trusted reviews.</li>
+          </ul>
+        </div>
+        <div style="text-align: center; margin-bottom: 12px;">
+          <a href="{site_url}" style="display: inline-block; background: #0ea5e9; color: white; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 800; font-size: 14px;">
+            Explore Suqafuran Now
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="We miss you at Suqafuran!",
+            subtitle="Verified shops and fresh deals are waiting for you.",
+            content=content
+        )
+        return self._send_and_log(email, "We miss you — see what's new on Suqafuran", html_body, "promotional_reengagement", user_id)
+
     # B. Marketplace Activity / Core Growth Emails
     def send_new_listing_alert(
         self,
