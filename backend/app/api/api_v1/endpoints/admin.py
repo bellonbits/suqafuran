@@ -1387,19 +1387,28 @@ def get_all_shops(
     try:
         from sqlalchemy import text
 
-        # Fast query with INNER JOIN to sellers for banners - only shops WITH active listings
+        # Only shops WITH active listings - EXISTS avoids fanning out one row
+        # per listing (which SELECT DISTINCT then had to sort/dedupe, made
+        # far more expensive once a TEXT column like shop_description joined
+        # the select list).
+        # Banners can be inline base64 data URIs up to ~2MB each; the list
+        # view only needs to know whether one is set (for a badge), so cap
+        # what's transferred here. The edit modal fetches the full value
+        # via GET /shops/{id} when it actually needs to render the image.
         query = text("""
-            SELECT DISTINCT u.id, u.email, u.full_name, u.business_name, u.created_at,
-                   COALESCE(s.shop_page_banner, u.shop_page_banner) as shop_page_banner,
-                   COALESCE(s.shop_detail_banner, u.shop_detail_banner) as shop_detail_banner,
+            SELECT u.id, u.email, u.full_name, u.business_name, u.created_at,
+                   LEFT(COALESCE(s.shop_page_banner, u.shop_page_banner), 200) as shop_page_banner,
+                   LEFT(COALESCE(s.shop_detail_banner, u.shop_detail_banner), 200) as shop_detail_banner,
                    u.shop_description, u.logo_url, u.is_featured, u.free_delivery,
                    u.is_verified, u.is_active
             FROM "user" u
-            INNER JOIN listing l ON u.id = l.owner_id
             LEFT JOIN sellers s ON s.user_id = CAST(u.id AS VARCHAR)
             WHERE u.is_verified = true
               AND u.is_active = true
-              AND l.status = 'active'
+              AND EXISTS (
+                  SELECT 1 FROM listing l
+                  WHERE l.owner_id = u.id AND l.status = 'active'
+              )
             ORDER BY u.created_at DESC
             LIMIT :limit OFFSET :skip
         """)
@@ -1465,6 +1474,7 @@ def get_shop(
             business_name=shop.business_name or shop.full_name,
             full_name=shop.full_name,
             shop_description=shop.shop_description or "",
+            logo_url=shop.logo_url,
             shop_page_banner=shop.shop_page_banner,
             shop_detail_banner=shop.shop_detail_banner,
             is_featured=shop.is_featured,
@@ -1587,6 +1597,7 @@ def update_shop(
             business_name=shop.business_name,
             full_name=shop.full_name,
             shop_description=shop.shop_description,
+            logo_url=shop.logo_url,
             shop_page_banner=shop.shop_page_banner,
             shop_detail_banner=shop.shop_detail_banner,
             is_featured=shop.is_featured,

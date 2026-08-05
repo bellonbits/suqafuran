@@ -49,6 +49,7 @@ export default function ShopsAdminPage() {
   });
   const [detailUploading, setDetailUploading] = useState<'logo' | 'page_banner' | 'detail_banner' | null>(null);
   const [detailSaving, setDetailSaving] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState('');
   const [detailSuccess, setDetailSuccess] = useState('');
 
@@ -190,14 +191,16 @@ export default function ShopsAdminPage() {
     }
   };
 
-  const openDetailEdit = (shop: Shop) => {
+  const openDetailEdit = async (shop: Shop) => {
+    // The list view truncates banner data (some are multi-MB base64 blobs),
+    // so fetch this one shop's full record before showing the edit form.
     setDetailShop(shop);
     setDetailForm({
       business_name: shop.business_name || '',
       shop_description: shop.shop_description || '',
       logo_url: shop.logo_url || '',
-      shop_page_banner: shop.shop_page_banner || '',
-      shop_detail_banner: shop.shop_detail_banner || '',
+      shop_page_banner: '',
+      shop_detail_banner: '',
       is_featured: shop.is_featured,
       is_verified: shop.is_verified,
       free_delivery: shop.free_delivery,
@@ -205,6 +208,27 @@ export default function ShopsAdminPage() {
     });
     setDetailError('');
     setDetailSuccess('');
+    setDetailLoading(true);
+    try {
+      const res = await api.get(`/admin/shops/${shop.id}`);
+      const full = res.data;
+      setDetailForm((f) => ({
+        ...f,
+        business_name: full.business_name || f.business_name,
+        shop_description: full.shop_description || '',
+        logo_url: full.logo_url || '',
+        shop_page_banner: full.shop_page_banner || '',
+        shop_detail_banner: full.shop_detail_banner || '',
+        is_featured: full.is_featured,
+        is_verified: full.is_verified,
+        free_delivery: full.free_delivery,
+        is_active: full.is_active,
+      }));
+    } catch (err) {
+      console.error('Failed to load full shop details:', err);
+    } finally {
+      setDetailLoading(false);
+    }
   };
 
   const handleDetailImageUpload = async (
@@ -520,6 +544,13 @@ export default function ShopsAdminPage() {
                 <p className="text-xs text-gray-500 mt-1">{detailShop.email}</p>
               </div>
 
+              {detailLoading && (
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <Loader size={16} className="animate-spin" />
+                  Loading full shop details...
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Shop Name</label>
                 <input
@@ -622,7 +653,7 @@ export default function ShopsAdminPage() {
               </button>
               <button
                 onClick={handleSaveDetail}
-                disabled={detailSaving || detailUploading !== null || !detailForm.business_name.trim()}
+                disabled={detailSaving || detailLoading || detailUploading !== null || !detailForm.business_name.trim()}
                 className="flex-1 px-4 py-2 rounded-lg bg-[#5bc0e8] hover:bg-blue-700 disabled:bg-gray-300 text-white font-medium disabled:opacity-50"
               >
                 {detailSaving ? 'Saving...' : 'Save Changes'}
