@@ -946,8 +946,16 @@ def get_public_shops(
             category_filter = "AND u.primary_category_id = :category_id"
             params["category_id"] = category_id
 
+        # Rotation seed: changes every 15 minutes so the shop grid reshuffles
+        # periodically instead of always showing the same shops in the same
+        # (listing-count-dominated) order forever. Stable within the window
+        # so pagination doesn't skip/repeat shops mid-browse.
+        _now = datetime.utcnow()
+        rotation_seed = f"{_now.strftime('%Y-%m-%d-%H')}-{_now.minute // 15}"
+        params["rotation_seed"] = rotation_seed
+
         # Cache key for category views
-        cache_key = f"shops:cat:{category_id}:{skip}:{limit}" if category_id else f"shops:all:{skip}:{limit}"
+        cache_key = f"shops:cat:{category_id}:{skip}:{limit}:{rotation_seed}" if category_id else f"shops:all:{skip}:{limit}:{rotation_seed}"
 
         # Use aggressive caching for category views (bypass for search/shop_id filters)
         if not search and not shop_id:
@@ -989,7 +997,7 @@ def get_public_shops(
             WHERE u.is_verified = true
               {category_filter}
               {search_filter}
-            ORDER BY ss.listing_count DESC, ss.latest_listing DESC
+            ORDER BY md5(u.id::text || :rotation_seed)
             LIMIT :limit OFFSET :skip
         """
 
