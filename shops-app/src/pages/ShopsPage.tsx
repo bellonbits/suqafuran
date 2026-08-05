@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -96,10 +96,40 @@ function getShopBanner(shop: PublicShop): string | null {
 // ─── Glovo Shop Card ────────────────────────────────────────────────────
 function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
   const [imgError, setImgError] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [previewImages, setPreviewImages] = useState<string[] | null>(null);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Use banner from shop data (already included in main response)
   const banner = imgError ? null : getShopBanner(shop);
   const initial = shop.shop_name?.[0]?.toUpperCase() || 'S';
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    if (previewImages !== null) return; // already fetched (or fetch in flight)
+    hoverTimerRef.current = setTimeout(async () => {
+      try {
+        const listings = await listingsService.getListings({ owner_id: shop.id, limit: 8 });
+        const images = listings
+          .map((l) => l.images?.[0])
+          .filter((url): url is string => !!url)
+          .map((url) => resolveMediaUrl(url) || url);
+        setPreviewImages(images);
+      } catch {
+        setPreviewImages([]);
+      }
+    }, 200);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+  };
+
+  const showPreview = isHovered && previewImages && previewImages.length > 0;
 
   // Use real data from API response
   const deliveryTime = shop.delivery_time || '15-30 min';
@@ -116,11 +146,32 @@ function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03, duration: 0.28, ease: 'easeOut' }}
     >
-      <Link href={`/shop/${shop.slug}`} className="group block">
+      <Link
+        href={`/shop/${shop.slug}`}
+        className="group block"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
 
         {/* ─── Banner (16:7 aspect ratio - shorter) ──────────────────────── */}
         <div className="relative aspect-[16/7] w-full rounded-lg overflow-hidden bg-gray-200 dark:bg-slate-800">
-          {banner ? (
+          {showPreview ? (
+            /* Hover preview: auto-scrolling strip of the shop's product photos */
+            <div className="absolute inset-0 flex">
+              <div className="flex shop-card-marquee-track">
+                {[...previewImages!, ...previewImages!].map((src, i) => (
+                  <img
+                    key={i}
+                    src={src}
+                    alt=""
+                    className="h-full aspect-square object-cover shrink-0"
+                    draggable={false}
+                  />
+                ))}
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+            </div>
+          ) : banner ? (
             <>
               <img
                 src={banner}

@@ -21,6 +21,14 @@
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-6px); }
   }
+  @keyframes shopCardMarquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+}
+
+.shop-card-marquee-track {
+  animation: shopCardMarquee 14s linear infinite;
 }
 
 :root {
