@@ -303,15 +303,18 @@ export default function ShopsAdminPage() {
     setNewItemError('');
   };
 
-  const handleNewItemImageUpload = async (file: File) => {
+  const handleNewItemImagesUpload = async (files: FileList | File[]) => {
+    const fileArray = Array.from(files);
+    if (fileArray.length === 0) return;
+
     setNewItemUploading(true);
     setNewItemError('');
     try {
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('high_quality', 'true');
-      const res = await api.post('/listings/upload', formData);
-      setNewItemImages((imgs) => [...imgs, res.data.url]);
+      fileArray.forEach((file) => formData.append('files', file, file.name));
+      const res = await api.post('/listings/upload-multiple', formData);
+      const urls = (res.data || []).map((item: any) => item.url);
+      setNewItemImages((imgs) => [...imgs, ...urls]);
     } catch (err: any) {
       setNewItemError(err.response?.data?.detail || 'Image upload failed');
     } finally {
@@ -864,7 +867,15 @@ export default function ShopsAdminPage() {
                       );
                     })()}
 
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div
+                      className="flex items-center gap-2 flex-wrap"
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'));
+                        if (files.length > 0) handleNewItemImagesUpload(files);
+                      }}
+                    >
                       {newItemImages.map((url, i) => (
                         <div key={i} className="relative w-14 h-14">
                           <img src={url} alt="" className="w-14 h-14 rounded-lg object-cover border border-slate-200 dark:border-slate-700" />
@@ -878,21 +889,25 @@ export default function ShopsAdminPage() {
                         </div>
                       ))}
                       <label className="cursor-pointer">
-                        <div className="w-14 h-14 rounded-lg border border-dashed border-gray-300 flex items-center justify-center text-[10px] text-center text-slate-500 hover:border-blue-400 hover:text-blue-600">
-                          {newItemUploading ? '...' : '+ Photo'}
+                        <div className="w-14 h-14 rounded-lg border border-dashed border-gray-300 flex items-center justify-center text-[9px] text-center leading-tight px-1 text-slate-500 hover:border-blue-400 hover:text-blue-600">
+                          {newItemUploading ? '...' : 'Add Photos'}
                         </div>
                         <input
                           type="file"
                           accept="image/*"
+                          multiple
                           className="hidden"
                           disabled={newItemUploading || newItemSaving}
                           onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleNewItemImageUpload(file);
+                            if (e.target.files && e.target.files.length > 0) {
+                              handleNewItemImagesUpload(e.target.files);
+                              e.target.value = '';
+                            }
                           }}
                         />
                       </label>
                     </div>
+                    <p className="text-[10px] text-slate-400">Select multiple files at once, or drag and drop them here.</p>
 
                     {newItemError && (
                       <div className="flex gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
