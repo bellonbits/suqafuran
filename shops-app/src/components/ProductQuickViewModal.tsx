@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, ShoppingCart, Star } from 'lucide-react';
@@ -12,6 +12,7 @@ interface ProductQuickViewModalProps {
     id: number;
     name: string;
     image: string;
+    images?: string[];
     price: number;
     originalPrice: number;
     rating: number;
@@ -32,10 +33,18 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
   const [isFavorite, setIsFavorite] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [mounted, setMounted] = useState(false);
+  const [activeImage, setActiveImage] = useState(0);
+  const galleryRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Reset to the first image whenever a different product is opened
+  useEffect(() => {
+    setActiveImage(0);
+    if (galleryRef.current) galleryRef.current.scrollLeft = 0;
+  }, [product?.id, isOpen]);
 
   useEffect(() => {
     console.log('🎯 ProductQuickViewModal render', { isOpen, productName: product?.name, mounted });
@@ -44,6 +53,21 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
   if (!product || !mounted) return null;
 
   const discountPercent = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
+  const images = product.images && product.images.length > 0 ? product.images : [product.image];
+
+  const handleGalleryScroll = () => {
+    const el = galleryRef.current;
+    if (!el) return;
+    const index = Math.round(el.scrollLeft / el.clientWidth);
+    setActiveImage(index);
+  };
+
+  const scrollToImage = (index: number) => {
+    const el = galleryRef.current;
+    if (!el) return;
+    el.scrollTo({ left: index * el.clientWidth, behavior: 'smooth' });
+    setActiveImage(index);
+  };
 
   const modalContent = (
     <AnimatePresence>
@@ -81,18 +105,44 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
                 animate={{ opacity: 1 }}
                 className="p-8"
               >
-                {/* Product Image */}
-                <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center mb-6">
-                  <img
-                    src={optimizeCloudinaryUrl(product.image, { width: 600, quality: 'auto', fetch_format: 'auto' }) || product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                  />
+                {/* Product Image Gallery — swipe/scroll through all photos */}
+                <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-50 mb-6">
+                  <div
+                    ref={galleryRef}
+                    onScroll={handleGalleryScroll}
+                    className="no-scrollbar h-full w-full flex overflow-x-auto snap-x snap-mandatory"
+                  >
+                    {images.map((src, i) => (
+                      <img
+                        key={i}
+                        src={optimizeCloudinaryUrl(src, { width: 600, quality: 'auto', fetch_format: 'auto' }) || src}
+                        alt={`${product.name} ${i + 1}`}
+                        className="h-full w-full object-cover shrink-0 snap-center"
+                        draggable={false}
+                      />
+                    ))}
+                  </div>
 
                   {/* Discount Badge - Glovo Style */}
                   {discountPercent > 0 && (
-                    <div className="absolute bottom-4 left-4 bg-red-600 text-white px-3 py-2 rounded-lg font-bold text-base">
+                    <div className="absolute bottom-4 left-4 bg-red-600 text-white px-3 py-2 rounded-lg font-bold text-base pointer-events-none">
                       -{discountPercent}%
+                    </div>
+                  )}
+
+                  {/* Dot indicators + tap-to-jump, only when there's more than one photo */}
+                  {images.length > 1 && (
+                    <div className="absolute bottom-4 right-4 flex items-center gap-1.5 bg-black/30 backdrop-blur-sm rounded-full px-2.5 py-1.5">
+                      {images.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => scrollToImage(i)}
+                          aria-label={`View photo ${i + 1}`}
+                          className={`rounded-full transition-all ${
+                            i === activeImage ? 'w-4 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/50'
+                          }`}
+                        />
+                      ))}
                     </div>
                   )}
                 </div>

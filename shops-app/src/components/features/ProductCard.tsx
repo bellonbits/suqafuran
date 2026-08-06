@@ -155,6 +155,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller })
                     name: listing.title_en,
                     category: 'Product',
                     image: displayImage,
+                    images: listing.images && listing.images.length > 0 ? listing.images : undefined,
                     price: listing?.price ?? 0,
                     originalPrice: listing.price,
                     rating: 4.5,
