@@ -85,6 +85,8 @@ export default function ShopDetailPage() {
     const [customBanner, setCustomBanner] = useState<string | null>(null);
     const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
     const [modalQuantity, setModalQuantity] = useState(1);
+    const [modalActiveImage, setModalActiveImage] = useState(0);
+    const modalGalleryRef = useRef<HTMLDivElement | null>(null);
     const [shopId, setShopId] = useState<string | null>(null);
     const [shopOwnerId, setShopOwnerId] = useState<string | number | null>(null);
     const [favorites, setFavorites] = useState<Set<string | number>>(new Set());
@@ -1145,6 +1147,8 @@ export default function ShopDetailPage() {
                                                     onClick={() => {
                                                         setSelectedProduct(product);
                                                         setModalQuantity(cartQty || 1);
+                                                        setModalActiveImage(0);
+                                                        if (modalGalleryRef.current) modalGalleryRef.current.scrollLeft = 0;
                                                     }}
                                                     className="cursor-pointer group"
                                                 >
@@ -1569,21 +1573,57 @@ export default function ShopDetailPage() {
                                 <X className="w-6 h-6 stroke-[3]" />
                             </button>
 
-                            {/* Product Image */}
-                            <div className="aspect-[4/3] w-full bg-white dark:bg-slate-950 rounded-2xl overflow-hidden mb-5 flex items-center justify-center relative border border-gray-100 dark:border-slate-800/80">
-                                {selectedProduct.images?.[0] ? (
-                                    <img
-                                        src={selectedProduct.images[0]}
-                                        alt={selectedProduct.title_en}
-                                        className="w-full h-full object-contain p-4"
-                                    />
+                            {/* Product Image Gallery — swipe/scroll through all photos */}
+                            <div className="aspect-[4/3] w-full bg-white dark:bg-slate-950 rounded-2xl overflow-hidden mb-5 relative border border-gray-100 dark:border-slate-800/80">
+                                {selectedProduct.images?.length > 0 ? (
+                                    <div
+                                        ref={modalGalleryRef}
+                                        onScroll={(e) => {
+                                            const el = e.currentTarget;
+                                            setModalActiveImage(Math.round(el.scrollLeft / el.clientWidth));
+                                        }}
+                                        className="no-scrollbar h-full w-full flex overflow-x-auto snap-x snap-mandatory"
+                                    >
+                                        {selectedProduct.images.map((src: string, i: number) => (
+                                            <img
+                                                key={i}
+                                                src={src}
+                                                alt={`${selectedProduct.title_en} ${i + 1}`}
+                                                className="h-full w-full object-contain p-4 shrink-0 snap-center"
+                                                draggable={false}
+                                            />
+                                        ))}
+                                    </div>
                                 ) : (
-                                    <ShoppingBag className="w-12 h-12 text-gray-300" />
+                                    <div className="h-full w-full flex items-center justify-center">
+                                        <ShoppingBag className="w-12 h-12 text-gray-300" />
+                                    </div>
+                                )}
+
+                                {/* Dot indicators + tap-to-jump, only when there's more than one photo */}
+                                {selectedProduct.images?.length > 1 && (
+                                    <div className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-black/30 backdrop-blur-sm rounded-full px-2.5 py-1.5 pointer-events-auto">
+                                        {selectedProduct.images.map((_: string, i: number) => (
+                                            <button
+                                                key={i}
+                                                onClick={() => {
+                                                    const el = modalGalleryRef.current;
+                                                    if (!el) return;
+                                                    el.scrollTo({ left: i * el.clientWidth, behavior: 'smooth' });
+                                                    setModalActiveImage(i);
+                                                }}
+                                                aria-label={`View photo ${i + 1}`}
+                                                className={`rounded-full transition-all ${
+                                                    i === modalActiveImage ? 'w-4 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/50'
+                                                }`}
+                                            />
+                                        ))}
+                                    </div>
                                 )}
 
                                 {/* Red promo percentage tag on the left */}
                                 {getMockProductInfo(selectedProduct).hasPromo && (
-                                    <div className="absolute top-4 left-4 bg-[#e81f44] text-white text-xs font-black px-2.5 py-1 rounded">
+                                    <div className="absolute top-4 left-4 bg-[#e81f44] text-white text-xs font-black px-2.5 py-1 rounded pointer-events-none">
                                         {getMockProductInfo(selectedProduct).promoText}
                                     </div>
                                 )}
