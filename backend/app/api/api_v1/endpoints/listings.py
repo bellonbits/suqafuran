@@ -672,9 +672,20 @@ async def create_listing(
     """
     Create new listing.
     """
-    # Verify user has at least tier2 trust level (ID/business verification) to create listings
+    # Determine effective owner (Admin/Agent impersonation support) up front so
+    # verification, subscription, and duplicate checks below apply to the
+    # shop actually receiving the listing, not to the admin/agent's own account.
+    effective_owner_id = current_user.id
+    if owner_id and (current_user.is_admin or current_user.is_agent):
+        target_user = db.get(User, owner_id)
+        if not target_user:
+            raise HTTPException(status_code=404, detail="Target user for impersonation not found")
+        effective_owner_id = owner_id
+    owner_for_checks = db.get(User, effective_owner_id) if effective_owner_id != current_user.id else current_user
+
+    # Verify the owner has at least tier2 trust level (ID/business verification) to create listings
     from app.models.user import UserVerifiedLevel
-    if not current_user.has_verification_level(UserVerifiedLevel.tier2):
+    if not owner_for_checks.has_verification_level(UserVerifiedLevel.tier2):
         raise HTTPException(
             status_code=403,
             detail="Account verification required to sell. Please verify your identity or business details to create listings."
@@ -682,22 +693,22 @@ async def create_listing(
 
     # Check product limit based on subscription plan
     from app.services.subscription_service import subscription_service
-    if not subscription_service.can_add_products(current_user.id, db):
+    if not subscription_service.can_add_products(effective_owner_id, db):
         raise HTTPException(
             status_code=402,
             detail="Product limit reached. Upgrade to Pro plan for unlimited products. Start 7-day free trial to unlock more features."
         )
 
-    # Prevent duplicated active listings from the same user (allow reposting sold/closed/deleted ones)
+    # Prevent duplicated active listings from the same owner (allow reposting sold/closed/deleted ones)
     existing_duplicate = db.exec(
         select(Listing).where(
-            Listing.owner_id == current_user.id,
+            Listing.owner_id == effective_owner_id,
             Listing.title_en == listing_in.title_en,
             Listing.status.in_(["active", "pending"])
         )
     ).first()
     if existing_duplicate:
-        raise HTTPException(status_code=400, detail="Duplicate product detected. You have already posted a listing with this title.")
+        raise HTTPException(status_code=400, detail="Duplicate product detected. This shop already has a listing with this title.")
     # 1. Device Intelligence & Fingerprinting
     if x_device_fingerprint:
         device = security_service.get_or_create_device(db, x_device_fingerprint, {})
@@ -740,18 +751,9 @@ async def create_listing(
     # Layer 6: Status Logic
     status = "active"
 
-    # Determine effective owner (Admin impersonation support)
-    effective_owner_id = current_user.id
-    if owner_id and current_user.is_admin:
-        target_user = db.get(User, owner_id)
-        if not target_user:
-            raise HTTPException(status_code=404, detail="Target user for impersonation not found")
-        effective_owner_id = owner_id
-
     # Auto-assign to shop's primary category if it exists
-    owner = db.get(User, effective_owner_id)
-    if owner and owner.primary_category_id:
-        listing_in.category_id = owner.primary_category_id
+    if owner_for_checks and owner_for_checks.primary_category_id:
+        listing_in.category_id = owner_for_checks.primary_category_id
 
     listing = crud_listing.create_listing(db, listing_in=listing_in, owner_id=effective_owner_id)
     listing.status = "pending"  # Draft status - not visible yet

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Search, Loader2, Edit2, X, Check, AlertCircle, Store,
   ShoppingBag, TrendingUp, Users, Activity, ShieldCheck,
-  ExternalLink, RefreshCw, ImageIcon, CheckCircle2, XCircle
+  ExternalLink, RefreshCw, ImageIcon, CheckCircle2, XCircle, Package
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import api from '@/services/api';
@@ -19,6 +19,20 @@ interface Shop {
   shop_detail_banner?: string;
   is_active: boolean;
   email: string;
+}
+
+interface ShopListing {
+  id: number;
+  title_en: string;
+  price: number;
+  currency?: string;
+  status: string;
+  images?: string[];
+}
+
+interface Category {
+  id: number;
+  name_en: string;
 }
 
 const agentNavItems = [
@@ -40,6 +54,24 @@ export default function AgentShopsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Items belonging to the shop currently open in the edit modal
+  const [shopListings, setShopListings] = useState<ShopListing[]>([]);
+  const [shopListingsLoading, setShopListingsLoading] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [showAddItem, setShowAddItem] = useState(false);
+  const [newItem, setNewItem] = useState({
+    title_en: '',
+    description_en: '',
+    price: '',
+    location: '',
+    condition: 'New',
+    category_id: '',
+  });
+  const [newItemImages, setNewItemImages] = useState<string[]>([]);
+  const [newItemUploading, setNewItemUploading] = useState(false);
+  const [newItemSaving, setNewItemSaving] = useState(false);
+  const [newItemError, setNewItemError] = useState('');
 
   useEffect(() => { loadShops(); }, []);
 
@@ -70,6 +102,38 @@ export default function AgentShopsPage() {
     setEditingShop(shop);
     setForm({ business_name: shop.business_name || '', shop_description: shop.shop_description || '', logo_url: shop.logo_url || '' });
     setError(''); setSuccess('');
+    setShowAddItem(false);
+    setNewItem({ title_en: '', description_en: '', price: '', location: '', condition: 'New', category_id: '' });
+    setNewItemImages([]);
+    setNewItemError('');
+    loadShopListings(shop.id);
+    if (categories.length === 0) {
+      api.get('/listings/categories').then((res) => {
+        setCategories(Array.isArray(res.data) ? res.data : []);
+      }).catch(() => {});
+    }
+  };
+
+  const closeEdit = () => {
+    setEditingShop(null);
+    setShopListings([]);
+    setShowAddItem(false);
+    setNewItem({ title_en: '', description_en: '', price: '', location: '', condition: 'New', category_id: '' });
+    setNewItemImages([]);
+    setNewItemError('');
+  };
+
+  const loadShopListings = async (shopId: number) => {
+    setShopListingsLoading(true);
+    try {
+      const res = await api.get('/listings/', { params: { owner_id: shopId, limit: 100 } });
+      setShopListings(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error('Failed to load shop listings:', err);
+      setShopListings([]);
+    } finally {
+      setShopListingsLoading(false);
+    }
   };
 
   const handleImageUpload = async (file: File) => {
@@ -85,12 +149,63 @@ export default function AgentShopsPage() {
     } finally { setUploading(false); }
   };
 
+  const handleNewItemImageUpload = async (file: File) => {
+    setNewItemUploading(true);
+    setNewItemError('');
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('high_quality', 'true');
+      const res = await api.post('/listings/upload', fd);
+      setNewItemImages((imgs) => [...imgs, res.data.url]);
+    } catch (err: any) {
+      setNewItemError(err.response?.data?.detail || 'Image upload failed');
+    } finally {
+      setNewItemUploading(false);
+    }
+  };
+
+  const handleCreateItem = async () => {
+    if (!editingShop) return;
+    if (!newItem.title_en.trim() || !newItem.description_en.trim() || !newItem.price || !newItem.location.trim() || !newItem.category_id) {
+      setNewItemError('Title, description, price, location, and category are required');
+      return;
+    }
+
+    setNewItemSaving(true);
+    setNewItemError('');
+    try {
+      const res = await api.post(
+        '/listings/',
+        {
+          title_en: newItem.title_en.trim(),
+          description_en: newItem.description_en.trim(),
+          price: Number(newItem.price),
+          location: newItem.location.trim(),
+          condition: newItem.condition,
+          category_id: Number(newItem.category_id),
+          images: newItemImages,
+        },
+        { params: { owner_id: editingShop.id } }
+      );
+
+      setShopListings((prev) => [res.data, ...prev]);
+      setShowAddItem(false);
+      setNewItem({ title_en: '', description_en: '', price: '', location: '', condition: 'New', category_id: '' });
+      setNewItemImages([]);
+    } catch (err: any) {
+      setNewItemError(err.response?.data?.detail || 'Failed to add item');
+    } finally {
+      setNewItemSaving(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!editingShop) return;
     if (!form.business_name.trim()) { setError('Shop name cannot be empty'); return; }
     setSaving(true); setError('');
     try {
-      await api.patch(`/admin/shops/${editingShop.id}`, form);
+      await api.put(`/admin/shops/${editingShop.id}`, form);
       setSuccess('Shop updated successfully!');
       loadShops(true);
       setTimeout(() => { setEditingShop(null); setSuccess(''); }, 1500);
@@ -235,11 +350,11 @@ export default function AgentShopsPage() {
 
       {/* Edit Modal */}
       {editingShop && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={(e) => e.target === e.currentTarget && setEditingShop(null)}>
-          <div className="bg-white dark:bg-[#151D2A] rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md p-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={(e) => e.target === e.currentTarget && closeEdit()}>
+          <div className="bg-white dark:bg-[#151D2A] rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md max-h-[90vh] overflow-y-auto p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Edit Shop</h3>
-              <button onClick={() => setEditingShop(null)} className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+              <button onClick={closeEdit} className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -275,8 +390,167 @@ export default function AgentShopsPage() {
               </div>
             </div>
 
+            {/* Items in this shop */}
+            <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
+              <div className="flex items-center justify-between mb-3">
+                <label className="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase">
+                  <Package className="w-3.5 h-3.5" />
+                  Items {shopListings.length > 0 && `(${shopListings.length})`}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowAddItem((v) => !v)}
+                  className="text-xs font-extrabold text-sky-600 hover:text-sky-700"
+                >
+                  {showAddItem ? 'Cancel' : '+ Add Item'}
+                </button>
+              </div>
+
+              {showAddItem && (
+                <div className="mb-4 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Item title"
+                    value={newItem.title_en}
+                    onChange={(e) => setNewItem((f) => ({ ...f, title_en: e.target.value }))}
+                    disabled={newItemSaving}
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50"
+                  />
+                  <textarea
+                    placeholder="Description"
+                    value={newItem.description_en}
+                    onChange={(e) => setNewItem((f) => ({ ...f, description_en: e.target.value }))}
+                    rows={2}
+                    disabled={newItemSaving}
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50 resize-none"
+                  />
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <input
+                      type="number"
+                      placeholder="Price"
+                      value={newItem.price}
+                      onChange={(e) => setNewItem((f) => ({ ...f, price: e.target.value }))}
+                      disabled={newItemSaving}
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50"
+                    />
+                    <select
+                      value={newItem.condition}
+                      onChange={(e) => setNewItem((f) => ({ ...f, condition: e.target.value }))}
+                      disabled={newItemSaving}
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50"
+                    >
+                      <option value="New">New</option>
+                      <option value="Used">Used</option>
+                      <option value="Refurbished">Refurbished</option>
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <input
+                      type="text"
+                      placeholder="Location"
+                      value={newItem.location}
+                      onChange={(e) => setNewItem((f) => ({ ...f, location: e.target.value }))}
+                      disabled={newItemSaving}
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50"
+                    />
+                    <select
+                      value={newItem.category_id}
+                      onChange={(e) => setNewItem((f) => ({ ...f, category_id: e.target.value }))}
+                      disabled={newItemSaving}
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50"
+                    >
+                      <option value="">Category&hellip;</option>
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name_en}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {newItemImages.map((url, i) => (
+                      <div key={i} className="relative w-14 h-14">
+                        <img src={url} alt="" className="w-14 h-14 rounded-xl object-cover border border-slate-200 dark:border-slate-700" />
+                        <button
+                          type="button"
+                          onClick={() => setNewItemImages((imgs) => imgs.filter((_, idx) => idx !== i))}
+                          className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-rose-500 text-white flex items-center justify-center"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </button>
+                      </div>
+                    ))}
+                    <label className="cursor-pointer">
+                      <div className="w-14 h-14 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-[10px] text-center text-slate-500 hover:border-sky-400 hover:text-sky-600">
+                        {newItemUploading ? '...' : '+ Photo'}
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={newItemUploading || newItemSaving}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleNewItemImageUpload(file);
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  {newItemError && (
+                    <div className="flex items-center gap-2 p-3 bg-rose-50 text-rose-600 rounded-2xl text-xs font-bold">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      {newItemError}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleCreateItem}
+                    disabled={newItemSaving || newItemUploading}
+                    className="w-full py-2.5 bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white rounded-2xl text-xs font-extrabold shadow-md shadow-sky-500/20 transition-all"
+                  >
+                    {newItemSaving ? 'Adding...' : 'Add to Shop'}
+                  </button>
+                </div>
+              )}
+
+              {shopListingsLoading ? (
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-400 py-3">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Loading items...
+                </div>
+              ) : shopListings.length === 0 ? (
+                <p className="text-xs font-medium text-slate-400 py-2">No items yet.</p>
+              ) : (
+                <div className="space-y-2 max-h-56 overflow-y-auto">
+                  {shopListings.map((item) => (
+                    <div key={item.id} className="flex items-center gap-3 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
+                      {item.images?.[0] ? (
+                        <img src={item.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                          <ImageIcon className="w-4 h-4 text-slate-400" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{item.title_en}</p>
+                        <p className="text-[10px] text-slate-400 font-medium">{item.currency || 'KES'} {item.price?.toLocaleString?.() ?? item.price}</p>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
+                        item.status === 'active' ? 'bg-emerald-50 text-emerald-700' :
+                        item.status === 'pending' ? 'bg-amber-50 text-amber-700' :
+                        'bg-slate-100 text-slate-600'
+                      }`}>
+                        {item.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="flex gap-3 pt-2">
-              <button onClick={() => setEditingShop(null)} className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl text-xs font-bold hover:bg-slate-200 transition-colors">Cancel</button>
+              <button onClick={closeEdit} className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl text-xs font-bold hover:bg-slate-200 transition-colors">Cancel</button>
               <button onClick={handleSave} disabled={saving} className="flex-1 py-2.5 bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white rounded-2xl text-xs font-extrabold shadow-md shadow-sky-500/20 transition-all">
                 {saving ? 'Saving…' : 'Save Changes'}
               </button>
