@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Loader, Store, Package, Search, ChevronDown, ChevronUp, Grid3x3,
-  ExternalLink, MapPin, Mail, Phone, Calendar, Download, Upload, Settings
+  ExternalLink, MapPin, Mail, Phone, Calendar, Download, Upload, Settings,
+  X, AlertCircle, ImageIcon
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ADMIN_NAV_ITEMS } from '@/admin-dashboard/navigation';
@@ -30,6 +31,91 @@ const ShopsPage = () => {
   const [sortBy, setSortBy] = useState<'name' | 'listings' | 'active'>('listings');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Add-listing form, shown below the expanded shop's listings table
+  const [categories, setCategories] = useState<any[]>([]);
+  const [showAddItem, setShowAddItem] = useState(false);
+  const [newItem, setNewItem] = useState({
+    title_en: '',
+    description_en: '',
+    price: '',
+    location: '',
+    condition: 'New',
+    category_id: '',
+  });
+  const [newItemImages, setNewItemImages] = useState<string[]>([]);
+  const [newItemUploading, setNewItemUploading] = useState(false);
+  const [newItemSaving, setNewItemSaving] = useState(false);
+  const [newItemError, setNewItemError] = useState('');
+
+  const resetAddItemForm = () => {
+    setShowAddItem(false);
+    setNewItem({ title_en: '', description_en: '', price: '', location: '', condition: 'New', category_id: '' });
+    setNewItemImages([]);
+    setNewItemError('');
+  };
+
+  const toggleExpanded = (shopId: number) => {
+    setExpandedShop((prev) => (prev === shopId ? null : shopId));
+    resetAddItemForm();
+    if (categories.length === 0) {
+      api.get('/listings/categories').then((res) => {
+        setCategories(Array.isArray(res.data) ? res.data : []);
+      }).catch(() => {});
+    }
+  };
+
+  const handleNewItemImageUpload = async (file: File) => {
+    setNewItemUploading(true);
+    setNewItemError('');
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('high_quality', 'true');
+      const res = await api.post('/listings/upload', fd);
+      setNewItemImages((imgs) => [...imgs, res.data.url]);
+    } catch (err: any) {
+      setNewItemError(err.response?.data?.detail || 'Image upload failed');
+    } finally {
+      setNewItemUploading(false);
+    }
+  };
+
+  const handleCreateItem = async (shop: any) => {
+    if (!newItem.title_en.trim() || !newItem.description_en.trim() || !newItem.price || !newItem.location.trim() || !newItem.category_id) {
+      setNewItemError('Title, description, price, location, and category are required');
+      return;
+    }
+
+    setNewItemSaving(true);
+    setNewItemError('');
+    try {
+      const res = await api.post(
+        '/listings/',
+        {
+          title_en: newItem.title_en.trim(),
+          description_en: newItem.description_en.trim(),
+          price: Number(newItem.price),
+          location: newItem.location.trim(),
+          condition: newItem.condition,
+          category_id: Number(newItem.category_id),
+          images: newItemImages,
+        },
+        { params: { owner_id: shop.user_id } }
+      );
+
+      setShops((prev) => prev.map((s) => (
+        s.id === shop.id
+          ? { ...s, listings: [res.data, ...s.listings], total_products: s.total_products + 1, active_products: s.active_products + (res.data.status === 'active' ? 1 : 0) }
+          : s
+      )));
+      resetAddItemForm();
+    } catch (err: any) {
+      setNewItemError(err.response?.data?.detail || 'Failed to add item');
+    } finally {
+      setNewItemSaving(false);
+    }
+  };
 
   useEffect(() => { loadShops(); }, []);
 
@@ -363,7 +449,7 @@ const ShopsPage = () => {
                       {/* Expand */}
                       <td className="text-right">
                         <button
-                          onClick={() => setExpandedShop(expandedShop === shop.id ? null : shop.id)}
+                          onClick={() => toggleExpanded(shop.id)}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:bg-sky-950/30 hover:text-sky-700 text-slate-600 dark:text-slate-300 text-xs font-semibold transition-all"
                         >
                           {expandedShop === shop.id ? (
@@ -391,7 +477,8 @@ const ShopsPage = () => {
                                 <Package className="w-8 h-8 mx-auto mb-2 text-gray-300" />
                                 No listings yet
                               </div>
-                            ) : (
+                            ) : null}
+                            {shop.listings.length > 0 && (
                               <div className="data-table-wrapper">
                                 <div className="overflow-x-auto">
                                   <table className="data-table">
@@ -445,6 +532,123 @@ const ShopsPage = () => {
                                 </div>
                               </div>
                             )}
+
+                            {/* Add Listing */}
+                            <div className="mt-4 pt-4 border-t border-sky-100">
+                              <button
+                                onClick={() => setShowAddItem((v) => !v)}
+                                className="text-xs font-semibold text-sky-600 hover:text-sky-700"
+                              >
+                                {showAddItem ? 'Cancel' : '+ Add Listing'}
+                              </button>
+
+                              {showAddItem && (
+                                <div className="mt-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#151D2A] space-y-3 max-w-lg">
+                                  <input
+                                    type="text"
+                                    placeholder="Item title"
+                                    value={newItem.title_en}
+                                    onChange={(e) => setNewItem((f) => ({ ...f, title_en: e.target.value }))}
+                                    disabled={newItemSaving}
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
+                                  />
+                                  <textarea
+                                    placeholder="Description"
+                                    value={newItem.description_en}
+                                    onChange={(e) => setNewItem((f) => ({ ...f, description_en: e.target.value }))}
+                                    rows={2}
+                                    disabled={newItemSaving}
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50 resize-none"
+                                  />
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <input
+                                      type="number"
+                                      placeholder="Price"
+                                      value={newItem.price}
+                                      onChange={(e) => setNewItem((f) => ({ ...f, price: e.target.value }))}
+                                      disabled={newItemSaving}
+                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
+                                    />
+                                    <select
+                                      value={newItem.condition}
+                                      onChange={(e) => setNewItem((f) => ({ ...f, condition: e.target.value }))}
+                                      disabled={newItemSaving}
+                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
+                                    >
+                                      <option value="New">New</option>
+                                      <option value="Used">Used</option>
+                                      <option value="Refurbished">Refurbished</option>
+                                    </select>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <input
+                                      type="text"
+                                      placeholder="Location"
+                                      value={newItem.location}
+                                      onChange={(e) => setNewItem((f) => ({ ...f, location: e.target.value }))}
+                                      disabled={newItemSaving}
+                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
+                                    />
+                                    <select
+                                      value={newItem.category_id}
+                                      onChange={(e) => setNewItem((f) => ({ ...f, category_id: e.target.value }))}
+                                      disabled={newItemSaving}
+                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
+                                    >
+                                      <option value="">Category&hellip;</option>
+                                      {categories.map((c) => (
+                                        <option key={c.id} value={c.id}>{c.name_en}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    {newItemImages.map((url, i) => (
+                                      <div key={i} className="relative w-14 h-14">
+                                        <img src={url} alt="" className="w-14 h-14 rounded-lg object-cover border border-slate-200 dark:border-slate-700" />
+                                        <button
+                                          type="button"
+                                          onClick={() => setNewItemImages((imgs) => imgs.filter((_, idx) => idx !== i))}
+                                          className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center"
+                                        >
+                                          <X className="w-2.5 h-2.5" />
+                                        </button>
+                                      </div>
+                                    ))}
+                                    <label className="cursor-pointer">
+                                      <div className="w-14 h-14 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-[10px] text-center text-slate-500 hover:border-sky-400 hover:text-sky-600">
+                                        {newItemUploading ? '...' : '+ Photo'}
+                                      </div>
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        disabled={newItemUploading || newItemSaving}
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0];
+                                          if (file) handleNewItemImageUpload(file);
+                                        }}
+                                      />
+                                    </label>
+                                  </div>
+
+                                  {newItemError && (
+                                    <div className="flex gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
+                                      <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                                      <p className="text-xs text-red-800">{newItemError}</p>
+                                    </div>
+                                  )}
+
+                                  <button
+                                    onClick={() => handleCreateItem(shop)}
+                                    disabled={newItemSaving || newItemUploading}
+                                    className="w-full px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 disabled:bg-gray-300 text-white text-sm font-semibold disabled:opacity-50"
+                                  >
+                                    {newItemSaving ? 'Adding...' : 'Add to Shop'}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </td>
                       </tr>
