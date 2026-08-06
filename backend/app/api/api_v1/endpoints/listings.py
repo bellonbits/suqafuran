@@ -946,12 +946,12 @@ def get_public_shops(
             category_filter = "AND u.primary_category_id = :category_id"
             params["category_id"] = category_id
 
-        # Rotation seed: changes every 3 minutes so the shop grid reshuffles
+        # Rotation seed: changes every 10 seconds so the shop grid reshuffles
         # periodically instead of always showing the same shops in the same
         # (listing-count-dominated) order forever. Stable within the window
         # so pagination doesn't skip/repeat shops mid-browse.
         _now = datetime.utcnow()
-        rotation_seed = f"{_now.strftime('%Y-%m-%d-%H')}-{_now.minute // 3}"
+        rotation_seed = f"{_now.strftime('%Y-%m-%d-%H-%M')}-{_now.second // 10}"
         params["rotation_seed"] = rotation_seed
 
         # Cache key for category views
@@ -1068,7 +1068,7 @@ def get_public_shops(
         # Cache result - aggressive caching with short TTL for automatic updates
         if not search and not shop_id:
             try:
-                ttl = 45  # 45 seconds for automatic updates
+                ttl = 12  # slightly over the 10s rotation window so a stale shuffle isn't served across windows
                 cache.set(cache_key, _json.dumps(result_data, default=str), ttl=ttl)
             except Exception:
                 pass

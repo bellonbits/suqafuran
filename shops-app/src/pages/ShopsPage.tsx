@@ -397,7 +397,7 @@ function ShopsPageContent() {
     setPage(1);
   }, [debouncedSearch, selectedCategoryId, selectedMarket]);
 
-  const fetchShops = useCallback(async () => {
+  const fetchShops = useCallback(async (opts?: { silent?: boolean }) => {
     // Clear browser cache to get fresh banners
     if (typeof window !== 'undefined') {
       Object.keys(localStorage).forEach(key => {
@@ -406,7 +406,7 @@ function ShopsPageContent() {
         }
       });
     }
-    setLoading(true);
+    if (!opts?.silent) setLoading(true);
     setError(null);
     try {
       const result = await listingsService.getShops({
@@ -430,16 +430,31 @@ function ShopsPageContent() {
       setTotal(result.total || filteredShops.length);
     } catch (err: any) {
       console.error('Failed to fetch shops:', err);
-      setError('Failed to load shops. Please try again.');
-      setShops([]);
+      if (!opts?.silent) {
+        setError('Failed to load shops. Please try again.');
+        setShops([]);
+      }
     } finally {
-      setLoading(false);
+      if (!opts?.silent) setLoading(false);
     }
   }, [page, debouncedSearch, selectedCategoryId, selectedMarket]);
 
   useEffect(() => {
     fetchShops();
   }, [fetchShops]);
+
+  // Live rotation: the backend reshuffles shop order every 10s (see
+  // rotation_seed in GET /shops). Poll quietly on the first page so the
+  // grid actually reflects that while the page is open, instead of only
+  // rotating on a fresh page load. Skipped past page 1 so it doesn't yank
+  // items out from under someone actively paging through results.
+  useEffect(() => {
+    if (page !== 1) return;
+    const intervalId = setInterval(() => {
+      fetchShops({ silent: true });
+    }, 10000);
+    return () => clearInterval(intervalId);
+  }, [page, fetchShops]);
 
   const totalPages = Math.ceil(total / SHOPS_PER_PAGE);
 
