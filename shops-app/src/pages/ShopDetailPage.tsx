@@ -170,38 +170,19 @@ export default function ShopDetailPage() {
         return cartItems.find(item => item.id === productId)?.quantity || 0;
     };
 
-    // Resolve slug to shop ID
-    const resolveShopId = async (): Promise<string | null> => {
+    // Resolve the URL's slug (or legacy numeric ID) to the full public shop
+    // object in a single request, instead of downloading every shop just to
+    // pick one out client-side.
+    const resolveShop = async (): Promise<any | null> => {
         try {
-            // If slug is numeric, it's likely an old ID - use it directly
             if (/^\d+$/.test(shopIdParam)) {
-                console.log(' Using numeric ID directly:', shopIdParam);
-                return shopIdParam;
+                const { shops } = await listingsService.getShops({ shop_id: shopIdParam, limit: 1 });
+                return shops?.[0] || null;
             }
-
-            // Otherwise, bypass cache and fetch shops directly from API
-            console.log(' Resolving slug:', shopIdParam);
-            const response = await api.get('/listings/shops', {
-                params: { limit: 500, skip: 0 }
-            });
-            console.log(' Fetched shops count:', response.data.shops?.length);
-
-            const shop = response.data.shops?.find((s: any) => {
-                const shopIdParamLower = s.slug?.toLowerCase();
-                const paramSlugLower = shopIdParam.toLowerCase();
-                return shopIdParamLower === paramSlugLower;
-            });
-
-            if (shop) {
-                console.log(' Found shop by slug:', shop.id, shop.slug);
-                return shop.id;
-            } else {
-                console.error(' Shop not found with slug:', shopIdParam);
-                console.log(' Available slugs:', response.data.shops?.map((s: any) => s.slug).slice(0, 10));
-                return null;
-            }
+            const response = await api.get(`/listings/shops/${encodeURIComponent(shopIdParam)}`);
+            return response.data || null;
         } catch (error) {
-            console.error('Failed to resolve shop slug:', error);
+            console.error('Failed to resolve shop:', error);
             return null;
         }
     };
@@ -212,82 +193,75 @@ export default function ShopDetailPage() {
             return;
         }
 
+        // Always land at the top of a shop's page, not wherever the previous
+        // page (or a stale scroll position from a prior visit) left off.
+        window.scrollTo(0, 0);
+
         const fetchData = async () => {
             try {
                 setLoading(true);
 
-                // 1. Resolve slug to ID
-                const resolvedId = await resolveShopId();
-                if (!resolvedId) {
-                    console.error('Shop not found:', shopIdParam);
-                    setLoading(false);
-                    return;
-                }
-                setShopId(resolvedId);
-
-                // 2. Fetch categories and target public shop in parallel
-                const [categoriesData, shopsData] = await Promise.all([
+                // Resolving the shop and loading categories don't depend on
+                // each other, so run them together instead of in sequence.
+                const [categoriesData, currentShop] = await Promise.all([
                     listingsService.getCategories(),
-                    listingsService.getShops({ shop_id: resolvedId, limit: 1 }),
+                    resolveShop(),
                 ]);
                 setDbCategories(categoriesData || []);
 
-                // Find public shop by UUID (shopId)
-                const currentShop = (shopsData.shops || [])[0];
-
-                if (currentShop) {
-                    console.log(' Matched public shop:', currentShop);
-                    // 2. Fetch listings specifically for this shop's user_id from the backend (highly optimized)
-                    const shopListings = await listingsService.getListings({
-                        owner_id: Number(currentShop.user_id),
-                        limit: 200
-                    });
-                    console.log(' Retrieved shop listings:', shopListings);
-
-                    setShopName(currentShop.shop_name || 'Shop');
-                    setShopOwnerName(currentShop.owner_name || '');
-                    setShopLocation(currentShop.shop_address || '');
-
-                    // Extract logo candidate: check logo_url first, then owner_avatar_url, user avatar_url, or cover_image
-                    const rawLogo = currentShop.logo_url || currentShop.owner_avatar_url || currentShop.user?.avatar_url || currentShop.cover_image;
-                    const logoUrl = rawLogo ? (resolveMediaUrl(rawLogo) || rawLogo) : '';
-
-                    setShopLogo(logoUrl);
-                    setShopAvatar(logoUrl);
-                    setAvatarError(false);
-                    setShopPhone(currentShop.phone || null);
-                    setShopOwnerId(currentShop.user_id);
-                    setAllListings(shopListings || []);
-                    console.log('📦 Sample listing:', shopListings?.[0]);
-                    console.log('📦 Has subcategory_id:', shopListings?.[0]?.subcategory_id);
-                    if (shopListings && shopListings.length > 0) {
-                        setActiveCategory(String(shopListings[0].category_id || ''));
-                    }
-
-                    // Fetch custom banners from dedicated banners endpoint
-                    try {
-                        const ownerId = currentShop.user_id;
-                        const bannerRes = await api.get(`/listings/shops/${ownerId}/banners`);
-                        if (bannerRes.data?.shop_detail_banner) {
-                            setCustomBanner(bannerRes.data.shop_detail_banner);
-                        } else if (bannerRes.data?.shop_page_banner) {
-                            setCustomBanner(bannerRes.data.shop_page_banner);
-                        }
-                        // If logo was not already set from shop list, use banner endpoint logo_url
-                        if (!logoUrl && bannerRes.data?.logo_url) {
-                            const fallbackLogo = resolveMediaUrl(bannerRes.data.logo_url) || bannerRes.data.logo_url;
-                            setShopLogo(fallbackLogo);
-                            setShopAvatar(fallbackLogo);
-                        }
-                    } catch (err: any) {
-                        console.error(`⚠️ Banner fetch failed (will use category fallback):`, err.message);
-                    }
-                } else {
+                if (!currentShop) {
                     console.error('Shop not found in public shops list. Setting fallback data.');
-                    // Fallback: use shop name from URL slug
                     setShopName(shopIdParam || 'Shop');
                     setShopOwnerName('');
                     setAllListings([]);
+                    setLoading(false);
+                    return;
+                }
+
+                setShopId(String(currentShop.id));
+                console.log(' Matched public shop:', currentShop);
+
+                const ownerId = currentShop.user_id;
+
+                // Listings and banners both only need the owner id, so fetch
+                // them together rather than one after the other.
+                const [shopListings, bannerRes] = await Promise.all([
+                    listingsService.getListings({ owner_id: Number(ownerId), limit: 200 }),
+                    api.get(`/listings/shops/${ownerId}/banners`).catch((err: any) => {
+                        console.error('⚠️ Banner fetch failed (will use category fallback):', err.message);
+                        return null;
+                    }),
+                ]);
+                console.log(' Retrieved shop listings:', shopListings);
+
+                setShopName(currentShop.shop_name || 'Shop');
+                setShopOwnerName(currentShop.owner_name || '');
+                setShopLocation(currentShop.shop_address || '');
+
+                // Extract logo candidate: check logo_url first, then owner_avatar_url, user avatar_url, or cover_image
+                const rawLogo = currentShop.logo_url || currentShop.owner_avatar_url || currentShop.user?.avatar_url || currentShop.cover_image;
+                let logoUrl = rawLogo ? (resolveMediaUrl(rawLogo) || rawLogo) : '';
+
+                if (bannerRes?.data?.shop_detail_banner) {
+                    setCustomBanner(bannerRes.data.shop_detail_banner);
+                } else if (bannerRes?.data?.shop_page_banner) {
+                    setCustomBanner(bannerRes.data.shop_page_banner);
+                }
+                // If logo was not already set from shop list, use banner endpoint logo_url
+                if (!logoUrl && bannerRes?.data?.logo_url) {
+                    logoUrl = resolveMediaUrl(bannerRes.data.logo_url) || bannerRes.data.logo_url;
+                }
+
+                setShopLogo(logoUrl);
+                setShopAvatar(logoUrl);
+                setAvatarError(false);
+                setShopPhone(currentShop.phone || null);
+                setShopOwnerId(ownerId);
+                setAllListings(shopListings || []);
+                console.log('📦 Sample listing:', shopListings?.[0]);
+                console.log('📦 Has subcategory_id:', shopListings?.[0]?.subcategory_id);
+                if (shopListings && shopListings.length > 0) {
+                    setActiveCategory(String(shopListings[0].category_id || ''));
                 }
             } catch (error) {
                 console.error('Error fetching shop details:', error);
@@ -297,7 +271,7 @@ export default function ShopDetailPage() {
         };
 
         fetchData();
-    }, [shopId, city, isHydrated]);
+    }, [shopIdParam, city, isHydrated]);
 
     // Fetch user's follow/review/feedback status when component mounts or user changes
     useEffect(() => {
