@@ -1,8 +1,9 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Eye, Loader, ChevronLeft, ChevronRight, X, AlertCircle, Check, Image as ImageIcon, Package } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, Loader, ChevronLeft, ChevronRight, X, AlertCircle, Check, Image as ImageIcon, Package, Upload, Download } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/services/api';
+import Papa from 'papaparse';
 
 interface ShopListing {
   id: number;
@@ -21,6 +22,24 @@ interface Category {
     name_en: string;
     subsubcategories?: Array<{ id: number; name_en: string }>;
   }>;
+}
+
+interface BulkRow {
+  title_en: string;
+  title_so: string;
+  description_en: string;
+  price: string;
+  location: string;
+  condition: string;
+  categoryInput: string;
+  subcategoryInput: string;
+  subsubcategoryInput: string;
+  category_id: number | null;
+  subcategory_id: number | null;
+  subsubcategory_id: number | null;
+  error: string;
+  status: 'pending' | 'importing' | 'success' | 'failed';
+  resultError?: string;
 }
 
 interface Shop {
@@ -93,6 +112,12 @@ export default function ShopsAdminPage() {
   const [newItemUploading, setNewItemUploading] = useState(false);
   const [newItemSaving, setNewItemSaving] = useState(false);
   const [newItemError, setNewItemError] = useState('');
+
+  // Bulk CSV import
+  const [showBulkImport, setShowBulkImport] = useState(false);
+  const [bulkRows, setBulkRows] = useState<BulkRow[]>([]);
+  const [bulkImporting, setBulkImporting] = useState(false);
+  const [bulkParseError, setBulkParseError] = useState('');
 
   // Sort shops alphabetically by business_name
   const sortedShops = [...shops].sort((a, b) =>
@@ -254,6 +279,9 @@ export default function ShopsAdminPage() {
     setNewItem({ title_en: '', description_en: '', price: '', location: '', condition: 'New', category_id: '', subcategory_id: '', subsubcategory_id: '' });
     setNewItemImages([]);
     setNewItemError('');
+    setShowBulkImport(false);
+    setBulkRows([]);
+    setBulkParseError('');
     setDetailLoading(true);
     try {
       const res = await api.get(`/admin/shops/${shop.id}`);
@@ -305,6 +333,9 @@ export default function ShopsAdminPage() {
     setNewItem({ title_en: '', description_en: '', price: '', location: '', condition: 'New', category_id: '', subcategory_id: '', subsubcategory_id: '' });
     setNewItemImages([]);
     setNewItemError('');
+    setShowBulkImport(false);
+    setBulkRows([]);
+    setBulkParseError('');
   };
 
   const handleNewItemImagesUpload = async (files: FileList | File[]) => {
@@ -361,6 +392,154 @@ export default function ShopsAdminPage() {
     } finally {
       setNewItemSaving(false);
     }
+  };
+
+  const handleDownloadCsvTemplate = () => {
+    const csv = Papa.unparse({
+      fields: ['title_en', 'title_so', 'description_en', 'price', 'location', 'condition', 'category', 'subcategory', 'subsubcategory'],
+      data: [
+        ['Samsung Galaxy A14', '', 'Brand new, sealed box, 128GB', '25000', 'Eastleigh, Nairobi', 'New', 'Electronics', 'Mobile Phones', 'Samsung'],
+      ],
+    });
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'bulk-products-template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleBulkCsvUpload = async (file: File) => {
+    setBulkParseError('');
+    setBulkRows([]);
+
+    // Category tree is needed to resolve names to ids; make sure it's loaded.
+    let cats = categories;
+    if (cats.length === 0) {
+      try {
+        const res = await api.get('/listings/categories');
+        cats = Array.isArray(res.data) ? res.data : [];
+        setCategories(cats);
+      } catch {
+        setBulkParseError('Failed to load categories — try reopening the shop editor');
+        return;
+      }
+    }
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const parsed: BulkRow[] = (results.data as any[]).map((raw) => {
+          const row: BulkRow = {
+            title_en: (raw.title_en || '').trim(),
+            title_so: (raw.title_so || '').trim(),
+            description_en: (raw.description_en || '').trim(),
+            price: (raw.price || '').trim(),
+            location: (raw.location || '').trim(),
+            condition: (raw.condition || 'New').trim() || 'New',
+            categoryInput: (raw.category || '').trim(),
+            subcategoryInput: (raw.subcategory || '').trim(),
+            subsubcategoryInput: (raw.subsubcategory || '').trim(),
+            category_id: null,
+            subcategory_id: null,
+            subsubcategory_id: null,
+            error: '',
+            status: 'pending',
+          };
+
+          if (!row.title_en || !row.description_en || !row.price || !row.location || !row.categoryInput) {
+            row.error = 'Missing required field(s): title_en, description_en, price, location, category';
+            return row;
+          }
+          if (isNaN(Number(row.price))) {
+            row.error = 'Price is not a number';
+            return row;
+          }
+
+          const resolved = resolveCategoryChain(cats, row);
+          row.category_id = resolved.category_id;
+          row.subcategory_id = resolved.subcategory_id;
+          row.subsubcategory_id = resolved.subsubcategory_id;
+          row.error = resolved.error;
+          return row;
+        });
+
+        if (parsed.length === 0) {
+          setBulkParseError('No rows found in CSV');
+          return;
+        }
+        setBulkRows(parsed);
+      },
+      error: (err) => setBulkParseError(`CSV parse error: ${err.message}`),
+    });
+  };
+
+  // Takes an explicit category list (rather than reading `categories` state
+  // directly) since it may run right after a fresh categories fetch, before
+  // that state update has been committed.
+  const resolveCategoryChain = (cats: any[], row: BulkRow) => {
+    const byName = (list: any[], input: string) => {
+      if (!input.trim()) return null;
+      if (/^\d+$/.test(input.trim())) {
+        return list.find((c) => c.id === Number(input.trim())) || null;
+      }
+      return list.find((c) => c.name_en.toLowerCase() === input.trim().toLowerCase()) || null;
+    };
+
+    const cat = byName(cats, row.categoryInput);
+    if (!cat) return { category_id: null, subcategory_id: null, subsubcategory_id: null, error: `Category "${row.categoryInput}" not found` };
+
+    let subId: number | null = null;
+    let subsubId: number | null = null;
+    if (row.subcategoryInput.trim()) {
+      const sub = byName(cat.subcategories || [], row.subcategoryInput);
+      if (!sub) return { category_id: cat.id, subcategory_id: null, subsubcategory_id: null, error: `Subcategory "${row.subcategoryInput}" not found under "${cat.name_en}"` };
+      subId = sub.id;
+      if (row.subsubcategoryInput.trim()) {
+        const subsub = byName(sub.subsubcategories || [], row.subsubcategoryInput);
+        if (!subsub) return { category_id: cat.id, subcategory_id: sub.id, subsubcategory_id: null, error: `Sub-subcategory "${row.subsubcategoryInput}" not found under "${sub.name_en}"` };
+        subsubId = subsub.id;
+      }
+    }
+    return { category_id: cat.id, subcategory_id: subId, subsubcategory_id: subsubId, error: '' };
+  };
+
+  const handleBulkImport = async () => {
+    if (!detailShop) return;
+    const validRows = bulkRows.filter((r) => !r.error);
+    if (validRows.length === 0) return;
+
+    setBulkImporting(true);
+    for (let i = 0; i < bulkRows.length; i++) {
+      if (bulkRows[i].error) continue;
+      setBulkRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, status: 'importing' } : r)));
+      try {
+        const row = bulkRows[i];
+        const res = await api.post(
+          '/listings/',
+          {
+            title_en: row.title_en,
+            title_so: row.title_so || null,
+            description_en: row.description_en,
+            price: Number(row.price),
+            location: row.location,
+            condition: row.condition,
+            category_id: row.category_id,
+            subcategory_id: row.subcategory_id,
+            subsubcategory_id: row.subsubcategory_id,
+            images: [],
+          },
+          { params: { owner_id: detailShop.id } }
+        );
+        setShopListings((prev) => [res.data, ...prev]);
+        setBulkRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, status: 'success' } : r)));
+      } catch (err: any) {
+        setBulkRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, status: 'failed', resultError: err.response?.data?.detail || 'Failed to import' } : r)));
+      }
+    }
+    setBulkImporting(false);
   };
 
   const handleDetailImageUpload = async (
@@ -781,14 +960,117 @@ export default function ShopsAdminPage() {
                     <Package size={16} />
                     Items in this Shop {shopListings.length > 0 && `(${shopListings.length})`}
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddItem((v) => !v)}
-                    className="text-xs font-semibold text-[#5bc0e8] hover:text-blue-700"
-                  >
-                    {showAddItem ? 'Cancel' : '+ Add Item'}
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => { setShowBulkImport((v) => !v); setShowAddItem(false); }}
+                      className="text-xs font-semibold text-[#5bc0e8] hover:text-blue-700"
+                    >
+                      {showBulkImport ? 'Cancel' : 'Bulk Import (CSV)'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowAddItem((v) => !v); setShowBulkImport(false); }}
+                      className="text-xs font-semibold text-[#5bc0e8] hover:text-blue-700"
+                    >
+                      {showAddItem ? 'Cancel' : '+ Add Item'}
+                    </button>
+                  </div>
                 </div>
+
+                {showBulkImport && (
+                  <div className="mb-4 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 space-y-3">
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                      <p className="text-xs text-slate-500">
+                        Columns: <code className="font-mono">title_en, title_so, description_en, price, location, condition, category, subcategory, subsubcategory</code>.
+                        Category/subcategory/subsubcategory can be names (e.g. "Electronics") or numeric IDs. Images aren't part of the CSV — add them per item afterward.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleDownloadCsvTemplate}
+                        className="shrink-0 flex items-center gap-1.5 text-xs font-semibold text-[#5bc0e8] hover:text-blue-700"
+                      >
+                        <Download size={13} /> Download template
+                      </button>
+                    </div>
+
+                    <label className="flex items-center justify-center gap-2 cursor-pointer px-4 py-3 rounded-lg border border-dashed border-gray-300 text-sm font-semibold text-slate-600 hover:border-blue-400 hover:text-blue-600 transition-colors">
+                      <Upload size={16} />
+                      {bulkRows.length > 0 ? 'Choose a different CSV file' : 'Choose CSV file'}
+                      <input
+                        type="file"
+                        accept=".csv"
+                        className="hidden"
+                        disabled={bulkImporting}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleBulkCsvUpload(file);
+                          e.target.value = '';
+                        }}
+                      />
+                    </label>
+
+                    {bulkParseError && (
+                      <div className="flex gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
+                        <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                        <p className="text-xs text-red-800">{bulkParseError}</p>
+                      </div>
+                    )}
+
+                    {bulkRows.length > 0 && (
+                      <>
+                        <div className="max-h-64 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-700">
+                          <table className="w-full text-xs">
+                            <thead className="bg-slate-100 dark:bg-slate-800 sticky top-0">
+                              <tr>
+                                <th className="px-2 py-1.5 text-left">Title</th>
+                                <th className="px-2 py-1.5 text-left">Price</th>
+                                <th className="px-2 py-1.5 text-left">Category</th>
+                                <th className="px-2 py-1.5 text-left">Status</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                              {bulkRows.map((row, i) => (
+                                <tr key={i} className={row.error ? 'bg-red-50/60' : ''}>
+                                  <td className="px-2 py-1.5 max-w-[140px] truncate">{row.title_en || <span className="text-slate-400">—</span>}</td>
+                                  <td className="px-2 py-1.5">{row.price}</td>
+                                  <td className="px-2 py-1.5 max-w-[120px] truncate">{row.categoryInput}</td>
+                                  <td className="px-2 py-1.5">
+                                    {row.status === 'success' ? (
+                                      <span className="text-emerald-600 font-semibold">Added</span>
+                                    ) : row.status === 'failed' ? (
+                                      <span className="text-red-600 font-semibold" title={row.resultError}>Failed</span>
+                                    ) : row.status === 'importing' ? (
+                                      <span className="text-slate-500">Importing…</span>
+                                    ) : row.error ? (
+                                      <span className="text-red-600" title={row.error}>{row.error}</span>
+                                    ) : (
+                                      <span className="text-slate-400">Ready</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-slate-500">
+                            {bulkRows.filter((r) => !r.error).length} of {bulkRows.length} rows ready to import
+                          </p>
+                          <button
+                            type="button"
+                            onClick={handleBulkImport}
+                            disabled={bulkImporting || bulkRows.every((r) => !!r.error)}
+                            className="px-4 py-2 rounded-lg bg-[#5bc0e8] hover:bg-blue-700 disabled:bg-gray-300 text-white text-sm font-medium disabled:opacity-50"
+                          >
+                            {bulkImporting ? 'Importing…' : `Import ${bulkRows.filter((r) => !r.error).length} Products`}
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
 
                 {showAddItem && (
                   <div className="mb-4 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 space-y-3">
