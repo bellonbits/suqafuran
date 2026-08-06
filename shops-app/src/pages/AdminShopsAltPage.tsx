@@ -16,6 +16,11 @@ interface ShopListing {
 interface Category {
   id: number;
   name_en: string;
+  subcategories?: Array<{
+    id: number;
+    name_en: string;
+    subsubcategories?: Array<{ id: number; name_en: string }>;
+  }>;
 }
 
 interface Shop {
@@ -79,6 +84,8 @@ export default function ShopsAdminPage() {
     location: '',
     condition: 'New',
     category_id: '',
+    subcategory_id: '',
+    subsubcategory_id: '',
   });
   const [newItemImages, setNewItemImages] = useState<string[]>([]);
   const [newItemUploading, setNewItemUploading] = useState(false);
@@ -241,7 +248,7 @@ export default function ShopsAdminPage() {
     setDetailError('');
     setDetailSuccess('');
     setShowAddItem(false);
-    setNewItem({ title_en: '', description_en: '', price: '', location: '', condition: 'New', category_id: '' });
+    setNewItem({ title_en: '', description_en: '', price: '', location: '', condition: 'New', category_id: '', subcategory_id: '', subsubcategory_id: '' });
     setNewItemImages([]);
     setNewItemError('');
     setDetailLoading(true);
@@ -291,7 +298,7 @@ export default function ShopsAdminPage() {
     setDetailShop(null);
     setShopListings([]);
     setShowAddItem(false);
-    setNewItem({ title_en: '', description_en: '', price: '', location: '', condition: 'New', category_id: '' });
+    setNewItem({ title_en: '', description_en: '', price: '', location: '', condition: 'New', category_id: '', subcategory_id: '', subsubcategory_id: '' });
     setNewItemImages([]);
     setNewItemError('');
   };
@@ -331,6 +338,8 @@ export default function ShopsAdminPage() {
           location: newItem.location.trim(),
           condition: newItem.condition,
           category_id: Number(newItem.category_id),
+          subcategory_id: newItem.subcategory_id ? Number(newItem.subcategory_id) : null,
+          subsubcategory_id: newItem.subsubcategory_id ? Number(newItem.subsubcategory_id) : null,
           images: newItemImages,
         },
         { params: { owner_id: detailShop.id } }
@@ -338,7 +347,7 @@ export default function ShopsAdminPage() {
 
       setShopListings((prev) => [res.data, ...prev]);
       setShowAddItem(false);
-      setNewItem({ title_en: '', description_en: '', price: '', location: '', condition: 'New', category_id: '' });
+      setNewItem({ title_en: '', description_en: '', price: '', location: '', condition: 'New', category_id: '', subcategory_id: '', subsubcategory_id: '' });
       setNewItemImages([]);
     } catch (err: any) {
       setNewItemError(err.response?.data?.detail || 'Failed to add item');
@@ -810,7 +819,7 @@ export default function ShopsAdminPage() {
                       />
                       <select
                         value={newItem.category_id}
-                        onChange={(e) => setNewItem((f) => ({ ...f, category_id: e.target.value }))}
+                        onChange={(e) => setNewItem((f) => ({ ...f, category_id: e.target.value, subcategory_id: '', subsubcategory_id: '' }))}
                         disabled={newItemSaving}
                         className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                       >
@@ -820,6 +829,40 @@ export default function ShopsAdminPage() {
                         ))}
                       </select>
                     </div>
+
+                    {(() => {
+                      const selectedCat = categories.find((c) => String(c.id) === newItem.category_id);
+                      const selectedSub = selectedCat?.subcategories?.find((s) => String(s.id) === newItem.subcategory_id);
+                      if (!selectedCat?.subcategories?.length) return null;
+                      return (
+                        <div className="grid grid-cols-2 gap-3">
+                          <select
+                            value={newItem.subcategory_id}
+                            onChange={(e) => setNewItem((f) => ({ ...f, subcategory_id: e.target.value, subsubcategory_id: '' }))}
+                            disabled={newItemSaving}
+                            className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                          >
+                            <option value="">Subcategory&hellip;</option>
+                            {selectedCat.subcategories!.map((s) => (
+                              <option key={s.id} value={s.id}>{s.name_en}</option>
+                            ))}
+                          </select>
+                          {selectedSub?.subsubcategories && selectedSub.subsubcategories.length > 0 && (
+                            <select
+                              value={newItem.subsubcategory_id}
+                              onChange={(e) => setNewItem((f) => ({ ...f, subsubcategory_id: e.target.value }))}
+                              disabled={newItemSaving}
+                              className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                            >
+                              <option value="">Sub-subcategory&hellip;</option>
+                              {selectedSub.subsubcategories.map((ss) => (
+                                <option key={ss.id} value={ss.id}>{ss.name_en}</option>
+                              ))}
+                            </select>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     <div className="flex items-center gap-2 flex-wrap">
                       {newItemImages.map((url, i) => (

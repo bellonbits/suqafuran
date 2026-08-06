@@ -42,6 +42,8 @@ const ShopsPage = () => {
     location: '',
     condition: 'New',
     category_id: '',
+    subcategory_id: '',
+    subsubcategory_id: '',
   });
   const [newItemImages, setNewItemImages] = useState<string[]>([]);
   const [newItemUploading, setNewItemUploading] = useState(false);
@@ -50,7 +52,7 @@ const ShopsPage = () => {
 
   const resetAddItemForm = () => {
     setShowAddItem(false);
-    setNewItem({ title_en: '', description_en: '', price: '', location: '', condition: 'New', category_id: '' });
+    setNewItem({ title_en: '', description_en: '', price: '', location: '', condition: 'New', category_id: '', subcategory_id: '', subsubcategory_id: '' });
     setNewItemImages([]);
     setNewItemError('');
   };
@@ -99,6 +101,8 @@ const ShopsPage = () => {
           location: newItem.location.trim(),
           condition: newItem.condition,
           category_id: Number(newItem.category_id),
+          subcategory_id: newItem.subcategory_id ? Number(newItem.subcategory_id) : null,
+          subsubcategory_id: newItem.subsubcategory_id ? Number(newItem.subsubcategory_id) : null,
           images: newItemImages,
         },
         { params: { owner_id: shop.user_id } }
@@ -591,7 +595,7 @@ const ShopsPage = () => {
                                     />
                                     <select
                                       value={newItem.category_id}
-                                      onChange={(e) => setNewItem((f) => ({ ...f, category_id: e.target.value }))}
+                                      onChange={(e) => setNewItem((f) => ({ ...f, category_id: e.target.value, subcategory_id: '', subsubcategory_id: '' }))}
                                       disabled={newItemSaving}
                                       className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
                                     >
@@ -601,6 +605,40 @@ const ShopsPage = () => {
                                       ))}
                                     </select>
                                   </div>
+
+                                  {(() => {
+                                    const selectedCat = categories.find((c) => String(c.id) === newItem.category_id);
+                                    const selectedSub = selectedCat?.subcategories?.find((s: any) => String(s.id) === newItem.subcategory_id);
+                                    if (!selectedCat?.subcategories?.length) return null;
+                                    return (
+                                      <div className="grid grid-cols-2 gap-3">
+                                        <select
+                                          value={newItem.subcategory_id}
+                                          onChange={(e) => setNewItem((f) => ({ ...f, subcategory_id: e.target.value, subsubcategory_id: '' }))}
+                                          disabled={newItemSaving}
+                                          className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
+                                        >
+                                          <option value="">Subcategory&hellip;</option>
+                                          {selectedCat.subcategories.map((s: any) => (
+                                            <option key={s.id} value={s.id}>{s.name_en}</option>
+                                          ))}
+                                        </select>
+                                        {selectedSub?.subsubcategories?.length > 0 && (
+                                          <select
+                                            value={newItem.subsubcategory_id}
+                                            onChange={(e) => setNewItem((f) => ({ ...f, subsubcategory_id: e.target.value }))}
+                                            disabled={newItemSaving}
+                                            className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
+                                          >
+                                            <option value="">Sub-subcategory&hellip;</option>
+                                            {selectedSub.subsubcategories.map((ss: any) => (
+                                              <option key={ss.id} value={ss.id}>{ss.name_en}</option>
+                                            ))}
+                                          </select>
+                                        )}
+                                      </div>
+                                    );
+                                  })()}
 
                                   <div className="flex items-center gap-2 flex-wrap">
                                     {newItemImages.map((url, i) => (
