@@ -1,125 +1,180 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { DollarSign, ArrowLeft, Wallet, Loader } from 'lucide-react';
+import {
+  DollarSign, Wallet, TrendingUp, Users, Activity, Store, ShoppingBag,
+  ArrowUpRight, ArrowDownRight, Loader2, RefreshCw, Calendar, CreditCard, Banknote, Receipt
+} from 'lucide-react';
+import { DashboardLayout } from '@/components/DashboardLayout';
 import api from '@/services/api';
+
+const agentNavItems = [
+  { label: 'Agent Dashboard', icon: <Activity className="w-5 h-5" />, href: '/agent-dashboard' },
+  { label: 'Agent Shops', icon: <Store className="w-5 h-5" />, href: '/agent-shops' },
+  { label: 'Agent Listings', icon: <ShoppingBag className="w-5 h-5" />, href: '/agent-listings' },
+  { label: 'Agent Earnings', icon: <TrendingUp className="w-5 h-5" />, href: '/agent-earnings' },
+  { label: 'Agent Analytics', icon: <Users className="w-5 h-5" />, href: '/agent-analytics' },
+];
 
 export default function AgentEarningsPage() {
   const [earnings, setEarnings] = useState<any>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadEarnings();
-  }, []);
+  useEffect(() => { loadEarnings(); }, []);
 
-  const loadEarnings = async () => {
+  const loadEarnings = async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
     try {
-      const [earningsRes, txRes] = await Promise.all([
+      const [earningsRes, txRes] = await Promise.allSettled([
         api.get('/promotions/agent/history'),
         api.get('/wallet/transactions'),
       ]);
-      setEarnings(earningsRes.data);
-      setTransactions(Array.isArray(txRes.data) ? txRes.data.slice(0, 10) : []);
-    } catch (error) {
-      console.error('Error loading earnings:', error);
+      if (earningsRes.status === 'fulfilled') setEarnings(earningsRes.value.data);
+      if (txRes.status === 'fulfilled') setTransactions(Array.isArray(txRes.value.data) ? txRes.value.data.slice(0, 10) : []);
+    } catch (err) {
+      console.error('Error loading earnings:', err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
+  const fmt = (val: number) => val ? `Ksh ${val.toLocaleString()}` : 'Ksh 0';
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <Loader className="w-8 h-8 animate-spin text-[#6cd4ff]" />
-      </div>
+      <DashboardLayout title="Agent Earnings" navItems={agentNavItems} userRole="agent">
+        <div className="flex flex-col items-center justify-center h-96 gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-sky-500" />
+          <p className="text-sm font-semibold text-slate-400">Loading Earnings Data…</p>
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-900">
-      <div className="bg-slate-800 border-b border-slate-700 p-6">
-        <div className="flex items-center gap-4">
-          <Link href="/agent-dashboard" className="p-2 hover:bg-slate-700 rounded-lg transition-colors">
-            <ArrowLeft className="w-5 h-5 text-slate-400" />
-          </Link>
-          <h1 className="text-3xl font-black text-white">Earnings</h1>
-        </div>
-      </div>
+    <DashboardLayout title="Agent Earnings" navItems={agentNavItems} userRole="agent">
+      <div className="space-y-6 pb-12">
 
-      <div className="p-6 space-y-8">
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-slate-800 border border-slate-700 rounded-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-300 text-sm font-medium">This Month</p>
-                <h3 className="text-3xl font-black text-white mt-2">Ksh {Math.round((earnings?.this_month || 0) / 1000)}k</h3>
-              </div>
-              <DollarSign className="w-8 h-8 text-green-400" />
-            </div>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-slate-800 border border-slate-700 rounded-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-300 text-sm font-medium">Total Earned</p>
-                <h3 className="text-3xl font-black text-white mt-2">Ksh {Math.round((earnings?.total_earned || 0) / 1000)}k</h3>
-              </div>
-              <Wallet className="w-8 h-8 text-[#6cd4ff]" />
-            </div>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-slate-800 border border-slate-700 rounded-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-300 text-sm font-medium">Available Balance</p>
-                <h3 className="text-3xl font-black text-white mt-2">Ksh {Math.round((earnings?.available_balance || 0) / 1000)}k</h3>
-              </div>
-              <DollarSign className="w-8 h-8 text-purple-400" />
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Recent Transactions */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-slate-800 border border-slate-700 rounded-lg p-6">
-          <h2 className="text-lg font-black text-white mb-6">Recent Transactions</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-700">
-                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-300">Description</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-300">Amount</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-300">Date</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-300">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.length === 0 ? (
-                  <tr><td colSpan={4} className="px-4 py-3 text-center text-slate-400">No transactions</td></tr>
-                ) : (
-                  transactions.map((tx) => (
-                    <motion.tr key={tx.id} className="border-b border-slate-700 hover:bg-slate-700/50 transition-colors">
-                      <td className="px-4 py-3 text-sm text-white font-medium">{tx.description || 'Transaction'}</td>
-                      <td className="px-4 py-3 text-sm font-bold text-green-400">Ksh {tx.amount?.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-sm text-slate-300">{new Date(tx.created_at).toLocaleDateString()}</td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold flex w-fit ${
-                          tx.status === 'completed' ? 'bg-green-900/30 text-green-400' : 'bg-yellow-900/30 text-yellow-400'
-                        }`}>
-                          {tx.status || 'Pending'}
-                        </span>
-                      </td>
-                    </motion.tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Earnings Overview</h1>
+            <p className="text-xs text-slate-400 mt-1 font-medium">Your commission history, wallet balance, and transaction log</p>
           </div>
-        </motion.div>
+          <button
+            onClick={() => loadEarnings(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#151D2A] border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl text-xs font-bold shadow-sm hover:bg-slate-50 transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-sky-500' : ''}`} />
+            Refresh
+          </button>
+        </div>
+
+        {/* Earnings Stat Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[
+            {
+              label: 'This Month',
+              value: fmt(earnings?.this_month || 0),
+              icon: Calendar,
+              iconBg: 'bg-sky-50 dark:bg-sky-950/40 text-sky-600',
+              trend: '+12%',
+              trendUp: true,
+            },
+            {
+              label: 'Total Earned (All Time)',
+              value: fmt(earnings?.total_earned || 0),
+              icon: Banknote,
+              iconBg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600',
+              trend: '+8%',
+              trendUp: true,
+            },
+            {
+              label: 'Available Balance',
+              value: fmt(earnings?.available_balance || 0),
+              icon: Wallet,
+              iconBg: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600',
+              trend: 'Ready to withdraw',
+              trendUp: true,
+            },
+          ].map((card, i) => {
+            const Icon = card.icon;
+            return (
+              <div key={i} className="bg-white dark:bg-[#151D2A] rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{card.label}</p>
+                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${card.iconBg}`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                </div>
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{card.value}</h2>
+                <div className="flex items-center gap-1.5 mt-2">
+                  {card.trendUp ? (
+                    <ArrowUpRight className="w-3.5 h-3.5 text-emerald-500" />
+                  ) : (
+                    <ArrowDownRight className="w-3.5 h-3.5 text-rose-500" />
+                  )}
+                  <span className={`text-[11px] font-bold ${card.trendUp ? 'text-emerald-500' : 'text-rose-500'}`}>{card.trend}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Withdraw CTA Card */}
+        <div className="bg-gradient-to-br from-sky-500 via-sky-600 to-indigo-600 rounded-3xl p-6 text-white relative overflow-hidden shadow-xl shadow-sky-500/20">
+          <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full bg-white/10 blur-lg pointer-events-none" />
+          <div className="relative">
+            <p className="text-xs font-extrabold text-sky-100 uppercase tracking-wider mb-1">Available Payout</p>
+            <h2 className="text-3xl font-black text-white tracking-tight">{fmt(earnings?.available_balance || 0)}</h2>
+            <p className="text-sm text-sky-100 mt-1">Minimum withdrawal: Ksh 500</p>
+            <button className="mt-4 px-6 py-2.5 bg-white text-sky-600 rounded-2xl text-xs font-extrabold hover:bg-sky-50 transition-all active:scale-95 shadow-sm">
+              Request Withdrawal →
+            </button>
+          </div>
+        </div>
+
+        {/* Transaction History */}
+        <div className="bg-white dark:bg-[#151D2A] rounded-3xl border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] overflow-hidden">
+          <div className="p-5 border-b border-slate-100 dark:border-slate-800">
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <Receipt className="w-4 h-4 text-sky-500" /> Transaction History
+            </h3>
+          </div>
+
+          {transactions.length > 0 ? (
+            <div className="divide-y divide-slate-50 dark:divide-slate-800/40">
+              {transactions.map((tx: any, i: number) => (
+                <div key={i} className="flex items-center justify-between p-4 hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-2xl flex items-center justify-center ${tx.type === 'credit' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                      {tx.type === 'credit' ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 dark:text-white">{tx.description || (tx.type === 'credit' ? 'Commission Earned' : 'Withdrawal')}</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">{tx.created_at ? new Date(tx.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recent'}</p>
+                    </div>
+                  </div>
+                  <span className={`text-sm font-black ${tx.type === 'credit' ? 'text-emerald-600' : 'text-rose-500'}`}>
+                    {tx.type === 'credit' ? '+' : '-'}Ksh {(tx.amount || 0).toLocaleString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 gap-3">
+              <Receipt className="w-10 h-10 text-slate-200 dark:text-slate-700" />
+              <p className="text-sm font-extrabold text-slate-600 dark:text-slate-300">No Transactions Yet</p>
+              <p className="text-xs text-slate-400">Your transaction history will appear here once you start earning commissions.</p>
+            </div>
+          )}
+        </div>
+
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

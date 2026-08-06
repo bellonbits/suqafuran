@@ -249,7 +249,7 @@ export default function BulkProductsPage() {
 
         {/* Products Table */}
         {products.length > 0 && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-6 bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-6 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-slate-300">
                 <thead className="bg-slate-700">

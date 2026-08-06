@@ -150,9 +150,9 @@ export default function SystemMessagesPage() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <MessageCircle className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">System Messages</h1>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">System Messages</h1>
           </div>
-          <p className="text-gray-600">Send messages from Suqafuran account to users</p>
+          <p className="text-slate-600 dark:text-slate-300">Send messages from Suqafuran account to users</p>
         </div>
 
         {/* Info Card */}
@@ -174,7 +174,7 @@ export default function SystemMessagesPage() {
             className={`px-6 py-2 rounded-lg font-medium transition ${
               mode === 'single'
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                : 'bg-gray-200 text-slate-800 dark:text-slate-200 hover:bg-gray-300'
             }`}
           >
             Send to One User
@@ -184,7 +184,7 @@ export default function SystemMessagesPage() {
             className={`px-6 py-2 rounded-lg font-medium transition ${
               mode === 'bulk'
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                : 'bg-gray-200 text-slate-800 dark:text-slate-200 hover:bg-gray-300'
             }`}
           >
             Send to Multiple Users
@@ -196,7 +196,7 @@ export default function SystemMessagesPage() {
           <form onSubmit={mode === 'single' ? handleSendSingle : handleSendBulk} className="space-y-6">
             {/* Message Type */}
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">Message Type</label>
+              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">Message Type</label>
               <select
                 value={messageType}
                 onChange={(e) => setMessageType(e.target.value)}
@@ -207,13 +207,13 @@ export default function SystemMessagesPage() {
                 <option value="announcement">Important Announcement</option>
                 <option value="support">Support Message</option>
               </select>
-              <p className="text-xs text-gray-500 mt-1">Used for categorizing and tracking messages</p>
+              <p className="text-xs text-slate-400 mt-1">Used for categorizing and tracking messages</p>
             </div>
 
             {/* Recipient(s) */}
             {mode === 'single' ? (
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">Recipient User ID</label>
+                <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">Recipient User ID</label>
                 <input
                   type="number"
                   value={singleUserId}
@@ -224,7 +224,7 @@ export default function SystemMessagesPage() {
               </div>
             ) : (
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">Recipient User IDs</label>
+                <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">Recipient User IDs</label>
                 <textarea
                   value={userIds}
                   onChange={(e) => setUserIds(e.target.value)}
@@ -232,13 +232,13 @@ export default function SystemMessagesPage() {
                   rows={4}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
                 />
-                <p className="text-xs text-gray-500 mt-1">Comma-separated list of user IDs. Max 10,000 recipients.</p>
+                <p className="text-xs text-slate-400 mt-1">Comma-separated list of user IDs. Max 10,000 recipients.</p>
               </div>
             )}
 
             {/* Message */}
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">Message Content</label>
+              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">Message Content</label>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -248,14 +248,14 @@ export default function SystemMessagesPage() {
                 maxLength={5000}
               />
               <div className="flex justify-between items-center mt-2">
-                <p className="text-xs text-gray-500">Max 5,000 characters</p>
-                <span className="text-xs text-gray-600">{message.length}/5,000</span>
+                <p className="text-xs text-slate-400">Max 5,000 characters</p>
+                <span className="text-xs text-slate-600 dark:text-slate-300">{message.length}/5,000</span>
               </div>
             </div>
 
             {/* Dry Run for Bulk */}
             {mode === 'bulk' && (
-              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
                 <input
                   type="checkbox"
                   checked={dryRun}
@@ -263,7 +263,7 @@ export default function SystemMessagesPage() {
                   id="dry-run"
                   className="w-4 h-4 rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
                 />
-                <label htmlFor="dry-run" className="text-sm text-gray-700">
+                <label htmlFor="dry-run" className="text-sm text-slate-700 dark:text-slate-300">
                   <strong>Dry run:</strong> Validate recipients without sending messages
                 </label>
               </div>

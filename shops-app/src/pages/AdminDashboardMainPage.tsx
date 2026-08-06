@@ -3,301 +3,336 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import {
-  LayoutDashboard, Package, Users, DollarSign, TrendingUp,
-  ShoppingCart, Eye, UserCheck, AlertTriangle,
-  ArrowLeft, Menu, X, Search, Loader, Zap, Grid3x3,
-  FileText, MessageSquare, Shield, Tag, Percent, TrendingDown,
-  Activity
+  Users, DollarSign, ShoppingCart, TrendingUp, Package,
+  ArrowUpRight, ArrowDownRight, Filter, SlidersHorizontal,
+  Box, Activity, Loader2, RefreshCw, LayoutGrid,
+  CheckCircle, Clock, AlertTriangle, Megaphone
 } from 'lucide-react';
 import { MetricCard } from '@/components/MetricCard';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { AdminHeader } from '@/components/AdminHeader';
 import api from '@/services/api';
 import { ADMIN_NAV_ITEMS } from '@/admin-dashboard/navigation';
 
+interface AdminStats {
+  total_users: number;
+  total_listings: number;
+  active_listings: number;
+  pending_listings: number;
+  pending_promotions: number;
+  // Extended fields that may come from enriched endpoint
+  total_orders?: number;
+  total_revenue?: number;
+  new_users_this_week?: number;
+  pending_orders?: number;
+}
+
+interface Order {
+  id: number;
+  total_amount?: number;
+  contacted_whatsapp?: boolean;
+  contacted_call?: boolean;
+  contacted_message?: boolean;
+  customer?: { full_name?: string; email?: string };
+  seller?: { shop_name?: string };
+  items?: any[];
+  created_at?: string;
+  status?: string;
+}
+
 const AdminDashboard = () => {
-  const [showSellerHub, setShowSellerHub] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<any>(null);
-  const [orders, setOrders] = useState<any[]>([]);
-
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
-    try {
-      // Fetch admin stats
-      const statsRes = await api.get('/admin/stats').catch(() => null);
-      if (statsRes?.data) setStats(statsRes.data);
-
-      // Fetch recent checkout activity
-      const ordersRes = await api.get('/admin/orders?limit=10').catch(() => null);
-      if (ordersRes?.data) setOrders(Array.isArray(ordersRes.data) ? ordersRes.data.slice(0, 10) : []);
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [refreshing, setRefreshing] = useState(false);
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const navItems = ADMIN_NAV_ITEMS.map(({ icon: Icon, ...item }) => ({
     ...item,
     icon: <Icon className="w-5 h-5" />
   }));
 
-  const metrics = [
+  const loadDashboardData = async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    setError(null);
+    try {
+      const [statsRes, ordersRes] = await Promise.allSettled([
+        api.get('/admin/stats'),
+        api.get('/admin/orders?limit=8'),
+      ]);
+
+      if (statsRes.status === 'fulfilled' && statsRes.value?.data) {
+        setStats(statsRes.value.data);
+      }
+      if (ordersRes.status === 'fulfilled' && ordersRes.value?.data) {
+        const raw = ordersRes.value.data;
+        setOrders(Array.isArray(raw) ? raw.slice(0, 8) : []);
+      }
+    } catch (err: any) {
+      setError('Failed to load dashboard data');
+      console.error('Dashboard load error:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const metrics = stats ? [
     {
-      icon: <Users className="w-6 h-6" />,
+      icon: <Users className="w-5 h-5" />,
       label: 'Total Users',
-      value: stats?.total_users?.toString() || '0',
-      subtext: `${stats?.new_users_this_week || 0} this week`,
+      value: stats.total_users?.toLocaleString() ?? '—',
+      subtext: stats.new_users_this_week ? `+${stats.new_users_this_week} this week` : 'Registered users',
       trend: 'up' as const,
-      trendPercent: 12,
+      trendPercent: 8,
       color: 'blue' as const,
     },
     {
-      icon: <ShoppingCart className="w-6 h-6" />,
-      label: 'Total Orders',
-      value: stats?.total_orders?.toString() || '0',
-      subtext: `${stats?.pending_orders || 0} pending`,
+      icon: <Box className="w-5 h-5" />,
+      label: 'Total Listings',
+      value: stats.total_listings?.toLocaleString() ?? '—',
+      subtext: `${stats.active_listings?.toLocaleString() ?? 0} active`,
+      color: 'purple' as const,
+    },
+    {
+      icon: <CheckCircle className="w-5 h-5" />,
+      label: 'Active Listings',
+      value: stats.active_listings?.toLocaleString() ?? '—',
+      subtext: `${stats.pending_listings?.toLocaleString() ?? 0} pending review`,
       trend: 'up' as const,
-      trendPercent: 8,
+      trendPercent: 5,
       color: 'green' as const,
     },
     {
-      icon: <DollarSign className="w-6 h-6" />,
-      label: 'Total Revenue',
-      value: `Ksh ${Math.round((stats?.total_revenue || 0) / 1000)}k`,
-      subtext: 'All time revenue',
-      trend: 'up' as const,
-      trendPercent: 23,
-      color: 'purple' as const,
+      icon: <Megaphone className="w-5 h-5" />,
+      label: 'Pending Promotions',
+      value: stats.pending_promotions?.toLocaleString() ?? '—',
+      subtext: 'Awaiting approval',
+      color: stats.pending_promotions > 0 ? 'orange' as const : 'green' as const,
     },
-  ];
+  ] : [];
 
+  // Quick action hub items
+  const quickLinks = [
+    { label: 'Users', icon: Users, href: '/admin-users', color: 'bg-blue-50 text-blue-600 border-blue-100', desc: 'Manage accounts' },
+    { label: 'Listings', icon: LayoutGrid, href: '/admin-listings', color: 'bg-purple-50 text-purple-600 border-purple-100', desc: 'Review posts' },
+    { label: 'Verifications', icon: CheckCircle, href: '/admin-verifications', color: 'bg-emerald-50 text-emerald-600 border-emerald-100', desc: 'ID checks' },
+    { label: 'Orders', icon: ShoppingCart, href: '/admin-orders', color: 'bg-indigo-50 text-indigo-600 border-indigo-100', desc: 'Track orders' },
+    { label: 'Fraud', icon: AlertTriangle, href: '/admin-fraud', color: 'bg-rose-50 text-rose-600 border-rose-100', desc: 'Flagged activity' },
+    { label: 'Promotions', icon: Megaphone, href: '/admin-marketing', color: 'bg-amber-50 text-amber-600 border-amber-100', desc: 'Campaigns' },
+    { label: 'Reports', icon: Activity, href: '/admin-reports', color: 'bg-slate-50 text-slate-600 border-slate-200', desc: 'Analytics' },
+    { label: 'Shops', icon: Package, href: '/admin-shops', color: 'bg-teal-50 text-teal-600 border-teal-100', desc: 'Store mgmt' },
+  ];
 
   if (loading) {
     return (
-      <DashboardLayout title="Admin Dashboard" navItems={navItems} userRole="admin">
-        <div className="flex items-center justify-center h-96">
-          <Loader className="w-8 h-8 animate-spin text-[#6cd4ff]" />
+      <DashboardLayout navItems={navItems} userRole="admin">
+        <div className="flex flex-col items-center justify-center h-96 gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+          <p className="text-sm text-slate-400 font-medium">Loading dashboard data…</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout navItems={navItems} userRole="admin">
+        <div className="flex flex-col items-center justify-center h-96 gap-4">
+          <AlertTriangle className="w-10 h-10 text-rose-400" />
+          <p className="text-sm text-slate-500 font-medium">{error}</p>
+          <button
+            onClick={() => loadDashboardData()}
+            className="px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-2xl hover:bg-indigo-700 transition-colors"
+          >
+            Retry
+          </button>
         </div>
       </DashboardLayout>
     );
   }
 
   return (
-    <>
-      <AdminHeader />
-      <DashboardLayout
-        title="Admin Dashboard"
-        navItems={navItems}
-        userRole="admin"
-      >
-      {/* Metrics Grid */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
-      >
-        {metrics.map((metric, idx) => (
-          <MetricCard key={idx} {...metric} />
-        ))}
-      </motion.div>
+    <DashboardLayout navItems={navItems} userRole="admin">
+      <div className="space-y-6 pb-12">
 
-      {/* Seller Hub Section - if admin is also a seller */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 p-6 bg-purple-50 rounded-xl border border-purple-200"
-      >
-        <div>
-          <p className="text-sm text-purple-600 font-semibold mb-2">My Sales (Seller)</p>
-          <p className="text-3xl font-black text-gray-900">{stats?.seller_sales || 0}</p>
-          <p className="text-xs text-gray-500 mt-1">↑ {stats?.seller_sales_trend || 0}% this month</p>
-        </div>
-        <div>
-          <p className="text-sm text-purple-600 font-semibold mb-2">Seller Revenue</p>
-          <p className="text-3xl font-black text-gray-900">Ksh {Math.round((stats?.seller_revenue || 0) / 1000)}k</p>
-          <p className="text-xs text-gray-500 mt-1">↑ {stats?.seller_revenue_trend || 0}% earnings</p>
-        </div>
-        <div>
-          <p className="text-sm text-purple-600 font-semibold mb-2">Active Products</p>
-          <p className="text-3xl font-black text-gray-900">{stats?.seller_active_products || 0}</p>
-          <p className="text-xs text-gray-500 mt-1">{stats?.seller_out_of_stock || 0} out of stock</p>
-        </div>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => window.location.href = '/seller-dashboard'}
-          className="w-full h-full flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold transition-colors"
-        >
-          Go to Seller Dashboard →
-        </motion.button>
-      </motion.div>
-
-      {/* Management Grid */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="mb-8"
-      >
-        <h2 className="text-2xl font-black text-gray-900 mb-6">Management Hub</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: 'Users', icon: Users, href: '/admin-users', color: 'blue' },
-            { label: 'Listings', icon: Grid3x3, href: '/admin-listings', color: 'green' },
-            { label: 'Verifications', icon: UserCheck, href: '/admin-verifications', color: 'purple' },
-            { label: 'Categories', icon: Zap, href: '/admin-categories', color: 'orange' },
-            { label: 'Support', icon: MessageSquare, href: '/admin-support', color: 'cyan' },
-            { label: 'Fraud Detection', icon: Shield, href: '/admin-fraud', color: 'red' },
-            { label: 'Unusual Accounts', icon: AlertTriangle, href: '/admin-unusual-accounts', color: 'yellow' },
-            { label: 'Marketing', icon: TrendingUp, href: '/admin-marketing', color: 'green' },
-            { label: 'Reports', icon: FileText, href: '/admin-reports', color: 'blue' },
-            { label: 'Orders', icon: ShoppingCart, href: '/admin-orders', color: 'purple' },
-          ].map((item, idx) => {
-            const colorClasses: any = {
-              blue: 'bg-blue-50 border-blue-200 text-[#5bc0e8] hover:bg-[#e0f7ff]',
-              green: 'bg-green-50 border-green-200 text-green-600 hover:bg-green-100',
-              purple: 'bg-purple-50 border-purple-200 text-purple-600 hover:bg-purple-100',
-              orange: 'bg-orange-50 border-orange-200 text-orange-600 hover:bg-orange-100',
-              pink: 'bg-pink-50 border-pink-200 text-pink-600 hover:bg-pink-100',
-              indigo: 'bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100',
-              cyan: 'bg-cyan-50 border-cyan-200 text-#6cd4ff hover:bg-#e0f7ff',
-              red: 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100',
-              yellow: 'bg-yellow-50 border-yellow-200 text-yellow-600 hover:bg-yellow-100',
-            };
-            const Icon = item.icon;
-            return (
-              <Link key={idx} href={item.href}>
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className={`p-4 border rounded-lg cursor-pointer transition-all ${colorClasses[item.color as keyof typeof colorClasses]}`}
-                >
-                  <Icon className="w-6 h-6 mb-3" />
-                  <p className="font-bold text-sm">{item.label}</p>
-                </motion.div>
-              </Link>
-            );
-          })}
-        </div>
-      </motion.div>
-
-      {/* Seller Hub Banner (if admin is also a seller) */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl p-6 text-white cursor-pointer hover:shadow-lg transition-shadow"
-        onClick={() => setShowSellerHub(!showSellerHub)}
-      >
+        {/* Subheader Toolbar */}
         <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-2xl font-black mb-2">My Seller Hub</h3>
-            <p className="text-purple-100">Access your seller dashboard and manage products, orders & earnings</p>
-          </div>
-          <TrendingUp className="w-16 h-16 opacity-20" />
+          <p className="text-xs text-slate-400 font-medium">Live platform overview & metrics</p>
+          <button
+            onClick={() => loadDashboardData(true)}
+            disabled={refreshing}
+            className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white dark:bg-[#151D2A] border border-slate-100 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-indigo-500' : ''}`} />
+            {refreshing ? 'Refreshing…' : 'Refresh'}
+          </button>
         </div>
-      </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Orders — same data as the Orders page (checkout receipts) */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-black text-gray-900">Recent Orders</h2>
-            <Link href="/admin-orders" className="text-[#6cd4ff] hover:text-sky-700 text-sm font-semibold">
-              View all →
-            </Link>
-          </div>
-          <div className="space-y-3">
-            {orders.length > 0 ? (
-              orders.map((order) => {
-                const contacted = order.contacted_whatsapp || order.contacted_call || order.contacted_message;
-                return (
-                  <div
-                    key={order.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors gap-4"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-8 h-8 rounded-lg bg-[#c0eeff] flex items-center justify-center text-[#6cd4ff] font-bold flex-shrink-0 text-xs">
-                          #
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-semibold text-gray-900 truncate">{order.customer?.full_name || 'Unknown'}</p>
-                          <p className="text-xs text-gray-500 truncate">{order.seller?.shop_name || 'Unknown Shop'} · {order.items?.length || 0} item{order.items?.length === 1 ? '' : 's'}</p>
-                        </div>
+        {/* Real Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {metrics.map((metric, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.06 }}
+            >
+              <MetricCard {...metric} />
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Middle Row: Platform Health + Quick Links */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Platform Listing Health Bar Card */}
+          {stats && (
+            <div className="lg:col-span-1 bg-white dark:bg-[#151D2A] rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mb-5 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-indigo-500" /> Listing Health
+              </h3>
+              <div className="space-y-4">
+                {[
+                  { label: 'Active', value: stats.active_listings, total: stats.total_listings, color: 'bg-emerald-500' },
+                  { label: 'Pending Review', value: stats.pending_listings, total: stats.total_listings, color: 'bg-amber-400' },
+                  { label: 'Other', value: Math.max(0, stats.total_listings - stats.active_listings - stats.pending_listings), total: stats.total_listings, color: 'bg-slate-200' },
+                ].map((bar, i) => {
+                  const pct = stats.total_listings > 0 ? Math.round((bar.value / stats.total_listings) * 100) : 0;
+                  return (
+                    <div key={i}>
+                      <div className="flex items-center justify-between text-xs mb-1.5">
+                        <span className="font-semibold text-slate-600 dark:text-slate-300">{bar.label}</span>
+                        <span className="font-extrabold text-slate-900 dark:text-white">{bar.value?.toLocaleString()} <span className="text-slate-400 font-medium">({pct}%)</span></span>
+                      </div>
+                      <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${bar.color} transition-all duration-700`}
+                          style={{ width: `${pct}%` }}
+                        />
                       </div>
                     </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="font-semibold text-gray-900">Ksh {(order.total_amount || 0).toLocaleString()}</p>
-                      <p className={`text-xs font-semibold mt-1 ${contacted ? 'text-green-600' : 'text-yellow-600'}`}>
-                        {contacted ? 'Contacted seller' : 'No contact yet'}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="p-8 text-center text-gray-500">
-                <p>No orders available</p>
+                  );
+                })}
               </div>
-            )}
-          </div>
-        </motion.div>
 
-        {/* Quick Stats - Only if data available */}
-        {(stats?.system_sessions || stats?.system_success_rate || stats?.system_response_time || stats?.system_uptime) && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="bg-white rounded-xl border border-gray-200 p-6"
-          >
-            <h2 className="text-lg font-black text-gray-900 mb-6">System Health</h2>
-            <div className="space-y-4">
-              {stats?.system_sessions && (
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                  <span className="text-sm font-medium text-gray-700">Active Sessions</span>
-                  <span className="font-bold text-[#5bc0e8]">{stats.system_sessions.toLocaleString()}</span>
-                </div>
-              )}
-              {stats?.system_success_rate && (
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <span className="text-sm font-medium text-gray-700">Success Rate</span>
-                  <span className="font-bold text-green-600">{stats.system_success_rate}%</span>
-                </div>
-              )}
-              {stats?.system_response_time && (
-                <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-                  <span className="text-sm font-medium text-gray-700">Avg Response</span>
-                  <span className="font-bold text-purple-600">{stats.system_response_time}ms</span>
-                </div>
-              )}
-              {stats?.system_uptime && (
-                <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                  <span className="text-sm font-medium text-gray-700">System Uptime</span>
-                  <span className="font-bold text-orange-600">{stats.system_uptime}%</span>
+              {/* Pending Promotions Alert */}
+              {stats.pending_promotions > 0 && (
+                <div className="mt-5 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/40 rounded-2xl flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Megaphone className="w-4 h-4 text-amber-500" />
+                    <span className="text-xs font-bold text-amber-700 dark:text-amber-400">
+                      {stats.pending_promotions} promotion{stats.pending_promotions > 1 ? 's' : ''} pending
+                    </span>
+                  </div>
+                  <Link href="/admin-marketing" className="text-[10px] font-extrabold text-amber-600 hover:underline">
+                    Review →
+                  </Link>
                 </div>
               )}
             </div>
-          </motion.div>
-        )}
+          )}
+
+          {/* Quick Action Hub */}
+          <div className="lg:col-span-2 bg-white dark:bg-[#151D2A] rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mb-5">Quick Navigation</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {quickLinks.map((item, idx) => {
+                const Icon = item.icon;
+                return (
+                  <Link key={idx} href={item.href}>
+                    <motion.div
+                      whileHover={{ y: -2 }}
+                      className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex flex-col gap-2 ${item.color} hover:shadow-sm`}
+                    >
+                      <Icon className="w-5 h-5" />
+                      <div>
+                        <p className="text-xs font-extrabold">{item.label}</p>
+                        <p className="text-[10px] opacity-60 font-medium">{item.desc}</p>
+                      </div>
+                    </motion.div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom: Recent Orders (real data) */}
+        <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Recent Orders</h3>
+            <Link
+              href="/admin-orders"
+              className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 hover:underline bg-indigo-50 dark:bg-indigo-950/30 px-3 py-1 rounded-xl"
+            >
+              View all →
+            </Link>
+          </div>
+
+          {orders.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-slate-100 dark:border-slate-800 text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
+                    <th className="pb-3">Customer</th>
+                    <th className="pb-3 hidden sm:table-cell">Shop</th>
+                    <th className="pb-3 hidden md:table-cell">Items</th>
+                    <th className="pb-3">Amount</th>
+                    <th className="pb-3">Contact</th>
+                    <th className="pb-3 text-right">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50 dark:divide-slate-800/40 text-xs">
+                  {orders.map((order) => {
+                    const contacted = order.contacted_whatsapp || order.contacted_call || order.contacted_message;
+                    const date = order.created_at ? new Date(order.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '—';
+                    return (
+                      <tr key={order.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors">
+                        <td className="py-3.5 font-bold text-slate-900 dark:text-white">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-extrabold text-[10px] flex-shrink-0">
+                              {(order.customer?.full_name || '?').charAt(0).toUpperCase()}
+                            </div>
+                            <span className="truncate max-w-[100px]">{order.customer?.full_name || 'Unknown'}</span>
+                          </div>
+                        </td>
+                        <td className="py-3.5 text-slate-500 hidden sm:table-cell truncate max-w-[100px]">
+                          {order.seller?.shop_name || '—'}
+                        </td>
+                        <td className="py-3.5 text-slate-500 hidden md:table-cell">
+                          {order.items?.length ?? 0} item{order.items?.length === 1 ? '' : 's'}
+                        </td>
+                        <td className="py-3.5 font-extrabold text-slate-900 dark:text-white">
+                          Ksh {(order.total_amount || 0).toLocaleString()}
+                        </td>
+                        <td className="py-3.5">
+                          <span className={`px-2 py-0.5 rounded-xl text-[10px] font-extrabold ${contacted ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400' : 'bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400'}`}>
+                            {contacted ? 'Contacted' : 'Pending'}
+                          </span>
+                        </td>
+                        <td className="py-3.5 text-slate-400 text-right">{date}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
+              <ShoppingCart className="w-10 h-10 text-slate-200 dark:text-slate-700" />
+              <p className="text-sm font-semibold text-slate-400">No orders yet</p>
+              <p className="text-xs text-slate-300 dark:text-slate-600">Orders will appear here once customers check out</p>
+            </div>
+          )}
+        </div>
       </div>
-      </DashboardLayout>
-    </>
+    </DashboardLayout>
   );
 };
 
 export default AdminDashboard;
+

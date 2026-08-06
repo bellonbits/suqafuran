@@ -105,7 +105,7 @@ export default function LiveEventsPage() {
     <MonitoringLayout>
       <div className="space-y-6">
         {/* Status Bar */}
-        <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-4">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
@@ -155,7 +155,7 @@ export default function LiveEventsPage() {
                 onClick={() => setShowFilters(!showFilters)}
                 className={`p-2 rounded transition-colors ${
                   showFilters
-                    ? 'bg-orange-100 dark:bg-orange-900/30'
+                    ? 'bg-orange-50 dark:bg-orange-950/30 dark:bg-orange-900/30'
                     : 'hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
@@ -174,7 +174,7 @@ export default function LiveEventsPage() {
 
         {/* Filters Panel */}
         {showFilters && (
-          <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 space-y-4">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-slate-900 dark:text-white">Filters</h3>
               {Object.keys(store.filters).some(
@@ -273,7 +273,7 @@ export default function LiveEventsPage() {
         )}
 
         {/* Live Feed */}
-        <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
           <div className="mb-4">
             <h3 className="font-semibold text-slate-900 dark:text-white">
               Event Stream ({store.filteredEvents.length})

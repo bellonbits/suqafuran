@@ -194,8 +194,8 @@ export default function AdminSubscriptionsPage() {
       <div className="container mx-auto py-8 px-4 max-w-7xl space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Subscriptions</h1>
-          <p className="text-gray-600 mt-2">Monitor subscription metrics and seller plans</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Subscriptions</h1>
+          <p className="text-slate-600 dark:text-slate-300 mt-2">Monitor subscription metrics and seller plans</p>
         </div>
 
       {/* KPI Cards */}
@@ -235,7 +235,7 @@ export default function AdminSubscriptionsPage() {
       {/* Tier Distribution */}
       {stats && (
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Tier Distribution</h2>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Tier Distribution</h2>
           <div className="grid md:grid-cols-4 gap-4">
             <TierBadge
               name="Free"
@@ -266,13 +266,13 @@ export default function AdminSubscriptionsPage() {
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Plus className="w-5 h-5 text-amber-700" />
-            <h2 className="text-lg font-semibold text-gray-900">Manual Subscription Assignment</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Manual Subscription Assignment</h2>
           </div>
-          <p className="text-sm text-gray-600">Apply subscription to seller when payment fails or for promotional grants</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300">Apply subscription to seller when payment fails or for promotional grants</p>
 
           <div className="grid md:grid-cols-3 gap-4">
             <div className="relative">
-              <label className="block text-sm font-medium text-gray-900 mb-2">
+              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
                 Shop Name
               </label>
               <input
@@ -290,17 +290,17 @@ export default function AdminSubscriptionsPage() {
                     <button
                       key={shop.id}
                       onClick={() => handleSelectShop(shop.id, shop.business_name || shop.name)}
-                      className="w-full text-left px-3 py-2 hover:bg-amber-50 border-b border-gray-100 last:border-b-0 text-sm transition-colors"
+                      className="w-full text-left px-3 py-2 hover:bg-amber-50 border-b border-slate-100 dark:border-slate-800 last:border-b-0 text-sm transition-colors"
                     >
-                      <p className="font-medium text-gray-900">{shop.business_name || shop.name}</p>
-                      <p className="text-xs text-gray-500">{shop.full_name}</p>
+                      <p className="font-medium text-slate-900 dark:text-white">{shop.business_name || shop.name}</p>
+                      <p className="text-xs text-slate-400">{shop.full_name}</p>
                     </button>
                   ))}
                 </div>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
+              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">
                 Plan
               </label>
               <select
@@ -335,7 +335,7 @@ export default function AdminSubscriptionsPage() {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 flex gap-2">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search shop name or plan..."
@@ -361,7 +361,7 @@ export default function AdminSubscriptionsPage() {
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b">
+              <thead className="bg-slate-50 dark:bg-slate-800/40 border-b">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold">Shop Name</th>
                   <th className="px-4 py-3 text-left font-semibold">Plan</th>
@@ -374,14 +374,14 @@ export default function AdminSubscriptionsPage() {
               <tbody className="divide-y">
                 {filteredSubs.length > 0 ? (
                   filteredSubs.map(sub => (
-                    <tr key={sub.seller_id} className="hover:bg-gray-50">
+                    <tr key={sub.seller_id} className="hover:bg-slate-50 dark:bg-slate-800/40">
                       <td className="px-4 py-3 font-medium">{sub.shop_name}</td>
                       <td className="px-4 py-3">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          sub.plan_name === 'free' ? 'bg-gray-100 text-gray-800' :
-                          sub.plan_name === 'starter' ? 'bg-blue-100 text-blue-800' :
-                          sub.plan_name === 'business' ? 'bg-purple-100 text-purple-800' :
-                          'bg-orange-100 text-orange-800'
+                          sub.plan_name === 'free' ? 'bg-slate-100 dark:bg-slate-800 text-gray-800' :
+                          sub.plan_name === 'starter' ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-800' :
+                          sub.plan_name === 'business' ? 'bg-purple-50 dark:bg-purple-950/30 text-purple-800' :
+                          'bg-orange-50 dark:bg-orange-950/30 text-orange-800'
                         }`}>
                           {sub.plan_name}
                         </span>
@@ -389,22 +389,22 @@ export default function AdminSubscriptionsPage() {
                       <td className="px-4 py-3">KSh {sub.monthly_price.toLocaleString()}</td>
                       <td className="px-4 py-3">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          sub.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          sub.status === 'active' ? 'bg-emerald-50 dark:bg-emerald-950/30 text-green-800' : 'bg-rose-50 dark:bg-rose-950/30 text-red-800'
                         }`}>
                           {sub.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                         {new Date(sub.created_at).toLocaleDateString()}
                       </td>
-                      <td className="px-4 py-3 text-gray-600">
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                         {sub.renews_at ? new Date(sub.renews_at).toLocaleDateString() : '-'}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
                       No subscriptions found
                     </td>
                   </tr>
@@ -413,7 +413,7 @@ export default function AdminSubscriptionsPage() {
             </table>
           </div>
 
-          <div className="text-sm text-gray-600 text-right">
+          <div className="text-sm text-slate-600 dark:text-slate-300 text-right">
             Showing {filteredSubs.length} of {subscriptions.length} subscriptions
           </div>
         </div>
@@ -447,9 +447,9 @@ function StatCard({
     <Card className="p-6">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-2">{value}</p>
-          <p className="text-xs text-gray-500 mt-2">{change}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300">{title}</p>
+          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">{value}</p>
+          <p className="text-xs text-slate-400 mt-2">{change}</p>
         </div>
         <div className={`p-3 rounded-lg ${colorClasses[color as keyof typeof colorClasses]}`}>
           {icon}
@@ -469,10 +469,10 @@ function TierBadge({
   color: string;
 }) {
   const colorClasses = {
-    gray: 'bg-gray-100 text-gray-800',
-    blue: 'bg-blue-100 text-blue-800',
-    purple: 'bg-purple-100 text-purple-800',
-    orange: 'bg-orange-100 text-orange-800',
+    gray: 'bg-slate-100 dark:bg-slate-800 text-gray-800',
+    blue: 'bg-blue-50 dark:bg-blue-950/30 text-blue-800',
+    purple: 'bg-purple-50 dark:bg-purple-950/30 text-purple-800',
+    orange: 'bg-orange-50 dark:bg-orange-950/30 text-orange-800',
   };
 
   return (

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface MetricCardProps {
   icon: React.ReactNode;
@@ -10,7 +11,7 @@ interface MetricCardProps {
   subtext?: string;
   trend?: 'up' | 'down' | 'neutral';
   trendPercent?: number;
-  color?: 'blue' | 'green' | 'purple' | 'orange' | 'red';
+  color?: 'blue' | 'purple' | 'green' | 'red' | 'indigo' | 'orange';
 }
 
 export const MetricCard: React.FC<MetricCardProps> = ({
@@ -22,48 +23,48 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   trendPercent,
   color = 'blue',
 }) => {
-  const colorClasses = {
-    blue: 'bg-[#e0f7ff] text-[#5bc0e8]',
-    green: 'bg-green-100 text-green-600',
-    purple: 'bg-purple-100 text-purple-600',
-    orange: 'bg-orange-100 text-orange-600',
-    red: 'bg-red-100 text-red-600',
+  const colorMap = {
+    blue: 'bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400',
+    purple: 'bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400',
+    green: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400',
+    red: 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400',
+    indigo: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400',
+    orange: 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400',
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.3 }}
-      whileHover={{ y: -4, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}
-      className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-lg transition-shadow cursor-pointer"
+      whileHover={{ y: -2 }}
+      className="bg-white dark:bg-[#151D2A] rounded-3xl p-5 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex items-center justify-between transition-all"
     >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600 mb-2">{label}</p>
-          <div className="flex items-baseline gap-3">
-            <p className="text-3xl font-black text-gray-900">{value}</p>
-            {trend && trendPercent && (
-              <div
-                className={`text-xs font-semibold ${
-                  trend === 'up'
-                    ? 'text-green-600'
-                    : trend === 'down'
-                      ? 'text-red-600'
-                      : 'text-gray-600'
-                }`}
-              >
-                {trend === 'up' && '↑'} {Math.abs(trendPercent)}%
-              </div>
-            )}
-          </div>
-          {subtext && <p className="text-xs text-gray-500 mt-2">{subtext}</p>}
+      <div className="flex items-center gap-4">
+        {/* Icon Pill */}
+        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 ${colorMap[color] || colorMap.blue}`}>
+          <div className="w-5 h-5">{icon}</div>
         </div>
-        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${colorClasses[color]}`}>
-          <div className="w-6 h-6">{icon}</div>
+
+        {/* Content */}
+        <div>
+          <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mb-0.5">{label}</p>
+          <div className="flex items-baseline gap-2">
+            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">{value}</h3>
+          </div>
+          {subtext && <p className="text-[11px] text-slate-400 mt-0.5">{subtext}</p>}
         </div>
       </div>
+
+      {/* Trend indicator arrow pill */}
+      {trend && trendPercent !== undefined && (
+        <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-xl ${
+          trend === 'up'
+            ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30'
+            : 'text-rose-600 bg-rose-50 dark:bg-rose-950/30'
+        }`}>
+          {trend === 'up' ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+          <span>{trendPercent}%</span>
+        </div>
+      )}
     </motion.div>
   );
 };
+

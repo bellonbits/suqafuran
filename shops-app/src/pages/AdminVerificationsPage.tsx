@@ -96,47 +96,47 @@ const VerificationsPage = () => {
       {/* Page header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-2xl font-black text-gray-900">Verification Requests</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Review and approve user identity verifications</p>
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white">Verification Requests</h2>
+          <p className="text-sm text-slate-400 mt-0.5">Review and approve user identity verifications</p>
         </div>
       </div>
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-5 mb-7">
         <div className="stat-card flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-sky-50 dark:bg-sky-950/30 flex items-center justify-center">
             <UserCheck className="w-6 h-6 text-sky-600" />
           </div>
           <div>
-            <p className="text-3xl font-black text-gray-900">{verifications.length}</p>
-            <p className="text-sm text-gray-500 mt-0.5">Total</p>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">{verifications.length}</p>
+            <p className="text-sm text-slate-400 mt-0.5">Total</p>
           </div>
         </div>
         <div className="stat-card flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center">
             <Clock className="w-6 h-6 text-amber-600" />
           </div>
           <div>
-            <p className="text-3xl font-black text-gray-900">{pendingCount}</p>
-            <p className="text-sm text-gray-500 mt-0.5">Pending Review</p>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">{pendingCount}</p>
+            <p className="text-sm text-slate-400 mt-0.5">Pending Review</p>
           </div>
         </div>
         <div className="stat-card flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center">
             <CheckCircle className="w-6 h-6 text-emerald-600" />
           </div>
           <div>
-            <p className="text-3xl font-black text-gray-900">{approvedCount}</p>
-            <p className="text-sm text-gray-500 mt-0.5">Approved</p>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">{approvedCount}</p>
+            <p className="text-sm text-slate-400 mt-0.5">Approved</p>
           </div>
         </div>
         <div className="stat-card flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-950/30 flex items-center justify-center">
             <XCircle className="w-6 h-6 text-red-500" />
           </div>
           <div>
-            <p className="text-3xl font-black text-gray-900">{rejectedCount}</p>
-            <p className="text-sm text-gray-500 mt-0.5">Rejected</p>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">{rejectedCount}</p>
+            <p className="text-sm text-slate-400 mt-0.5">Rejected</p>
           </div>
         </div>
       </div>
@@ -144,13 +144,13 @@ const VerificationsPage = () => {
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-3 mb-5">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
             placeholder="Search by name or phone…"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-300 bg-white shadow-sm"
+            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 bg-white dark:bg-[#151D2A] shadow-sm"
           />
         </div>
         <div className="flex gap-2">
@@ -160,8 +160,8 @@ const VerificationsPage = () => {
               onClick={() => setStatusFilter(s)}
               className={`px-4 py-2.5 rounded-xl text-sm font-semibold capitalize transition-all ${
                 statusFilter === s
-                  ? 'bg-sky-500 text-white shadow-sm'
-                  : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'bg-white border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-gray-50'
               }`}
             >
               {s} {s !== 'all' && <span className="ml-1 opacity-70 text-xs">({
@@ -177,8 +177,8 @@ const VerificationsPage = () => {
         <div className="data-table-wrapper">
           <div className="flex justify-center py-20">
             <div className="flex flex-col items-center gap-3">
-              <Loader className="w-8 h-8 animate-spin text-sky-500" />
-              <p className="text-gray-500 text-sm">Loading verifications…</p>
+              <Loader className="w-8 h-8 animate-spin text-indigo-500" />
+              <p className="text-slate-400 text-sm">Loading verifications…</p>
             </div>
           </div>
         </div>
@@ -202,7 +202,7 @@ const VerificationsPage = () => {
                   <tr>
                     <td colSpan={7} className="py-16 text-center">
                       <UserCheck className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                      <p className="text-gray-400 font-medium">No verifications found</p>
+                      <p className="text-slate-400 font-medium">No verifications found</p>
                     </td>
                   </tr>
                 ) : (
@@ -220,8 +220,8 @@ const VerificationsPage = () => {
                               {name.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <p className="font-semibold text-gray-900 leading-tight">{name}</p>
-                              {phone && <p className="text-xs text-gray-400 mt-0.5 font-mono">{phone}</p>}
+                              <p className="font-semibold text-slate-900 dark:text-white leading-tight">{name}</p>
+                              {phone && <p className="text-xs text-slate-400 mt-0.5 font-mono">{phone}</p>}
                             </div>
                           </div>
                         </td>
@@ -233,7 +233,7 @@ const VerificationsPage = () => {
                         </td>
                         {/* Doc type */}
                         <td className="hidden md:table-cell">
-                          <span className="text-gray-600 text-sm">{v.document_type || v.id_type || '—'}</span>
+                          <span className="text-slate-600 dark:text-slate-300 text-sm">{v.document_type || v.id_type || '—'}</span>
                         </td>
                         {/* Match score */}
                         <td>
@@ -249,7 +249,7 @@ const VerificationsPage = () => {
                         </td>
                         {/* Submitted */}
                         <td className="hidden sm:table-cell">
-                          <span className="text-gray-500 text-xs">
+                          <span className="text-slate-400 text-xs">
                             {v.created_at ? new Date(v.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                           </span>
                         </td>
@@ -274,13 +274,13 @@ const VerificationsPage = () => {
                               <>
                                 <button
                                   onClick={() => handleApprove(v.id)}
-                                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors"
+                                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 hover:bg-emerald-200 transition-colors"
                                 >
                                   Approve
                                 </button>
                                 <button
                                   onClick={() => handleReject(v.id)}
-                                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
+                                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-50 dark:bg-rose-950/30 text-red-700 hover:bg-red-200 transition-colors"
                                 >
                                   Reject
                                 </button>
@@ -289,7 +289,7 @@ const VerificationsPage = () => {
                             {v.status === 'rejected' && (
                               <button
                                 onClick={() => handleApprove(v.id)}
-                                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors"
+                                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 hover:bg-emerald-200 transition-colors"
                               >
                                 Approve
                               </button>
@@ -304,9 +304,9 @@ const VerificationsPage = () => {
             </table>
           </div>
 
-          <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 text-xs text-gray-400">
-            Showing <span className="font-semibold text-gray-600">{filtered.length}</span> of{' '}
-            <span className="font-semibold text-gray-600">{verifications.length}</span> verifications
+          <div className="px-6 py-3 border-t border-slate-100 dark:border-slate-800 bg-gray-50/50 text-xs text-slate-400">
+            Showing <span className="font-semibold text-slate-600 dark:text-slate-300">{filtered.length}</span> of{' '}
+            <span className="font-semibold text-slate-600 dark:text-slate-300">{verifications.length}</span> verifications
           </div>
         </div>
       )}
@@ -319,14 +319,14 @@ const VerificationsPage = () => {
         >
           <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
             {/* Modal header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+            <div className="sticky top-0 bg-white border-b border-slate-200 dark:border-slate-700 px-6 py-4 flex items-center justify-between rounded-t-2xl">
               <div>
-                <h2 className="text-lg font-black text-gray-900">Verification #{selectedVerification.id}</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Identity verification request details</p>
+                <h2 className="text-lg font-black text-slate-900 dark:text-white">Verification #{selectedVerification.id}</h2>
+                <p className="text-xs text-slate-400 mt-0.5">Identity verification request details</p>
               </div>
               <button
                 onClick={() => setSelectedVerification(null)}
-                className="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-500"
+                className="p-2 hover:bg-slate-100 dark:bg-slate-800 rounded-xl transition-colors text-slate-400"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -334,8 +334,8 @@ const VerificationsPage = () => {
 
             <div className="p-6 space-y-5">
               {/* User info */}
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">User Information</p>
+              <div className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-4">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">User Information</p>
                 <div className="grid grid-cols-2 gap-4">
                   {[
                     { label: 'Full Name', val: selectedVerification.user?.full_name || selectedVerification.full_name || '—' },
@@ -344,30 +344,30 @@ const VerificationsPage = () => {
                     { label: 'Level', val: selectedVerification.tier || selectedVerification.user?.verified_level || 'STANDARD' },
                   ].map(f => (
                     <div key={f.label}>
-                      <p className="text-xs text-gray-400 font-semibold mb-1">{f.label}</p>
-                      <p className="text-sm text-gray-900 font-medium">{f.val}</p>
+                      <p className="text-xs text-slate-400 font-semibold mb-1">{f.label}</p>
+                      <p className="text-sm text-slate-900 dark:text-white font-medium">{f.val}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Verification info */}
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Verification Details</p>
+              <div className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-4">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Verification Details</p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs text-gray-400 font-semibold mb-1">Document Type</p>
-                    <p className="text-sm text-gray-900 font-medium">{selectedVerification.document_type || '—'}</p>
+                    <p className="text-xs text-slate-400 font-semibold mb-1">Document Type</p>
+                    <p className="text-sm text-slate-900 dark:text-white font-medium">{selectedVerification.document_type || '—'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 font-semibold mb-1">Status</p>
+                    <p className="text-xs text-slate-400 font-semibold mb-1">Status</p>
                     <span className={getStatusBadge(selectedVerification.status)}>
                       {getStatusIcon(selectedVerification.status)}
                       {selectedVerification.status}
                     </span>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 font-semibold mb-1">Match Score</p>
+                    <p className="text-xs text-slate-400 font-semibold mb-1">Match Score</p>
                     <div className="flex items-center gap-2 mt-1">
                       <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
                         <div
@@ -381,8 +381,8 @@ const VerificationsPage = () => {
                     </div>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 font-semibold mb-1">Submitted</p>
-                    <p className="text-sm text-gray-900 font-medium">
+                    <p className="text-xs text-slate-400 font-semibold mb-1">Submitted</p>
+                    <p className="text-sm text-slate-900 dark:text-white font-medium">
                       {selectedVerification.created_at ? new Date(selectedVerification.created_at).toLocaleDateString() : '—'}
                     </p>
                   </div>
@@ -412,22 +412,22 @@ const VerificationsPage = () => {
                 if (!unique.length) return null;
                 return (
                   <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
                       Documents & Images ({unique.length})
                     </p>
                     <div className="grid grid-cols-1 gap-3">
                       {unique.map((doc, i) => (
-                        <div key={i} className="border border-gray-200 rounded-xl overflow-hidden">
-                          <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border-b border-gray-200">
+                        <div key={i} className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                          <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-700">
                             {doc.type === 'pdf' ? <FileImage className="w-4 h-4 text-red-500" /> :
                              doc.type === 'video' ? <Video className="w-4 h-4 text-sky-500" /> :
-                             <FileImage className="w-4 h-4 text-gray-400" />}
-                            <span className="text-xs font-semibold text-gray-600">{doc.label}</span>
+                             <FileImage className="w-4 h-4 text-slate-400" />}
+                            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{doc.label}</span>
                           </div>
                           {doc.type === 'pdf' ? (
                             <div className="p-6 flex flex-col items-center gap-3 bg-white">
                               <FileText className="w-12 h-12 text-red-500" />
-                              <a href={doc.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 bg-sky-500 text-white rounded-lg text-sm font-semibold hover:bg-sky-600 transition-colors">
+                              <a href={doc.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-sky-600 transition-colors">
                                 <ExternalLink className="w-4 h-4" /> View PDF
                               </a>
                             </div>
@@ -436,7 +436,7 @@ const VerificationsPage = () => {
                               <video src={doc.url} controls className="w-full max-h-64" />
                             </div>
                           ) : (
-                            <img src={doc.url} alt={doc.label} className="w-full max-h-80 object-contain bg-gray-50" />
+                            <img src={doc.url} alt={doc.label} className="w-full max-h-80 object-contain bg-slate-50 dark:bg-slate-800/40" />
                           )}
                         </div>
                       ))}
@@ -454,7 +454,7 @@ const VerificationsPage = () => {
               )}
 
               {/* Modal actions */}
-              <div className="flex gap-3 pt-2 border-t border-gray-100">
+              <div className="flex gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
                 {selectedVerification.status === 'pending' && (
                   <>
                     <button
@@ -480,13 +480,13 @@ const VerificationsPage = () => {
                   </button>
                 )}
                 {selectedVerification.status === 'approved' && (
-                  <div className="flex-1 py-2.5 bg-emerald-100 text-emerald-700 rounded-xl font-semibold text-center flex items-center justify-center gap-2">
+                  <div className="flex-1 py-2.5 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 rounded-xl font-semibold text-center flex items-center justify-center gap-2">
                     <CheckCircle className="w-4 h-4" /> Already Approved
                   </div>
                 )}
                 <button
                   onClick={() => setSelectedVerification(null)}
-                  className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-colors"
+                  className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-gray-200 text-slate-700 dark:text-slate-300 rounded-xl font-semibold transition-colors"
                 >
                   Close
                 </button>

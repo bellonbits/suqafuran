@@ -93,9 +93,9 @@ export default function UserLifecyclePage() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <TrendingUp className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">User Lifecycle Analytics</h1>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">User Lifecycle Analytics</h1>
           </div>
-          <p className="text-gray-600">Track user progression through stages and identify churn</p>
+          <p className="text-slate-600 dark:text-slate-300">Track user progression through stages and identify churn</p>
         </div>
 
         {/* Key Metrics */}
@@ -129,13 +129,13 @@ export default function UserLifecyclePage() {
 
         {/* Lifecycle Stages */}
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6">User Stages</h2>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">User Stages</h2>
           <div className="space-y-4">
             {stats.stage_breakdown.map((stage, idx) => (
               <div key={idx} className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="font-medium text-gray-900">{stage.stage}</p>
-                  <p className="text-sm text-gray-600">{stage.count.toLocaleString()} users ({stage.percentage.toFixed(1)}%)</p>
+                  <p className="font-medium text-slate-900 dark:text-white">{stage.stage}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">{stage.count.toLocaleString()} users ({stage.percentage.toFixed(1)}%)</p>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
@@ -150,7 +150,7 @@ export default function UserLifecyclePage() {
 
         {/* Conversion Funnel */}
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6">Conversion Funnel</h2>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">Conversion Funnel</h2>
           <div className="space-y-4">
             <FunnelStage
               label="Signup → Profile Complete"
@@ -172,10 +172,10 @@ export default function UserLifecyclePage() {
 
         {/* Cohort Retention */}
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Cohort Retention Analysis</h2>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Cohort Retention Analysis</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b">
+              <thead className="bg-slate-50 dark:bg-slate-800/40 border-b">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold">Signup Month</th>
                   <th className="px-4 py-3 text-left font-semibold">Total Signups</th>
@@ -185,17 +185,17 @@ export default function UserLifecyclePage() {
               </thead>
               <tbody className="divide-y">
                 {stats.cohort_data.map((cohort, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50">
+                  <tr key={idx} className="hover:bg-slate-50 dark:bg-slate-800/40">
                     <td className="px-4 py-3 font-medium">{cohort.cohort_month}</td>
                     <td className="px-4 py-3">{cohort.total_signups.toLocaleString()}</td>
                     <td className="px-4 py-3">{cohort.still_active.toLocaleString()}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
                         cohort.retention_rate > 50
-                          ? 'bg-green-100 text-green-800'
+                          ? 'bg-emerald-50 dark:bg-emerald-950/30 text-green-800'
                           : cohort.retention_rate > 25
                           ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-red-100 text-red-800'
+                          : 'bg-rose-50 dark:bg-rose-950/30 text-red-800'
                       }`}>
                         {cohort.retention_rate.toFixed(1)}%
                       </span>
@@ -260,9 +260,9 @@ function StatCard({
     <Card className="p-6">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-2">{value}</p>
-          {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
+          <p className="text-sm text-slate-600 dark:text-slate-300">{title}</p>
+          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">{value}</p>
+          {subtitle && <p className="text-xs text-slate-400 mt-1">{subtitle}</p>}
         </div>
         <div className={`p-3 rounded-lg ${colorClasses[color as keyof typeof colorClasses]}`}>
           {icon}
@@ -284,10 +284,10 @@ function FunnelStage({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-gray-900">{label}</p>
-        <p className="text-sm font-semibold text-gray-700">{percentage.toFixed(1)}%</p>
+        <p className="text-sm font-medium text-slate-900 dark:text-white">{label}</p>
+        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{percentage.toFixed(1)}%</p>
       </div>
-      <div className="relative h-8 bg-gray-100 rounded-lg overflow-hidden">
+      <div className="relative h-8 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden">
         <div
           className={`${color} h-full flex items-center justify-center transition-all duration-500`}
           style={{ width: `${percentage}%` }}

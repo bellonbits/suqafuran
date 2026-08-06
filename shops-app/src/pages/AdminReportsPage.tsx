@@ -71,34 +71,34 @@ const ReportsPage = () => {
       <div className="p-6">
         {/* Key Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white border border-gray-200 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
             <ShoppingCart className="w-10 h-10 text-[#6cd4ff] mb-4" />
-            <p className="text-3xl font-black text-gray-900">{stats?.total_orders || 0}</p>
-            <p className="text-sm text-gray-500 mt-1">Total Orders</p>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">{stats?.total_orders || 0}</p>
+            <p className="text-sm text-slate-400 mt-1">Total Orders</p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
             <Users className="w-10 h-10 text-green-500 mb-4" />
-            <p className="text-3xl font-black text-gray-900">{stats?.total_users || 0}</p>
-            <p className="text-sm text-gray-500 mt-1">Total Users</p>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">{stats?.total_users || 0}</p>
+            <p className="text-sm text-slate-400 mt-1">Total Users</p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
             <DollarSign className="w-10 h-10 text-purple-500 mb-4" />
-            <p className="text-3xl font-black text-gray-900">Ksh {(stats?.total_revenue || 0).toLocaleString()}</p>
-            <p className="text-sm text-gray-500 mt-1">Total Revenue</p>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">Ksh {(stats?.total_revenue || 0).toLocaleString()}</p>
+            <p className="text-sm text-slate-400 mt-1">Total Revenue</p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
             <BarChart3 className="w-10 h-10 text-orange-500 mb-4" />
-            <p className="text-3xl font-black text-gray-900">{stats?.avg_order_value || 0}</p>
-            <p className="text-sm text-gray-500 mt-1">Avg Order Value</p>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">{stats?.avg_order_value || 0}</p>
+            <p className="text-sm text-slate-400 mt-1">Avg Order Value</p>
           </div>
         </div>
 
         {/* Export Section */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-8">
+        <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-6 mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-black text-gray-900">Export Data</h2>
-              <p className="text-gray-500 text-sm mt-1">Download order data as CSV</p>
+              <h2 className="text-lg font-black text-slate-900 dark:text-white">Export Data</h2>
+              <p className="text-slate-400 text-sm mt-1">Download order data as CSV</p>
             </div>
             <button
               onClick={handleExportCSV}
@@ -111,36 +111,36 @@ const ReportsPage = () => {
         </div>
 
         {/* Orders Summary */}
-        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-black text-gray-900">Recent Orders</h2>
+        <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
+          <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+            <h2 className="text-lg font-black text-slate-900 dark:text-white">Recent Orders</h2>
           </div>
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-700">
               <tr>
-                <th className="px-6 py-4 text-left font-bold text-gray-900">Order ID</th>
-                <th className="px-6 py-4 text-left font-bold text-gray-900">Status</th>
-                <th className="px-6 py-4 text-left font-bold text-gray-900">Amount</th>
-                <th className="px-6 py-4 text-left font-bold text-gray-900">Date</th>
+                <th className="px-6 py-4 text-left font-bold text-slate-900 dark:text-white">Order ID</th>
+                <th className="px-6 py-4 text-left font-bold text-slate-900 dark:text-white">Status</th>
+                <th className="px-6 py-4 text-left font-bold text-slate-900 dark:text-white">Amount</th>
+                <th className="px-6 py-4 text-left font-bold text-slate-900 dark:text-white">Date</th>
               </tr>
             </thead>
             <tbody>
               {orders.slice(0, 20).map((order, idx) => (
-                <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50">
-                  <td className="px-6 py-4 text-gray-900 font-medium">{order.id}</td>
+                <tr key={idx} className="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-800/40">
+                  <td className="px-6 py-4 text-slate-900 dark:text-white font-medium">{order.id}</td>
                   <td className="px-6 py-4">
                     <span className={`px-3 py-1 rounded-full text-sm font-bold ${
                       order.status === 'delivered'
-                        ? 'bg-green-100 text-green-700'
+                        ? 'bg-emerald-50 dark:bg-emerald-950/30 text-green-700'
                         : order.status === 'cancelled'
-                        ? 'bg-red-100 text-red-700'
+                        ? 'bg-rose-50 dark:bg-rose-950/30 text-red-700'
                         : 'bg-[#e0f7ff] text-blue-700'
                     }`}>
                       {order.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-gray-900 font-semibold">Ksh {order.total_amount?.toLocaleString()}</td>
-                  <td className="px-6 py-4 text-gray-600 text-sm">
+                  <td className="px-6 py-4 text-slate-900 dark:text-white font-semibold">Ksh {order.total_amount?.toLocaleString()}</td>
+                  <td className="px-6 py-4 text-slate-600 dark:text-slate-300 text-sm">
                     {new Date(order.created_at).toLocaleDateString()}
                   </td>
                 </tr>

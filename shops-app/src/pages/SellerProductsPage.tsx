@@ -1,329 +1,320 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Edit2, Trash2, Copy, Loader, CheckCircle, Zap, AlertTriangle } from 'lucide-react';
-import Link from 'next/link';
-import api from '@/services/api';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import {
+  Plus, Search, Filter, SlidersHorizontal, Calendar, ChevronRight,
+  MoreHorizontal, Loader2, Package, Tag, AlertTriangle, CheckCircle2,
+  Edit2, Trash2, Copy, FileUp, Zap, Clock, Box
+} from 'lucide-react';
 import { useAuthStore } from '@/store/useAuth';
-
-const truncateId = (id: any, length: number = 8): string => {
-  if (!id) return 'N/A';
-  try {
-    const idStr = typeof id === 'string' ? id : String(id);
-    return idStr.substring(0, length);
-  } catch {
-    return 'N/A';
-  }
-};
+import api from '@/services/api';
 
 export default function ProductsPage() {
+  const navigate = useNavigate();
   const { user } = useAuthStore();
+
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('All Status');
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deleting, setDeleting] = useState<string | null>(null);
-  const [copying, setCopying] = useState<string | null>(null);
-  const [maxProducts, setMaxProducts] = useState<number | null>(200); // null = unlimited
-  const [planName, setPlanName] = useState<string>('free');
+  const [maxProducts, setMaxProducts] = useState<number | null>(200);
 
   useEffect(() => {
     loadProducts();
-    if (user) {
-      api.get(`/subscriptions/sellers/${user.id}/features`)
-        .then((res) => {
-          setMaxProducts(res.data?.max_products ?? 200);
-          setPlanName(res.data?.plan_name ?? 'free');
-        })
-        .catch(() => {});
-    }
-  }, [user]);
+  }, []);
 
   const loadProducts = async () => {
+    setLoading(true);
     try {
-      console.log('[DEBUG] Loading products from /listings/me');
-      const res = await api.get('/listings/me?limit=100');
-      console.log('[DEBUG] API Response:', res);
-      console.log('[DEBUG] Response data:', res.data);
-      
-      if (res.data) {
-        const productsArray = Array.isArray(res.data) ? res.data : res.data.listings || res.data.items || [];
-        console.log('[DEBUG] Parsed products array:', productsArray);
-        console.log('[DEBUG] Product count:', productsArray.length);
-        setProducts(productsArray);
-      } else {
-        console.warn('[DEBUG] No data in response');
-        setProducts([]);
+      const res = await api.get('/listings/me?limit=100').catch(() => null);
+      if (res?.data) {
+        const items = Array.isArray(res.data) ? res.data : res.data.listings || res.data.items || [];
+        setProducts(items);
       }
-    } catch (error) {
-      console.error('[ERROR] Loading products failed:', error);
-      if (error instanceof Error) {
-        console.error('[ERROR] Error message:', error.message);
-      }
-      setProducts([]);
+    } catch (err) {
+      console.error('Error loading seller products:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (productId: string) => {
+  const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this product?')) return;
-
-    setDeleting(productId);
     try {
-      await api.delete(`/listings/${productId}`);
-      setProducts(products.filter(p => p.id !== productId));
+      await api.delete(`/listings/${id}`).catch(() => null);
       loadProducts();
-    } catch (error) {
-      console.error('Error deleting product:', error);
-      alert('Failed to delete product');
-    } finally {
-      setDeleting(null);
+    } catch (err) {
+      console.error('Failed to delete product:', err);
     }
   };
 
-  const handleCopy = async (product: any) => {
-    setCopying(product.id);
-    try {
-      const newProduct = {
-        ...product,
-        title: `${product.title} (Copy)`,
-      };
-      delete newProduct.id;
-      delete newProduct.created_at;
-      delete newProduct.updated_at;
-      delete newProduct.views;
-      delete newProduct.sales;
+  const filteredProducts = products.filter(p => {
+    const title = p.title_en || p.title || '';
+    const matchesSearch = title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (p.category?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'All Status' ||
+                          (statusFilter === 'Published' && p.status === 'active') ||
+                          (statusFilter === 'Pending' && p.status === 'pending');
+    return matchesSearch && matchesStatus;
+  });
 
-      await api.post('/listings', newProduct);
-      alert('Product copied successfully!');
-      loadProducts();
-    } catch (error) {
-      console.error('Error copying product:', error);
-      alert('Failed to copy product');
-    } finally {
-      setCopying(null);
-    }
-  };
-
-  const handleEdit = (product: any) => {
-    window.location.href = `/listings/${product.id}/edit`;
-  };
+  const totalProducts = products.length;
+  const activeProducts = products.filter(p => p.status === 'active').length;
+  const pendingProducts = products.filter(p => p.status === 'pending').length;
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex flex-col items-center gap-3">
-          <Loader className="w-8 h-8 animate-spin text-orange-600" />
-          <p className="text-gray-500 text-sm">Loading products...</p>
-        </div>
+      <div className="flex flex-col items-center justify-center h-96 gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-sky-500" />
+        <p className="text-sm font-semibold text-slate-400">Loading Products List…</p>
       </div>
     );
   }
 
-  const activeCount = products.filter(p => p.status === 'active').length;
-  const outOfStockCount = products.filter(p => p.stock === 0).length;
-  const totalViews = products.reduce((sum, p) => sum + (p.views || 0), 0);
-  const totalSales = products.reduce((sum, p) => sum + (p.sales || 0), 0);
-
-  const filteredProducts = products.filter(p => {
-    const title = (p.title_en || p.title || '').toLowerCase();
-    return title.includes(searchQuery.toLowerCase());
-  });
-  
-  console.log('[DEBUG] Filtered products count:', filteredProducts.length);
-
-  const productCount = products.length;
-  const limitPct = maxProducts !== null ? Math.min(100, Math.round((productCount / maxProducts) * 100)) : 0;
-  const nearLimit = maxProducts !== null && limitPct >= 90 && limitPct < 100;
-  const atLimit = maxProducts !== null && productCount >= maxProducts;
-
   return (
-    <div className="space-y-6">
-      {/* Product limit banner */}
-      {atLimit && (
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/30 rounded-xl">
-          <Zap className="w-5 h-5 text-red-500 flex-shrink-0" />
-          <p className="text-sm font-semibold text-red-700 dark:text-red-400 flex-1">
-            You've reached your product limit ({maxProducts} products). Upgrade to Business to add more.
-          </p>
-          <Link
-            href="/seller-dashboard/subscription"
-            className="flex-shrink-0 text-xs font-bold px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-          >
-            Upgrade Now
-          </Link>
-        </div>
-      )}
-      {nearLimit && !atLimit && (
-        <div className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30 rounded-xl">
-          <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
-          <p className="text-sm text-amber-700 dark:text-amber-400">
-            You're at <strong>{limitPct}%</strong> of your product limit ({productCount} / {maxProducts}). Consider upgrading soon.
-          </p>
-        </div>
-      )}
+    <div className="space-y-6 pb-12">
 
+      {/* ── Page Title & Action CTAs (Bright Sky Blue) ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Products</h1>
-          <div className="flex items-center gap-3">
-            <p className="text-gray-600 dark:text-slate-400">Manage your product listings</p>
-            {maxProducts !== null && (
-              <span className="text-xs font-semibold text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">
-                {productCount} / {maxProducts}
-              </span>
-            )}
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+            Products List
+          </h1>
+          <p className="text-xs text-slate-400 mt-1 font-medium">
+            Here you can find all of your products and stock management
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Link
+            to="/seller-dashboard/products/bulk-import"
+            className="hidden sm:flex items-center gap-1.5 px-3.5 py-2.5 bg-white dark:bg-[#151D2A] border border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl text-xs font-bold hover:bg-slate-50 transition-colors shadow-sm"
+          >
+            <FileUp className="w-4 h-4 text-sky-500" />
+            <span>Bulk Import</span>
+          </Link>
+
+          <Link
+            to="/seller-dashboard/products/add"
+            className="flex items-center gap-2 px-4 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-2xl text-xs font-bold transition-all shadow-md shadow-sky-500/20 active:scale-95"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Product</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* ── Products Stat Summary Grid ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-5 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Products</p>
+          <div className="flex items-baseline justify-between mt-2">
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              {totalProducts.toLocaleString()}
+            </h2>
+            <span className="text-xs font-bold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/40 px-2 py-0.5 rounded-full">
+              Live
+            </span>
           </div>
-          {maxProducts !== null && (
-            <div className="mt-2 h-1.5 w-48 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all ${
-                  limitPct >= 100 ? 'bg-red-500' : limitPct >= 90 ? 'bg-amber-500' : 'bg-orange-500'
-                }`}
-                style={{ width: `${limitPct}%` }}
-              />
-            </div>
-          )}
+          <p className="text-[11px] text-slate-400 mt-2 font-medium">All store listings</p>
         </div>
-        <a
-          href="/seller-dashboard/products/add"
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg flex items-center gap-2 transition-colors text-center"
-        >
-          <Plus className="w-5 h-5" />
-          Add Product
-        </a>
+
+        <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-5 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Published Active</p>
+          <div className="flex items-baseline justify-between mt-2">
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              {activeProducts.toLocaleString()}
+            </h2>
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full">
+              Active
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-400 mt-2 font-medium">Visible to customers</p>
+        </div>
+
+        <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-5 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Pending Review</p>
+          <div className="flex items-baseline justify-between mt-2">
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              {pendingProducts.toLocaleString()}
+            </h2>
+            <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full">
+              Pending
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-400 mt-2 font-medium">Awaiting moderation</p>
+        </div>
+
+        <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-5 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Product Limit</p>
+          <div className="flex items-baseline justify-between mt-2">
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              {totalProducts} / {maxProducts ?? '∞'}
+            </h2>
+            <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded-full">
+              PRO Plan
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-400 mt-2 font-medium">Subscription allowance</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Active Products</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{activeCount}</p>
-        </div>
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Out of Stock</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{outOfStockCount}</p>
-        </div>
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Total Views</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalViews.toLocaleString()}</p>
-        </div>
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Total Sales</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalSales}</p>
-        </div>
-      </div>
-
-      <div className="flex gap-2">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+      {/* ── Filter Toolbar ── */}
+      <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-4 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search products..."
+            placeholder="Search products by title, SKU or category..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
+            className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50 rounded-2xl pl-10 pr-12 py-2.5 text-xs md:text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 outline-none focus:ring-2 focus:ring-sky-500/20 transition-all"
           />
         </div>
-        <button className="px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 flex items-center gap-2">
-          <Filter className="w-4 h-4" />
-          Filter
-        </button>
+
+        <div className="flex items-center gap-2">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-2xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-sky-500/20 transition-all"
+          >
+            <option value="All Status">All Status</option>
+            <option value="Published">Published</option>
+            <option value="Pending">Pending</option>
+          </select>
+        </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-800">
-                <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-white">Product</th>
-                <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-white">Price</th>
-                <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-white">Stock</th>
-                <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-white">Views</th>
-                <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-white">Sales</th>
-                <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-white">Status</th>
-                <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-white">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProducts.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-gray-400">
-                    {searchQuery ? 'No products match your search' : 'No products yet'}
-                  </td>
-                </tr>
-              ) : (
-              filteredProducts.map((product) => (
-                <tr key={product.id} className="border-b border-gray-200 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="font-semibold text-gray-900 dark:text-white truncate">{product.title_en || product.title || product.name || 'Untitled Product'}</p>
-                      <p className="text-xs text-gray-500 dark:text-slate-400">{truncateId(product.id)}</p>
+      {/* ── Products Data Table (Kenya Currency Ksh) ── */}
+      <div className="bg-white dark:bg-[#151D2A] rounded-3xl border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] overflow-hidden">
+        
+        {filteredProducts.length > 0 ? (
+          <>
+            {/* Desktop View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="bg-slate-50/60 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800 text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
+                    <th className="py-3.5 px-5">Product Info</th>
+                    <th className="py-3.5 px-5">SKU / Code</th>
+                    <th className="py-3.5 px-5">Price (KSh)</th>
+                    <th className="py-3.5 px-5">Status</th>
+                    <th className="py-3.5 px-5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50 dark:divide-slate-800/40">
+                  {filteredProducts.map((p) => {
+                    const title = p.title_en || p.title || 'Untitled Product';
+                    const image = p.images?.[0] || p.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=150&q=80';
+                    return (
+                      <tr key={p.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors">
+                        <td className="py-4 px-5">
+                          <div className="flex items-center gap-3">
+                            <img src={image} alt={title} className="w-10 h-10 rounded-xl object-cover border border-slate-100 dark:border-slate-800 flex-shrink-0" />
+                            <div>
+                              <p className="font-bold text-slate-900 dark:text-white leading-tight">{title}</p>
+                              <p className="text-[10px] text-slate-400 mt-0.5">{p.location || 'Nairobi, Kenya'}</p>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="py-4 px-5 font-mono font-extrabold text-slate-700 dark:text-slate-300">
+                          SKU-{p.id?.toString().padStart(6, '0')}
+                        </td>
+
+                        <td className="py-4 px-5 font-black text-slate-900 dark:text-white">
+                          Ksh {(p.price || 0).toLocaleString()}
+                        </td>
+
+                        <td className="py-4 px-5">
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${
+                            p.status === 'active'
+                              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-100'
+                              : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-100'
+                          }`}>
+                            <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                            {p.status === 'active' ? 'Published' : 'Pending'}
+                          </span>
+                        </td>
+
+                        <td className="py-4 px-5 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => navigate(`/seller-dashboard/products/edit/${p.id}`)}
+                              className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition-colors"
+                              title="Edit Product"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(p.id)}
+                              className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-500 hover:bg-rose-100 transition-colors"
+                              title="Delete Product"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile View (< 768px) */}
+            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+              {filteredProducts.map((p) => {
+                const title = p.title_en || p.title || 'Untitled Product';
+                const image = p.images?.[0] || p.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=150&q=80';
+                return (
+                  <div key={p.id} className="p-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <img src={image} alt={title} className="w-12 h-12 rounded-xl object-cover border border-slate-100 dark:border-slate-800 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-sm text-slate-900 dark:text-white truncate">{title}</p>
+                        <p className="text-[10px] text-slate-400">SKU-{p.id?.toString().padStart(6, '0')}</p>
+                        <p className="text-sm font-black text-slate-900 dark:text-white mt-1">Ksh {(p.price || 0).toLocaleString()}</p>
+                      </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">KSh {(product.price || 0).toLocaleString()}</td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                      (product.quantity || 0) > 20
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
-                        : (product.quantity || 0) > 0
-                        ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
-                        : 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
-                    }`}>
-                      {product.quantity || 0}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-900 dark:text-white">{product.views || 0}</td>
-                  <td className="px-6 py-4 text-gray-900 dark:text-white">{product.sales || 0}</td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                      (product.is_active === true || product.status === 'active')
-                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
-                        : 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
-                    }`}>
-                      {(product.is_active === true || product.status === 'active') ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEdit(product)}
-                        className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded"
-                        title="Edit product"
-                      >
-                        <Edit2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      </button>
-                      <button
-                        onClick={() => handleCopy(product)}
-                        disabled={copying === product.id}
-                        className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded disabled:opacity-50"
-                        title="Duplicate product"
-                      >
-                        {copying === product.id ? (
-                          <Loader className="w-4 h-4 animate-spin text-gray-600 dark:text-slate-400" />
-                        ) : (
-                          <Copy className="w-4 h-4 text-gray-600 dark:text-slate-400" />
-                        )}
-                      </button>
-                      <button
-                        onClick={() => handleDelete(product.id)}
-                        disabled={deleting === product.id}
-                        className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded disabled:opacity-50"
-                        title="Delete product"
-                      >
-                        {deleting === product.id ? (
-                          <Loader className="w-4 h-4 animate-spin text-red-600 dark:text-red-400" />
-                        ) : (
-                          <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
-                        )}
-                      </button>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-50 dark:border-slate-800">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                        p.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                      }`}>
+                        • {p.status === 'active' ? 'Published' : 'Pending'}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => navigate(`/seller-dashboard/products/edit/${p.id}`)}
+                          className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(p.id)}
+                          className="px-3 py-1.5 bg-rose-50 text-rose-600 rounded-xl text-xs font-bold"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
-                  </td>
-                </tr>
-              ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
+            <Box className="w-12 h-12 text-slate-200 dark:text-slate-700" />
+            <p className="text-base font-extrabold text-slate-700 dark:text-slate-200">No Products Found</p>
+            <p className="text-xs text-slate-400 max-w-sm">
+              Click "+ Add Product" to publish your first listing on Suqafuran Marketplace.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

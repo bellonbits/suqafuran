@@ -295,13 +295,13 @@ export default function ShopsAdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-800/40 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Shop Management</h1>
-            <p className="text-gray-600 mt-2">Manage shop details, banners, and settings</p>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Shop Management</h1>
+            <p className="text-slate-600 dark:text-slate-300 mt-2">Manage shop details, banners, and settings</p>
           </div>
           <Link href="/admin/shops/new">
             <button className="flex items-center gap-2 bg-[#5bc0e8] text-white px-4 py-2 rounded-lg hover:bg-blue-700">
@@ -326,33 +326,33 @@ export default function ShopsAdminPage() {
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-100 border-b">
+              <thead className="bg-slate-100 dark:bg-slate-800 border-b">
                 <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Shop Name (A-Z)</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Owner</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Banner</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Featured</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">Shop Name (A-Z)</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">Owner</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">Banner</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">Status</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">Featured</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {filteredShops.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={6} className="px-6 py-8 text-center text-slate-400">
                       {searchQuery ? '❌ No shops match your search' : '❌ No shops found'}
                     </td>
                   </tr>
                 ) : (
                   filteredShops.map((shop) => (
-                    <tr key={shop.id} className="hover:bg-gray-50">
+                    <tr key={shop.id} className="hover:bg-slate-50 dark:bg-slate-800/40">
                       <td className="px-6 py-4">
                         <div>
-                          <p className="font-medium text-gray-900">{shop.business_name}</p>
-                          <p className="text-sm text-gray-500">{shop.email}</p>
+                          <p className="font-medium text-slate-900 dark:text-white">{shop.business_name}</p>
+                          <p className="text-sm text-slate-400">{shop.email}</p>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">{shop.full_name}</td>
+                      <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">{shop.full_name}</td>
                       <td className="px-6 py-4 text-sm">
                         <div className="flex gap-2">
                           {shop.shop_page_banner && (
@@ -361,12 +361,12 @@ export default function ShopsAdminPage() {
                             </span>
                           )}
                           {shop.shop_detail_banner && (
-                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
+                            <span className="px-2 py-1 bg-emerald-50 dark:bg-emerald-950/30 text-green-800 rounded text-xs">
                               Detail
                             </span>
                           )}
                           {!shop.shop_page_banner && !shop.shop_detail_banner && (
-                            <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">
+                            <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded text-xs">
                               None
                             </span>
                           )}
@@ -375,8 +375,8 @@ export default function ShopsAdminPage() {
                       <td className="px-6 py-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                           shop.is_active
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                            ? 'bg-emerald-50 dark:bg-emerald-950/30 text-green-800'
+                            : 'bg-rose-50 dark:bg-rose-950/30 text-red-800'
                         }`}>
                           {shop.is_active ? 'Active' : 'Inactive'}
                         </span>
@@ -387,7 +387,7 @@ export default function ShopsAdminPage() {
                              Featured
                           </span>
                         ) : (
-                          <span className="text-gray-400 text-xs">—</span>
+                          <span className="text-slate-400 text-xs">—</span>
                         )}
                       </td>
                       <td className="px-6 py-4">
@@ -432,12 +432,12 @@ export default function ShopsAdminPage() {
 
         {/* Shop Count */}
         <div className="mt-6 flex justify-between items-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-slate-600 dark:text-slate-300">
             <span className="inline-block bg-[#e0f7ff] text-blue-800 px-2 py-1 rounded mr-2 text-xs font-semibold">
               WITH ADS ONLY
             </span>
             Showing: <span className="font-semibold">{filteredShops.length}</span> shops
-            {searchQuery && <span className="text-gray-400 ml-2">(filtered by "{searchQuery}")</span>}
+            {searchQuery && <span className="text-slate-400 ml-2">(filtered by "{searchQuery}")</span>}
           </p>
         </div>
       </div>
@@ -447,11 +447,11 @@ export default function ShopsAdminPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full shadow-lg">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Edit Shop Name</h2>
+            <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Edit Shop Name</h2>
               <button
                 onClick={() => setEditingShop(null)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-slate-400 hover:text-slate-600 dark:text-slate-300"
               >
                 <X size={20} />
               </button>
@@ -460,15 +460,15 @@ export default function ShopsAdminPage() {
             {/* Content */}
             <div className="p-6 space-y-4">
               {/* Shop Info */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-xs font-medium text-gray-600 mb-1">Shop Owner</p>
-                <p className="text-sm font-medium text-gray-900">{editingShop.full_name}</p>
-                <p className="text-xs text-gray-500 mt-1">{editingShop.email}</p>
+              <div className="bg-slate-50 dark:bg-slate-800/40 rounded-lg p-4">
+                <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Shop Owner</p>
+                <p className="text-sm font-medium text-slate-900 dark:text-white">{editingShop.full_name}</p>
+                <p className="text-xs text-slate-400 mt-1">{editingShop.email}</p>
               </div>
 
               {/* Input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Shop Name
                 </label>
                 <input
@@ -481,9 +481,9 @@ export default function ShopsAdminPage() {
                   placeholder="Enter new shop name"
                   maxLength={100}
                   disabled={editSaving}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-slate-400 mt-1">
                   {editName.length}/100 characters
                 </p>
               </div>
@@ -506,11 +506,11 @@ export default function ShopsAdminPage() {
             </div>
 
             {/* Footer */}
-            <div className="flex gap-3 p-6 border-t border-gray-200">
+            <div className="flex gap-3 p-6 border-t border-slate-200 dark:border-slate-700">
               <button
                 onClick={() => setEditingShop(null)}
                 disabled={editSaving}
-                className="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 font-medium"
+                className="flex-1 px-4 py-2 rounded-xl border border-gray-300 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800 disabled:opacity-50 font-medium"
               >
                 Cancel
               </button>
@@ -530,48 +530,48 @@ export default function ShopsAdminPage() {
       {detailShop && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-lg w-full shadow-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Edit Shop</h2>
-              <button onClick={() => setDetailShop(null)} className="text-gray-400 hover:text-gray-600">
+            <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Edit Shop</h2>
+              <button onClick={() => setDetailShop(null)} className="text-slate-400 hover:text-slate-600 dark:text-slate-300">
                 <X size={20} />
               </button>
             </div>
 
             <div className="p-6 space-y-5">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-xs font-medium text-gray-600 mb-1">Shop Owner</p>
-                <p className="text-sm font-medium text-gray-900">{detailShop.full_name}</p>
-                <p className="text-xs text-gray-500 mt-1">{detailShop.email}</p>
+              <div className="bg-slate-50 dark:bg-slate-800/40 rounded-lg p-4">
+                <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Shop Owner</p>
+                <p className="text-sm font-medium text-slate-900 dark:text-white">{detailShop.full_name}</p>
+                <p className="text-xs text-slate-400 mt-1">{detailShop.email}</p>
               </div>
 
               {detailLoading && (
-                <div className="flex items-center gap-2 text-sm text-gray-500">
+                <div className="flex items-center gap-2 text-sm text-slate-400">
                   <Loader size={16} className="animate-spin" />
                   Loading full shop details...
                 </div>
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Shop Name</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Shop Name</label>
                 <input
                   type="text"
                   value={detailForm.business_name}
                   onChange={(e) => setDetailForm((f) => ({ ...f, business_name: e.target.value }))}
                   maxLength={100}
                   disabled={detailSaving}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Description</label>
                 <textarea
                   value={detailForm.shop_description}
                   onChange={(e) => setDetailForm((f) => ({ ...f, shop_description: e.target.value }))}
                   rows={3}
                   disabled={detailSaving}
                   placeholder="What does this shop sell?"
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 resize-none"
+                  className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 resize-none"
                 />
               </div>
 
@@ -581,17 +581,17 @@ export default function ShopsAdminPage() {
                 { key: 'shop_detail_banner', kind: 'detail_banner', label: 'Shop Page Banner' },
               ] as const).map(({ key, kind, label }) => (
                 <div key={key}>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{label}</label>
                   <div className="flex items-center gap-3">
                     {detailForm[key] ? (
-                      <img src={detailForm[key]} alt="" className="w-16 h-16 rounded-lg object-cover border border-gray-200" />
+                      <img src={detailForm[key]} alt="" className="w-16 h-16 rounded-lg object-cover border border-slate-200 dark:border-slate-700" />
                     ) : (
-                      <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center">
-                        <ImageIcon className="w-5 h-5 text-gray-400" />
+                      <div className="w-16 h-16 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                        <ImageIcon className="w-5 h-5 text-slate-400" />
                       </div>
                     )}
                     <label className="flex-1 cursor-pointer">
-                      <div className="px-4 py-2 rounded-lg border border-dashed border-gray-300 text-center text-xs font-semibold text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors">
+                      <div className="px-4 py-2 rounded-xl border border-dashed border-gray-300 text-center text-xs font-semibold text-slate-600 dark:text-slate-300 hover:border-blue-400 hover:text-blue-600 transition-colors">
                         {detailUploading === kind ? 'Uploading...' : 'Upload image'}
                       </div>
                       <input
@@ -616,7 +616,7 @@ export default function ShopsAdminPage() {
                   { key: 'free_delivery', label: 'Free Delivery' },
                   { key: 'is_active', label: 'Active' },
                 ] as const).map(({ key, label }) => (
-                  <label key={key} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 cursor-pointer">
+                  <label key={key} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={detailForm[key]}
@@ -624,7 +624,7 @@ export default function ShopsAdminPage() {
                       onChange={(e) => setDetailForm((f) => ({ ...f, [key]: e.target.checked }))}
                       className="rounded"
                     />
-                    <span className="text-sm text-gray-700">{label}</span>
+                    <span className="text-sm text-slate-700 dark:text-slate-300">{label}</span>
                   </label>
                 ))}
               </div>
@@ -643,11 +643,11 @@ export default function ShopsAdminPage() {
               )}
             </div>
 
-            <div className="flex gap-3 p-6 border-t border-gray-200">
+            <div className="flex gap-3 p-6 border-t border-slate-200 dark:border-slate-700">
               <button
                 onClick={() => setDetailShop(null)}
                 disabled={detailSaving}
-                className="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 font-medium"
+                className="flex-1 px-4 py-2 rounded-xl border border-gray-300 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800 disabled:opacity-50 font-medium"
               >
                 Cancel
               </button>

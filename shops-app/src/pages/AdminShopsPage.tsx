@@ -145,8 +145,8 @@ const ShopsPage = () => {
       <DashboardLayout title="Shops Management" navItems={adminNavItems} userRole="admin">
         <div className="flex items-center justify-center h-64">
           <div className="flex flex-col items-center gap-3">
-            <Loader className="w-8 h-8 animate-spin text-sky-500" />
-            <p className="text-gray-500 text-sm">Loading shops…</p>
+            <Loader className="w-8 h-8 animate-spin text-indigo-500" />
+            <p className="text-slate-400 text-sm">Loading shops…</p>
           </div>
         </div>
       </DashboardLayout>
@@ -159,11 +159,11 @@ const ShopsPage = () => {
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-black text-gray-900">All Shops</h2>
-            <p className="text-sm text-gray-500 mt-0.5">View all verified shops and their listings</p>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white">All Shops</h2>
+            <p className="text-sm text-slate-400 mt-0.5">View all verified shops and their listings</p>
           </div>
           <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none z-10" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10" />
             <input
               type="text"
               placeholder="Search shops, owners, email…"
@@ -174,12 +174,12 @@ const ShopsPage = () => {
               }}
               onFocus={() => searchQuery && setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:border-sky-400 bg-white shadow-sm"
+              className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-sky-400 bg-white dark:bg-[#151D2A] shadow-sm"
             />
 
             {/* Autocomplete Dropdown */}
             {showSuggestions && searchQuery && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto">
                 {shops
                   .filter(s =>
                     s.shop_name?.toLowerCase().startsWith(searchQuery.toLowerCase()) ||
@@ -193,17 +193,17 @@ const ShopsPage = () => {
                         setSearchQuery(shop.shop_name);
                         setShowSuggestions(false);
                       }}
-                      className="w-full text-left px-4 py-2.5 hover:bg-sky-50 border-b border-gray-100 last:border-b-0 transition-colors flex flex-col gap-0.5"
+                      className="w-full text-left px-4 py-2.5 hover:bg-sky-50 border-b border-slate-100 dark:border-slate-800 last:border-b-0 transition-colors flex flex-col gap-0.5"
                     >
-                      <p className="font-semibold text-gray-900 text-sm">{shop.shop_name}</p>
-                      <p className="text-xs text-gray-500">{shop.owner_name} • {shop.total_products} products</p>
+                      <p className="font-semibold text-slate-900 dark:text-white text-sm">{shop.shop_name}</p>
+                      <p className="text-xs text-slate-400">{shop.owner_name} • {shop.total_products} products</p>
                     </button>
                   ))}
                 {shops.filter(s =>
                   s.shop_name?.toLowerCase().startsWith(searchQuery.toLowerCase()) ||
                   s.owner_name?.toLowerCase().startsWith(searchQuery.toLowerCase())
                 ).length === 0 && (
-                  <div className="px-4 py-3 text-center text-sm text-gray-500">
+                  <div className="px-4 py-3 text-center text-sm text-slate-400">
                     No shops found
                   </div>
                 )}
@@ -244,30 +244,30 @@ const ShopsPage = () => {
       {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-7">
         <div className="stat-card flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-sky-50 dark:bg-sky-950/30 flex items-center justify-center">
             <Store className="w-6 h-6 text-sky-600" />
           </div>
           <div>
-            <p className="text-3xl font-black text-gray-900">{filtered.length}</p>
-            <p className="text-sm text-gray-500 mt-0.5">Total Shops</p>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">{filtered.length}</p>
+            <p className="text-sm text-slate-400 mt-0.5">Total Shops</p>
           </div>
         </div>
         <div className="stat-card flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/30 flex items-center justify-center">
             <Package className="w-6 h-6 text-purple-600" />
           </div>
           <div>
-            <p className="text-3xl font-black text-gray-900">{filtered.reduce((s, sh) => s + sh.total_products, 0)}</p>
-            <p className="text-sm text-gray-500 mt-0.5">Total Listings</p>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">{filtered.reduce((s, sh) => s + sh.total_products, 0)}</p>
+            <p className="text-sm text-slate-400 mt-0.5">Total Listings</p>
           </div>
         </div>
         <div className="stat-card flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center">
             <Grid3x3 className="w-6 h-6 text-emerald-600" />
           </div>
           <div>
-            <p className="text-3xl font-black text-gray-900">{filtered.reduce((s, sh) => s + sh.active_products, 0)}</p>
-            <p className="text-sm text-gray-500 mt-0.5">Active Listings</p>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">{filtered.reduce((s, sh) => s + sh.active_products, 0)}</p>
+            <p className="text-sm text-slate-400 mt-0.5">Active Listings</p>
           </div>
         </div>
       </div>
@@ -277,7 +277,7 @@ const ShopsPage = () => {
         <div className="data-table-wrapper">
           <div className="py-20 text-center">
             <Store className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 font-medium">No shops found</p>
+            <p className="text-slate-400 font-medium">No shops found</p>
           </div>
         </div>
       ) : (
@@ -287,19 +287,19 @@ const ShopsPage = () => {
               <thead>
                 <tr>
                   <th>
-                    <button onClick={() => toggleSort('name')} className="flex items-center hover:text-gray-700 transition-colors">
+                    <button onClick={() => toggleSort('name')} className="flex items-center hover:text-slate-700 dark:text-slate-300 transition-colors">
                       Shop <SortIcon col="name" />
                     </button>
                   </th>
                   <th className="hidden md:table-cell">Contact</th>
                   <th className="hidden sm:table-cell">Joined</th>
                   <th>
-                    <button onClick={() => toggleSort('listings')} className="flex items-center hover:text-gray-700 transition-colors">
+                    <button onClick={() => toggleSort('listings')} className="flex items-center hover:text-slate-700 dark:text-slate-300 transition-colors">
                       Listings <SortIcon col="listings" />
                     </button>
                   </th>
                   <th>
-                    <button onClick={() => toggleSort('active')} className="flex items-center hover:text-gray-700 transition-colors">
+                    <button onClick={() => toggleSort('active')} className="flex items-center hover:text-slate-700 dark:text-slate-300 transition-colors">
                       Active <SortIcon col="active" />
                     </button>
                   </th>
@@ -318,8 +318,8 @@ const ShopsPage = () => {
                             <Store className="w-4 h-4 text-white" />
                           </div>
                           <div>
-                            <p className="font-semibold text-gray-900 leading-tight">{shop.shop_name}</p>
-                            <p className="text-xs text-gray-400 mt-0.5">{shop.owner_name}</p>
+                            <p className="font-semibold text-slate-900 dark:text-white leading-tight">{shop.shop_name}</p>
+                            <p className="text-xs text-slate-400 mt-0.5">{shop.owner_name}</p>
                           </div>
                         </div>
                       </td>
@@ -327,12 +327,12 @@ const ShopsPage = () => {
                       <td className="hidden md:table-cell">
                         <div className="space-y-0.5">
                           {shop.email && (
-                            <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                            <div className="flex items-center gap-1.5 text-xs text-slate-400">
                               <Mail className="w-3 h-3" />{shop.email}
                             </div>
                           )}
                           {shop.phone && (
-                            <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                            <div className="flex items-center gap-1.5 text-xs text-slate-400">
                               <Phone className="w-3 h-3" />{shop.phone}
                             </div>
                           )}
@@ -340,14 +340,14 @@ const ShopsPage = () => {
                       </td>
                       {/* Joined */}
                       <td className="hidden sm:table-cell">
-                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                        <div className="flex items-center gap-1.5 text-xs text-slate-400">
                           <Calendar className="w-3.5 h-3.5" />
                           {new Date(shop.created_at).toLocaleDateString()}
                         </div>
                       </td>
                       {/* Listings */}
                       <td>
-                        <span className="text-lg font-black text-gray-800">{shop.total_products}</span>
+                        <span className="text-lg font-black text-slate-800 dark:text-slate-200">{shop.total_products}</span>
                       </td>
                       {/* Active */}
                       <td>
@@ -364,7 +364,7 @@ const ShopsPage = () => {
                       <td className="text-right">
                         <button
                           onClick={() => setExpandedShop(expandedShop === shop.id ? null : shop.id)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-sky-100 hover:text-sky-700 text-gray-600 text-xs font-semibold transition-all"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:bg-sky-950/30 hover:text-sky-700 text-slate-600 dark:text-slate-300 text-xs font-semibold transition-all"
                         >
                           {expandedShop === shop.id ? (
                             <><ChevronUp className="w-3.5 h-3.5" /> Hide</>
@@ -380,14 +380,14 @@ const ShopsPage = () => {
                       <tr>
                         <td colSpan={7} className="px-0 py-0 bg-slate-50 border-t border-b border-sky-100">
                           <div className="p-5">
-                            <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
                               <Package className="w-4 h-4 text-sky-500" />
                               Listings for {shop.shop_name}
                               <span className="ml-1 badge badge-blue">{shop.listings.length}</span>
                             </h4>
 
                             {shop.listings.length === 0 ? (
-                              <div className="py-8 text-center text-gray-400 text-sm">
+                              <div className="py-8 text-center text-slate-400 text-sm">
                                 <Package className="w-8 h-8 mx-auto mb-2 text-gray-300" />
                                 No listings yet
                               </div>
@@ -409,24 +409,24 @@ const ShopsPage = () => {
                                           <td>
                                             <div className="flex items-center gap-3">
                                               {listing.images?.[0] ? (
-                                                <img src={listing.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-gray-200" />
+                                                <img src={listing.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-slate-200 dark:border-slate-700" />
                                               ) : (
                                                 <div className="w-10 h-10 rounded-lg bg-gray-200 flex-shrink-0" />
                                               )}
-                                              <p className="font-medium text-gray-900 max-w-[200px] truncate">
+                                              <p className="font-medium text-slate-900 dark:text-white max-w-[200px] truncate">
                                                 {listing.title_en || listing.title_so || 'Unknown'}
                                               </p>
                                             </div>
                                           </td>
                                           <td>
                                             {listing.location && (
-                                              <div className="flex items-center gap-1 text-xs text-gray-500">
+                                              <div className="flex items-center gap-1 text-xs text-slate-400">
                                                 <MapPin className="w-3 h-3" />{listing.location}
                                               </div>
                                             )}
                                           </td>
                                           <td>
-                                            <span className="font-semibold text-gray-900">
+                                            <span className="font-semibold text-slate-900 dark:text-white">
                                               {listing.currency} {listing.price?.toLocaleString()}
                                             </span>
                                           </td>
@@ -456,8 +456,8 @@ const ShopsPage = () => {
           </div>
 
           {/* Table footer */}
-          <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between text-xs text-gray-400">
-            <span>Showing <span className="font-semibold text-gray-600">{filtered.length}</span> of <span className="font-semibold text-gray-600">{shops.length}</span> shops</span>
+          <div className="px-6 py-3 border-t border-slate-100 dark:border-slate-800 bg-gray-50/50 flex items-center justify-between text-xs text-slate-400">
+            <span>Showing <span className="font-semibold text-slate-600 dark:text-slate-300">{filtered.length}</span> of <span className="font-semibold text-slate-600 dark:text-slate-300">{shops.length}</span> shops</span>
             <span>Click "Listings" to expand a shop's products</span>
           </div>
         </div>

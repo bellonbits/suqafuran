@@ -193,9 +193,9 @@ export default function EmailTemplatesPage() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <Mail className="w-8 h-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">Email Templates</h1>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Email Templates</h1>
             </div>
-            <p className="text-gray-600">
+            <p className="text-slate-600 dark:text-slate-300">
               Create reusable templates, send a test to yourself, or broadcast to every active customer.
             </p>
           </div>
@@ -215,7 +215,7 @@ export default function EmailTemplatesPage() {
         <div className="grid gap-4">
           {templates.length === 0 ? (
             <Card className="p-8 text-center">
-              <p className="text-gray-500">No templates found</p>
+              <p className="text-slate-400">No templates found</p>
             </Card>
           ) : (
             templates.map(template => (
@@ -223,32 +223,32 @@ export default function EmailTemplatesPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{template.name}</h3>
+                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{template.name}</h3>
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         template.is_active
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
+                          ? 'bg-emerald-50 dark:bg-emerald-950/30 text-green-800'
+                          : 'bg-slate-100 dark:bg-slate-800 text-gray-800'
                       }`}>
                         {template.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">
+                    <p className="text-sm text-slate-600 dark:text-slate-300 mb-2">
                       <strong>Event:</strong> {template.event_type}
                     </p>
-                    <p className="text-sm text-gray-600 mb-2">
+                    <p className="text-sm text-slate-600 dark:text-slate-300 mb-2">
                       <strong>Subject:</strong> {template.subject}
                     </p>
                     {template.description && (
-                      <p className="text-sm text-gray-600 mb-2">{template.description}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-300 mb-2">{template.description}</p>
                     )}
                     {template.action_text && (
-                      <p className="text-xs text-gray-500 mb-2">
+                      <p className="text-xs text-slate-400 mb-2">
                         CTA: <span className="font-semibold">{template.action_text}</span> &rarr; {template.action_url}
                       </p>
                     )}
                     {template.variables && (
                       <div className="mt-2">
-                        <p className="text-xs font-semibold text-gray-700 mb-1">Variables:</p>
+                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Variables:</p>
                         <div className="flex flex-wrap gap-1">
                           {JSON.parse(template.variables).map((v: string) => (
                             <span key={v} className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-mono">
@@ -279,14 +279,14 @@ export default function EmailTemplatesPage() {
                         setEditing(template);
                         setShowPreview(true);
                       }}
-                      className="p-2 text-gray-600 hover:bg-gray-100 rounded"
+                      className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800 rounded"
                       title="Preview"
                     >
                       <Eye className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => handleEdit(template)}
-                      className="p-2 text-gray-600 hover:bg-gray-100 rounded"
+                      className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800 rounded"
                       title="Edit"
                     >
                       <Edit2 className="w-5 h-5" />
@@ -391,13 +391,13 @@ function EmailTemplateForm({
       <Card className="w-full max-w-2xl max-h-[85vh] overflow-y-auto">
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
               {template ? 'Edit Template' : 'Create Template'}
             </h2>
             <button
               type="button"
               onClick={onCancel}
-              className="p-1 hover:bg-gray-100 rounded"
+              className="p-1 hover:bg-slate-100 dark:bg-slate-800 rounded"
             >
               <X className="w-5 h-5" />
             </button>
@@ -405,7 +405,7 @@ function EmailTemplateForm({
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">Name (also used as the email's headline)</label>
+              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-1">Name (also used as the email's headline)</label>
               <input
                 type="text"
                 value={name}
@@ -416,7 +416,7 @@ function EmailTemplateForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">Event Type</label>
+              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-1">Event Type</label>
               <select
                 value={eventType}
                 onChange={(e) => setEventType(e.target.value)}
@@ -441,7 +441,7 @@ function EmailTemplateForm({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">Subject Line</label>
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-1">Subject Line</label>
             <input
               type="text"
               value={subject}
@@ -453,7 +453,7 @@ function EmailTemplateForm({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">Subtitle (shown under the headline)</label>
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-1">Subtitle (shown under the headline)</label>
             <input
               type="text"
               value={description}
@@ -464,7 +464,7 @@ function EmailTemplateForm({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">Content</label>
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-1">Content</label>
             <textarea
               value={htmlContent}
               onChange={(e) => setHtmlContent(e.target.value)}
@@ -473,14 +473,14 @@ function EmailTemplateForm({
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-slate-400 mt-1">
               This is wrapped automatically in the Suqafuran email design (logo, footer, social links). Use {'{{'} name {'}}'}, {'{{'} email {'}}'}, {'{{'} phone {'}}'}, {'{{'} location {'}}'}, {'{{'} date {'}}'} as placeholders — they're filled in per recipient.
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">CTA Button Text (optional)</label>
+              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-1">CTA Button Text (optional)</label>
               <input
                 type="text"
                 value={actionText}
@@ -490,7 +490,7 @@ function EmailTemplateForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">CTA Button Link (optional)</label>
+              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-1">CTA Button Link (optional)</label>
               <input
                 type="text"
                 value={actionUrl}
@@ -505,7 +505,7 @@ function EmailTemplateForm({
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-slate-50 dark:bg-slate-800/40"
             >
               Cancel
             </button>
@@ -536,26 +536,26 @@ function TemplatePreviewModal({
       <Card className="w-full max-w-2xl max-h-[85vh] overflow-y-auto">
         <div className="p-6 space-y-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Template Preview</h2>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Template Preview</h2>
             <button
               onClick={onClose}
-              className="p-1 hover:bg-gray-100 rounded"
+              className="p-1 hover:bg-slate-100 dark:bg-slate-800 rounded"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="bg-gray-50 p-4 rounded border">
-            <p className="text-sm text-gray-600 mb-3"><strong>Subject:</strong> {template.subject}</p>
+          <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded border">
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-3"><strong>Subject:</strong> {template.subject}</p>
             <div className="bg-white rounded border overflow-hidden">
-              <div className="bg-white text-center px-6 pt-8 pb-6 border-b border-gray-100">
+              <div className="bg-white text-center px-6 pt-8 pb-6 border-b border-slate-100 dark:border-slate-800">
                 <img src="https://suqafuran.com/icon1.png" alt="Suqafuran" className="h-8 mx-auto mb-2" />
-                <p className="text-xs font-semibold text-gray-500">The Trusted Marketplace of Africa</p>
+                <p className="text-xs font-semibold text-slate-400">The Trusted Marketplace of Africa</p>
               </div>
               <div className="px-8 py-8 text-left">
-                <h2 className="text-xl font-black text-gray-900 mb-1">{template.name}</h2>
-                {template.description && <p className="text-sm text-gray-600 mb-4">{template.description}</p>}
-                <div className="text-sm text-gray-700" dangerouslySetInnerHTML={{ __html: template.html_content }} />
+                <h2 className="text-xl font-black text-slate-900 dark:text-white mb-1">{template.name}</h2>
+                {template.description && <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">{template.description}</p>}
+                <div className="text-sm text-slate-700 dark:text-slate-300" dangerouslySetInnerHTML={{ __html: template.html_content }} />
                 {template.action_text && (
                   <div className="text-center mt-5">
                     <span className="inline-block bg-orange-600 text-white text-xs font-bold px-5 py-2.5 rounded-lg">
@@ -589,10 +589,10 @@ function SendTestModal({
       <Card className="w-full max-w-md">
         <div className="p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-900">Send Test Email</h2>
-            <button onClick={onCancel} className="p-1 hover:bg-gray-100 rounded"><X className="w-5 h-5" /></button>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Send Test Email</h2>
+            <button onClick={onCancel} className="p-1 hover:bg-slate-100 dark:bg-slate-800 rounded"><X className="w-5 h-5" /></button>
           </div>
-          <p className="text-sm text-gray-600">Sending "{template.name}" as a one-off test.</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300">Sending "{template.name}" as a one-off test.</p>
           <input
             type="email"
             value={email}
@@ -602,7 +602,7 @@ function SendTestModal({
             autoFocus
           />
           <div className="flex gap-3 justify-end">
-            <button onClick={onCancel} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+            <button onClick={onCancel} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-slate-50 dark:bg-slate-800/40">Cancel</button>
             <button
               onClick={async () => {
                 if (!email.trim()) return;
@@ -643,8 +643,8 @@ function BroadcastConfirmModal({
       <Card className="w-full max-w-md">
         <div className="p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-900">Broadcast to All Customers</h2>
-            <button onClick={onCancel} className="p-1 hover:bg-gray-100 rounded"><X className="w-5 h-5" /></button>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Broadcast to All Customers</h2>
+            <button onClick={onCancel} className="p-1 hover:bg-slate-100 dark:bg-slate-800 rounded"><X className="w-5 h-5" /></button>
           </div>
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
             <p className="text-sm text-orange-900">
@@ -658,7 +658,7 @@ function BroadcastConfirmModal({
             </p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-1">
               Type SEND to confirm
             </label>
             <input
@@ -671,7 +671,7 @@ function BroadcastConfirmModal({
             />
           </div>
           <div className="flex gap-3 justify-end">
-            <button onClick={onCancel} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+            <button onClick={onCancel} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-slate-50 dark:bg-slate-800/40">Cancel</button>
             <button
               onClick={async () => {
                 setSending(true);

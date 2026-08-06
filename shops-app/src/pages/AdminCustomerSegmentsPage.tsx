@@ -140,9 +140,9 @@ export default function CustomerSegmentsPage() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <Users className="w-8 h-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">Customer Segments</h1>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Customer Segments</h1>
             </div>
-            <p className="text-gray-600">Create and manage audience segments for targeted campaigns</p>
+            <p className="text-slate-600 dark:text-slate-300">Create and manage audience segments for targeted campaigns</p>
           </div>
           <button
             onClick={() => {
@@ -160,7 +160,7 @@ export default function CustomerSegmentsPage() {
         <div className="grid gap-4">
           {segments.length === 0 ? (
             <Card className="p-8 text-center">
-              <p className="text-gray-500 mb-4">No segments found</p>
+              <p className="text-slate-400 mb-4">No segments found</p>
               <button
                 onClick={() => setShowForm(true)}
                 className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
@@ -175,17 +175,17 @@ export default function CustomerSegmentsPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{segment.name}</h3>
+                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{segment.name}</h3>
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         segment.is_active
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
+                          ? 'bg-emerald-50 dark:bg-emerald-950/30 text-green-800'
+                          : 'bg-slate-100 dark:bg-slate-800 text-gray-800'
                       }`}>
                         {segment.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </div>
                     {segment.description && (
-                      <p className="text-sm text-gray-600 mb-3">{segment.description}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-300 mb-3">{segment.description}</p>
                     )}
                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 rounded">
                       <Users className="w-4 h-4 text-blue-600" />
@@ -200,7 +200,7 @@ export default function CustomerSegmentsPage() {
                         setSelectedSegment(segment);
                         setShowCampaignModal(true);
                       }}
-                      className="p-2 text-gray-600 hover:bg-gray-100 rounded"
+                      className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800 rounded"
                       title="Send Campaign"
                       disabled={segment.member_count === 0}
                     >
@@ -211,7 +211,7 @@ export default function CustomerSegmentsPage() {
                         setEditing(segment);
                         setShowForm(true);
                       }}
-                      className="p-2 text-gray-600 hover:bg-gray-100 rounded"
+                      className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800 rounded"
                       title="Edit"
                     >
                       <Edit2 className="w-5 h-5" />
@@ -311,17 +311,17 @@ function SegmentFormModal({
       <Card className="w-full max-w-2xl max-h-96 overflow-y-auto">
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
               {segment ? 'Edit Segment' : 'Create Segment'}
             </h2>
-            <button type="button" onClick={onCancel} className="p-1 hover:bg-gray-100 rounded">
+            <button type="button" onClick={onCancel} className="p-1 hover:bg-slate-100 dark:bg-slate-800 rounded">
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {!segment && (
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">Use Template</label>
+              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">Use Template</label>
               <div className="grid grid-cols-2 gap-2 mb-4">
                 {templates.map((t, i) => (
                   <button
@@ -330,8 +330,8 @@ function SegmentFormModal({
                     onClick={() => handleTemplateSelect(t)}
                     className="p-3 border border-gray-300 rounded-lg hover:bg-blue-50 text-left text-sm"
                   >
-                    <p className="font-semibold text-gray-900">{t.name}</p>
-                    <p className="text-xs text-gray-600">{t.description}</p>
+                    <p className="font-semibold text-slate-900 dark:text-white">{t.name}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-300">{t.description}</p>
                   </button>
                 ))}
               </div>
@@ -339,7 +339,7 @@ function SegmentFormModal({
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">Name</label>
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-1">Name</label>
             <input
               type="text"
               value={name}
@@ -350,7 +350,7 @@ function SegmentFormModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">Description</label>
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-1">Description</label>
             <input
               type="text"
               value={description}
@@ -360,21 +360,21 @@ function SegmentFormModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">Criteria (JSON)</label>
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-1">Criteria (JSON)</label>
             <textarea
               value={criteria}
               onChange={(e) => setCriteria(e.target.value)}
               rows={6}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
             />
-            <p className="text-xs text-gray-500 mt-1">Define rules with fields like is_seller, verified_level, etc.</p>
+            <p className="text-xs text-slate-400 mt-1">Define rules with fields like is_seller, verified_level, etc.</p>
           </div>
 
           <div className="flex gap-3 justify-end">
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-slate-50 dark:bg-slate-800/40"
             >
               Cancel
             </button>
@@ -454,8 +454,8 @@ function CampaignModal({
       <Card className="w-full max-w-md">
         <form onSubmit={handleSend} className="p-6 space-y-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Send Campaign</h2>
-            <button type="button" onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Send Campaign</h2>
+            <button type="button" onClick={onClose} className="p-1 hover:bg-slate-100 dark:bg-slate-800 rounded">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -467,7 +467,7 @@ function CampaignModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">Message Type</label>
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-1">Message Type</label>
             <select
               value={messageType}
               onChange={(e) => setMessageType(e.target.value)}
@@ -481,7 +481,7 @@ function CampaignModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">Message</label>
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-1">Message</label>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
@@ -508,7 +508,7 @@ function CampaignModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-slate-50 dark:bg-slate-800/40"
             >
               Cancel
             </button>

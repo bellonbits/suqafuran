@@ -98,47 +98,47 @@ const UsersManagementPage = () => {
       {/* Page header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-2xl font-black text-gray-900">All Users</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Manage user accounts and permissions</p>
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white">All Users</h2>
+          <p className="text-sm text-slate-400 mt-0.5">Manage user accounts and permissions</p>
         </div>
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-5 mb-7">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-7">
         <div className="stat-card flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-sky-100 flex items-center justify-center">
-            <Users className="w-6 h-6 text-sky-600" />
+          <div className="w-11 h-11 rounded-2xl bg-sky-50 dark:bg-sky-950/30 flex items-center justify-center flex-shrink-0">
+            <Users className="w-5 h-5 text-sky-600 dark:text-sky-400" />
           </div>
           <div>
-            <p className="text-3xl font-black text-gray-900">{totalUsers}</p>
-            <p className="text-sm text-gray-500 mt-0.5">Total Users</p>
+            <p className="text-2xl font-black text-slate-900 dark:text-white">{totalUsers}</p>
+            <p className="text-xs text-slate-400 mt-0.5">Total Users</p>
           </div>
         </div>
         <div className="stat-card flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
-            <Unlock className="w-6 h-6 text-emerald-600" />
+          <div className="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center flex-shrink-0">
+            <Unlock className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div>
-            <p className="text-3xl font-black text-gray-900">{activeCount}</p>
-            <p className="text-sm text-gray-500 mt-0.5">Active</p>
+            <p className="text-2xl font-black text-slate-900 dark:text-white">{activeCount}</p>
+            <p className="text-xs text-slate-400 mt-0.5">Active</p>
           </div>
         </div>
         <div className="stat-card flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
-            <Lock className="w-6 h-6 text-red-500" />
+          <div className="w-11 h-11 rounded-2xl bg-rose-50 dark:bg-rose-950/30 flex items-center justify-center flex-shrink-0">
+            <Lock className="w-5 h-5 text-rose-500 dark:text-rose-400" />
           </div>
           <div>
-            <p className="text-3xl font-black text-gray-900">{inactiveCount}</p>
-            <p className="text-sm text-gray-500 mt-0.5">Inactive</p>
+            <p className="text-2xl font-black text-slate-900 dark:text-white">{inactiveCount}</p>
+            <p className="text-xs text-slate-400 mt-0.5">Inactive</p>
           </div>
         </div>
         <div className="stat-card flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
-            <Eye className="w-6 h-6 text-purple-600" />
+          <div className="w-11 h-11 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-center flex-shrink-0">
+            <Eye className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           </div>
           <div>
-            <p className="text-3xl font-black text-gray-900">{activeRate}%</p>
-            <p className="text-sm text-gray-500 mt-0.5">Active Rate</p>
+            <p className="text-2xl font-black text-slate-900 dark:text-white">{activeRate}%</p>
+            <p className="text-xs text-slate-400 mt-0.5">Active Rate</p>
           </div>
         </div>
       </div>
@@ -146,13 +146,13 @@ const UsersManagementPage = () => {
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-3 mb-5">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
             placeholder="Search users by name, email or phone…"
             value={searchQuery}
             onChange={e => { setSearchQuery(e.target.value); setPage(0); }}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-300 bg-white shadow-sm"
+            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 bg-white dark:bg-[#151D2A] shadow-sm"
           />
         </div>
         <div className="flex gap-2">
@@ -160,10 +160,10 @@ const UsersManagementPage = () => {
             <button
               key={s}
               onClick={() => setFilterStatus(s)}
-              className={`px-4 py-2.5 rounded-xl text-sm font-semibold capitalize transition-all ${
+              className={`px-4 py-2.5 rounded-2xl text-xs font-bold capitalize transition-all ${
                 filterStatus === s
-                  ? 'bg-sky-500 text-white shadow-sm'
-                  : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'bg-white dark:bg-[#151D2A] border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
             >
               {s}
@@ -177,8 +177,8 @@ const UsersManagementPage = () => {
         <div className="data-table-wrapper">
           <div className="flex justify-center py-20">
             <div className="flex flex-col items-center gap-3">
-              <Loader className="w-8 h-8 animate-spin text-sky-500" />
-              <p className="text-gray-500 text-sm">Loading users…</p>
+              <Loader className="w-8 h-8 animate-spin text-indigo-500" />
+              <p className="text-slate-400 text-sm font-medium">Loading users…</p>
             </div>
           </div>
         </div>
@@ -267,24 +267,24 @@ const UsersManagementPage = () => {
           </div>
 
           {/* Pagination */}
-          <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
-            <span className="text-xs text-gray-400">
-              Showing <span className="font-semibold text-gray-600">{filteredUsers.length}</span> of{' '}
-              <span className="font-semibold text-gray-600">{totalUsers}</span> users
+          <div className="px-6 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/20 flex items-center justify-between">
+            <span className="text-xs text-slate-400">
+              Showing <span className="font-extrabold text-slate-600 dark:text-slate-200">{filteredUsers.length}</span> of{' '}
+              <span className="font-extrabold text-slate-600 dark:text-slate-200">{totalUsers}</span> users
             </span>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setPage(Math.max(0, page - 1))}
                 disabled={page === 0}
-                className="p-1.5 border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="text-xs font-semibold text-gray-600 px-2">Page {page + 1}</span>
+              <span className="text-xs font-extrabold text-slate-600 dark:text-slate-300 px-2">Page {page + 1}</span>
               <button
                 onClick={() => setPage(page + 1)}
                 disabled={filteredUsers.length < 50}
-                className="p-1.5 border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>

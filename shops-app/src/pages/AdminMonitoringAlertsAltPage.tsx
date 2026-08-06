@@ -107,19 +107,19 @@ export default function AlertsPage() {
         {/* Stats */}
         {store.stats && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-4">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
               <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Active Rules</p>
               <p className="text-2xl font-bold text-slate-900 dark:text-white">{store.stats.active_rules}</p>
             </div>
-            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-4">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
               <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Firing Alerts</p>
               <p className="text-2xl font-bold text-red-600 dark:text-red-400">{store.stats.firing_alerts}</p>
             </div>
-            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-4">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
               <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Resolved</p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">{store.stats.resolved_alerts}</p>
             </div>
-            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-4">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
               <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Total (24h)</p>
               <p className="text-2xl font-bold text-slate-900 dark:text-white">{store.stats.total_alerts}</p>
             </div>
@@ -127,7 +127,7 @@ export default function AlertsPage() {
         )}
 
         {/* Tabs */}
-        <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
           <div className="flex gap-0 border-b border-slate-200 dark:border-slate-800 overflow-x-auto">
             <button
               onClick={() => setActiveTab('rules')}
@@ -215,10 +215,10 @@ export default function AlertsPage() {
                             <span
                               className={`text-xs px-2 py-1 rounded font-medium ${
                                 rule.severity === 'critical'
-                                  ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                  ? 'bg-rose-50 dark:bg-rose-950/30 text-red-800 dark:bg-red-900 dark:text-red-200'
                                   : rule.severity === 'warning'
                                     ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                                    : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                                    : 'bg-blue-50 dark:bg-blue-950/30 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
                               }`}
                             >
                               {rule.severity}
@@ -228,8 +228,8 @@ export default function AlertsPage() {
                             <span
                               className={`text-xs px-2 py-1 rounded font-medium ${
                                 rule.enabled
-                                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                  : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                                  ? 'bg-emerald-50 dark:bg-emerald-950/30 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 dark:bg-gray-900 dark:text-gray-200'
                               }`}
                             >
                               {rule.enabled ? 'Active' : 'Inactive'}
@@ -317,7 +317,7 @@ export default function AlertsPage() {
                   <select
                     value={store.historyHours}
                     onChange={(e) => store.setHistoryHours(parseInt(e.target.value))}
-                    className="mt-1 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
+                    className="mt-1 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
                   >
                     <option value={1}>Last 1 hour</option>
                     <option value={6}>Last 6 hours</option>
@@ -351,7 +351,7 @@ export default function AlertsPage() {
                   {store.history.map((alert) => (
                     <div
                       key={alert.id}
-                      className={`p-4 rounded-lg border ${
+                      className={`p-4 rounded-xl border ${
                         alert.status === 'firing'
                           ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
                           : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'

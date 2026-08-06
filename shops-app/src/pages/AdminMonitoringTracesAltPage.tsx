@@ -118,7 +118,7 @@ export default function TracesPage() {
     >
       <div className="space-y-6">
         {/* Search Section */}
-        <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
           <div className="space-y-4">
             <div>
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
@@ -180,7 +180,7 @@ export default function TracesPage() {
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') handleSearch();
                 }}
-                className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="flex-1 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
               <button
                 onClick={handleSearch}
@@ -218,7 +218,7 @@ export default function TracesPage() {
 
         {/* Critical Paths Section */}
         {store.criticalPaths.length > 0 && !showDetail && (
-          <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
             <div className="space-y-4">
               <div>
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
@@ -234,7 +234,7 @@ export default function TracesPage() {
                   <button
                     key={path.id}
                     onClick={() => handleUseCriticalPath(path.id)}
-                    className="p-4 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-orange-500 dark:hover:border-orange-500 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-left"
+                    className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-orange-500 dark:hover:border-orange-500 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-left"
                   >
                     <p className="font-semibold text-slate-900 dark:text-white mb-1">
                       {path.name}
@@ -266,7 +266,7 @@ export default function TracesPage() {
 
         {/* Traces List */}
         {!showDetail && store.traces.length > 0 && (
-          <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
             <div className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-6 py-4">
               <h3 className="font-semibold text-slate-900 dark:text-white">
                 Traces ({store.traces.length})
@@ -292,7 +292,7 @@ export default function TracesPage() {
                     </div>
 
                     {trace.has_errors && (
-                      <div className="shrink-0 px-3 py-1 bg-red-100 dark:bg-red-900/30 rounded text-xs font-medium text-red-700 dark:text-red-400">
+                      <div className="shrink-0 px-3 py-1 bg-rose-50 dark:bg-rose-950/30 dark:bg-red-900/30 rounded text-xs font-medium text-red-700 dark:text-red-400">
                         {trace.error_count} error{trace.error_count !== 1 ? 's' : ''}
                       </div>
                     )}
@@ -307,7 +307,7 @@ export default function TracesPage() {
         {showDetail && store.selectedTrace && (
           <div className="space-y-4">
             {/* Detail Header */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
               <button
                 onClick={() => setShowDetail(false)}
                 className="text-orange-600 hover:text-orange-700 text-sm font-medium mb-4"

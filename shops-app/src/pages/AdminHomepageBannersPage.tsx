@@ -26,11 +26,11 @@ const CTA_PRESETS = [
 ];
 
 const STATUS_STYLES: Record<string, string> = {
-    draft: 'bg-gray-100 text-gray-700',
-    scheduled: 'bg-blue-100 text-blue-700',
-    active: 'bg-green-100 text-green-700',
-    expired: 'bg-red-100 text-red-700',
-    paused: 'bg-amber-100 text-amber-700',
+    draft: 'bg-slate-100 dark:bg-slate-800 text-gray-700',
+    scheduled: 'bg-blue-50 dark:bg-blue-950/30 text-blue-700',
+    active: 'bg-emerald-50 dark:bg-emerald-950/30 text-green-700',
+    expired: 'bg-rose-50 dark:bg-rose-950/30 text-red-700',
+    paused: 'bg-amber-50 dark:bg-amber-950/30 text-amber-700',
 };
 
 function toDatetimeLocal(iso?: string): string {
@@ -241,8 +241,8 @@ export default function AdminHomepageBannersPage() {
         <div className="p-6 max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl font-black text-gray-900">Homepage Banners</h1>
-                    <p className="text-sm text-gray-500 mt-1">Manage the promotional carousel shown at the top of the homepage.</p>
+                    <h1 className="text-2xl font-black text-slate-900 dark:text-white">Homepage Banners</h1>
+                    <p className="text-sm text-slate-400 mt-1">Manage the promotional carousel shown at the top of the homepage.</p>
                 </div>
                 <button
                     onClick={openCreateModal}
@@ -254,7 +254,7 @@ export default function AdminHomepageBannersPage() {
             </div>
 
             {error && (
-                <div className="mb-4 bg-red-50 text-red-600 text-sm font-semibold p-3 rounded-lg border border-red-100">
+                <div className="mb-4 bg-red-50 text-red-600 text-sm font-semibold p-3 rounded-xl border border-red-100">
                     {error}
                 </div>
             )}
@@ -262,59 +262,59 @@ export default function AdminHomepageBannersPage() {
             <div className="bg-white rounded-lg shadow overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-gray-100 border-b">
+                        <thead className="bg-slate-100 dark:bg-slate-800 border-b">
                             <tr>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Banner</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Schedule</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Priority</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Performance</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">Banner</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">Status</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">Schedule</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">Priority</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">Performance</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y">
                             {banners.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
+                                    <td colSpan={6} className="px-6 py-10 text-center text-slate-400">
                                         No banners yet — click "New Banner" to create one.
                                     </td>
                                 </tr>
                             ) : (
                                 banners.map((banner) => (
-                                    <tr key={banner.id} className="hover:bg-gray-50">
+                                    <tr key={banner.id} className="hover:bg-slate-50 dark:bg-slate-800/40">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-20 h-12 rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center shrink-0">
+                                                <div className="w-20 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center shrink-0">
                                                     {banner.image_url ? (
                                                         <img src={banner.image_url} alt={banner.title} className="w-full h-full object-cover" />
                                                     ) : (
-                                                        <ImageIcon className="w-5 h-5 text-gray-400" />
+                                                        <ImageIcon className="w-5 h-5 text-slate-400" />
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <p className="font-semibold text-gray-900">{banner.title}</p>
-                                                    <p className="text-xs text-gray-500">{banner.button_link}</p>
+                                                    <p className="font-semibold text-slate-900 dark:text-white">{banner.title}</p>
+                                                    <p className="text-xs text-slate-400">{banner.button_link}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[banner.status] || 'bg-gray-100 text-gray-700'}`}>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[banner.status] || 'bg-slate-100 dark:bg-slate-800 text-gray-700'}`}>
                                                 {banner.status}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-xs text-gray-600">
+                                        <td className="px-6 py-4 text-xs text-slate-600 dark:text-slate-300">
                                             <div>{new Date(banner.start_date).toLocaleDateString()}</div>
                                             <div>→ {new Date(banner.end_date).toLocaleDateString()}</div>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-700">{banner.priority}</td>
-                                        <td className="px-6 py-4 text-xs text-gray-600">
+                                        <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">{banner.priority}</td>
+                                        <td className="px-6 py-4 text-xs text-slate-600 dark:text-slate-300">
                                             <div className="flex items-center gap-1.5">
                                                 <Eye className="w-3.5 h-3.5" /> {banner.stats?.impressions ?? 0}
                                             </div>
                                             <div className="flex items-center gap-1.5 mt-1">
                                                 <MousePointerClick className="w-3.5 h-3.5" /> {banner.stats?.clicks ?? 0}
                                                 {banner.stats && banner.stats.impressions > 0 && (
-                                                    <span className="text-gray-400">({banner.stats.ctr.toFixed(1)}% CTR)</span>
+                                                    <span className="text-slate-400">({banner.stats.ctr.toFixed(1)}% CTR)</span>
                                                 )}
                                             </div>
                                         </td>
@@ -359,7 +359,7 @@ export default function AdminHomepageBannersPage() {
                                                 {((banner.stats?.impressions ?? 0) > 0 || (banner.stats?.clicks ?? 0) > 0) && (
                                                     <button
                                                         onClick={() => handleResetStats(banner)}
-                                                        className="p-2 text-gray-500 hover:bg-gray-100 rounded"
+                                                        className="p-2 text-slate-400 hover:bg-slate-100 dark:bg-slate-800 rounded"
                                                         title="Reset impressions/clicks to zero (e.g. after test traffic)"
                                                     >
                                                         <RotateCcw size={16} />
@@ -382,10 +382,10 @@ export default function AdminHomepageBannersPage() {
                         className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl p-6 space-y-4"
                     >
                         <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-black text-gray-900">
+                            <h2 className="text-lg font-black text-slate-900 dark:text-white">
                                 {editingId ? 'Edit Banner' : 'New Banner'}
                             </h2>
-                            <button onClick={() => setModalOpen(false)} className="text-gray-400 hover:text-gray-700">
+                            <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-700 dark:text-slate-300">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
@@ -395,12 +395,12 @@ export default function AdminHomepageBannersPage() {
                         )}
 
                         <div>
-                            <label className="text-xs font-bold text-gray-600 block mb-1">Shop</label>
+                            <label className="text-xs font-bold text-slate-600 dark:text-slate-300 block mb-1">Shop</label>
                             <select
                                 value={form.seller_id}
                                 onChange={(e) => setForm((f) => ({ ...f, seller_id: e.target.value }))}
                                 disabled={!!editingId}
-                                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm disabled:bg-gray-50 disabled:text-gray-500"
+                                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm disabled:bg-slate-50 dark:bg-slate-800/40 disabled:text-slate-400"
                             >
                                 <option value="">Select a shop...</option>
                                 {shops.map((shop) => (
@@ -413,50 +413,50 @@ export default function AdminHomepageBannersPage() {
 
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="text-xs font-bold text-gray-600 block mb-1">Title</label>
+                                <label className="text-xs font-bold text-slate-600 dark:text-slate-300 block mb-1">Title</label>
                                 <input
                                     type="text"
                                     value={form.title}
                                     onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                                     placeholder="Back to School Sale"
-                                    className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm"
+                                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm"
                                 />
                             </div>
                             <div>
-                                <label className="text-xs font-bold text-gray-600 block mb-1">Subtitle</label>
+                                <label className="text-xs font-bold text-slate-600 dark:text-slate-300 block mb-1">Subtitle</label>
                                 <input
                                     type="text"
                                     value={form.subtitle}
                                     onChange={(e) => setForm((f) => ({ ...f, subtitle: e.target.value }))}
                                     placeholder="Up to 50% off electronics"
-                                    className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm"
+                                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm"
                                 />
                             </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="text-xs font-bold text-gray-600 block mb-1">Desktop Image (21:9)</label>
+                                <label className="text-xs font-bold text-slate-600 dark:text-slate-300 block mb-1">Desktop Image (21:9)</label>
                                 <input
                                     type="file"
                                     accept="image/*"
                                     onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], 'image_url')}
                                     className="w-full text-xs"
                                 />
-                                {uploadingDesktop && <p className="text-xs text-gray-400 mt-1">Uploading...</p>}
+                                {uploadingDesktop && <p className="text-xs text-slate-400 mt-1">Uploading...</p>}
                                 {form.image_url && (
                                     <img src={form.image_url} alt="" className="mt-2 w-full h-20 object-cover rounded-lg" />
                                 )}
                             </div>
                             <div>
-                                <label className="text-xs font-bold text-gray-600 block mb-1">Mobile Image (optional)</label>
+                                <label className="text-xs font-bold text-slate-600 dark:text-slate-300 block mb-1">Mobile Image (optional)</label>
                                 <input
                                     type="file"
                                     accept="image/*"
                                     onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], 'mobile_image_url')}
                                     className="w-full text-xs"
                                 />
-                                {uploadingMobile && <p className="text-xs text-gray-400 mt-1">Uploading...</p>}
+                                {uploadingMobile && <p className="text-xs text-slate-400 mt-1">Uploading...</p>}
                                 {form.mobile_image_url && (
                                     <img src={form.mobile_image_url} alt="" className="mt-2 w-full h-20 object-cover rounded-lg" />
                                 )}
@@ -464,11 +464,11 @@ export default function AdminHomepageBannersPage() {
                         </div>
 
                         <div>
-                            <label className="text-xs font-bold text-gray-600 block mb-1">CTA Link Type</label>
+                            <label className="text-xs font-bold text-slate-600 dark:text-slate-300 block mb-1">CTA Link Type</label>
                             <select
                                 value={ctaType}
                                 onChange={(e) => setCtaType(e.target.value)}
-                                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm mb-2"
+                                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm mb-2"
                             >
                                 {CTA_PRESETS.map((preset) => (
                                     <option key={preset.label} value={preset.label}>{preset.label}</option>
@@ -480,46 +480,46 @@ export default function AdminHomepageBannersPage() {
                                     value={form.button_link}
                                     onChange={(e) => setForm((f) => ({ ...f, button_link: e.target.value }))}
                                     placeholder={CTA_PRESETS.find((p) => p.label === ctaType)?.placeholder}
-                                    className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm"
+                                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm"
                                 />
                                 <input
                                     type="text"
                                     value={form.button_text}
                                     onChange={(e) => setForm((f) => ({ ...f, button_text: e.target.value }))}
                                     placeholder="Shop Now"
-                                    className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm"
+                                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm"
                                 />
                             </div>
                         </div>
 
                         <div className="grid grid-cols-3 gap-3">
                             <div>
-                                <label className="text-xs font-bold text-gray-600 block mb-1">Priority</label>
+                                <label className="text-xs font-bold text-slate-600 dark:text-slate-300 block mb-1">Priority</label>
                                 <input
                                     type="number"
                                     min={1}
                                     max={100}
                                     value={form.priority}
                                     onChange={(e) => setForm((f) => ({ ...f, priority: Number(e.target.value) }))}
-                                    className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm"
+                                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm"
                                 />
                             </div>
                             <div>
-                                <label className="text-xs font-bold text-gray-600 block mb-1">Start Date</label>
+                                <label className="text-xs font-bold text-slate-600 dark:text-slate-300 block mb-1">Start Date</label>
                                 <input
                                     type="datetime-local"
                                     value={form.start_date}
                                     onChange={(e) => setForm((f) => ({ ...f, start_date: e.target.value }))}
-                                    className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm"
+                                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm"
                                 />
                             </div>
                             <div>
-                                <label className="text-xs font-bold text-gray-600 block mb-1">End Date</label>
+                                <label className="text-xs font-bold text-slate-600 dark:text-slate-300 block mb-1">End Date</label>
                                 <input
                                     type="datetime-local"
                                     value={form.end_date}
                                     onChange={(e) => setForm((f) => ({ ...f, end_date: e.target.value }))}
-                                    className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm"
+                                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm"
                                 />
                             </div>
                         </div>
@@ -532,7 +532,7 @@ export default function AdminHomepageBannersPage() {
                             {saving ? 'Saving...' : editingId ? 'Save Changes' : 'Create Banner (Draft)'}
                         </button>
                         {!editingId && (
-                            <p className="text-xs text-gray-400 text-center">
+                            <p className="text-xs text-slate-400 text-center">
                                 Banners are created as drafts — publish from the list once ready.
                             </p>
                         )}

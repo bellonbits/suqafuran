@@ -26,7 +26,7 @@ export default function AlertsPage() {
   }, []);
 
   if (loading) {
-    return <div className="p-8 text-center text-gray-500">Loading alerts...</div>;
+    return <div className="p-8 text-center text-slate-400">Loading alerts...</div>;
   }
 
   if (error) {
@@ -36,8 +36,8 @@ export default function AlertsPage() {
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Alert Rules</h1>
-        <p className="text-gray-600 dark:text-gray-400">Manage and monitor system alert rules</p>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white dark:text-white mb-2">Alert Rules</h1>
+        <p className="text-slate-600 dark:text-slate-300 dark:text-slate-400">Manage and monitor system alert rules</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -70,20 +70,20 @@ export default function AlertsPage() {
       </div>
 
       <div>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Alert Rules</h2>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white dark:text-white mb-4">Alert Rules</h2>
         <div className="space-y-3">
           {alerts.map((alert) => (
-            <div key={alert.id} className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-4">
+            <div key={alert.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 dark:border-slate-700 p-4">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">{alert.name}</h3>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  <h3 className="font-semibold text-slate-900 dark:text-white dark:text-white">{alert.name}</h3>
+                  <div className="text-sm text-slate-600 dark:text-slate-300 dark:text-slate-400 mt-1">
                     <p>Metric: <span className="font-mono text-blue-600 dark:text-blue-400">{alert.metric}</span></p>
                     <p>Threshold: {alert.threshold} | Current: {alert.current}</p>
                     <p className="text-xs mt-1">Last triggered: {alert.lastTriggered}</p>
                   </div>
                 </div>
-                <div className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs font-semibold rounded">
+                <div className="px-3 py-1 bg-emerald-50 dark:bg-emerald-950/30 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs font-semibold rounded">
                   Healthy
                 </div>
               </div>

@@ -88,30 +88,30 @@ const UnusualAccountsPage = () => {
     <DashboardLayout title="Unusual Accounts" navItems={navItems} userRole="admin">
       <div className="p-6">
         <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
             placeholder="Search by name or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#6cd4ff]"
+            className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#6cd4ff]"
           />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white border border-gray-200 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
             <AlertTriangle className="w-10 h-10 text-red-500 mb-4" />
-            <p className="text-3xl font-black text-gray-900">{suspiciousCount}</p>
-            <p className="text-sm text-gray-500 mt-1">Suspicious Accounts</p>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">{suspiciousCount}</p>
+            <p className="text-sm text-slate-400 mt-1">Suspicious Accounts</p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
             <Eye className="w-10 h-10 text-yellow-500 mb-4" />
-            <p className="text-3xl font-black text-gray-900">{newCount}</p>
-            <p className="text-sm text-gray-500 mt-1">New Accounts (7 days)</p>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">{newCount}</p>
+            <p className="text-sm text-slate-400 mt-1">New Accounts (7 days)</p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
             <Lock className="w-10 h-10 text-[#6cd4ff] mb-4" />
-            <p className="text-3xl font-black text-gray-900">{accounts.filter((a) => !a.is_active).length}</p>
-            <p className="text-sm text-gray-500 mt-1">Suspended</p>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">{accounts.filter((a) => !a.is_active).length}</p>
+            <p className="text-sm text-slate-400 mt-1">Suspended</p>
           </div>
         </div>
 
@@ -124,7 +124,7 @@ const UnusualAccountsPage = () => {
               className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
                 riskFilter === f
                   ? 'bg-[#5bc0e8] text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-gray-200'
               }`}
             >
               {f === 'all' ? 'All Accounts' : f === 'high' ? 'High Risk' : 'New Accounts'}
@@ -133,21 +133,21 @@ const UnusualAccountsPage = () => {
         </div>
 
         {/* Accounts Table */}
-        <div className="border border-gray-200 rounded-2xl overflow-hidden">
+        <div className="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-700">
               <tr>
-                <th className="px-6 py-4 text-left font-bold text-gray-900">Name</th>
-                <th className="px-6 py-4 text-left font-bold text-gray-900">Email</th>
-                <th className="px-6 py-4 text-left font-bold text-gray-900">Joined</th>
-                <th className="px-6 py-4 text-left font-bold text-gray-900">Risk Level</th>
-                <th className="px-6 py-4 text-left font-bold text-gray-900">Action</th>
+                <th className="px-6 py-4 text-left font-bold text-slate-900 dark:text-white">Name</th>
+                <th className="px-6 py-4 text-left font-bold text-slate-900 dark:text-white">Email</th>
+                <th className="px-6 py-4 text-left font-bold text-slate-900 dark:text-white">Joined</th>
+                <th className="px-6 py-4 text-left font-bold text-slate-900 dark:text-white">Risk Level</th>
+                <th className="px-6 py-4 text-left font-bold text-slate-900 dark:text-white">Action</th>
               </tr>
             </thead>
             <tbody>
               {filteredAccounts.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={5} className="px-6 py-8 text-center text-slate-400">
                     No accounts found
                   </td>
                 </tr>
@@ -156,19 +156,19 @@ const UnusualAccountsPage = () => {
                   const daysOld = (Date.now() - new Date(account.created_at).getTime()) / (1000 * 60 * 60 * 24);
                   const risk = account.is_suspicious ? 'high' : daysOld < 7 ? 'medium' : 'low';
                   return (
-                    <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50">
-                      <td className="px-6 py-4 text-gray-900 font-medium">{account.full_name}</td>
-                      <td className="px-6 py-4 text-gray-600 text-sm">{account.email}</td>
-                      <td className="px-6 py-4 text-gray-600 text-sm">
+                    <tr key={idx} className="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-800/40">
+                      <td className="px-6 py-4 text-slate-900 dark:text-white font-medium">{account.full_name}</td>
+                      <td className="px-6 py-4 text-slate-600 dark:text-slate-300 text-sm">{account.email}</td>
+                      <td className="px-6 py-4 text-slate-600 dark:text-slate-300 text-sm">
                         {account.created_at ? new Date(account.created_at).toLocaleDateString() : "N/A"}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`px-3 py-1 rounded-full text-sm font-bold ${
                           risk === 'high'
-                            ? 'bg-red-100 text-red-700'
+                            ? 'bg-rose-50 dark:bg-rose-950/30 text-red-700'
                             : risk === 'medium'
                             ? 'bg-yellow-100 text-yellow-700'
-                            : 'bg-green-100 text-green-700'
+                            : 'bg-emerald-50 dark:bg-emerald-950/30 text-green-700'
                         }`}>
                           {risk.charAt(0).toUpperCase() + risk.slice(1)}
                         </span>

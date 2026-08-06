@@ -85,8 +85,8 @@ export default function AdminFeaturedAdsPage() {
       <div className="container mx-auto py-8 px-4 max-w-7xl space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Featured Advertising</h1>
-          <p className="text-gray-600 mt-2">Track premium placement revenue and performance</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Featured Advertising</h1>
+          <p className="text-slate-600 dark:text-slate-300 mt-2">Track premium placement revenue and performance</p>
         </div>
 
       {/* KPI Cards */}
@@ -126,7 +126,7 @@ export default function AdminFeaturedAdsPage() {
       {/* Revenue by Type */}
       {stats && (
         <Card className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Revenue by Placement Type</h2>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Revenue by Placement Type</h2>
           <div className="grid md:grid-cols-4 gap-4">
             <RevenueCard
               name="Featured Product"
@@ -177,7 +177,7 @@ export default function AdminFeaturedAdsPage() {
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b">
+              <thead className="bg-slate-50 dark:bg-slate-800/40 border-b">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold">Seller ID</th>
                   <th className="px-4 py-3 text-left font-semibold">Placement Type</th>
@@ -189,10 +189,10 @@ export default function AdminFeaturedAdsPage() {
               <tbody className="divide-y">
                 {filteredPlacements.length > 0 ? (
                   filteredPlacements.map((placement, i) => (
-                    <tr key={i} className="hover:bg-gray-50">
+                    <tr key={i} className="hover:bg-slate-50 dark:bg-slate-800/40">
                       <td className="px-4 py-3 font-medium">{placement.seller_id}</td>
                       <td className="px-4 py-3">
-                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950/30 text-blue-800">
                           {placement.placement_type.replace(/_/g, ' ')}
                         </span>
                       </td>
@@ -200,22 +200,22 @@ export default function AdminFeaturedAdsPage() {
                       <td className="px-4 py-3">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                           placement.days_remaining > 7
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-emerald-50 dark:bg-emerald-950/30 text-green-800'
                             : placement.days_remaining > 1
                             ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
+                            : 'bg-rose-50 dark:bg-rose-950/30 text-red-800'
                         }`}>
                           {placement.days_remaining} days
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                         {new Date(placement.ends_at).toLocaleDateString()}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={5} className="px-4 py-8 text-center text-slate-400">
                       No active placements
                     </td>
                   </tr>
@@ -224,7 +224,7 @@ export default function AdminFeaturedAdsPage() {
             </table>
           </div>
 
-          <div className="text-sm text-gray-600 text-right">
+          <div className="text-sm text-slate-600 dark:text-slate-300 text-right">
             Showing {filteredPlacements.length} active placements
           </div>
         </div>
@@ -258,9 +258,9 @@ function StatCard({
     <Card className="p-6">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-2">{value}</p>
-          <p className="text-xs text-gray-500 mt-2">{change}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300">{title}</p>
+          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">{value}</p>
+          <p className="text-xs text-slate-400 mt-2">{change}</p>
         </div>
         <div className={`p-3 rounded-lg ${colorClasses[color as keyof typeof colorClasses]}`}>
           {icon}
@@ -290,9 +290,9 @@ function RevenueCard({
 
   return (
     <Card className={`p-4 ${colorClasses[color as keyof typeof colorClasses]}`}>
-      <p className="text-sm font-semibold text-gray-900">{name}</p>
-      <p className="text-2xl font-bold text-gray-900 mt-2">{count}</p>
-      <p className="text-sm text-gray-600 mt-1">KSh {(revenue / 1000).toFixed(0)}K revenue</p>
+      <p className="text-sm font-semibold text-slate-900 dark:text-white">{name}</p>
+      <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">{count}</p>
+      <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">KSh {(revenue / 1000).toFixed(0)}K revenue</p>
     </Card>
   );
 }

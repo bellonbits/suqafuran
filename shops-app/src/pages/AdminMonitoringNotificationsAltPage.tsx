@@ -90,7 +90,7 @@ export default function NotificationsMonitoringPage() {
       onAutoRefreshChange={setAutoRefresh}
     >
       {/* Filter Bar */}
-      <div className="mb-6 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-4">
+      <div className="mb-6 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
             <Filter className="h-4 w-4" />
@@ -115,7 +115,7 @@ export default function NotificationsMonitoringPage() {
             <select
               value={store.filterChannel || ''}
               onChange={(e) => handleFilterChange('channel', e.target.value || null)}
-              className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
               <option value="">All Channels</option>
               {CHANNELS.map((ch) => (
@@ -134,7 +134,7 @@ export default function NotificationsMonitoringPage() {
             <select
               value={store.filterEventType || ''}
               onChange={(e) => handleFilterChange('eventType', e.target.value || null)}
-              className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
               <option value="">All Event Types</option>
               {EVENT_TYPES.map((evt) => (
@@ -153,7 +153,7 @@ export default function NotificationsMonitoringPage() {
             <select
               value={store.filterStatus || ''}
               onChange={(e) => handleFilterChange('status', e.target.value || null)}
-              className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
               <option value="">All Statuses</option>
               {STATUSES.map((st) => (
@@ -174,7 +174,7 @@ export default function NotificationsMonitoringPage() {
               placeholder="Search by user ID..."
               value={store.filterUserId || ''}
               onChange={(e) => handleFilterChange('userId', e.target.value ? parseInt(e.target.value) : null)}
-              className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
           </div>
         </div>
@@ -221,7 +221,7 @@ export default function NotificationsMonitoringPage() {
       )}
 
       {activeTab === 'summary' && (
-        <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
@@ -270,10 +270,10 @@ export default function NotificationsMonitoringPage() {
                       <span
                         className={`px-2.5 py-1 rounded-full text-xs font-medium ${
                           item.success_rate > 95
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                            ? 'bg-emerald-50 dark:bg-emerald-950/30 text-green-800 dark:bg-green-900 dark:text-green-200'
                             : item.success_rate > 90
                               ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                              : 'bg-rose-50 dark:bg-rose-950/30 text-red-800 dark:bg-red-900 dark:text-red-200'
                         }`}
                       >
                         {item.success_rate.toFixed(1)}%

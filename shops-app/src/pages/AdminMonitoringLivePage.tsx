@@ -33,11 +33,11 @@ export default function LiveEventsPage() {
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white dark:text-white mb-2 flex items-center gap-2">
           <Radio className="w-8 h-8 text-green-600 animate-pulse" />
           Live Events
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">Real-time event streaming from Kafka and WebSocket</p>
+        <p className="text-slate-600 dark:text-slate-300 dark:text-slate-400">Real-time event streaming from Kafka and WebSocket</p>
       </div>
 
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-6 border border-green-200 dark:border-green-800">
@@ -51,14 +51,14 @@ export default function LiveEventsPage() {
       </div>
 
       <div>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white dark:text-white mb-4 flex items-center gap-2">
           <Activity className="w-5 h-5" />
           Event Stream
         </h2>
-        <div className="bg-slate-900 dark:bg-slate-950 rounded-lg border border-slate-700 p-6 font-mono text-sm text-green-400 overflow-auto max-h-96">
+        <div className="bg-slate-900 dark:bg-slate-950 rounded-xl border border-slate-700 p-6 font-mono text-sm text-green-400 overflow-auto max-h-96">
           <div className="space-y-1 text-xs">
             {loading ? (
-              <div className="text-gray-500">[Loading events...]</div>
+              <div className="text-slate-400">[Loading events...]</div>
             ) : events.length > 0 ? (
               events.map((event, idx) => (
                 <div key={idx}>
@@ -66,28 +66,28 @@ export default function LiveEventsPage() {
                 </div>
               ))
             ) : (
-              <div className="text-gray-500">[No events yet...]</div>
+              <div className="text-slate-400">[No events yet...]</div>
             )}
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-gray-200 dark:border-slate-700">
+        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 dark:border-slate-700">
           <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{stats.events_per_minute || '0'}</div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Events/min</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300 dark:text-slate-400 mt-1">Events/min</p>
         </div>
-        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-gray-200 dark:border-slate-700">
+        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 dark:border-slate-700">
           <div className="text-3xl font-bold text-green-600 dark:text-green-400">{stats.delivery_rate || '0'}%</div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Delivery Rate</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300 dark:text-slate-400 mt-1">Delivery Rate</p>
         </div>
-        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-gray-200 dark:border-slate-700">
+        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 dark:border-slate-700">
           <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">{stats.avg_latency || '0'}ms</div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Avg Latency</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300 dark:text-slate-400 mt-1">Avg Latency</p>
         </div>
-        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-gray-200 dark:border-slate-700">
+        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 dark:border-slate-700">
           <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">{stats.active_topics || '0'}</div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Topics</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300 dark:text-slate-400 mt-1">Topics</p>
         </div>
       </div>
     </div>
