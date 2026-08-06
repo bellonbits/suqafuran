@@ -3,7 +3,7 @@ import api from './api';
 export const notificationService = {
   // Notifications
   async getNotifications(params?: { limit?: number }) {
-    const response = await api.get('/notifications', { params });
+    const response = await api.get('/notifications/', { params });
     return response.data;
   },
 

@@ -17,6 +17,7 @@ interface Shop {
   logo_url?: string;
   shop_page_banner?: string;
   shop_detail_banner?: string;
+  location?: string;
   is_active: boolean;
   email: string;
 }
@@ -54,7 +55,7 @@ export default function AgentShopsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [editingShop, setEditingShop] = useState<Shop | null>(null);
-  const [form, setForm] = useState({ business_name: '', shop_description: '', logo_url: '' });
+  const [form, setForm] = useState({ business_name: '', shop_description: '', logo_url: '', location: '' });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -107,7 +108,7 @@ export default function AgentShopsPage() {
 
   const openEdit = (shop: Shop) => {
     setEditingShop(shop);
-    setForm({ business_name: shop.business_name || '', shop_description: shop.shop_description || '', logo_url: shop.logo_url || '' });
+    setForm({ business_name: shop.business_name || '', shop_description: shop.shop_description || '', logo_url: shop.logo_url || '', location: shop.location || '' });
     setError(''); setSuccess('');
     setShowAddItem(false);
     setNewItem({ title_en: '', description_en: '', price: '', location: '', condition: 'New', category_id: '', subcategory_id: '', subsubcategory_id: '' });
@@ -390,6 +391,15 @@ export default function AgentShopsPage() {
                   onChange={(e) => setForm(f => ({ ...f, shop_description: e.target.value }))}
                   rows={3}
                   className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 resize-none"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">Location</label>
+                <input
+                  value={form.location}
+                  onChange={(e) => setForm(f => ({ ...f, location: e.target.value }))}
+                  placeholder="e.g. Eastleigh, Nairobi"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20"
                 />
               </div>
               <div>

@@ -31,6 +31,7 @@ interface Shop {
   logo_url?: string;
   shop_page_banner?: string;
   shop_detail_banner?: string;
+  location?: string;
   is_featured: boolean;
   is_verified: boolean;
   free_delivery: boolean;
@@ -61,6 +62,7 @@ export default function ShopsAdminPage() {
     logo_url: '',
     shop_page_banner: '',
     shop_detail_banner: '',
+    location: '',
     is_featured: false,
     is_verified: false,
     free_delivery: false,
@@ -240,6 +242,7 @@ export default function ShopsAdminPage() {
       logo_url: shop.logo_url || '',
       shop_page_banner: '',
       shop_detail_banner: '',
+      location: shop.location || '',
       is_featured: shop.is_featured,
       is_verified: shop.is_verified,
       free_delivery: shop.free_delivery,
@@ -262,6 +265,7 @@ export default function ShopsAdminPage() {
         logo_url: full.logo_url || '',
         shop_page_banner: full.shop_page_banner || '',
         shop_detail_banner: full.shop_detail_banner || '',
+        location: full.location || '',
         is_featured: full.is_featured,
         is_verified: full.is_verified,
         free_delivery: full.free_delivery,
@@ -395,6 +399,7 @@ export default function ShopsAdminPage() {
         logo_url: detailForm.logo_url || null,
         shop_page_banner: detailForm.shop_page_banner || null,
         shop_detail_banner: detailForm.shop_detail_banner || null,
+        location: detailForm.location.trim() || null,
         is_featured: detailForm.is_featured,
         is_verified: detailForm.is_verified,
         free_delivery: detailForm.free_delivery,
@@ -700,6 +705,18 @@ export default function ShopsAdminPage() {
                   disabled={detailSaving}
                   placeholder="What does this shop sell?"
                   className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Location</label>
+                <input
+                  type="text"
+                  value={detailForm.location}
+                  onChange={(e) => setDetailForm((f) => ({ ...f, location: e.target.value }))}
+                  disabled={detailSaving}
+                  placeholder="e.g. Eastleigh, Nairobi"
+                  className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 />
               </div>
 

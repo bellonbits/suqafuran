@@ -35,6 +35,7 @@ class ShopManagementUpdate(BaseModel):
     logo_url: Optional[str] = None
     shop_page_banner: Optional[str] = None
     shop_detail_banner: Optional[str] = None
+    location: Optional[str] = None
     is_featured: Optional[bool] = None
     is_verified: Optional[bool] = None
     free_delivery: Optional[bool] = None
@@ -69,6 +70,7 @@ class ShopRead(BaseModel):
     logo_url: Optional[str] = None
     shop_page_banner: Optional[str] = None
     shop_detail_banner: Optional[str] = None
+    location: Optional[str] = None
     is_featured: bool = False
     is_verified: bool = False
     free_delivery: bool = False
@@ -1400,7 +1402,7 @@ def get_all_shops(
                    LEFT(COALESCE(s.shop_page_banner, u.shop_page_banner), 200) as shop_page_banner,
                    LEFT(COALESCE(s.shop_detail_banner, u.shop_detail_banner), 200) as shop_detail_banner,
                    u.shop_description, u.logo_url, u.is_featured, u.free_delivery,
-                   u.is_verified, u.is_active
+                   u.is_verified, u.is_active, u.location
             FROM "user" u
             LEFT JOIN sellers s ON s.user_id = CAST(u.id AS VARCHAR)
             WHERE u.is_verified = true
@@ -1430,6 +1432,7 @@ def get_all_shops(
                 free_delivery=bool(row[10]),
                 is_verified=bool(row[11]),
                 is_active=bool(row[12]),
+                location=row[13],
             )
             shops.append(shop)
 
@@ -1477,6 +1480,7 @@ def get_shop(
             logo_url=shop.logo_url,
             shop_page_banner=shop.shop_page_banner,
             shop_detail_banner=shop.shop_detail_banner,
+            location=shop.location,
             is_featured=shop.is_featured,
             is_verified=shop.is_verified,
             free_delivery=shop.free_delivery,
@@ -1562,6 +1566,8 @@ def update_shop(
             shop.shop_page_banner = shop_data.shop_page_banner
         if shop_data.shop_detail_banner is not None:
             shop.shop_detail_banner = shop_data.shop_detail_banner
+        if shop_data.location is not None:
+            shop.location = shop_data.location
         if shop_data.is_featured is not None:
             shop.is_featured = shop_data.is_featured
         if shop_data.is_verified is not None:
@@ -1600,6 +1606,7 @@ def update_shop(
             logo_url=shop.logo_url,
             shop_page_banner=shop.shop_page_banner,
             shop_detail_banner=shop.shop_detail_banner,
+            location=shop.location,
             is_featured=shop.is_featured,
             is_verified=shop.is_verified,
             free_delivery=shop.free_delivery,

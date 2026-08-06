@@ -90,7 +90,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       }
 
       // 2. Fetch in-app user notifications
-      const notifRes = await api.get('/notifications?limit=10').catch(() => null);
+      const notifRes = await api.get('/notifications/?limit=10').catch(() => null);
       if (notifRes?.data && Array.isArray(notifRes.data)) {
         notifRes.data.forEach((n: any) => {
           items.push({

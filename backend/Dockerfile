@@ -29,4 +29,10 @@ RUN mkdir -p uploads celerybeat
 EXPOSE 8000
 
 # Run the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# --proxy-headers + --forwarded-allow-ips='*' makes uvicorn trust the
+# X-Forwarded-Proto header nginx sends; without it, uvicorn assumes every
+# request is plain HTTP (since nginx proxies to it over HTTP inside the
+# docker network) and builds redirect Location headers as http://, which
+# browsers refuse to follow during a CORS preflight. Safe here because the
+# backend container has no published port — only nginx can reach it.
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*"]
