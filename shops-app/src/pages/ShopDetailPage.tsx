@@ -70,6 +70,7 @@ export default function ShopDetailPage() {
 
     const [shopName, setShopName] = useState('');
     const [shopOwnerName, setShopOwnerName] = useState('');
+    const [shopLocation, setShopLocation] = useState('');
     const [shopLogo, setShopLogo] = useState('');
     const [shopAvatar, setShopAvatar] = useState('');
     const [avatarError, setAvatarError] = useState(false);
@@ -245,6 +246,7 @@ export default function ShopDetailPage() {
 
                     setShopName(currentShop.shop_name || 'Shop');
                     setShopOwnerName(currentShop.owner_name || '');
+                    setShopLocation(currentShop.shop_address || '');
 
                     // Extract logo candidate: check logo_url first, then owner_avatar_url, user avatar_url, or cover_image
                     const rawLogo = currentShop.logo_url || currentShop.owner_avatar_url || currentShop.user?.avatar_url || currentShop.cover_image;
@@ -609,6 +611,12 @@ export default function ShopDetailPage() {
                                 <span className="text-xs text-gray-600 dark:text-slate-400 font-semibold">
                                     Member since <span className="text-gray-900 dark:text-white">Jan 2026</span>
                                 </span>
+                                {shopLocation && (
+                                    <span className="flex items-center gap-1 text-xs text-gray-600 dark:text-slate-400 font-semibold">
+                                        <MapPin className="w-3.5 h-3.5" />
+                                        {shopLocation}
+                                    </span>
+                                )}
                             </div>
 
                             {/* Contact Buttons - Icon Row */}
