@@ -554,6 +554,7 @@ export const ListingWizard: React.FC = () => {
         category_id: formData.category_id,
         subcategory_id: formData.subcategory_id,
         location: formData.location,
+        currency: 'KES',
         images: formData.images.map((img) => img.url),
         attributes: formData.attributes || {},
       };

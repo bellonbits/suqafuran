@@ -197,6 +197,7 @@ export default function AgentShopsPage() {
           category_id: Number(newItem.category_id),
           subcategory_id: newItem.subcategory_id ? Number(newItem.subcategory_id) : null,
           subsubcategory_id: newItem.subsubcategory_id ? Number(newItem.subsubcategory_id) : null,
+          currency: 'KES',
           images: newItemImages,
         },
         { params: { owner_id: editingShop.id } }

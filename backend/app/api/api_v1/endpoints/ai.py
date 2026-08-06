@@ -30,7 +30,7 @@ class PriceRecommendationRequest(BaseModel):
     title: str
     category_id: Optional[int] = None
     condition: Optional[str] = "Used"
-    currency: Optional[str] = "USD"
+    currency: Optional[str] = "KES"
 
 class PredictCategoryRequest(BaseModel):
     title: str

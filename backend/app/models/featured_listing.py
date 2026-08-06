@@ -10,7 +10,7 @@ class FeaturedListingBase(SQLModel):
     owner_id: int = Field(foreign_key="user.id", index=True)
     boost_level: str = Field(index=True)  # "basic", "vip", "diamond"
     amount_paid: float
-    currency: str = Field(default="USD")
+    currency: str = Field(default="KES")
     duration_days: int  # How many days to feature
     status: str = Field(default="pending", index=True)  # pending, active, expired, cancelled
     payment_status: str = Field(default="pending", index=True)  # pending, processing, success, failed

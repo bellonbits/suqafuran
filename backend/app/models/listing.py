@@ -25,7 +25,7 @@ class ListingBase(SQLModel):
     moderation_status: str = Field(default="pending", index=True)  # pending, approved, rejected
     boost_level: int = Field(default=0)  # 0: none, 1: basic, 2: vip, 3: diamond
     boost_expires_at: Optional[datetime] = None
-    currency: str = Field(default="USD")
+    currency: str = Field(default="KES")
     images: List[str] = Field(default=[], sa_column=Column(JSON))
     attributes: dict = Field(default={}, sa_column=Column(JSON))
     views: int = Field(default=0)

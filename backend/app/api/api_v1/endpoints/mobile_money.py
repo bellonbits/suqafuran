@@ -21,7 +21,7 @@ router = APIRouter()
 class PaymentWebhookPayload(BaseModel):
     reference: str
     amount: float
-    currency: Optional[str] = "USD"
+    currency: Optional[str] = "KES"
     phone: str
     timestamp: Optional[datetime] = None
 
@@ -81,7 +81,7 @@ def receive_payment_webhook(
     transaction = MobileTransaction(
         phone=payload.phone,
         amount=payload.amount,
-        currency=payload.currency or "USD",
+        currency=payload.currency or "KES",
         reference=payload.reference,
         timestamp=payload.timestamp or datetime.utcnow(),
     )

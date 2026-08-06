@@ -6,7 +6,7 @@ class MobileTransaction(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     phone: str = Field(index=True)
     amount: float
-    currency: str = Field(default="USD")
+    currency: str = Field(default="KES")
     reference: str = Field(unique=True, index=True)
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     is_linked: bool = Field(default=False)

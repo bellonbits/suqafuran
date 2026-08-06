@@ -378,6 +378,7 @@ export default function ShopsAdminPage() {
           category_id: Number(newItem.category_id),
           subcategory_id: newItem.subcategory_id ? Number(newItem.subcategory_id) : null,
           subsubcategory_id: newItem.subsubcategory_id ? Number(newItem.subsubcategory_id) : null,
+          currency: 'KES',
           images: newItemImages,
         },
         { params: { owner_id: detailShop.id } }
@@ -529,6 +530,7 @@ export default function ShopsAdminPage() {
             category_id: row.category_id,
             subcategory_id: row.subcategory_id,
             subsubcategory_id: row.subsubcategory_id,
+            currency: 'KES',
             images: [],
           },
           { params: { owner_id: detailShop.id } }
