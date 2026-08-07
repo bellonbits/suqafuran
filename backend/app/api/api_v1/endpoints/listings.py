@@ -716,8 +716,14 @@ async def create_listing(
         if device.is_banned:
             raise HTTPException(status_code=403, detail="Access denied for this device.")
 
-    # 2. Risk-Based Rate Limiting
-    risk_security.check_listing_limit(current_user)
+    # 2. Risk-Based Rate Limiting -- this exists to stop a low-trust actor
+    # from spamming listings, so it doesn't apply when a trusted admin/agent
+    # is posting on a shop's behalf (bulk import, onboarding a new shop,
+    # etc). It previously keyed off current_user unconditionally, which
+    # meant every admin/agent bulk-create shared one daily cap across every
+    # shop they touched -- a large CSV import would trip it fast.
+    if effective_owner_id == current_user.id:
+        risk_security.check_listing_limit(current_user)
 
     # 3. Messaging & Content Moderation
     flags = moderation_service.analyze_listing(
