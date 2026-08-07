@@ -507,6 +507,8 @@ export default function ShopsAdminPage() {
     return { category_id: cat.id, subcategory_id: subId, subsubcategory_id: subsubId, error: '' };
   };
 
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
   const handleBulkImport = async () => {
     if (!detailShop) return;
     const validRows = bulkRows.filter((r) => !r.error);
@@ -516,30 +518,44 @@ export default function ShopsAdminPage() {
     for (let i = 0; i < bulkRows.length; i++) {
       if (bulkRows[i].error) continue;
       setBulkRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, status: 'importing' } : r)));
+      const row = bulkRows[i];
+      const payload = {
+        title_en: row.title_en,
+        title_so: row.title_so || null,
+        description_en: row.description_en,
+        price: Number(row.price),
+        location: row.location,
+        condition: row.condition,
+        category_id: row.category_id,
+        subcategory_id: row.subcategory_id,
+        subsubcategory_id: row.subsubcategory_id,
+        currency: 'KES',
+        images: [],
+      };
+      // Sequential POSTs share nginx's per-IP rate limit with the rest of the
+      // dashboard's traffic (notifications polling, other tabs, etc.) -- pace
+      // requests so a big CSV doesn't trip a 429, and back off once and retry
+      // if it does anyway rather than failing the row outright.
       try {
-        const row = bulkRows[i];
-        const res = await api.post(
-          '/listings/',
-          {
-            title_en: row.title_en,
-            title_so: row.title_so || null,
-            description_en: row.description_en,
-            price: Number(row.price),
-            location: row.location,
-            condition: row.condition,
-            category_id: row.category_id,
-            subcategory_id: row.subcategory_id,
-            subsubcategory_id: row.subsubcategory_id,
-            currency: 'KES',
-            images: [],
-          },
-          { params: { owner_id: detailShop.id } }
-        );
+        const res = await api.post('/listings/', payload, { params: { owner_id: detailShop.id } });
         setShopListings((prev) => [res.data, ...prev]);
         setBulkRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, status: 'success' } : r)));
       } catch (err: any) {
+        if (err.response?.status === 429) {
+          await sleep(2000);
+          try {
+            const res = await api.post('/listings/', payload, { params: { owner_id: detailShop.id } });
+            setShopListings((prev) => [res.data, ...prev]);
+            setBulkRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, status: 'success' } : r)));
+            continue;
+          } catch (retryErr: any) {
+            setBulkRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, status: 'failed', resultError: retryErr.response?.data?.detail || 'Failed to import (rate limited)' } : r)));
+            continue;
+          }
+        }
         setBulkRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, status: 'failed', resultError: err.response?.data?.detail || 'Failed to import' } : r)));
       }
+      await sleep(200);
     }
     setBulkImporting(false);
   };
