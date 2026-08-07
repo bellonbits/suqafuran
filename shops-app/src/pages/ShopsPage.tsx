@@ -458,8 +458,11 @@ function ShopsPageContent() {
 
   const totalPages = Math.ceil(total / SHOPS_PER_PAGE);
 
-  // Get all active categories (no limit)
-  const activeCategories = categories.filter(cat => (cat.active_listing_count ?? 0) > 0);
+  // Get all active categories, ordered most-shops-first so the categories
+  // buyers are actually browsing surface before niche ones.
+  const activeCategories = categories
+    .filter(cat => (cat.active_listing_count ?? 0) > 0)
+    .sort((a, b) => (shopCountsByCategory[b.id] ?? 0) - (shopCountsByCategory[a.id] ?? 0));
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 pb-20">
@@ -544,7 +547,7 @@ function ShopsPageContent() {
                   className="relative z-10 w-10 h-10 object-contain group-hover:scale-105 transition-transform duration-200"
                 />
               </div>
-              <span className={`text-[12px] font-bold mt-2 tracking-tight text-center w-16 truncate block ${
+              <span className={`text-[12px] font-bold mt-2 tracking-tight text-center w-20 leading-tight block ${
                 selectedCategoryId === null ? 'text-orange-500' : 'text-gray-700 dark:text-slate-300'
               }`}>
                 All
@@ -578,7 +581,7 @@ function ShopsPageContent() {
                       className="relative z-10 w-10 h-10 object-contain group-hover:scale-105 transition-transform duration-200"
                     />
                   </div>
-                  <span className={`text-[12px] font-bold mt-2 tracking-tight text-center w-16 truncate block ${
+                  <span className={`text-[12px] font-bold mt-2 tracking-tight text-center w-20 leading-tight block ${
                     isSelected ? 'text-orange-500' : 'text-gray-700 dark:text-slate-300'
                   }`}>
                     {cat.name_en}
