@@ -34,6 +34,7 @@ const ListingsManagementPage = () => {
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [approvingListing, setApprovingListing] = useState<number | null>(null);
   const [hoveredRejectionReason, setHoveredRejectionReason] = useState<{id: number, reason: string} | null>(null);
+  const [importingCSV, setImportingCSV] = useState(false);
 
   const { user } = useAuthStore();
   const navItems = ADMIN_NAV_ITEMS.map(item => ({
@@ -204,21 +205,27 @@ const ListingsManagementPage = () => {
     link.click();
   };
 
-  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportCSV = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    Papa.parse(file, {
-      header: true,
-      complete: (results: any) => {
-        console.log('Imported CSV data:', results.data);
-        // Handle CSV import - show modal or redirect to bulk editor
-      },
-      error: (error: any) => {
-        console.error('CSV parse error:', error);
-        alert('Error parsing CSV file');
-      },
-    });
+    setImportingCSV(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const { data } = await api.post('/listings/bulk-edit-by-category', formData);
+      const errorSummary = data.errors?.length
+        ? `\n\n${data.errors.length} row(s) skipped:\n${data.errors.slice(0, 5).map((err: any) => `Row ${err.row}: ${err.message}`).join('\n')}`
+        : '';
+      alert(`Updated ${data.updated_listings} listing(s), ${data.field_changes} field(s) changed.${errorSummary}`);
+      loadListings();
+    } catch (error: any) {
+      console.error('CSV import error:', error);
+      alert(error?.response?.data?.detail || 'Failed to import CSV');
+    } finally {
+      setImportingCSV(false);
+      e.target.value = '';
+    }
   };
 
   const handleApprove = async (id: number) => {
@@ -293,13 +300,14 @@ const ListingsManagementPage = () => {
             Export {exportCount} Listings with Images
           </button>
 
-          <label className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold flex items-center gap-2 transition-colors cursor-pointer">
-            <Upload size={16} />
-            Import & Bulk Update CSV
+          <label className={`px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold flex items-center gap-2 transition-colors cursor-pointer ${importingCSV ? 'opacity-50 pointer-events-none' : ''}`}>
+            {importingCSV ? <Loader size={16} className="animate-spin" /> : <Upload size={16} />}
+            {importingCSV ? 'Importing...' : 'Import & Bulk Update CSV'}
             <input
               type="file"
               accept=".csv"
               onChange={handleImportCSV}
+              disabled={importingCSV}
               className="hidden"
             />
           </label>

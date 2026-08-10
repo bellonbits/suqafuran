@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, Download, Wand2, Check, X, Undo2, FileText } from 'lucide-react';
+import { Upload, Download, Wand2, Check, X, Undo2, FileText, Tag, Loader } from 'lucide-react';
 import api from '@/services/api';
+import { listingsService } from '@/services/listings';
 import Papa from 'papaparse';
 
 interface Product {
@@ -17,7 +18,167 @@ interface Product {
   changed: boolean;
 }
 
+interface Category {
+  id: number;
+  name_en: string;
+  slug: string;
+}
+
+interface CategoryEditResult {
+  updated_listings: number;
+  field_changes: number;
+  errors: { row: number; message: string }[];
+}
+
+function CategoryBulkEditPanel() {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryId, setCategoryId] = useState<string>('');
+  const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [result, setResult] = useState<CategoryEditResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    listingsService.getCategories().then(setCategories).catch(() => setCategories([]));
+  }, []);
+
+  const handleExport = async () => {
+    if (!categoryId) return;
+    setExporting(true);
+    setError(null);
+    try {
+      const response = await api.get('/listings/bulk-export-by-category', {
+        params: { category_id: categoryId },
+        responseType: 'blob',
+      });
+      const category = categories.find((c) => String(c.id) === categoryId);
+      const blob = new Blob([response.data], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${category?.slug || categoryId}-bulk-edit.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to export category listings:', err);
+      setError('Failed to export this category. Try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    setError(null);
+    setResult(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await api.post('/listings/bulk-edit-by-category', formData);
+      setResult(response.data);
+    } catch (err) {
+      console.error('Failed to import edited CSV:', err);
+      setError('Failed to apply the edited CSV. Check the file and try again.');
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  return (
+    <div className="mt-6 space-y-6">
+      <div className="bg-slate-800 rounded-lg p-5 border border-slate-700">
+        <label className="block text-sm font-semibold text-white mb-3">
+          <Tag className="w-4 h-4 inline mr-2" />
+          1. Pick a category, export its listings
+        </label>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <select
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            className="flex-1 bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm"
+          >
+            <option value="">Select a category...</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>{c.name_en}</option>
+            ))}
+          </select>
+          <button
+            onClick={handleExport}
+            disabled={!categoryId || exporting}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:bg-slate-600 text-white rounded font-semibold transition shrink-0"
+          >
+            {exporting ? <Loader className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            Export CSV
+          </button>
+        </div>
+        <p className="text-xs text-slate-500 mt-2">
+          Columns: id, title, price, description, stock. Edit any of these in a spreadsheet -- id, category and status are for reference and won't be changed on import.
+        </p>
+      </div>
+
+      <div className="bg-slate-800 rounded-lg p-5 border border-slate-700">
+        <label className="block text-sm font-semibold text-white mb-3">
+          <Upload className="w-4 h-4 inline mr-2" />
+          2. Re-upload the edited CSV to apply changes
+        </label>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv"
+          onChange={handleImport}
+          disabled={importing}
+          className="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-orange-600 file:text-white hover:file:bg-orange-700 disabled:opacity-50"
+        />
+        {importing && (
+          <p className="text-xs text-slate-400 mt-2 flex items-center gap-2">
+            <Loader className="w-3.5 h-3.5 animate-spin" /> Applying changes...
+          </p>
+        )}
+      </div>
+
+      {error && (
+        <div className="bg-red-900/20 border border-red-800/40 rounded-lg p-4 text-sm text-red-400">
+          {error}
+        </div>
+      )}
+
+      {result && (
+        <div className="bg-slate-800 rounded-lg p-5 border border-slate-700 space-y-3">
+          <div className="flex items-center gap-6">
+            <div>
+              <p className="text-2xl font-black text-green-400">{result.updated_listings}</p>
+              <p className="text-xs text-slate-400">Listings updated</p>
+            </div>
+            <div>
+              <p className="text-2xl font-black text-orange-400">{result.field_changes}</p>
+              <p className="text-xs text-slate-400">Fields changed</p>
+            </div>
+            {result.errors.length > 0 && (
+              <div>
+                <p className="text-2xl font-black text-red-400">{result.errors.length}</p>
+                <p className="text-xs text-slate-400">Rows skipped</p>
+              </div>
+            )}
+          </div>
+          {result.errors.length > 0 && (
+            <div className="space-y-1 max-h-40 overflow-y-auto pt-2 border-t border-slate-700">
+              {result.errors.map((e, i) => (
+                <p key={i} className="text-xs text-red-400">Row {e.row}: {e.message}</p>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function BulkProductsPage() {
+  const [mode, setMode] = useState<'titles' | 'category-edit'>('titles');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [applying, setApplying] = useState(false);
@@ -161,9 +322,35 @@ export default function BulkProductsPage() {
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-3xl font-bold text-white mb-2">Bulk Product Manager</h1>
-          <p className="text-slate-400">Rename products in bulk with AI suggestions</p>
+          <p className="text-slate-400">
+            {mode === 'titles' ? 'Rename products in bulk with AI suggestions' : 'Export a category, edit price/title/description/stock in a spreadsheet, re-import'}
+          </p>
         </motion.div>
 
+        {/* Mode Tabs */}
+        <div className="mt-6 flex gap-2 border-b border-slate-700">
+          <button
+            onClick={() => setMode('titles')}
+            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
+              mode === 'titles' ? 'border-orange-500 text-white' : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            Rename Titles (AI)
+          </button>
+          <button
+            onClick={() => setMode('category-edit')}
+            className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
+              mode === 'category-edit' ? 'border-orange-500 text-white' : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            Bulk Edit by Category
+          </button>
+        </div>
+
+        {mode === 'category-edit' && <CategoryBulkEditPanel />}
+
+        {mode === 'titles' && (
+        <>
         {/* Controls */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Upload & Template */}
@@ -302,6 +489,8 @@ export default function BulkProductsPage() {
             <p className="text-slate-400">Upload a CSV file to get started</p>
             <p className="text-slate-500 text-sm mt-2">Required columns: id, current_title, category, brand</p>
           </motion.div>
+        )}
+        </>
         )}
       </div>
     </div>
