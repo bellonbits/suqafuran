@@ -10,7 +10,6 @@ import { useLocationStore } from '@/store/useLocation';
 import { MARKET_TO_CITY } from '@/constants/markets';
 import { HomepageBannerRotation } from '@/components/ads/HomepageBannerRotation';
 import { GlovoShopCard } from '@/components/shared/GlovoShopCard';
-import { ShopModeToggle } from '@/components/shared/ShopModeToggle';
 import { getCategoryStickerIcon } from '@/lib/categoryIcons';
 
 interface Category {
@@ -204,10 +203,6 @@ function ShopsPageContent() {
       {/* ── Hero Banner Carousel ───────────────────────────────────────── */}
       <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 pt-4 md:pt-6">
         <HomepageBannerRotation />
-      </div>
-
-      <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 mt-4">
-        <ShopModeToggle active="shops" />
       </div>
 
       {/* ── Page Title ─────────────────────────────────────────────────── */}

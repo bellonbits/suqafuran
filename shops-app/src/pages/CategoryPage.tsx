@@ -291,7 +291,7 @@ export default function CategoryPage() {
             {/* Title Header */}
             <div>
                 <h1 className="text-3xl font-black text-gray-950 dark:text-slate-100 font-poppins tracking-tight">
-                    {title} Stores Near You
+                    {title} Shops Near You
                 </h1>
             </div>
 
@@ -322,7 +322,7 @@ export default function CategoryPage() {
 
             {/* STORES NEAR YOU */}
             {filteredStores.length > 0 ? (
-                <ProductCarouselSection title="Stores Near You">
+                <ProductCarouselSection title="Shops Near You">
                     {filteredStores.map(store => (
                         <div key={store.id} className="w-[280px] sm:w-[320px] shrink-0">
                             <CategoryStoreCard store={store} category={category} />
@@ -331,7 +331,7 @@ export default function CategoryPage() {
                 </ProductCarouselSection>
             ) : (
                 <div className="py-14 text-center border border-dashed border-gray-200 dark:border-slate-800 rounded-2xl text-gray-400">
-                    No stores found in this category matching your filters.
+                    No shops found in this category matching your filters.
                 </div>
             )}
 

@@ -116,6 +116,41 @@ def check_listing_featured(
     )
 
 
+class BatchFeaturedCheckRequest(BaseModel):
+    listing_ids: List[int]
+
+
+@router.post("/listings/featured-status", response_model=dict[int, bool])
+def check_listings_featured_batch(
+    *,
+    db: Session = Depends(deps.get_db),
+    body: BatchFeaturedCheckRequest,
+) -> Any:
+    """
+    Batch version of /listing/{id}/is-featured -- one query for however many
+    listing ids a page needs, instead of one request (and one DB connection)
+    per rendered product card. A page with 30 cards used to open 30 pooled
+    connections at once here alone, which was enough to exhaust the pool.
+    """
+    if not body.listing_ids:
+        return {}
+
+    now = datetime.utcnow()
+    unique_ids = list(set(body.listing_ids))
+
+    featured_ids = set(
+        db.exec(
+            select(Advertisement.listing_id).where(
+                Advertisement.listing_id.in_(unique_ids),
+                Advertisement.status == AdvertisementStatus.ACTIVE,
+                Advertisement.end_date > now,
+            )
+        ).all()
+    )
+
+    return {listing_id: listing_id in featured_ids for listing_id in unique_ids}
+
+
 @router.get("/seller/{seller_id}/is-featured-shop", response_model=FeaturedCheckResponse)
 def check_shop_featured(
     *,

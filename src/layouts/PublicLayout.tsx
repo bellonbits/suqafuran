@@ -270,7 +270,7 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                                 <li><Link to="/safety" className="hover:opacity-70">{t('footer.safetyTips')}</Link></li>
                                 <li><Link to="/privacy" className="hover:opacity-70">{t('footer.privacy')}</Link></li>
                                 <li>
-                                    <a href="https://wa.me/252612958679" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:opacity-70">
+                                    <a href="https://wa.me/254720073322" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:opacity-70">
                                         <Phone className="h-3.5 w-3.5" />
                                         {t('footer.whatsappSupport')}
                                     </a>

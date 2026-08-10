@@ -63,4 +63,17 @@ export const aiService = {
       throw error;
     }
   },
+
+  async getSupportChat(
+    messages: { role: string; content: string }[],
+    currentListingId?: number,
+    ticketId?: number
+  ): Promise<any> {
+    const response = await api.post('/ai/support/chat', {
+      messages,
+      current_listing_id: currentListingId,
+      ticket_id: ticketId,
+    });
+    return response.data;
+  },
 };

@@ -28,5 +28,17 @@ export const supportService = {
   async replyToTicket(id: number, message: string) {
     const response = await api.post(`/support/tickets/${id}/reply`, { message });
     return response.data;
+  },
+
+  // Current user's open AI-support ticket, if any
+  async getMyActiveTicket() {
+    const response = await api.get('/support/my-active-ticket');
+    return response.data;
+  },
+
+  // Guest lookup by ticket id (no auth) -- used to resume a chat after reload
+  async getTicketById(id: number) {
+    const response = await api.get(`/support/ticket-by-id/${id}`);
+    return response.data;
   }
 };

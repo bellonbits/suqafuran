@@ -198,7 +198,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                                 <button
                                     onClick={handleAddToCart}
                                     aria-label="Add to cart"
-                                    className="h-8 w-8 rounded-full bg-[#00a082] hover:bg-[#008f73] shadow-sm flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                                    className="h-8 w-8 rounded-full bg-sky-500 hover:bg-sky-600 shadow-sm flex items-center justify-center active:scale-95 transition-all cursor-pointer"
                                 >
                                     <Plus className="h-4 w-4 text-white stroke-[3]" />
                                 </button>
@@ -257,7 +257,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                     <button
                         onClick={handleAddToCart}
                         aria-label="Add to cart"
-                        className="absolute bottom-2.5 right-2.5 h-8 w-8 rounded-full bg-[#00a082] hover:bg-[#008f73] shadow-md flex items-center justify-center active:scale-95 transition-all cursor-pointer z-10"
+                        className="absolute bottom-2.5 right-2.5 h-8 w-8 rounded-full bg-sky-500 hover:bg-sky-600 shadow-md flex items-center justify-center active:scale-95 transition-all cursor-pointer z-10"
                     >
                         <Plus className="h-4 w-4 text-white stroke-[3]" />
                     </button>

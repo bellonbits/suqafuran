@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import { Header } from './components/shared/Header'
 import { Footer } from './components/shared/Footer'
 import { AuthModal } from './components/shared/AuthModal'
+import { AISupportChat } from './components/shared/AISupportChat'
 import ProtectedRoute from './components/ProtectedRoute'
 import { SellerLayout } from './components/SellerLayout'
 import HomePage from './pages/HomePage'
@@ -117,6 +118,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
       <AuthModal />
+      <AISupportChat />
     </div>
   )
 }

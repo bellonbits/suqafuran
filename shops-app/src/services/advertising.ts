@@ -1,5 +1,40 @@
 import api from './api';
 
+// ── Batched featured-status lookups ─────────────────────────────────────
+// ProductCard calls isListingFeatured() once per rendered card. A page with
+// 30 cards fired 30 simultaneous requests (each holding a pooled DB
+// connection) and exhausted the pool, cascading into timeouts for every
+// other request in flight. Collect everything requested in the same tick
+// into a single batched call instead -- no call site needs to change.
+let pendingFeaturedIds: Set<number> = new Set();
+let pendingFeaturedResolvers: Map<number, Array<(v: boolean) => void>> = new Map();
+let featuredBatchScheduled = false;
+
+function scheduleFeaturedBatch() {
+  if (featuredBatchScheduled) return;
+  featuredBatchScheduled = true;
+  queueMicrotask(async () => {
+    const ids = Array.from(pendingFeaturedIds);
+    const resolvers = pendingFeaturedResolvers;
+    pendingFeaturedIds = new Set();
+    pendingFeaturedResolvers = new Map();
+    featuredBatchScheduled = false;
+
+    let result: Record<number, boolean> = {};
+    try {
+      const response = await api.post('/advertising/listings/featured-status', { listing_ids: ids });
+      result = response.data || {};
+    } catch (error) {
+      // Leave result empty -- every pending id below resolves to false.
+    }
+
+    for (const id of ids) {
+      const isFeatured = result[id] || false;
+      (resolvers.get(id) || []).forEach((resolve) => resolve(isFeatured));
+    }
+  });
+}
+
 export interface HomepageBanner {
   id: number;
   seller_id: number;
@@ -88,15 +123,18 @@ export const advertisingService = {
   },
 
   /**
-   * Check if a product is featured
+   * Check if a product is featured -- batches concurrent calls (see above)
+   * into a single request instead of one per listing.
    */
-  async isListingFeatured(listingId: number): Promise<boolean> {
-    try {
-      const response = await api.get(`/advertising/listing/${listingId}/is-featured`);
-      return response.data?.is_featured || false;
-    } catch (error) {
-      return false;
-    }
+  isListingFeatured(listingId: number): Promise<boolean> {
+    return new Promise((resolve) => {
+      pendingFeaturedIds.add(listingId);
+      if (!pendingFeaturedResolvers.has(listingId)) {
+        pendingFeaturedResolvers.set(listingId, []);
+      }
+      pendingFeaturedResolvers.get(listingId)!.push(resolve);
+      scheduleFeaturedBatch();
+    });
   },
 
   /**

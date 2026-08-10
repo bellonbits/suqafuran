@@ -15,7 +15,11 @@ function SearchPageContent() {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
     // Filter states
-    const [query, setQuery] = useState(searchParams.get('q') || '');
+    // Derived straight from the URL on every render -- not local state.
+    // Searching again while already on this page (router.push to the same
+    // route) doesn't remount the component, so a useState initialized once
+    // from searchParams would go stale after the first search.
+    const query = searchParams.get('q') || '';
     const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
     const [selectedCondition, setSelectedCondition] = useState('all');
     const [priceMin, setPriceMin] = useState('');

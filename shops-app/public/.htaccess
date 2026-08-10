@@ -32,6 +32,15 @@
   <FilesMatch "\.(png|jpg|jpeg|gif|svg|ico|webp)$">
     Header set Cache-Control "public, max-age=604800"
   </FilesMatch>
+
+  # sw.js is a kill-switch for service workers left over from old deploys —
+  # it must never be cached, or stuck clients can never fetch the real thing.
+  # Placed after the generic .js rule above so it wins (last Header set applies).
+  <FilesMatch "^sw\.js$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
 </IfModule>
 
 # Belt-and-suspenders for servers/proxies that ignore Cache-Control on HTML

@@ -482,7 +482,7 @@ Return a JSON object:
         - If the user is looking at a product (see context above), help them with it.
         - If they seem interested but unsure, suggest similar products from our marketplace.
         - NEVER answer questions outside of Suqafuran or marketplace context.
-        - If you don't know the answer or the user is frustrated, tell them to contact our human team on WhatsApp: +252 612 958679.
+        - If you don't know the answer or the user is frustrated, tell them to contact our human team by phone call or WhatsApp: +254 720 073322.
         - Be professional, helpful, and concise.
 
         EASY REDIRECTION LINKS:
@@ -498,8 +498,9 @@ Return a JSON object:
           * Instagram: [Instagram](https://www.instagram.com/suqafuran/)
           * Twitter/X: [Twitter/X](https://x.com/suqafuran)
           * TikTok: [TikTok](https://www.tiktok.com/@suqafuran_)
-          * WhatsApp Support: [WhatsApp Support](https://wa.me/252612958679)
-        
+          * WhatsApp Support: [WhatsApp Support](https://wa.me/254720073322)
+          * Call Support: [Call Support](tel:+254720073322)
+
         KNOWLEDGE BASE:
         - Boosting: We have Top, Premium, and VIP plans to sell 10x-100x faster.
         - Payments: We accept M-Pesa (Lipana) for all promotions.
@@ -583,7 +584,7 @@ Return a JSON object:
             
             return {
                 "answer": result.get("answer"),
-                "whatsapp_support": "+252 612 958679",
+                "whatsapp_support": "+254 720 073322",
                 "needs_ticket": result.get("needs_ticket", False),
                 "ticket_priority": result.get("ticket_priority", "low"),
                 "ticket_subject": result.get("ticket_subject", "Support Inquiry"),
@@ -592,8 +593,8 @@ Return a JSON object:
         except Exception as e:
             logger.error(f"Support AI Error: {e}")
             return {
-                "answer": "I'm having a bit of trouble right now. Please reach out to our team on WhatsApp for immediate help.",
-                "whatsapp_support": "+252 612 958679"
+                "answer": "I'm having a bit of trouble right now. Please reach out to our team by call or WhatsApp for immediate help.",
+                "whatsapp_support": "+254 720 073322"
             }
 
     def analyze_image(self, image_url: str) -> dict:
