@@ -63,6 +63,7 @@ async def login_access_token(
             user_id=user.id,
             email=user.email,
             auth_method="password",
+            full_name=user.full_name,
         )
         logger.info(f"✅ Signin event published: {result}")
     except Exception as e:

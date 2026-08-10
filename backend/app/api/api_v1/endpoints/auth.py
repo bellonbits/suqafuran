@@ -198,6 +198,7 @@ async def verify_otp(
                 user_id=user.id,
                 email=user.email,
                 auth_method="email_otp",
+                full_name=user.full_name,
             )
             logger.info(f"✅ Signin event published: {result}")
         except Exception as e:
@@ -368,6 +369,7 @@ async def verify_phone_otp(
                 user_id=user.id,
                 email=user.email,
                 auth_method="phone_otp",
+                full_name=user.full_name,
             )
         except Exception as e:
             logger.warning(f"Failed to publish signin event: {e}")

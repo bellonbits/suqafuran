@@ -264,6 +264,7 @@ async def publish_signin_event(
     user_id: int,
     email: str,
     auth_method: str = "email_otp",
+    full_name: Optional[str] = None,
     **kwargs
 ):
     """Publish user signin event to monitoring topic."""
@@ -274,6 +275,7 @@ async def publish_signin_event(
             "user_id": user_id,
             "email": email,
             "auth_method": auth_method,
+            "full_name": full_name,
         },
         partition_key=str(user_id),
         user_id=str(user_id),

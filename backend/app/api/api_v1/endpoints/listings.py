@@ -888,6 +888,7 @@ async def create_listing(
 
     # Publish tracking event for listing creation
     try:
+        category_obj = db.get(Category, listing.category_id)
         await publish_tracking_event(
             user_id=effective_owner_id,
             event_type="listing_created",
@@ -896,8 +897,9 @@ async def create_listing(
             metadata={
                 "listing_id": listing.id,
                 "title": listing.title_en,
-                "category": listing.category_id,
+                "category": category_obj.name_en if category_obj else str(listing.category_id),
                 "price": float(listing.price),
+                "seller_name": owner_for_checks.business_name or owner_for_checks.full_name or f"User {effective_owner_id}",
             }
         )
     except Exception as e:
