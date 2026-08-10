@@ -1,5 +1,6 @@
 from typing import List
 from sqlmodel import Session, select
+from sqlalchemy.orm import selectinload
 from app.models.favorite import Favorite
 from app.models.listing import Listing
 
@@ -22,7 +23,12 @@ class CRUDFavorite:
             db.commit()
 
     def get_user_favorites(self, db: Session, *, user_id: int) -> List[Listing]:
-        statement = select(Listing).join(Favorite).where(Favorite.user_id == user_id)
+        statement = (
+            select(Listing)
+            .join(Favorite)
+            .where(Favorite.user_id == user_id)
+            .options(selectinload(Listing.owner))
+        )
         return db.exec(statement).all()
 
     def is_favorite(self, db: Session, *, user_id: int, listing_id: int) -> bool:

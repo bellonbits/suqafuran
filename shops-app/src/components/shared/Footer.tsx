@@ -5,7 +5,7 @@ export const Footer: React.FC = () => {
     return (
         <footer className="border-t border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900 pb-16 md:pb-0">
             <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-                <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+                <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
                     {/* Brand Section */}
                     <div className="col-span-2 md:col-span-1 space-y-4">
                         <Link href="/" className="inline-block hover:opacity-90 transition-opacity">
@@ -59,6 +59,35 @@ export const Footer: React.FC = () => {
                             <li>
                                 <Link href="/terms-of-use" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
                                     Terms of Use
+                                </Link>
+                            </li>
+                        </ul>
+                    </div>
+
+                    {/* Marketplace */}
+                    <div>
+                        <h3 className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">
+                            Marketplace
+                        </h3>
+                        <ul className="mt-4 space-y-2">
+                            <li>
+                                <Link href="/offers" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
+                                    My Offers
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/price-alerts" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
+                                    Price Alerts
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/saved-searches" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
+                                    Saved Searches
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/settings/notifications" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-slate-300 dark:hover:text-sky-400">
+                                    Notifications
                                 </Link>
                             </li>
                         </ul>

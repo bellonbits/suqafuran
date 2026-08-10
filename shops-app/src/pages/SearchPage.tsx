@@ -93,7 +93,7 @@ function SearchPageContent() {
         <div className="w-full">
             {/* Filter Pills Bar */}
             <div className="sticky top-16 z-10 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800">
-                <div className="px-4 sm:px-6 lg:px-8 py-4">
+                <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex flex-col gap-4">
                         {/* Results Count */}
                         <div className="space-y-0.5">
@@ -199,7 +199,7 @@ function SearchPageContent() {
             </div>
 
             {/* Results */}
-            <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
                 {isLoading ? (
                     <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5">
                         {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -215,14 +215,16 @@ function SearchPageContent() {
                         <p className="text-lg font-semibold text-gray-900 dark:text-slate-100">No Results Found</p>
                         <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Try adjusting your filters or search query</p>
                     </div>
-                ) : (
-                    <div className={
-                        viewMode === 'grid'
-                            ? "grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5"
-                            : "space-y-4"
-                    }>
+                ) : viewMode === 'grid' ? (
+                    <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5">
                         {filteredListings.map((listing) => (
                             <ProductCard key={listing.id} listing={listing} />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="space-y-4 max-w-2xl">
+                        {filteredListings.map((listing) => (
+                            <ProductCard key={listing.id} listing={listing} layout="horizontal" />
                         ))}
                     </div>
                 )}
