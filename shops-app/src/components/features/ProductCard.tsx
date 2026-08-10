@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Eye, Heart, ShieldCheck, Star } from 'lucide-react';
+import { Heart, ShieldCheck, Star, Plus } from 'lucide-react';
 import { useFavoritesStore } from '../../store/useFavorites';
 import { useAuthStore } from '../../store/useAuth';
 import { useAuthModal } from '../../store/useAuthModal';
 import { useCurrencyStore } from '../../store/useCurrency';
+import { useCart } from '../../store/useCart';
 import { formatConvertedPrice } from '../../lib/currency';
 import { useLocalizedField } from '../../lib/i18n';
 import { ProductQuickViewModal } from '../ProductQuickViewModal';
@@ -18,9 +19,14 @@ interface ProductCardProps {
     listing: Listing;
     /** Show the seller/shop this item comes from (e.g. for "Direct from verified local sellers" sections) */
     showSeller?: boolean;
+    /** Optional deal badge -- e.g. a "Today's Deals" carousel showing a discount + struck-through original price. Omit for the normal (no discount) card. */
+    discountPercent?: number;
+    originalPrice?: number;
+    /** Category label shown under the title, e.g. "Fashion" */
+    categoryName?: string;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, discountPercent, originalPrice, categoryName }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isFeatured, setIsFeatured] = useState(false);
     const { isAuthenticated } = useAuthStore();
@@ -28,6 +34,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller })
     const isFavorite = useFavoritesStore((s) => s.isFavorite(listing.id));
     const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
     const displayCurrency = useCurrencyStore((s) => s.currency);
+    const addItem = useCart((s) => s.addItem);
     const field = useLocalizedField();
 
     // Check if listing is featured
@@ -59,6 +66,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller })
         setIsModalOpen(true);
     };
 
+    const handleAddToCart = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        addItem({
+            id: String(listing.id),
+            title: field(listing.title_en, listing.title_so) || listing.title_en,
+            price: listing?.price ?? 0,
+            quantity: 1,
+            image: displayImage,
+            owner_id: listing.owner_id,
+        });
+    };
+
     // Generate fallback visuals if listing images are missing
     const displayImage = (listing.images && listing.images.length > 0)
         ? listing.images[0]
@@ -70,7 +90,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller })
                 onClick={handleOpenModal}
                 className="block group w-full text-left hover:no-underline"
             >
-                <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-900 cursor-pointer">
+                <div className="relative aspect-square rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800/80 cursor-pointer">
                     <img
                         src={displayImage}
                         alt={listing.title_en}
@@ -78,14 +98,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller })
                         loading="lazy"
                     />
 
+                    {!!discountPercent && (
+                        <div className="absolute top-2 left-2 z-10 rounded bg-[#e81f44] px-2 py-1 text-[10px] font-extrabold text-white">
+                            -{discountPercent}%
+                        </div>
+                    )}
+
                     {isFeatured && (
-                        <div className="absolute top-2 left-2 z-10">
+                        <div className={`absolute top-2 left-2 z-10 ${discountPercent ? 'mt-7' : ''}`}>
                             <FeaturedBadge size="sm" />
                         </div>
                     )}
 
                     {listing.condition && listing.condition !== 'New' && (
-                        <span className={`absolute left-2 top-2 rounded-full bg-slate-900/75 backdrop-blur-md px-2.5 py-1 text-[9px] font-black text-white uppercase tracking-wider ${isFeatured ? 'mt-6' : ''}`}>
+                        <span className={`absolute left-2 top-2 rounded-full bg-slate-900/75 backdrop-blur-md px-2.5 py-1 text-[9px] font-black text-white uppercase tracking-wider ${isFeatured ? 'mt-6' : ''} ${discountPercent && !isFeatured ? 'mt-7' : ''}`}>
                             {listing.condition}
                         </span>
                     )}
@@ -97,16 +123,37 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller })
                     >
                         <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-slate-200'}`} />
                     </button>
+
+                    <button
+                        onClick={handleAddToCart}
+                        aria-label="Add to cart"
+                        className="absolute bottom-2.5 right-2.5 h-8 w-8 rounded-full bg-[#00a082] hover:bg-[#008f73] shadow-md flex items-center justify-center active:scale-95 transition-all cursor-pointer z-10"
+                    >
+                        <Plus className="h-4 w-4 text-white stroke-[3]" />
+                    </button>
                 </div>
 
                 <div className="pt-2.5 space-y-1">
-                    <div className="text-base font-black text-gray-900 dark:text-slate-100">
-                        {formatConvertedPrice(listing?.price ?? 0, listing.currency, displayCurrency)}
-                    </div>
-
-                    <h3 className="line-clamp-2 text-sm font-semibold text-gray-700 dark:text-slate-300 leading-snug">
+                    <h3 className="line-clamp-2 text-sm font-semibold text-gray-900 dark:text-slate-100 leading-snug">
                         {field(listing.title_en, listing.title_so)}
                     </h3>
+
+                    {categoryName && (
+                        <div className="text-xs text-gray-500 dark:text-slate-400">
+                            {categoryName}
+                        </div>
+                    )}
+
+                    <div className="flex items-baseline gap-1.5">
+                        <div className="text-base font-black text-gray-900 dark:text-slate-100">
+                            {formatConvertedPrice(listing?.price ?? 0, listing.currency, displayCurrency)}
+                        </div>
+                        {!!originalPrice && originalPrice > (listing?.price ?? 0) && (
+                            <div className="text-xs font-semibold text-gray-400 dark:text-slate-500 line-through">
+                                {formatConvertedPrice(originalPrice, listing.currency, displayCurrency)}
+                            </div>
+                        )}
+                    </div>
 
                     {showSeller && listing.owner && (
                         <div className="space-y-1">
@@ -133,17 +180,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller })
                         </div>
                     )}
 
-                    {listing.views !== undefined && listing.views > 0 ? (
-                        <div className="flex items-center gap-1 text-[11px] text-gray-400 dark:text-slate-500 font-semibold">
-                            <Eye className="h-3 w-3" />
-                            <span>{listing.views >= 1000 ? `${(listing.views / 1000).toFixed(1)}k+ views` : `${listing.views} views`}</span>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                            <span>New listing</span>
-                        </div>
-                    )}
                 </div>
             </button>
 

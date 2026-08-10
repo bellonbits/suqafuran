@@ -95,7 +95,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={onClose}
-                className="absolute top-6 right-6 z-10 w-12 h-12 rounded-full border-2 border-#6cd4ff text-[#5bc0e8] hover:bg-#e0f7ff flex items-center justify-center shadow-lg transition-all"
+                className="absolute top-6 right-6 z-10 w-12 h-12 rounded-full border-2 border-orange-500 text-orange-500 hover:bg-orange-50 flex items-center justify-center shadow-lg transition-all"
               >
                 <X className="w-6 h-6" />
               </motion.button>
@@ -196,7 +196,7 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
                     onAddToCart?.(product.id);
                     onClose();
                   }}
-                  className="w-full bg-#6cd4ff hover:bg-#5bc0e8 text-white font-black py-4 px-6 rounded-full text-lg transition-colors shadow-lg"
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-4 px-6 rounded-full text-lg transition-colors shadow-lg"
                 >
                   Add {quantity} for KSh{((product?.price ?? 0) * quantity).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                 </motion.button>

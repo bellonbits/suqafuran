@@ -28,7 +28,11 @@ function SearchPageContent() {
         const fetchListings = async () => {
             setIsLoading(true);
             try {
-                const data = await listingsService.getListings();
+                // The backend now does real matching (full-text search across
+                // title/description plus category/subcategory/subsubcategory
+                // names, with English stemming) -- send the query instead of
+                // fetching everything and substring-filtering client-side.
+                const data = await listingsService.getListings({ q: query || undefined, limit: 50 });
                 // Deduplication is now handled by the service, but double-check here
                 const seenIds = new Set<number>();
                 const unique = data.filter(l => {
@@ -44,19 +48,11 @@ function SearchPageContent() {
             }
         };
         fetchListings();
-    }, [searchParams]);
+    }, [query]);
 
     // Apply client side filters
     useEffect(() => {
         let results = [...listings];
-
-        if (query) {
-            const lowQuery = query.toLowerCase();
-            results = results.filter(l =>
-                l.title_en?.toLowerCase().includes(lowQuery) ||
-                l.description_en?.toLowerCase().includes(lowQuery)
-            );
-        }
 
         if (selectedCondition !== 'all') {
             results = results.filter(l => l.condition?.toLowerCase() === selectedCondition.toLowerCase());
@@ -82,7 +78,7 @@ function SearchPageContent() {
         }
 
         setFilteredListings(results);
-    }, [listings, query, selectedCategory, selectedCondition, priceMin, priceMax, location, sortBy]);
+    }, [listings, selectedCategory, selectedCondition, priceMin, priceMax, location, sortBy]);
 
     const getSortLabel = () => {
         switch(sortBy) {

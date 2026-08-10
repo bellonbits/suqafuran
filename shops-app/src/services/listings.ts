@@ -43,13 +43,10 @@ export interface PublicShop {
 
 export const listingsService = {
     async getListings(params?: any): Promise<Listing[]> {
-        // Simple cache key - MUST include owner_id to prevent showing wrong shop's listings
-        const cacheKey = `listings:${JSON.stringify({
-            owner_id: params?.owner_id,
-            limit: params?.limit,
-            skip: params?.skip,
-            category: params?.category
-        })}`;
+        // Cache key covers every param (not a hand-picked subset) -- a subset
+        // previously missed category_id, so two different-category calls with
+        // the same limit/skip collided into the same cached result.
+        const cacheKey = `listings:${JSON.stringify(params ?? {})}`;
 
         if (typeof window !== 'undefined') {
             const cached = localStorage.getItem(cacheKey);

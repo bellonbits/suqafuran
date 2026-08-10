@@ -1,9 +1,10 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import { Header } from './components/shared/Header'
 import { Footer } from './components/shared/Footer'
 import { AuthModal } from './components/shared/AuthModal'
 import ProtectedRoute from './components/ProtectedRoute'
 import { SellerLayout } from './components/SellerLayout'
+import HomePage from './pages/HomePage'
 import ShopsPage from './pages/ShopsPage'
 import ShopDetailPage from './pages/ShopDetailPage'
 import CheckoutPage from './pages/CheckoutPage'
@@ -124,8 +125,8 @@ export default function App() {
   return (
     <Routes>
       {/* Marketplace Pages */}
-      <Route element={<AppLayout><ShopsPage /></AppLayout>} path="/" />
-      <Route element={<Navigate to="/" replace />} path="/shops" />
+      <Route element={<AppLayout><HomePage /></AppLayout>} path="/" />
+      <Route element={<AppLayout><ShopsPage /></AppLayout>} path="/shops" />
       <Route element={<AppLayout><ShopDetailPage /></AppLayout>} path="/shop" />
       <Route element={<AppLayout><ShopDetailPage /></AppLayout>} path="/shop/:slug" />
       <Route element={<AppLayout><SearchPage /></AppLayout>} path="/search" />

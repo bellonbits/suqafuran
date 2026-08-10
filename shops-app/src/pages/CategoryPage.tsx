@@ -1,16 +1,16 @@
 "use client";
 
-import React, { use, useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { ChevronRight, ChevronLeft, Star, ShieldCheck, ShoppingBag } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { ChevronRight, Star, ShieldCheck, ShoppingBag } from 'lucide-react';
 import { listingsService } from '@/services/listings';
 import api, { resolveMediaUrl } from '@/services/api';
-import { useCurrencyStore } from '@/store/useCurrency';
-import { formatConvertedPrice } from '@/lib/currency';
-import { useLocalizedField } from '@/lib/i18n';
 import type { Listing } from '@/types';
 import { CANONICAL_CATEGORIES } from '@/components/shared/Sidebar';
-import { useCart } from '@/store/useCart';
+import { ProductCard } from '@/components/features/ProductCard';
+import { ProductCarouselSection } from '@/components/shared/ProductCarouselSection';
+import { getMockProductInfo } from '@/lib/mockProductInfo';
 
 interface Store {
     id: string;
@@ -19,15 +19,11 @@ interface Store {
     logo_url?: string;
     image?: string;
     rating: number;
-    time: string;
     distance: string;
     isVerified: boolean;
     trust_score: number;
 }
 
-interface PageProps {
-    params: Promise<{ category: string }>;
-}
 
 const FALLBACK: Record<string, string> = {
     'food-groceries':        '/categories/grocery.jpg',
@@ -115,90 +111,13 @@ function CategoryStoreCard({ store, category }: { store: Store; category: string
                         <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                     )}
                 </div>
-                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-                    {store.time}
+                <p className="text-xs font-bold text-gray-700 dark:text-slate-300 mt-0.5 flex items-center gap-1">
+                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                    {Math.round(store.rating * 20)}%
                 </p>
                 <p className="text-[10px] text-gray-400 dark:text-slate-500 font-medium">
-                    {store.distance} · Free escrow
+                    {store.distance}
                 </p>
-            </div>
-        </Link>
-    );
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   PRODUCT CARD — Landscape/Square + Bottom Add Button
-───────────────────────────────────────────────────────────────────────────── */
-function CategoryProductCard({ listing, onAddToCart }: { listing: Listing; onAddToCart: () => void }) {
-    const img = listing.images?.[0] ? resolveMediaUrl(listing.images[0]) || '/categories/grocery.jpg' : '/categories/grocery.jpg';
-    const displayCurrency = useCurrencyStore((s) => s.currency);
-    const field = useLocalizedField();
-
-    return (
-        <Link 
-            href={`/listings/${listing.id}`}
-            className="group cursor-pointer flex flex-col justify-between"
-        >
-            <div className="space-y-2">
-                {/* Image Box */}
-                <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-800 flex items-center justify-center p-2">
-                    <img
-                        src={img}
-                        alt={field(listing.title_en, listing.title_so)}
-                        loading="lazy"
-                        className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
-                    />
-                    
-                    {/* Add to Cart circle button */}
-                    <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            onAddToCart();
-                        }}
-                        className="absolute bottom-2.5 right-2.5 h-7 w-7 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-200 rounded-full flex items-center justify-center font-bold text-sm shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer z-10"
-                    >
-                        +
-                    </button>
-                    
-                    {listing.is_negotiable && (
-                        <span className="absolute top-2 left-2 bg-orange-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full">
-                            Negotiable
-                        </span>
-                    )}
-                </div>
-                
-                {/* Text meta */}
-                <div className="space-y-0.5 px-0.5">
-                    <span className="text-xs font-extrabold text-gray-900 dark:text-slate-100">
-                        {formatConvertedPrice(listing?.price ?? 0, listing.currency, displayCurrency)}
-                    </span>
-                    <h4 className="text-xs font-semibold text-gray-800 dark:text-slate-200 line-clamp-2 mt-0.5 leading-snug">
-                        {field(listing.title_en, listing.title_so)}
-                    </h4>
-                </div>
-            </div>
-            
-            <div className="px-0.5 mt-1 space-y-1">
-                {listing.owner && (
-                    <div className="space-y-0.5">
-                        <div className="flex items-center gap-0.5 text-[8px] text-gray-600 dark:text-slate-400 font-bold truncate">
-                            <span className="truncate">{listing.owner.full_name}</span>
-                            {listing.owner.is_verified && (
-                                <span className="text-orange-600 dark:text-orange-400">✓</span>
-                            )}
-                        </div>
-                        {(listing.owner as any)?.rating && (
-                            <div className="flex items-center gap-0.5 text-[7px] text-gray-500 dark:text-slate-500">
-                                <span>⭐ {(listing.owner as any).rating.toFixed(1)}</span>
-                                {(listing.owner as any).reviews_count && <span>({(listing.owner as any).reviews_count})</span>}
-                            </div>
-                        )}
-                    </div>
-                )}
-                <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-1.5 py-0.5 rounded block w-max">
-                    In stock
-                </span>
             </div>
         </Link>
     );
@@ -207,19 +126,14 @@ function CategoryProductCard({ listing, onAddToCart }: { listing: Listing; onAdd
 /* ─────────────────────────────────────────────────────────────────────────────
    MAIN PAGE COMPONENT
 ───────────────────────────────────────────────────────────────────────────── */
-export default function CategoryPage({ params }: PageProps) {
-    const { category } = use(params);
-    const displayCurrency = useCurrencyStore((s) => s.currency);
-    const field = useLocalizedField();
-    const addItem = useCart((state) => state.addItem);
+export default function CategoryPage() {
+    const { category = '' } = useParams<{ category: string }>();
 
     const [title, setTitle] = useState('');
     const [stores, setStores] = useState<Store[]>([]);
     const [listingsByStore, setListingsByStore] = useState<{ store: Store; listings: Listing[] }[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeFilters, setActiveFilters] = useState<string[]>([]);
-
-    const sliderRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
 
     const isDealsPage = category === 'deals';
     const LISTINGS_LIMIT = 50;
@@ -260,7 +174,7 @@ export default function CategoryPage({ params }: PageProps) {
 
                     fetchedListings.forEach(l => {
                         if (l.owner && !uniqueSellersMap.has(l.owner_id)) {
-                            const storeName = l.owner.full_name || "Local Seller";
+                            const storeName = l.owner.business_name || l.owner.full_name || "Local Seller";
                             const nameKey = storeName.toLowerCase().trim();
 
                             // Skip if we already have a store with this name
@@ -278,7 +192,6 @@ export default function CategoryPage({ params }: PageProps) {
                                     ? resolveMediaUrl(l.images[0]) || undefined
                                     : resolveMediaUrl(l.owner.avatar_url) || getFallbackImage(dbCategorySlug),
                                 rating: trustScoreVal / 200,
-                                time: "25-35 min",
                                 distance: l.location ? l.location.split(',')[0] : "Nearby",
                                 isVerified: l.owner.is_verified || false,
                                 trust_score: trustScoreVal
@@ -349,11 +262,6 @@ export default function CategoryPage({ params }: PageProps) {
         return results;
     }, [listingsByStore, activeFilters]);
 
-    const scroll = (key: string, dir: 'left' | 'right') => {
-        const el = sliderRefs.current.get(key);
-        if (el) el.scrollBy({ left: dir === 'left' ? -480 : 480, behavior: 'smooth' });
-    };
-
     const toggleFilter = (filter: string) => {
         setActiveFilters(prev => 
             prev.includes(filter) ? prev.filter(f => f !== filter) : [...prev, filter]
@@ -362,21 +270,24 @@ export default function CategoryPage({ params }: PageProps) {
 
     if (loading) {
         return (
-            <div className="py-6 px-4 sm:px-6 lg:px-8 space-y-10 bg-white dark:bg-slate-900 min-h-screen animate-pulse">
-                <div className="h-8 w-52 bg-slate-200 dark:bg-slate-800 rounded-lg" />
-                <div className="flex gap-2">
-                    {[1, 2, 3, 4].map(i => <div key={i} className="h-9 w-24 bg-slate-100 dark:bg-slate-800 rounded-full" />)}
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {[1, 2, 3, 4].map(i => <div key={i} className="h-20 bg-slate-100 dark:bg-slate-800 rounded-2xl" />)}
+            <div className="bg-white dark:bg-slate-900 min-h-screen">
+                <div className="max-w-[1440px] mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-10 animate-pulse">
+                    <div className="h-8 w-52 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+                    <div className="flex gap-2">
+                        {[1, 2, 3, 4].map(i => <div key={i} className="h-9 w-24 bg-slate-100 dark:bg-slate-800 rounded-full" />)}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {[1, 2, 3, 4].map(i => <div key={i} className="h-20 bg-slate-100 dark:bg-slate-800 rounded-2xl" />)}
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="py-6 px-4 sm:px-6 lg:px-8 space-y-10 bg-white dark:bg-slate-900 min-h-screen">
-            
+        <div className="bg-white dark:bg-slate-900 min-h-screen">
+            <div className="max-w-[1440px] mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-10">
+
             {/* Title Header */}
             <div>
                 <h1 className="text-3xl font-black text-gray-950 dark:text-slate-100 font-poppins tracking-tight">
@@ -386,7 +297,7 @@ export default function CategoryPage({ params }: PageProps) {
 
             {/* DoorDash Style Filter Pills */}
             <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none hide-scrollbar">
-                {['Over 4.5★', 'Verified Only', 'Under 30 min', 'Fastest'].map((filter) => {
+                {['Over 4.5★', 'Verified Only'].map((filter) => {
                     const active = activeFilters.includes(filter);
                     return (
                         <button
@@ -409,97 +320,50 @@ export default function CategoryPage({ params }: PageProps) {
                 })}
             </div>
 
-            {/* STORES NEAR YOU GRID */}
+            {/* STORES NEAR YOU */}
             {filteredStores.length > 0 ? (
-                <section className="space-y-4">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">Stores Near You</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {filteredStores.map(store => (
-                            <CategoryStoreCard key={store.id} store={store} category={category} />
-                        ))}
-                    </div>
-                </section>
+                <ProductCarouselSection title="Stores Near You">
+                    {filteredStores.map(store => (
+                        <div key={store.id} className="w-[280px] sm:w-[320px] shrink-0">
+                            <CategoryStoreCard store={store} category={category} />
+                        </div>
+                    ))}
+                </ProductCarouselSection>
             ) : (
                 <div className="py-14 text-center border border-dashed border-gray-200 dark:border-slate-800 rounded-2xl text-gray-400">
                     No stores found in this category matching your filters.
                 </div>
             )}
 
-            {/* PROMO BANNER */}
-            <div className="rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 text-white p-6 shadow-sm flex flex-col sm:flex-row justify-between sm:items-center gap-4 relative overflow-hidden">
-                <div className="space-y-2 max-w-xl z-10">
-                    <span className="inline-block px-3 py-1 bg-white/20 rounded-lg font-black text-xs uppercase tracking-wide">Promo Deal</span>
-                    <h3 className="text-lg sm:text-xl font-black font-poppins leading-tight">Secure Trade Escrow Protection enabled for all local purchases.</h3>
-                    <p className="text-xs text-amber-50/90 font-medium">Verify your items with the driver before payouts are finalized.</p>
-                </div>
-                <button className="sm:self-center shrink-0 w-max bg-white text-orange-600 font-extrabold px-6 py-2.5 rounded-xl hover:bg-slate-50 transition-all active:scale-95 shadow-sm text-xs cursor-pointer z-10">
-                    Browse escrow details
-                </button>
-                <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-white/10 skew-x-12 translate-x-20 hidden md:block" />
-            </div>
-
             {/* STORE SHOWCASE SLIDERS (Snacks / Items from stores) */}
             {filteredListingsByStore.length > 0 && (
-                <div className="space-y-12">
-                    {filteredListingsByStore.map(({ store, listings }) => {
-                        const sliderKey = `${store.id}-slider`;
-                        return (
-                            <section key={store.id} className="space-y-4">
-                                {/* Header with slider controls */}
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <h3 className="text-lg font-extrabold text-gray-900 dark:text-slate-100 leading-tight">
-                                            Featured from {store.name}
-                                        </h3>
-                                        <p className="text-xs text-gray-500 mt-0.5">
-                                            From {store.name} · {store.time}
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Link href={`/shop/${store.slug}?category=${encodeURIComponent(category)}`} className="text-xs font-bold text-[#FF3008] hover:underline mr-2">
-                                            See All
-                                        </Link>
-                                        <button 
-                                            onClick={() => scroll(sliderKey, 'left')}
-                                            className="h-7 w-7 flex items-center justify-center rounded-full border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                                        >
-                                            <ChevronLeft className="h-4 w-4" />
-                                        </button>
-                                        <button 
-                                            onClick={() => scroll(sliderKey, 'right')}
-                                            className="h-7 w-7 flex items-center justify-center rounded-full border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                                        >
-                                            <ChevronRight className="h-4 w-4" />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Product slider list */}
-                                <div 
-                                    ref={el => { sliderRefs.current.set(sliderKey, el); }}
-                                    className="w-full min-w-0 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-2"
-                                >
-                                    {listings.map(listing => (
-                                        <CategoryProductCard 
-                                            key={listing.id}
+                <div>
+                    {filteredListingsByStore.map(({ store, listings }) => (
+                        <ProductCarouselSection
+                            key={store.id}
+                            title={`Featured from ${store.name}`}
+                            subtitle={`${Math.round(store.rating * 20)}% rating`}
+                            viewAllHref={`/shop/${store.slug}?category=${encodeURIComponent(category)}`}
+                        >
+                            {listings.map((listing) => {
+                                const { discountPercent, originalPrice } = getMockProductInfo(listing);
+                                return (
+                                    <div key={listing.id} className="w-[160px] sm:w-[190px] shrink-0">
+                                        <ProductCard
                                             listing={listing}
-                                            onAddToCart={() => addItem({
-                                                id: String(listing.id),
-                                                title: field(listing.title_en, listing.title_so) || 'Product',
-                                                price: listing?.price ?? 0,
-                                                quantity: 1,
-                                                image: listing.images?.[0] ? resolveMediaUrl(listing.images[0]) || '/categories/grocery.jpg' : '/categories/grocery.jpg'
-                                            })}
+                                            categoryName={title}
+                                            discountPercent={discountPercent}
+                                            originalPrice={originalPrice}
                                         />
-                                    ))}
-                                </div>
-                            </section>
-                        );
-                    })}
+                                    </div>
+                                );
+                            })}
+                        </ProductCarouselSection>
+                    ))}
                 </div>
             )}
 
-
+            </div>
         </div>
     );
 }

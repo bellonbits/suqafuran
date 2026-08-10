@@ -29,7 +29,6 @@ const STRINGS: Record<string, { en: string; so: string }> = {
     'Detecting Location...': { en: 'Detecting Location...', so: 'Waa la helayaa Goobta...' },
     'Search any city, town, or address': { en: 'Search any city, town, or address', so: 'Raadi magaalo, tuulo, ama cinwaan' },
     'Buy, Sell & Trade Securely in Africa': { en: 'Buy, Sell & Trade Securely in Africa', so: 'Ku Iibi, Ku Iibso & Ku Ganacso Ammaan Africa' },
-    'Find local verified sellers, discover negotiable deals, and trade with secure escrow protection.': { en: 'Find local verified sellers, discover negotiable deals, and trade with secure escrow protection.', so: 'Hel iibiyeyaal la xaqiijiyay, heshiisyo laga xoogsado, kuna ganacso dammaanad buuxda.' },
     'Enter your city or neighborhood...': { en: 'Enter your city or neighborhood...', so: 'Geli magaaladaada ama deegaankaaga...' },
     'Sign in for saved addresses': { en: 'Sign in for saved addresses', so: 'U gal cinwaanada la keydiyay' },
     'Start Selling & Earn': { en: 'Start Selling & Earn', so: 'Bilow Iibinta & Faa\'iido' },

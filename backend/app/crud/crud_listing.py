@@ -1,5 +1,6 @@
 from typing import List, Optional
 from sqlmodel import Session, select, func
+from sqlalchemy import or_
 from sqlalchemy.orm import selectinload
 from app.models.listing import Listing, ListingBase, Category, SubSubCategory
 from app.models.subcategory import Subcategory
@@ -44,11 +45,32 @@ def get_listings(
         statement = statement.where(Listing.owner_id == owner_id)
     if search:
         search_filter = f"%{search}%"
-        statement = statement.where(
-            (Listing.title_en.ilike(search_filter)) | 
-            (Listing.title_so.ilike(search_filter)) | 
-            (Listing.description_en.ilike(search_filter)) |
-            (Listing.description_so.ilike(search_filter))
+        # Full-text match over title/description PLUS the listing's own
+        # category/subcategory/subsubcategory names, with English stemming --
+        # this is what makes a generic term like "shoes" or "clothes" match
+        # items filed under Shoes/Clothing even when the listing's own text
+        # never uses that exact word ("clothes" and "Clothing" share a stem).
+        # Somali fields keep plain substring matching since English stemming
+        # doesn't apply to Somali text.
+        statement = (
+            statement
+            .join(Category, Listing.category_id == Category.id, isouter=True)
+            .join(Subcategory, Listing.subcategory_id == Subcategory.id, isouter=True)
+            .join(SubSubCategory, Listing.subsubcategory_id == SubSubCategory.id, isouter=True)
+            .where(
+                or_(
+                    func.to_tsvector(
+                        'english',
+                        func.coalesce(Listing.title_en, '') + ' ' +
+                        func.coalesce(Listing.description_en, '') + ' ' +
+                        func.coalesce(Category.name_en, '') + ' ' +
+                        func.coalesce(Subcategory.name_en, '') + ' ' +
+                        func.coalesce(SubSubCategory.name_en, '')
+                    ).op('@@')(func.plainto_tsquery('english', search)),
+                    Listing.title_so.ilike(search_filter),
+                    Listing.description_so.ilike(search_filter),
+                )
+            )
         )
     if location:
         statement = statement.where(Listing.location.ilike(f"%{location}%"))

@@ -1,15 +1,17 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Store, MapPin, Star, Package, X, ChevronLeft, ChevronRight, Percent, ThumbsUp } from 'lucide-react';
+import { Search, Store, MapPin, Package, X, ChevronLeft, ChevronRight, ThumbsUp } from 'lucide-react';
 import { listingsService, PublicShop } from '@/services/listings';
-import api, { resolveMediaUrl } from '@/services/api';
+import api from '@/services/api';
 import { useLocationStore } from '@/store/useLocation';
 import { MARKET_TO_CITY } from '@/constants/markets';
 import { HomepageBannerRotation } from '@/components/ads/HomepageBannerRotation';
+import { GlovoShopCard } from '@/components/shared/GlovoShopCard';
+import { ShopModeToggle } from '@/components/shared/ShopModeToggle';
+import { getCategoryStickerIcon } from '@/lib/categoryIcons';
 
 interface Category {
   id: number;
@@ -20,31 +22,6 @@ interface Category {
   image_url?: string;
   active_listing_count?: number;
 }
-
-// ─── Category Stickers Icon Mapping ──────────────────────────────────────────
-const CATEGORY_ICONS: Record<string, string> = {
-  'food-groceries':      '/icons/fruits.png',
-  'grocery':             '/icons/fruits.png',
-  'agriculture-food':    '/icons/fruits.png',
-  'health-beauty':       '/icons/beauty.png',
-  'beauty-personal-care':'/icons/beauty.png',
-  'leisure-sports':      '/icons/soccer-ball.png',
-  'clothing-shoes':      '/icons/street-market.png',
-  'electronics':         '/icons/keyboard.png',
-  'household-items':     '/icons/households.png',
-  'vehicles':            '/icons/classic-car.png',
-  'livestock':           '/icons/cow.png',
-  'property':            '/icons/for-rent.png',
-  'services':            '/icons/24-hours-support.png',
-  'commercial-equipment':'/icons/container.png',
-  'land-farms':          '/icons/farm.png',
-  'repair-construction': '/icons/repair.png',
-  'jobs':                '/icons/job-search.png',
-  'mobiles':             '/icons/mobile-app.png',
-  'phones':              '/icons/mobile-app.png',
-  'babies-kids':         '/icons/baby.png',
-};
-
 
 // Helper function to build category breadcrumb path
 function getCategoryBreadcrumb(category: Category): string {
@@ -59,248 +36,6 @@ function getCategoryBreadcrumb(category: Category): string {
   return category.name_en || 'Products';
 }
 
-
-function getCategoryStickerIcon(slug: string): string {
-  const normalized = slug.toLowerCase();
-  for (const [key, icon] of Object.entries(CATEGORY_ICONS)) {
-    if (normalized.includes(key) || key.includes(normalized)) {
-      return icon;
-    }
-  }
-  return '/icons/street-market.png';
-}
-
-
-function getShopBanner(shop: PublicShop): string | null {
-  // Prioritize custom shop page banner (Cloudinary URL)
-  if (shop.shop_page_banner && typeof shop.shop_page_banner === 'string') {
-    if (shop.shop_page_banner.startsWith('http')) return shop.shop_page_banner;
-    if (shop.shop_page_banner.startsWith('data:')) return shop.shop_page_banner;
-    const resolved = resolveMediaUrl(shop.shop_page_banner);
-    if (resolved) return resolved;
-  }
-
-  // Fallback to first listing image
-  if (shop.cover_image && typeof shop.cover_image === 'string') {
-    // If it's already a data URL (base64), use it directly
-    if (shop.cover_image.startsWith('data:')) return shop.cover_image;
-    // Otherwise resolve it
-    const resolved = resolveMediaUrl(shop.cover_image);
-    if (resolved) return resolved;
-  }
-
-  // No fallback — return null if no custom banner or cover image
-  return null;
-}
-
-// ─── Glovo Shop Card ────────────────────────────────────────────────────
-function GlovoShopCard({ shop, index }: { shop: PublicShop; index: number }) {
-  const [imgError, setImgError] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const [previewImages, setPreviewImages] = useState<string[] | null>(null);
-  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Use banner from shop data (already included in main response)
-  const banner = imgError ? null : getShopBanner(shop);
-  const initial = shop.shop_name?.[0]?.toUpperCase() || 'S';
-
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-    if (previewImages !== null) return; // already fetched (or fetch in flight)
-    hoverTimerRef.current = setTimeout(async () => {
-      try {
-        const listings = await listingsService.getListings({ owner_id: shop.id, limit: 8 });
-        const images = listings
-          .map((l) => l.images?.[0])
-          .filter((url): url is string => !!url)
-          .map((url) => resolveMediaUrl(url) || url);
-        setPreviewImages(images);
-      } catch {
-        setPreviewImages([]);
-      }
-    }, 200);
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-    if (hoverTimerRef.current) {
-      clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = null;
-    }
-  };
-
-  const showPreview = isHovered && previewImages && previewImages.length > 0;
-
-  // Let a finger-swipe/mouse-drag across the preview strip scroll it instead
-  // of navigating to the shop — only a real tap (no meaningful movement)
-  // should follow the link.
-  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
-  const isDraggingRef = useRef(false);
-  const stripRef = useRef<HTMLDivElement | null>(null);
-  const handlePreviewPointerDown = (e: React.PointerEvent) => {
-    dragStartRef.current = { x: e.clientX, y: e.clientY };
-    isDraggingRef.current = true;
-  };
-  const handlePreviewPointerUp = () => {
-    // Small delay so the auto-scroll doesn't immediately yank the strip
-    // right after the user lets go.
-    setTimeout(() => { isDraggingRef.current = false; }, 600);
-  };
-  const handlePreviewClick = (e: React.MouseEvent) => {
-    const start = dragStartRef.current;
-    if (start && (Math.abs(e.clientX - start.x) > 8 || Math.abs(e.clientY - start.y) > 8)) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  };
-
-  // Auto-scroll the preview strip on its own (pauses while the user is
-  // dragging/swiping it), looping seamlessly through the duplicated images.
-  // setInterval rather than requestAnimationFrame — rAF gets throttled in
-  // some embedded/background rendering contexts, setInterval is reliable.
-  useEffect(() => {
-    if (!showPreview) return;
-    const intervalId = setInterval(() => {
-      const el = stripRef.current;
-      if (el && !isDraggingRef.current) {
-        const half = el.scrollWidth / 2;
-        if (half > 0) {
-          el.scrollLeft += 1;
-          if (el.scrollLeft >= half) {
-            el.scrollLeft -= half;
-          }
-        }
-      }
-    }, 20);
-    return () => clearInterval(intervalId);
-  }, [showPreview]);
-
-  // Use real data from API response
-  const deliveryTime = shop.delivery_time || '15-30 min';
-  const ratingPercent = shop.rating ? Math.round(shop.rating * 20) : 85;
-  const reviewCount = 0; // No review count in API yet
-  const isFreeDel = shop.free_delivery === true;
-  const hasPromo = false; // No promo data in API yet
-  const promoText = hasPromo ? '-10% some items' : null;
-  const market = shop.market || 'Eastleigh Market';
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.03, duration: 0.28, ease: 'easeOut' }}
-    >
-      <Link
-        href={`/shop/${shop.slug}`}
-        className="group block"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onTouchStart={handleMouseEnter}
-      >
-
-        {/* ─── Banner (16:7 aspect ratio - shorter) ──────────────────────── */}
-        <div className="relative aspect-[16/7] w-full rounded-lg overflow-hidden bg-gray-200 dark:bg-slate-800">
-          {showPreview ? (
-            /* Preview: auto-scrolling strip of the shop's product photos,
-               finger/mouse-swipeable to browse at your own pace too */
-            <>
-              <div
-                ref={stripRef}
-                className="no-scrollbar absolute inset-0 flex overflow-x-auto"
-                onPointerDown={handlePreviewPointerDown}
-                onPointerUp={handlePreviewPointerUp}
-                onClick={handlePreviewClick}
-              >
-                {[...previewImages!, ...previewImages!].map((src, i) => (
-                  <img
-                    key={i}
-                    src={src}
-                    alt=""
-                    className="h-full aspect-square object-cover shrink-0"
-                    draggable={false}
-                  />
-                ))}
-              </div>
-              <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
-            </>
-          ) : banner ? (
-            <>
-              <img
-                src={banner}
-                alt={shop.shop_name}
-                className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
-                onError={() => setImgError(true)}
-              />
-              {/* Subtle dark gradient at bottom for logo legibility */}
-              <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-black/30 to-transparent" />
-            </>
-          ) : (
-            /* Fallback: Shop initial on gradient background */
-            <div className="w-full h-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center">
-              <span className="text-4xl font-black text-white">{initial}</span>
-            </div>
-          )}
-
-          {/* Promo badge — top-left */}
-          {promoText && (
-            <div className="absolute top-2.5 left-2.5 bg-[#e81f44] text-white text-[10px] font-extrabold px-2 py-0.5 rounded flex items-center gap-0.5">
-              <Percent className="w-2.5 h-2.5 stroke-[3]" />
-              {promoText}
-            </div>
-          )}
-
-          {/* Verified badge — top-right */}
-          {shop.is_verified && (
-            <div className="absolute top-2.5 right-2.5 bg-emerald-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full tracking-wide">
-              VERIFIED
-            </div>
-          )}
-
-          {/* Shop logo — bottom-left, Glovo-style circle (always shown) */}
-          <div className="absolute bottom-2.5 left-3 w-10 h-10 rounded-full bg-white dark:bg-slate-900 border-2 border-white dark:border-slate-700 shadow-md overflow-hidden flex items-center justify-center">
-            {shop.logo_url ? (
-              <img
-                src={resolveMediaUrl(shop.logo_url) || ''}
-                alt={shop.shop_name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-xs">
-                {initial}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ─── Details below banner ─────────────────────────────── */}
-        <div className="mt-3 px-0.5">
-          <h3 className="font-extrabold text-gray-900 dark:text-white text-[14px] leading-snug group-hover:text-orange-500 transition-colors truncate">
-            {shop.shop_name}
-          </h3>
-
-          {/* Market row (directly under shop name) */}
-          <div className="mt-0.5 text-[12px] font-semibold text-gray-500 dark:text-slate-400 truncate">
-            {market}
-          </div>
-
-          {/* Metrics row (delivery time and rating) */}
-          <div className="flex items-center gap-2 mt-1.5 text-[12px] font-semibold text-gray-500 dark:text-slate-400 flex-nowrap overflow-hidden">
-            <div className="flex items-center gap-1 shrink-0 font-bold">
-              <Star className="w-3 h-3 text-amber-400 fill-amber-400 shrink-0" />
-              <span className="truncate">{ratingPercent}%</span>
-            </div>
-            <span className="text-gray-300 dark:text-slate-700 font-normal shrink-0">•</span>
-            <span className="shrink-0 text-[11px] font-semibold">{deliveryTime}</span>
-          </div>
-        </div>
-
-      </Link>
-    </motion.div>
-  );
-}
 
 // ─── Skeleton Card ──────────────────────────────────────────────────
 function SkeletonCard() {
@@ -469,6 +204,10 @@ function ShopsPageContent() {
       {/* ── Hero Banner Carousel ───────────────────────────────────────── */}
       <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 pt-4 md:pt-6">
         <HomepageBannerRotation />
+      </div>
+
+      <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 mt-4">
+        <ShopModeToggle active="shops" />
       </div>
 
       {/* ── Page Title ─────────────────────────────────────────────────── */}

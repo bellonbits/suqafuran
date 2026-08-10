@@ -11,6 +11,7 @@ coverage
 build
 dist
 out
+*.zip
 
 # Local env files
 .env
