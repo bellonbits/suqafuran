@@ -1,4 +1,4 @@
-package com.suqafuran.shops;
+package com.suqafuran.app;
 
 import com.getcapacitor.BridgeActivity;
 
