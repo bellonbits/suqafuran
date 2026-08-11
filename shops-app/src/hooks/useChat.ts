@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import type { ChatMessage } from '@/types';
+import { API_BASE_URL } from '@/services/api';
 
 export type { ChatMessage };
 
@@ -27,11 +28,13 @@ export function useChat(token: string): UseChatReturn {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messageCallbackRef = useRef<((message: ChatMessage) => void) | null>(null);
 
-  // Get WebSocket URL from environment or construct it
+  // Always target the API host, not the frontend's own origin -- this used
+  // to derive from window.location, which pointed at the Vite dev server
+  // (no WS route there at all) instead of the actual backend. Mirrors
+  // RealtimeConnection.tsx's buildSocketUrl.
   const getWsUrl = useCallback(() => {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
-    return `${protocol}//${host}/api/v1/ws/chat?token=${encodeURIComponent(token)}`;
+    const wsBase = API_BASE_URL.replace(/^https:/, 'wss:').replace(/^http:/, 'ws:');
+    return `${wsBase}/ws/chat?token=${encodeURIComponent(token)}`;
   }, [token]);
 
   // Connect to WebSocket
