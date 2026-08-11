@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { Header } from './components/shared/Header'
 import { Footer } from './components/shared/Footer'
 import { AuthModal } from './components/shared/AuthModal'
@@ -123,8 +124,21 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   )
 }
 
+// React Router doesn't reset scroll position on navigation by default (unlike
+// a traditional multi-page site) -- without this, clicking through to a new
+// page keeps whatever scroll offset the previous page was left at.
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
+}
+
 export default function App() {
   return (
+    <>
+    <ScrollToTop />
     <Routes>
       {/* Marketplace Pages */}
       <Route element={<AppLayout><HomePage /></AppLayout>} path="/" />
@@ -237,5 +251,6 @@ export default function App() {
       <Route element={<ProtectedRoute requiredRole="agent"><AgentListingsPage /></ProtectedRoute>} path="/agent-listings" />
       <Route element={<ProtectedRoute requiredRole="agent"><AgentShopsPage /></ProtectedRoute>} path="/agent-shops" />
     </Routes>
+    </>
   )
 }

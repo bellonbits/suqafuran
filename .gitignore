@@ -18,6 +18,15 @@ out
 .env.local
 .env.development.local
 .env.test.local
+
+# Android/iOS signing secrets -- these were already committed for the root
+# app's android/app/suqafuran.jks and android/key.properties before this
+# rule existed, which needs separate remediation (git history rewrite +
+# treating the exposed keystore as compromised). This just stops it from
+# happening again for shops-app or any future keystore.
+*.jks
+*.keystore
+key.properties
 .env.production.local
 .env.development
 .env.production

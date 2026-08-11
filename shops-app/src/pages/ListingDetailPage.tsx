@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { useRouter } from 'next/navigation';
 import {
     MapPin, ShieldCheck, Phone, Heart, Share2, MessageSquare, ArrowLeft, Eye, Star, X,
@@ -32,15 +32,27 @@ function shopSlug(name: string, userId: number): string {
 
 type DetailTab = 'description' | 'specs' | 'seller';
 
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop';
+
 export default function ProductDetailPage() {
     const router = useRouter();
     const { id = '' } = useParams<{ id: string }>();
+    const location = useLocation();
 
-    const [listing, setListing] = useState<Listing | null>(null);
+    // A ProductCard click hands the full listing it already has straight
+    // through as router state -- seeding state from it here means the very
+    // first render already has real content, no skeleton flash at all,
+    // instead of waiting on a network round trip for data we already had.
+    const getPreload = (): Listing | null => {
+        const preloaded = (location.state as { listing?: Listing } | null)?.listing;
+        return preloaded && String(preloaded.id) === id ? preloaded : null;
+    };
+
+    const [listing, setListing] = useState<Listing | null>(() => getPreload());
     const [relatedListings, setRelatedListings] = useState<Listing[]>([]);
     const [categoryName, setCategoryName] = useState('');
-    const [activeImage, setActiveImage] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
+    const [activeImage, setActiveImage] = useState(() => getPreload()?.images?.[0] || '');
+    const [isLoading, setIsLoading] = useState(() => !getPreload());
     const [loadError, setLoadError] = useState(false);
 
     const [feedback, setFeedback] = useState<Feedback[]>([]);
@@ -70,48 +82,71 @@ export default function ProductDetailPage() {
     const field = useLocalizedField();
 
     useEffect(() => {
-        const loadListingDetails = async () => {
+        setLoadError(false);
+        setFeedback([]);
+        setRelatedListings([]);
+        setCategoryName('');
+
+        // Navigating here from a related-listing card while already on a
+        // detail page (same route, component doesn't remount) -- apply its
+        // preloaded data immediately too, same as the lazy useState above
+        // does for the very first mount.
+        const preloaded = getPreload();
+        if (preloaded) {
+            setListing(preloaded);
+            setQuantity(1);
+            setAddedToCart(false);
+            setActiveTab('description');
+            setActiveImage(preloaded.images?.[0] || FALLBACK_IMAGE);
+            setIsLoading(false);
+        } else {
             setIsLoading(true);
-            setLoadError(false);
+        }
+
+        const loadListingDetails = async () => {
+            let data: Listing;
             try {
-                const data = await listingsService.getListing(id);
-                setListing(data);
-                setQuantity(1);
-                setAddedToCart(false);
-                setActiveTab('description');
-
-                if (data.images && data.images.length > 0) {
-                    setActiveImage(data.images[0]);
-                } else {
-                    setActiveImage('https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop');
-                }
-
-                // Load related listings -- same category first, since an
-                // unscoped fetch isn't actually "related" to anything.
-                // Backfill with other active listings if the category alone
-                // doesn't have enough to reach a full row/two of results.
-                const sameCategory = await listingsService.getListings({ category_id: data.category_id, limit: 16 });
-                let related = sameCategory.filter(r => r.id !== data.id);
-                if (related.length < 10) {
-                    const backfillPool = await listingsService.getListings({ limit: 16 }).catch(() => []);
-                    const excludeIds = new Set([data.id, ...related.map(r => r.id)]);
-                    related = [...related, ...backfillPool.filter(r => !excludeIds.has(r.id))];
-                }
-                setRelatedListings(related.slice(0, 15));
-
-                const listingFeedback = await feedbackService.getListingFeedback(data.id).catch(() => []);
-                setFeedback(listingFeedback);
-
-                const categories = await listingsService.getCategories().catch(() => []);
-                const cat = (categories || []).find((c: any) => c.id === data.category_id);
-                setCategoryName(cat?.name_en || '');
+                data = await listingsService.getListing(id);
             } catch (err) {
                 console.error('Failed to load listing details', err);
-                setListing(null);
-                setLoadError(true);
-            } finally {
+                if (!preloaded) {
+                    setListing(null);
+                    setLoadError(true);
+                }
                 setIsLoading(false);
+                return;
             }
+
+            // Render the page now that the one thing it actually needs is
+            // in hand -- reviews, related listings and the category label
+            // are all supplementary and shouldn't hold up the product itself.
+            setListing(data);
+            setQuantity(1);
+            setAddedToCart(false);
+            setActiveTab('description');
+            setActiveImage(data.images && data.images.length > 0 ? data.images[0] : FALLBACK_IMAGE);
+            setIsLoading(false);
+
+            feedbackService.getListingFeedback(data.id).then(setFeedback).catch(() => setFeedback([]));
+
+            listingsService.getCategories().then((categories) => {
+                const cat = (categories || []).find((c: any) => c.id === data.category_id);
+                setCategoryName(cat?.name_en || '');
+            }).catch(() => {});
+
+            // Related listings -- same category first, since an unscoped
+            // fetch isn't actually "related" to anything. Backfill with
+            // other active listings if the category alone doesn't have
+            // enough to reach a full row/two of results.
+            listingsService.getListings({ category_id: data.category_id, limit: 16 }).then(async (sameCategory) => {
+                let related = sameCategory.filter((r) => r.id !== data.id);
+                if (related.length < 10) {
+                    const backfillPool = await listingsService.getListings({ limit: 16 }).catch(() => []);
+                    const excludeIds = new Set([data.id, ...related.map((r) => r.id)]);
+                    related = [...related, ...backfillPool.filter((r) => !excludeIds.has(r.id))];
+                }
+                setRelatedListings(related.slice(0, 15));
+            }).catch(() => {});
         };
         loadListingDetails();
     }, [id]);

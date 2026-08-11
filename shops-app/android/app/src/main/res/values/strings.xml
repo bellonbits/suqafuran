@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">Suqafuran</string>
     <string name="title_activity_main">Suqafuran</string>
-    <string name="package_name">com.suqafuran.shops</string>
-    <string name="custom_url_scheme">com.suqafuran.shops</string>
+    <string name="package_name">com.suqafuran.app</string>
+    <string name="custom_url_scheme">com.suqafuran.app</string>
 </resources>

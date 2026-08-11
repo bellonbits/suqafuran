@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { Heart, ShieldCheck, Star, Plus } from 'lucide-react';
 import { useFavoritesStore } from '../../store/useFavorites';
 import { useAuthStore } from '../../store/useAuth';
@@ -141,7 +141,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
     if (layout === 'horizontal') {
         return (
             <Link
-                href={`/listing/${listing.id}`}
+                to={`/listing/${listing.id}`}
+                state={{ listing }}
                 className="flex gap-3 sm:gap-4 w-full text-left hover:no-underline group"
             >
                 <div className="relative w-24 h-24 sm:w-32 sm:h-32 shrink-0 rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800/80 cursor-pointer">
@@ -202,7 +203,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
 
     return (
         <Link
-            href={`/listing/${listing.id}`}
+            to={`/listing/${listing.id}`}
+            state={{ listing }}
             className="block group w-full text-left hover:no-underline"
         >
             <div className="relative aspect-square rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800/80 cursor-pointer">

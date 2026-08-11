@@ -1,14 +1,31 @@
 apply plugin: 'com.android.application'
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
-    namespace = "com.suqafuran.shops"
+    // Must match the already-published Play Store listing's package name --
+    // com.suqafuran.shops would be treated as a brand new app, not an update
+    // to the existing one, and Play Console rejects an upload whose package
+    // name doesn't match the listing you're publishing to.
+    namespace = "com.suqafuran.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.suqafuran.shops"
+        applicationId "com.suqafuran.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // Minutes since Unix epoch — always higher than any previous build's
+        // versionCode, so Play Console never rejects an upload for reusing
+        // an already-submitted version (fits comfortably in the int32 range
+        // Play Console requires; won't overflow until the year ~6053).
+        // Same scheme as the root app's build.gradle.
+        versionCode ((int) (System.currentTimeMillis() / 60000))
+        // Continues from the root app's last published versionName (1.8.0) --
+        // this now updates that same com.suqafuran.app listing, not a fresh one.
+        versionName "1.9.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +33,20 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Same keystore as the root app (android/app/suqafuran.jks) -- required
+    // since this now publishes to the same com.suqafuran.app listing, and
+    // Play Store only ever accepts updates signed with the original key.
+    signingConfigs {
+        release {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+            storePassword keystoreProperties['storePassword']
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

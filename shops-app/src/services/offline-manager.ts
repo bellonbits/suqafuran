@@ -17,13 +17,21 @@ class OfflineManager {
 
     // Check initial status
     if (Capacitor.isNativePlatform()) {
-      const status = await Network.getStatus();
-      this.isOnline = status.connected;
+      try {
+        const status = await Network.getStatus();
+        this.isOnline = status.connected;
 
-      // Listen for changes
-      Network.addListener('networkStatusChange', (status) => {
-        this.setOnlineStatus(status.connected);
-      });
+        // Listen for changes
+        Network.addListener('networkStatusChange', (status) => {
+          this.setOnlineStatus(status.connected);
+        });
+      } catch (err) {
+        // The native plugin can be unavailable on a build that hasn't
+        // picked up @capacitor/network yet (cap sync alone doesn't rebuild
+        // the APK) -- degrade to "assume online" rather than an uncaught
+        // rejection on every app start.
+        console.warn('Network plugin unavailable, assuming online:', err);
+      }
     } else {
       // Web platform: use browser's online/offline events
       window.addEventListener('online', () => this.setOnlineStatus(true));

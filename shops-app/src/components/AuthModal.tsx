@@ -98,7 +98,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode: ini
                     }
                 }
                 onClose();
-                window.location.href = '/shops';
             }
         } catch (err: any) {
             const errorMsg = typeof err?.response?.data?.detail === 'string'
@@ -160,7 +159,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode: ini
                     }
                 }
                 onClose();
-                window.location.href = '/shops';
             }
         } catch (err: any) {
             const errorMsg = typeof err?.response?.data?.detail === 'string'
@@ -189,7 +187,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode: ini
                     }
                 }
                 onClose();
-                window.location.href = '/shops';
             }
         } catch (err: any) {
             const errorMsg = typeof err?.response?.data?.detail === 'string'
