@@ -1,14 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import type { ChatMessage } from '@/types';
 
-export interface ChatMessage {
-  id?: number;
-  sender_id: number;
-  receiver_id: number;
-  content: string;
-  listing_id?: number | null;
-  timestamp?: string;
-  created_at?: string;
-}
+export type { ChatMessage };
 
 interface ChatUser {
   id: number;
@@ -81,6 +74,7 @@ export function useChat(token: string): UseChatReturn {
           } else if (data.event_type === 'user_typing') {
             setUserStatus(prev => ({
               ...prev,
+              id: data.user_id,
               is_typing: true,
             } as ChatUser));
             // Auto-clear typing after 2 seconds
@@ -90,13 +84,21 @@ export function useChat(token: string): UseChatReturn {
             typingTimeoutRef.current = setTimeout(() => {
               setUserStatus(prev => ({
                 ...prev,
+                id: data.user_id,
                 is_typing: false,
               } as ChatUser));
             }, 2000);
           } else if (data.event_type === 'user_stopped_typing') {
             setUserStatus(prev => ({
               ...prev,
+              id: data.user_id,
               is_typing: false,
+            } as ChatUser));
+          } else if (data.event_type === 'presence') {
+            setUserStatus(prev => ({
+              ...prev,
+              id: data.user_id,
+              is_online: data.status === 'online',
             } as ChatUser));
           }
         } catch (error) {

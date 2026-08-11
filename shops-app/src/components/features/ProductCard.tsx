@@ -10,7 +10,6 @@ import { useCurrencyStore } from '../../store/useCurrency';
 import { useCart } from '../../store/useCart';
 import { formatConvertedPrice } from '../../lib/currency';
 import { useLocalizedField } from '../../lib/i18n';
-import { ProductQuickViewModal } from '../ProductQuickViewModal';
 import { FeaturedBadge } from '../ads/FeaturedBadge';
 import { advertisingService } from '@/services/advertising';
 import type { Listing } from '../../types';
@@ -29,7 +28,6 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, discountPercent, originalPrice, categoryName, layout = 'vertical' }) => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [isFeatured, setIsFeatured] = useState(false);
     const { isAuthenticated } = useAuthStore();
     const openAuthModal = useAuthModal((s) => s.open);
@@ -60,12 +58,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
             return;
         }
         toggleFavorite(listing.id);
-    };
-
-    const handleOpenModal = (e: React.MouseEvent) => {
-        e.preventDefault();
-        console.log('🖱️ Product clicked, opening modal for:', listing.title_en);
-        setIsModalOpen(true);
     };
 
     const handleAddToCart = (e: React.MouseEvent) => {
@@ -148,159 +140,113 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
 
     if (layout === 'horizontal') {
         return (
-            <>
-                <button
-                    onClick={handleOpenModal}
-                    className="flex gap-3 sm:gap-4 w-full text-left hover:no-underline group"
-                >
-                    <div className="relative w-24 h-24 sm:w-32 sm:h-32 shrink-0 rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800/80 cursor-pointer">
-                        <img
-                            src={displayImage}
-                            alt={listing.title_en}
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                            loading="lazy"
-                        />
-                        {cornerBadges}
-                    </div>
-
-                    <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
-                        <div className="space-y-1">
-                            <h3 className="line-clamp-2 text-sm font-semibold text-gray-900 dark:text-slate-100 leading-snug">
-                                {field(listing.title_en, listing.title_so)}
-                            </h3>
-
-                            {categoryName && (
-                                <div className="text-xs text-gray-500 dark:text-slate-400">
-                                    {categoryName}
-                                </div>
-                            )}
-
-                            {listing.description_en && (
-                                <p className="line-clamp-2 text-xs text-gray-500 dark:text-slate-400">
-                                    {listing.description_en}
-                                </p>
-                            )}
-
-                            {sellerInfo}
-                        </div>
-
-                        <div className="flex items-end gap-4 mt-2">
-                            {priceBlock}
-
-                            <div className="flex items-center gap-2 shrink-0">
-                                <button
-                                    onClick={handleToggleFavorite}
-                                    aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                                    className="h-8 w-8 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50 active:scale-95 transition-all dark:bg-slate-800 dark:border-slate-700 cursor-pointer"
-                                >
-                                    <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-slate-200'}`} />
-                                </button>
-                                <button
-                                    onClick={handleAddToCart}
-                                    aria-label="Add to cart"
-                                    className="h-8 w-8 rounded-full bg-sky-500 hover:bg-sky-600 shadow-sm flex items-center justify-center active:scale-95 transition-all cursor-pointer"
-                                >
-                                    <Plus className="h-4 w-4 text-white stroke-[3]" />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </button>
-
-                <ProductQuickViewModal
-                    isOpen={isModalOpen}
-                    product={{
-                        id: listing.id,
-                        name: listing.title_en,
-                        category: 'Product',
-                        image: displayImage,
-                        images: listing.images && listing.images.length > 0 ? listing.images : undefined,
-                        price: listing?.price ?? 0,
-                        originalPrice: listing.price,
-                        rating: 4.5,
-                        reviews: listing.views || 0,
-                        description: `${listing.title_en} - ${listing.description_en || 'High-quality product with excellent features.'}`,
-                    }}
-                    onClose={() => setIsModalOpen(false)}
-                    onAddToCart={(productId) => {
-                        console.log(`Added product ${productId} to cart`);
-                    }}
-                />
-            </>
-        );
-    }
-
-    return (
-        <>
-            <button
-                onClick={handleOpenModal}
-                className="block group w-full text-left hover:no-underline"
+            <Link
+                href={`/listing/${listing.id}`}
+                className="flex gap-3 sm:gap-4 w-full text-left hover:no-underline group"
             >
-                <div className="relative aspect-square rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800/80 cursor-pointer">
+                <div className="relative w-24 h-24 sm:w-32 sm:h-32 shrink-0 rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800/80 cursor-pointer">
                     <img
                         src={displayImage}
                         alt={listing.title_en}
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         loading="lazy"
                     />
-
                     {cornerBadges}
-
-                    <button
-                        onClick={handleToggleFavorite}
-                        aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                        className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/90 border border-gray-200 shadow-md flex items-center justify-center hover:bg-white active:scale-95 transition-all dark:bg-slate-800/90 dark:border-slate-700 cursor-pointer"
-                    >
-                        <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-slate-200'}`} />
-                    </button>
-
-                    <button
-                        onClick={handleAddToCart}
-                        aria-label="Add to cart"
-                        className="absolute bottom-2.5 right-2.5 h-8 w-8 rounded-full bg-sky-500 hover:bg-sky-600 shadow-md flex items-center justify-center active:scale-95 transition-all cursor-pointer z-10"
-                    >
-                        <Plus className="h-4 w-4 text-white stroke-[3]" />
-                    </button>
                 </div>
 
-                <div className="pt-2.5 space-y-1">
-                    <h3 className="line-clamp-2 text-sm font-semibold text-gray-900 dark:text-slate-100 leading-snug">
-                        {field(listing.title_en, listing.title_so)}
-                    </h3>
+                <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                    <div className="space-y-1">
+                        <h3 className="line-clamp-2 text-sm font-semibold text-gray-900 dark:text-slate-100 leading-snug">
+                            {field(listing.title_en, listing.title_so)}
+                        </h3>
 
-                    {categoryName && (
-                        <div className="text-xs text-gray-500 dark:text-slate-400">
-                            {categoryName}
+                        {categoryName && (
+                            <div className="text-xs text-gray-500 dark:text-slate-400">
+                                {categoryName}
+                            </div>
+                        )}
+
+                        {listing.description_en && (
+                            <p className="line-clamp-2 text-xs text-gray-500 dark:text-slate-400">
+                                {listing.description_en}
+                            </p>
+                        )}
+
+                        {sellerInfo}
+                    </div>
+
+                    <div className="flex items-end gap-4 mt-2">
+                        {priceBlock}
+
+                        <div className="flex items-center gap-2 shrink-0">
+                            <button
+                                onClick={handleToggleFavorite}
+                                aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                                className="h-8 w-8 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50 active:scale-95 transition-all dark:bg-slate-800 dark:border-slate-700 cursor-pointer"
+                            >
+                                <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-slate-200'}`} />
+                            </button>
+                            <button
+                                onClick={handleAddToCart}
+                                aria-label="Add to cart"
+                                className="h-8 w-8 rounded-full bg-sky-500 hover:bg-sky-600 shadow-sm flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                            >
+                                <Plus className="h-4 w-4 text-white stroke-[3]" />
+                            </button>
                         </div>
-                    )}
-
-                    {priceBlock}
-
-                    {sellerInfo}
+                    </div>
                 </div>
-            </button>
+            </Link>
+        );
+    }
 
-            {/* Product Quick View Modal */}
-            <ProductQuickViewModal
-                isOpen={isModalOpen}
-                product={{
-                    id: listing.id,
-                    name: listing.title_en,
-                    category: 'Product',
-                    image: displayImage,
-                    images: listing.images && listing.images.length > 0 ? listing.images : undefined,
-                    price: listing?.price ?? 0,
-                    originalPrice: listing.price,
-                    rating: 4.5,
-                    reviews: listing.views || 0,
-                    description: `${listing.title_en} - ${listing.description_en || 'High-quality product with excellent features.'}`,
-                }}
-                onClose={() => setIsModalOpen(false)}
-                onAddToCart={(productId) => {
-                    // Handle add to cart - could open the listing or add to cart directly
-                    console.log(`Added product ${productId} to cart`);
-                }}
-            />
-        </>
+    return (
+        <Link
+            href={`/listing/${listing.id}`}
+            className="block group w-full text-left hover:no-underline"
+        >
+            <div className="relative aspect-square rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800/80 cursor-pointer">
+                <img
+                    src={displayImage}
+                    alt={listing.title_en}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                />
+
+                {cornerBadges}
+
+                <button
+                    onClick={handleToggleFavorite}
+                    aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                    className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/90 border border-gray-200 shadow-md flex items-center justify-center hover:bg-white active:scale-95 transition-all dark:bg-slate-800/90 dark:border-slate-700 cursor-pointer"
+                >
+                    <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-slate-200'}`} />
+                </button>
+
+                <button
+                    onClick={handleAddToCart}
+                    aria-label="Add to cart"
+                    className="absolute bottom-2.5 right-2.5 h-8 w-8 rounded-full bg-sky-500 hover:bg-sky-600 shadow-md flex items-center justify-center active:scale-95 transition-all cursor-pointer z-10"
+                >
+                    <Plus className="h-4 w-4 text-white stroke-[3]" />
+                </button>
+            </div>
+
+            <div className="pt-2.5 space-y-1">
+                <h3 className="line-clamp-2 text-sm font-semibold text-gray-900 dark:text-slate-100 leading-snug">
+                    {field(listing.title_en, listing.title_so)}
+                </h3>
+
+                {categoryName && (
+                    <div className="text-xs text-gray-500 dark:text-slate-400">
+                        {categoryName}
+                    </div>
+                )}
+
+                {priceBlock}
+
+                {sellerInfo}
+            </div>
+        </Link>
     );
 };

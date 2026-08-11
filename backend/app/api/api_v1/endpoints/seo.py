@@ -1,10 +1,26 @@
 from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 from sqlmodel import Session, select, or_, col
 from app.api import deps
 from app.models.listing import Listing
+from app.services.sitemap_service import generate_sitemap_xml
 
 router = APIRouter()
+
+
+@router.get("/sitemap.xml")
+def get_sitemap(db: Session = Depends(deps.get_db)) -> Response:
+    """
+    Live sitemap covering static pages, categories, verified shops and
+    active listings. The deployed site is a static SPA on shared hosting
+    with no server-side routing, so this isn't what search engines actually
+    fetch at suqafuran.com/sitemap.xml -- see scripts/generate_sitemap.py,
+    which calls the same generator to produce the static file shipped in
+    each shops-app build. This endpoint exists for on-demand checks/testing.
+    """
+    return Response(content=generate_sitemap_xml(db), media_type="application/xml")
+
 
 @router.get("/landing")
 def get_seo_landing(

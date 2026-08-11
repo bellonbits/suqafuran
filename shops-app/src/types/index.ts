@@ -45,6 +45,7 @@ export interface Listing {
     owner?: User;
     is_negotiable?: boolean;
     views?: number;
+    is_sold?: boolean;
 }
 
 export interface Category {
@@ -454,10 +455,13 @@ export interface EmailAnalytics {
 export interface ChatMessage {
     id: number;
     sender_id: number;
+    receiver_id?: number;
     recipient_id?: number;
     business_id?: string;
     content: string;
-    is_read: boolean;
-    created_at: string;
+    is_read?: boolean;
+    created_at?: string;
+    timestamp?: string;
+    listing_id?: number | null;
     product_shared?: Listing;
 }

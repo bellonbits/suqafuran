@@ -54,6 +54,7 @@ async def websocket_chat_endpoint(
 
     # Connect
     await manager.connect(str(user_id), connection_id, websocket)
+    await manager.send_presence_update(str(user_id), status="online")
 
     try:
         while True:
@@ -67,6 +68,16 @@ async def websocket_chat_endpoint(
                     channel = f"chat_{min(user_id, other_user_id)}_{max(user_id, other_user_id)}"
                     await manager.subscribe(connection_id, channel)
                     logger.info(f"User {user_id} subscribed to {channel}")
+
+                    # Reply with the other user's *current* status immediately --
+                    # presence broadcasts only cover status changes from here on,
+                    # so without this the requester has no idea until it changes.
+                    await websocket.send_json({
+                        "event_type": "presence",
+                        "user_id": other_user_id,
+                        "status": "online" if manager.is_user_online(str(other_user_id)) else "offline",
+                        "timestamp": datetime.utcnow().isoformat(),
+                    })
 
             elif event_type == "unsubscribe":
                 other_user_id = data.get("other_user_id")
@@ -96,7 +107,7 @@ async def websocket_chat_endpoint(
                 # User stopped typing
                 other_user_id = data.get("other_user_id")
                 if other_user_id:
-                    channel = f"chat_{min(user_id, other_user_id)}{max(user_id, other_user_id)}"
+                    channel = f"chat_{min(user_id, other_user_id)}_{max(user_id, other_user_id)}"
                     typing_status[(min(user_id, other_user_id), max(user_id, other_user_id))] = False
 
                     await manager.broadcast_to_channel(
@@ -139,8 +150,12 @@ async def websocket_chat_endpoint(
 
     except WebSocketDisconnect:
         await manager.disconnect(str(user_id), connection_id)
+        if not manager.is_user_online(str(user_id)):
+            await manager.send_presence_update(str(user_id), status="offline")
         logger.info(f"User {user_id} WebSocket disconnected")
 
     except Exception as e:
         logger.error(f"WebSocket error for user {user_id}: {e}")
         await manager.disconnect(str(user_id), connection_id)
+        if not manager.is_user_online(str(user_id)):
+            await manager.send_presence_update(str(user_id), status="offline")

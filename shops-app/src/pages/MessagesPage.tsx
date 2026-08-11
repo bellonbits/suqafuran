@@ -6,6 +6,7 @@ import { Send, Search, AlertCircle, ShoppingBag, ArrowLeft, MessageSquare, Loade
 import api from '@/services/api';
 import { listingsService } from '@/services/listings';
 import { useChat } from '@/hooks/useChat';
+import { useAuthStore } from '@/store/useAuth';
 import type { ChatMessage, Listing } from '@/types';
 
 interface Conversation {
@@ -31,14 +32,16 @@ function MessagesPageContent() {
     const [isSending, setIsSending] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isUserTyping, setIsUserTyping] = useState(false);
-    const [isUserOnline, setIsUserOnline] = useState(false);
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Get auth token from localStorage
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') || '' : '';
+    // The real auth token -- this used to read localStorage.getItem('access_token'),
+    // a key nothing in the app ever writes to, so the socket never connected.
+    const token = useAuthStore((s) => s.token) || '';
 
     // Initialize WebSocket connection
-    const { isConnected, sendMessage: wssSendMessage, setTyping, onMessage } = useChat(token);
+    const { isConnected, sendMessage: wssSendMessage, setTyping, onMessage, subscribeToUser, userStatus } = useChat(token);
+    const isOtherUserOnline = userStatus?.id === selectedUserId && !!userStatus?.is_online;
+    const isOtherUserTyping = userStatus?.id === selectedUserId && !!userStatus?.is_typing;
 
     // Load conversations from API
     useEffect(() => {
@@ -128,6 +131,32 @@ function MessagesPageContent() {
 
         loadMessages();
     }, [selectedUserId]);
+
+    // Join the per-conversation channel so the server's broadcasts (new
+    // messages, typing, presence) actually reach this connection -- without
+    // this, subscribing never happens and nothing arrives in real time
+    // regardless of how the message handler below is wired.
+    useEffect(() => {
+        if (selectedUserId && isConnected) {
+            subscribeToUser(selectedUserId);
+        }
+    }, [selectedUserId, isConnected, subscribeToUser]);
+
+    // Handle incoming real-time messages. Re-registered whenever
+    // selectedUserId changes so the closure always compares against the
+    // conversation that's actually open right now.
+    useEffect(() => {
+        onMessage((message) => {
+            if (selectedUserId && (message.sender_id === selectedUserId || message.receiver_id === selectedUserId)) {
+                setMessages((prev) => [...prev, message]);
+            }
+            setConversations((prev) => prev.map((c) =>
+                c.other_user_id === message.sender_id
+                    ? { ...c, last_message: message.content, last_message_time: message.timestamp || new Date().toISOString() }
+                    : c
+            ));
+        });
+    }, [selectedUserId, onMessage]);
 
     // Handle typing indicator
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -313,13 +342,13 @@ function MessagesPageContent() {
                                             {selectedConversation.other_user_name || `User ${selectedConversation.other_user_id}`}
                                         </h3>
                                         <p className="text-[10px] text-gray-500 dark:text-slate-400">
-                                            {isUserTyping ? (
+                                            {isOtherUserTyping ? (
                                                 <span className="flex items-center gap-1">
                                                     <span>typing</span>
                                                     <Loader className="h-3 w-3 animate-spin" />
                                                 </span>
                                             ) : (
-                                                <span>{isUserOnline ? '🟢 Online' : '⚪ Offline'}</span>
+                                                <span>{isOtherUserOnline ? '🟢 Online' : '⚪ Offline'}</span>
                                             )}
                                         </p>
                                     </div>
