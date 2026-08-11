@@ -1,6 +1,6 @@
 """Add customer segmentation table.
 
-Revision ID: 0015_customer_segments
+Revision ID: 0015_add_customer_segments
 Revises: 0014_email_templates
 Create Date: 2026-07-30
 
@@ -10,7 +10,11 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '0015_customer_segments'
+# Must match what's already stamped in the production alembic_version table --
+# this file's revision id was previously shortened to '0015_customer_segments'
+# (dropping "add_") after it had already been applied, breaking the chain for
+# anything that runs against that database.
+revision = '0015_add_customer_segments'
 down_revision = '0014_email_templates'
 branch_labels = None
 depends_on = None

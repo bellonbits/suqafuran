@@ -1,7 +1,7 @@
 """Add CTA button fields to email_template for promotional/campaign templates.
 
 Revision ID: 0016_promo_template_fields
-Revises: 0015_customer_segments
+Revises: 0015_add_customer_segments
 Create Date: 2026-08-05
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '0016_promo_template_fields'
-down_revision = '0015_customer_segments'
+down_revision = '0015_add_customer_segments'
 branch_labels = None
 depends_on = None
 
