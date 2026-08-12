@@ -1,5 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
+import { Onboarding, hasSeenOnboarding } from './components/Onboarding'
 import { Header } from './components/shared/Header'
 import { Footer } from './components/shared/Footer'
 import { AuthModal } from './components/shared/AuthModal'
@@ -136,6 +137,12 @@ function ScrollToTop() {
 }
 
 export default function App() {
+  const [showOnboarding, setShowOnboarding] = useState(() => !hasSeenOnboarding())
+
+  if (showOnboarding) {
+    return <Onboarding onComplete={() => setShowOnboarding(false)} />
+  }
+
   return (
     <>
     <ScrollToTop />
