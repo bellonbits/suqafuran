@@ -96,4 +96,5 @@ class SubSubCategory(SQLModel, table=True):
     image_url: Optional[str] = None
     subcategory_id: int = Field(foreign_key="subcategory.id")
     attributes_schema: Optional[dict] = Field(default=None, sa_column=Column(JSON))
+    brands: Optional[list] = Field(default=None, sa_column=Column(JSON))
 

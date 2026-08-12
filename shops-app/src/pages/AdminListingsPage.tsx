@@ -96,6 +96,16 @@ const ListingsManagementPage = () => {
     setViewingListing(listing);
   };
 
+  // Brands curated per sub-sub-category (via admin-categories) take priority;
+  // falls back to the static category-level list when none are configured.
+  const getBrandOptions = (categoryId?: string | number, subcategoryId?: string | number, subsubcategoryId?: string | number) => {
+    const cat = categories.find((c) => c.id.toString() === categoryId?.toString());
+    const sub = cat?.subcategories?.find((s: any) => s.id.toString() === subcategoryId?.toString());
+    const subsub = sub?.subsubcategories?.find((ss: any) => ss.id.toString() === subsubcategoryId?.toString());
+    if (subsub?.brands?.length > 0) return subsub.brands;
+    return getBrandsForCategory(cat?.name_en);
+  };
+
   const handleEdit = (id: number) => {
     const listing = listings.find((l) => l.id === id);
     if (!listing) return;
@@ -105,8 +115,8 @@ const ListingsManagementPage = () => {
     setBrokenImages(new Set());
 
     const initialBrand = listing.brand || listing.attributes?.brand || '';
-    const categoryName = categories.find((c) => c.id === listing.category_id)?.name_en;
-    setIsCustomBrand(Boolean(initialBrand) && !getBrandsForCategory(categoryName).includes(initialBrand));
+    const knownBrands = getBrandOptions(listing.category_id, listing.subcategory_id, listing.subsubcategory_id);
+    setIsCustomBrand(Boolean(initialBrand) && !knownBrands.includes(initialBrand));
 
     setEditForm({
       title_en: listing.title_en || listing.title || '',
@@ -1036,54 +1046,54 @@ const ListingsManagementPage = () => {
                     </select>
                   </div>
                 )}
-              </div>
 
-              {/* Brand */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
-                  Brand
-                </label>
-                {!isCustomBrand ? (
-                  <select
-                    value={editForm.brand || ''}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === 'Others') {
-                        setIsCustomBrand(true);
-                        setEditForm((f: any) => ({ ...f, brand: '' }));
-                      } else {
-                        setEditForm((f: any) => ({ ...f, brand: value }));
-                      }
-                    }}
-                    className="w-full px-3.5 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-sm font-medium"
-                  >
-                    <option value="">Select brand</option>
-                    {getBrandsForCategory(
-                      categories.find((c) => c.id.toString() === editForm.category_id?.toString())?.name_en
-                    ).map((brand) => (
-                      <option key={brand} value={brand}>{brand}</option>
-                    ))}
-                    <option value="Others">Others - Custom</option>
-                  </select>
-                ) : (
-                  <div className="space-y-2">
-                    <input
-                      type="text"
-                      value={editForm.brand || ''}
-                      onChange={(e) => setEditForm((f: any) => ({ ...f, brand: e.target.value }))}
-                      placeholder="Enter brand name"
-                      className="w-full px-3.5 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-sm font-medium"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsCustomBrand(false);
-                        setEditForm((f: any) => ({ ...f, brand: '' }));
-                      }}
-                      className="text-xs text-sky-600 dark:text-sky-400 hover:underline"
-                    >
-                      Back to list
-                    </button>
+                {/* Brand - only once the full category path is picked */}
+                {editForm.subsubcategory_id && (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                      Brand
+                    </label>
+                    {!isCustomBrand ? (
+                      <select
+                        value={editForm.brand || ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === 'Others') {
+                            setIsCustomBrand(true);
+                            setEditForm((f: any) => ({ ...f, brand: '' }));
+                          } else {
+                            setEditForm((f: any) => ({ ...f, brand: value }));
+                          }
+                        }}
+                        className="w-full px-3.5 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-sm font-medium"
+                      >
+                        <option value="">Select brand</option>
+                        {getBrandOptions(editForm.category_id, editForm.subcategory_id, editForm.subsubcategory_id).map((brand: string) => (
+                          <option key={brand} value={brand}>{brand}</option>
+                        ))}
+                        <option value="Others">Others - Custom</option>
+                      </select>
+                    ) : (
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          value={editForm.brand || ''}
+                          onChange={(e) => setEditForm((f: any) => ({ ...f, brand: e.target.value }))}
+                          placeholder="Enter brand name"
+                          className="w-full px-3.5 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-sm font-medium"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsCustomBrand(false);
+                            setEditForm((f: any) => ({ ...f, brand: '' }));
+                          }}
+                          className="text-xs text-sky-600 dark:text-sky-400 hover:underline"
+                        >
+                          Back to list
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

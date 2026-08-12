@@ -77,7 +77,8 @@ const CategoriesPage = () => {
         name_so: data.name_so || '',
         slug: data.slug || '',
         image_url: data.image_url || '',
-        lucide_icon: data.lucide_icon || 'Folder'
+        lucide_icon: data.lucide_icon || 'Folder',
+        brands: Array.isArray(data.brands) ? data.brands.join(', ') : ''
       });
     } else {
       setEditForm({
@@ -85,7 +86,8 @@ const CategoriesPage = () => {
         name_so: '',
         slug: '',
         image_url: '',
-        lucide_icon: 'Folder'
+        lucide_icon: 'Folder',
+        brands: ''
       });
     }
   };
@@ -109,6 +111,12 @@ const CategoriesPage = () => {
       };
       if (type === 'category') {
         payload.icon_name = editForm.lucide_icon;
+      }
+      if (type === 'subsubcategory') {
+        payload.brands = String(editForm.brands || '')
+          .split(',')
+          .map((b: string) => b.trim())
+          .filter(Boolean);
       }
 
       const endpoint = type === 'category' ? 'categories' : type === 'subcategory' ? 'subcategories' : 'subsubcategories';
@@ -395,6 +403,25 @@ const CategoriesPage = () => {
                   </div>
                 )}
               </div>
+
+              {/* Brands (only for sub-sub-categories) */}
+              {modalState.type === 'subsubcategory' && (
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                    BRANDS (comma-separated)
+                  </label>
+                  <textarea
+                    value={editForm.brands}
+                    onChange={(e) => setEditForm({ ...editForm, brands: e.target.value })}
+                    placeholder="e.g. Apple, Samsung, Tecno, Infinix"
+                    rows={3}
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg text-gray-900"
+                  />
+                  <p className="text-xs text-slate-400 mt-1">
+                    Sellers will pick from this list when listing a product in this category, with an option to enter a custom brand if theirs isn't listed.
+                  </p>
+                </div>
+              )}
 
               {/* Buttons */}
               <div className="flex gap-4 pt-4">

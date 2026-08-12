@@ -248,6 +248,7 @@ def read_categories(
                         "name_so": ssub.name_so,
                         "slug": ssub.slug,
                         "image_url": ssub.image_url,
+                        "brands": ssub.brands or [],
                     }
                     for ssub in db.exec(select(SubSubCategory).where(SubSubCategory.subcategory_id == sub.id)).all() or []
                 ],
@@ -446,7 +447,8 @@ def create_subsubcategory(
         name_so=subsubcategory_in.get("name_so"),
         slug=subsubcategory_in["slug"],
         image_url=subsubcategory_in.get("image_url"),
-        subcategory_id=subsubcategory_in["subcategory_id"]
+        subcategory_id=subsubcategory_in["subcategory_id"],
+        brands=subsubcategory_in.get("brands"),
     )
     db.add(subsubcat)
     db.commit()
