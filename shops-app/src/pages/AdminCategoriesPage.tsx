@@ -32,6 +32,7 @@ const CategoriesPage = () => {
   }>({ type: null, action: 'add' });
   const [editForm, setEditForm] = useState<any>({});
   const [activeTab, setActiveTab] = useState<'en' | 'so'>('en');
+  const [saving, setSaving] = useState(false);
 
   const { user } = useAuthStore();
   const navItems = ADMIN_NAV_ITEMS.map(item => ({
@@ -92,6 +93,42 @@ const CategoriesPage = () => {
   const closeModal = () => {
     setModalState({ type: null, action: 'add' });
     setEditForm({});
+  };
+
+  const handleSave = async () => {
+    const { type, action, data, parentId } = modalState;
+    if (!type) return;
+
+    setSaving(true);
+    try {
+      const payload: any = {
+        name_en: editForm.name_en,
+        name_so: editForm.name_so || undefined,
+        slug: editForm.slug,
+        image_url: editForm.image_url || undefined,
+      };
+      if (type === 'category') {
+        payload.icon_name = editForm.lucide_icon;
+      }
+
+      const endpoint = type === 'category' ? 'categories' : type === 'subcategory' ? 'subcategories' : 'subsubcategories';
+
+      if (action === 'edit') {
+        await api.patch(`/listings/${endpoint}/${data.id}`, payload);
+      } else {
+        if (type === 'subcategory') payload.category_id = parentId;
+        if (type === 'subsubcategory') payload.subcategory_id = parentId;
+        await api.post(`/listings/${endpoint}`, payload);
+      }
+
+      closeModal();
+      await loadCategories();
+    } catch (error) {
+      console.error('Error saving category:', error);
+      alert('Failed to save. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const getCategoryImage = (cat: any) => {
@@ -367,8 +404,12 @@ const CategoriesPage = () => {
                 >
                   Cancel
                 </button>
-                <button className="flex-1 px-6 py-3 bg-blue-500 hover:bg-[#5bc0e8] text-white rounded-lg font-bold flex items-center justify-center gap-2">
-                  ✓ {modalState.action === 'edit' ? 'Save Changes' : 'Create Entry'}
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex-1 px-6 py-3 bg-blue-500 hover:bg-[#5bc0e8] text-white rounded-lg font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {saving ? <Loader className="w-4 h-4 animate-spin" /> : '✓'} {modalState.action === 'edit' ? 'Save Changes' : 'Create Entry'}
                 </button>
               </div>
             </div>
