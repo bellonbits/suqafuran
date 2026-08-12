@@ -7,6 +7,7 @@ import Papa from 'papaparse';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ADMIN_NAV_ITEMS } from '@/admin-dashboard/navigation';
 import { useAuthStore } from '@/store/useAuth';
+import { getBrandsForCategory } from '@/constants/brands';
 
 const ListingsManagementPage = () => {
   const [listings, setListings] = useState<any[]>([]);
@@ -23,6 +24,7 @@ const ListingsManagementPage = () => {
   const [newEditImages, setNewEditImages] = useState<File[]>([]);
   const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
   const [savingEdit, setSavingEdit] = useState(false);
+  const [isCustomBrand, setIsCustomBrand] = useState(false);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
@@ -101,6 +103,11 @@ const ListingsManagementPage = () => {
     setEditImages(listing.images || (listing.image_url ? [listing.image_url] : []));
     setNewEditImages([]);
     setBrokenImages(new Set());
+
+    const initialBrand = listing.brand || listing.attributes?.brand || '';
+    const categoryName = categories.find((c) => c.id === listing.category_id)?.name_en;
+    setIsCustomBrand(Boolean(initialBrand) && !getBrandsForCategory(categoryName).includes(initialBrand));
+
     setEditForm({
       title_en: listing.title_en || listing.title || '',
       title_so: listing.title_so || '',
@@ -116,6 +123,8 @@ const ListingsManagementPage = () => {
       status: listing.status || 'active',
       is_negotiable: Boolean(listing.is_negotiable),
       is_sold: Boolean(listing.is_sold),
+      brand: initialBrand,
+      attributes: listing.attributes || {},
     });
   };
 
@@ -136,6 +145,13 @@ const ListingsManagementPage = () => {
         }
       }
 
+      const mergedAttributes = { ...(editForm.attributes || {}) };
+      if (editForm.brand) {
+        mergedAttributes.brand = editForm.brand;
+      } else {
+        delete mergedAttributes.brand;
+      }
+
       await api.patch(`/listings/${editingListing.id}`, {
         title_en: editForm.title_en,
         title_so: editForm.title_so,
@@ -152,6 +168,7 @@ const ListingsManagementPage = () => {
         is_negotiable: editForm.is_negotiable,
         is_sold: editForm.is_sold,
         images: finalImages,
+        attributes: mergedAttributes,
       });
 
       setEditingListing(null);
@@ -1017,6 +1034,56 @@ const ListingsManagementPage = () => {
                           <option key={subsub.id} value={subsub.id}>{subsub.name_en || subsub.name_so}</option>
                         ))}
                     </select>
+                  </div>
+                )}
+              </div>
+
+              {/* Brand */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                  Brand
+                </label>
+                {!isCustomBrand ? (
+                  <select
+                    value={editForm.brand || ''}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === 'Others') {
+                        setIsCustomBrand(true);
+                        setEditForm((f: any) => ({ ...f, brand: '' }));
+                      } else {
+                        setEditForm((f: any) => ({ ...f, brand: value }));
+                      }
+                    }}
+                    className="w-full px-3.5 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-sm font-medium"
+                  >
+                    <option value="">Select brand</option>
+                    {getBrandsForCategory(
+                      categories.find((c) => c.id.toString() === editForm.category_id?.toString())?.name_en
+                    ).map((brand) => (
+                      <option key={brand} value={brand}>{brand}</option>
+                    ))}
+                    <option value="Others">Others - Custom</option>
+                  </select>
+                ) : (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={editForm.brand || ''}
+                      onChange={(e) => setEditForm((f: any) => ({ ...f, brand: e.target.value }))}
+                      placeholder="Enter brand name"
+                      className="w-full px-3.5 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-sm font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsCustomBrand(false);
+                        setEditForm((f: any) => ({ ...f, brand: '' }));
+                      }}
+                      className="text-xs text-sky-600 dark:text-sky-400 hover:underline"
+                    >
+                      Back to list
+                    </button>
                   </div>
                 )}
               </div>
