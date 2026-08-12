@@ -368,7 +368,16 @@ export const Header: React.FC = () => {
 
             {/* Mobile Menu */}
             {isMobileMenuOpen && (
-                <div className="md:hidden bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 px-4 py-4 space-y-3">
+                <>
+                    <div
+                        className="md:hidden fixed inset-x-0 bottom-0 z-40 bg-black/40"
+                        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 3rem)' }}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    />
+                    <div
+                        className="md:hidden fixed inset-x-0 z-40 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 px-4 py-4 space-y-3 max-h-[70vh] overflow-y-auto"
+                        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 3rem)' }}
+                    >
                     <button
                         onClick={() => setIsLocationModalOpen(true)}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
@@ -419,7 +428,8 @@ export const Header: React.FC = () => {
                             </button>
                         </>
                     )}
-                </div>
+                    </div>
+                </>
             )}
         </>
     );

@@ -59,14 +59,19 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
   return (
     <div className="fixed inset-0 z-[100] bg-white dark:bg-slate-950 flex flex-col">
-      <div className="flex justify-end px-6 pt-6">
-        <button
-          onClick={finish}
-          className="text-sm font-semibold text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
-        >
-          Skip
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={finish}
+        className="text-sm font-semibold text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors py-2 px-3"
+        style={{
+          position: 'fixed',
+          top: 'calc(env(safe-area-inset-top, 0px) + 20px)',
+          right: 20,
+          zIndex: 110,
+        }}
+      >
+        Skip
+      </button>
 
       <div className="flex-1 flex flex-col items-center justify-center px-8 -mt-10">
         <AnimatePresence mode="wait">

@@ -207,7 +207,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
             state={{ listing }}
             className="block group w-full text-left hover:no-underline"
         >
-            <div className="relative aspect-square rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800/80 cursor-pointer">
+            <div
+                className="relative aspect-square rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800/80 cursor-pointer"
+                style={{ contain: 'layout paint', transform: 'translateZ(0)' }}
+            >
                 <img
                     src={displayImage}
                     alt={listing.title_en}
