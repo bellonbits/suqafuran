@@ -227,7 +227,12 @@ export default function ProductDetailPage() {
     };
 
     const shareTitle = listing ? (field(listing.title_en, listing.title_so) || listing.title_en) : '';
-    const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+    // Never use window.location.href/origin for share links -- inside the
+    // native app the WebView's origin is capacitor://localhost (or
+    // http://localhost), not the real site. Always build from the real
+    // domain plus the current path so shared links actually work for
+    // recipients and can be crawled for a preview.
+    const shareUrl = typeof window !== 'undefined' ? `https://suqafuran.com${window.location.pathname}${window.location.search}` : '';
 
     const handleNativeShare = async () => {
         if (navigator.share) {
