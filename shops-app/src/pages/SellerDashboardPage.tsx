@@ -180,7 +180,7 @@ export default function SellerDashboard() {
       case 'Rejected':
         return 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-100 dark:border-rose-900/40';
       default:
-        return 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
+        return 'bg-slate-100 text-slate-600 dark:bg-neutral-900 dark:text-neutral-300';
     }
   };
 
@@ -211,7 +211,7 @@ export default function SellerDashboard() {
           <button
             onClick={() => loadDashboardData(true)}
             disabled={refreshing}
-            className="p-2.5 rounded-2xl bg-white dark:bg-[#151D2A] border border-slate-100 dark:border-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white shadow-sm transition-colors"
+            className="p-2.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-100 dark:border-neutral-800 text-slate-500 hover:text-slate-800 dark:hover:text-white shadow-sm transition-colors"
             title="Refresh Orders"
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-sky-500' : ''}`} />
@@ -226,7 +226,7 @@ export default function SellerDashboard() {
           </button>
 
           <button
-            className="hidden sm:flex items-center gap-1.5 px-3 py-2.5 bg-white dark:bg-[#151D2A] border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl text-xs font-bold hover:bg-slate-50 transition-colors shadow-sm"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-2.5 bg-white dark:bg-neutral-950 border border-slate-200/80 dark:border-neutral-800 text-slate-600 dark:text-neutral-200 rounded-2xl text-xs font-bold hover:bg-slate-50 transition-colors shadow-sm"
           >
             <span>More Actions</span>
             <MoreHorizontal className="w-3.5 h-3.5 text-slate-400" />
@@ -237,7 +237,7 @@ export default function SellerDashboard() {
       {/* ── Stat Summary Grid (Real Data in Kenya Currency) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Orders Card */}
-        <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-5 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+        <div className="bg-white dark:bg-neutral-950 rounded-3xl p-5 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Orders</p>
           <div className="flex items-baseline justify-between mt-2">
             <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -251,7 +251,7 @@ export default function SellerDashboard() {
         </div>
 
         {/* New Orders Card */}
-        <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-5 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+        <div className="bg-white dark:bg-neutral-950 rounded-3xl p-5 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Pending Orders</p>
           <div className="flex items-baseline justify-between mt-2">
             <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -265,7 +265,7 @@ export default function SellerDashboard() {
         </div>
 
         {/* Completed Orders Card */}
-        <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-5 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+        <div className="bg-white dark:bg-neutral-950 rounded-3xl p-5 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Completed Orders</p>
           <div className="flex items-baseline justify-between mt-2">
             <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -279,7 +279,7 @@ export default function SellerDashboard() {
         </div>
 
         {/* Revenue Card (Kenya Currency Ksh) */}
-        <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-5 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+        <div className="bg-white dark:bg-neutral-950 rounded-3xl p-5 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Revenue</p>
           <div className="flex items-baseline justify-between mt-2">
             <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -294,7 +294,7 @@ export default function SellerDashboard() {
       </div>
 
       {/* ── Filter Toolbar ── */}
-      <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-4 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="bg-white dark:bg-neutral-950 rounded-3xl p-4 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         {/* Search input with ⌘ + S badge */}
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -303,9 +303,9 @@ export default function SellerDashboard() {
             placeholder="Search by customer name, Order ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50 rounded-2xl pl-10 pr-12 py-2.5 text-xs md:text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 outline-none focus:ring-2 focus:ring-sky-500/20 transition-all"
+            className="w-full bg-slate-50 dark:bg-neutral-900/60 border border-slate-200/60 dark:border-neutral-800/50 rounded-2xl pl-10 pr-12 py-2.5 text-xs md:text-sm text-slate-800 dark:text-neutral-50 placeholder-slate-400 outline-none focus:ring-2 focus:ring-sky-500/20 transition-all"
           />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-0.5 text-[10px] font-extrabold text-slate-400 bg-slate-200/60 dark:bg-slate-700 px-1.5 py-0.5 rounded-md">
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-0.5 text-[10px] font-extrabold text-slate-400 bg-slate-200/60 dark:bg-neutral-800 px-1.5 py-0.5 rounded-md">
             ⌘ S
           </div>
         </div>
@@ -315,7 +315,7 @@ export default function SellerDashboard() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-2xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-sky-500/20 transition-all"
+            className="bg-slate-50 dark:bg-neutral-900/60 border border-slate-200/60 dark:border-neutral-800/50 text-slate-700 dark:text-neutral-100 text-xs font-bold rounded-2xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-sky-500/20 transition-all"
           >
             <option value="All Status">All Status</option>
             <option value="Accepted">Accepted</option>
@@ -330,7 +330,7 @@ export default function SellerDashboard() {
             <select
               value={dateRangeFilter}
               onChange={(e) => setDateRangeFilter(e.target.value)}
-              className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-2xl pl-9 pr-3.5 py-2.5 outline-none focus:ring-2 focus:ring-sky-500/20 transition-all appearance-none cursor-pointer"
+              className="bg-slate-50 dark:bg-neutral-900/60 border border-slate-200/60 dark:border-neutral-800/50 text-slate-700 dark:text-neutral-100 text-xs font-bold rounded-2xl pl-9 pr-3.5 py-2.5 outline-none focus:ring-2 focus:ring-sky-500/20 transition-all appearance-none cursor-pointer"
             >
               <option value="All Dates">01 Jan, 2024 to 31 Dec, 2024</option>
               <option value="Today">Today</option>
@@ -345,7 +345,7 @@ export default function SellerDashboard() {
             className={`flex items-center gap-1.5 border text-xs font-bold rounded-2xl px-3.5 py-2.5 transition-colors ${
               showMoreFilters || activeFilterCount > 0
                 ? 'bg-sky-500 text-white border-sky-500 shadow-sm'
-                : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200/60 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 hover:bg-slate-100'
+                : 'bg-slate-50 dark:bg-neutral-900/60 border-slate-200/60 dark:border-neutral-800/50 text-slate-700 dark:text-neutral-100 hover:bg-slate-100'
             }`}
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -380,9 +380,9 @@ export default function SellerDashboard() {
             initial={{ opacity: 0, y: -10, height: 0 }}
             animate={{ opacity: 1, y: 0, height: 'auto' }}
             exit={{ opacity: 0, y: -10, height: 0 }}
-            className="bg-white dark:bg-[#151D2A] rounded-3xl p-5 border border-slate-100 dark:border-slate-800 shadow-xl overflow-hidden"
+            className="bg-white dark:bg-neutral-950 rounded-3xl p-5 border border-slate-100 dark:border-neutral-800 shadow-xl overflow-hidden"
           >
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100 dark:border-neutral-800">
               <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                 <SlidersHorizontal className="w-4 h-4 text-sky-500" /> Advanced Order Filters
               </h3>
@@ -400,7 +400,7 @@ export default function SellerDashboard() {
                 <select
                   value={paymentFilter}
                   onChange={(e) => setPaymentFilter(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-2xl px-3.5 py-2.5 outline-none"
+                  className="w-full bg-slate-50 dark:bg-neutral-900/60 border border-slate-200/60 dark:border-neutral-800/50 text-slate-700 dark:text-neutral-100 text-xs font-bold rounded-2xl px-3.5 py-2.5 outline-none"
                 >
                   <option value="All Methods">All Methods</option>
                   <option value="WhatsApp">WhatsApp Checkout</option>
@@ -414,7 +414,7 @@ export default function SellerDashboard() {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-2xl px-3.5 py-2.5 outline-none"
+                  className="w-full bg-slate-50 dark:bg-neutral-900/60 border border-slate-200/60 dark:border-neutral-800/50 text-slate-700 dark:text-neutral-100 text-xs font-bold rounded-2xl px-3.5 py-2.5 outline-none"
                 >
                   <option value="All Status">All Status</option>
                   <option value="Accepted">Accepted</option>
@@ -432,7 +432,7 @@ export default function SellerDashboard() {
                     setPaymentFilter('All Methods');
                     setDateRangeFilter('All Dates');
                   }}
-                  className="w-full py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl text-xs font-bold hover:bg-slate-200 transition-colors"
+                  className="w-full py-2.5 bg-slate-100 dark:bg-neutral-900 text-slate-700 dark:text-neutral-100 rounded-2xl text-xs font-bold hover:bg-slate-200 transition-colors"
                 >
                   Reset All Filters
                 </button>
@@ -443,7 +443,7 @@ export default function SellerDashboard() {
       </AnimatePresence>
 
       {/* ── Real Data Table (Always Shows Customer Name + Kenya Currency Ksh) ── */}
-      <div className="bg-white dark:bg-[#151D2A] rounded-3xl border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] overflow-hidden">
+      <div className="bg-white dark:bg-neutral-950 rounded-3xl border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] overflow-hidden">
         
         {filteredOrders.length > 0 ? (
           <>
@@ -451,7 +451,7 @@ export default function SellerDashboard() {
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="bg-slate-50/60 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800 text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
+                  <tr className="bg-slate-50/60 dark:bg-neutral-900/40 border-b border-slate-100 dark:border-neutral-800 text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
                     <th className="py-3.5 px-5">Product Name</th>
                     <th className="py-3.5 px-5">Customer Name</th>
                     <th className="py-3.5 px-5">Order ID</th>
@@ -460,11 +460,11 @@ export default function SellerDashboard() {
                     <th className="py-3.5 px-5 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50 dark:divide-slate-800/40">
+                <tbody className="divide-y divide-slate-50 dark:divide-neutral-800/40">
                   {filteredOrders.map((order) => (
                     <tr
                       key={order.id}
-                      className="hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors group"
+                      className="hover:bg-slate-50/80 dark:hover:bg-neutral-900/30 transition-colors group"
                     >
                       {/* Product Name */}
                       <td className="py-4 px-5">
@@ -501,7 +501,7 @@ export default function SellerDashboard() {
                       </td>
 
                       {/* Order ID */}
-                      <td className="py-4 px-5 font-mono font-extrabold text-slate-800 dark:text-slate-200">
+                      <td className="py-4 px-5 font-mono font-extrabold text-slate-800 dark:text-neutral-100">
                         {order.order_id_code}
                       </td>
 
@@ -526,7 +526,7 @@ export default function SellerDashboard() {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => navigate('/seller-dashboard/orders')}
-                            className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold hover:bg-slate-100 transition-colors"
+                            className="px-3 py-1.5 bg-slate-50 dark:bg-neutral-900 border border-slate-200/60 dark:border-neutral-800 text-slate-700 dark:text-neutral-100 rounded-xl text-xs font-bold hover:bg-slate-100 transition-colors"
                           >
                             Details
                           </button>
@@ -539,7 +539,7 @@ export default function SellerDashboard() {
             </div>
 
             {/* Mobile Responsive Card View (< 768px) */}
-            <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="md:hidden divide-y divide-slate-100 dark:divide-neutral-800">
               {filteredOrders.map((order) => (
                 <div key={order.id} className="p-4 space-y-3">
                   <div className="flex items-start justify-between">
@@ -558,7 +558,7 @@ export default function SellerDashboard() {
                   </div>
 
                   {/* Customer Name always shown on mobile */}
-                  <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-50 dark:border-slate-800">
+                  <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-50 dark:border-neutral-800">
                     <div className="flex items-center gap-2">
                       <div className="w-5 h-5 rounded-full bg-sky-100 text-sky-700 font-bold text-[10px] flex items-center justify-center">
                         {order.customer_name.charAt(0).toUpperCase()}
@@ -586,8 +586,8 @@ export default function SellerDashboard() {
           </>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
-            <ShoppingCart className="w-12 h-12 text-slate-200 dark:text-slate-700" />
-            <p className="text-base font-extrabold text-slate-700 dark:text-slate-200">No Orders Yet</p>
+            <ShoppingCart className="w-12 h-12 text-slate-200 dark:text-neutral-200" />
+            <p className="text-base font-extrabold text-slate-700 dark:text-neutral-100">No Orders Yet</p>
             <p className="text-xs text-slate-400 max-w-sm">
               Orders placed by customers will automatically show up here with real customer details and Kenya Shillings (Ksh) amounts.
             </p>

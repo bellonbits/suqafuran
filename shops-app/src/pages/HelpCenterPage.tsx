@@ -89,11 +89,11 @@ export default function HelpCenterPage() {
     };
 
     return (
-        <div className="min-h-screen bg-white dark:bg-slate-950">
+        <div className="min-h-screen bg-white dark:bg-black">
             <div className="max-w-3xl mx-auto px-4 py-10 sm:py-14">
                 <div className="text-center mb-10">
-                    <h1 className="text-3xl font-black text-gray-900 dark:text-slate-100">Help Center</h1>
-                    <p className="mt-3 text-sm text-gray-500 dark:text-slate-400">
+                    <h1 className="text-3xl font-black text-gray-900 dark:text-neutral-50">Help Center</h1>
+                    <p className="mt-3 text-sm text-gray-500 dark:text-neutral-300">
                         Answers to common questions about buying, selling, and staying safe on Suqafuran.
                     </p>
                 </div>
@@ -105,7 +105,7 @@ export default function HelpCenterPage() {
                             <div key={section.title}>
                                 <div className="flex items-center gap-2 mb-3">
                                     <Icon className="h-4 w-4 text-primary dark:text-sky-400" />
-                                    <h2 className="text-sm font-black text-gray-900 dark:text-slate-100 uppercase tracking-wide">
+                                    <h2 className="text-sm font-black text-gray-900 dark:text-neutral-50 uppercase tracking-wide">
                                         {section.title}
                                     </h2>
                                 </div>
@@ -116,13 +116,13 @@ export default function HelpCenterPage() {
                                         return (
                                             <div
                                                 key={key}
-                                                className="rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden"
+                                                className="rounded-2xl border border-gray-200 dark:border-neutral-800 overflow-hidden"
                                             >
                                                 <button
                                                     onClick={() => toggle(key)}
                                                     className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left"
                                                 >
-                                                    <span className="text-sm font-bold text-gray-800 dark:text-slate-200">
+                                                    <span className="text-sm font-bold text-gray-800 dark:text-neutral-100">
                                                         {item.question}
                                                     </span>
                                                     <ChevronDown
@@ -130,7 +130,7 @@ export default function HelpCenterPage() {
                                                     />
                                                 </button>
                                                 {isOpen && (
-                                                    <div className="px-4 pb-4 text-xs leading-relaxed text-gray-600 dark:text-slate-400">
+                                                    <div className="px-4 pb-4 text-xs leading-relaxed text-gray-600 dark:text-neutral-300">
                                                         {item.answer}
                                                     </div>
                                                 )}
@@ -143,10 +143,10 @@ export default function HelpCenterPage() {
                     })}
                 </div>
 
-                <div className="mt-12 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 p-6 text-center">
+                <div className="mt-12 rounded-2xl bg-slate-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 p-6 text-center">
                     <MessageCircle className="h-5 w-5 text-primary dark:text-sky-400 mx-auto mb-2" />
-                    <p className="text-sm font-bold text-gray-800 dark:text-slate-200">Still need help?</p>
-                    <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                    <p className="text-sm font-bold text-gray-800 dark:text-neutral-100">Still need help?</p>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-neutral-300">
                         Message any shop directly through Chat, or reach out to our support team from your account settings.
                     </p>
                 </div>

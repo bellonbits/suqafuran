@@ -116,7 +116,7 @@ export default function MessagesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Messages</h1>
-          <p className="text-gray-600 dark:text-slate-400">Chat with your customers</p>
+          <p className="text-gray-600 dark:text-neutral-300">Chat with your customers</p>
         </div>
         <a href="/messages" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors text-sm">
           Open Full Messages →
@@ -130,8 +130,8 @@ export default function MessagesPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[600px]">
-        <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 overflow-hidden flex flex-col">
-          <div className="border-b border-gray-200 dark:border-slate-800 p-4 space-y-3">
+        <div className="bg-white dark:bg-neutral-950 rounded-lg border border-gray-200 dark:border-neutral-800 overflow-hidden flex flex-col">
+          <div className="border-b border-gray-200 dark:border-neutral-800 p-4 space-y-3">
             <h3 className="font-semibold text-gray-900 dark:text-white">Conversations ({filteredConversations.length})</h3>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -140,11 +140,11 @@ export default function MessagesPage() {
                 placeholder="Search conversations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white text-sm"
+                className="w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-950 text-gray-900 dark:text-white text-sm"
               />
             </div>
           </div>
-          <div className="flex-1 divide-y divide-gray-200 dark:divide-slate-800 overflow-y-auto">
+          <div className="flex-1 divide-y divide-gray-200 dark:divide-neutral-800 overflow-y-auto">
             {filteredConversations.length === 0 ? (
               <div className="p-4 text-gray-500 text-sm text-center">
                 {searchQuery ? 'No conversations match your search' : 'No conversations yet'}
@@ -154,7 +154,7 @@ export default function MessagesPage() {
                 <button
                   key={conv.id}
                   onClick={() => handleSelectConversation(conv)}
-                  className={`w-full text-left p-4 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors ${
+                  className={`w-full text-left p-4 hover:bg-gray-50 dark:hover:bg-neutral-900 transition-colors ${
                     selectedConversation?.id === conv.id ? 'bg-orange-50 dark:bg-orange-900/20' : ''
                   }`}
                 >
@@ -164,7 +164,7 @@ export default function MessagesPage() {
                       <span className="bg-orange-600 text-white text-xs rounded-full px-2 py-0.5 ml-2 flex-shrink-0">{conv.unread_count}</span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-600 dark:text-slate-400 truncate mb-1">{conv.last_message || 'No messages'}</p>
+                  <p className="text-xs text-gray-600 dark:text-neutral-300 truncate mb-1">{conv.last_message || 'No messages'}</p>
                   <div className="flex items-center gap-1 text-xs text-gray-500">
                     <Clock className="w-3 h-3" />
                     {new Date(conv.updated_at).toLocaleDateString()}
@@ -175,8 +175,8 @@ export default function MessagesPage() {
           </div>
         </div>
 
-        <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 overflow-hidden flex flex-col">
-          <div className="border-b border-gray-200 dark:border-slate-800 p-4">
+        <div className="lg:col-span-2 bg-white dark:bg-neutral-950 rounded-lg border border-gray-200 dark:border-neutral-800 overflow-hidden flex flex-col">
+          <div className="border-b border-gray-200 dark:border-neutral-800 p-4">
             <h3 className="font-semibold text-gray-900 dark:text-white">
               {selectedConversation?.customer_name || selectedConversation?.other_user_name || 'Select a conversation'}
             </h3>
@@ -199,7 +199,7 @@ export default function MessagesPage() {
                       className={`rounded-lg px-4 py-2 max-w-xs text-sm ${
                         msg.sender_type === 'seller'
                           ? 'bg-orange-600 text-white'
-                          : 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white'
+                          : 'bg-gray-100 dark:bg-neutral-900 text-gray-900 dark:text-white'
                       }`}
                     >
                       <p>{msg.message || msg.content}</p>
@@ -214,7 +214,7 @@ export default function MessagesPage() {
             )}
           </div>
           {selectedConversation && (
-            <div className="border-t border-gray-200 dark:border-slate-800 p-4">
+            <div className="border-t border-gray-200 dark:border-neutral-800 p-4">
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -223,7 +223,7 @@ export default function MessagesPage() {
                   onChange={(e) => setMessageInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                   disabled={sending}
-                  className="flex-1 px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white disabled:opacity-50"
+                  className="flex-1 px-4 py-2 border border-gray-200 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-950 text-gray-900 dark:text-white disabled:opacity-50"
                 />
                 <button
                   onClick={handleSendMessage}

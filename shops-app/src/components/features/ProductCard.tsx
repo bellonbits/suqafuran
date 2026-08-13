@@ -102,23 +102,23 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
 
     const sellerInfo = showSeller && listing.owner && (
         <div className="space-y-1">
-            <div className="flex items-center gap-1 text-[11px] text-gray-700 dark:text-slate-300 font-bold truncate">
+            <div className="flex items-center gap-1 text-[11px] text-gray-700 dark:text-neutral-200 font-bold truncate">
                 <span className="truncate">{listing.owner.full_name}</span>
                 {listing.owner.is_verified && <ShieldCheck className="h-3 w-3 text-orange-600 dark:text-orange-400 shrink-0" />}
             </div>
             {listing.owner.rating && (
-                <div className="flex items-center gap-1 text-[10px] text-gray-600 dark:text-slate-400">
+                <div className="flex items-center gap-1 text-[10px] text-gray-600 dark:text-neutral-300">
                     <div className="flex items-center gap-0.5">
                         <Star className="h-2.5 w-2.5 fill-amber-400 text-amber-400" />
                         <span className="font-bold">{listing.owner.rating.toFixed(1)}</span>
                     </div>
                     {listing.owner.reviews_count && (
-                        <span className="text-gray-500 dark:text-slate-500">({listing.owner.reviews_count} reviews)</span>
+                        <span className="text-gray-500 dark:text-neutral-400">({listing.owner.reviews_count} reviews)</span>
                     )}
                 </div>
             )}
             {listing.owner.response_time && (
-                <div className="text-[9px] text-gray-500 dark:text-slate-500 font-medium">
+                <div className="text-[9px] text-gray-500 dark:text-neutral-400 font-medium">
                     Replies {listing.owner.response_time}
                 </div>
             )}
@@ -127,11 +127,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
 
     const priceBlock = (
         <div className="flex items-baseline gap-1.5">
-            <div className="text-base font-black text-gray-900 dark:text-slate-100">
+            <div className="text-base font-black text-gray-900 dark:text-neutral-50">
                 {formatConvertedPrice(listing?.price ?? 0, listing.currency, displayCurrency)}
             </div>
             {!!originalPrice && originalPrice > (listing?.price ?? 0) && (
-                <div className="text-xs font-semibold text-gray-400 dark:text-slate-500 line-through">
+                <div className="text-xs font-semibold text-gray-400 dark:text-neutral-400 line-through">
                     {formatConvertedPrice(originalPrice, listing.currency, displayCurrency)}
                 </div>
             )}
@@ -145,7 +145,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                 state={{ listing }}
                 className="flex gap-3 sm:gap-4 w-full text-left hover:no-underline group"
             >
-                <div className="relative w-24 h-24 sm:w-32 sm:h-32 shrink-0 rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800/80 cursor-pointer">
+                <div className="relative w-24 h-24 sm:w-32 sm:h-32 shrink-0 rounded-lg overflow-hidden bg-slate-50 dark:bg-neutral-950 border border-gray-100 dark:border-neutral-800/80 cursor-pointer">
                     <img
                         src={displayImage}
                         alt={listing.title_en}
@@ -157,18 +157,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
 
                 <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
                     <div className="space-y-1">
-                        <h3 className="line-clamp-2 text-sm font-semibold text-gray-900 dark:text-slate-100 leading-snug">
+                        <h3 className="line-clamp-2 text-sm font-semibold text-gray-900 dark:text-neutral-50 leading-snug">
                             {field(listing.title_en, listing.title_so)}
                         </h3>
 
                         {categoryName && (
-                            <div className="text-xs text-gray-500 dark:text-slate-400">
+                            <div className="text-xs text-gray-500 dark:text-neutral-300">
                                 {categoryName}
                             </div>
                         )}
 
                         {listing.description_en && (
-                            <p className="line-clamp-2 text-xs text-gray-500 dark:text-slate-400">
+                            <p className="line-clamp-2 text-xs text-gray-500 dark:text-neutral-300">
                                 {listing.description_en}
                             </p>
                         )}
@@ -183,9 +183,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                             <button
                                 onClick={handleToggleFavorite}
                                 aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                                className="h-8 w-8 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50 active:scale-95 transition-all dark:bg-slate-800 dark:border-slate-700 cursor-pointer"
+                                className="h-8 w-8 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50 active:scale-95 transition-all dark:bg-neutral-900 dark:border-neutral-800 cursor-pointer"
                             >
-                                <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-slate-200'}`} />
+                                <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-neutral-100'}`} />
                             </button>
                             <button
                                 onClick={handleAddToCart}
@@ -208,7 +208,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
             className="block group w-full text-left hover:no-underline"
         >
             <div
-                className="relative aspect-square rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-900 border border-gray-100 dark:border-slate-800/80 cursor-pointer"
+                className="relative aspect-square rounded-lg overflow-hidden bg-slate-50 dark:bg-neutral-950 border border-gray-100 dark:border-neutral-800/80 cursor-pointer"
                 style={{ contain: 'layout paint', transform: 'translateZ(0)' }}
             >
                 <img
@@ -223,9 +223,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                 <button
                     onClick={handleToggleFavorite}
                     aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                    className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/90 border border-gray-200 shadow-md flex items-center justify-center hover:bg-white active:scale-95 transition-all dark:bg-slate-800/90 dark:border-slate-700 cursor-pointer"
+                    className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/90 border border-gray-200 shadow-md flex items-center justify-center hover:bg-white active:scale-95 transition-all dark:bg-neutral-900/90 dark:border-neutral-800 cursor-pointer"
                 >
-                    <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-slate-200'}`} />
+                    <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-neutral-100'}`} />
                 </button>
 
                 <button
@@ -238,12 +238,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
             </div>
 
             <div className="pt-2.5 space-y-1">
-                <h3 className="line-clamp-2 text-sm font-semibold text-gray-900 dark:text-slate-100 leading-snug">
+                <h3 className="line-clamp-2 text-sm font-semibold text-gray-900 dark:text-neutral-50 leading-snug">
                     {field(listing.title_en, listing.title_so)}
                 </h3>
 
                 {categoryName && (
-                    <div className="text-xs text-gray-500 dark:text-slate-400">
+                    <div className="text-xs text-gray-500 dark:text-neutral-300">
                         {categoryName}
                     </div>
                 )}

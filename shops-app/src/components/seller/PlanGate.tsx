@@ -97,16 +97,16 @@ export function PlanGate({ requiredPlan, featureName, featureDescription, childr
         {/* Text */}
         <div className="space-y-2">
           <h2 className="text-2xl font-black text-gray-900 dark:text-white">{featureName}</h2>
-          <p className="text-gray-500 dark:text-slate-400 text-sm leading-relaxed">
+          <p className="text-gray-500 dark:text-neutral-300 text-sm leading-relaxed">
             {featureDescription ||
               `${featureName} is available on the ${requiredPlan.charAt(0).toUpperCase() + requiredPlan.slice(1)} plan and above.`}
           </p>
         </div>
 
         {/* Plan badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 dark:bg-slate-800">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 dark:bg-neutral-900">
           <Zap className="w-4 h-4 text-orange-500" />
-          <span className="text-sm font-semibold text-gray-700 dark:text-slate-300 capitalize">
+          <span className="text-sm font-semibold text-gray-700 dark:text-neutral-200 capitalize">
             {requiredPlan} Plan · {price}
           </span>
         </div>
@@ -120,7 +120,7 @@ export function PlanGate({ requiredPlan, featureName, featureDescription, childr
           <ArrowRight className="w-4 h-4" />
         </button>
 
-        <p className="text-xs text-gray-400 dark:text-slate-500">
+        <p className="text-xs text-gray-400 dark:text-neutral-400">
           7-day free trial available · Cancel anytime
         </p>
       </div>

@@ -195,7 +195,7 @@ export default function EmailTemplatesPage() {
               <Mail className="w-8 h-8 text-blue-600" />
               <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Email Templates</h1>
             </div>
-            <p className="text-slate-600 dark:text-slate-300">
+            <p className="text-slate-600 dark:text-neutral-200">
               Create reusable templates, send a test to yourself, or broadcast to every active customer.
             </p>
           </div>
@@ -227,19 +227,19 @@ export default function EmailTemplatesPage() {
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         template.is_active
                           ? 'bg-emerald-50 dark:bg-emerald-950/30 text-green-800'
-                          : 'bg-slate-100 dark:bg-slate-800 text-gray-800'
+                          : 'bg-slate-100 dark:bg-neutral-900 text-gray-800'
                       }`}>
                         {template.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </div>
-                    <p className="text-sm text-slate-600 dark:text-slate-300 mb-2">
+                    <p className="text-sm text-slate-600 dark:text-neutral-200 mb-2">
                       <strong>Event:</strong> {template.event_type}
                     </p>
-                    <p className="text-sm text-slate-600 dark:text-slate-300 mb-2">
+                    <p className="text-sm text-slate-600 dark:text-neutral-200 mb-2">
                       <strong>Subject:</strong> {template.subject}
                     </p>
                     {template.description && (
-                      <p className="text-sm text-slate-600 dark:text-slate-300 mb-2">{template.description}</p>
+                      <p className="text-sm text-slate-600 dark:text-neutral-200 mb-2">{template.description}</p>
                     )}
                     {template.action_text && (
                       <p className="text-xs text-slate-400 mb-2">
@@ -248,7 +248,7 @@ export default function EmailTemplatesPage() {
                     )}
                     {template.variables && (
                       <div className="mt-2">
-                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Variables:</p>
+                        <p className="text-xs font-semibold text-slate-700 dark:text-neutral-200 mb-1">Variables:</p>
                         <div className="flex flex-wrap gap-1">
                           {JSON.parse(template.variables).map((v: string) => (
                             <span key={v} className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-mono">
@@ -279,14 +279,14 @@ export default function EmailTemplatesPage() {
                         setEditing(template);
                         setShowPreview(true);
                       }}
-                      className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800 rounded"
+                      className="p-2 text-slate-600 dark:text-neutral-200 hover:bg-slate-100 dark:bg-neutral-900 rounded"
                       title="Preview"
                     >
                       <Eye className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => handleEdit(template)}
-                      className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800 rounded"
+                      className="p-2 text-slate-600 dark:text-neutral-200 hover:bg-slate-100 dark:bg-neutral-900 rounded"
                       title="Edit"
                     >
                       <Edit2 className="w-5 h-5" />
@@ -397,7 +397,7 @@ function EmailTemplateForm({
             <button
               type="button"
               onClick={onCancel}
-              className="p-1 hover:bg-slate-100 dark:bg-slate-800 rounded"
+              className="p-1 hover:bg-slate-100 dark:bg-neutral-900 rounded"
             >
               <X className="w-5 h-5" />
             </button>
@@ -505,7 +505,7 @@ function EmailTemplateForm({
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-slate-50 dark:bg-slate-800/40"
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-slate-50 dark:bg-neutral-900/40"
             >
               Cancel
             </button>
@@ -539,23 +539,23 @@ function TemplatePreviewModal({
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">Template Preview</h2>
             <button
               onClick={onClose}
-              className="p-1 hover:bg-slate-100 dark:bg-slate-800 rounded"
+              className="p-1 hover:bg-slate-100 dark:bg-neutral-900 rounded"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded border">
-            <p className="text-sm text-slate-600 dark:text-slate-300 mb-3"><strong>Subject:</strong> {template.subject}</p>
+          <div className="bg-slate-50 dark:bg-neutral-900/40 p-4 rounded border">
+            <p className="text-sm text-slate-600 dark:text-neutral-200 mb-3"><strong>Subject:</strong> {template.subject}</p>
             <div className="bg-white rounded border overflow-hidden">
-              <div className="bg-white text-center px-6 pt-8 pb-6 border-b border-slate-100 dark:border-slate-800">
+              <div className="bg-white text-center px-6 pt-8 pb-6 border-b border-slate-100 dark:border-neutral-800">
                 <img src="https://suqafuran.com/icon1.png" alt="Suqafuran" className="h-8 mx-auto mb-2" />
                 <p className="text-xs font-semibold text-slate-400">The Trusted Marketplace of Africa</p>
               </div>
               <div className="px-8 py-8 text-left">
                 <h2 className="text-xl font-black text-slate-900 dark:text-white mb-1">{template.name}</h2>
-                {template.description && <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">{template.description}</p>}
-                <div className="text-sm text-slate-700 dark:text-slate-300" dangerouslySetInnerHTML={{ __html: template.html_content }} />
+                {template.description && <p className="text-sm text-slate-600 dark:text-neutral-200 mb-4">{template.description}</p>}
+                <div className="text-sm text-slate-700 dark:text-neutral-200" dangerouslySetInnerHTML={{ __html: template.html_content }} />
                 {template.action_text && (
                   <div className="text-center mt-5">
                     <span className="inline-block bg-orange-600 text-white text-xs font-bold px-5 py-2.5 rounded-lg">
@@ -590,9 +590,9 @@ function SendTestModal({
         <div className="p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">Send Test Email</h2>
-            <button onClick={onCancel} className="p-1 hover:bg-slate-100 dark:bg-slate-800 rounded"><X className="w-5 h-5" /></button>
+            <button onClick={onCancel} className="p-1 hover:bg-slate-100 dark:bg-neutral-900 rounded"><X className="w-5 h-5" /></button>
           </div>
-          <p className="text-sm text-slate-600 dark:text-slate-300">Sending "{template.name}" as a one-off test.</p>
+          <p className="text-sm text-slate-600 dark:text-neutral-200">Sending "{template.name}" as a one-off test.</p>
           <input
             type="email"
             value={email}
@@ -602,7 +602,7 @@ function SendTestModal({
             autoFocus
           />
           <div className="flex gap-3 justify-end">
-            <button onClick={onCancel} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-slate-50 dark:bg-slate-800/40">Cancel</button>
+            <button onClick={onCancel} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-slate-50 dark:bg-neutral-900/40">Cancel</button>
             <button
               onClick={async () => {
                 if (!email.trim()) return;
@@ -644,7 +644,7 @@ function BroadcastConfirmModal({
         <div className="p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">Broadcast to All Customers</h2>
-            <button onClick={onCancel} className="p-1 hover:bg-slate-100 dark:bg-slate-800 rounded"><X className="w-5 h-5" /></button>
+            <button onClick={onCancel} className="p-1 hover:bg-slate-100 dark:bg-neutral-900 rounded"><X className="w-5 h-5" /></button>
           </div>
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
             <p className="text-sm text-orange-900">
@@ -671,7 +671,7 @@ function BroadcastConfirmModal({
             />
           </div>
           <div className="flex gap-3 justify-end">
-            <button onClick={onCancel} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-slate-50 dark:bg-slate-800/40">Cancel</button>
+            <button onClick={onCancel} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-slate-50 dark:bg-neutral-900/40">Cancel</button>
             <button
               onClick={async () => {
                 setSending(true);

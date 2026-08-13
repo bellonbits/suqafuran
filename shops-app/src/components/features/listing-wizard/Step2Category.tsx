@@ -104,7 +104,7 @@ export const ListingStep2Category: React.FC<Step2Props> = ({
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <Loader2 className="h-8 w-8 text-[#5bc0e8] animate-spin mb-3" />
-        <p className="text-gray-600 dark:text-slate-400">Loading categories...</p>
+        <p className="text-gray-600 dark:text-neutral-300">Loading categories...</p>
       </div>
     );
   }
@@ -113,7 +113,7 @@ export const ListingStep2Category: React.FC<Step2Props> = ({
     <div className="space-y-6">
       {/* Main Categories */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-200 mb-3">
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-neutral-100 mb-3">
           Main Category *
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
@@ -126,7 +126,7 @@ export const ListingStep2Category: React.FC<Step2Props> = ({
               className={`p-4 rounded-lg border-2 transition-all text-left ${
                 selectedCategory?.id === category.id
                   ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
-                  : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
+                  : 'border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700'
               }`}
             >
               <p className="font-semibold text-gray-900 dark:text-white">
@@ -143,7 +143,7 @@ export const ListingStep2Category: React.FC<Step2Props> = ({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-200 mb-3">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-neutral-100 mb-3">
             Subcategory *
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto">
@@ -156,7 +156,7 @@ export const ListingStep2Category: React.FC<Step2Props> = ({
                 className={`p-4 rounded-lg border-2 transition-all text-left flex items-center justify-between ${
                   selectedSubcategory?.id === subcategory.id
                     ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
-                    : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
+                    : 'border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700'
                 }`}
               >
                 <p className="font-semibold text-gray-900 dark:text-white">
@@ -175,7 +175,7 @@ export const ListingStep2Category: React.FC<Step2Props> = ({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-200 mb-3">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-neutral-100 mb-3">
             Specific Category
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto">
@@ -188,7 +188,7 @@ export const ListingStep2Category: React.FC<Step2Props> = ({
                 className={`p-4 rounded-lg border-2 transition-all text-left ${
                   data.subsubcategory_id === subsubcategory.id
                     ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
-                    : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
+                    : 'border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700'
                 }`}
               >
                 <p className="font-semibold text-gray-900 dark:text-white">

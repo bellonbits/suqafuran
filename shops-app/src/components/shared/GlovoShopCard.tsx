@@ -141,7 +141,7 @@ export function GlovoShopCard({ shop, index, hideRating }: GlovoShopCardProps) {
       >
 
         {/* ─── Banner (16:7 aspect ratio - shorter) ──────────────────────── */}
-        <div className="relative aspect-[16/7] w-full rounded-lg overflow-hidden bg-gray-200 dark:bg-slate-800">
+        <div className="relative aspect-[16/7] w-full rounded-lg overflow-hidden bg-gray-200 dark:bg-neutral-900">
           {showPreview ? (
             /* Preview: auto-scrolling strip of the shop's product photos,
                finger/mouse-swipeable to browse at your own pace too */
@@ -199,7 +199,7 @@ export function GlovoShopCard({ shop, index, hideRating }: GlovoShopCardProps) {
           )}
 
           {/* Shop logo — bottom-left, Glovo-style circle (always shown) */}
-          <div className="absolute bottom-2.5 left-3 w-10 h-10 rounded-full bg-white dark:bg-slate-900 border-2 border-white dark:border-slate-700 shadow-md overflow-hidden flex items-center justify-center">
+          <div className="absolute bottom-2.5 left-3 w-10 h-10 rounded-full bg-white dark:bg-neutral-950 border-2 border-white dark:border-neutral-800 shadow-md overflow-hidden flex items-center justify-center">
             {shop.logo_url ? (
               <img
                 src={resolveMediaUrl(shop.logo_url) || ''}
@@ -224,12 +224,12 @@ export function GlovoShopCard({ shop, index, hideRating }: GlovoShopCardProps) {
           </h3>
 
           {/* Market row (directly under shop name) */}
-          <div className="mt-0.5 text-[12px] font-semibold text-gray-500 dark:text-slate-400 truncate">
+          <div className="mt-0.5 text-[12px] font-semibold text-gray-500 dark:text-neutral-300 truncate">
             {market}
           </div>
 
           {/* Metrics row: rating, or product count when rating is hidden -- no delivery time, this is P2P classifieds, not a delivery service */}
-          <div className="flex items-center gap-2 mt-1.5 text-[12px] font-semibold text-gray-500 dark:text-slate-400 flex-nowrap overflow-hidden">
+          <div className="flex items-center gap-2 mt-1.5 text-[12px] font-semibold text-gray-500 dark:text-neutral-300 flex-nowrap overflow-hidden">
             {hideRating ? (
               <div className="flex items-center gap-1 shrink-0 font-bold">
                 <Package className="w-3 h-3 text-orange-500 shrink-0" />

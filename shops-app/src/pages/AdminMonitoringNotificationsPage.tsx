@@ -32,33 +32,33 @@ export default function NotificationsPage() {
     <div className="space-y-6 p-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white dark:text-white mb-2">Alert Notifications</h1>
-        <p className="text-slate-600 dark:text-slate-300 dark:text-slate-400">View notification logs and delivery status</p>
+        <p className="text-slate-600 dark:text-neutral-200 dark:text-neutral-300">View notification logs and delivery status</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 dark:border-slate-700">
+        <div className="bg-white dark:bg-neutral-900 rounded-lg p-4 border border-slate-200 dark:border-neutral-800 dark:border-neutral-800">
           <div className="flex items-center gap-2 mb-2">
             <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            <span className="text-sm font-semibold text-slate-600 dark:text-slate-300 dark:text-slate-400">Email</span>
+            <span className="text-sm font-semibold text-slate-600 dark:text-neutral-200 dark:text-neutral-300">Email</span>
           </div>
           <div className="text-3xl font-bold text-slate-900 dark:text-white dark:text-white">{stats.email_count || '0'}</div>
-          <p className="text-xs text-slate-600 dark:text-slate-300 dark:text-slate-400 mt-1">Sent in 24h</p>
+          <p className="text-xs text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mt-1">Sent in 24h</p>
         </div>
-        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 dark:border-slate-700">
+        <div className="bg-white dark:bg-neutral-900 rounded-lg p-4 border border-slate-200 dark:border-neutral-800 dark:border-neutral-800">
           <div className="flex items-center gap-2 mb-2">
             <Smartphone className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-            <span className="text-sm font-semibold text-slate-600 dark:text-slate-300 dark:text-slate-400">Push</span>
+            <span className="text-sm font-semibold text-slate-600 dark:text-neutral-200 dark:text-neutral-300">Push</span>
           </div>
           <div className="text-3xl font-bold text-slate-900 dark:text-white dark:text-white">{stats.push_count || '0'}</div>
-          <p className="text-xs text-slate-600 dark:text-slate-300 dark:text-slate-400 mt-1">Sent in 24h</p>
+          <p className="text-xs text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mt-1">Sent in 24h</p>
         </div>
-        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 dark:border-slate-700">
+        <div className="bg-white dark:bg-neutral-900 rounded-lg p-4 border border-slate-200 dark:border-neutral-800 dark:border-neutral-800">
           <div className="flex items-center gap-2 mb-2">
             <MessageSquare className="w-5 h-5 text-green-600 dark:text-green-400" />
-            <span className="text-sm font-semibold text-slate-600 dark:text-slate-300 dark:text-slate-400">SMS</span>
+            <span className="text-sm font-semibold text-slate-600 dark:text-neutral-200 dark:text-neutral-300">SMS</span>
           </div>
           <div className="text-3xl font-bold text-slate-900 dark:text-white dark:text-white">{stats.sms_count || '0'}</div>
-          <p className="text-xs text-slate-600 dark:text-slate-300 dark:text-slate-400 mt-1">Sent in 24h</p>
+          <p className="text-xs text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mt-1">Sent in 24h</p>
         </div>
       </div>
 
@@ -69,15 +69,15 @@ export default function NotificationsPage() {
             <div className="text-center text-slate-400 py-8">Loading notifications...</div>
           ) : notifications.length > 0 ? (
             notifications.map((notif) => (
-              <div key={notif.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 dark:border-slate-700 p-4 flex items-start gap-4">
-                <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 dark:bg-slate-700">
+              <div key={notif.id} className="bg-white dark:bg-neutral-900 rounded-xl border border-slate-200 dark:border-neutral-800 dark:border-neutral-800 p-4 flex items-start gap-4">
+                <div className="p-2 rounded-lg bg-slate-100 dark:bg-neutral-900 dark:bg-neutral-800">
                   {notif.channel === 'email' && <Mail className="w-5 h-5 text-blue-600" />}
                   {notif.channel === 'sms' && <Smartphone className="w-5 h-5 text-purple-600" />}
                   {notif.channel === 'push' && <MessageSquare className="w-5 h-5 text-green-600" />}
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-slate-900 dark:text-white dark:text-white">{notif.title || notif.event_type}</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-300 dark:text-slate-400 mt-1">{notif.message || notif.content}</p>
+                  <p className="text-sm text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mt-1">{notif.message || notif.content}</p>
                 </div>
                 <div className="text-right">
                   <span className={`inline-block px-2 py-1 text-xs font-semibold rounded ${
@@ -87,7 +87,7 @@ export default function NotificationsPage() {
                   }`}>
                     {notif.status}
                   </span>
-                  <div className="text-xs text-slate-400 dark:text-slate-400 mt-2 flex items-center gap-1">
+                  <div className="text-xs text-slate-400 dark:text-neutral-300 mt-2 flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     {new Date(notif.timestamp).toLocaleTimeString()}
                   </div>

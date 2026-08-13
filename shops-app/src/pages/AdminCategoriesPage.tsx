@@ -163,16 +163,16 @@ const CategoriesPage = () => {
             <Loader className="w-8 h-8 animate-spin text-[#6cd4ff]" />
           </div>
         ) : categories.length === 0 ? (
-          <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-12 text-center text-slate-400">
+          <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-12 text-center text-slate-400">
             No categories found
           </div>
         ) : (
           <div className="space-y-4">
             {categories.map((cat) => (
-              <div key={cat.id} className="bg-white border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+              <div key={cat.id} className="bg-white border border-slate-200 dark:border-neutral-800 rounded-xl overflow-hidden">
                 <div
                   onClick={() => toggleExpand(cat.id)}
-                  className="w-full p-6 hover:bg-slate-50 dark:bg-slate-800/40 transition-colors flex items-start justify-between text-left cursor-pointer"
+                  className="w-full p-6 hover:bg-slate-50 dark:bg-neutral-900/40 transition-colors flex items-start justify-between text-left cursor-pointer"
                 >
                   <div className="flex items-start gap-4 flex-1">
                     <div className="text-4xl flex-shrink-0 mt-1">
@@ -204,9 +204,9 @@ const CategoriesPage = () => {
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); openModal('category', 'edit', cat); }}
-                      className="p-2 hover:bg-slate-100 dark:bg-slate-800 rounded-lg transition-colors"
+                      className="p-2 hover:bg-slate-100 dark:bg-neutral-900 rounded-lg transition-colors"
                     >
-                      <Edit2 className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                      <Edit2 className="w-5 h-5 text-slate-600 dark:text-neutral-200" />
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); }}
@@ -224,13 +224,13 @@ const CategoriesPage = () => {
 
                 {/* Subcategories & SubSubcategories (Types) */}
                 {expandedIds.includes(cat.id) && cat.subcategories && cat.subcategories.length > 0 && (
-                  <div className="border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 p-6">
+                  <div className="border-t border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900/40 p-6">
                     <div className="space-y-4">
                       {cat.subcategories.map((sub: any) => (
                         <div key={sub.id} className="space-y-2">
-                          <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                          <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 dark:border-neutral-800">
                             <div className="flex items-center gap-3 flex-1">
-                              <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center flex-shrink-0 overflow-hidden border border-slate-200 dark:border-slate-700">
+                              <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-neutral-900 flex items-center justify-center flex-shrink-0 overflow-hidden border border-slate-200 dark:border-neutral-800">
                                 {sub.image_url ? (
                                   <img src={sub.image_url} alt="" className="w-full h-full object-cover" />
                                 ) : (
@@ -251,9 +251,9 @@ const CategoriesPage = () => {
                               </button>
                               <button
                                 onClick={() => openModal('subcategory', 'edit', sub)}
-                                className="p-2 hover:bg-slate-100 dark:bg-slate-800 rounded-lg transition-colors"
+                                className="p-2 hover:bg-slate-100 dark:bg-neutral-900 rounded-lg transition-colors"
                               >
-                                <Edit2 className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+                                <Edit2 className="w-4 h-4 text-slate-600 dark:text-neutral-200" />
                               </button>
                               <button className="p-2 hover:bg-red-50 rounded-lg transition-colors">
                                 <Trash2 className="w-4 h-4 text-red-600" />
@@ -267,7 +267,7 @@ const CategoriesPage = () => {
                               {sub.subsubcategories.map((ss: any) => (
                                 <div
                                   key={ss.id}
-                                  className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-gray-300 hover:bg-white transition-all"
+                                  className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-neutral-900 rounded-lg text-xs font-semibold text-slate-600 dark:text-neutral-200 border border-slate-200 dark:border-neutral-800 hover:border-gray-300 hover:bg-white transition-all"
                                 >
                                   <span>{ss.name || ss.name_en}</span>
                                   <div className="flex items-center gap-1 ml-1">
@@ -300,18 +300,18 @@ const CategoriesPage = () => {
       {modalState.type && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700 sticky top-0 bg-white">
+            <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-neutral-800 sticky top-0 bg-white">
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
                 {modalState.action === 'edit' ? `Edit ${modalState.type}` : `Add ${modalState.type}`}
               </h2>
-              <button onClick={closeModal} className="p-1 hover:bg-slate-100 dark:bg-slate-800 rounded">
-                <X className="w-6 h-6 text-slate-600 dark:text-slate-300" />
+              <button onClick={closeModal} className="p-1 hover:bg-slate-100 dark:bg-neutral-900 rounded">
+                <X className="w-6 h-6 text-slate-600 dark:text-neutral-200" />
               </button>
             </div>
 
             <div className="p-6 space-y-6">
               {/* Language Tabs */}
-              <div className="flex gap-4 border-b border-slate-200 dark:border-slate-700">
+              <div className="flex gap-4 border-b border-slate-200 dark:border-neutral-800">
                 <button
                   onClick={() => setActiveTab('en')}
                   className={`pb-3 font-semibold transition-colors ${
@@ -334,7 +334,7 @@ const CategoriesPage = () => {
               <div>
                 <h3 className="font-bold text-slate-900 dark:text-white mb-3">Category Image</h3>
                 <div className="flex gap-4">
-                  <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center flex-shrink-0 border border-slate-200 dark:border-slate-700 overflow-hidden">
+                  <div className="w-20 h-20 bg-slate-100 dark:bg-neutral-900 rounded-lg flex items-center justify-center flex-shrink-0 border border-slate-200 dark:border-neutral-800 overflow-hidden">
                     {editForm.image_url ? (
                       <img src={editForm.image_url} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -352,7 +352,7 @@ const CategoriesPage = () => {
                       placeholder="https://example.com/image.jpg"
                       value={editForm.image_url}
                       onChange={(e) => setEditForm({ ...editForm, image_url: e.target.value })}
-                      className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg text-gray-900"
+                      className="w-full px-4 py-3 border border-slate-200 dark:border-neutral-800 rounded-lg text-gray-900"
                     />
                   </div>
                 </div>
@@ -360,7 +360,7 @@ const CategoriesPage = () => {
 
               {/* Display Name */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-neutral-200 mb-2">
                   DISPLAY NAME ({activeTab === 'en' ? 'EN' : 'SO'})
                 </label>
                 <input
@@ -374,31 +374,31 @@ const CategoriesPage = () => {
                     }
                   }}
                   placeholder={activeTab === 'en' ? 'e.g. Mobile Phones' : 'e.g. Taleefannada Gacanta'}
-                  className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg text-gray-900"
+                  className="w-full px-4 py-3 border border-slate-200 dark:border-neutral-800 rounded-lg text-gray-900"
                 />
               </div>
 
               {/* Slug and Icon (only for categories) */}
               <div className={`grid ${modalState.type === 'category' ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">SLUG (URL ID)</label>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-neutral-200 mb-2">SLUG (URL ID)</label>
                   <input
                     type="text"
                     value={editForm.slug}
                     onChange={(e) => setEditForm({ ...editForm, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
                     placeholder="e.g. mobile-phones"
-                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg text-gray-900"
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-neutral-800 rounded-lg text-gray-900"
                   />
                 </div>
                 {modalState.type === 'category' && (
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">LUCIDE ICON</label>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-neutral-200 mb-2">LUCIDE ICON</label>
                     <input
                       type="text"
                       placeholder="e.g. Smartphone"
                       value={editForm.lucide_icon}
                       onChange={(e) => setEditForm({ ...editForm, lucide_icon: e.target.value })}
-                      className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg text-gray-900"
+                      className="w-full px-4 py-3 border border-slate-200 dark:border-neutral-800 rounded-lg text-gray-900"
                     />
                   </div>
                 )}
@@ -407,7 +407,7 @@ const CategoriesPage = () => {
               {/* Brands (only for sub-sub-categories) */}
               {modalState.type === 'subsubcategory' && (
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-neutral-200 mb-2">
                     BRANDS (comma-separated)
                   </label>
                   <textarea
@@ -415,7 +415,7 @@ const CategoriesPage = () => {
                     onChange={(e) => setEditForm({ ...editForm, brands: e.target.value })}
                     placeholder="e.g. Apple, Samsung, Tecno, Infinix"
                     rows={3}
-                    className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg text-gray-900"
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-neutral-800 rounded-lg text-gray-900"
                   />
                   <p className="text-xs text-slate-400 mt-1">
                     Sellers will pick from this list when listing a product in this category, with an option to enter a custom brand if theirs isn't listed.
@@ -427,7 +427,7 @@ const CategoriesPage = () => {
               <div className="flex gap-4 pt-4">
                 <button
                   onClick={closeModal}
-                  className="flex-1 px-6 py-3 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-slate-900 dark:text-white hover:bg-slate-50 dark:bg-slate-800/40"
+                  className="flex-1 px-6 py-3 border border-slate-200 dark:border-neutral-800 rounded-lg font-bold text-slate-900 dark:text-white hover:bg-slate-50 dark:bg-neutral-900/40"
                 >
                   Cancel
                 </button>

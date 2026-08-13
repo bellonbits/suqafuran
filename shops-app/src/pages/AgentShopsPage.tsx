@@ -251,7 +251,7 @@ export default function AgentShopsPage() {
           </div>
           <button
             onClick={() => loadShops(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#151D2A] border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl text-xs font-bold shadow-sm hover:bg-slate-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-100 rounded-2xl text-xs font-bold shadow-sm hover:bg-slate-50 transition-colors"
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-sky-500' : ''}`} />
             Refresh
@@ -265,7 +265,7 @@ export default function AgentShopsPage() {
             { label: 'Active Shops', value: shops.filter(s => s.is_active).length, color: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600' },
             { label: 'Inactive Shops', value: shops.filter(s => !s.is_active).length, color: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600' },
           ].map((s, i) => (
-            <div key={i} className="bg-white dark:bg-[#151D2A] rounded-3xl p-5 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+            <div key={i} className="bg-white dark:bg-neutral-950 rounded-3xl p-5 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
               <h2 className="text-2xl font-black text-slate-900 dark:text-white mt-2">{s.value}</h2>
               <span className={`text-xs font-bold px-2 py-0.5 rounded-full mt-2 inline-block ${s.color}`}>Live Count</span>
@@ -274,8 +274,8 @@ export default function AgentShopsPage() {
         </div>
 
         {/* Search + Table */}
-        <div className="bg-white dark:bg-[#151D2A] rounded-3xl border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] overflow-hidden">
-          <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="bg-white dark:bg-neutral-950 rounded-3xl border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] overflow-hidden">
+          <div className="p-5 border-b border-slate-100 dark:border-neutral-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <div className="relative flex-1">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
@@ -283,7 +283,7 @@ export default function AgentShopsPage() {
                 placeholder="Search by shop name, owner, or email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 outline-none focus:ring-2 focus:ring-sky-500/20"
+                className="w-full bg-slate-50 dark:bg-neutral-900/60 border border-slate-200/60 dark:border-neutral-800/50 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-slate-800 dark:text-neutral-50 placeholder-slate-400 outline-none focus:ring-2 focus:ring-sky-500/20"
               />
             </div>
             <span className="text-xs font-bold text-slate-400">{filteredShops.length} shops found</span>
@@ -292,7 +292,7 @@ export default function AgentShopsPage() {
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="bg-slate-50/60 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800 text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
+                <tr className="bg-slate-50/60 dark:bg-neutral-900/40 border-b border-slate-100 dark:border-neutral-800 text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
                   <th className="py-3.5 px-5">Shop</th>
                   <th className="py-3.5 px-5">Owner</th>
                   <th className="py-3.5 px-5">Email</th>
@@ -300,9 +300,9 @@ export default function AgentShopsPage() {
                   <th className="py-3.5 px-5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50 dark:divide-slate-800/40">
+              <tbody className="divide-y divide-slate-50 dark:divide-neutral-800/40">
                 {filteredShops.length > 0 ? filteredShops.map(shop => (
-                  <tr key={shop.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors">
+                  <tr key={shop.id} className="hover:bg-slate-50/80 dark:hover:bg-neutral-900/30 transition-colors">
                     <td className="py-4 px-5">
                       <div className="flex items-center gap-3">
                         {shop.logo_url ? (
@@ -315,7 +315,7 @@ export default function AgentShopsPage() {
                         <span className="font-bold text-slate-900 dark:text-white">{shop.business_name}</span>
                       </div>
                     </td>
-                    <td className="py-4 px-5 font-medium text-slate-600 dark:text-slate-300">{shop.full_name}</td>
+                    <td className="py-4 px-5 font-medium text-slate-600 dark:text-neutral-200">{shop.full_name}</td>
                     <td className="py-4 px-5 text-slate-400">{shop.email}</td>
                     <td className="py-4 px-5">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${shop.is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}`}>
@@ -324,7 +324,7 @@ export default function AgentShopsPage() {
                       </span>
                     </td>
                     <td className="py-4 px-5 text-right">
-                      <button onClick={() => openEdit(shop)} className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-sky-600 hover:bg-sky-50 transition-colors">
+                      <button onClick={() => openEdit(shop)} className="p-2 rounded-xl bg-slate-50 dark:bg-neutral-900 text-slate-500 hover:text-sky-600 hover:bg-sky-50 transition-colors">
                         <Edit2 className="w-4 h-4" />
                       </button>
                     </td>
@@ -337,7 +337,7 @@ export default function AgentShopsPage() {
           </div>
 
           {/* Mobile Cards */}
-          <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="md:hidden divide-y divide-slate-100 dark:divide-neutral-800">
             {filteredShops.map(shop => (
               <div key={shop.id} className="p-4 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -365,7 +365,7 @@ export default function AgentShopsPage() {
       {/* Edit Modal */}
       {editingShop && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={(e) => e.target === e.currentTarget && closeEdit()}>
-          <div className="bg-white dark:bg-[#151D2A] rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md max-h-[90vh] overflow-y-auto p-6 space-y-4">
+          <div className="bg-white dark:bg-neutral-950 rounded-3xl shadow-2xl border border-slate-200 dark:border-neutral-800 w-full max-w-md max-h-[90vh] overflow-y-auto p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Edit Shop</h3>
               <button onClick={closeEdit} className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
@@ -382,7 +382,7 @@ export default function AgentShopsPage() {
                 <input
                   value={form.business_name}
                   onChange={(e) => setForm(f => ({ ...f, business_name: e.target.value }))}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20"
+                  className="w-full bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20"
                 />
               </div>
               <div>
@@ -391,7 +391,7 @@ export default function AgentShopsPage() {
                   value={form.shop_description}
                   onChange={(e) => setForm(f => ({ ...f, shop_description: e.target.value }))}
                   rows={3}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 resize-none"
+                  className="w-full bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 resize-none"
                 />
               </div>
               <div>
@@ -400,13 +400,13 @@ export default function AgentShopsPage() {
                   value={form.location}
                   onChange={(e) => setForm(f => ({ ...f, location: e.target.value }))}
                   placeholder="e.g. Eastleigh, Nairobi"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20"
+                  className="w-full bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20"
                 />
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">Logo</label>
                 <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0])} className="hidden" id="logo-upload" />
-                <label htmlFor="logo-upload" className="flex items-center gap-2 cursor-pointer px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-700 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors">
+                <label htmlFor="logo-upload" className="flex items-center gap-2 cursor-pointer px-3.5 py-2.5 bg-slate-50 dark:bg-neutral-900 border border-dashed border-slate-300 dark:border-neutral-800 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors">
                   <ImageIcon className="w-4 h-4" /> {uploading ? 'Uploading…' : 'Upload Logo Image'}
                 </label>
                 {form.logo_url && <img src={form.logo_url} className="w-16 h-16 rounded-xl mt-2 object-cover border" alt="Logo preview" />}
@@ -414,7 +414,7 @@ export default function AgentShopsPage() {
             </div>
 
             {/* Items in this shop */}
-            <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
+            <div className="border-t border-slate-100 dark:border-neutral-800 pt-4">
               <div className="flex items-center justify-between mb-3">
                 <label className="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase">
                   <Package className="w-3.5 h-3.5" />
@@ -430,14 +430,14 @@ export default function AgentShopsPage() {
               </div>
 
               {showAddItem && (
-                <div className="mb-4 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 space-y-3">
+                <div className="mb-4 p-4 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900/60 space-y-3">
                   <input
                     type="text"
                     placeholder="Item title"
                     value={newItem.title_en}
                     onChange={(e) => setNewItem((f) => ({ ...f, title_en: e.target.value }))}
                     disabled={newItemSaving}
-                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50"
+                    className="w-full bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50"
                   />
                   <textarea
                     placeholder="Description"
@@ -445,7 +445,7 @@ export default function AgentShopsPage() {
                     onChange={(e) => setNewItem((f) => ({ ...f, description_en: e.target.value }))}
                     rows={2}
                     disabled={newItemSaving}
-                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50 resize-none"
+                    className="w-full bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 rounded-2xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50 resize-none"
                   />
                   <div className="grid grid-cols-2 gap-2.5">
                     <input
@@ -454,13 +454,13 @@ export default function AgentShopsPage() {
                       value={newItem.price}
                       onChange={(e) => setNewItem((f) => ({ ...f, price: e.target.value }))}
                       disabled={newItemSaving}
-                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50"
+                      className="w-full bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50"
                     />
                     <select
                       value={newItem.condition}
                       onChange={(e) => setNewItem((f) => ({ ...f, condition: e.target.value }))}
                       disabled={newItemSaving}
-                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50"
+                      className="w-full bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50"
                     >
                       <option value="New">New</option>
                       <option value="Used">Used</option>
@@ -474,13 +474,13 @@ export default function AgentShopsPage() {
                       value={newItem.location}
                       onChange={(e) => setNewItem((f) => ({ ...f, location: e.target.value }))}
                       disabled={newItemSaving}
-                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50"
+                      className="w-full bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50"
                     />
                     <select
                       value={newItem.category_id}
                       onChange={(e) => setNewItem((f) => ({ ...f, category_id: e.target.value, subcategory_id: '', subsubcategory_id: '' }))}
                       disabled={newItemSaving}
-                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50"
+                      className="w-full bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50"
                     >
                       <option value="">Category&hellip;</option>
                       {categories.map((c) => (
@@ -499,7 +499,7 @@ export default function AgentShopsPage() {
                           value={newItem.subcategory_id}
                           onChange={(e) => setNewItem((f) => ({ ...f, subcategory_id: e.target.value, subsubcategory_id: '' }))}
                           disabled={newItemSaving}
-                          className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50"
+                          className="w-full bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50"
                         >
                           <option value="">Subcategory&hellip;</option>
                           {selectedCat.subcategories!.map((s) => (
@@ -511,7 +511,7 @@ export default function AgentShopsPage() {
                             value={newItem.subsubcategory_id}
                             onChange={(e) => setNewItem((f) => ({ ...f, subsubcategory_id: e.target.value }))}
                             disabled={newItemSaving}
-                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50"
+                            className="w-full bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20 disabled:opacity-50"
                           >
                             <option value="">Sub-subcategory&hellip;</option>
                             {selectedSub.subsubcategories.map((ss) => (
@@ -534,7 +534,7 @@ export default function AgentShopsPage() {
                   >
                     {newItemImages.map((url, i) => (
                       <div key={i} className="relative w-14 h-14">
-                        <img src={url} alt="" className="w-14 h-14 rounded-xl object-cover border border-slate-200 dark:border-slate-700" />
+                        <img src={url} alt="" className="w-14 h-14 rounded-xl object-cover border border-slate-200 dark:border-neutral-800" />
                         <button
                           type="button"
                           onClick={() => setNewItemImages((imgs) => imgs.filter((_, idx) => idx !== i))}
@@ -545,7 +545,7 @@ export default function AgentShopsPage() {
                       </div>
                     ))}
                     <label className="cursor-pointer">
-                      <div className="w-14 h-14 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-[9px] text-center leading-tight px-1 text-slate-500 hover:border-sky-400 hover:text-sky-600">
+                      <div className="w-14 h-14 rounded-xl border border-dashed border-slate-300 dark:border-neutral-800 flex items-center justify-center text-[9px] text-center leading-tight px-1 text-slate-500 hover:border-sky-400 hover:text-sky-600">
                         {newItemUploading ? '...' : 'Add Photos'}
                       </div>
                       <input
@@ -593,11 +593,11 @@ export default function AgentShopsPage() {
               ) : (
                 <div className="space-y-2 max-h-56 overflow-y-auto">
                   {shopListings.map((item) => (
-                    <div key={item.id} className="flex items-center gap-3 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
+                    <div key={item.id} className="flex items-center gap-3 p-2 rounded-xl border border-slate-100 dark:border-neutral-800">
                       {item.images?.[0] ? (
                         <img src={item.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
                       ) : (
-                        <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-neutral-900 flex items-center justify-center shrink-0">
                           <ImageIcon className="w-4 h-4 text-slate-400" />
                         </div>
                       )}
@@ -619,7 +619,7 @@ export default function AgentShopsPage() {
             </div>
 
             <div className="flex gap-3 pt-2">
-              <button onClick={closeEdit} className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl text-xs font-bold hover:bg-slate-200 transition-colors">Cancel</button>
+              <button onClick={closeEdit} className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-900 text-slate-700 dark:text-neutral-100 rounded-2xl text-xs font-bold hover:bg-slate-200 transition-colors">Cancel</button>
               <button onClick={handleSave} disabled={saving} className="flex-1 py-2.5 bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white rounded-2xl text-xs font-extrabold shadow-md shadow-sky-500/20 transition-all">
                 {saving ? 'Saving…' : 'Save Changes'}
               </button>

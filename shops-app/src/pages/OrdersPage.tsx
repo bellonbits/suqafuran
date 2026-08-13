@@ -164,7 +164,7 @@ export default function OrdersPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center">
+            <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-sky-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                     <p className="text-gray-600 dark:text-gray-400">Loading orders...</p>
@@ -174,7 +174,7 @@ export default function OrdersPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-slate-950 py-8">
+        <div className="min-h-screen bg-gray-50 dark:bg-black py-8">
             <div className="max-w-4xl mx-auto px-4">
                 {/* Header */}
                 <div className="mb-8">
@@ -183,7 +183,7 @@ export default function OrdersPage() {
                 </div>
 
                 {orders.length === 0 ? (
-                    <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl">
+                    <div className="text-center py-16 bg-white dark:bg-neutral-950 rounded-2xl">
                         <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                         <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-2">No orders yet</h2>
                         <p className="text-gray-600 dark:text-gray-400 mb-6">Start shopping to see your orders here</p>
@@ -201,7 +201,7 @@ export default function OrdersPage() {
                                 key={order.id}
                                 whileHover={{ y: -2 }}
                                 onClick={() => setSelectedOrder(order)}
-                                className="bg-white dark:bg-slate-900 rounded-2xl p-6 cursor-pointer shadow-sm hover:shadow-md transition-all"
+                                className="bg-white dark:bg-neutral-950 rounded-2xl p-6 cursor-pointer shadow-sm hover:shadow-md transition-all"
                             >
                                 <div className="flex items-start justify-between mb-4">
                                     <div>
@@ -220,12 +220,12 @@ export default function OrdersPage() {
                                     </p>
                                     <div className="flex flex-wrap gap-2">
                                         {order.items.slice(0, 3).map((item, idx) => (
-                                            <span key={idx} className="text-xs bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded">
+                                            <span key={idx} className="text-xs bg-gray-100 dark:bg-neutral-900 px-2 py-1 rounded">
                                                 {item.title}
                                             </span>
                                         ))}
                                         {order.items.length > 3 && (
-                                            <span className="text-xs bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded">
+                                            <span className="text-xs bg-gray-100 dark:bg-neutral-900 px-2 py-1 rounded">
                                                 +{order.items.length - 3} more
                                             </span>
                                         )}
@@ -261,14 +261,14 @@ export default function OrdersPage() {
                                 initial={{ y: 100, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 exit={{ y: 100, opacity: 0 }}
-                                className="bg-white dark:bg-slate-900 rounded-3xl md:rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+                                className="bg-white dark:bg-neutral-950 rounded-3xl md:rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
                             >
                                 {/* Header */}
-                                <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 p-6 flex items-center justify-between">
+                                <div className="sticky top-0 bg-white dark:bg-neutral-950 border-b border-gray-200 dark:border-neutral-800 p-6 flex items-center justify-between">
                                     <h2 className="text-2xl font-black text-gray-900 dark:text-white">Order #{selectedOrder.id.slice(0, 8)}</h2>
                                     <button
                                         onClick={() => setSelectedOrder(null)}
-                                        className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full"
+                                        className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-full"
                                     >
                                         <X className="w-6 h-6" />
                                     </button>
@@ -321,7 +321,7 @@ export default function OrdersPage() {
                                         <h3 className="font-bold text-gray-900 dark:text-white">Items</h3>
                                         <div className="space-y-2">
                                             {selectedOrder.items.map((item, idx) => (
-                                                <div key={idx} className="flex justify-between items-center p-3 bg-gray-100 dark:bg-slate-800 rounded-lg">
+                                                <div key={idx} className="flex justify-between items-center p-3 bg-gray-100 dark:bg-neutral-900 rounded-lg">
                                                     <div>
                                                         <p className="font-semibold text-gray-900 dark:text-white">{item.title}</p>
                                                         <p className="text-sm text-gray-600 dark:text-gray-400">Qty: {item.quantity}</p>
@@ -333,7 +333,7 @@ export default function OrdersPage() {
                                     </div>
 
                                     {/* Pricing Breakdown */}
-                                    <div className="space-y-2 p-4 bg-gray-100 dark:bg-slate-800 rounded-lg">
+                                    <div className="space-y-2 p-4 bg-gray-100 dark:bg-neutral-900 rounded-lg">
                                         <div className="flex justify-between text-gray-900 dark:text-white">
                                             <span>Subtotal</span>
                                             <span>KSh {(selectedOrder.total_amount - selectedOrder.platform_fee).toLocaleString()}</span>
@@ -342,7 +342,7 @@ export default function OrdersPage() {
                                             <span>Platform Fee (10%)</span>
                                             <span>KSh {selectedOrder.platform_fee.toLocaleString()}</span>
                                         </div>
-                                        <div className="border-t border-gray-300 dark:border-slate-700 pt-2 flex justify-between font-bold text-gray-900 dark:text-white">
+                                        <div className="border-t border-gray-300 dark:border-neutral-800 pt-2 flex justify-between font-bold text-gray-900 dark:text-white">
                                             <span>Total</span>
                                             <span>KSh {selectedOrder.total_amount.toLocaleString()}</span>
                                         </div>
@@ -357,7 +357,7 @@ export default function OrdersPage() {
                                     )}
 
                                     {/* Action Buttons */}
-                                    <div className="space-y-2 pt-4 border-t border-gray-200 dark:border-slate-800">
+                                    <div className="space-y-2 pt-4 border-t border-gray-200 dark:border-neutral-800">
                                         {selectedOrder.status === 'delivered' && !showRating && (
                                             <button
                                                 onClick={() => setShowRating(true)}
@@ -454,7 +454,7 @@ export default function OrdersPage() {
                                                 placeholder="Share your experience (optional)..."
                                                 value={reviewText}
                                                 onChange={(e) => setReviewText(e.target.value)}
-                                                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+                                                className="w-full px-4 py-2 border border-gray-300 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white"
                                                 rows={3}
                                             />
 
@@ -488,7 +488,7 @@ export default function OrdersPage() {
                                             <select
                                                 value={issueType}
                                                 onChange={(e) => setIssueType(e.target.value as any)}
-                                                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+                                                className="w-full px-4 py-2 border border-gray-300 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white"
                                             >
                                                 <option value="item_mismatch">Item doesn't match listing</option>
                                                 <option value="damaged">Item is damaged</option>
@@ -499,7 +499,7 @@ export default function OrdersPage() {
                                                 placeholder="Describe the issue..."
                                                 value={issueDescription}
                                                 onChange={(e) => setIssueDescription(e.target.value)}
-                                                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+                                                className="w-full px-4 py-2 border border-gray-300 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white"
                                                 rows={3}
                                             />
                                             <button
@@ -520,7 +520,7 @@ export default function OrdersPage() {
                                                 placeholder="Reason for cancellation..."
                                                 value={cancellationReason}
                                                 onChange={(e) => setCancellationReason(e.target.value)}
-                                                className="w-full px-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+                                                className="w-full px-4 py-2 border border-gray-300 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white"
                                                 rows={3}
                                             />
                                             <div className="flex gap-2">
@@ -554,7 +554,7 @@ export default function OrdersPage() {
                                             <p className="text-lg font-bold text-gray-900 dark:text-white">
                                                 Amount to pay: KSh {selectedOrder.total_amount.toLocaleString()}
                                             </p>
-                                            <div className="bg-white dark:bg-slate-800 p-3 rounded text-sm text-gray-700 dark:text-gray-300 space-y-1">
+                                            <div className="bg-white dark:bg-neutral-900 p-3 rounded text-sm text-gray-700 dark:text-gray-300 space-y-1">
                                                 <p><strong>What to do:</strong></p>
                                                 <ol className="list-decimal list-inside space-y-1">
                                                     <li>Verify the delivery address with the rider</li>

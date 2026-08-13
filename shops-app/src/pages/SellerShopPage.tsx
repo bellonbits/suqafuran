@@ -411,7 +411,7 @@ export default function ShopPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Shop Management</h1>
-        <p className="text-gray-600 dark:text-slate-400">Manage your shop information, branding, policies, inventory, and orders</p>
+        <p className="text-gray-600 dark:text-neutral-300">Manage your shop information, branding, policies, inventory, and orders</p>
       </div>
 
       {profileError && (
@@ -423,28 +423,28 @@ export default function ShopPage() {
       {/* Quick Stats */}
       {!statsLoading && shopStats && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
-          <Link href="/seller-dashboard" className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800 hover:border-orange-500 transition-colors">
-            <p className="text-gray-600 dark:text-slate-400 text-xs font-semibold">Products</p>
+          <Link href="/seller-dashboard" className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800 hover:border-orange-500 transition-colors">
+            <p className="text-gray-600 dark:text-neutral-300 text-xs font-semibold">Products</p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{shopStats.total_products}</p>
           </Link>
-          <Link href="/seller-dashboard/analytics" className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800 hover:border-orange-500 transition-colors">
-            <p className="text-gray-600 dark:text-slate-400 text-xs font-semibold">Views</p>
+          <Link href="/seller-dashboard/analytics" className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800 hover:border-orange-500 transition-colors">
+            <p className="text-gray-600 dark:text-neutral-300 text-xs font-semibold">Views</p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{(shopStats.total_views || 0).toLocaleString()}</p>
           </Link>
-          <Link href="/seller-dashboard/orders" className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800 hover:border-orange-500 transition-colors">
-            <p className="text-gray-600 dark:text-slate-400 text-xs font-semibold">Orders</p>
+          <Link href="/seller-dashboard/orders" className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800 hover:border-orange-500 transition-colors">
+            <p className="text-gray-600 dark:text-neutral-300 text-xs font-semibold">Orders</p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{shopStats.total_orders}</p>
           </Link>
-          <Link href="/seller-dashboard/inventory" className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800 hover:border-yellow-500 transition-colors">
-            <p className="text-gray-600 dark:text-slate-400 text-xs font-semibold">Low Stock</p>
+          <Link href="/seller-dashboard/inventory" className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800 hover:border-yellow-500 transition-colors">
+            <p className="text-gray-600 dark:text-neutral-300 text-xs font-semibold">Low Stock</p>
             <p className="text-2xl font-bold text-yellow-600">{shopStats.low_stock_products}</p>
           </Link>
-          <Link href="/seller-dashboard/inventory" className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800 hover:border-red-500 transition-colors">
-            <p className="text-gray-600 dark:text-slate-400 text-xs font-semibold">Out of Stock</p>
+          <Link href="/seller-dashboard/inventory" className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800 hover:border-red-500 transition-colors">
+            <p className="text-gray-600 dark:text-neutral-300 text-xs font-semibold">Out of Stock</p>
             <p className="text-2xl font-bold text-red-600">{shopStats.out_of_stock}</p>
           </Link>
-          <Link href="/seller-dashboard" className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800 hover:border-green-500 transition-colors">
-            <p className="text-gray-600 dark:text-slate-400 text-xs font-semibold">Revenue</p>
+          <Link href="/seller-dashboard" className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800 hover:border-green-500 transition-colors">
+            <p className="text-gray-600 dark:text-neutral-300 text-xs font-semibold">Revenue</p>
             <p className="text-2xl font-bold text-green-600">KSh {(shopStats.revenue || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
           </Link>
         </div>
@@ -498,7 +498,7 @@ export default function ShopPage() {
       </AnimatePresence>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-gray-200 dark:border-slate-800 overflow-x-auto max-w-6xl">
+      <div className="flex gap-2 border-b border-gray-200 dark:border-neutral-800 overflow-x-auto max-w-6xl">
         {[
           { id: 'basic', label: 'Basic Info' },
           { id: 'branding', label: 'Branding' },
@@ -526,7 +526,7 @@ export default function ShopPage() {
               className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
                 activeTab === tab.id
                   ? 'text-orange-600 dark:text-orange-400 border-orange-600 dark:border-orange-400'
-                  : 'text-gray-600 dark:text-slate-400 border-transparent hover:text-gray-900 dark:hover:text-white'
+                  : 'text-gray-600 dark:text-neutral-300 border-transparent hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               {getTabIcon(tab.id)} {tab.label}
@@ -536,7 +536,7 @@ export default function ShopPage() {
       </div>
 
       {/* Tab Content */}
-      <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 p-6 max-w-6xl">
+      <div className="bg-white dark:bg-neutral-950 rounded-lg border border-gray-200 dark:border-neutral-800 p-6 max-w-6xl">
         {/* Basic Info Tab */}
         {activeTab === 'basic' && (
           <div className="space-y-4">
@@ -547,7 +547,7 @@ export default function ShopPage() {
                 type="text"
                 value={shopData.name}
                 onChange={(e) => setShopData({...shopData, name: e.target.value})}
-                className="w-full px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-950 text-gray-900 dark:text-white"
               />
             </div>
             <div>
@@ -556,7 +556,7 @@ export default function ShopPage() {
                 value={shopData.description}
                 onChange={(e) => setShopData({...shopData, description: e.target.value})}
                 maxLength={500}
-                className="w-full px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-950 text-gray-900 dark:text-white"
                 rows={4}
               />
               <p className="text-xs text-gray-500 mt-1">{shopData.description.length}/500</p>
@@ -568,7 +568,7 @@ export default function ShopPage() {
                   type="tel"
                   value={shopData.phone}
                   onChange={(e) => setShopData({...shopData, phone: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-2 border border-gray-200 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-950 text-gray-900 dark:text-white"
                 />
               </div>
               <div>
@@ -577,7 +577,7 @@ export default function ShopPage() {
                   type="email"
                   value={shopData.email}
                   onChange={(e) => setShopData({...shopData, email: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-2 border border-gray-200 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-950 text-gray-900 dark:text-white"
                 />
               </div>
             </div>
@@ -594,17 +594,17 @@ export default function ShopPage() {
               <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">Shop Logo</label>
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-lg p-6 cursor-pointer hover:border-orange-500 transition-colors">
+                  <label className="flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-neutral-800 rounded-lg p-6 cursor-pointer hover:border-orange-500 transition-colors">
                     <div className="text-center">
                       {logoUploading ? (
                         <>
                           <Loader className="w-8 h-8 animate-spin text-orange-600 mx-auto mb-2" />
-                          <p className="text-sm text-gray-600 dark:text-slate-400">Uploading...</p>
+                          <p className="text-sm text-gray-600 dark:text-neutral-300">Uploading...</p>
                         </>
                       ) : (
                         <>
                           <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                          <p className="text-sm font-medium text-gray-700 dark:text-slate-300">Click to upload</p>
+                          <p className="text-sm font-medium text-gray-700 dark:text-neutral-200">Click to upload</p>
                           <p className="text-xs text-gray-500">Max 2MB</p>
                         </>
                       )}
@@ -619,7 +619,7 @@ export default function ShopPage() {
                   </label>
                 </div>
                 {logoPreview && (
-                  <div className="relative w-32 h-32 rounded-lg overflow-hidden border border-gray-200 dark:border-slate-800">
+                  <div className="relative w-32 h-32 rounded-lg overflow-hidden border border-gray-200 dark:border-neutral-800">
                     <img src={logoPreview} alt="Logo preview" className="w-full h-full object-cover" />
                     <button
                       onClick={() => {
@@ -640,17 +640,17 @@ export default function ShopPage() {
               <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">Shop Banner</label>
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-lg p-6 cursor-pointer hover:border-orange-500 transition-colors">
+                  <label className="flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-neutral-800 rounded-lg p-6 cursor-pointer hover:border-orange-500 transition-colors">
                     <div className="text-center">
                       {bannerUploading ? (
                         <>
                           <Loader className="w-8 h-8 animate-spin text-orange-600 mx-auto mb-2" />
-                          <p className="text-sm text-gray-600 dark:text-slate-400">Uploading...</p>
+                          <p className="text-sm text-gray-600 dark:text-neutral-300">Uploading...</p>
                         </>
                       ) : (
                         <>
                           <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                          <p className="text-sm font-medium text-gray-700 dark:text-slate-300">Click to upload</p>
+                          <p className="text-sm font-medium text-gray-700 dark:text-neutral-200">Click to upload</p>
                           <p className="text-xs text-gray-500">Max 5MB, 1920x400px recommended</p>
                         </>
                       )}
@@ -665,7 +665,7 @@ export default function ShopPage() {
                   </label>
                 </div>
                 {bannerPreview && (
-                  <div className="relative w-48 h-32 rounded-lg overflow-hidden border border-gray-200 dark:border-slate-800">
+                  <div className="relative w-48 h-32 rounded-lg overflow-hidden border border-gray-200 dark:border-neutral-800">
                     <img src={bannerPreview} alt="Banner preview" className="w-full h-full object-cover" />
                     <button
                       onClick={() => {
@@ -693,7 +693,7 @@ export default function ShopPage() {
               <label className="block text-sm font-semibold text-gray-900 dark:text-white">Select Location on Map</label>
               <div 
                 ref={mapRef} 
-                className="w-full h-96 rounded-lg border border-gray-200 dark:border-slate-800 overflow-hidden"
+                className="w-full h-96 rounded-lg border border-gray-200 dark:border-neutral-800 overflow-hidden"
               />
               <button
                 onClick={getCurrentLocation}
@@ -713,9 +713,9 @@ export default function ShopPage() {
                 value={shopData.address}
                 onChange={(e) => setShopData({...shopData, address: e.target.value})}
                 placeholder="Type address or location name (Kenya)"
-                className="w-full px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-950 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
-              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Autocomplete suggestions will appear as you type</p>
+              <p className="text-xs text-gray-500 dark:text-neutral-300 mt-1">Autocomplete suggestions will appear as you type</p>
             </div>
 
             {/* City and Coordinates */}
@@ -727,7 +727,7 @@ export default function ShopPage() {
                   value={shopData.city}
                   onChange={(e) => setShopData({...shopData, city: e.target.value})}
                   placeholder="e.g., Nairobi, Kiambu"
-                  className="w-full px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-2 border border-gray-200 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-950 text-gray-900 dark:text-white"
                 />
               </div>
               <div>
@@ -738,7 +738,7 @@ export default function ShopPage() {
                   value={shopData.latitude}
                   onChange={(e) => setShopData({...shopData, latitude: parseFloat(e.target.value)})}
                   placeholder="Click on map or enter manually"
-                  className="w-full px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-2 border border-gray-200 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-950 text-gray-900 dark:text-white"
                 />
               </div>
               <div>
@@ -749,7 +749,7 @@ export default function ShopPage() {
                   value={shopData.longitude}
                   onChange={(e) => setShopData({...shopData, longitude: parseFloat(e.target.value)})}
                   placeholder="Click on map or enter manually"
-                  className="w-full px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-2 border border-gray-200 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-950 text-gray-900 dark:text-white"
                 />
               </div>
             </div>
@@ -790,7 +790,7 @@ export default function ShopPage() {
               {shopData.operating_hours?.map((hours, idx) => (
                 <div key={hours.day} className="flex gap-3 items-center">
                   <div className="w-24">
-                    <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{hours.day}</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-neutral-200">{hours.day}</label>
                   </div>
                   <label className="flex items-center gap-2">
                     <input
@@ -799,7 +799,7 @@ export default function ShopPage() {
                       onChange={(e) => handleOperatingHoursChange(idx, 'is_closed', e.target.checked)}
                       className="rounded"
                     />
-                    <span className="text-sm text-gray-600 dark:text-slate-400">Closed</span>
+                    <span className="text-sm text-gray-600 dark:text-neutral-300">Closed</span>
                   </label>
                   {!hours.is_closed && (
                     <div className="flex gap-2 ml-auto">
@@ -807,22 +807,22 @@ export default function ShopPage() {
                         type="time"
                         value={hours.open_time}
                         onChange={(e) => handleOperatingHoursChange(idx, 'open_time', e.target.value)}
-                        className="px-3 py-1 border border-gray-200 dark:border-slate-800 rounded bg-white dark:bg-slate-900 text-gray-900 dark:text-white text-sm"
+                        className="px-3 py-1 border border-gray-200 dark:border-neutral-800 rounded bg-white dark:bg-neutral-950 text-gray-900 dark:text-white text-sm"
                       />
                       <span className="text-gray-500">-</span>
                       <input
                         type="time"
                         value={hours.close_time}
                         onChange={(e) => handleOperatingHoursChange(idx, 'close_time', e.target.value)}
-                        className="px-3 py-1 border border-gray-200 dark:border-slate-800 rounded bg-white dark:bg-slate-900 text-gray-900 dark:text-white text-sm"
+                        className="px-3 py-1 border border-gray-200 dark:border-neutral-800 rounded bg-white dark:bg-neutral-950 text-gray-900 dark:text-white text-sm"
                       />
                     </div>
                   )}
                 </div>
               ))}
             </div>
-            <div className="mt-6 p-4 bg-gray-50 dark:bg-slate-800/50 rounded-lg">
-              <p className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-3">Quick Set</p>
+            <div className="mt-6 p-4 bg-gray-50 dark:bg-neutral-900/50 rounded-lg">
+              <p className="text-sm font-medium text-gray-700 dark:text-neutral-200 mb-3">Quick Set</p>
               <button
                 onClick={() => setHoursForMultipleDays([1, 2, 3, 4, 5], '09:00', '18:00')}
                 className="text-sm px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300"
@@ -840,22 +840,22 @@ export default function ShopPage() {
             <div className="relative">
               <button
                 onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                className="w-full px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white text-left flex justify-between items-center"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-950 text-gray-900 dark:text-white text-left flex justify-between items-center"
               >
                 Select categories
                 <ChevronDown className={`w-4 h-4 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`} />
               </button>
               {showCategoryDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg shadow-lg z-10">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg shadow-lg z-10">
                   {SHOP_CATEGORIES.map(cat => (
-                    <label key={cat.id} className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer">
+                    <label key={cat.id} className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 dark:hover:bg-neutral-900 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={selectedCategories.includes(cat.id)}
                         onChange={() => toggleCategory(cat.id)}
                         className="rounded"
                       />
-                      <span className="text-sm text-gray-700 dark:text-slate-300">{cat.name}</span>
+                      <span className="text-sm text-gray-700 dark:text-neutral-200">{cat.name}</span>
                     </label>
                   ))}
                 </div>
@@ -890,7 +890,7 @@ export default function ShopPage() {
                 value={shopData.return_policy}
                 onChange={(e) => setShopData({...shopData, return_policy: e.target.value})}
                 maxLength={1000}
-                className="w-full px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-950 text-gray-900 dark:text-white"
                 rows={5}
                 placeholder="Describe your return policy..."
               />
@@ -902,7 +902,7 @@ export default function ShopPage() {
                 value={shopData.delivery_policy}
                 onChange={(e) => setShopData({...shopData, delivery_policy: e.target.value})}
                 maxLength={1000}
-                className="w-full px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-950 text-gray-900 dark:text-white"
                 rows={5}
                 placeholder="Describe your delivery policy..."
               />

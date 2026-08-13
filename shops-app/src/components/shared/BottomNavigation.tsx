@@ -58,7 +58,7 @@ export const BottomNavigation: React.FC = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 sm:hidden z-40 pb-[env(safe-area-inset-bottom,0px)] bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-gray-200/70 dark:border-slate-800/70 shadow-[0_-4px_25px_rgba(0,0,0,0.08)]">
+    <nav className="fixed bottom-0 inset-x-0 sm:hidden z-40 pb-[env(safe-area-inset-bottom,0px)] bg-white/90 dark:bg-neutral-950/90 backdrop-blur-xl border-t border-gray-200/70 dark:border-neutral-800/70 shadow-[0_-4px_25px_rgba(0,0,0,0.08)]">
       <div className="max-w-md mx-auto px-2 py-2">
         <div className="flex justify-around items-center">
           {navItems.map((item) => {

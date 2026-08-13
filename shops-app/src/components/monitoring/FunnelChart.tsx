@@ -21,8 +21,8 @@ export const FunnelChart: React.FC<FunnelChartProps> = ({
 }) => {
   if (stages.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-        <p className="text-slate-500 dark:text-slate-400">No data available</p>
+      <div className="flex items-center justify-center h-64 bg-slate-50 dark:bg-neutral-950 rounded-lg border border-slate-200 dark:border-neutral-800">
+        <p className="text-slate-500 dark:text-neutral-300">No data available</p>
       </div>
     );
   }
@@ -42,7 +42,7 @@ export const FunnelChart: React.FC<FunnelChartProps> = ({
   });
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6">
+    <div className="bg-white dark:bg-neutral-950 rounded-lg border border-slate-200 dark:border-neutral-800 p-6">
       {title && (
         <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
           {title}
@@ -86,12 +86,12 @@ export const FunnelChart: React.FC<FunnelChartProps> = ({
 
       {/* Dropoff summary */}
       <div className="mt-6 space-y-2">
-        <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+        <h4 className="text-sm font-semibold text-slate-700 dark:text-neutral-200">
           Drop-off at Each Stage
         </h4>
         <div className="space-y-1">
           {dataWithDropoff.map((stage, index) => (
-            <div key={stage.name} className="flex justify-between text-xs text-slate-600 dark:text-slate-400">
+            <div key={stage.name} className="flex justify-between text-xs text-slate-600 dark:text-neutral-300">
               <span>
                 {stage.name} {index > 0 && `→ ${stage.dropoff}% loss`}
               </span>

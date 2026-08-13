@@ -195,7 +195,7 @@ export default function AdminSubscriptionsPage() {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Subscriptions</h1>
-          <p className="text-slate-600 dark:text-slate-300 mt-2">Monitor subscription metrics and seller plans</p>
+          <p className="text-slate-600 dark:text-neutral-200 mt-2">Monitor subscription metrics and seller plans</p>
         </div>
 
       {/* KPI Cards */}
@@ -268,7 +268,7 @@ export default function AdminSubscriptionsPage() {
             <Plus className="w-5 h-5 text-amber-700" />
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Manual Subscription Assignment</h2>
           </div>
-          <p className="text-sm text-slate-600 dark:text-slate-300">Apply subscription to seller when payment fails or for promotional grants</p>
+          <p className="text-sm text-slate-600 dark:text-neutral-200">Apply subscription to seller when payment fails or for promotional grants</p>
 
           <div className="grid md:grid-cols-3 gap-4">
             <div className="relative">
@@ -290,7 +290,7 @@ export default function AdminSubscriptionsPage() {
                     <button
                       key={shop.id}
                       onClick={() => handleSelectShop(shop.id, shop.business_name || shop.name)}
-                      className="w-full text-left px-3 py-2 hover:bg-amber-50 border-b border-slate-100 dark:border-slate-800 last:border-b-0 text-sm transition-colors"
+                      className="w-full text-left px-3 py-2 hover:bg-amber-50 border-b border-slate-100 dark:border-neutral-800 last:border-b-0 text-sm transition-colors"
                     >
                       <p className="font-medium text-slate-900 dark:text-white">{shop.business_name || shop.name}</p>
                       <p className="text-xs text-slate-400">{shop.full_name}</p>
@@ -361,7 +361,7 @@ export default function AdminSubscriptionsPage() {
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-800/40 border-b">
+              <thead className="bg-slate-50 dark:bg-neutral-900/40 border-b">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold">Shop Name</th>
                   <th className="px-4 py-3 text-left font-semibold">Plan</th>
@@ -374,11 +374,11 @@ export default function AdminSubscriptionsPage() {
               <tbody className="divide-y">
                 {filteredSubs.length > 0 ? (
                   filteredSubs.map(sub => (
-                    <tr key={sub.seller_id} className="hover:bg-slate-50 dark:bg-slate-800/40">
+                    <tr key={sub.seller_id} className="hover:bg-slate-50 dark:bg-neutral-900/40">
                       <td className="px-4 py-3 font-medium">{sub.shop_name}</td>
                       <td className="px-4 py-3">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          sub.plan_name === 'free' ? 'bg-slate-100 dark:bg-slate-800 text-gray-800' :
+                          sub.plan_name === 'free' ? 'bg-slate-100 dark:bg-neutral-900 text-gray-800' :
                           sub.plan_name === 'starter' ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-800' :
                           sub.plan_name === 'business' ? 'bg-purple-50 dark:bg-purple-950/30 text-purple-800' :
                           'bg-orange-50 dark:bg-orange-950/30 text-orange-800'
@@ -394,10 +394,10 @@ export default function AdminSubscriptionsPage() {
                           {sub.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                      <td className="px-4 py-3 text-slate-600 dark:text-neutral-200">
                         {new Date(sub.created_at).toLocaleDateString()}
                       </td>
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                      <td className="px-4 py-3 text-slate-600 dark:text-neutral-200">
                         {sub.renews_at ? new Date(sub.renews_at).toLocaleDateString() : '-'}
                       </td>
                     </tr>
@@ -413,7 +413,7 @@ export default function AdminSubscriptionsPage() {
             </table>
           </div>
 
-          <div className="text-sm text-slate-600 dark:text-slate-300 text-right">
+          <div className="text-sm text-slate-600 dark:text-neutral-200 text-right">
             Showing {filteredSubs.length} of {subscriptions.length} subscriptions
           </div>
         </div>
@@ -447,7 +447,7 @@ function StatCard({
     <Card className="p-6">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-slate-600 dark:text-slate-300">{title}</p>
+          <p className="text-sm text-slate-600 dark:text-neutral-200">{title}</p>
           <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">{value}</p>
           <p className="text-xs text-slate-400 mt-2">{change}</p>
         </div>
@@ -469,7 +469,7 @@ function TierBadge({
   color: string;
 }) {
   const colorClasses = {
-    gray: 'bg-slate-100 dark:bg-slate-800 text-gray-800',
+    gray: 'bg-slate-100 dark:bg-neutral-900 text-gray-800',
     blue: 'bg-blue-50 dark:bg-blue-950/30 text-blue-800',
     purple: 'bg-purple-50 dark:bg-purple-950/30 text-purple-800',
     orange: 'bg-orange-50 dark:bg-orange-950/30 text-orange-800',

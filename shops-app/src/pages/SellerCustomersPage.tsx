@@ -78,20 +78,20 @@ export default function CustomersPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Customers</h1>
-        <p className="text-gray-600 dark:text-slate-400">Manage and view customer information</p>
+        <p className="text-gray-600 dark:text-neutral-300">Manage and view customer information</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Total Customers</p>
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
+          <p className="text-gray-600 dark:text-neutral-300 text-sm mb-2">Total Customers</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.total_customers || 0}</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Repeat Customers</p>
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
+          <p className="text-gray-600 dark:text-neutral-300 text-sm mb-2">Repeat Customers</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.repeat_customers || 0}</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Avg Order Value</p>
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
+          <p className="text-gray-600 dark:text-neutral-300 text-sm mb-2">Avg Order Value</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">KSh {(stats?.avg_order_value || 0).toLocaleString()}</p>
         </div>
       </div>
@@ -104,19 +104,19 @@ export default function CustomersPage() {
             placeholder="Search customers..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-950 text-gray-900 dark:text-white"
           />
         </div>
-        <button className="px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 flex items-center gap-2">
+        <button className="px-4 py-2 border border-gray-200 dark:border-neutral-800 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-900 flex items-center gap-2">
           <Filter className="w-4 h-4" /> Filter
         </button>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 overflow-hidden">
+      <div className="bg-white dark:bg-neutral-950 rounded-lg border border-gray-200 dark:border-neutral-800 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-800">
+              <tr className="border-b border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900">
                 <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-white">Name</th>
                 <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-white">Email</th>
                 <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-white">Orders</th>
@@ -130,9 +130,9 @@ export default function CustomersPage() {
                 </tr>
               ) : (
                 customers.map((customer) => (
-                  <tr key={customer.id} className="border-b border-gray-200 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/50">
+                  <tr key={customer.id} className="border-b border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-900/50">
                     <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">{customer.name}</td>
-                    <td className="px-6 py-4 text-gray-600 dark:text-slate-400">{customer.email}</td>
+                    <td className="px-6 py-4 text-gray-600 dark:text-neutral-300">{customer.email}</td>
                     <td className="px-6 py-4 text-gray-900 dark:text-white">{customer.orders}</td>
                     <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">KSh {(customer.spent || 0).toLocaleString()}</td>
                   </tr>

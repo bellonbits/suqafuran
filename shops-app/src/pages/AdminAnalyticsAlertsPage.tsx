@@ -61,8 +61,8 @@ export default function AlertsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-800/40 dark:bg-slate-950">
-      <div className="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 dark:border-slate-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-neutral-900/40 dark:bg-black">
+      <div className="sticky top-0 z-40 bg-white dark:bg-neutral-950 border-b border-slate-200 dark:border-neutral-800 dark:border-neutral-800">
         <div className="px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <AlertTriangle className="w-6 h-6 text-red-600" />
@@ -71,7 +71,7 @@ export default function AlertsPage() {
           <button
             onClick={fetchData}
             disabled={loading}
-            className="p-2 rounded-lg hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+            className="p-2 rounded-lg hover:bg-slate-100 dark:bg-neutral-900 dark:hover:bg-neutral-900 transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -81,25 +81,25 @@ export default function AlertsPage() {
       <div className="px-6 py-8 max-w-7xl mx-auto space-y-8">
         {/* Alert Rules */}
         {alerts.length > 0 && (
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 dark:border-slate-800 overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 dark:border-slate-800 flex items-center gap-2">
+          <div className="bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800 dark:border-neutral-800 overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-neutral-800 dark:border-neutral-800 flex items-center gap-2">
               <Bell className="w-5 h-5 text-blue-600" />
               <h2 className="text-lg font-bold text-slate-900 dark:text-white dark:text-white">Active Alert Rules</h2>
-              <span className="ml-auto text-sm text-slate-400 dark:text-slate-400">{alerts.length} rules</span>
+              <span className="ml-auto text-sm text-slate-400 dark:text-neutral-300">{alerts.length} rules</span>
             </div>
 
-            <div className="divide-y divide-gray-200 dark:divide-slate-800">
+            <div className="divide-y divide-gray-200 dark:divide-neutral-800">
               {alerts.map((alert) => (
-                <div key={alert.id} className="p-6 hover:bg-slate-50 dark:bg-slate-800/40 dark:hover:bg-slate-800/50">
+                <div key={alert.id} className="p-6 hover:bg-slate-50 dark:bg-neutral-900/40 dark:hover:bg-neutral-900/50">
                   <div className="flex justify-between items-start gap-4">
                     <div className="flex-1">
                       <h3 className="font-bold text-slate-900 dark:text-white dark:text-white">{alert.alert_type}</h3>
-                      <p className="text-sm text-slate-600 dark:text-slate-300 dark:text-slate-400">{alert.description}</p>
+                      <p className="text-sm text-slate-600 dark:text-neutral-200 dark:text-neutral-300">{alert.description}</p>
                       <div className="mt-2 flex gap-3 text-xs font-semibold">
                         <span className="px-2 py-1 bg-blue-50 dark:bg-blue-950/30 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">
                           {alert.metric}
                         </span>
-                        <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 dark:bg-slate-800 text-slate-700 dark:text-slate-300 dark:text-slate-300 rounded">
+                        <span className="px-2 py-1 bg-slate-100 dark:bg-neutral-900 dark:bg-neutral-900 text-slate-700 dark:text-neutral-200 dark:text-neutral-200 rounded">
                           {alert.comparison} {alert.threshold}
                         </span>
                       </div>
@@ -124,8 +124,8 @@ export default function AlertsPage() {
         )}
 
         {/* Alert Events */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 dark:border-slate-800 overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 dark:border-slate-800 flex items-center justify-between">
+        <div className="bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800 dark:border-neutral-800 overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-200 dark:border-neutral-800 dark:border-neutral-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-red-600" />
               <h2 className="text-lg font-bold text-slate-900 dark:text-white dark:text-white">Alert Events</h2>
@@ -138,7 +138,7 @@ export default function AlertsPage() {
                   className={`px-3 py-1 rounded text-xs font-bold transition-colors ${
                     status === s
                       ? 'bg-orange-600 text-white'
-                      : 'bg-slate-100 dark:bg-slate-800 dark:bg-slate-800 text-slate-700 dark:text-slate-300 dark:text-slate-300'
+                      : 'bg-slate-100 dark:bg-neutral-900 dark:bg-neutral-900 text-slate-700 dark:text-neutral-200 dark:text-neutral-200'
                   }`}
                 >
                   {s.charAt(0).toUpperCase() + s.slice(1)} ({alertEvents.length})
@@ -147,14 +147,14 @@ export default function AlertsPage() {
             </div>
           </div>
 
-          <div className="divide-y divide-gray-200 dark:divide-slate-800">
+          <div className="divide-y divide-gray-200 dark:divide-neutral-800">
             {alertEvents.length === 0 ? (
-              <div className="p-8 text-center text-slate-400 dark:text-slate-400">
+              <div className="p-8 text-center text-slate-400 dark:text-neutral-300">
                 No {status} alerts
               </div>
             ) : (
               alertEvents.map((event) => (
-                <div key={event.id} className="p-6 hover:bg-slate-50 dark:bg-slate-800/40 dark:hover:bg-slate-800/50">
+                <div key={event.id} className="p-6 hover:bg-slate-50 dark:bg-neutral-900/40 dark:hover:bg-neutral-900/50">
                   <div className="flex justify-between items-start gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
@@ -171,11 +171,11 @@ export default function AlertsPage() {
                           {event.alert_type}
                         </h3>
                       </div>
-                      <p className="text-sm text-slate-600 dark:text-slate-300 dark:text-slate-400">{event.message}</p>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
+                      <p className="text-sm text-slate-600 dark:text-neutral-200 dark:text-neutral-300">{event.message}</p>
+                      <p className="text-xs text-slate-400 dark:text-neutral-400 mt-2">
                         Value: {event.metric_value.toLocaleString()} (threshold: {event.threshold})
                       </p>
-                      <p className="text-xs text-slate-400 dark:text-slate-600 mt-1">
+                      <p className="text-xs text-slate-400 dark:text-neutral-300 mt-1">
                         {new Date(event.created_at).toLocaleString()}
                       </p>
                     </div>

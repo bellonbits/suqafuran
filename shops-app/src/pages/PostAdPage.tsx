@@ -31,7 +31,7 @@ export default function PostAdPage() {
             <div className="flex items-center gap-4 mb-6 md:hidden">
                 <button
                     onClick={() => navigate(-1)}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg"
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-lg"
                 >
                     <ArrowLeft className="w-5 h-5" />
                 </button>

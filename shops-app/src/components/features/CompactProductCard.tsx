@@ -23,11 +23,11 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
     return (
         <motion.div
             whileHover={{ y: -2 }}
-            className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-100 dark:border-slate-700 p-3 flex gap-3 hover:shadow-md transition-all cursor-pointer"
+            className="bg-white dark:bg-neutral-900 rounded-lg shadow-sm border border-gray-100 dark:border-neutral-800 p-3 flex gap-3 hover:shadow-md transition-all cursor-pointer"
             onClick={() => onOpenModal?.()}
         >
             {/* Product Image */}
-            <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-gray-200 dark:bg-slate-700 flex-shrink-0">
+            <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-gray-200 dark:bg-neutral-800 flex-shrink-0">
                 {product.images?.[0] ? (
                     <img
                         src={product.images[0]}
@@ -56,7 +56,7 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
                     <h3 className="font-semibold text-gray-900 dark:text-white text-sm line-clamp-2 mb-1">
                         {product.title_en}
                     </h3>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 line-clamp-1">
+                    <p className="text-xs text-gray-500 dark:text-neutral-300 line-clamp-1">
                         {product.description || 'Premium quality product'}
                     </p>
                 </div>
@@ -64,7 +64,7 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
                 {/* Rating */}
                 <div className="flex items-center gap-1 mb-2">
                     <span className="text-sm"></span>
-                    <span className="text-xs text-gray-600 dark:text-slate-400 font-semibold">4.8</span>
+                    <span className="text-xs text-gray-600 dark:text-neutral-300 font-semibold">4.8</span>
                 </div>
 
                 {/* Price & Action */}
@@ -87,17 +87,17 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
                                 onClick={() => onQuantityChange(1)}
-                                className="bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 p-2 rounded-full transition-colors"
+                                className="bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 p-2 rounded-full transition-colors"
                             >
-                                <Plus className="w-4 h-4 text-gray-700 dark:text-slate-300" />
+                                <Plus className="w-4 h-4 text-gray-700 dark:text-neutral-200" />
                             </motion.button>
                         ) : (
-                            <div className="flex items-center gap-1 bg-gray-100 dark:bg-slate-700 rounded-full px-2 py-1">
+                            <div className="flex items-center gap-1 bg-gray-100 dark:bg-neutral-800 rounded-full px-2 py-1">
                                 <motion.button
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
                                     onClick={() => onQuantityChange(quantity - 1)}
-                                    className="text-gray-700 dark:text-slate-300 hover:text-red-600"
+                                    className="text-gray-700 dark:text-neutral-200 hover:text-red-600"
                                 >
                                     <Minus className="w-3 h-3" />
                                 </motion.button>
@@ -108,7 +108,7 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
                                     onClick={() => onQuantityChange(quantity + 1)}
-                                    className="text-gray-700 dark:text-slate-300 hover:text-[#5bc0e8]"
+                                    className="text-gray-700 dark:text-neutral-200 hover:text-[#5bc0e8]"
                                 >
                                     <Plus className="w-3 h-3" />
                                 </motion.button>

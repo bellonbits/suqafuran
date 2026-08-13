@@ -52,8 +52,8 @@ export default function SellerRankings() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-800/40 dark:bg-slate-950">
-      <div className="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 dark:border-slate-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-neutral-900/40 dark:bg-black">
+      <div className="sticky top-0 z-40 bg-white dark:bg-neutral-950 border-b border-slate-200 dark:border-neutral-800 dark:border-neutral-800">
         <div className="px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Trophy className="w-6 h-6 text-amber-500" />
@@ -62,7 +62,7 @@ export default function SellerRankings() {
           <button
             onClick={fetchRankings}
             disabled={loading}
-            className="p-2 rounded-lg hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+            className="p-2 rounded-lg hover:bg-slate-100 dark:bg-neutral-900 dark:hover:bg-neutral-900 transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -71,14 +71,14 @@ export default function SellerRankings() {
 
       <div className="px-6 py-8 max-w-7xl mx-auto space-y-8">
         {/* Controls */}
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-700 dark:border-slate-800 flex gap-4 flex-wrap items-center">
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-slate-200 dark:border-neutral-800 dark:border-neutral-800 flex gap-4 flex-wrap items-center">
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-slate-600 dark:text-slate-300 dark:text-slate-400" />
+            <Calendar className="w-4 h-4 text-slate-600 dark:text-neutral-200 dark:text-neutral-300" />
             <label className="text-sm font-semibold text-slate-900 dark:text-white dark:text-white">Period:</label>
             <select
               value={days}
               onChange={(e) => setDays(Number(e.target.value))}
-              className="rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-sm font-semibold text-slate-900 dark:text-white dark:text-white"
+              className="rounded border border-gray-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3 py-1 text-sm font-semibold text-slate-900 dark:text-white dark:text-white"
             >
               <option value={7}>7 days</option>
               <option value={30}>30 days</option>
@@ -87,12 +87,12 @@ export default function SellerRankings() {
           </div>
 
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-slate-600 dark:text-slate-300 dark:text-slate-400" />
+            <TrendingUp className="w-4 h-4 text-slate-600 dark:text-neutral-200 dark:text-neutral-300" />
             <label className="text-sm font-semibold text-slate-900 dark:text-white dark:text-white">Metric:</label>
             <select
               value={metric}
               onChange={(e) => setMetric(e.target.value as any)}
-              className="rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-sm font-semibold text-slate-900 dark:text-white dark:text-white"
+              className="rounded border border-gray-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3 py-1 text-sm font-semibold text-slate-900 dark:text-white dark:text-white"
             >
               <option value="views">Shop Views</option>
               <option value="chats">Chats Started</option>
@@ -101,7 +101,7 @@ export default function SellerRankings() {
           </div>
 
           {lastRefresh && (
-            <span className="text-xs text-slate-400 dark:text-slate-500 ml-auto">
+            <span className="text-xs text-slate-400 dark:text-neutral-400 ml-auto">
               Last: {lastRefresh.toLocaleTimeString()}
             </span>
           )}
@@ -113,7 +113,7 @@ export default function SellerRankings() {
             {rankings.map((seller) => (
               <div
                 key={seller.shop_id}
-                className="bg-white dark:bg-slate-900 rounded-lg p-6 border border-slate-200 dark:border-slate-700 dark:border-slate-800 hover:shadow-lg transition-shadow"
+                className="bg-white dark:bg-neutral-950 rounded-lg p-6 border border-slate-200 dark:border-neutral-800 dark:border-neutral-800 hover:shadow-lg transition-shadow"
               >
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4 flex-1">
@@ -124,7 +124,7 @@ export default function SellerRankings() {
                       <h3 className="text-lg font-bold text-slate-900 dark:text-white dark:text-white">
                         {seller.shop_name}
                       </h3>
-                      <p className="text-xs text-slate-400 dark:text-slate-400">Shop #{seller.shop_id}</p>
+                      <p className="text-xs text-slate-400 dark:text-neutral-300">Shop #{seller.shop_id}</p>
                     </div>
                   </div>
 
@@ -132,13 +132,13 @@ export default function SellerRankings() {
                     <p className="text-3xl font-black text-orange-600">
                       {seller.value.toLocaleString()}
                     </p>
-                    <p className="text-xs text-slate-400 dark:text-slate-400">
+                    <p className="text-xs text-slate-400 dark:text-neutral-300">
                       {getMetricLabel()}
                     </p>
                   </div>
 
                   {/* Progress bar */}
-                  <div className="w-32 h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div className="w-32 h-2 bg-gray-200 dark:bg-neutral-800 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-amber-400 to-orange-600"
                       style={{

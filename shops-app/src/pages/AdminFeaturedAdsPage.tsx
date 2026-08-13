@@ -86,7 +86,7 @@ export default function AdminFeaturedAdsPage() {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Featured Advertising</h1>
-          <p className="text-slate-600 dark:text-slate-300 mt-2">Track premium placement revenue and performance</p>
+          <p className="text-slate-600 dark:text-neutral-200 mt-2">Track premium placement revenue and performance</p>
         </div>
 
       {/* KPI Cards */}
@@ -177,7 +177,7 @@ export default function AdminFeaturedAdsPage() {
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-800/40 border-b">
+              <thead className="bg-slate-50 dark:bg-neutral-900/40 border-b">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold">Seller ID</th>
                   <th className="px-4 py-3 text-left font-semibold">Placement Type</th>
@@ -189,7 +189,7 @@ export default function AdminFeaturedAdsPage() {
               <tbody className="divide-y">
                 {filteredPlacements.length > 0 ? (
                   filteredPlacements.map((placement, i) => (
-                    <tr key={i} className="hover:bg-slate-50 dark:bg-slate-800/40">
+                    <tr key={i} className="hover:bg-slate-50 dark:bg-neutral-900/40">
                       <td className="px-4 py-3 font-medium">{placement.seller_id}</td>
                       <td className="px-4 py-3">
                         <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950/30 text-blue-800">
@@ -208,7 +208,7 @@ export default function AdminFeaturedAdsPage() {
                           {placement.days_remaining} days
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                      <td className="px-4 py-3 text-slate-600 dark:text-neutral-200">
                         {new Date(placement.ends_at).toLocaleDateString()}
                       </td>
                     </tr>
@@ -224,7 +224,7 @@ export default function AdminFeaturedAdsPage() {
             </table>
           </div>
 
-          <div className="text-sm text-slate-600 dark:text-slate-300 text-right">
+          <div className="text-sm text-slate-600 dark:text-neutral-200 text-right">
             Showing {filteredPlacements.length} active placements
           </div>
         </div>
@@ -258,7 +258,7 @@ function StatCard({
     <Card className="p-6">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-slate-600 dark:text-slate-300">{title}</p>
+          <p className="text-sm text-slate-600 dark:text-neutral-200">{title}</p>
           <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">{value}</p>
           <p className="text-xs text-slate-400 mt-2">{change}</p>
         </div>
@@ -292,7 +292,7 @@ function RevenueCard({
     <Card className={`p-4 ${colorClasses[color as keyof typeof colorClasses]}`}>
       <p className="text-sm font-semibold text-slate-900 dark:text-white">{name}</p>
       <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">{count}</p>
-      <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">KSh {(revenue / 1000).toFixed(0)}K revenue</p>
+      <p className="text-sm text-slate-600 dark:text-neutral-200 mt-1">KSh {(revenue / 1000).toFixed(0)}K revenue</p>
     </Card>
   );
 }

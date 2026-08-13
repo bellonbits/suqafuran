@@ -216,7 +216,7 @@ export default function AgentDashboardPage() {
       <div className="space-y-6 pb-12">
 
         {/* ── Agent Workspace Tab Bar ── */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-100 dark:border-slate-800 no-scrollbar">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-100 dark:border-neutral-800 no-scrollbar">
           {[
             { id: 'overview', label: 'Management View', icon: Activity },
             { id: 'marketing', label: 'Marketing Insights', icon: TrendingUp },
@@ -230,7 +230,7 @@ export default function AgentDashboardPage() {
               className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all whitespace-nowrap ${
                 activeMainTab === id
                   ? 'bg-sky-500 text-white shadow-md shadow-sky-500/20'
-                  : 'bg-white dark:bg-[#151D2A] text-slate-600 dark:text-slate-300 hover:bg-slate-50 border border-slate-100 dark:border-slate-800'
+                  : 'bg-white dark:bg-neutral-950 text-slate-600 dark:text-neutral-200 hover:bg-slate-50 border border-slate-100 dark:border-neutral-800'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -264,22 +264,22 @@ export default function AgentDashboardPage() {
                     placeholder="Search"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-white dark:bg-[#151D2A] border border-slate-200/80 dark:border-slate-800 rounded-2xl pl-10 pr-4 py-2 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 outline-none focus:ring-2 focus:ring-sky-500/20 shadow-sm w-44 md:w-56"
+                    className="bg-white dark:bg-neutral-950 border border-slate-200/80 dark:border-neutral-800 rounded-2xl pl-10 pr-4 py-2 text-xs text-slate-800 dark:text-neutral-50 placeholder-slate-400 outline-none focus:ring-2 focus:ring-sky-500/20 shadow-sm w-44 md:w-56"
                   />
                 </div>
 
-                <div className="flex items-center gap-2 bg-white dark:bg-[#151D2A] border border-slate-200/80 dark:border-slate-800 px-3.5 py-2 rounded-2xl text-xs font-bold text-slate-700 dark:text-slate-200 shadow-sm">
+                <div className="flex items-center gap-2 bg-white dark:bg-neutral-950 border border-slate-200/80 dark:border-neutral-800 px-3.5 py-2 rounded-2xl text-xs font-bold text-slate-700 dark:text-neutral-100 shadow-sm">
                   <Calendar className="w-3.5 h-3.5 text-slate-400" />
                   <span>{dateRange}</span>
                 </div>
 
-                <button className="p-2 bg-white dark:bg-[#151D2A] border border-slate-200/80 dark:border-slate-800 rounded-2xl text-slate-400 hover:text-slate-600 shadow-sm">
+                <button className="p-2 bg-white dark:bg-neutral-950 border border-slate-200/80 dark:border-neutral-800 rounded-2xl text-slate-400 hover:text-slate-600 shadow-sm">
                   <MoreVertical className="w-4 h-4" />
                 </button>
 
                 <Link
                   to="/shops"
-                  className="px-4 py-2 bg-white dark:bg-[#151D2A] border border-slate-200/80 dark:border-slate-800 text-xs font-extrabold text-slate-800 dark:text-slate-100 hover:bg-slate-50 rounded-2xl shadow-sm transition-colors"
+                  className="px-4 py-2 bg-white dark:bg-neutral-950 border border-slate-200/80 dark:border-neutral-800 text-xs font-extrabold text-slate-800 dark:text-neutral-50 hover:bg-slate-50 rounded-2xl shadow-sm transition-colors"
                 >
                   View Shop
                 </Link>
@@ -288,7 +288,7 @@ export default function AgentDashboardPage() {
 
             {/* Top 4 Metric Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+              <div className="bg-white dark:bg-neutral-950 rounded-3xl p-6 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Cost</p>
                 <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-2">
                   Ksh {(stats.total_cost / 1000).toFixed(1)}k
@@ -296,7 +296,7 @@ export default function AgentDashboardPage() {
                 <p className="text-[11px] text-slate-400 mt-2 font-medium">New cost last 365 days</p>
               </div>
 
-              <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+              <div className="bg-white dark:bg-neutral-950 rounded-3xl p-6 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Order</p>
                 <div className="flex items-center gap-2 mt-2">
                   <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -307,7 +307,7 @@ export default function AgentDashboardPage() {
                 <p className="text-[11px] text-slate-400 mt-2 font-medium">Total order last 365 days</p>
               </div>
 
-              <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+              <div className="bg-white dark:bg-neutral-950 rounded-3xl p-6 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Completed</p>
                 <div className="flex items-center gap-2 mt-2">
                   <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -318,7 +318,7 @@ export default function AgentDashboardPage() {
                 <p className="text-[11px] text-slate-400 mt-2 font-medium">Completed order last 365 days</p>
               </div>
 
-              <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+              <div className="bg-white dark:bg-neutral-950 rounded-3xl p-6 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Canceld</p>
                 <div className="flex items-center gap-2 mt-2">
                   <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -335,7 +335,7 @@ export default function AgentDashboardPage() {
 
               {/* Left Column (Customer Information & Activity) */}
               <div className="lg:col-span-5 space-y-6">
-                <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+                <div className="bg-white dark:bg-neutral-950 rounded-3xl p-6 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
                   <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mb-5">
                     Customer Information
                   </h3>
@@ -355,27 +355,27 @@ export default function AgentDashboardPage() {
 
                     <div>
                       <p className="text-slate-400 font-semibold text-[11px]">Email</p>
-                      <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">{customer.email}</p>
+                      <p className="font-bold text-slate-800 dark:text-neutral-100 mt-0.5">{customer.email}</p>
                     </div>
 
                     <div>
                       <p className="text-slate-400 font-semibold text-[11px]">Phone</p>
-                      <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">{customer.phone}</p>
+                      <p className="font-bold text-slate-800 dark:text-neutral-100 mt-0.5">{customer.phone}</p>
                     </div>
 
                     <div>
                       <p className="text-slate-400 font-semibold text-[11px]">Shipping address</p>
-                      <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5 leading-relaxed">{customer.shipping_address}</p>
+                      <p className="font-bold text-slate-800 dark:text-neutral-100 mt-0.5 leading-relaxed">{customer.shipping_address}</p>
                     </div>
 
                     <div>
                       <p className="text-slate-400 font-semibold text-[11px]">Billing address</p>
-                      <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">{customer.billing_address}</p>
+                      <p className="font-bold text-slate-800 dark:text-neutral-100 mt-0.5">{customer.billing_address}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] space-y-4">
+                <div className="bg-white dark:bg-neutral-950 rounded-3xl p-6 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Recent Activity</h3>
                     <button className="text-slate-400 hover:text-slate-600">
@@ -384,7 +384,7 @@ export default function AgentDashboardPage() {
                   </div>
 
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40">
+                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-neutral-900/40">
                       <div className="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 flex items-center justify-center flex-shrink-0">
                         <MessageSquare className="w-4 h-4" />
                       </div>
@@ -394,7 +394,7 @@ export default function AgentDashboardPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40">
+                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-neutral-900/40">
                       <div className="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 flex items-center justify-center flex-shrink-0">
                         <Star className="w-4 h-4 fill-sky-600 text-sky-600" />
                       </div>
@@ -406,7 +406,7 @@ export default function AgentDashboardPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 pt-2">
-                    <button className="py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-2xl text-xs font-extrabold transition-colors">
+                    <button className="py-2.5 bg-slate-100 dark:bg-neutral-900 hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-800 dark:text-neutral-50 rounded-2xl text-xs font-extrabold transition-colors">
                       Call
                     </button>
                     <button className="py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-2xl text-xs font-extrabold shadow-md shadow-sky-500/20 transition-all active:scale-95">
@@ -417,13 +417,13 @@ export default function AgentDashboardPage() {
               </div>
 
               {/* Right Column (Orders Table with Tabs) */}
-              <div className="lg:col-span-7 bg-white dark:bg-[#151D2A] rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between">
+              <div className="lg:col-span-7 bg-white dark:bg-neutral-950 rounded-3xl p-6 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between">
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                     <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Orders</h3>
                     
                     <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
-                      <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/40 p-1 rounded-2xl border border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-neutral-900/40 p-1 rounded-2xl border border-slate-100 dark:border-neutral-800">
                         {(['All Orders', 'Proccesing', 'Completed', 'Canceld'] as const).map((tab) => (
                           <button
                             key={tab}
@@ -439,7 +439,7 @@ export default function AgentDashboardPage() {
                         ))}
                       </div>
 
-                      <button className="text-xs font-bold text-slate-400 hover:text-slate-600 px-2 py-1 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                      <button className="text-xs font-bold text-slate-400 hover:text-slate-600 px-2 py-1 bg-slate-50 dark:bg-neutral-900 rounded-xl">
                         View all
                       </button>
                     </div>
@@ -448,7 +448,7 @@ export default function AgentDashboardPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs">
                       <thead>
-                        <tr className="border-b border-slate-100 dark:border-slate-800 text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
+                        <tr className="border-b border-slate-100 dark:border-neutral-800 text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
                           <th className="py-3 px-3">ID</th>
                           <th className="py-3 px-3">Product name</th>
                           <th className="py-3 px-3">Date</th>
@@ -457,9 +457,9 @@ export default function AgentDashboardPage() {
                           <th className="py-3 px-3 text-right">Price</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-50 dark:divide-slate-800/40">
+                      <tbody className="divide-y divide-slate-50 dark:divide-neutral-800/40">
                         {filteredOrders.map((row) => (
-                          <tr key={row.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors">
+                          <tr key={row.id} className="hover:bg-slate-50/60 dark:hover:bg-neutral-900/30 transition-colors">
                             <td className="py-3.5 px-3 font-mono font-bold text-slate-400">
                               {row.order_code}
                             </td>
@@ -485,7 +485,7 @@ export default function AgentDashboardPage() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-slate-100 dark:border-slate-800 mt-6 flex items-center justify-between text-xs text-slate-400">
+                <div className="pt-4 border-t border-slate-100 dark:border-neutral-800 mt-6 flex items-center justify-between text-xs text-slate-400">
                   <span>Showing {filteredOrders.length} of {orders.length} orders</span>
                   <button onClick={() => loadAgentData(true)} className="hover:text-sky-600 font-bold flex items-center gap-1">
                     <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-sky-500' : ''}`} /> Refresh
@@ -509,7 +509,7 @@ export default function AgentDashboardPage() {
               ].map((m, idx) => {
                 const Icon = m.icon;
                 return (
-                  <div key={idx} className="bg-white dark:bg-[#151D2A] rounded-3xl p-5 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex items-center gap-4">
+                  <div key={idx} className="bg-white dark:bg-neutral-950 rounded-3xl p-5 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex items-center gap-4">
                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${m.color}`}>
                       <Icon className="w-6 h-6" />
                     </div>
@@ -526,7 +526,7 @@ export default function AgentDashboardPage() {
 
         {/* ── REGISTERED SIGNUPS TAB ── */}
         {activeMainTab === 'signups' && (
-          <div className="bg-white dark:bg-[#151D2A] rounded-3xl border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-6 space-y-4">
+          <div className="bg-white dark:bg-neutral-950 rounded-3xl border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Registered Signups Directory</h3>
               <div className="relative w-64">
@@ -536,7 +536,7 @@ export default function AgentDashboardPage() {
                   placeholder="Search users..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-xs outline-none"
+                  className="w-full bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-xl pl-9 pr-3 py-1.5 text-xs outline-none"
                 />
               </div>
             </div>
@@ -544,14 +544,14 @@ export default function AgentDashboardPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-slate-100 dark:border-slate-800 text-[11px] font-extrabold text-slate-400 uppercase">
+                  <tr className="border-b border-slate-100 dark:border-neutral-800 text-[11px] font-extrabold text-slate-400 uppercase">
                     <th className="py-3 px-4">User Details</th>
                     <th className="py-3 px-4">Email</th>
                     <th className="py-3 px-4">Phone</th>
                     <th className="py-3 px-4">Role</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50 dark:divide-slate-800/40">
+                <tbody className="divide-y divide-slate-50 dark:divide-neutral-800/40">
                   {signups.length > 0 ? (
                     signups.map((u, i) => (
                       <tr key={i} className="hover:bg-slate-50/60 transition-colors">
@@ -574,9 +574,9 @@ export default function AgentDashboardPage() {
 
         {/* ── VERIFICATIONS TAB ── */}
         {activeMainTab === 'verifications' && (
-          <div className="bg-white dark:bg-[#151D2A] rounded-3xl border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-6 space-y-4">
+          <div className="bg-white dark:bg-neutral-950 rounded-3xl border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] p-6 space-y-4">
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Seller ID Verifications Queue</h3>
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="divide-y divide-slate-100 dark:divide-neutral-800">
               {verifications.length > 0 ? (
                 verifications.map((v) => (
                   <div key={v.id} className="py-4 flex items-center justify-between gap-4">

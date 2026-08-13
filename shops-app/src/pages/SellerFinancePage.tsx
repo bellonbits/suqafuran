@@ -53,34 +53,34 @@ export default function FinancePage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Financial Dashboard</h1>
-        <p className="text-gray-600 dark:text-slate-400">Monitor your earnings and payouts</p>
+        <p className="text-gray-600 dark:text-neutral-300">Monitor your earnings and payouts</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-gray-600 dark:text-slate-400 text-sm">Gross Revenue</p>
+            <p className="text-gray-600 dark:text-neutral-300 text-sm">Gross Revenue</p>
             <TrendingUp className="w-4 h-4 text-green-600" />
           </div>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">KSh {(stats?.gross_revenue || 0).toLocaleString()}</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-gray-600 dark:text-slate-400 text-sm">Marketplace Fees</p>
+            <p className="text-gray-600 dark:text-neutral-300 text-sm">Marketplace Fees</p>
             <TrendingDown className="w-4 h-4 text-red-600" />
           </div>
           <p className="text-2xl font-bold text-red-600">KSh {(stats?.marketplace_fees || 0).toLocaleString()}</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-gray-600 dark:text-slate-400 text-sm">Refunds</p>
+            <p className="text-gray-600 dark:text-neutral-300 text-sm">Refunds</p>
             <TrendingDown className="w-4 h-4 text-red-600" />
           </div>
           <p className="text-2xl font-bold text-red-600">KSh {(stats?.refunds || 0).toLocaleString()}</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-gray-600 dark:text-slate-400 text-sm">Net Earnings</p>
+            <p className="text-gray-600 dark:text-neutral-300 text-sm">Net Earnings</p>
             <TrendingUp className="w-4 h-4 text-green-600" />
           </div>
           <p className="text-2xl font-bold text-green-600">KSh {(stats?.net_earnings || 0).toLocaleString()}</p>
@@ -88,13 +88,13 @@ export default function FinancePage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Pending Payouts</p>
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
+          <p className="text-gray-600 dark:text-neutral-300 text-sm mb-2">Pending Payouts</p>
           <p className="text-3xl font-bold text-orange-600">KSh {(stats?.pending_payouts || 0).toLocaleString()}</p>
           <p className="text-xs text-gray-500 mt-2">Next payout: Coming soon</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Completed Payouts</p>
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
+          <p className="text-gray-600 dark:text-neutral-300 text-sm mb-2">Completed Payouts</p>
           <p className="text-3xl font-bold text-green-600">KSh {(stats?.completed_payouts || 0).toLocaleString()}</p>
           <p className="text-xs text-gray-500 mt-2">Last payout: Recent</p>
         </div>

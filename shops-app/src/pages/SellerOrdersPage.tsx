@@ -81,24 +81,24 @@ export default function OrdersPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Orders</h1>
-        <p className="text-gray-600 dark:text-slate-400">Manage customer orders</p>
+        <p className="text-gray-600 dark:text-neutral-300">Manage customer orders</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Total Orders</p>
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
+          <p className="text-gray-600 dark:text-neutral-300 text-sm mb-2">Total Orders</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{statValues.total_orders}</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Pending</p>
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
+          <p className="text-gray-600 dark:text-neutral-300 text-sm mb-2">Pending</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{statValues.pending}</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Processing</p>
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
+          <p className="text-gray-600 dark:text-neutral-300 text-sm mb-2">Processing</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{statValues.processing}</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Delivered</p>
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
+          <p className="text-gray-600 dark:text-neutral-300 text-sm mb-2">Delivered</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{statValues.delivered}</p>
         </div>
       </div>
@@ -111,19 +111,19 @@ export default function OrdersPage() {
             placeholder="Search orders..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-950 text-gray-900 dark:text-white"
           />
         </div>
-        <button className="px-4 py-2 border border-gray-200 dark:border-slate-800 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 flex items-center gap-2">
+        <button className="px-4 py-2 border border-gray-200 dark:border-neutral-800 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-900 flex items-center gap-2">
           <Filter className="w-4 h-4" /> Filter
         </button>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 overflow-hidden">
+      <div className="bg-white dark:bg-neutral-950 rounded-lg border border-gray-200 dark:border-neutral-800 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-800">
+              <tr className="border-b border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900">
                 <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-white">Order ID</th>
                 <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-white">Customer</th>
                 <th className="px-6 py-4 text-left font-semibold text-gray-900 dark:text-white">Items</th>
@@ -140,7 +140,7 @@ export default function OrdersPage() {
                 </tr>
               ) : (
                 orders.map((order) => (
-                  <tr key={order.id} className="border-b border-gray-200 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/50">
+                  <tr key={order.id} className="border-b border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-900/50">
                     <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">{order.id}</td>
                     <td className="px-6 py-4 text-gray-900 dark:text-white">{order.customer_name || order.customer?.full_name || order.buyer_name || 'Guest Customer'}</td>
                     <td className="px-6 py-4 text-gray-900 dark:text-white">
@@ -149,7 +149,7 @@ export default function OrdersPage() {
                         : order.items_count || 0}
                     </td>
                     <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">KSh {(order.total_amount || 0).toLocaleString()}</td>
-                    <td className="px-6 py-4 text-gray-600 dark:text-slate-400">{new Date(order.created_at).toLocaleDateString() || '-'}</td>
+                    <td className="px-6 py-4 text-gray-600 dark:text-neutral-300">{new Date(order.created_at).toLocaleDateString() || '-'}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
                         order.status === 'delivered'

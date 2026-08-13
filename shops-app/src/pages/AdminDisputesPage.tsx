@@ -74,7 +74,7 @@ const DisputesPage = () => {
       <div className="p-6">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-slate-400 font-semibold">Total Disputes</p>
@@ -84,7 +84,7 @@ const DisputesPage = () => {
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-slate-400 font-semibold">Open</p>
@@ -94,7 +94,7 @@ const DisputesPage = () => {
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-slate-400 font-semibold">Resolved</p>
@@ -104,7 +104,7 @@ const DisputesPage = () => {
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-slate-400 font-semibold">Rejected</p>
@@ -116,8 +116,8 @@ const DisputesPage = () => {
         </div>
 
         {/* Table */}
-        <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
-          <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+        <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl overflow-hidden">
+          <div className="p-6 border-b border-slate-200 dark:border-neutral-800">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
@@ -125,14 +125,14 @@ const DisputesPage = () => {
                 placeholder="Search disputes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#6cd4ff]"
+                className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-neutral-800 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#6cd4ff]"
               />
             </div>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-700">
+              <thead className="bg-slate-50 dark:bg-neutral-900/40 border-b border-slate-200 dark:border-neutral-800">
                 <tr>
                   <th className="px-6 py-4 text-left text-sm font-bold text-slate-900 dark:text-white">ID</th>
                   <th className="px-6 py-4 text-left text-sm font-bold text-slate-900 dark:text-white">Buyer</th>
@@ -151,11 +151,11 @@ const DisputesPage = () => {
                   </tr>
                 ) : (
                   filteredDisputes.map((dispute) => (
-                    <tr key={dispute.id} className="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-800/40">
+                    <tr key={dispute.id} className="border-b border-slate-200 dark:border-neutral-800 hover:bg-slate-50 dark:bg-neutral-900/40">
                       <td className="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white">#{dispute.id}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{dispute.buyer_name}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{dispute.seller_name}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{dispute.reason}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-neutral-200">{dispute.buyer_name}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-neutral-200">{dispute.seller_name}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-neutral-200">{dispute.reason}</td>
                       <td className="px-6 py-4 text-sm">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                           dispute.status === 'open' ? 'bg-yellow-100 text-yellow-700' :
@@ -165,7 +165,7 @@ const DisputesPage = () => {
                           {dispute.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-neutral-200">
                         {new Date(dispute.created_at).toLocaleDateString()}
                       </td>
                     </tr>

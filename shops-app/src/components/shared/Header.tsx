@@ -114,7 +114,7 @@ export const Header: React.FC = () => {
         <>
             <header
                 style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
-                className={`fixed top-0 inset-x-0 z-50 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-gray-200/60 dark:border-slate-800/60 transition-all duration-200 ${scrolled ? 'shadow-md shadow-slate-900/5 dark:shadow-black/20' : 'shadow-sm'}`}
+                className={`fixed top-0 inset-x-0 z-50 w-full bg-white/95 dark:bg-neutral-950/95 backdrop-blur-xl border-b border-gray-200/60 dark:border-neutral-800/60 transition-all duration-200 ${scrolled ? 'shadow-md shadow-slate-900/5 dark:shadow-black/20' : 'shadow-sm'}`}
             >
                 <div className="max-w-[1440px] mx-auto px-4 md:px-8 h-12 md:h-16 flex items-center justify-between">
 
@@ -127,10 +127,10 @@ export const Header: React.FC = () => {
                         {/* Location Selector - Compact Pill - Visible on all screens */}
                         <button
                             onClick={() => setIsLocationModalOpen(true)}
-                            className="flex items-center gap-2 px-2 md:px-3 py-2 rounded-full bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors border border-gray-200 dark:border-slate-700"
+                            className="flex items-center gap-2 px-2 md:px-3 py-2 rounded-full bg-gray-50 dark:bg-neutral-900 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors border border-gray-200 dark:border-neutral-800"
                         >
                             <MapPin className="w-4 h-4 text-orange-600 dark:text-orange-500 shrink-0" />
-                            <span className="text-xs md:text-xs font-medium text-gray-700 dark:text-slate-300 truncate max-w-[100px] md:max-w-[150px]">
+                            <span className="text-xs md:text-xs font-medium text-gray-700 dark:text-neutral-200 truncate max-w-[100px] md:max-w-[150px]">
                                 {city || 'Location'}
                             </span>
                         </button>
@@ -148,7 +148,7 @@ export const Header: React.FC = () => {
                                 placeholder="Search products, shops, services..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full h-12 pl-12 pr-4 rounded-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white text-sm font-medium placeholder:text-gray-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                className="w-full h-12 pl-12 pr-4 rounded-full bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-white text-sm font-medium placeholder:text-gray-500 dark:placeholder:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                             />
                         </div>
                     </form>
@@ -159,12 +159,12 @@ export const Header: React.FC = () => {
                         {/* Dark Mode - Icon Only */}
                         <button
                             onClick={toggleDarkMode}
-                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors flex"
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors flex"
                             aria-label="Toggle dark mode"
                             title="Toggle dark mode"
                         >
                             {darkMode ? (
-                                <Sun className="w-5 h-5 text-gray-600 dark:text-slate-400" />
+                                <Sun className="w-5 h-5 text-gray-600 dark:text-neutral-300" />
                             ) : (
                                 <Moon className="w-5 h-5 text-gray-600" />
                             )}
@@ -178,20 +178,20 @@ export const Header: React.FC = () => {
                         {/* Messages - Icon Only */}
                         <button
                             onClick={() => router.push('/messages')}
-                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors relative hidden lg:flex"
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors relative hidden lg:flex"
                             title="Messages"
                         >
-                            <MessageSquare className="w-5 h-5 text-gray-600 dark:text-slate-400" />
+                            <MessageSquare className="w-5 h-5 text-gray-600 dark:text-neutral-300" />
                             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full"></span>
                         </button>
 
                         {/* Cart - Icon Only with Badge */}
                         <button
                             onClick={() => router.push('/checkout')}
-                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors relative hidden sm:flex"
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors relative hidden sm:flex"
                             title="Cart"
                         >
-                            <ShoppingCart className="w-5 h-5 text-gray-600 dark:text-slate-400" />
+                            <ShoppingCart className="w-5 h-5 text-gray-600 dark:text-neutral-300" />
                             {cartCount > 0 && (
                                 <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-orange-600 text-white rounded-full">
                                     {cartCount}
@@ -203,7 +203,7 @@ export const Header: React.FC = () => {
                         {isVerifiedSeller ? (
                             <button
                                 onClick={() => router.push('/seller-dashboard/products')}
-                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors border border-orange-600 dark:border-orange-500 flex items-center justify-center hidden sm:flex"
+                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors border border-orange-600 dark:border-orange-500 flex items-center justify-center hidden sm:flex"
                                 title="Seller dashboard"
                             >
                                 <Plus className="w-5 h-5 text-orange-600 dark:text-orange-500" />
@@ -211,7 +211,7 @@ export const Header: React.FC = () => {
                         ) : (
                             <button
                                 onClick={() => router.push('/seller-dashboard')}
-                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors border border-orange-600 dark:border-orange-500 flex items-center justify-center hidden sm:flex"
+                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors border border-orange-600 dark:border-orange-500 flex items-center justify-center hidden sm:flex"
                                 title="Start selling"
                             >
                                 <Store className="w-5 h-5 text-orange-600 dark:text-orange-500" />
@@ -223,7 +223,7 @@ export const Header: React.FC = () => {
                             <div className="relative hidden sm:block">
                                 <button
                                     onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                                    className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center"
+                                    className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors flex items-center justify-center"
                                     title="Profile menu"
                                 >
                                     {resolveMediaUrl((user as any).avatar_url) ? (
@@ -247,10 +247,10 @@ export const Header: React.FC = () => {
                                 </button>
 
                                 {profileMenuOpen && (
-                                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-gray-200 dark:border-slate-800 z-50">
-                                        <div className="p-3 border-b border-gray-100 dark:border-slate-800">
+                                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-neutral-950 rounded-lg shadow-lg border border-gray-200 dark:border-neutral-800 z-50">
+                                        <div className="p-3 border-b border-gray-100 dark:border-neutral-800">
                                             <p className="text-sm font-semibold text-gray-900 dark:text-white">{user.full_name}</p>
-                                            <p className="text-xs text-gray-500 dark:text-slate-400">{(user as any).phone || user.email}</p>
+                                            <p className="text-xs text-gray-500 dark:text-neutral-300">{(user as any).phone || user.email}</p>
                                         </div>
                                         <div className="p-2 space-y-1">
                                             <button
@@ -258,7 +258,7 @@ export const Header: React.FC = () => {
                                                     router.push('/account');
                                                     setProfileMenuOpen(false);
                                                 }}
-                                                className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded"
+                                                className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded"
                                             >
                                                 Profile
                                             </button>
@@ -269,7 +269,7 @@ export const Header: React.FC = () => {
                                                         router.push('/admin-dashboard');
                                                         setProfileMenuOpen(false);
                                                     }}
-                                                    className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded flex items-center gap-2"
+                                                    className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded flex items-center gap-2"
                                                 >
                                                     <Shield className="w-4 h-4" />
                                                     Admin Dashboard
@@ -282,7 +282,7 @@ export const Header: React.FC = () => {
                                                         router.push('/agent-dashboard');
                                                         setProfileMenuOpen(false);
                                                     }}
-                                                    className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded flex items-center gap-2"
+                                                    className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded flex items-center gap-2"
                                                 >
                                                     <LayoutDashboard className="w-4 h-4" />
                                                     Agent Dashboard
@@ -296,7 +296,7 @@ export const Header: React.FC = () => {
                                                             router.push('/seller-profile');
                                                             setProfileMenuOpen(false);
                                                         }}
-                                                        className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded flex items-center gap-2"
+                                                        className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded flex items-center gap-2"
                                                     >
                                                         <User className="w-4 h-4" />
                                                         Seller Profile
@@ -306,7 +306,7 @@ export const Header: React.FC = () => {
                                                             router.push('/seller-dashboard');
                                                             setProfileMenuOpen(false);
                                                         }}
-                                                        className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded flex items-center gap-2"
+                                                        className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded flex items-center gap-2"
                                                     >
                                                         <Store className="w-4 h-4" />
                                                         Seller Dashboard
@@ -348,7 +348,7 @@ export const Header: React.FC = () => {
                         {/* Mobile Menu */}
                         <button
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                            className="sm:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                            className="sm:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors"
                         >
                             {isMobileMenuOpen ? (
                                 <X className="w-5 h-5" />
@@ -375,12 +375,12 @@ export const Header: React.FC = () => {
                         onClick={() => setIsMobileMenuOpen(false)}
                     />
                     <div
-                        className="md:hidden fixed inset-x-0 z-40 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 px-4 py-4 space-y-3 max-h-[70vh] overflow-y-auto"
+                        className="md:hidden fixed inset-x-0 z-40 bg-white dark:bg-neutral-950 border-b border-gray-100 dark:border-neutral-800 px-4 py-4 space-y-3 max-h-[70vh] overflow-y-auto"
                         style={{ top: 'calc(env(safe-area-inset-top, 0px) + 3rem)' }}
                     >
                     <button
                         onClick={() => setIsLocationModalOpen(true)}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 dark:bg-neutral-900 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
                     >
                         <MapPin className="w-4 h-4 text-orange-600" />
                         <span className="text-sm font-medium">{city || 'Select Location'}</span>
@@ -394,7 +394,7 @@ export const Header: React.FC = () => {
                                 placeholder="Search products, shops, services..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full h-10 pl-12 pr-4 rounded-lg bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white text-sm placeholder:text-gray-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                className="w-full h-10 pl-12 pr-4 rounded-lg bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-white text-sm placeholder:text-gray-500 dark:placeholder:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                             />
                         </div>
                     </form>

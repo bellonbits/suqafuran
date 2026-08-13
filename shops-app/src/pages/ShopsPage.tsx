@@ -40,10 +40,10 @@ function getCategoryBreadcrumb(category: Category): string {
 function SkeletonCard() {
   return (
     <div className="animate-pulse">
-      <div className="aspect-[16/7] w-full bg-gray-200 dark:bg-slate-800 rounded-lg" />
+      <div className="aspect-[16/7] w-full bg-gray-200 dark:bg-neutral-900 rounded-lg" />
       <div className="mt-2.5 space-y-1.5 px-0.5">
-        <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-3/4" />
-        <div className="h-2.5 bg-gray-100 dark:bg-slate-800 rounded w-2/3" />
+        <div className="h-3 bg-gray-200 dark:bg-neutral-800 rounded w-3/4" />
+        <div className="h-2.5 bg-gray-100 dark:bg-neutral-900 rounded w-2/3" />
       </div>
     </div>
   );
@@ -199,7 +199,7 @@ function ShopsPageContent() {
     .sort((a, b) => (shopCountsByCategory[b.id] ?? 0) - (shopCountsByCategory[a.id] ?? 0));
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 pb-20">
+    <div className="min-h-screen bg-white dark:bg-black pb-20">
       {/* ── Hero Banner Carousel ───────────────────────────────────────── */}
       <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 pt-4 md:pt-6">
         <HomepageBannerRotation />
@@ -208,7 +208,7 @@ function ShopsPageContent() {
       {/* ── Page Title ─────────────────────────────────────────────────── */}
       <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 pt-6 md:pt-8 pb-2 md:pb-4">
         <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight">Shops</h1>
-        <p className="hidden md:block text-gray-600 dark:text-slate-400 text-sm font-semibold mt-1">
+        <p className="hidden md:block text-gray-600 dark:text-neutral-300 text-sm font-semibold mt-1">
           {total} shops in {selectedMarket || "All Markets"}
         </p>
       </div>
@@ -217,7 +217,7 @@ function ShopsPageContent() {
       <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 pb-4 md:pb-6">
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Search Box - Full width on mobile, flex-1 on desktop */}
-          <div className="relative flex-1 px-3 py-2.5 rounded-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800">
+          <div className="relative flex-1 px-3 py-2.5 rounded-full bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
@@ -229,7 +229,7 @@ function ShopsPageContent() {
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-neutral-200"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -240,7 +240,7 @@ function ShopsPageContent() {
           <select
             value={selectedMarket || ''}
             onChange={(e) => setSelectedMarket(e.target.value || null)}
-            className="w-full sm:w-64 px-3 py-2.5 rounded-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer truncate"
+            className="w-full sm:w-64 px-3 py-2.5 rounded-full bg-gray-50 dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer truncate"
           >
             <option value="">All Markets</option>
             {Object.keys(MARKET_TO_CITY).sort().map((market) => (
@@ -282,7 +282,7 @@ function ShopsPageContent() {
                 />
               </div>
               <span className={`text-[12px] font-bold mt-2 tracking-tight text-center w-20 leading-tight block ${
-                selectedCategoryId === null ? 'text-orange-500' : 'text-gray-700 dark:text-slate-300'
+                selectedCategoryId === null ? 'text-orange-500' : 'text-gray-700 dark:text-neutral-200'
               }`}>
                 All
               </span>
@@ -316,7 +316,7 @@ function ShopsPageContent() {
                     />
                   </div>
                   <span className={`text-[12px] font-bold mt-2 tracking-tight text-center w-20 leading-tight block ${
-                    isSelected ? 'text-orange-500' : 'text-gray-700 dark:text-slate-300'
+                    isSelected ? 'text-orange-500' : 'text-gray-700 dark:text-neutral-200'
                   }`}>
                     {cat.name_en}
                   </span>
@@ -351,12 +351,12 @@ function ShopsPageContent() {
             ))}
           </div>
         ) : shops.length === 0 ? (
-          <div className="text-center py-20 bg-gray-50 dark:bg-slate-900/40 rounded-2xl p-8 border border-dashed border-gray-200 dark:border-slate-800">
+          <div className="text-center py-20 bg-gray-50 dark:bg-neutral-950/40 rounded-2xl p-8 border border-dashed border-gray-200 dark:border-neutral-800">
             <div className="w-16 h-16 bg-orange-100 dark:bg-orange-950/40 rounded-full flex items-center justify-center mx-auto mb-4">
               <Store className="w-8 h-8 text-orange-500" />
             </div>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">No shops here yet</h3>
-            <p className="text-gray-500 dark:text-slate-400 text-sm mt-1 max-w-sm mx-auto">
+            <p className="text-gray-500 dark:text-neutral-300 text-sm mt-1 max-w-sm mx-auto">
               There are no verified shops under this category with active listings at the moment.
             </p>
           </div>
@@ -374,7 +374,7 @@ function ShopsPageContent() {
                 <button
                   onClick={() => goToPage(Math.max(1, page - 1))}
                   disabled={page === 1}
-                  className="w-9 h-9 rounded-full flex items-center justify-center border border-gray-200 dark:border-slate-800 text-gray-600 dark:text-slate-400 hover:bg-orange-50 dark:hover:bg-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="w-9 h-9 rounded-full flex items-center justify-center border border-gray-200 dark:border-neutral-800 text-gray-600 dark:text-neutral-300 hover:bg-orange-50 dark:hover:bg-neutral-950 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -392,7 +392,7 @@ function ShopsPageContent() {
                       className={`w-9 h-9 rounded-full text-sm font-black transition-all ${
                         page === pg
                           ? 'bg-orange-500 text-white shadow-md'
-                          : 'border border-gray-200 dark:border-slate-800 text-gray-600 dark:text-slate-400 hover:bg-orange-50 dark:hover:bg-slate-900'
+                          : 'border border-gray-200 dark:border-neutral-800 text-gray-600 dark:text-neutral-300 hover:bg-orange-50 dark:hover:bg-neutral-950'
                       }`}
                     >
                       {pg}
@@ -403,7 +403,7 @@ function ShopsPageContent() {
                 <button
                   onClick={() => goToPage(Math.min(totalPages, page + 1))}
                   disabled={page === totalPages}
-                  className="w-9 h-9 rounded-full flex items-center justify-center border border-gray-200 dark:border-slate-800 text-gray-600 dark:text-slate-400 hover:bg-orange-50 dark:hover:bg-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="w-9 h-9 rounded-full flex items-center justify-center border border-gray-200 dark:border-neutral-800 text-gray-600 dark:text-neutral-300 hover:bg-orange-50 dark:hover:bg-neutral-950 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -435,7 +435,7 @@ export default function ShopsPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center">
+        <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
           <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
         </div>
       }

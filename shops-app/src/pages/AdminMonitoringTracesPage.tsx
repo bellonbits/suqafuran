@@ -32,41 +32,41 @@ export default function TracesPage() {
     <div className="space-y-6 p-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white dark:text-white mb-2">Distributed Traces</h1>
-        <p className="text-slate-600 dark:text-slate-300 dark:text-slate-400">Request tracing via Jaeger and OpenTelemetry</p>
+        <p className="text-slate-600 dark:text-neutral-200 dark:text-neutral-300">Request tracing via Jaeger and OpenTelemetry</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 dark:border-slate-700">
+        <div className="bg-white dark:bg-neutral-900 rounded-lg p-4 border border-slate-200 dark:border-neutral-800 dark:border-neutral-800">
           <div className="flex items-center gap-2 mb-2">
             <Zap className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-            <span className="text-sm font-semibold text-slate-600 dark:text-slate-300 dark:text-slate-400">Traces</span>
+            <span className="text-sm font-semibold text-slate-600 dark:text-neutral-200 dark:text-neutral-300">Traces</span>
           </div>
           <div className="text-3xl font-bold text-slate-900 dark:text-white dark:text-white">{stats.total_traces || '0'}</div>
-          <p className="text-xs text-slate-600 dark:text-slate-300 dark:text-slate-400 mt-1">In 24 hours</p>
+          <p className="text-xs text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mt-1">In 24 hours</p>
         </div>
-        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 dark:border-slate-700">
+        <div className="bg-white dark:bg-neutral-900 rounded-lg p-4 border border-slate-200 dark:border-neutral-800 dark:border-neutral-800">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            <span className="text-sm font-semibold text-slate-600 dark:text-slate-300 dark:text-slate-400">Avg Duration</span>
+            <span className="text-sm font-semibold text-slate-600 dark:text-neutral-200 dark:text-neutral-300">Avg Duration</span>
           </div>
           <div className="text-3xl font-bold text-slate-900 dark:text-white dark:text-white">{stats.avg_duration || '0'}ms</div>
-          <p className="text-xs text-slate-600 dark:text-slate-300 dark:text-slate-400 mt-1">Per request</p>
+          <p className="text-xs text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mt-1">Per request</p>
         </div>
-        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 dark:border-slate-700">
+        <div className="bg-white dark:bg-neutral-900 rounded-lg p-4 border border-slate-200 dark:border-neutral-800 dark:border-neutral-800">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
-            <span className="text-sm font-semibold text-slate-600 dark:text-slate-300 dark:text-slate-400">Success Rate</span>
+            <span className="text-sm font-semibold text-slate-600 dark:text-neutral-200 dark:text-neutral-300">Success Rate</span>
           </div>
           <div className="text-3xl font-bold text-slate-900 dark:text-white dark:text-white">{stats.success_rate || '0'}%</div>
-          <p className="text-xs text-slate-600 dark:text-slate-300 dark:text-slate-400 mt-1">Last hour</p>
+          <p className="text-xs text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mt-1">Last hour</p>
         </div>
-        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 dark:border-slate-700">
+        <div className="bg-white dark:bg-neutral-900 rounded-lg p-4 border border-slate-200 dark:border-neutral-800 dark:border-neutral-800">
           <div className="flex items-center gap-2 mb-2">
             <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-            <span className="text-sm font-semibold text-slate-600 dark:text-slate-300 dark:text-slate-400">Slow Traces</span>
+            <span className="text-sm font-semibold text-slate-600 dark:text-neutral-200 dark:text-neutral-300">Slow Traces</span>
           </div>
           <div className="text-3xl font-bold text-slate-900 dark:text-white dark:text-white">{stats.slow_traces || '0'}</div>
-          <p className="text-xs text-slate-600 dark:text-slate-300 dark:text-slate-400 mt-1">&gt; 500ms</p>
+          <p className="text-xs text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mt-1">&gt; 500ms</p>
         </div>
       </div>
 
@@ -77,12 +77,12 @@ export default function TracesPage() {
             <div className="text-center text-slate-400 py-8">Loading traces...</div>
           ) : traces.length > 0 ? (
             traces.map((trace, idx) => (
-              <div key={idx} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 dark:border-slate-700 p-4 flex items-center justify-between">
+              <div key={idx} className="bg-white dark:bg-neutral-900 rounded-xl border border-slate-200 dark:border-neutral-800 dark:border-neutral-800 p-4 flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono text-slate-400 dark:text-slate-400">{new Date(trace.start_time).toLocaleTimeString()}</span>
+                    <span className="text-xs font-mono text-slate-400 dark:text-neutral-300">{new Date(trace.start_time).toLocaleTimeString()}</span>
                     <span className="text-sm font-semibold text-slate-900 dark:text-white dark:text-white">{trace.service_name || trace.service}</span>
-                    <span className="text-xs text-slate-600 dark:text-slate-300 dark:text-slate-400">{trace.operation_name || trace.operation}</span>
+                    <span className="text-xs text-slate-600 dark:text-neutral-200 dark:text-neutral-300">{trace.operation_name || trace.operation}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">

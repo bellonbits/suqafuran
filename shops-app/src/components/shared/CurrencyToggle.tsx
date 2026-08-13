@@ -25,14 +25,14 @@ export const CurrencyToggle: React.FC<{ className?: string }> = ({ className = '
             <button
                 type="button"
                 onClick={() => setOpen((v) => !v)}
-                className="flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-[10px] font-black text-gray-700 dark:text-slate-200 cursor-pointer"
+                className="flex items-center gap-1 rounded-full bg-slate-100 dark:bg-neutral-900 px-2.5 py-1 text-[10px] font-black text-gray-700 dark:text-neutral-100 cursor-pointer"
             >
                 {CURRENCY_INFO[currency].symbol} {currency}
                 <ChevronDown className="h-3 w-3 text-gray-400" />
             </button>
 
             {open && (
-                <div className="absolute right-0 top-full mt-2 w-44 rounded-2xl bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-xl z-50 py-1.5 max-h-72 overflow-y-auto">
+                <div className="absolute right-0 top-full mt-2 w-44 rounded-2xl bg-white dark:bg-neutral-950 border border-gray-100 dark:border-neutral-800 shadow-xl z-50 py-1.5 max-h-72 overflow-y-auto">
                     {CURRENCIES.map((code) => (
                         <button
                             key={code}
@@ -43,8 +43,8 @@ export const CurrencyToggle: React.FC<{ className?: string }> = ({ className = '
                             }}
                             className={`w-full flex items-center justify-between px-3.5 py-2 text-xs font-bold cursor-pointer ${
                                 currency === code
-                                    ? 'text-primary dark:text-sky-400 bg-slate-50 dark:bg-slate-800'
-                                    : 'text-gray-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                    ? 'text-primary dark:text-sky-400 bg-slate-50 dark:bg-neutral-900'
+                                    : 'text-gray-600 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-900'
                             }`}
                         >
                             <span>{code}</span>

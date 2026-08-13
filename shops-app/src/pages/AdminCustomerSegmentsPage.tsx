@@ -142,7 +142,7 @@ export default function CustomerSegmentsPage() {
               <Users className="w-8 h-8 text-blue-600" />
               <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Customer Segments</h1>
             </div>
-            <p className="text-slate-600 dark:text-slate-300">Create and manage audience segments for targeted campaigns</p>
+            <p className="text-slate-600 dark:text-neutral-200">Create and manage audience segments for targeted campaigns</p>
           </div>
           <button
             onClick={() => {
@@ -179,13 +179,13 @@ export default function CustomerSegmentsPage() {
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         segment.is_active
                           ? 'bg-emerald-50 dark:bg-emerald-950/30 text-green-800'
-                          : 'bg-slate-100 dark:bg-slate-800 text-gray-800'
+                          : 'bg-slate-100 dark:bg-neutral-900 text-gray-800'
                       }`}>
                         {segment.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </div>
                     {segment.description && (
-                      <p className="text-sm text-slate-600 dark:text-slate-300 mb-3">{segment.description}</p>
+                      <p className="text-sm text-slate-600 dark:text-neutral-200 mb-3">{segment.description}</p>
                     )}
                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 rounded">
                       <Users className="w-4 h-4 text-blue-600" />
@@ -200,7 +200,7 @@ export default function CustomerSegmentsPage() {
                         setSelectedSegment(segment);
                         setShowCampaignModal(true);
                       }}
-                      className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800 rounded"
+                      className="p-2 text-slate-600 dark:text-neutral-200 hover:bg-slate-100 dark:bg-neutral-900 rounded"
                       title="Send Campaign"
                       disabled={segment.member_count === 0}
                     >
@@ -211,7 +211,7 @@ export default function CustomerSegmentsPage() {
                         setEditing(segment);
                         setShowForm(true);
                       }}
-                      className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800 rounded"
+                      className="p-2 text-slate-600 dark:text-neutral-200 hover:bg-slate-100 dark:bg-neutral-900 rounded"
                       title="Edit"
                     >
                       <Edit2 className="w-5 h-5" />
@@ -314,7 +314,7 @@ function SegmentFormModal({
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">
               {segment ? 'Edit Segment' : 'Create Segment'}
             </h2>
-            <button type="button" onClick={onCancel} className="p-1 hover:bg-slate-100 dark:bg-slate-800 rounded">
+            <button type="button" onClick={onCancel} className="p-1 hover:bg-slate-100 dark:bg-neutral-900 rounded">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -331,7 +331,7 @@ function SegmentFormModal({
                     className="p-3 border border-gray-300 rounded-lg hover:bg-blue-50 text-left text-sm"
                   >
                     <p className="font-semibold text-slate-900 dark:text-white">{t.name}</p>
-                    <p className="text-xs text-slate-600 dark:text-slate-300">{t.description}</p>
+                    <p className="text-xs text-slate-600 dark:text-neutral-200">{t.description}</p>
                   </button>
                 ))}
               </div>
@@ -374,7 +374,7 @@ function SegmentFormModal({
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-slate-50 dark:bg-slate-800/40"
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-slate-50 dark:bg-neutral-900/40"
             >
               Cancel
             </button>
@@ -455,7 +455,7 @@ function CampaignModal({
         <form onSubmit={handleSend} className="p-6 space-y-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">Send Campaign</h2>
-            <button type="button" onClick={onClose} className="p-1 hover:bg-slate-100 dark:bg-slate-800 rounded">
+            <button type="button" onClick={onClose} className="p-1 hover:bg-slate-100 dark:bg-neutral-900 rounded">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -508,7 +508,7 @@ function CampaignModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-slate-50 dark:bg-slate-800/40"
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-slate-50 dark:bg-neutral-900/40"
             >
               Cancel
             </button>

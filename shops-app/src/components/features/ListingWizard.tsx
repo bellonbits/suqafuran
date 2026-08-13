@@ -584,7 +584,7 @@ export const ListingWizard: React.FC = () => {
               <select
                 value={formData.shop_id || ''}
                 onChange={(e) => updateFormData({ shop_id: parseInt(e.target.value) })}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               >
                 <option value="">Select a shop</option>
                 <option value="1">My Shop</option>
@@ -597,7 +597,7 @@ export const ListingWizard: React.FC = () => {
                 <select
                   value={formData.category_id || ''}
                   onChange={(e) => updateFormData({ category_id: parseInt(e.target.value), subcategory_id: undefined })}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                 >
                   <option value="">Select category</option>
                   {(allCategories.length > 0 ? allCategories : CATEGORIES).map((cat: any) => (
@@ -614,7 +614,7 @@ export const ListingWizard: React.FC = () => {
                   value={formData.subcategory_id || ''}
                   onChange={(e) => updateFormData({ subcategory_id: parseInt(e.target.value), subsubcategory_id: undefined })}
                   disabled={!formData.category_id}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all disabled:opacity-50"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all disabled:opacity-50"
                 >
                   <option value="">Select subcategory</option>
                   {categorySubcategories.map((subcat: any) => (
@@ -631,7 +631,7 @@ export const ListingWizard: React.FC = () => {
                   <select
                     value={formData.subsubcategory_id || ''}
                     onChange={(e) => updateFormData({ subsubcategory_id: e.target.value ? parseInt(e.target.value) : undefined })}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                   >
                     <option value="">Select sub-subcategory (optional)</option>
                     {subcategorySubsubcategories.map((subsubcat: any) => (
@@ -653,15 +653,15 @@ export const ListingWizard: React.FC = () => {
                 onChange={(e) => handleLocationChange(e.target.value)}
                 onFocus={() => formData.location && setShowLocationSuggestions(true)}
                 placeholder="e.g., Eastleigh, Nairobi"
-                className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               />
               {showLocationSuggestions && locationSuggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
                   {locationSuggestions.map((location) => (
                     <button
                       key={location}
                       onClick={() => selectLocation(location)}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-gray-900 dark:text-white text-sm"
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors text-gray-900 dark:text-white text-sm"
                     >
                       {location}
                     </button>
@@ -683,7 +683,7 @@ export const ListingWizard: React.FC = () => {
                 onChange={(e) => updateFormData({ title: e.target.value })}
                 placeholder="e.g., Cerave Moisturizing Cream"
                 maxLength={100}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               />
               <p className="text-xs text-gray-500 mt-1">{formData.title.length}/100</p>
             </div>
@@ -695,7 +695,7 @@ export const ListingWizard: React.FC = () => {
                 onChange={(e) => updateFormData({ description: e.target.value })}
                 placeholder="Describe your product. Be specific about condition, features, and why you're selling."
                 rows={5}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"
               />
             </div>
 
@@ -715,7 +715,7 @@ export const ListingWizard: React.FC = () => {
                       }
                     }}
                     disabled={categoryBrands.length === 0}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all disabled:opacity-50"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all disabled:opacity-50"
                   >
                     <option value="">
                       {categoryBrands.length === 0
@@ -736,7 +736,7 @@ export const ListingWizard: React.FC = () => {
                       value={formData.brand || ''}
                       onChange={(e) => updateFormData({ brand: e.target.value })}
                       placeholder="Enter your brand"
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                     />
                     <button
                       type="button"
@@ -757,7 +757,7 @@ export const ListingWizard: React.FC = () => {
                 <select
                   value={formData.condition}
                   onChange={(e) => updateFormData({ condition: e.target.value as any })}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                 >
                   <option value="new">New</option>
                   <option value="like_new">Like New</option>
@@ -774,7 +774,7 @@ export const ListingWizard: React.FC = () => {
                 value={formData.tags?.join(', ') || ''}
                 onChange={(e) => updateFormData({ tags: e.target.value.split(',').map((t) => t.trim()).filter(Boolean) })}
                 placeholder="e.g., organic, moisturizer, skincare"
-                className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               />
               <p className="text-xs text-gray-500 mt-1">Separate with commas</p>
             </div>
@@ -789,7 +789,7 @@ export const ListingWizard: React.FC = () => {
               <ListingStep3Images data={formData} onUpdate={updateFormData} onError={setError} />
             </div>
 
-            <div className="border-t border-gray-200 dark:border-slate-700 pt-6">
+            <div className="border-t border-gray-200 dark:border-neutral-800 pt-6">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Pricing</h3>
 
               <div className="grid grid-cols-2 gap-4 mb-4">
@@ -802,7 +802,7 @@ export const ListingWizard: React.FC = () => {
                     placeholder="5000"
                     step="1"
                     min="0"
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                   />
                 </div>
 
@@ -811,7 +811,7 @@ export const ListingWizard: React.FC = () => {
                   <select
                     value={formData.price_type}
                     onChange={(e) => updateFormData({ price_type: e.target.value as any })}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                   >
                     <option value="fixed">Fixed Price</option>
                     <option value="negotiable">Negotiable</option>
@@ -829,7 +829,7 @@ export const ListingWizard: React.FC = () => {
                     onChange={(e) => updateFormData({ stock_quantity: parseInt(e.target.value) || 1 })}
                     placeholder="1"
                     min="1"
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                   />
                 </div>
 
@@ -840,7 +840,7 @@ export const ListingWizard: React.FC = () => {
                     value={formData.sku || ''}
                     onChange={(e) => updateFormData({ sku: e.target.value })}
                     placeholder="Optional product SKU"
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                   />
                 </div>
               </div>
@@ -857,16 +857,16 @@ export const ListingWizard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 py-8 px-4">
+    <div className="min-h-screen bg-white dark:bg-black py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-12">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <p className="text-gray-600 dark:text-slate-400 text-sm">Post a Listing</p>
+              <p className="text-gray-600 dark:text-neutral-300 text-sm">Post a Listing</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-600 dark:text-slate-400">Step {currentStep} of {STEPS.length}</p>
+              <p className="text-sm text-gray-600 dark:text-neutral-300">Step {currentStep} of {STEPS.length}</p>
             </div>
           </div>
 
@@ -879,7 +879,7 @@ export const ListingWizard: React.FC = () => {
                     className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
                       idx + 1 <= currentStep
                         ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
-                        : 'bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-slate-300'
+                        : 'bg-gray-200 dark:bg-neutral-800 text-gray-600 dark:text-neutral-200'
                     }`}
                   >
                     {step.number}
@@ -896,7 +896,7 @@ export const ListingWizard: React.FC = () => {
                 {idx < STEPS.length - 1 && (
                   <div
                     className={`flex-1 h-0.5 mx-1 transition-all ${
-                      idx + 1 < currentStep ? 'bg-gray-900 dark:bg-gray-100' : 'bg-gray-200 dark:bg-slate-700'
+                      idx + 1 < currentStep ? 'bg-gray-900 dark:bg-gray-100' : 'bg-gray-200 dark:bg-neutral-800'
                     }`}
                   />
                 )}
@@ -922,13 +922,13 @@ export const ListingWizard: React.FC = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
-          className="bg-white dark:bg-slate-900 rounded-lg mb-8"
+          className="bg-white dark:bg-neutral-950 rounded-lg mb-8"
         >
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
               {STEPS[currentStep - 1]?.title}
             </h2>
-            <p className="text-gray-600 dark:text-slate-400 text-sm">
+            <p className="text-gray-600 dark:text-neutral-300 text-sm">
               {currentStep === 1 && 'Select your shop, category, and location'}
               {currentStep === 2 && 'Tell buyers about your product'}
               {currentStep === 3 && 'Add photos/videos and set your price'}
@@ -944,7 +944,7 @@ export const ListingWizard: React.FC = () => {
           <button
             onClick={handlePrevious}
             disabled={currentStep === 1}
-            className="flex items-center gap-2 px-6 py-3 text-gray-700 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:text-gray-900 dark:hover:text-white transition-colors"
+            className="flex items-center gap-2 px-6 py-3 text-gray-700 dark:text-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             <ChevronLeft size={20} />
             Back
@@ -954,7 +954,7 @@ export const ListingWizard: React.FC = () => {
             {currentStep === 4 && (
               <button
                 onClick={handleSaveDraft}
-                className="px-8 py-3 border border-gray-300 dark:border-slate-600 text-gray-900 dark:text-white rounded-full font-semibold hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
+                className="px-8 py-3 border border-gray-300 dark:border-neutral-700 text-gray-900 dark:text-white rounded-full font-semibold hover:bg-gray-50 dark:hover:bg-neutral-900 transition-all"
               >
                 Save Draft
               </button>

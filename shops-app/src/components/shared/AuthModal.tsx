@@ -122,21 +122,21 @@ export const AuthModal: React.FC = () => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60" onClick={close} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 100 }}>
             <div
                 onClick={(e) => e.stopPropagation()}
-                className="w-full mx-4 max-w-md rounded-3xl bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto animate-scale-in"
+                className="w-full mx-4 max-w-md rounded-3xl bg-white dark:bg-neutral-950 border border-gray-100 dark:border-neutral-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto animate-scale-in"
             >
                 <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-black text-gray-900 dark:text-slate-100 font-poppins">Sign in or Sign up</h2>
-                    <button onClick={close} className="text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 cursor-pointer">
+                    <h2 className="text-xl font-black text-gray-900 dark:text-neutral-50 font-poppins">Sign in or Sign up</h2>
+                    <button onClick={close} className="text-gray-400 hover:text-gray-700 dark:hover:text-neutral-100 cursor-pointer">
                         <X className="h-5 w-5" />
                     </button>
                 </div>
 
-                <div className="flex border border-gray-200 dark:border-slate-800 rounded-full p-0.5 bg-slate-100 dark:bg-slate-950">
+                <div className="flex border border-gray-200 dark:border-neutral-800 rounded-full p-0.5 bg-slate-100 dark:bg-black">
                     {(['signin', 'signup'] as const).map(m => (
                         <button
                             key={m}
                             onClick={() => open(m)}
-                            className={`flex-1 py-2 rounded-full text-xs font-black transition-all cursor-pointer ${mode === m ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow' : 'text-gray-500 dark:text-slate-400'}`}
+                            className={`flex-1 py-2 rounded-full text-xs font-black transition-all cursor-pointer ${mode === m ? 'bg-slate-900 text-white dark:bg-neutral-200 dark:text-neutral-100 shadow' : 'text-gray-500 dark:text-neutral-300'}`}
                         >
                             {m === 'signin' ? 'Sign In' : 'Sign Up'}
                         </button>
@@ -149,7 +149,7 @@ export const AuthModal: React.FC = () => {
                             <button
                                 key={m}
                                 onClick={() => setMethod(m)}
-                                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-2xl text-xs font-bold border transition-all cursor-pointer ${method === m ? 'border-primary bg-primary/5 text-primary dark:text-sky-400 dark:border-sky-400' : 'border-gray-200 text-gray-500 dark:border-slate-800 dark:text-slate-400'}`}
+                                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-2xl text-xs font-bold border transition-all cursor-pointer ${method === m ? 'border-primary bg-primary/5 text-primary dark:text-sky-400 dark:border-sky-400' : 'border-gray-200 text-gray-500 dark:border-neutral-800 dark:text-neutral-300'}`}
                             >
                                 {m === 'email' ? <Mail className="h-3.5 w-3.5" /> : <Phone className="h-3.5 w-3.5" />}
                                 {m === 'email' ? 'Email' : 'Phone'}
@@ -168,10 +168,10 @@ export const AuthModal: React.FC = () => {
                     {step === 'otp' ? (
                         <div className="space-y-3">
                             <div>
-                                <label className="text-xs font-bold text-gray-600 dark:text-slate-400 block mb-1">
+                                <label className="text-xs font-bold text-gray-600 dark:text-neutral-300 block mb-1">
                                     Verification Code
                                 </label>
-                                <p className="text-[10px] text-gray-500 dark:text-slate-500 mb-2">
+                                <p className="text-[10px] text-gray-500 dark:text-neutral-400 mb-2">
                                     We sent a code to {method === 'email' ? email : phone}
                                 </p>
                             </div>
@@ -184,17 +184,17 @@ export const AuthModal: React.FC = () => {
                                 value={otp}
                                 onChange={(e) => setOtp(e.target.value)}
                                 maxLength={6}
-                                className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-3 text-lg font-bold tracking-[0.25em] text-center outline-none focus:border-primary focus:bg-white dark:text-slate-100"
+                                className="w-full rounded-2xl border border-gray-200 dark:border-neutral-800 bg-slate-50 dark:bg-black px-4 py-3 text-lg font-bold tracking-[0.25em] text-center outline-none focus:border-primary focus:bg-white dark:text-neutral-50"
                             />
                             <div className="flex items-center justify-between pt-1">
-                                <span className="text-[10px] text-gray-500 dark:text-slate-500">
+                                <span className="text-[10px] text-gray-500 dark:text-neutral-400">
                                     Didn't receive the code?
                                 </span>
                                 <button
                                     type="button"
                                     onClick={handleResend}
                                     disabled={cooldown > 0}
-                                    className="flex items-center gap-1 text-[11px] font-bold text-primary dark:text-sky-400 hover:underline disabled:text-gray-400 disabled:dark:text-slate-600 disabled:cursor-not-allowed"
+                                    className="flex items-center gap-1 text-[11px] font-bold text-primary dark:text-sky-400 hover:underline disabled:text-gray-400 disabled:dark:text-neutral-300 disabled:cursor-not-allowed"
                                 >
                                     {cooldown > 0 ? (
                                         `Resend in ${cooldown}s`
@@ -211,7 +211,7 @@ export const AuthModal: React.FC = () => {
                         <>
                             {mode === 'signup' && (
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-600 dark:text-slate-400">Full Name</label>
+                                    <label className="text-xs font-bold text-gray-600 dark:text-neutral-300">Full Name</label>
                                     <div className="relative">
                                         <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                                         <input
@@ -220,7 +220,7 @@ export const AuthModal: React.FC = () => {
                                             placeholder="Enter full name..."
                                             value={fullName}
                                             onChange={(e) => setFullName(e.target.value)}
-                                            className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 pl-11 pr-4 py-3 text-xs font-semibold outline-none focus:border-primary focus:bg-white dark:text-slate-100"
+                                            className="w-full rounded-2xl border border-gray-200 dark:border-neutral-800 bg-slate-50 dark:bg-black pl-11 pr-4 py-3 text-xs font-semibold outline-none focus:border-primary focus:bg-white dark:text-neutral-50"
                                         />
                                     </div>
                                 </div>
@@ -228,7 +228,7 @@ export const AuthModal: React.FC = () => {
 
                             {method === 'email' ? (
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-600 dark:text-slate-400">Email Address</label>
+                                    <label className="text-xs font-bold text-gray-600 dark:text-neutral-300">Email Address</label>
                                     <div className="relative">
                                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                                         <input
@@ -237,18 +237,18 @@ export const AuthModal: React.FC = () => {
                                             placeholder="Enter email..."
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
-                                            className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 pl-11 pr-4 py-3 text-xs font-semibold outline-none focus:border-primary focus:bg-white dark:text-slate-100"
+                                            className="w-full rounded-2xl border border-gray-200 dark:border-neutral-800 bg-slate-50 dark:bg-black pl-11 pr-4 py-3 text-xs font-semibold outline-none focus:border-primary focus:bg-white dark:text-neutral-50"
                                         />
                                     </div>
                                 </div>
                             ) : (
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-600 dark:text-slate-400">Mobile Number</label>
+                                    <label className="text-xs font-bold text-gray-600 dark:text-neutral-300">Mobile Number</label>
                                     <div className="flex gap-2">
                                         <select
                                             value={countryCode}
                                             onChange={(e) => setCountryCode(e.target.value)}
-                                            className="rounded-2xl border border-gray-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-2 text-xs font-bold outline-none focus:border-primary dark:text-slate-100"
+                                            className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-slate-50 dark:bg-black px-2 text-xs font-bold outline-none focus:border-primary dark:text-neutral-50"
                                         >
                                             {COUNTRY_CODES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
                                         </select>
@@ -260,7 +260,7 @@ export const AuthModal: React.FC = () => {
                                                 placeholder="Phone number..."
                                                 value={localPhone}
                                                 onChange={(e) => setLocalPhone(e.target.value)}
-                                                className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 pl-11 pr-4 py-3 text-xs font-semibold outline-none focus:border-primary focus:bg-white dark:text-slate-100"
+                                                className="w-full rounded-2xl border border-gray-200 dark:border-neutral-800 bg-slate-50 dark:bg-black pl-11 pr-4 py-3 text-xs font-semibold outline-none focus:border-primary focus:bg-white dark:text-neutral-50"
                                             />
                                         </div>
                                     </div>
@@ -270,7 +270,7 @@ export const AuthModal: React.FC = () => {
                             {mode === 'signin' && method === 'email' && (
                                 <div className="space-y-1.5">
                                     <div className="flex items-center justify-between">
-                                        <label className="text-xs font-bold text-gray-600 dark:text-slate-400">Password</label>
+                                        <label className="text-xs font-bold text-gray-600 dark:text-neutral-300">Password</label>
                                         <button
                                             type="button"
                                             onClick={() => window.location.href = '/reset-password'}
@@ -287,7 +287,7 @@ export const AuthModal: React.FC = () => {
                                             placeholder="Enter password..."
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 pl-11 pr-16 py-3 text-xs font-semibold outline-none focus:border-primary focus:bg-white dark:text-slate-100"
+                                            className="w-full rounded-2xl border border-gray-200 dark:border-neutral-800 bg-slate-50 dark:bg-black pl-11 pr-16 py-3 text-xs font-semibold outline-none focus:border-primary focus:bg-white dark:text-neutral-50"
                                         />
                                         <button
                                             type="button"
@@ -302,7 +302,7 @@ export const AuthModal: React.FC = () => {
 
                             {mode === 'signup' && method === 'email' && (
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-600 dark:text-slate-400">Password</label>
+                                    <label className="text-xs font-bold text-gray-600 dark:text-neutral-300">Password</label>
                                     <div className="relative">
                                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                                         <input
@@ -312,7 +312,7 @@ export const AuthModal: React.FC = () => {
                                             placeholder="At least 8 characters"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 pl-11 pr-16 py-3 text-xs font-semibold outline-none focus:border-primary focus:bg-white dark:text-slate-100"
+                                            className="w-full rounded-2xl border border-gray-200 dark:border-neutral-800 bg-slate-50 dark:bg-black pl-11 pr-16 py-3 text-xs font-semibold outline-none focus:border-primary focus:bg-white dark:text-neutral-50"
                                         />
                                         <button
                                             type="button"
@@ -346,7 +346,7 @@ export const AuthModal: React.FC = () => {
                     </button>
                 </form>
 
-                <p className="text-[10px] text-gray-400 dark:text-slate-500 text-center leading-relaxed">
+                <p className="text-[10px] text-gray-400 dark:text-neutral-400 text-center leading-relaxed">
                     By continuing you agree to receive a verification code by {method === 'email' ? 'email' : 'SMS'}.
                 </p>
             </div>

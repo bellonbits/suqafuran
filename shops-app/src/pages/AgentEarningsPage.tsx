@@ -67,7 +67,7 @@ export default function AgentEarningsPage() {
           </div>
           <button
             onClick={() => loadEarnings(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#151D2A] border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl text-xs font-bold shadow-sm hover:bg-slate-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-100 rounded-2xl text-xs font-bold shadow-sm hover:bg-slate-50 transition-colors"
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-sky-500' : ''}`} />
             Refresh
@@ -104,7 +104,7 @@ export default function AgentEarningsPage() {
           ].map((card, i) => {
             const Icon = card.icon;
             return (
-              <div key={i} className="bg-white dark:bg-[#151D2A] rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+              <div key={i} className="bg-white dark:bg-neutral-950 rounded-3xl p-6 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
                 <div className="flex items-center justify-between mb-4">
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{card.label}</p>
                   <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${card.iconBg}`}>
@@ -139,17 +139,17 @@ export default function AgentEarningsPage() {
         </div>
 
         {/* Transaction History */}
-        <div className="bg-white dark:bg-[#151D2A] rounded-3xl border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] overflow-hidden">
-          <div className="p-5 border-b border-slate-100 dark:border-slate-800">
+        <div className="bg-white dark:bg-neutral-950 rounded-3xl border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] overflow-hidden">
+          <div className="p-5 border-b border-slate-100 dark:border-neutral-800">
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
               <Receipt className="w-4 h-4 text-sky-500" /> Transaction History
             </h3>
           </div>
 
           {transactions.length > 0 ? (
-            <div className="divide-y divide-slate-50 dark:divide-slate-800/40">
+            <div className="divide-y divide-slate-50 dark:divide-neutral-800/40">
               {transactions.map((tx: any, i: number) => (
-                <div key={i} className="flex items-center justify-between p-4 hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors">
+                <div key={i} className="flex items-center justify-between p-4 hover:bg-slate-50/60 dark:hover:bg-neutral-900/30 transition-colors">
                   <div className="flex items-center gap-3">
                     <div className={`w-9 h-9 rounded-2xl flex items-center justify-center ${tx.type === 'credit' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
                       {tx.type === 'credit' ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
@@ -167,8 +167,8 @@ export default function AgentEarningsPage() {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 gap-3">
-              <Receipt className="w-10 h-10 text-slate-200 dark:text-slate-700" />
-              <p className="text-sm font-extrabold text-slate-600 dark:text-slate-300">No Transactions Yet</p>
+              <Receipt className="w-10 h-10 text-slate-200 dark:text-neutral-200" />
+              <p className="text-sm font-extrabold text-slate-600 dark:text-neutral-200">No Transactions Yet</p>
               <p className="text-xs text-slate-400">Your transaction history will appear here once you start earning commissions.</p>
             </div>
           )}

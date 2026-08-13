@@ -98,7 +98,7 @@ const FAQS = [
 ];
 
 const PLAN_COLOR_MAP: Record<string, { card: string; btn: string; badge: string }> = {
-  gray: { card: 'border-gray-200 dark:border-slate-800', btn: 'bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-white hover:bg-gray-200', badge: '' },
+  gray: { card: 'border-gray-200 dark:border-neutral-800', btn: 'bg-gray-100 dark:bg-neutral-900 text-gray-800 dark:text-white hover:bg-gray-200', badge: '' },
   blue: { card: 'border-blue-300 dark:border-blue-800', btn: 'bg-blue-600 hover:bg-blue-700 text-white', badge: 'bg-blue-100 text-blue-700' },
   orange: { card: 'border-orange-400 dark:border-orange-600 ring-2 ring-orange-400 dark:ring-orange-600', btn: 'bg-orange-600 hover:bg-orange-700 text-white', badge: 'bg-orange-100 text-orange-700' },
 };
@@ -110,7 +110,7 @@ function PricingCard({ plan, annual, onUpgrade, currentPlan }: { plan: typeof PL
   const isCurrent = currentPlan === plan.id;
 
   return (
-    <div className={`relative flex flex-col bg-white dark:bg-slate-900 rounded-2xl border-2 p-6 ${colors.card} ${plan.highlighted ? 'shadow-xl' : ''}`}>
+    <div className={`relative flex flex-col bg-white dark:bg-neutral-950 rounded-2xl border-2 p-6 ${colors.card} ${plan.highlighted ? 'shadow-xl' : ''}`}>
       {plan.badge && (
         <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-bold shadow ${colors.badge}`}>
           {plan.badge}
@@ -127,7 +127,7 @@ function PricingCard({ plan, annual, onUpgrade, currentPlan }: { plan: typeof PL
         </div>
         <div>
           <h3 className="font-black text-gray-900 dark:text-white">{plan.name}</h3>
-          <p className="text-xs text-gray-500 dark:text-slate-400">{plan.tagline}</p>
+          <p className="text-xs text-gray-500 dark:text-neutral-300">{plan.tagline}</p>
         </div>
       </div>
 
@@ -152,7 +152,7 @@ function PricingCard({ plan, annual, onUpgrade, currentPlan }: { plan: typeof PL
         {plan.features.map((f) => (
           <li key={f} className="flex items-start gap-2 text-sm">
             <Check className={`w-4 h-4 flex-shrink-0 mt-0.5 ${plan.highlighted ? 'text-orange-500' : 'text-green-500'}`} />
-            <span className="text-gray-700 dark:text-slate-300">{f}</span>
+            <span className="text-gray-700 dark:text-neutral-200">{f}</span>
           </li>
         ))}
       </ul>
@@ -160,7 +160,7 @@ function PricingCard({ plan, annual, onUpgrade, currentPlan }: { plan: typeof PL
       <button
         onClick={onUpgrade}
         disabled={isCurrent}
-        className={`w-full py-2.5 rounded-xl text-sm font-bold transition-all ${isCurrent ? 'bg-gray-100 dark:bg-slate-800 text-gray-400 cursor-not-allowed' : colors.btn}`}
+        className={`w-full py-2.5 rounded-xl text-sm font-bold transition-all ${isCurrent ? 'bg-gray-100 dark:bg-neutral-900 text-gray-400 cursor-not-allowed' : colors.btn}`}
       >
         {isCurrent ? 'Current Plan' : plan.ctaText}
       </button>
@@ -171,7 +171,7 @@ function PricingCard({ plan, annual, onUpgrade, currentPlan }: { plan: typeof PL
 function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800">
+    <div className="bg-white dark:bg-neutral-950 rounded-xl border border-gray-200 dark:border-neutral-800">
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-5 py-4 text-left"
@@ -180,7 +180,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         {open ? <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />}
       </button>
       {open && (
-        <div className="px-5 pb-4 text-sm text-gray-600 dark:text-slate-400 border-t border-gray-100 dark:border-slate-800 pt-3">
+        <div className="px-5 pb-4 text-sm text-gray-600 dark:text-neutral-300 border-t border-gray-100 dark:border-neutral-800 pt-3">
           {a}
         </div>
       )}
@@ -216,7 +216,7 @@ export default function SubscriptionPage() {
       {/* Header */}
       <div className="text-center space-y-3">
         <h1 className="text-4xl font-black text-gray-900 dark:text-white">Choose Your Plan</h1>
-        <p className="text-gray-500 dark:text-slate-400 max-w-lg mx-auto">
+        <p className="text-gray-500 dark:text-neutral-300 max-w-lg mx-auto">
           Every paid feature solves a real business problem. Upgrade to unlock tools that grow your shop.
         </p>
 
@@ -229,7 +229,7 @@ export default function SubscriptionPage() {
             aria-checked={annual}
             onClick={() => setAnnual(!annual)}
             className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-              annual ? 'bg-orange-600' : 'bg-gray-300 dark:bg-slate-700'
+              annual ? 'bg-orange-600' : 'bg-gray-300 dark:bg-neutral-800'
             }`}
           >
             <span
@@ -269,17 +269,17 @@ export default function SubscriptionPage() {
       </div>
 
       {/* Feature comparison table */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden">
-        <div className="p-6 border-b border-gray-200 dark:border-slate-800">
+      <div className="bg-white dark:bg-neutral-950 rounded-2xl border border-gray-200 dark:border-neutral-800 overflow-hidden">
+        <div className="p-6 border-b border-gray-200 dark:border-neutral-800">
           <h2 className="text-lg font-black text-gray-900 dark:text-white">Full Feature Comparison</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-50 dark:bg-slate-800">
-                <th className="text-left py-4 px-5 font-bold text-gray-500 dark:text-slate-400 w-40">Feature</th>
+              <tr className="bg-gray-50 dark:bg-neutral-900">
+                <th className="text-left py-4 px-5 font-bold text-gray-500 dark:text-neutral-300 w-40">Feature</th>
                 {['Free', 'Starter', 'Business'].map((p) => (
-                  <th key={p} className={`text-center py-4 px-4 font-black text-sm ${p === 'Business' ? 'text-orange-600 dark:text-orange-400' : 'text-gray-700 dark:text-slate-300'}`}>
+                  <th key={p} className={`text-center py-4 px-4 font-black text-sm ${p === 'Business' ? 'text-orange-600 dark:text-orange-400' : 'text-gray-700 dark:text-neutral-200'}`}>
                     {p}
                   </th>
                 ))}
@@ -289,17 +289,17 @@ export default function SubscriptionPage() {
               {FEATURE_MATRIX.map((row, i) => {
                 const Icon = row.icon;
                 return (
-                  <tr key={row.label} className={`border-t border-gray-100 dark:border-slate-800 ${i % 2 === 0 ? '' : 'bg-gray-50/50 dark:bg-slate-800/30'}`}>
-                    <td className="py-3.5 px-5 text-gray-700 dark:text-slate-300 font-medium flex items-center gap-2">
+                  <tr key={row.label} className={`border-t border-gray-100 dark:border-neutral-800 ${i % 2 === 0 ? '' : 'bg-gray-50/50 dark:bg-neutral-900/30'}`}>
+                    <td className="py-3.5 px-5 text-gray-700 dark:text-neutral-200 font-medium flex items-center gap-2">
                       <Icon className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
                       {row.label}
                     </td>
                     {[row.free, row.starter, row.business].map((val, idx) => (
                       <td key={idx} className={`text-center py-3.5 px-4 text-xs font-semibold ${
-                        val === '—' ? 'text-gray-300 dark:text-slate-600' :
+                        val === '—' ? 'text-gray-300 dark:text-neutral-300' :
                         val.startsWith('✓') ? 'text-green-600 dark:text-green-400' :
                         idx === 2 ? 'text-orange-600 dark:text-orange-400' :
-                        'text-gray-600 dark:text-slate-400'
+                        'text-gray-600 dark:text-neutral-300'
                       }`}>
                         {val}
                       </td>

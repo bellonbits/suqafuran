@@ -58,11 +58,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const screen = SCREENS[step];
 
   return (
-    <div className="fixed inset-0 z-[100] bg-white dark:bg-slate-950 flex flex-col">
+    <div className="fixed inset-0 z-[100] bg-white dark:bg-black flex flex-col">
       <button
         type="button"
         onClick={finish}
-        className="text-sm font-semibold text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors py-2 px-3"
+        className="text-sm font-semibold text-gray-400 dark:text-neutral-400 hover:text-gray-600 dark:hover:text-neutral-200 transition-colors py-2 px-3"
         style={{
           position: 'fixed',
           top: 'calc(env(safe-area-inset-top, 0px) + 20px)',
@@ -92,7 +92,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 leading-snug">
               {screen.headline}
             </h1>
-            <p className="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">
+            <p className="text-sm text-gray-500 dark:text-neutral-300 leading-relaxed">
               {screen.description}
             </p>
           </motion.div>
@@ -105,7 +105,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             <div
               key={idx}
               className={`h-1.5 rounded-full transition-all ${
-                idx === step ? 'w-6' : 'w-1.5 bg-gray-200 dark:bg-slate-700'
+                idx === step ? 'w-6' : 'w-1.5 bg-gray-200 dark:bg-neutral-800'
               }`}
               style={idx === step ? { backgroundColor: '#FF9600' } : undefined}
             />

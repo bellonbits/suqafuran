@@ -88,13 +88,13 @@ function InviteModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md shadow-2xl">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-800">
+      <div className="bg-white dark:bg-neutral-950 rounded-2xl w-full max-w-md shadow-2xl">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-neutral-800">
           <div>
             <h2 className="text-lg font-black text-gray-900 dark:text-white">Invite Staff Member</h2>
-            <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">{currentCount} / {maxStaff} staff used</p>
+            <p className="text-sm text-gray-500 dark:text-neutral-300 mt-0.5">{currentCount} / {maxStaff} staff used</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-lg">
             <X className="w-5 h-5 text-gray-400" />
           </button>
         </div>
@@ -108,7 +108,7 @@ function InviteModal({
           )}
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-200 mb-1.5">
               Email Address <span className="text-red-500">*</span>
             </label>
             <div className="relative">
@@ -118,13 +118,13 @@ function InviteModal({
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="staff@example.com"
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-neutral-800 rounded-xl bg-white dark:bg-neutral-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">Role</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-200 mb-2">Role</label>
             <div className="space-y-2">
               {(Object.keys(ROLE_CONFIG) as StaffRole[]).map((role) => {
                 const config = ROLE_CONFIG[role];
@@ -136,7 +136,7 @@ function InviteModal({
                     className={`w-full flex items-start gap-3 p-3 rounded-xl border-2 text-left transition-all ${
                       form.role === role
                         ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/10'
-                        : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
+                        : 'border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700'
                     }`}
                   >
                     <span className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${config.color}`}>
@@ -144,7 +144,7 @@ function InviteModal({
                     </span>
                     <div>
                       <p className="text-sm font-bold text-gray-900 dark:text-white">{config.label}</p>
-                      <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{config.perms.join(' · ')}</p>
+                      <p className="text-xs text-gray-500 dark:text-neutral-300 mt-0.5">{config.perms.join(' · ')}</p>
                     </div>
                   </button>
                 );
@@ -160,7 +160,7 @@ function InviteModal({
         </div>
 
         <div className="px-6 pb-6 flex gap-3">
-          <button onClick={onClose} className="flex-1 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl text-sm font-semibold text-gray-700 dark:text-slate-300">
+          <button onClick={onClose} className="flex-1 py-2.5 border border-gray-300 dark:border-neutral-800 rounded-xl text-sm font-semibold text-gray-700 dark:text-neutral-200">
             Cancel
           </button>
           <button
@@ -220,7 +220,7 @@ function StaffContent({ maxStaff }: { maxStaff: number }) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-gray-900 dark:text-white">Staff Accounts</h1>
-          <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">
+          <p className="text-gray-500 dark:text-neutral-300 text-sm mt-1">
             Invite your team members and assign them roles
           </p>
         </div>
@@ -234,23 +234,23 @@ function StaffContent({ maxStaff }: { maxStaff: number }) {
       </div>
 
       {/* Usage bar */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 p-5">
+      <div className="bg-white dark:bg-neutral-950 rounded-xl border border-gray-200 dark:border-neutral-800 p-5">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-sm font-semibold text-gray-700 dark:text-slate-300">Staff Slots Used</p>
+          <p className="text-sm font-semibold text-gray-700 dark:text-neutral-200">Staff Slots Used</p>
           <p className="text-sm font-black text-gray-900 dark:text-white">{usedSlots} / {maxStaff}</p>
         </div>
-        <div className="h-2.5 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div className="h-2.5 bg-gray-100 dark:bg-neutral-900 rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full transition-all ${pct >= 90 ? 'bg-red-500' : pct >= 70 ? 'bg-amber-500' : 'bg-orange-500'}`}
             style={{ width: `${pct}%` }}
           />
         </div>
-        <p className="text-xs text-gray-400 dark:text-slate-500 mt-1.5">{maxStaff - usedSlots} slots remaining</p>
+        <p className="text-xs text-gray-400 dark:text-neutral-400 mt-1.5">{maxStaff - usedSlots} slots remaining</p>
       </div>
 
       {/* Staff list */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800">
-        <div className="p-5 border-b border-gray-200 dark:border-slate-800 flex items-center gap-2">
+      <div className="bg-white dark:bg-neutral-950 rounded-xl border border-gray-200 dark:border-neutral-800">
+        <div className="p-5 border-b border-gray-200 dark:border-neutral-800 flex items-center gap-2">
           <Users className="w-4 h-4 text-gray-400" />
           <h2 className="font-black text-gray-900 dark:text-white">Team Members</h2>
         </div>
@@ -262,14 +262,14 @@ function StaffContent({ maxStaff }: { maxStaff: number }) {
         ) : (
           <>
             {/* Owner row */}
-            <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-slate-800">
+            <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-neutral-800">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
                   <Crown className="w-5 h-5 text-orange-600" />
                 </div>
                 <div>
                   <p className="text-sm font-bold text-gray-900 dark:text-white">You (Owner)</p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400">Full access to all features</p>
+                  <p className="text-xs text-gray-500 dark:text-neutral-300">Full access to all features</p>
                 </div>
               </div>
               <span className="text-xs px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400 font-bold">
@@ -279,11 +279,11 @@ function StaffContent({ maxStaff }: { maxStaff: number }) {
 
             {staff.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center px-6">
-                <div className="w-14 h-14 bg-gray-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-4">
-                  <Users className="w-7 h-7 text-gray-300 dark:text-slate-600" />
+                <div className="w-14 h-14 bg-gray-100 dark:bg-neutral-900 rounded-2xl flex items-center justify-center mb-4">
+                  <Users className="w-7 h-7 text-gray-300 dark:text-neutral-300" />
                 </div>
                 <p className="font-bold text-gray-900 dark:text-white mb-1">No staff members yet</p>
-                <p className="text-sm text-gray-500 dark:text-slate-400 mb-5">
+                <p className="text-sm text-gray-500 dark:text-neutral-300 mb-5">
                   Invite team members to help manage your shop
                 </p>
                 <button
@@ -294,7 +294,7 @@ function StaffContent({ maxStaff }: { maxStaff: number }) {
                 </button>
               </div>
             ) : (
-              <div className="divide-y divide-gray-100 dark:divide-slate-800">
+              <div className="divide-y divide-gray-100 dark:divide-neutral-800">
                 {staff.map((member) => {
                   const roleConf = ROLE_CONFIG[member.role];
                   const Icon = roleConf.icon;
@@ -313,7 +313,7 @@ function StaffContent({ maxStaff }: { maxStaff: number }) {
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                          <p className="text-xs text-gray-500 dark:text-neutral-300 mt-0.5">
                             {member.email} · {roleConf.label}
                             {member.last_active && ` · Last active ${new Date(member.last_active).toLocaleDateString()}`}
                           </p>
@@ -337,15 +337,15 @@ function StaffContent({ maxStaff }: { maxStaff: number }) {
       </div>
 
       {/* Permissions table */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden">
-        <div className="p-5 border-b border-gray-200 dark:border-slate-800">
+      <div className="bg-white dark:bg-neutral-950 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden">
+        <div className="p-5 border-b border-gray-200 dark:border-neutral-800">
           <h2 className="font-black text-gray-900 dark:text-white">Role Permissions</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-50 dark:bg-slate-800">
-                <th className="text-left py-3 px-5 text-xs font-bold text-gray-500 dark:text-slate-400">Permission</th>
+              <tr className="bg-gray-50 dark:bg-neutral-900">
+                <th className="text-left py-3 px-5 text-xs font-bold text-gray-500 dark:text-neutral-300">Permission</th>
                 <th className="text-center py-3 px-4 text-xs font-bold text-purple-600 dark:text-purple-400">Manager</th>
                 <th className="text-center py-3 px-4 text-xs font-bold text-blue-600 dark:text-blue-400">Sales</th>
                 <th className="text-center py-3 px-4 text-xs font-bold text-green-600 dark:text-green-400">Inventory</th>
@@ -353,14 +353,14 @@ function StaffContent({ maxStaff }: { maxStaff: number }) {
             </thead>
             <tbody>
               {PERMISSION_MATRIX.map((row) => (
-                <tr key={row.action} className="border-t border-gray-100 dark:border-slate-800">
-                  <td className="py-3 px-5 text-gray-700 dark:text-slate-300">{row.action}</td>
+                <tr key={row.action} className="border-t border-gray-100 dark:border-neutral-800">
+                  <td className="py-3 px-5 text-gray-700 dark:text-neutral-200">{row.action}</td>
                   {(['manager', 'sales', 'inventory'] as StaffRole[]).map((role) => (
                     <td key={role} className="text-center py-3 px-4">
                       {row[role] ? (
                         <CheckCircle2 className="w-4 h-4 text-green-500 mx-auto" />
                       ) : (
-                        <span className="text-gray-300 dark:text-slate-600">—</span>
+                        <span className="text-gray-300 dark:text-neutral-300">—</span>
                       )}
                     </td>
                   ))}

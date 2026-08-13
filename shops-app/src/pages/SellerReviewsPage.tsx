@@ -57,26 +57,26 @@ export default function ReviewsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Reviews</h1>
-        <p className="text-gray-600 dark:text-slate-400">Manage customer reviews and ratings</p>
+        <p className="text-gray-600 dark:text-neutral-300">Manage customer reviews and ratings</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Average Rating</p>
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
+          <p className="text-gray-600 dark:text-neutral-300 text-sm mb-2">Average Rating</p>
           <div className="flex items-end gap-2">
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.average_rating || 0}</p>
           </div>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Total Reviews</p>
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
+          <p className="text-gray-600 dark:text-neutral-300 text-sm mb-2">Total Reviews</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.total_reviews || 0}</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">5 Star Reviews</p>
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
+          <p className="text-gray-600 dark:text-neutral-300 text-sm mb-2">5 Star Reviews</p>
           <p className="text-2xl font-bold text-green-600">{stats?.five_star_reviews || 0}</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Response Rate</p>
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
+          <p className="text-gray-600 dark:text-neutral-300 text-sm mb-2">Response Rate</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.response_rate || 0}%</p>
         </div>
       </div>
@@ -86,7 +86,7 @@ export default function ReviewsPage() {
           <div className="text-center py-12 text-gray-400">No reviews yet</div>
         ) : (
           reviews.map((review) => (
-            <div key={review.id} className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 p-6">
+            <div key={review.id} className="bg-white dark:bg-neutral-950 rounded-lg border border-gray-200 dark:border-neutral-800 p-6">
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <p className="font-semibold text-gray-900 dark:text-white">{review.customer_name || 'Anonymous'}</p>
@@ -98,7 +98,7 @@ export default function ReviewsPage() {
                 </div>
                 <p className="text-xs text-gray-500">{new Date(review.created_at).toLocaleDateString() || 'Recently'}</p>
               </div>
-              <p className="text-gray-700 dark:text-slate-300 text-sm">{review.comment || 'No comment provided'}</p>
+              <p className="text-gray-700 dark:text-neutral-200 text-sm">{review.comment || 'No comment provided'}</p>
             </div>
           ))
         )}

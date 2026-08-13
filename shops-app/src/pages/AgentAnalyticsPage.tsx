@@ -107,7 +107,7 @@ export default function AgentAnalyticsPage() {
           </div>
           <button
             onClick={() => loadAnalytics(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#151D2A] border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl text-xs font-bold shadow-sm hover:bg-slate-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-100 rounded-2xl text-xs font-bold shadow-sm hover:bg-slate-50 transition-colors"
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-sky-500' : ''}`} />
             Refresh
@@ -119,7 +119,7 @@ export default function AgentAnalyticsPage() {
           {metrics.map((m, i) => {
             const Icon = m.icon;
             return (
-              <div key={i} className="bg-white dark:bg-[#151D2A] rounded-3xl p-5 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+              <div key={i} className="bg-white dark:bg-neutral-950 rounded-3xl p-5 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
                 <div className="flex items-center justify-between mb-4">
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{m.label}</p>
                   <div className={`w-9 h-9 rounded-2xl flex items-center justify-center ${m.iconBg}`}>
@@ -141,7 +141,7 @@ export default function AgentAnalyticsPage() {
         </div>
 
         {/* Conversion Funnel */}
-        <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] space-y-5">
+        <div className="bg-white dark:bg-neutral-950 rounded-3xl p-6 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] space-y-5">
           <div className="flex items-center gap-2">
             <Zap className="w-4 h-4 text-sky-500" />
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Signup → Listing → Sale Conversion Funnel</h3>
@@ -151,7 +151,7 @@ export default function AgentAnalyticsPage() {
             {funnelMetrics.map((f, i) => (
               <div key={i} className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-bold text-slate-600 dark:text-slate-300">{f.label}</p>
+                  <p className="text-xs font-bold text-slate-600 dark:text-neutral-200">{f.label}</p>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-black text-slate-900 dark:text-white">{f.value.toLocaleString()}</span>
                     <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${i === 0 ? 'bg-sky-50 text-sky-600' : i === 1 ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'}`}>
@@ -159,7 +159,7 @@ export default function AgentAnalyticsPage() {
                     </span>
                   </div>
                 </div>
-                <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div className="w-full h-2.5 bg-slate-100 dark:bg-neutral-900 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-700 ${i === 0 ? 'bg-sky-500' : i === 1 ? 'bg-indigo-500' : 'bg-emerald-500'}`}
                     style={{ width: `${Math.min(f.pct, 100)}%` }}
@@ -172,32 +172,32 @@ export default function AgentAnalyticsPage() {
 
         {/* Performance Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+          <div className="bg-white dark:bg-neutral-950 rounded-3xl p-6 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
               <Users className="w-4 h-4 text-sky-500" /> Signups Performance
             </h3>
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl text-center">
+              <div className="p-4 bg-slate-50 dark:bg-neutral-900/40 rounded-2xl text-center">
                 <p className="text-2xl font-black text-slate-900 dark:text-white">{marketing?.signups_today || 0}</p>
                 <p className="text-[11px] text-slate-400 font-semibold mt-1">Signed Up Today</p>
               </div>
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl text-center">
+              <div className="p-4 bg-slate-50 dark:bg-neutral-900/40 rounded-2xl text-center">
                 <p className="text-2xl font-black text-slate-900 dark:text-white">{marketing?.signups_week || 0}</p>
                 <p className="text-[11px] text-slate-400 font-semibold mt-1">This Week</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+          <div className="bg-white dark:bg-neutral-950 rounded-3xl p-6 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-sky-500" /> Ads Performance
             </h3>
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl text-center">
+              <div className="p-4 bg-slate-50 dark:bg-neutral-900/40 rounded-2xl text-center">
                 <p className="text-2xl font-black text-slate-900 dark:text-white">{marketing?.ads_today || 0}</p>
                 <p className="text-[11px] text-slate-400 font-semibold mt-1">Ads Posted Today</p>
               </div>
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl text-center">
+              <div className="p-4 bg-slate-50 dark:bg-neutral-900/40 rounded-2xl text-center">
                 <p className="text-2xl font-black text-slate-900 dark:text-white">{marketing?.ads_week || 0}</p>
                 <p className="text-[11px] text-slate-400 font-semibold mt-1">This Week</p>
               </div>

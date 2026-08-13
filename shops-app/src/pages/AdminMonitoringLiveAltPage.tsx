@@ -105,7 +105,7 @@ export default function LiveEventsPage() {
     <MonitoringLayout>
       <div className="space-y-6">
         {/* Status Bar */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
+        <div className="bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
@@ -119,12 +119,12 @@ export default function LiveEventsPage() {
                 </span>
               </div>
 
-              <div className="text-sm text-slate-600 dark:text-slate-400">
+              <div className="text-sm text-slate-600 dark:text-neutral-300">
                 {store.activeConnections} active connection
                 {store.activeConnections !== 1 ? 's' : ''}
               </div>
 
-              <div className="text-sm text-slate-600 dark:text-slate-400">
+              <div className="text-sm text-slate-600 dark:text-neutral-300">
                 {store.events.length} events captured
               </div>
             </div>
@@ -132,23 +132,23 @@ export default function LiveEventsPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => store.setAutoScroll(!store.autoScroll)}
-                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors"
+                className="p-2 hover:bg-slate-100 dark:hover:bg-neutral-900 rounded transition-colors"
                 title={store.autoScroll ? 'Disable auto-scroll' : 'Enable auto-scroll'}
               >
                 {store.autoScroll ? (
-                  <Volume2 className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                  <Volume2 className="h-4 w-4 text-slate-600 dark:text-neutral-300" />
                 ) : (
-                  <VolumeX className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                  <VolumeX className="h-4 w-4 text-slate-600 dark:text-neutral-300" />
                 )}
               </button>
 
               <button
                 onClick={handleReconnect}
                 disabled={store.isConnected}
-                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed rounded transition-colors"
+                className="p-2 hover:bg-slate-100 dark:hover:bg-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed rounded transition-colors"
                 title="Reconnect"
               >
-                <RotateCcw className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                <RotateCcw className="h-4 w-4 text-slate-600 dark:text-neutral-300" />
               </button>
 
               <button
@@ -156,10 +156,10 @@ export default function LiveEventsPage() {
                 className={`p-2 rounded transition-colors ${
                   showFilters
                     ? 'bg-orange-50 dark:bg-orange-950/30 dark:bg-orange-900/30'
-                    : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                    : 'hover:bg-slate-100 dark:hover:bg-neutral-900'
                 }`}
               >
-                <Filter className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                <Filter className="h-4 w-4 text-slate-600 dark:text-neutral-300" />
               </button>
             </div>
           </div>
@@ -174,7 +174,7 @@ export default function LiveEventsPage() {
 
         {/* Filters Panel */}
         {showFilters && (
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 space-y-4">
+          <div className="bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800 p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-slate-900 dark:text-white">Filters</h3>
               {Object.keys(store.filters).some(
@@ -192,20 +192,20 @@ export default function LiveEventsPage() {
 
             {/* Event Type Filters */}
             <div>
-              <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              <p className="text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">
                 Event Types
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {Object.entries(EVENT_CATEGORIES).map(([category, types]) => (
                   <div key={category} className="space-y-2">
-                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                    <p className="text-xs font-medium text-slate-600 dark:text-neutral-300">
                       {category}
                     </p>
                     <div className="space-y-1 ml-2">
                       {types.map((type) => (
                         <label
                           key={type}
-                          className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer"
+                          className="flex items-center gap-2 text-sm text-slate-700 dark:text-neutral-200 cursor-pointer"
                         >
                           <input
                             type="checkbox"
@@ -224,14 +224,14 @@ export default function LiveEventsPage() {
 
             {/* Severity Filters */}
             <div>
-              <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              <p className="text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">
                 Severity
               </p>
               <div className="flex gap-3">
                 {(['info', 'warning', 'error'] as const).map((severity) => (
                   <label
                     key={severity}
-                    className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer"
+                    className="flex items-center gap-2 text-sm text-slate-700 dark:text-neutral-200 cursor-pointer"
                   >
                     <input
                       type="checkbox"
@@ -248,14 +248,14 @@ export default function LiveEventsPage() {
             {/* Service Filters */}
             {allAvailableServices.length > 0 && (
               <div>
-                <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <p className="text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">
                   Services
                 </p>
                 <div className="space-y-1">
                   {allAvailableServices.map((service) => (
                     <label
                       key={service}
-                      className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer"
+                      className="flex items-center gap-2 text-sm text-slate-700 dark:text-neutral-200 cursor-pointer"
                     >
                       <input
                         type="checkbox"
@@ -273,7 +273,7 @@ export default function LiveEventsPage() {
         )}
 
         {/* Live Feed */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+        <div className="bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800 p-6">
           <div className="mb-4">
             <h3 className="font-semibold text-slate-900 dark:text-white">
               Event Stream ({store.filteredEvents.length})
@@ -281,7 +281,7 @@ export default function LiveEventsPage() {
             {store.filters.eventTypes.size > 0 ||
             store.filters.severities.size > 0 ||
             store.filters.services.size > 0 ? (
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-slate-500 dark:text-neutral-300 mt-1">
                 Filtered from {store.events.length} total events
               </p>
             ) : null}

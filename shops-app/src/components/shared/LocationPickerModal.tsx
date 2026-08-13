@@ -263,16 +263,16 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" onClick={onClose} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }}>
             <div
-                className="w-full mx-4 max-w-md max-h-[90vh] overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-slate-900 border border-gray-100 dark:border-slate-800 flex flex-col animate-scale-in"
+                className="w-full mx-4 max-w-md max-h-[90vh] overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-neutral-950 border border-gray-100 dark:border-neutral-800 flex flex-col animate-scale-in"
                 onClick={(e) => e.stopPropagation()}
                 style={{ maxWidth: '28rem' }}
             >
                 <div className="flex justify-between items-center p-5 pb-3">
-                    <h3 className="text-sm font-black text-gray-900 dark:text-slate-100 font-poppins flex items-center gap-1.5">
+                    <h3 className="text-sm font-black text-gray-900 dark:text-neutral-50 font-poppins flex items-center gap-1.5">
                         <MapPin className="h-4.5 w-4.5 text-primary" />
                         <span>Choose Location</span>
                     </h3>
-                    <button onClick={onClose} className="rounded-full p-1 hover:bg-slate-50 dark:hover:bg-slate-800 text-gray-400 transition-colors cursor-pointer">
+                    <button onClick={onClose} className="rounded-full p-1 hover:bg-slate-50 dark:hover:bg-neutral-900 text-gray-400 transition-colors cursor-pointer">
                         <X className="h-4.5 w-4.5" />
                     </button>
                 </div>
@@ -302,7 +302,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
                             placeholder="Search any city, town, or address..."
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-2xl text-sm font-semibold outline-none focus:border-primary dark:text-slate-100 transition-all"
+                            className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-black border border-gray-200 dark:border-neutral-800 rounded-2xl text-sm font-semibold outline-none focus:border-primary dark:text-neutral-50 transition-all"
                             autoFocus
                         />
                     </div>
@@ -320,14 +320,14 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
                             {!isAuthenticated ? (
                                 <button
                                     onClick={() => { openAuthModal('signin'); onClose(); }}
-                                    className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-gray-700 dark:text-slate-200 font-bold text-sm cursor-pointer"
+                                    className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-slate-100 dark:bg-neutral-900 text-gray-700 dark:text-neutral-100 font-bold text-sm cursor-pointer"
                                 >
                                     <LogIn className="h-4 w-4" /> Sign in for saved addresses
                                 </button>
                             ) : (
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <h4 className="text-[11px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-wider">Saved Addresses</h4>
+                                        <h4 className="text-[11px] font-black text-gray-400 dark:text-neutral-400 uppercase tracking-wider">Saved Addresses</h4>
                                         {city && !showSaveForm && (
                                             <button
                                                 onClick={() => { setShowSaveForm(true); setSaveLabel('Home'); }}
@@ -339,15 +339,15 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
                                     </div>
 
                                     {showSaveForm && (
-                                        <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 space-y-2">
-                                            <p className="text-xs font-semibold text-gray-600 dark:text-slate-300 truncate">{city}</p>
+                                        <div className="p-3 rounded-2xl bg-slate-50 dark:bg-black border border-gray-200 dark:border-neutral-800 space-y-2">
+                                            <p className="text-xs font-semibold text-gray-600 dark:text-neutral-200 truncate">{city}</p>
                                             <div className="flex gap-2">
                                                 <input
                                                     type="text"
                                                     value={saveLabel}
                                                     onChange={(e) => setSaveLabel(e.target.value)}
                                                     placeholder="Label (e.g. Home, Work)"
-                                                    className="flex-1 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold outline-none focus:border-primary dark:text-slate-100"
+                                                    className="flex-1 rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-3 py-2 text-xs font-semibold outline-none focus:border-primary dark:text-neutral-50"
                                                 />
                                                 <button
                                                     onClick={handleSaveCurrentLocation}
@@ -371,13 +371,13 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
                                             <button
                                                 key={addr.id}
                                                 onClick={() => handleSelectSaved(addr)}
-                                                className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left cursor-pointer group"
+                                                className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-neutral-900 transition-colors text-left cursor-pointer group"
                                             >
-                                                <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                                                <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-neutral-900 flex items-center justify-center shrink-0">
                                                     {addr.is_default ? <Star className="w-4 h-4 text-amber-500" /> : <MapPin className="w-4 h-4 text-gray-400" />}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-bold text-gray-900 dark:text-slate-100 truncate">{addr.label}</p>
+                                                    <p className="text-sm font-bold text-gray-900 dark:text-neutral-50 truncate">{addr.label}</p>
                                                     <p className="text-xs text-gray-400 truncate">{addr.formatted_address}</p>
                                                 </div>
                                                 <span
@@ -394,18 +394,18 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
                             )}
 
                             <div className="pt-3 space-y-2">
-                                <h4 className="text-[11px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-wider px-0">Popular Cities in Kenya</h4>
+                                <h4 className="text-[11px] font-black text-gray-400 dark:text-neutral-400 uppercase tracking-wider px-0">Popular Cities in Kenya</h4>
                                 {defaultCities.map((city) => (
                                     <button
                                         key={city.name}
                                         onClick={() => handleSelectDefaultCity(city)}
-                                        className="w-full flex items-start gap-3 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left cursor-pointer"
+                                        className="w-full flex items-start gap-3 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-neutral-900 transition-colors text-left cursor-pointer"
                                     >
-                                        <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 mt-0.5">
+                                        <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-neutral-900 flex items-center justify-center shrink-0 mt-0.5">
                                             <MapPin className="w-4 h-4 text-gray-400" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-semibold text-gray-900 dark:text-slate-100 truncate">{city.name}</p>
+                                            <p className="text-sm font-semibold text-gray-900 dark:text-neutral-50 truncate">{city.name}</p>
                                             <p className="text-xs text-gray-400 truncate">{city.description}</p>
                                         </div>
                                     </button>
@@ -414,7 +414,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
 
                             <div className="pt-2 flex flex-col items-center text-center text-gray-400">
                                 <Search className="h-5 w-5 mb-1.5" />
-                                <p className="text-xs font-semibold text-gray-500 dark:text-slate-400">Or type to search any location worldwide</p>
+                                <p className="text-xs font-semibold text-gray-500 dark:text-neutral-300">Or type to search any location worldwide</p>
                             </div>
                         </div>
                     )}
@@ -423,13 +423,13 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
                         <button
                             key={s.place_id}
                             onClick={() => handleSelectSuggestion(s)}
-                            className="w-full flex items-start gap-3 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left cursor-pointer"
+                            className="w-full flex items-start gap-3 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-neutral-900 transition-colors text-left cursor-pointer"
                         >
-                            <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 mt-0.5">
+                            <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-neutral-900 flex items-center justify-center shrink-0 mt-0.5">
                                 <MapPin className="w-4 h-4 text-gray-400" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-gray-900 dark:text-slate-100 truncate">{s.structured_formatting?.main_text || s.description}</p>
+                                <p className="text-sm font-semibold text-gray-900 dark:text-neutral-50 truncate">{s.structured_formatting?.main_text || s.description}</p>
                                 {s.structured_formatting?.secondary_text && (
                                     <p className="text-xs text-gray-400 truncate mt-0.5">{s.structured_formatting.secondary_text}</p>
                                 )}

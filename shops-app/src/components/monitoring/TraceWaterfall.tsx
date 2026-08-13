@@ -60,21 +60,21 @@ export const TraceWaterfall: React.FC<TraceWaterfallProps> = ({
 
   if (!spans.length) {
     return (
-      <div className="flex items-center justify-center h-40 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-        <p className="text-slate-500 dark:text-slate-400">No spans in trace</p>
+      <div className="flex items-center justify-center h-40 bg-slate-50 dark:bg-neutral-900 rounded-lg border border-slate-200 dark:border-neutral-800">
+        <p className="text-slate-500 dark:text-neutral-300">No spans in trace</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
+    <div className="bg-white dark:bg-neutral-950 rounded-lg border border-slate-200 dark:border-neutral-800 overflow-hidden">
       {/* Header */}
-      <div className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-6 py-4">
+      <div className="border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900 px-6 py-4">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-slate-900 dark:text-white">
             Trace Timeline
           </h3>
-          <div className="text-sm text-slate-600 dark:text-slate-400">
+          <div className="text-sm text-slate-600 dark:text-neutral-300">
             <span className="font-mono">
               {totalDurationMs.toFixed(2)}ms
             </span>
@@ -83,7 +83,7 @@ export const TraceWaterfall: React.FC<TraceWaterfallProps> = ({
       </div>
 
       {/* Timeline */}
-      <div className="divide-y divide-slate-200 dark:divide-slate-800">
+      <div className="divide-y divide-slate-200 dark:divide-neutral-800">
         {serviceGroups.map(([serviceName, serviceSpans]) => (
           <div key={serviceName} className="px-6 py-4">
             {/* Service Header */}
@@ -91,7 +91,7 @@ export const TraceWaterfall: React.FC<TraceWaterfallProps> = ({
               <p className="text-sm font-semibold text-slate-900 dark:text-white">
                 {serviceName}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-neutral-300">
                 {serviceSpans.length} span{serviceSpans.length !== 1 ? 's' : ''}
               </p>
             </div>
@@ -103,10 +103,10 @@ export const TraceWaterfall: React.FC<TraceWaterfallProps> = ({
                   {/* Span label */}
                   <div className="flex items-start gap-3">
                     <div className="w-24 shrink-0">
-                      <p className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">
+                      <p className="text-xs font-medium text-slate-700 dark:text-neutral-200 truncate">
                         {span.operation_name}
                       </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                      <p className="text-xs text-slate-500 dark:text-neutral-300">
                         {span.duration_ms.toFixed(2)}ms
                       </p>
                     </div>
@@ -114,7 +114,7 @@ export const TraceWaterfall: React.FC<TraceWaterfallProps> = ({
                     {/* Bar container */}
                     <div className="flex-1">
                       {/* Timeline bar */}
-                      <div className="relative h-6 bg-slate-100 dark:bg-slate-700 rounded overflow-hidden">
+                      <div className="relative h-6 bg-slate-100 dark:bg-neutral-800 rounded overflow-hidden">
                         {/* Span bar */}
                         <div
                           className={`absolute h-full ${getSpanColor(
@@ -166,14 +166,14 @@ export const TraceWaterfall: React.FC<TraceWaterfallProps> = ({
                         .map(([key, value]) => (
                           <span
                             key={key}
-                            className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded"
+                            className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 rounded"
                             title={`${key}: ${value}`}
                           >
                             {key}
                           </span>
                         ))}
                       {Object.keys(span.tags).length > 3 && (
-                        <span className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded">
+                        <span className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 rounded">
                           +{Object.keys(span.tags).length - 3}
                         </span>
                       )}
@@ -187,8 +187,8 @@ export const TraceWaterfall: React.FC<TraceWaterfallProps> = ({
       </div>
 
       {/* Timeline scale at bottom */}
-      <div className="border-t border-slate-200 dark:border-slate-800 px-6 py-3 bg-slate-50 dark:bg-slate-800">
-        <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+      <div className="border-t border-slate-200 dark:border-neutral-800 px-6 py-3 bg-slate-50 dark:bg-neutral-900">
+        <div className="flex items-center justify-between text-xs text-slate-600 dark:text-neutral-300">
           <span>0ms</span>
           <span>{(totalDurationMs / 2).toFixed(0)}ms</span>
           <span>{totalDurationMs.toFixed(0)}ms</span>

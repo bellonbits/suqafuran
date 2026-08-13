@@ -73,29 +73,29 @@ export default function ReportsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Reports</h1>
-        <p className="text-gray-600 dark:text-slate-400">Generate and download business reports</p>
+        <p className="text-gray-600 dark:text-neutral-300">Generate and download business reports</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Total Reports Generated</p>
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
+          <p className="text-gray-600 dark:text-neutral-300 text-sm mb-2">Total Reports Generated</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.total_reports || 0}</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Last Generated</p>
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
+          <p className="text-gray-600 dark:text-neutral-300 text-sm mb-2">Last Generated</p>
           <p className="text-lg font-bold text-gray-900 dark:text-white">{stats?.last_generated || 'Never'}</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-200 dark:border-slate-800">
-          <p className="text-gray-600 dark:text-slate-400 text-sm mb-2">Report Size</p>
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-200 dark:border-neutral-800">
+          <p className="text-gray-600 dark:text-neutral-300 text-sm mb-2">Report Size</p>
           <p className="text-lg font-bold text-gray-900 dark:text-white">{stats?.report_size || 'N/A'}</p>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 p-6">
+      <div className="bg-white dark:bg-neutral-950 rounded-lg border border-gray-200 dark:border-neutral-800 p-6">
         <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Available Reports</h2>
         <div className="space-y-4">
           {reports.map((report) => (
-            <div key={report.id} className="flex items-center justify-between p-4 border border-gray-200 dark:border-slate-800 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800">
+            <div key={report.id} className="flex items-center justify-between p-4 border border-gray-200 dark:border-neutral-800 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-900">
               <p className="font-semibold text-gray-900 dark:text-white">{report.name}</p>
               <button
                 onClick={() => handleDownload(report.type)}

@@ -83,7 +83,7 @@ export const ListingStep1Details: React.FC<Step1Props> = ({
     <div className="space-y-6">
       {/* Title */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-2">
+        <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-100 mb-2">
           Title *
         </label>
         <input
@@ -91,9 +91,9 @@ export const ListingStep1Details: React.FC<Step1Props> = ({
           value={data.title}
           onChange={(e) => onUpdate({ title: e.target.value })}
           placeholder="e.g., iPhone 13 Pro Max 128GB, Gold, Like New"
-          className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+          className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
         />
-        <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+        <p className="text-xs text-gray-500 dark:text-neutral-300 mt-1">
           Be specific and descriptive (max 100 characters)
         </p>
       </div>
@@ -101,7 +101,7 @@ export const ListingStep1Details: React.FC<Step1Props> = ({
       {/* Description with AI */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-semibold text-gray-700 dark:text-slate-200">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-100">
             Description *
           </label>
           <motion.button
@@ -125,16 +125,16 @@ export const ListingStep1Details: React.FC<Step1Props> = ({
           onChange={(e) => onUpdate({ description: e.target.value })}
           placeholder="Describe your item in detail. Mention condition, features, any defects..."
           rows={5}
-          className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all resize-none"
+          className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all resize-none"
         />
-        <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+        <p className="text-xs text-gray-500 dark:text-neutral-300 mt-1">
           {data.description.length}/2000 characters
         </p>
       </div>
 
       {/* Condition */}
       <div>
-        <label className="block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-2">
+        <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-100 mb-2">
           Condition *
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -147,7 +147,7 @@ export const ListingStep1Details: React.FC<Step1Props> = ({
               className={`py-3 px-4 rounded-lg font-semibold transition-all ${
                 data.condition === condition
                   ? 'bg-[#5bc0e8] text-white'
-                  : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
+                  : 'bg-gray-100 dark:bg-neutral-900 text-gray-700 dark:text-neutral-200 hover:bg-gray-200 dark:hover:bg-neutral-800'
               }`}
             >
               {condition === 'like_new' ? 'Like New' : condition.charAt(0).toUpperCase() + condition.slice(1)}
@@ -159,11 +159,11 @@ export const ListingStep1Details: React.FC<Step1Props> = ({
       {/* Price with AI */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-2">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-100 mb-2">
             Price (KES) *
           </label>
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-slate-400">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-neutral-300">
               KSh
             </span>
             <input
@@ -171,13 +171,13 @@ export const ListingStep1Details: React.FC<Step1Props> = ({
               value={data.price || ''}
               onChange={(e) => onUpdate({ price: parseFloat(e.target.value) || 0 })}
               placeholder="0"
-              className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+              className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-2">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-100 mb-2">
             &nbsp;
           </label>
           <motion.button
@@ -206,7 +206,7 @@ export const ListingStep1Details: React.FC<Step1Props> = ({
           onChange={(e) => onUpdate({ negotiable: e.target.checked })}
           className="w-5 h-5 rounded border-gray-300 text-[#5bc0e8] focus:ring-2 focus:ring-blue-500"
         />
-        <label htmlFor="negotiable" className="text-sm font-semibold text-gray-700 dark:text-slate-200">
+        <label htmlFor="negotiable" className="text-sm font-semibold text-gray-700 dark:text-neutral-100">
           Price is negotiable
         </label>
       </div>

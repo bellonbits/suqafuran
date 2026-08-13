@@ -57,7 +57,7 @@ const AnalyticsPage = () => {
     <DashboardLayout title="Analytics & Reports" navItems={navItems} userRole="admin">
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-slate-400 font-semibold">Total Users</p>
@@ -67,7 +67,7 @@ const AnalyticsPage = () => {
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-slate-400 font-semibold">Total Listings</p>
@@ -77,7 +77,7 @@ const AnalyticsPage = () => {
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-slate-400 font-semibold">Active Listings</p>
@@ -87,7 +87,7 @@ const AnalyticsPage = () => {
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-slate-400 font-semibold">Total Revenue</p>
@@ -99,47 +99,47 @@ const AnalyticsPage = () => {
         </div>
 
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
             <h3 className="text-lg font-black text-slate-900 dark:text-white mb-4">Pending Items</h3>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
-                <span className="text-slate-600 dark:text-slate-300 font-semibold">Listings</span>
+              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-neutral-900/40 rounded-lg">
+                <span className="text-slate-600 dark:text-neutral-200 font-semibold">Listings</span>
                 <span className="text-2xl font-black text-slate-900 dark:text-white">{stats.pending_listings}</span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
-                <span className="text-slate-600 dark:text-slate-300 font-semibold">Orders</span>
+              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-neutral-900/40 rounded-lg">
+                <span className="text-slate-600 dark:text-neutral-200 font-semibold">Orders</span>
                 <span className="text-2xl font-black text-slate-900 dark:text-white">{stats.pending_orders}</span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
-                <span className="text-slate-600 dark:text-slate-300 font-semibold">Promotions</span>
+              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-neutral-900/40 rounded-lg">
+                <span className="text-slate-600 dark:text-neutral-200 font-semibold">Promotions</span>
                 <span className="text-2xl font-black text-slate-900 dark:text-white">{stats.pending_promotions}</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
             <h3 className="text-lg font-black text-slate-900 dark:text-white mb-4">Orders</h3>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
-                <span className="text-slate-600 dark:text-slate-300 font-semibold">Total Orders</span>
+              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-neutral-900/40 rounded-lg">
+                <span className="text-slate-600 dark:text-neutral-200 font-semibold">Total Orders</span>
                 <span className="text-2xl font-black text-slate-900 dark:text-white">{stats.total_orders || 0}</span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
-                <span className="text-slate-600 dark:text-slate-300 font-semibold">Pending</span>
+              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-neutral-900/40 rounded-lg">
+                <span className="text-slate-600 dark:text-neutral-200 font-semibold">Pending</span>
                 <span className="text-2xl font-black text-slate-900 dark:text-white">{stats.pending_orders}</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 dark:border-slate-700 rounded-2xl p-6">
+          <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
             <h3 className="text-lg font-black text-slate-900 dark:text-white mb-4">Deliveries</h3>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
-                <span className="text-slate-600 dark:text-slate-300 font-semibold">Active</span>
+              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-neutral-900/40 rounded-lg">
+                <span className="text-slate-600 dark:text-neutral-200 font-semibold">Active</span>
                 <span className="text-2xl font-black text-slate-900 dark:text-white">{stats.active_deliveries}</span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
-                <span className="text-slate-600 dark:text-slate-300 font-semibold">Delayed</span>
+              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-neutral-900/40 rounded-lg">
+                <span className="text-slate-600 dark:text-neutral-200 font-semibold">Delayed</span>
                 <span className="text-2xl font-black text-slate-900 dark:text-white">{stats.delayed_deliveries}</span>
               </div>
             </div>

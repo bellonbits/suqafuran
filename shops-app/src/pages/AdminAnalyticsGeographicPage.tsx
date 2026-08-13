@@ -136,8 +136,8 @@ export default function GeographicAnalytics() {
   }, [days, mapLoaded]);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-800/40 dark:bg-slate-950">
-      <div className="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 dark:border-slate-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-neutral-900/40 dark:bg-black">
+      <div className="sticky top-0 z-40 bg-white dark:bg-neutral-950 border-b border-slate-200 dark:border-neutral-800 dark:border-neutral-800">
         <div className="px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Globe className="w-6 h-6 text-blue-600" />
@@ -146,7 +146,7 @@ export default function GeographicAnalytics() {
           <button
             onClick={fetchAnalytics}
             disabled={loading}
-            className="p-2 rounded-lg hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+            className="p-2 rounded-lg hover:bg-slate-100 dark:bg-neutral-900 dark:hover:bg-neutral-900 transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -154,14 +154,14 @@ export default function GeographicAnalytics() {
       </div>
 
       <div className="px-6 py-8 max-w-7xl mx-auto space-y-8">
-        <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-700 dark:border-slate-800 flex gap-4 items-center">
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-slate-200 dark:border-neutral-800 dark:border-neutral-800 flex gap-4 items-center">
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-slate-600 dark:text-slate-300 dark:text-slate-400" />
+            <Calendar className="w-4 h-4 text-slate-600 dark:text-neutral-200 dark:text-neutral-300" />
             <label className="text-sm font-semibold text-slate-900 dark:text-white dark:text-white">Period:</label>
             <select
               value={days}
               onChange={(e) => setDays(Number(e.target.value))}
-              className="rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-sm font-semibold text-slate-900 dark:text-white dark:text-white"
+              className="rounded border border-gray-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3 py-1 text-sm font-semibold text-slate-900 dark:text-white dark:text-white"
             >
               <option value={1}>1 day</option>
               <option value={7}>7 days</option>
@@ -170,40 +170,40 @@ export default function GeographicAnalytics() {
             </select>
           </div>
           {lastRefresh && (
-            <span className="text-xs text-slate-400 dark:text-slate-500 ml-auto">
+            <span className="text-xs text-slate-400 dark:text-neutral-400 ml-auto">
               Last: {lastRefresh.toLocaleTimeString()}
             </span>
           )}
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 dark:border-slate-800 overflow-hidden">
+        <div className="bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800 dark:border-neutral-800 overflow-hidden">
           <div id="analytics-map" style={{ width: '100%', height: '500px' }} />
           {!mapLoaded && (
             <div className="absolute inset-0 flex items-center justify-center bg-white/50">
-              <p className="text-slate-600 dark:text-slate-300">Loading map...</p>
+              <p className="text-slate-600 dark:text-neutral-200">Loading map...</p>
             </div>
           )}
         </div>
 
         {cities.length > 0 && (
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 dark:border-slate-800 overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 dark:border-slate-800 flex items-center gap-2">
+          <div className="bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800 dark:border-neutral-800 overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-neutral-800 dark:border-neutral-800 flex items-center gap-2">
               <MapPin className="w-5 h-5 text-blue-600" />
               <h2 className="text-lg font-bold text-slate-900 dark:text-white dark:text-white">Visitors by City</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50 dark:bg-slate-800/40 dark:bg-slate-800">
+                <thead className="bg-slate-50 dark:bg-neutral-900/40 dark:bg-neutral-900">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-slate-300 dark:text-slate-300">City</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-slate-300 dark:text-slate-300">Country</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-slate-300 dark:text-slate-300">Visitors</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-slate-300 dark:text-slate-300">Users</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200 dark:text-neutral-200">City</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200 dark:text-neutral-200">Country</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200 dark:text-neutral-200">Visitors</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200 dark:text-neutral-200">Users</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-slate-800">
+                <tbody className="divide-y divide-gray-200 dark:divide-neutral-800">
                   {cities.map((city, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50 dark:bg-slate-800/40 dark:hover:bg-slate-800 cursor-pointer">
+                    <tr key={idx} className="hover:bg-slate-50 dark:bg-neutral-900/40 dark:hover:bg-neutral-900 cursor-pointer">
                       <td className="px-6 py-3 text-sm font-semibold text-slate-900 dark:text-white dark:text-white">{city.city}</td>
                       <td className="px-6 py-3 text-sm text-slate-900 dark:text-white dark:text-white">{city.country}</td>
                       <td className="px-6 py-3 text-sm font-bold text-blue-600">{city.visitor_count.toLocaleString()}</td>
@@ -217,17 +217,17 @@ export default function GeographicAnalytics() {
         )}
 
         {countries.length > 0 && (
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 dark:border-slate-800 overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 dark:border-slate-800 flex items-center gap-2">
+          <div className="bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800 dark:border-neutral-800 overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-neutral-800 dark:border-neutral-800 flex items-center gap-2">
               <Globe className="w-5 h-5 text-purple-600" />
               <h2 className="text-lg font-bold text-slate-900 dark:text-white dark:text-white">Visitors by Country</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
               {countries.map((country, idx) => (
-                <div key={idx} className="p-4 bg-slate-50 dark:bg-slate-800/40 dark:bg-slate-800 rounded-lg">
+                <div key={idx} className="p-4 bg-slate-50 dark:bg-neutral-900/40 dark:bg-neutral-900 rounded-lg">
                   <p className="font-semibold text-slate-900 dark:text-white dark:text-white">{country.country}</p>
                   <p className="text-2xl font-black text-purple-600 mt-2">{country.visitor_count.toLocaleString()}</p>
-                  <p className="text-xs text-slate-400 dark:text-slate-400 mt-1">{country.unique_users} unique</p>
+                  <p className="text-xs text-slate-400 dark:text-neutral-300 mt-1">{country.unique_users} unique</p>
                 </div>
               ))}
             </div>

@@ -14,13 +14,13 @@ function UserRow({ user, action }: { user: User; action?: React.ReactNode }) {
     return (
         <Link
             href={`/shop/${user.id}`}
-            className="flex items-center gap-3 p-3 rounded-2xl border border-gray-200 bg-white hover:bg-slate-50 dark:bg-slate-900 dark:border-slate-800 dark:hover:bg-slate-800/60"
+            className="flex items-center gap-3 p-3 rounded-2xl border border-gray-200 bg-white hover:bg-slate-50 dark:bg-neutral-950 dark:border-neutral-800 dark:hover:bg-neutral-900/60"
         >
-            <div className="h-11 w-11 rounded-full overflow-hidden bg-slate-100 border border-gray-200 dark:bg-slate-800 dark:border-slate-700 shrink-0 flex items-center justify-center text-sm font-black text-gray-500 dark:text-slate-300">
+            <div className="h-11 w-11 rounded-full overflow-hidden bg-slate-100 border border-gray-200 dark:bg-neutral-900 dark:border-neutral-800 shrink-0 flex items-center justify-center text-sm font-black text-gray-500 dark:text-neutral-200">
                 {avatar ? <img src={avatar} alt={user.full_name} className="h-full w-full object-cover" /> : user.full_name.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                <h4 className="text-sm font-bold text-gray-900 dark:text-slate-100 truncate">{user.full_name}</h4>
+                <h4 className="text-sm font-bold text-gray-900 dark:text-neutral-50 truncate">{user.full_name}</h4>
                 {user.is_verified && <ShieldCheck className="h-3.5 w-3.5 text-accent shrink-0" />}
             </div>
             {action}
@@ -73,9 +73,9 @@ export default function FollowingPage() {
 
     return (
         <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
-            <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100 font-poppins">Followers & Following</h1>
+            <h1 className="text-2xl font-black text-gray-900 dark:text-neutral-50 font-poppins">Followers & Following</h1>
 
-            <div className="flex gap-2 border-b border-gray-100 dark:border-slate-800">
+            <div className="flex gap-2 border-b border-gray-100 dark:border-neutral-800">
                 {(['followers', 'following'] as const).map((t) => (
                     <button
                         key={t}
@@ -92,7 +92,7 @@ export default function FollowingPage() {
             {loading ? (
                 <div className="space-y-2">
                     {Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} className="h-16 rounded-2xl bg-gray-100 dark:bg-slate-900 animate-pulse" />
+                        <div key={i} className="h-16 rounded-2xl bg-gray-100 dark:bg-neutral-950 animate-pulse" />
                     ))}
                 </div>
             ) : list.length > 0 ? (
@@ -104,7 +104,7 @@ export default function FollowingPage() {
                             action={tab === 'following' ? (
                                 <button
                                     onClick={(e) => { e.preventDefault(); handleUnfollow(u.id); }}
-                                    className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold bg-slate-100 text-gray-600 hover:bg-red-50 hover:text-red-500 dark:bg-slate-800 dark:text-slate-300 cursor-pointer"
+                                    className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold bg-slate-100 text-gray-600 hover:bg-red-50 hover:text-red-500 dark:bg-neutral-900 dark:text-neutral-200 cursor-pointer"
                                 >
                                     <UserMinus className="h-3.5 w-3.5" />
                                     Unfollow

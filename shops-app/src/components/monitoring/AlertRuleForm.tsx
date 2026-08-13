@@ -96,15 +96,15 @@ export const AlertRuleForm: React.FC<AlertRuleFormProps> = ({ rule, onClose, onS
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-lg max-w-2xl w-full shadow-lg max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-neutral-950 rounded-lg max-w-2xl w-full shadow-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-900">
+        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-neutral-800 sticky top-0 bg-white dark:bg-neutral-950">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
             {rule ? 'Edit Alert Rule' : 'Create Alert Rule'}
           </h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200"
           >
             <X className="h-5 w-5" />
           </button>
@@ -114,7 +114,7 @@ export const AlertRuleForm: React.FC<AlertRuleFormProps> = ({ rule, onClose, onS
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">
               Rule Name *
             </label>
             <input
@@ -123,13 +123,13 @@ export const AlertRuleForm: React.FC<AlertRuleFormProps> = ({ rule, onClose, onS
               onChange={(e) => handleChange('name', e.target.value)}
               placeholder="e.g., High Notification Failure Rate"
               maxLength={255}
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">
               Description
             </label>
             <textarea
@@ -137,20 +137,20 @@ export const AlertRuleForm: React.FC<AlertRuleFormProps> = ({ rule, onClose, onS
               onChange={(e) => handleChange('description', e.target.value)}
               placeholder="Describe when this alert should trigger..."
               rows={2}
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
           </div>
 
           {/* Metric Selection */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">
                 Metric *
               </label>
               <select
                 value={formData.metric}
                 onChange={(e) => handleChange('metric', e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
               >
                 {METRICS.map((m) => (
                   <option key={m.value} value={m.value}>
@@ -161,13 +161,13 @@ export const AlertRuleForm: React.FC<AlertRuleFormProps> = ({ rule, onClose, onS
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">
                 Operator *
               </label>
               <select
                 value={formData.comparison_operator}
                 onChange={(e) => handleChange('comparison_operator', e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
               >
                 {OPERATORS.map((op) => (
                   <option key={op.value} value={op.value}>
@@ -181,7 +181,7 @@ export const AlertRuleForm: React.FC<AlertRuleFormProps> = ({ rule, onClose, onS
           {/* Threshold */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">
                 Threshold Value *
               </label>
               <input
@@ -190,18 +190,18 @@ export const AlertRuleForm: React.FC<AlertRuleFormProps> = ({ rule, onClose, onS
                 onChange={(e) => handleChange('threshold', parseFloat(e.target.value))}
                 step="0.1"
                 min="0"
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">
                 Severity *
               </label>
               <select
                 value={formData.severity}
                 onChange={(e) => handleChange('severity', e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
               >
                 {SEVERITIES.map((s) => (
                   <option key={s.value} value={s.value}>
@@ -214,12 +214,12 @@ export const AlertRuleForm: React.FC<AlertRuleFormProps> = ({ rule, onClose, onS
 
           {/* Advanced Settings */}
           <details className="pt-2">
-            <summary className="cursor-pointer text-sm font-medium text-slate-700 dark:text-slate-300">
+            <summary className="cursor-pointer text-sm font-medium text-slate-700 dark:text-neutral-200">
               Advanced Settings
             </summary>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">
                   Evaluation Window (minutes)
                 </label>
                 <input
@@ -228,18 +228,18 @@ export const AlertRuleForm: React.FC<AlertRuleFormProps> = ({ rule, onClose, onS
                   onChange={(e) => handleChange('evaluation_window_minutes', parseInt(e.target.value))}
                   min="1"
                   max="60"
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">
                   Aggregation Function
                 </label>
                 <select
                   value={formData.aggregation_function}
                   onChange={(e) => handleChange('aggregation_function', e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                 >
                   <option value="avg">Average</option>
                   <option value="max">Maximum</option>
@@ -252,7 +252,7 @@ export const AlertRuleForm: React.FC<AlertRuleFormProps> = ({ rule, onClose, onS
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">
                   Notification Channel
                 </label>
                 <input
@@ -260,12 +260,12 @@ export const AlertRuleForm: React.FC<AlertRuleFormProps> = ({ rule, onClose, onS
                   value={formData.notification_channel}
                   onChange={(e) => handleChange('notification_channel', e.target.value)}
                   placeholder="e.g., email, slack"
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">
                   Notification Target
                 </label>
                 <input
@@ -273,7 +273,7 @@ export const AlertRuleForm: React.FC<AlertRuleFormProps> = ({ rule, onClose, onS
                   value={formData.notification_target}
                   onChange={(e) => handleChange('notification_target', e.target.value)}
                   placeholder="e.g., admin@example.com"
-                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
               </div>
             </div>
@@ -296,11 +296,11 @@ export const AlertRuleForm: React.FC<AlertRuleFormProps> = ({ rule, onClose, onS
         </form>
 
         {/* Footer */}
-        <div className="flex gap-3 p-6 border-t border-slate-200 dark:border-slate-800 sticky bottom-0 bg-white dark:bg-slate-900">
+        <div className="flex gap-3 p-6 border-t border-slate-200 dark:border-neutral-800 sticky bottom-0 bg-white dark:bg-neutral-950">
           <button
             onClick={onClose}
             disabled={store.saveLoading}
-            className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 font-medium transition-colors"
+            className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-neutral-700 text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-900 disabled:opacity-50 font-medium transition-colors"
           >
             Cancel
           </button>

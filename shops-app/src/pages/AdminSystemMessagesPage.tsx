@@ -152,7 +152,7 @@ export default function SystemMessagesPage() {
             <MessageCircle className="w-8 h-8 text-blue-600" />
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white">System Messages</h1>
           </div>
-          <p className="text-slate-600 dark:text-slate-300">Send messages from Suqafuran account to users</p>
+          <p className="text-slate-600 dark:text-neutral-200">Send messages from Suqafuran account to users</p>
         </div>
 
         {/* Info Card */}
@@ -174,7 +174,7 @@ export default function SystemMessagesPage() {
             className={`px-6 py-2 rounded-lg font-medium transition ${
               mode === 'single'
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-slate-800 dark:text-slate-200 hover:bg-gray-300'
+                : 'bg-gray-200 text-slate-800 dark:text-neutral-100 hover:bg-gray-300'
             }`}
           >
             Send to One User
@@ -184,7 +184,7 @@ export default function SystemMessagesPage() {
             className={`px-6 py-2 rounded-lg font-medium transition ${
               mode === 'bulk'
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-slate-800 dark:text-slate-200 hover:bg-gray-300'
+                : 'bg-gray-200 text-slate-800 dark:text-neutral-100 hover:bg-gray-300'
             }`}
           >
             Send to Multiple Users
@@ -249,13 +249,13 @@ export default function SystemMessagesPage() {
               />
               <div className="flex justify-between items-center mt-2">
                 <p className="text-xs text-slate-400">Max 5,000 characters</p>
-                <span className="text-xs text-slate-600 dark:text-slate-300">{message.length}/5,000</span>
+                <span className="text-xs text-slate-600 dark:text-neutral-200">{message.length}/5,000</span>
               </div>
             </div>
 
             {/* Dry Run for Bulk */}
             {mode === 'bulk' && (
-              <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
+              <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-neutral-900/40 rounded-lg">
                 <input
                   type="checkbox"
                   checked={dryRun}
@@ -263,7 +263,7 @@ export default function SystemMessagesPage() {
                   id="dry-run"
                   className="w-4 h-4 rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
                 />
-                <label htmlFor="dry-run" className="text-sm text-slate-700 dark:text-slate-300">
+                <label htmlFor="dry-run" className="text-sm text-slate-700 dark:text-neutral-200">
                   <strong>Dry run:</strong> Validate recipients without sending messages
                 </label>
               </div>

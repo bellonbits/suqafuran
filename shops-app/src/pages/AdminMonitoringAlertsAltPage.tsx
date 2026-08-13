@@ -107,34 +107,34 @@ export default function AlertsPage() {
         {/* Stats */}
         {store.stats && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Active Rules</p>
+            <div className="bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800 p-4">
+              <p className="text-sm font-medium text-slate-600 dark:text-neutral-300 mb-1">Active Rules</p>
               <p className="text-2xl font-bold text-slate-900 dark:text-white">{store.stats.active_rules}</p>
             </div>
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Firing Alerts</p>
+            <div className="bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800 p-4">
+              <p className="text-sm font-medium text-slate-600 dark:text-neutral-300 mb-1">Firing Alerts</p>
               <p className="text-2xl font-bold text-red-600 dark:text-red-400">{store.stats.firing_alerts}</p>
             </div>
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Resolved</p>
+            <div className="bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800 p-4">
+              <p className="text-sm font-medium text-slate-600 dark:text-neutral-300 mb-1">Resolved</p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">{store.stats.resolved_alerts}</p>
             </div>
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Total (24h)</p>
+            <div className="bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800 p-4">
+              <p className="text-sm font-medium text-slate-600 dark:text-neutral-300 mb-1">Total (24h)</p>
               <p className="text-2xl font-bold text-slate-900 dark:text-white">{store.stats.total_alerts}</p>
             </div>
           </div>
         )}
 
         {/* Tabs */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-          <div className="flex gap-0 border-b border-slate-200 dark:border-slate-800 overflow-x-auto">
+        <div className="bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800">
+          <div className="flex gap-0 border-b border-slate-200 dark:border-neutral-800 overflow-x-auto">
             <button
               onClick={() => setActiveTab('rules')}
               className={`flex-1 px-4 sm:px-6 py-4 font-medium text-sm transition-colors whitespace-nowrap ${
                 activeTab === 'rules'
                   ? 'text-orange-600 dark:text-orange-400 border-b-2 border-orange-600'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  : 'text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100'
               }`}
             >
               Alert Rules
@@ -144,7 +144,7 @@ export default function AlertsPage() {
               className={`flex-1 px-4 sm:px-6 py-4 font-medium text-sm transition-colors whitespace-nowrap ${
                 activeTab === 'history'
                   ? 'text-orange-600 dark:text-orange-400 border-b-2 border-orange-600'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  : 'text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-100'
               }`}
             >
               Alert History
@@ -179,14 +179,14 @@ export default function AlertsPage() {
 
               {!store.rulesLoading && store.rules.length === 0 && (
                 <div className="text-center py-12">
-                  <p className="text-slate-600 dark:text-slate-400">No alert rules yet</p>
+                  <p className="text-slate-600 dark:text-neutral-300">No alert rules yet</p>
                 </div>
               )}
 
               {!store.rulesLoading && store.rules.length > 0 && (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
+                    <thead className="border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900">
                       <tr>
                         <th className="px-4 py-3 text-left font-semibold text-slate-900 dark:text-white">Rule</th>
                         <th className="px-4 py-3 text-left font-semibold text-slate-900 dark:text-white hidden sm:table-cell">Metric</th>
@@ -196,19 +196,19 @@ export default function AlertsPage() {
                         <th className="px-4 py-3 text-center font-semibold text-slate-900 dark:text-white">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                    <tbody className="divide-y divide-slate-200 dark:divide-neutral-800">
                       {store.rules.map((rule) => (
-                        <tr key={rule.id} className="hover:bg-slate-50 dark:hover:bg-slate-800">
+                        <tr key={rule.id} className="hover:bg-slate-50 dark:hover:bg-neutral-900">
                           <td className="px-4 py-3">
                             <p className="font-medium text-slate-900 dark:text-white text-sm">{rule.name}</p>
                             {rule.description && (
-                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">{rule.description}</p>
+                              <p className="text-xs text-slate-500 dark:text-neutral-300 mt-1 line-clamp-1">{rule.description}</p>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-xs font-mono text-slate-600 dark:text-slate-400 hidden sm:table-cell">
+                          <td className="px-4 py-3 text-xs font-mono text-slate-600 dark:text-neutral-300 hidden sm:table-cell">
                             {rule.metric}
                           </td>
-                          <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 hidden md:table-cell">
+                          <td className="px-4 py-3 text-sm text-slate-600 dark:text-neutral-300 hidden md:table-cell">
                             {rule.comparison_operator} {rule.threshold}
                           </td>
                           <td className="px-4 py-3">
@@ -229,7 +229,7 @@ export default function AlertsPage() {
                               className={`text-xs px-2 py-1 rounded font-medium ${
                                 rule.enabled
                                   ? 'bg-emerald-50 dark:bg-emerald-950/30 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 dark:bg-gray-900 dark:text-gray-200'
+                                  : 'bg-slate-100 dark:bg-neutral-900 text-slate-800 dark:text-neutral-100 dark:bg-gray-900 dark:text-gray-200'
                               }`}
                             >
                               {rule.enabled ? 'Active' : 'Inactive'}
@@ -254,8 +254,8 @@ export default function AlertsPage() {
                             </div>
 
                             {deleteConfirm === rule.id && (
-                              <div className="absolute mt-2 bg-white dark:bg-slate-800 rounded shadow-lg p-2 text-xs space-y-2 z-50">
-                                <p className="text-slate-700 dark:text-slate-300">Delete this rule?</p>
+                              <div className="absolute mt-2 bg-white dark:bg-neutral-900 rounded shadow-lg p-2 text-xs space-y-2 z-50">
+                                <p className="text-slate-700 dark:text-neutral-200">Delete this rule?</p>
                                 <div className="flex gap-2">
                                   <button
                                     onClick={() => handleDelete(rule.id)}
@@ -265,7 +265,7 @@ export default function AlertsPage() {
                                   </button>
                                   <button
                                     onClick={() => setDeleteConfirm(null)}
-                                    className="px-2 py-1 bg-slate-300 dark:bg-slate-600 rounded hover:bg-slate-400 text-xs"
+                                    className="px-2 py-1 bg-slate-300 dark:bg-neutral-700 rounded hover:bg-slate-400 text-xs"
                                   >
                                     Cancel
                                   </button>
@@ -283,7 +283,7 @@ export default function AlertsPage() {
               {/* Pagination */}
               {rulesPageCount > 1 && (
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 text-xs sm:text-sm">
-                  <p className="text-slate-600 dark:text-slate-400">
+                  <p className="text-slate-600 dark:text-neutral-300">
                     Showing {(store.rulesPage - 1) * store.rulesLimit + 1}-
                     {Math.min(store.rulesPage * store.rulesLimit, store.totalRules)} of {store.totalRules}
                   </p>
@@ -291,14 +291,14 @@ export default function AlertsPage() {
                     <button
                       onClick={() => store.setRulesPage(Math.max(1, store.rulesPage - 1))}
                       disabled={store.rulesPage === 1}
-                      className="p-2 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50"
+                      className="p-2 rounded border border-slate-300 dark:border-neutral-700 text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-900 disabled:opacity-50"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => store.setRulesPage(Math.min(rulesPageCount, store.rulesPage + 1))}
                       disabled={store.rulesPage === rulesPageCount}
-                      className="p-2 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50"
+                      className="p-2 rounded border border-slate-300 dark:border-neutral-700 text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-900 disabled:opacity-50"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </button>
@@ -313,11 +313,11 @@ export default function AlertsPage() {
             <div className="p-4 sm:p-6 space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Lookback Period</label>
+                  <label className="text-sm font-medium text-slate-700 dark:text-neutral-200">Lookback Period</label>
                   <select
                     value={store.historyHours}
                     onChange={(e) => store.setHistoryHours(parseInt(e.target.value))}
-                    className="mt-1 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
+                    className="mt-1 px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-white text-sm"
                   >
                     <option value={1}>Last 1 hour</option>
                     <option value={6}>Last 6 hours</option>
@@ -342,7 +342,7 @@ export default function AlertsPage() {
 
               {!store.historyLoading && store.history.length === 0 && (
                 <div className="text-center py-12">
-                  <p className="text-slate-600 dark:text-slate-400">No alerts in this period</p>
+                  <p className="text-slate-600 dark:text-neutral-300">No alerts in this period</p>
                 </div>
               )}
 
@@ -370,15 +370,15 @@ export default function AlertsPage() {
                               {alert.status === 'firing' ? 'Firing' : 'Resolved'}
                             </span>
                             {alert.value !== undefined && (
-                              <span className="text-xs font-mono text-slate-600 dark:text-slate-400">
+                              <span className="text-xs font-mono text-slate-600 dark:text-neutral-300">
                                 Value: {alert.value.toFixed(2)}
                               </span>
                             )}
                           </div>
                           {alert.message && (
-                            <p className="text-sm text-slate-700 dark:text-slate-300 mt-2 line-clamp-2">{alert.message}</p>
+                            <p className="text-sm text-slate-700 dark:text-neutral-200 mt-2 line-clamp-2">{alert.message}</p>
                           )}
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          <p className="text-xs text-slate-500 dark:text-neutral-300 mt-1">
                             {new Date(alert.fired_at).toLocaleString()}
                           </p>
                         </div>
@@ -400,7 +400,7 @@ export default function AlertsPage() {
               {/* Pagination */}
               {historyPageCount > 1 && (
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 text-xs sm:text-sm">
-                  <p className="text-slate-600 dark:text-slate-400">
+                  <p className="text-slate-600 dark:text-neutral-300">
                     Showing {(store.historyPage - 1) * store.historyLimit + 1}-
                     {Math.min(store.historyPage * store.historyLimit, store.totalHistory)} of {store.totalHistory}
                   </p>
@@ -408,14 +408,14 @@ export default function AlertsPage() {
                     <button
                       onClick={() => store.setHistoryPage(Math.max(1, store.historyPage - 1))}
                       disabled={store.historyPage === 1}
-                      className="p-2 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50"
+                      className="p-2 rounded border border-slate-300 dark:border-neutral-700 text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-900 disabled:opacity-50"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => store.setHistoryPage(Math.min(historyPageCount, store.historyPage + 1))}
                       disabled={store.historyPage === historyPageCount}
-                      className="p-2 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50"
+                      className="p-2 rounded border border-slate-300 dark:border-neutral-700 text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-900 disabled:opacity-50"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </button>

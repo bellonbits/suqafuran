@@ -99,13 +99,13 @@ export default function EmailAnalyticsPage() {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Email Campaign Analytics</h1>
-          <p className="text-slate-600 dark:text-slate-300 mt-2">Monitor email performance and engagement metrics</p>
+          <p className="text-slate-600 dark:text-neutral-200 mt-2">Monitor email performance and engagement metrics</p>
         </div>
 
         {/* Filters */}
         <div className="flex gap-4 flex-wrap">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Time Period</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">Time Period</label>
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
@@ -118,7 +118,7 @@ export default function EmailAnalyticsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Email Type</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">Email Type</label>
             <select
               value={selectedEvent}
               onChange={(e) => setSelectedEvent(e.target.value)}
@@ -178,7 +178,7 @@ export default function EmailAnalyticsPage() {
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Performance by Email Type</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-slate-50 dark:bg-slate-800/40 border-b">
+                <thead className="bg-slate-50 dark:bg-neutral-900/40 border-b">
                   <tr>
                     <th className="px-4 py-3 text-left font-semibold">Email Type</th>
                     <th className="px-4 py-3 text-left font-semibold">Sent</th>
@@ -190,7 +190,7 @@ export default function EmailAnalyticsPage() {
                 </thead>
                 <tbody className="divide-y">
                   {Object.entries(stats.by_event_type).map(([type, data]) => (
-                    <tr key={type} className="hover:bg-slate-50 dark:bg-slate-800/40">
+                    <tr key={type} className="hover:bg-slate-50 dark:bg-neutral-900/40">
                       <td className="px-4 py-3 font-medium capitalize">{type.replace(/_/g, ' ')}</td>
                       <td className="px-4 py-3">{data.sent.toLocaleString()}</td>
                       <td className="px-4 py-3">{data.opened.toLocaleString()}</td>
@@ -222,7 +222,7 @@ export default function EmailAnalyticsPage() {
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Recent Campaigns</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-800/40 border-b">
+              <thead className="bg-slate-50 dark:bg-neutral-900/40 border-b">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold">Subject</th>
                   <th className="px-4 py-3 text-left font-semibold">Type</th>
@@ -240,14 +240,14 @@ export default function EmailAnalyticsPage() {
                   </tr>
                 ) : (
                   campaigns.map((campaign) => (
-                    <tr key={campaign.id} className="hover:bg-slate-50 dark:bg-slate-800/40">
+                    <tr key={campaign.id} className="hover:bg-slate-50 dark:bg-neutral-900/40">
                       <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">{campaign.subject}</td>
                       <td className="px-4 py-3">
                         <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950/30 text-blue-800">
                           {campaign.event_type.replace(/_/g, ' ')}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                      <td className="px-4 py-3 text-slate-600 dark:text-neutral-200">
                         {new Date(campaign.sent_at).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-3">
@@ -323,7 +323,7 @@ function StatCard({
     <Card className="p-6">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-slate-600 dark:text-slate-300">{title}</p>
+          <p className="text-sm text-slate-600 dark:text-neutral-200">{title}</p>
           <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">{value}</p>
           {subtitle && <p className="text-xs text-slate-400 mt-1">{subtitle}</p>}
         </div>

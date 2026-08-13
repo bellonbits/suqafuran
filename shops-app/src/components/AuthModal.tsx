@@ -217,12 +217,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode: ini
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.9, opacity: 0 }}
-                        className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md p-8 relative overflow-y-auto max-h-[90vh]"
+                        className="bg-white dark:bg-neutral-950 rounded-2xl shadow-2xl w-full max-w-md p-8 relative overflow-y-auto max-h-[90vh]"
                     >
                         {/* Close Button */}
                         <button
                             onClick={onClose}
-                            className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                            className="absolute top-4 right-4 p-2 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-full transition-colors"
                         >
                             <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                         </button>
@@ -259,7 +259,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode: ini
                                         className={`w-full p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${
                                             authMode === 'email'
                                                 ? 'border-sky-600 bg-[#e0f7ff] dark:bg-sky-900/20'
-                                                : 'border-gray-200 dark:border-slate-700 hover:border-sky-600'
+                                                : 'border-gray-200 dark:border-neutral-800 hover:border-sky-600'
                                         }`}
                                     >
                                         <Mail className={`w-5 h-5 ${authMode === 'email' ? 'text-[#6cd4ff]' : 'text-gray-600'}`} />
@@ -277,7 +277,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode: ini
                                         className={`w-full p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${
                                             authMode === 'phone'
                                                 ? 'border-sky-600 bg-[#e0f7ff] dark:bg-sky-900/20'
-                                                : 'border-gray-200 dark:border-slate-700 hover:border-sky-600'
+                                                : 'border-gray-200 dark:border-neutral-800 hover:border-sky-600'
                                         }`}
                                     >
                                         <Phone className={`w-5 h-5 ${authMode === 'phone' ? 'text-[#6cd4ff]' : 'text-gray-600'}`} />
@@ -319,7 +319,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode: ini
                                     placeholder="your@email.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full px-4 py-3 mb-4 rounded-full border-2 border-gray-200 dark:border-slate-700 focus:border-sky-600 dark:focus:border-sky-600 outline-none transition-colors text-gray-900 dark:text-white bg-white dark:bg-slate-800"
+                                    className="w-full px-4 py-3 mb-4 rounded-full border-2 border-gray-200 dark:border-neutral-800 focus:border-sky-600 dark:focus:border-sky-600 outline-none transition-colors text-gray-900 dark:text-white bg-white dark:bg-neutral-900"
                                 />
 
                                 {mode === 'signup' && (
@@ -329,7 +329,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode: ini
                                             placeholder="Your full name"
                                             value={fullName}
                                             onChange={(e) => setFullName(e.target.value)}
-                                            className="w-full px-4 py-3 mb-4 rounded-full border-2 border-gray-200 dark:border-slate-700 focus:border-sky-600 dark:focus:border-sky-600 outline-none transition-colors text-gray-900 dark:text-white bg-white dark:bg-slate-800"
+                                            className="w-full px-4 py-3 mb-4 rounded-full border-2 border-gray-200 dark:border-neutral-800 focus:border-sky-600 dark:focus:border-sky-600 outline-none transition-colors text-gray-900 dark:text-white bg-white dark:bg-neutral-900"
                                         />
                                     </>
                                 )}
@@ -340,7 +340,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode: ini
                                         placeholder="Password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full px-4 py-3 rounded-full border-2 border-gray-200 dark:border-slate-700 focus:border-sky-600 dark:focus:border-sky-600 outline-none transition-colors text-gray-900 dark:text-white bg-white dark:bg-slate-800"
+                                        className="w-full px-4 py-3 rounded-full border-2 border-gray-200 dark:border-neutral-800 focus:border-sky-600 dark:focus:border-sky-600 outline-none transition-colors text-gray-900 dark:text-white bg-white dark:bg-neutral-900"
                                     />
                                     <button
                                         type="button"
@@ -358,7 +358,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode: ini
                                             placeholder="Confirm password"
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
-                                            className="w-full px-4 py-3 rounded-full border-2 border-gray-200 dark:border-slate-700 focus:border-sky-600 dark:focus:border-sky-600 outline-none transition-colors text-gray-900 dark:text-white bg-white dark:bg-slate-800"
+                                            className="w-full px-4 py-3 rounded-full border-2 border-gray-200 dark:border-neutral-800 focus:border-sky-600 dark:focus:border-sky-600 outline-none transition-colors text-gray-900 dark:text-white bg-white dark:bg-neutral-900"
                                         />
                                         <button
                                             type="button"
@@ -400,7 +400,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode: ini
                                     placeholder="+254 712 345 678"
                                     value={phone}
                                     onChange={(e) => setPhone(e.target.value)}
-                                    className="w-full px-4 py-3 mb-4 rounded-full border-2 border-gray-200 dark:border-slate-700 focus:border-sky-600 dark:focus:border-sky-600 outline-none transition-colors text-gray-900 dark:text-white bg-white dark:bg-slate-800"
+                                    className="w-full px-4 py-3 mb-4 rounded-full border-2 border-gray-200 dark:border-neutral-800 focus:border-sky-600 dark:focus:border-sky-600 outline-none transition-colors text-gray-900 dark:text-white bg-white dark:bg-neutral-900"
                                 />
 
                                 {mode === 'signup' && (
@@ -409,7 +409,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode: ini
                                         placeholder="Your full name"
                                         value={phoneFullName}
                                         onChange={(e) => setPhoneFullName(e.target.value)}
-                                        className="w-full px-4 py-3 mb-6 rounded-full border-2 border-gray-200 dark:border-slate-700 focus:border-sky-600 dark:focus:border-sky-600 outline-none transition-colors text-gray-900 dark:text-white bg-white dark:bg-slate-800"
+                                        className="w-full px-4 py-3 mb-6 rounded-full border-2 border-gray-200 dark:border-neutral-800 focus:border-sky-600 dark:focus:border-sky-600 outline-none transition-colors text-gray-900 dark:text-white bg-white dark:bg-neutral-900"
                                     />
                                 )}
 
@@ -444,7 +444,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode: ini
                                     value={otp}
                                     onChange={(e) => setOtp(e.target.value.slice(0, 6).replace(/\D/g, ''))}
                                     maxLength={6}
-                                    className="w-full px-4 py-3 mb-6 rounded-full border-2 border-gray-200 dark:border-slate-700 focus:border-sky-600 dark:focus:border-sky-600 outline-none transition-colors text-gray-900 dark:text-white bg-white dark:bg-slate-800 text-center text-2xl tracking-widest font-bold"
+                                    className="w-full px-4 py-3 mb-6 rounded-full border-2 border-gray-200 dark:border-neutral-800 focus:border-sky-600 dark:focus:border-sky-600 outline-none transition-colors text-gray-900 dark:text-white bg-white dark:bg-neutral-900 text-center text-2xl tracking-widest font-bold"
                                 />
 
                                 <motion.button

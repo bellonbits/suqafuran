@@ -48,12 +48,12 @@ export const LiveEventsFeed: React.FC = () => {
 
   if (store.filteredEvents.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-        <Clock className="h-12 w-12 text-slate-300 dark:text-slate-700 mb-4" />
-        <p className="text-slate-600 dark:text-slate-400 font-medium">
+      <div className="flex flex-col items-center justify-center h-64 bg-slate-50 dark:bg-neutral-900 rounded-lg border border-slate-200 dark:border-neutral-800">
+        <Clock className="h-12 w-12 text-slate-300 dark:text-neutral-200 mb-4" />
+        <p className="text-slate-600 dark:text-neutral-300 font-medium">
           {store.isConnected ? 'Waiting for events...' : 'Not connected'}
         </p>
-        <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
+        <p className="text-sm text-slate-500 dark:text-neutral-400 mt-1">
           {store.isConnected ? 'Events will appear here in real-time' : 'Connect to stream to see events'}
         </p>
       </div>
@@ -75,13 +75,13 @@ export const LiveEventsFeed: React.FC = () => {
                 <p className="font-medium text-slate-900 dark:text-white">
                   {formatEventType(event.event_type)}
                 </p>
-                <p className="text-xs text-slate-600 dark:text-slate-400 shrink-0">
+                <p className="text-xs text-slate-600 dark:text-neutral-300 shrink-0">
                   {formatTime(event.timestamp)}
                 </p>
               </div>
 
               <div className="mt-1 flex items-center gap-2 flex-wrap">
-                <span className="text-xs px-2 py-0.5 bg-white dark:bg-slate-700 rounded text-slate-600 dark:text-slate-400">
+                <span className="text-xs px-2 py-0.5 bg-white dark:bg-neutral-800 rounded text-slate-600 dark:text-neutral-300">
                   {event.service}
                 </span>
                 <span
@@ -99,19 +99,19 @@ export const LiveEventsFeed: React.FC = () => {
 
               {/* Event data */}
               {Object.keys(event.data).length > 0 && (
-                <div className="mt-2 text-xs text-slate-700 dark:text-slate-300 space-y-1">
+                <div className="mt-2 text-xs text-slate-700 dark:text-neutral-200 space-y-1">
                   {Object.entries(event.data)
                     .slice(0, 3)
                     .map(([key, value]) => (
                       <div key={key} className="font-mono">
-                        <span className="text-slate-600 dark:text-slate-400">{key}:</span>{' '}
+                        <span className="text-slate-600 dark:text-neutral-300">{key}:</span>{' '}
                         <span>
                           {typeof value === 'object' ? JSON.stringify(value) : String(value).substring(0, 50)}
                         </span>
                       </div>
                     ))}
                   {Object.keys(event.data).length > 3 && (
-                    <p className="text-slate-600 dark:text-slate-400">
+                    <p className="text-slate-600 dark:text-neutral-300">
                       +{Object.keys(event.data).length - 3} more fields
                     </p>
                   )}
@@ -122,13 +122,13 @@ export const LiveEventsFeed: React.FC = () => {
               {(event.trace_id || event.correlation_id) && (
                 <div className="mt-2 text-xs space-y-1">
                   {event.trace_id && (
-                    <p className="text-slate-600 dark:text-slate-400 font-mono">
-                      trace: <span className="text-slate-500 dark:text-slate-400">{event.trace_id.substring(0, 16)}...</span>
+                    <p className="text-slate-600 dark:text-neutral-300 font-mono">
+                      trace: <span className="text-slate-500 dark:text-neutral-300">{event.trace_id.substring(0, 16)}...</span>
                     </p>
                   )}
                   {event.correlation_id && (
-                    <p className="text-slate-600 dark:text-slate-400 font-mono">
-                      corr: <span className="text-slate-500 dark:text-slate-400">{event.correlation_id.substring(0, 16)}...</span>
+                    <p className="text-slate-600 dark:text-neutral-300 font-mono">
+                      corr: <span className="text-slate-500 dark:text-neutral-300">{event.correlation_id.substring(0, 16)}...</span>
                     </p>
                   )}
                 </div>

@@ -107,7 +107,7 @@ const AdminDashboardPagePlaceholder = () => (
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col min-h-screen bg-white dark:bg-slate-950">
+    <div className="flex flex-col min-h-screen bg-white dark:bg-black">
       <Header />
       <div style={{ height: 'calc(env(safe-area-inset-top, 0px) + 3rem)' }} className="shrink-0 w-full md:hidden" />
       <div className="shrink-0 w-full hidden md:block h-16" />

@@ -90,7 +90,7 @@ export default function NotificationsMonitoringPage() {
       onAutoRefreshChange={setAutoRefresh}
     >
       {/* Filter Bar */}
-      <div className="mb-6 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
+      <div className="mb-6 bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800 p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
             <Filter className="h-4 w-4" />
@@ -109,13 +109,13 @@ export default function NotificationsMonitoringPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Channel Filter */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-2">
+            <label className="block text-xs font-medium text-slate-700 dark:text-neutral-200 mb-2">
               Channel
             </label>
             <select
               value={store.filterChannel || ''}
               onChange={(e) => handleFilterChange('channel', e.target.value || null)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
               <option value="">All Channels</option>
               {CHANNELS.map((ch) => (
@@ -128,13 +128,13 @@ export default function NotificationsMonitoringPage() {
 
           {/* Event Type Filter */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-2">
+            <label className="block text-xs font-medium text-slate-700 dark:text-neutral-200 mb-2">
               Event Type
             </label>
             <select
               value={store.filterEventType || ''}
               onChange={(e) => handleFilterChange('eventType', e.target.value || null)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
               <option value="">All Event Types</option>
               {EVENT_TYPES.map((evt) => (
@@ -147,13 +147,13 @@ export default function NotificationsMonitoringPage() {
 
           {/* Status Filter */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-2">
+            <label className="block text-xs font-medium text-slate-700 dark:text-neutral-200 mb-2">
               Status
             </label>
             <select
               value={store.filterStatus || ''}
               onChange={(e) => handleFilterChange('status', e.target.value || null)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
               <option value="">All Statuses</option>
               {STATUSES.map((st) => (
@@ -166,7 +166,7 @@ export default function NotificationsMonitoringPage() {
 
           {/* User ID Search */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-2">
+            <label className="block text-xs font-medium text-slate-700 dark:text-neutral-200 mb-2">
               User ID
             </label>
             <input
@@ -174,14 +174,14 @@ export default function NotificationsMonitoringPage() {
               placeholder="Search by user ID..."
               value={store.filterUserId || ''}
               onChange={(e) => handleFilterChange('userId', e.target.value ? parseInt(e.target.value) : null)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 flex gap-2 border-b border-slate-200 dark:border-slate-800">
+      <div className="mb-6 flex gap-2 border-b border-slate-200 dark:border-neutral-800">
         {['funnel', 'summary', 'events'].map((tab) => (
           <button
             key={tab}
@@ -189,7 +189,7 @@ export default function NotificationsMonitoringPage() {
             className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
               activeTab === tab
                 ? 'text-orange-600 dark:text-orange-400 border-orange-600'
-                : 'text-slate-600 dark:text-slate-400 border-transparent hover:text-slate-900 dark:hover:text-slate-200'
+                : 'text-slate-600 dark:text-neutral-300 border-transparent hover:text-slate-900 dark:hover:text-neutral-100'
             }`}
           >
             {tab === 'funnel'
@@ -213,7 +213,7 @@ export default function NotificationsMonitoringPage() {
             />
           ))}
           {store.funnel.length === 0 && !store.funnelLoading && (
-            <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+            <div className="text-center py-12 text-slate-500 dark:text-neutral-300">
               No funnel data available
             </div>
           )}
@@ -221,10 +221,10 @@ export default function NotificationsMonitoringPage() {
       )}
 
       {activeTab === 'summary' && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div className="bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
+              <thead className="border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900">
                 <tr>
                   <th className="px-4 py-4 text-left font-semibold text-slate-900 dark:text-white">
                     Event Type
@@ -246,21 +246,21 @@ export default function NotificationsMonitoringPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-200 dark:divide-neutral-800">
                 {store.summary.map((item) => (
                   <tr
                     key={`${item.event_type}-${item.channel}`}
-                    className={`hover:bg-slate-50 dark:hover:bg-slate-800 ${
+                    className={`hover:bg-slate-50 dark:hover:bg-neutral-900 ${
                       item.failure_rate > 5 ? 'bg-red-50 dark:bg-red-900/10' : ''
                     }`}
                   >
                     <td className="px-4 py-4 font-medium text-slate-900 dark:text-white">
                       {item.event_type}
                     </td>
-                    <td className="px-4 py-4 text-slate-600 dark:text-slate-400">
+                    <td className="px-4 py-4 text-slate-600 dark:text-neutral-300">
                       {item.channel}
                     </td>
-                    <td className="px-4 py-4 text-right text-slate-600 dark:text-slate-400">
+                    <td className="px-4 py-4 text-right text-slate-600 dark:text-neutral-300">
                       {item.sent.toLocaleString()}
                     </td>
                     <td className="px-4 py-4 text-right font-medium text-red-600 dark:text-red-400">
@@ -279,7 +279,7 @@ export default function NotificationsMonitoringPage() {
                         {item.success_rate.toFixed(1)}%
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-right text-slate-600 dark:text-slate-400">
+                    <td className="px-4 py-4 text-right text-slate-600 dark:text-neutral-300">
                       {item.avg_delivery_time_ms}ms
                     </td>
                   </tr>
@@ -301,7 +301,7 @@ export default function NotificationsMonitoringPage() {
           {/* Pagination */}
           {store.eventsTotal > store.eventsLimit && (
             <div className="flex items-center justify-between mt-4">
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-slate-600 dark:text-neutral-300">
                 Showing {store.eventsSkip + 1}-{Math.min(store.eventsSkip + store.eventsLimit, store.eventsTotal)} of{' '}
                 {store.eventsTotal}
               </p>
@@ -311,7 +311,7 @@ export default function NotificationsMonitoringPage() {
                     store.setEventsPage(Math.max(0, store.eventsSkip - store.eventsLimit), store.eventsLimit)
                   }
                   disabled={store.eventsSkip === 0}
-                  className="px-3 py-1 rounded border border-slate-300 dark:border-slate-600 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 rounded border border-slate-300 dark:border-neutral-700 text-sm text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
@@ -320,7 +320,7 @@ export default function NotificationsMonitoringPage() {
                     store.setEventsPage(store.eventsSkip + store.eventsLimit, store.eventsLimit)
                   }
                   disabled={store.eventsSkip + store.eventsLimit >= store.eventsTotal}
-                  className="px-3 py-1 rounded border border-slate-300 dark:border-slate-600 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 rounded border border-slate-300 dark:border-neutral-700 text-sm text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>

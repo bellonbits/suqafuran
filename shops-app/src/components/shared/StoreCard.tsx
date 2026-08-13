@@ -18,9 +18,9 @@ export const StoreCard: React.FC<StoreCardProps> = ({ slug, name, image, time, d
     return (
         <Link
             href={`/shop/${slug}`}
-            className="flex items-center gap-3 p-3 rounded-2xl border border-gray-200 bg-white hover:bg-slate-50 transition-colors dark:bg-slate-900 dark:border-slate-800 dark:hover:bg-slate-800/60"
+            className="flex items-center gap-3 p-3 rounded-2xl border border-gray-200 bg-white hover:bg-slate-50 transition-colors dark:bg-neutral-950 dark:border-neutral-800 dark:hover:bg-neutral-900/60"
         >
-            <div className="h-12 w-12 rounded-full overflow-hidden bg-slate-100 border border-gray-200 dark:bg-slate-800 dark:border-slate-700 shrink-0 flex items-center justify-center text-sm font-black text-gray-500 dark:text-slate-300">
+            <div className="h-12 w-12 rounded-full overflow-hidden bg-slate-100 border border-gray-200 dark:bg-neutral-900 dark:border-neutral-800 shrink-0 flex items-center justify-center text-sm font-black text-gray-500 dark:text-neutral-200">
                 {image ? (
                     <img src={image} alt={name} className="h-full w-full object-cover" />
                 ) : (
@@ -29,7 +29,7 @@ export const StoreCard: React.FC<StoreCardProps> = ({ slug, name, image, time, d
             </div>
 
             <div className="min-w-0 space-y-1">
-                <h4 className="text-sm font-black text-gray-900 dark:text-slate-100 truncate">{name}</h4>
+                <h4 className="text-sm font-black text-gray-900 dark:text-neutral-50 truncate">{name}</h4>
 
                 {time && (
                     <div className="flex items-center gap-1 text-xs font-bold text-primary dark:text-sky-400">
@@ -40,13 +40,13 @@ export const StoreCard: React.FC<StoreCardProps> = ({ slug, name, image, time, d
 
                 <div className="flex flex-wrap items-center gap-1.5">
                     {isVerified && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-white bg-slate-900 dark:bg-slate-700 rounded-full px-2 py-0.5">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-white bg-slate-900 dark:bg-neutral-800 rounded-full px-2 py-0.5">
                             <ShieldCheck className="h-3 w-3" />
                             Verified
                         </span>
                     )}
                     {distance && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-gray-500 bg-slate-100 dark:bg-slate-800 dark:text-slate-400 rounded-full px-2 py-0.5">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-gray-500 bg-slate-100 dark:bg-neutral-900 dark:text-neutral-300 rounded-full px-2 py-0.5">
                             <MapPin className="h-3 w-3" />
                             {distance}
                         </span>
@@ -67,12 +67,12 @@ export const SeeAllStoresCard: React.FC<{ extraNames?: string[] }> = ({ extraNam
     return (
         <Link
             href="/stores"
-            className="flex items-center justify-between gap-3 p-4 rounded-2xl border border-gray-200 bg-white hover:bg-slate-50 transition-colors dark:bg-slate-900 dark:border-slate-800 dark:hover:bg-slate-800/60"
+            className="flex items-center justify-between gap-3 p-4 rounded-2xl border border-gray-200 bg-white hover:bg-slate-50 transition-colors dark:bg-neutral-950 dark:border-neutral-800 dark:hover:bg-neutral-900/60"
         >
             <div className="min-w-0 space-y-1">
-                <h4 className="text-sm font-black text-gray-900 dark:text-slate-100">See all sellers nearby</h4>
+                <h4 className="text-sm font-black text-gray-900 dark:text-neutral-50">See all sellers nearby</h4>
                 {extraNames && extraNames.length > 0 && (
-                    <p className="text-[11px] text-gray-400 dark:text-slate-500 font-semibold truncate">
+                    <p className="text-[11px] text-gray-400 dark:text-neutral-400 font-semibold truncate">
                         {extraNames.join(', ')}
                     </p>
                 )}
@@ -132,7 +132,7 @@ export const BrandStoreCard: React.FC<BrandStoreCardProps> = ({
     return (
         <Link
             href={`/shop/${slug}`}
-            className="block rounded-3xl overflow-hidden border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 card-shadow-premium hover:shadow-[0_12px_30px_rgba(0,0,0,0.12)] transition-all shrink-0 w-52 group cursor-pointer"
+            className="block rounded-3xl overflow-hidden border border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-950 card-shadow-premium hover:shadow-[0_12px_30px_rgba(0,0,0,0.12)] transition-all shrink-0 w-52 group cursor-pointer"
         >
             {/* Top Brand Banner Header */}
             <div
@@ -143,11 +143,11 @@ export const BrandStoreCard: React.FC<BrandStoreCardProps> = ({
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
 
                 {/* Logo Badge in the Center */}
-                <div className="absolute -bottom-6 z-10 h-14 w-14 rounded-full bg-white shadow-md border-2 border-white dark:bg-slate-800 dark:border-slate-900 flex items-center justify-center overflow-hidden">
+                <div className="absolute -bottom-6 z-10 h-14 w-14 rounded-full bg-white shadow-md border-2 border-white dark:bg-neutral-900 dark:border-neutral-800 flex items-center justify-center overflow-hidden">
                     {image ? (
                         <img src={image} alt={name} className="h-full w-full object-cover group-hover:scale-108 transition-transform duration-300" />
                     ) : (
-                        <span className="text-lg font-black text-gray-700 dark:text-slate-200">
+                        <span className="text-lg font-black text-gray-700 dark:text-neutral-100">
                             {name.charAt(0).toUpperCase()}
                         </span>
                     )}
@@ -157,22 +157,22 @@ export const BrandStoreCard: React.FC<BrandStoreCardProps> = ({
             {/* Content Body */}
             <div className="pt-8 p-3.5 space-y-1.5 text-center">
                 <div className="flex items-center justify-center gap-1 min-w-0">
-                    <h4 className="text-sm font-black text-gray-900 dark:text-slate-100 truncate max-w-[85%] group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                    <h4 className="text-sm font-black text-gray-900 dark:text-neutral-50 truncate max-w-[85%] group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                         {name}
                     </h4>
                     {isVerified && <ShieldCheck className="h-4 w-4 text-sky-500 shrink-0" />}
                 </div>
 
                 {/* Rating & Distance */}
-                <div className="flex items-center justify-center gap-1 text-xs font-bold text-gray-600 dark:text-slate-400">
+                <div className="flex items-center justify-center gap-1 text-xs font-bold text-gray-600 dark:text-neutral-300">
                     <span className="text-amber-500">★</span>
-                    <span className="text-gray-900 dark:text-slate-200">{rating} ({ratingCount})</span>
+                    <span className="text-gray-900 dark:text-neutral-100">{rating} ({ratingCount})</span>
                     <span>&middot;</span>
                     <span>{distance || 'Nairobi'}</span>
                 </div>
 
                 {/* Listing Count & Escrow badge */}
-                <p className="text-[11px] text-gray-400 dark:text-slate-500 font-semibold">
+                <p className="text-[11px] text-gray-400 dark:text-neutral-400 font-semibold">
                     {listingCount} product{listingCount === 1 ? '' : 's'}
                 </p>
 

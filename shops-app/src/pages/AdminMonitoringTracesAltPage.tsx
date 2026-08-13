@@ -118,13 +118,13 @@ export default function TracesPage() {
     >
       <div className="space-y-6">
         {/* Search Section */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+        <div className="bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800 p-6">
           <div className="space-y-4">
             <div>
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
                 Search Traces
               </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+              <p className="text-sm text-slate-600 dark:text-neutral-300 mb-4">
                 Search distributed traces by trace ID, correlation ID, user ID, or order ID
               </p>
             </div>
@@ -148,7 +148,7 @@ export default function TracesPage() {
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     searchType === type
                       ? 'bg-orange-600 text-white'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                      : 'bg-slate-100 dark:bg-neutral-900 text-slate-700 dark:text-neutral-200 hover:bg-slate-200 dark:hover:bg-neutral-800'
                   }`}
                 >
                   {type === 'trace_id'
@@ -180,7 +180,7 @@ export default function TracesPage() {
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') handleSearch();
                 }}
-                className="flex-1 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="flex-1 px-4 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
               <button
                 onClick={handleSearch}
@@ -197,7 +197,7 @@ export default function TracesPage() {
               {(store.traces.length > 0 || store.selectedTrace) && (
                 <button
                   onClick={handleClear}
-                  className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-medium flex items-center gap-2 transition-colors"
+                  className="px-4 py-2 bg-slate-200 dark:bg-neutral-800 hover:bg-slate-300 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 rounded-lg font-medium flex items-center gap-2 transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -218,13 +218,13 @@ export default function TracesPage() {
 
         {/* Critical Paths Section */}
         {store.criticalPaths.length > 0 && !showDetail && (
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+          <div className="bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800 p-6">
             <div className="space-y-4">
               <div>
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
                   Critical Paths
                 </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-sm text-slate-600 dark:text-neutral-300">
                   Quick templates to analyze common flows
                 </p>
               </div>
@@ -234,25 +234,25 @@ export default function TracesPage() {
                   <button
                     key={path.id}
                     onClick={() => handleUseCriticalPath(path.id)}
-                    className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-orange-500 dark:hover:border-orange-500 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-left"
+                    className="p-4 rounded-xl border border-slate-200 dark:border-neutral-800 hover:border-orange-500 dark:hover:border-orange-500 bg-slate-50 dark:bg-neutral-900 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors text-left"
                   >
                     <p className="font-semibold text-slate-900 dark:text-white mb-1">
                       {path.name}
                     </p>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">
+                    <p className="text-xs text-slate-600 dark:text-neutral-300 mb-2">
                       {path.description}
                     </p>
                     <div className="flex gap-1 flex-wrap">
                       {path.operations.slice(0, 2).map((op) => (
                         <span
                           key={op}
-                          className="text-xs px-2 py-1 bg-white dark:bg-slate-900 rounded text-slate-600 dark:text-slate-400"
+                          className="text-xs px-2 py-1 bg-white dark:bg-neutral-950 rounded text-slate-600 dark:text-neutral-300"
                         >
                           {op.split('.').pop()}
                         </span>
                       ))}
                       {path.operations.length > 2 && (
-                        <span className="text-xs px-2 py-1 text-slate-600 dark:text-slate-400">
+                        <span className="text-xs px-2 py-1 text-slate-600 dark:text-neutral-300">
                           +{path.operations.length - 2} more
                         </span>
                       )}
@@ -266,26 +266,26 @@ export default function TracesPage() {
 
         {/* Traces List */}
         {!showDetail && store.traces.length > 0 && (
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-            <div className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-6 py-4">
+          <div className="bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800 overflow-hidden">
+            <div className="border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900 px-6 py-4">
               <h3 className="font-semibold text-slate-900 dark:text-white">
                 Traces ({store.traces.length})
               </h3>
             </div>
 
-            <div className="divide-y divide-slate-200 dark:divide-slate-800">
+            <div className="divide-y divide-slate-200 dark:divide-neutral-800">
               {store.traces.map((trace) => (
                 <button
                   key={trace.trace_id}
                   onClick={() => handleSelectTrace(trace.trace_id)}
-                  className="w-full px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left"
+                  className="w-full px-6 py-4 hover:bg-slate-50 dark:hover:bg-neutral-900 transition-colors text-left"
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <p className="font-mono text-sm text-slate-900 dark:text-white truncate">
                         {trace.trace_id}
                       </p>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                      <p className="text-xs text-slate-600 dark:text-neutral-300 mt-1">
                         {trace.span_count} spans · {trace.service_count} services ·{' '}
                         {trace.total_duration_ms.toFixed(2)}ms
                       </p>
@@ -307,7 +307,7 @@ export default function TracesPage() {
         {showDetail && store.selectedTrace && (
           <div className="space-y-4">
             {/* Detail Header */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+            <div className="bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800 p-6">
               <button
                 onClick={() => setShowDetail(false)}
                 className="text-orange-600 hover:text-orange-700 text-sm font-medium mb-4"
@@ -317,7 +317,7 @@ export default function TracesPage() {
 
               <div className="space-y-4">
                 <div>
-                  <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                  <p className="text-xs font-medium text-slate-600 dark:text-neutral-300 mb-1">
                     Trace ID
                   </p>
                   <p className="font-mono text-sm text-slate-900 dark:text-white">
@@ -327,7 +327,7 @@ export default function TracesPage() {
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div>
-                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                    <p className="text-xs font-medium text-slate-600 dark:text-neutral-300">
                       Duration
                     </p>
                     <p className="text-lg font-semibold text-slate-900 dark:text-white">
@@ -335,7 +335,7 @@ export default function TracesPage() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                    <p className="text-xs font-medium text-slate-600 dark:text-neutral-300">
                       Spans
                     </p>
                     <p className="text-lg font-semibold text-slate-900 dark:text-white">
@@ -343,7 +343,7 @@ export default function TracesPage() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                    <p className="text-xs font-medium text-slate-600 dark:text-neutral-300">
                       Services
                     </p>
                     <p className="text-lg font-semibold text-slate-900 dark:text-white">
@@ -351,7 +351,7 @@ export default function TracesPage() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                    <p className="text-xs font-medium text-slate-600 dark:text-neutral-300">
                       Status
                     </p>
                     {store.selectedTrace.has_errors ? (
@@ -382,11 +382,11 @@ export default function TracesPage() {
         {/* Empty State */}
         {!showDetail && store.traces.length === 0 && !store.selectedTrace && (
           <div className="flex flex-col items-center justify-center h-64 text-center">
-            <Search className="h-12 w-12 text-slate-300 dark:text-slate-700 mb-4" />
-            <p className="text-slate-600 dark:text-slate-400 font-medium">
+            <Search className="h-12 w-12 text-slate-300 dark:text-neutral-200 mb-4" />
+            <p className="text-slate-600 dark:text-neutral-300 font-medium">
               No traces found
             </p>
-            <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
+            <p className="text-sm text-slate-500 dark:text-neutral-400 mt-1">
               Enter a search value to find traces
             </p>
           </div>

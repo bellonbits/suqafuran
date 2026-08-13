@@ -18,10 +18,10 @@ export const ListingStep3Images: React.FC<Step3Props> = ({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-200 mb-4">
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-neutral-100 mb-4">
           Add Photos *
         </h3>
-        <p className="text-sm text-gray-600 dark:text-slate-400 mb-4">
+        <p className="text-sm text-gray-600 dark:text-neutral-300 mb-4">
           High-quality photos help your listing stand out. Add at least 1 photo, up to 10 maximum.
         </p>
 

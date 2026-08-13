@@ -196,7 +196,7 @@ export const AISupportChat: React.FC = () => {
             <div className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50">
                 <button
                     onClick={() => setIsVisible(false)}
-                    className="absolute -top-1 -right-1 z-10 w-5 h-5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-md rounded-full flex items-center justify-center text-gray-500 hover:text-red-500 transition-colors"
+                    className="absolute -top-1 -right-1 z-10 w-5 h-5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-md rounded-full flex items-center justify-center text-gray-500 hover:text-red-500 transition-colors"
                     aria-label="Remove support chat"
                 >
                     <X className="h-3 w-3 stroke-[3]" />
@@ -215,7 +215,7 @@ export const AISupportChat: React.FC = () => {
     return (
         <div
             className={cn(
-                'fixed right-4 md:right-6 z-50 bg-white dark:bg-slate-900 shadow-2xl rounded-2xl flex flex-col transition-all duration-300 border border-gray-100 dark:border-slate-800 overflow-hidden',
+                'fixed right-4 md:right-6 z-50 bg-white dark:bg-neutral-950 shadow-2xl rounded-2xl flex flex-col transition-all duration-300 border border-gray-100 dark:border-neutral-800 overflow-hidden',
                 isMinimized ? 'bottom-20 md:bottom-6 h-14 w-64' : 'bottom-20 md:bottom-6 h-[500px] w-[350px] max-w-[calc(100vw-32px)]'
             )}
         >
@@ -246,7 +246,7 @@ export const AISupportChat: React.FC = () => {
             {!isMinimized && (
                 <>
                     {/* Messages Area */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50 dark:bg-slate-950/50">
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50 dark:bg-black/50">
                         {messages.map((msg, i) => (
                             <div
                                 key={i}
@@ -257,22 +257,22 @@ export const AISupportChat: React.FC = () => {
                                         'px-3.5 py-2.5 rounded-2xl text-sm shadow-sm',
                                         msg.role === 'user'
                                             ? 'bg-orange-500 text-white rounded-tr-none'
-                                            : 'bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-100 border border-gray-100 dark:border-slate-700 rounded-tl-none'
+                                            : 'bg-white dark:bg-neutral-900 text-gray-800 dark:text-neutral-50 border border-gray-100 dark:border-neutral-800 rounded-tl-none'
                                     )}
                                 >
                                     <div className="whitespace-pre-line leading-relaxed">{renderMessageContent(msg.content)}</div>
 
                                     {msg.recommendations && msg.recommendations.length > 0 && (
-                                        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-slate-700 space-y-2 w-full min-w-[200px]">
+                                        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-neutral-800 space-y-2 w-full min-w-[200px]">
                                             <p className="text-[10px] font-bold text-orange-600 uppercase tracking-wider mb-2">Matches Found</p>
                                             <div className="grid gap-2">
                                                 {msg.recommendations.map((item: any) => (
                                                     <Link
                                                         key={item.id}
                                                         to={`/listing/${item.id}`}
-                                                        className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors group"
+                                                        className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-neutral-950 hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors group"
                                                     >
-                                                        <div className="w-10 h-10 rounded bg-gray-200 dark:bg-slate-700 overflow-hidden shrink-0">
+                                                        <div className="w-10 h-10 rounded bg-gray-200 dark:bg-neutral-800 overflow-hidden shrink-0">
                                                             {item.image ? (
                                                                 <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                                                             ) : (
@@ -282,7 +282,7 @@ export const AISupportChat: React.FC = () => {
                                                             )}
                                                         </div>
                                                         <div className="flex-1 min-w-0">
-                                                            <p className="text-[11px] font-medium text-gray-900 dark:text-slate-100 truncate group-hover:text-orange-600">
+                                                            <p className="text-[11px] font-medium text-gray-900 dark:text-neutral-50 truncate group-hover:text-orange-600">
                                                                 {item.title}
                                                             </p>
                                                             <p className="text-[10px] text-orange-600 font-bold">
@@ -311,7 +311,7 @@ export const AISupportChat: React.FC = () => {
 
                     {/* Quick Actions */}
                     <div
-                        className="px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar border-t border-gray-50 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 scrollbar-none"
+                        className="px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar border-t border-gray-50 dark:border-neutral-800 bg-white dark:bg-neutral-950 shrink-0 scrollbar-none"
                         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                     >
                         {[
@@ -323,7 +323,7 @@ export const AISupportChat: React.FC = () => {
                             <button
                                 key={i}
                                 onClick={btn.action}
-                                className="flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 rounded-full text-[11px] font-semibold transition-colors shrink-0"
+                                className="flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 bg-gray-100 dark:bg-neutral-900 hover:bg-gray-200 dark:hover:bg-neutral-800 text-gray-600 dark:text-neutral-200 rounded-full text-[11px] font-semibold transition-colors shrink-0"
                             >
                                 <btn.icon size={12} />
                                 {btn.text}
@@ -332,13 +332,13 @@ export const AISupportChat: React.FC = () => {
                     </div>
 
                     {/* Input Area */}
-                    <form onSubmit={handleSend} className="p-3 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800 flex items-center gap-2 shrink-0">
+                    <form onSubmit={handleSend} className="p-3 bg-white dark:bg-neutral-950 border-t border-gray-100 dark:border-neutral-800 flex items-center gap-2 shrink-0">
                         <input
                             type="text"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             placeholder="Ask about Suqafuran or search items..."
-                            className="flex-1 bg-gray-50 dark:bg-slate-800 dark:text-slate-100 border-none rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-orange-500 transition-all"
+                            className="flex-1 bg-gray-50 dark:bg-neutral-900 dark:text-neutral-50 border-none rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-orange-500 transition-all"
                         />
                         <button
                             type="submit"

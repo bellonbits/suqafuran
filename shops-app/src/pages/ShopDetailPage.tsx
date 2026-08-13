@@ -419,7 +419,7 @@ export default function ShopDetailPage() {
 
     if (!city) {
         return (
-            <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center px-4">
+            <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center px-4">
                 <div className="text-center">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Select Your Location</h1>
                     <motion.button
@@ -441,11 +441,11 @@ export default function ShopDetailPage() {
     // Show not found if shop couldn't be resolved and not still loading
     if (!loading && !shopName) {
         return (
-            <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center px-4">
+            <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center px-4">
                 <div className="text-center max-w-md">
                     <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-2">404</h1>
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Shop Not Found</h2>
-                    <p className="text-gray-600 dark:text-slate-400 mb-6">
+                    <p className="text-gray-600 dark:text-neutral-300 mb-6">
                         The shop "{shopIdParam}" doesn't exist or has been removed.
                     </p>
                     <motion.button
@@ -474,16 +474,16 @@ export default function ShopDetailPage() {
     const shopInitials = getInitials();
 
     return (
-        <div className="min-h-screen bg-white dark:bg-slate-950">
+        <div className="min-h-screen bg-white dark:bg-black">
             {/* STICKY HEADER / BREADCRUMBS */}
-            <div className="sticky top-0 z-40 bg-white dark:bg-slate-950 border-b border-gray-100 dark:border-slate-800">
+            <div className="sticky top-0 z-40 bg-white dark:bg-black border-b border-gray-100 dark:border-neutral-800">
                 <div className="max-w-7xl mx-auto px-4 lg:px-6 py-3.5 flex items-center justify-between">
                     <div className="flex items-center gap-1.5 text-xs font-semibold">
-                        <button onClick={() => router.push('/')} className="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                        <button onClick={() => router.push('/')} className="text-gray-500 dark:text-neutral-300 hover:text-gray-900 dark:hover:text-white transition-colors">
                             {city}
                         </button>
                         <ChevronRight className="w-3 h-3 text-gray-400" />
-                        <button onClick={() => router.push('/')} className="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                        <button onClick={() => router.push('/')} className="text-gray-500 dark:text-neutral-300 hover:text-gray-900 dark:hover:text-white transition-colors">
                             Shops
                         </button>
                         <ChevronRight className="w-3 h-3 text-gray-400" />
@@ -495,7 +495,7 @@ export default function ShopDetailPage() {
                         {/* Location Icon */}
                         <button
                             onClick={() => setIsLocationModalOpen(true)}
-                            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-400 transition-colors"
+                            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-900 text-gray-600 dark:text-neutral-300 transition-colors"
                             title="Change location"
                         >
                             <MapPin className="w-5 h-5" />
@@ -504,7 +504,7 @@ export default function ShopDetailPage() {
                         {/* Cart Icon */}
                         <button
                             onClick={() => router.push('/checkout')}
-                            className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-400 transition-colors"
+                            className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-900 text-gray-600 dark:text-neutral-300 transition-colors"
                             title="View cart"
                         >
                             <ShoppingBag className="w-5 h-5" />
@@ -521,7 +521,7 @@ export default function ShopDetailPage() {
             {/* HERO BANNER & INFO (Glovo Style) */}
             <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4">
                 {/* BANNER WITH SHOP LOGO OVERLAY */}
-                <div className="relative bg-gray-200 dark:bg-slate-800 h-32 md:h-44 rounded-xl overflow-hidden mb-6 shadow-md border border-gray-100 dark:border-slate-800">
+                <div className="relative bg-gray-200 dark:bg-neutral-900 h-32 md:h-44 rounded-xl overflow-hidden mb-6 shadow-md border border-gray-100 dark:border-neutral-800">
                     {bannerImage && (
                         <>
                             <img
@@ -536,7 +536,7 @@ export default function ShopDetailPage() {
                     )}
                     
                     {/* Circle Logo Overlay (Bottom-left) */}
-                    <div className="absolute bottom-4 left-5 w-16 h-16 rounded-full bg-white dark:bg-slate-900 border-4 border-white dark:border-slate-700 shadow-lg flex items-center justify-center overflow-hidden">
+                    <div className="absolute bottom-4 left-5 w-16 h-16 rounded-full bg-white dark:bg-neutral-950 border-4 border-white dark:border-neutral-800 shadow-lg flex items-center justify-center overflow-hidden">
                         {shopAvatar && !avatarError ? (
                             <img
                                 src={shopAvatar}
@@ -550,7 +550,7 @@ export default function ShopDetailPage() {
                             </div>
                         )}
                     </div>
-                    <button className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/95 dark:bg-slate-900/95 flex items-center justify-center text-gray-600 dark:text-slate-300 hover:scale-105 shadow transition-all">
+                    <button className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/95 dark:bg-neutral-950/95 flex items-center justify-center text-gray-600 dark:text-neutral-200 hover:scale-105 shadow transition-all">
                         <Info className="w-4 h-4" />
                     </button>
                 </div>
@@ -563,20 +563,20 @@ export default function ShopDetailPage() {
                         </h1>
 
                         {/* Seller Info Section */}
-                        <div className="flex items-center gap-4 mb-5 pb-4 border-b border-gray-100 dark:border-slate-800">
+                        <div className="flex items-center gap-4 mb-5 pb-4 border-b border-gray-100 dark:border-neutral-800">
                             {/* Verification & Stats */}
                             <div className="flex items-center gap-3 flex-wrap">
                                 <span className="bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
                                     <span>✓</span> Verified Seller
                                 </span>
-                                <span className="text-xs text-gray-600 dark:text-slate-400 font-semibold">
+                                <span className="text-xs text-gray-600 dark:text-neutral-300 font-semibold">
                                     <span className="text-green-600 dark:text-green-400">95%</span> response rate
                                 </span>
-                                <span className="text-xs text-gray-600 dark:text-slate-400 font-semibold">
+                                <span className="text-xs text-gray-600 dark:text-neutral-300 font-semibold">
                                     Member since <span className="text-gray-900 dark:text-white">Jan 2026</span>
                                 </span>
                                 {shopLocation && (
-                                    <span className="flex items-center gap-1 text-xs text-gray-600 dark:text-slate-400 font-semibold">
+                                    <span className="flex items-center gap-1 text-xs text-gray-600 dark:text-neutral-300 font-semibold">
                                         <MapPin className="w-3.5 h-3.5" />
                                         {shopLocation}
                                     </span>
@@ -623,7 +623,7 @@ export default function ShopDetailPage() {
 
                         {/* Rating Section */}
                         {shopRating !== null && totalReviews > 0 && (
-                            <div className="flex items-center gap-4 mb-4 py-3 border-y border-gray-100 dark:border-slate-800">
+                            <div className="flex items-center gap-4 mb-4 py-3 border-y border-gray-100 dark:border-neutral-800">
                                 <div className="flex items-center gap-2">
                                     <div className="flex gap-0.5">
                                         {[...Array(5)].map((_, i) => (
@@ -632,7 +632,7 @@ export default function ShopDetailPage() {
                                                 className={`w-4 h-4 ${
                                                     i < Math.floor(shopRating)
                                                         ? 'fill-yellow-400 text-yellow-400'
-                                                        : 'text-gray-300 dark:text-slate-600'
+                                                        : 'text-gray-300 dark:text-neutral-300'
                                                 }`}
                                             />
                                         ))}
@@ -640,7 +640,7 @@ export default function ShopDetailPage() {
                                     <span className="text-xs font-bold text-gray-900 dark:text-white">
                                         {shopRating.toFixed(1)} ({totalReviews})
                                     </span>
-                                    <span className="text-xs text-gray-500 dark:text-slate-400">
+                                    <span className="text-xs text-gray-500 dark:text-neutral-300">
                                         ({verifiedReviewsCount} verified)
                                     </span>
                                 </div>
@@ -660,7 +660,7 @@ export default function ShopDetailPage() {
 
                         {/* Badges */}
                         <div className="flex items-center gap-2 mb-4 flex-wrap">
-                            <span className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold px-3 py-1 rounded-md cursor-pointer hover:bg-slate-200 transition-colors">
+                            <span className="bg-slate-100 dark:bg-neutral-900 text-slate-700 dark:text-neutral-200 text-xs font-bold px-3 py-1 rounded-md cursor-pointer hover:bg-slate-200 transition-colors">
                                 Price match ›
                             </span>
                             <span className="bg-red-50 dark:bg-red-950/20 text-[#e81f44] text-xs font-extrabold px-3 py-1 rounded-md flex items-center gap-1">
@@ -679,10 +679,10 @@ export default function ShopDetailPage() {
                                     placeholder="Search products, brands..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-11 pr-4 py-2.5 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm border border-gray-200 dark:border-slate-800"
+                                    className="w-full pl-11 pr-4 py-2.5 bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm border border-gray-200 dark:border-neutral-800"
                                 />
                                 {searchQuery && (
-                                    <button onClick={() => setSearchQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300">
+                                    <button onClick={() => setSearchQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-neutral-200">
                                         <X className="w-4 h-4" />
                                     </button>
                                 )}
@@ -699,13 +699,13 @@ export default function ShopDetailPage() {
                 {loading ? (
                     <div className="text-center py-20">
                         <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                        <p className="text-gray-500 dark:text-slate-400 text-sm font-semibold">Loading store items...</p>
+                        <p className="text-gray-500 dark:text-neutral-300 text-sm font-semibold">Loading store items...</p>
                     </div>
                 ) : categories.length === 0 ? (
-                    <div className="text-center py-20 bg-gray-50 dark:bg-slate-900/30 rounded-2xl border border-dashed border-gray-200 dark:border-slate-800 max-w-lg mx-auto">
+                    <div className="text-center py-20 bg-gray-50 dark:bg-neutral-950/30 rounded-2xl border border-dashed border-gray-200 dark:border-neutral-800 max-w-lg mx-auto">
                         <ShoppingBag className="w-10 h-10 text-gray-400 mx-auto mb-3" />
                         <h3 className="text-base font-bold text-gray-800 dark:text-white">No products found</h3>
-                        <p className="text-gray-500 dark:text-slate-400 text-xs mt-1">
+                        <p className="text-gray-500 dark:text-neutral-300 text-xs mt-1">
                             No listings match your search or filter options in this store.
                         </p>
                     </div>
@@ -717,11 +717,11 @@ export default function ShopDetailPage() {
                             <div className="mb-4">
                                 <button
                                     onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                                    className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-900/40 transition-colors mb-2"
+                                    className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-950/40 transition-colors mb-2"
                                     title={isSidebarCollapsed ? "Expand categories" : "Collapse categories"}
                                 >
-                                    <span className="text-xs font-bold text-gray-700 dark:text-slate-300">Categories</span>
-                                    <ChevronLeft className={`w-4 h-4 text-gray-600 dark:text-slate-400 transition-transform ${isSidebarCollapsed ? 'rotate-180' : ''}`} />
+                                    <span className="text-xs font-bold text-gray-700 dark:text-neutral-200">Categories</span>
+                                    <ChevronLeft className={`w-4 h-4 text-gray-600 dark:text-neutral-300 transition-transform ${isSidebarCollapsed ? 'rotate-180' : ''}`} />
                                 </button>
 
                                 {/* Categories Content - Hidden when collapsed */}
@@ -737,7 +737,7 @@ export default function ShopDetailPage() {
                                         className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all ${
                                             selectedCategoryId === null
                                                 ? 'bg-[#00a082] text-white'
-                                                : 'text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-900/40'
+                                                : 'text-gray-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-950/40'
                                         }`}
                                     >
                                         All Categories
@@ -761,7 +761,7 @@ export default function ShopDetailPage() {
                                             className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all ${
                                                 selectedCategoryId === dbCategory.id
                                                     ? 'bg-[#00a082] text-white'
-                                                    : 'text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-900/40'
+                                                    : 'text-gray-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-950/40'
                                             }`}
                                         >
                                             {dbCategory.name_en}
@@ -802,7 +802,7 @@ export default function ShopDetailPage() {
                                                                     setActiveCategory(matchingCat.id);
                                                                 }
                                                             }}
-                                                            className="w-full text-left px-3 py-1 rounded-lg text-[11px] font-semibold transition-all text-gray-600 dark:text-slate-400 hover:text-gray-900 hover:bg-gray-50 dark:hover:text-slate-200 dark:hover:bg-slate-900/40 flex items-center justify-between"
+                                                            className="w-full text-left px-3 py-1 rounded-lg text-[11px] font-semibold transition-all text-gray-600 dark:text-neutral-300 hover:text-gray-900 hover:bg-gray-50 dark:hover:text-neutral-100 dark:hover:bg-neutral-950/40 flex items-center justify-between"
                                                         >
                                                             <span className="truncate">{subcategory.name_en}</span>
                                                             {subcategory.subsubcategories && subcategory.subsubcategories.length > 0 && (
@@ -851,7 +851,7 @@ export default function ShopDetailPage() {
                                                                                     setActiveCategory(matchingCat.id);
                                                                                 }
                                                                             }}
-                                                                            className="w-full text-left px-3 py-1 rounded-lg text-[10px] font-medium transition-all text-gray-500 dark:text-slate-500 hover:text-gray-700 hover:bg-gray-50 dark:hover:text-slate-300 dark:hover:bg-slate-900/40 cursor-pointer"
+                                                                            className="w-full text-left px-3 py-1 rounded-lg text-[10px] font-medium transition-all text-gray-500 dark:text-neutral-400 hover:text-gray-700 hover:bg-gray-50 dark:hover:text-neutral-200 dark:hover:bg-neutral-950/40 cursor-pointer"
                                                                         >
                                                                             {subsubcategory.name_en}
                                                                         </button>
@@ -870,7 +870,7 @@ export default function ShopDetailPage() {
                             </div>
 
                             {/* Filters Section - Always Visible */}
-                            <div className="space-y-3 mt-4 pt-4 border-t border-gray-200 dark:border-slate-800">
+                            <div className="space-y-3 mt-4 pt-4 border-t border-gray-200 dark:border-neutral-800">
                                 {/* Price Range */}
                                 <div>
                                     <h3 className="text-xs font-bold text-gray-900 dark:text-white mb-2">Price Range</h3>
@@ -1125,7 +1125,7 @@ export default function ShopDetailPage() {
                                                     className="cursor-pointer group"
                                                 >
                                                     {/* Card Image Container */}
-                                                    <div className="relative bg-gray-50 dark:bg-slate-900/60 aspect-square rounded-lg overflow-hidden border border-gray-100 dark:border-slate-800/80 mb-2.5 flex items-center justify-center transition-shadow group-hover:shadow-md">
+                                                    <div className="relative bg-gray-50 dark:bg-neutral-950/60 aspect-square rounded-lg overflow-hidden border border-gray-100 dark:border-neutral-800/80 mb-2.5 flex items-center justify-center transition-shadow group-hover:shadow-md">
                                                         {product.images?.[0] ? (
                                                             <img
                                                                 src={product.images[0]}
@@ -1158,7 +1158,7 @@ export default function ShopDetailPage() {
                                                                 }
                                                                 setFavorites(newFavorites);
                                                             }}
-                                                            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white dark:bg-slate-900 shadow-md hover:scale-110 active:scale-95 flex items-center justify-center transition-all border border-gray-100 dark:border-slate-800"
+                                                            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white dark:bg-neutral-950 shadow-md hover:scale-110 active:scale-95 flex items-center justify-center transition-all border border-gray-100 dark:border-neutral-800"
                                                         >
                                                             <Heart className={`w-3.5 h-3.5 ${favorites.has(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
                                                         </button>
@@ -1177,7 +1177,7 @@ export default function ShopDetailPage() {
                                                                     quantity: cartQty + 1
                                                                 });
                                                             }}
-                                                            className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-white dark:bg-slate-900 text-[#00a082] shadow-md hover:scale-105 active:scale-95 flex items-center justify-center transition-all border border-gray-100 dark:border-slate-800"
+                                                            className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-white dark:bg-neutral-950 text-[#00a082] shadow-md hover:scale-105 active:scale-95 flex items-center justify-center transition-all border border-gray-100 dark:border-neutral-800"
                                                         >
                                                             {cartQty > 0 ? (
                                                                 <span className="text-xs font-black text-gray-900 dark:text-white">{cartQty}</span>
@@ -1193,7 +1193,7 @@ export default function ShopDetailPage() {
                                                     </h3>
                                                     
                                                     {/* Category Breadcrumb */}
-                                                    <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-1 line-clamp-1">
+                                                    <p className="text-[11px] text-gray-500 dark:text-neutral-300 mt-1 line-clamp-1">
                                                         {(() => {
                                                   const cat = dbCategories.find((c: any) => c.id === product.category_id);
                                                   const subcat = cat?.subcategories?.find((s: any) => s.id === product.subcategory_id);
@@ -1207,7 +1207,7 @@ export default function ShopDetailPage() {
                                                             KSh {(product?.price || 0).toLocaleString()}
                                                         </span>
                                                         {hasPromo && (
-                                                            <span className="text-[10px] text-gray-400 dark:text-slate-500 line-through">
+                                                            <span className="text-[10px] text-gray-400 dark:text-neutral-400 line-through">
                                                                 KSh {originalPrice.toLocaleString()}
                                                             </span>
                                                         )}
@@ -1222,19 +1222,19 @@ export default function ShopDetailPage() {
 
                         {/* 3. Right Sidebar (Your Order / Cart Summary) */}
                         <aside className="col-span-12 lg:col-span-3 sticky top-28 self-start">
-                            <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-xl p-5 shadow-sm max-h-[75vh] flex flex-col">
-                                <div className="flex items-center gap-2 pb-4 border-b border-gray-100 dark:border-slate-800 mb-4 shrink-0">
+                            <div className="bg-white dark:bg-neutral-950 border border-gray-100 dark:border-neutral-800 rounded-xl p-5 shadow-sm max-h-[75vh] flex flex-col">
+                                <div className="flex items-center gap-2 pb-4 border-b border-gray-100 dark:border-neutral-800 mb-4 shrink-0">
                                     <ShoppingBag className="w-4.5 h-4.5 text-gray-500" />
                                     <h3 className="font-extrabold text-gray-900 dark:text-white text-base">Your order</h3>
                                 </div>
 
                                 {cartItems.length === 0 ? (
                                     <div className="flex-1 flex flex-col items-center justify-center py-10 text-center shrink-0">
-                                        <div className="w-16 h-16 bg-gray-50 dark:bg-slate-850 rounded-full flex items-center justify-center mb-4">
+                                        <div className="w-16 h-16 bg-gray-50 dark:bg-neutral-950 rounded-full flex items-center justify-center mb-4">
                                             <img src="/icons/shelves.png" className="w-8 h-8 object-contain opacity-40" alt="" />
                                         </div>
                                         <p className="font-bold text-gray-800 dark:text-white text-xs leading-tight">Your order is empty</p>
-                                        <p className="text-gray-450 dark:text-slate-500 text-[10px] mt-1 max-w-[170px] leading-normal">
+                                        <p className="text-gray-450 dark:text-neutral-400 text-[10px] mt-1 max-w-[170px] leading-normal">
                                             When you add products from a store, they will appear here.
                                         </p>
                                     </div>
@@ -1246,14 +1246,14 @@ export default function ShopDetailPage() {
                                                     <p className="font-semibold text-gray-900 dark:text-white truncate" title={item.title}>
                                                         {item.title}
                                                     </p>
-                                                    <p className="text-gray-500 dark:text-slate-400 font-bold text-[10px] mt-0.5">
+                                                    <p className="text-gray-500 dark:text-neutral-300 font-bold text-[10px] mt-0.5">
                                                         KSh {(item?.price ?? 0) * (item?.quantity ?? 0).toLocaleString()}
                                                     </p>
                                                 </div>
-                                                <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-800 px-2 py-0.5 rounded-full border border-gray-100 dark:border-slate-800 shrink-0">
+                                                <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-neutral-900 px-2 py-0.5 rounded-full border border-gray-100 dark:border-neutral-800 shrink-0">
                                                     <button
                                                         onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
-                                                        className="text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-200"
+                                                        className="text-gray-500 hover:text-gray-900 dark:text-neutral-300 dark:hover:text-neutral-100"
                                                     >
                                                         <Minus className="w-3 h-3" />
                                                     </button>
@@ -1272,7 +1272,7 @@ export default function ShopDetailPage() {
                                     </div>
                                 )}
 
-                                <div className="mt-auto border-t border-gray-100 dark:border-slate-800 pt-4 space-y-3 shrink-0">
+                                <div className="mt-auto border-t border-gray-100 dark:border-neutral-800 pt-4 space-y-3 shrink-0">
                                     {/* Delivery Threshold Notice */}
                                     <div className="bg-amber-50/50 dark:bg-amber-950/10 border border-amber-100 dark:border-amber-900/30 rounded-lg p-2.5 text-[10px] text-amber-800 dark:text-amber-300 leading-normal">
                                         {getTotalPrice() < 500 ? (
@@ -1323,7 +1323,7 @@ export default function ShopDetailPage() {
                                 {reviews.map((review: any) => (
                                     <div
                                         key={review.id}
-                                        className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-gray-100 dark:border-slate-800"
+                                        className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-gray-100 dark:border-neutral-800"
                                     >
                                         {/* Header */}
                                         <div className="flex items-start justify-between mb-2">
@@ -1342,7 +1342,7 @@ export default function ShopDetailPage() {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-xs text-gray-500 dark:text-slate-400">
+                                                <p className="text-xs text-gray-500 dark:text-neutral-300">
                                                     {new Date(review.created_at).toLocaleDateString()}
                                                 </p>
                                             </div>
@@ -1356,7 +1356,7 @@ export default function ShopDetailPage() {
                                                     className={`w-4 h-4 ${
                                                         i < review.rating
                                                             ? 'fill-yellow-400 text-yellow-400'
-                                                            : 'text-gray-300 dark:text-slate-600'
+                                                            : 'text-gray-300 dark:text-neutral-300'
                                                     }`}
                                                 />
                                             ))}
@@ -1364,7 +1364,7 @@ export default function ShopDetailPage() {
 
                                         {/* Review Text */}
                                         {review.review && (
-                                            <p className="text-sm text-gray-700 dark:text-slate-300">
+                                            <p className="text-sm text-gray-700 dark:text-neutral-200">
                                                 {review.review}
                                             </p>
                                         )}
@@ -1372,8 +1372,8 @@ export default function ShopDetailPage() {
                                 ))}
                             </div>
                             ) : (
-                                <div className="bg-white dark:bg-slate-900 rounded-lg p-12 border border-gray-100 dark:border-slate-800 text-center">
-                                    <p className="text-gray-600 dark:text-slate-400 mb-4">
+                                <div className="bg-white dark:bg-neutral-950 rounded-lg p-12 border border-gray-100 dark:border-neutral-800 text-center">
+                                    <p className="text-gray-600 dark:text-neutral-300 mb-4">
                                         No reviews yet. Be the first to rate this shop!
                                     </p>
                                     <button
@@ -1387,12 +1387,12 @@ export default function ShopDetailPage() {
 
                             {/* FEEDBACK SECTION */}
                             <div className="mt-8">
-                                <div className="bg-white dark:bg-slate-900 rounded-lg p-6 border border-gray-100 dark:border-slate-800">
+                                <div className="bg-white dark:bg-neutral-950 rounded-lg p-6 border border-gray-100 dark:border-neutral-800">
                                     <textarea
                                         placeholder="Share your experience with this shop..."
                                         value={feedbackText}
                                         onChange={(e) => setFeedbackText(e.target.value)}
-                                        className="w-full h-24 p-4 border border-gray-100 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#00a082] resize-none"
+                                        className="w-full h-24 p-4 border border-gray-100 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#00a082] resize-none"
                                     />
                                     <button
                                         onClick={async () => {
@@ -1427,7 +1427,7 @@ export default function ShopDetailPage() {
 
                         {/* Rating Summary - Right */}
                         <div className="col-span-12 lg:col-span-4">
-                            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 border border-gray-100 dark:border-slate-800 sticky top-28">
+                            <div className="bg-white dark:bg-neutral-950 rounded-lg p-6 border border-gray-100 dark:border-neutral-800 sticky top-28">
                                 {shopRating !== null ? (
                                     <>
                                         <div className="text-center mb-6">
@@ -1441,19 +1441,19 @@ export default function ShopDetailPage() {
                                                         className={`w-5 h-5 ${
                                                             i < Math.floor(shopRating)
                                                                 ? 'fill-yellow-400 text-yellow-400'
-                                                                : 'text-gray-300 dark:text-slate-600'
+                                                                : 'text-gray-300 dark:text-neutral-300'
                                                         }`}
                                                     />
                                                 ))}
                                             </div>
-                                            <p className="text-sm text-gray-600 dark:text-slate-400">
+                                            <p className="text-sm text-gray-600 dark:text-neutral-300">
                                                 {totalReviews} total reviews
                                             </p>
                                         </div>
 
-                                        <div className="space-y-3 pt-6 border-t border-gray-200 dark:border-slate-800">
+                                        <div className="space-y-3 pt-6 border-t border-gray-200 dark:border-neutral-800">
                                             <div>
-                                                <p className="text-xs text-gray-600 dark:text-slate-400 mb-1">
+                                                <p className="text-xs text-gray-600 dark:text-neutral-300 mb-1">
                                                     Verified Reviews
                                                 </p>
                                                 <p className="font-bold text-gray-900 dark:text-white">
@@ -1461,7 +1461,7 @@ export default function ShopDetailPage() {
                                                 </p>
                                             </div>
                                             <div>
-                                                <p className="text-xs text-gray-600 dark:text-slate-400 mb-1">
+                                                <p className="text-xs text-gray-600 dark:text-neutral-300 mb-1">
                                                     Community Reviews
                                                 </p>
                                                 <p className="font-bold text-gray-900 dark:text-white">
@@ -1481,7 +1481,7 @@ export default function ShopDetailPage() {
                                     </>
                                 ) : (
                                     <div className="text-center py-6">
-                                        <p className="text-sm text-gray-600 dark:text-slate-400">No reviews yet</p>
+                                        <p className="text-sm text-gray-600 dark:text-neutral-300">No reviews yet</p>
                                     </div>
                                 )}
 
@@ -1513,7 +1513,7 @@ export default function ShopDetailPage() {
                                     className={`w-full font-bold py-2 px-4 rounded-lg transition-colors mt-6 ${
                                         isFollowing
                                             ? 'bg-[#00a082] text-white cursor-default'
-                                            : 'bg-white dark:bg-slate-800 border-2 border-[#00a082] text-[#00a082] dark:text-[#00a082] hover:bg-[#00a082]/5'
+                                            : 'bg-white dark:bg-neutral-900 border-2 border-[#00a082] text-[#00a082] dark:text-[#00a082] hover:bg-[#00a082]/5'
                                     }`}
                                 >
                                     {isSubmittingFollow ? 'Following...' : isFollowing ? 'Following' : 'Follow Shop'}
@@ -1535,7 +1535,7 @@ export default function ShopDetailPage() {
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 15 }}
                             transition={{ duration: 0.22, ease: 'easeOut' }}
-                            className="relative bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6 z-10 border border-gray-100 dark:border-slate-800"
+                            className="relative bg-white dark:bg-neutral-950 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6 z-10 border border-gray-100 dark:border-neutral-800"
                         >
                             {/* Close button with circular green/teal outline */}
                             <button
@@ -1546,7 +1546,7 @@ export default function ShopDetailPage() {
                             </button>
 
                             {/* Product Image Gallery — swipe/scroll through all photos */}
-                            <div className="aspect-[4/3] w-full bg-white dark:bg-slate-950 rounded-2xl overflow-hidden mb-5 relative border border-gray-100 dark:border-slate-800/80">
+                            <div className="aspect-[4/3] w-full bg-white dark:bg-black rounded-2xl overflow-hidden mb-5 relative border border-gray-100 dark:border-neutral-800/80">
                                 {selectedProduct.images?.length > 0 ? (
                                     <div
                                         ref={modalGalleryRef}
@@ -1615,7 +1615,7 @@ export default function ShopDetailPage() {
                                         KSh {(selectedProduct?.price || 0).toLocaleString()}
                                     </span>
                                     {getMockProductInfo(selectedProduct).hasPromo && (
-                                        <span className="text-sm text-gray-400 dark:text-slate-500 line-through font-semibold">
+                                        <span className="text-sm text-gray-400 dark:text-neutral-400 line-through font-semibold">
                                             KSh {getMockProductInfo(selectedProduct).originalPrice.toLocaleString()}
                                         </span>
                                     )}
@@ -1623,17 +1623,17 @@ export default function ShopDetailPage() {
 
                                 {/* Product Description */}
                                 {selectedProduct.description_en && (
-                                    <p className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed bg-gray-50 dark:bg-slate-800/50 p-3 rounded-lg">
+                                    <p className="text-sm text-gray-700 dark:text-neutral-200 leading-relaxed bg-gray-50 dark:bg-neutral-900/50 p-3 rounded-lg">
                                         {selectedProduct.description_en}
                                     </p>
                                 )}
 
                                 {/* Quantity Selector Counter Pill */}
                                 <div className="flex justify-center py-2">
-                                    <div className="flex items-center gap-4 bg-gray-50 dark:bg-slate-800 px-4 py-2 rounded-full border border-gray-100 dark:border-slate-800">
+                                    <div className="flex items-center gap-4 bg-gray-50 dark:bg-neutral-900 px-4 py-2 rounded-full border border-gray-100 dark:border-neutral-800">
                                         <button
                                             onClick={() => setModalQuantity(q => Math.max(1, q - 1))}
-                                            className="p-1.5 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full text-gray-500 dark:text-slate-400 transition-colors"
+                                            className="p-1.5 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-full text-gray-500 dark:text-neutral-300 transition-colors"
                                         >
                                             <Minus className="w-4 h-4 stroke-[2.5]" />
                                         </button>
@@ -1642,7 +1642,7 @@ export default function ShopDetailPage() {
                                         </span>
                                         <button
                                             onClick={() => setModalQuantity(q => q + 1)}
-                                            className="p-1.5 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full text-orange-500 dark:text-orange-400 transition-colors"
+                                            className="p-1.5 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-full text-orange-500 dark:text-orange-400 transition-colors"
                                         >
                                             <Plus className="w-4 h-4 stroke-[2.5]" />
                                         </button>
@@ -1675,7 +1675,7 @@ export default function ShopDetailPage() {
             {/* CONTACT MODAL */}
             {contactModalOpen && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-sm w-full p-6">
+                    <div className="bg-white dark:bg-neutral-950 rounded-2xl shadow-2xl max-w-sm w-full p-6">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-lg font-bold text-gray-900 dark:text-white">Contact Seller</h3>
                             <button
@@ -1683,13 +1683,13 @@ export default function ShopDetailPage() {
                                     setContactModalOpen(false);
                                     setSelectedContactType(null);
                                 }}
-                                className="text-gray-500 hover:text-gray-700 dark:text-slate-400"
+                                className="text-gray-500 hover:text-gray-700 dark:text-neutral-300"
                             >
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
                         <div className="mb-4">
-                            <p className="text-sm text-gray-600 dark:text-slate-400 mb-2">Seller: {shopName}</p>
+                            <p className="text-sm text-gray-600 dark:text-neutral-300 mb-2">Seller: {shopName}</p>
                             <p className="text-sm font-semibold text-gray-900 dark:text-white">Phone:</p>
                             <p className="text-base font-bold text-[#00a082] mb-4">{shopPhone || 'Not available'}</p>
                         </div>
@@ -1759,11 +1759,11 @@ export default function ShopDetailPage() {
             {ratingModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <div className="absolute inset-0" onClick={() => setRatingModalOpen(false)} />
-                    <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 z-10 border border-gray-100 dark:border-slate-800">
+                    <div className="relative bg-white dark:bg-neutral-950 rounded-2xl shadow-2xl max-w-md w-full p-6 z-10 border border-gray-100 dark:border-neutral-800">
                         {/* Close button */}
                         <button
                             onClick={() => setRatingModalOpen(false)}
-                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-slate-400"
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-neutral-300"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -1772,7 +1772,7 @@ export default function ShopDetailPage() {
 
                         {/* Rating Stars */}
                         <div className="mb-6">
-                            <p className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-3">Overall Rating</p>
+                            <p className="text-sm font-semibold text-gray-700 dark:text-neutral-200 mb-3">Overall Rating</p>
                             <div className="flex gap-2 justify-center">
                                 {[1, 2, 3, 4, 5].map((star) => (
                                     <button
@@ -1784,7 +1784,7 @@ export default function ShopDetailPage() {
                                             className={`w-8 h-8 cursor-pointer ${
                                                 star <= userRating
                                                     ? 'fill-yellow-400 text-yellow-400'
-                                                    : 'text-gray-300 dark:text-slate-600'
+                                                    : 'text-gray-300 dark:text-neutral-300'
                                             }`}
                                         />
                                     </button>
@@ -1794,21 +1794,21 @@ export default function ShopDetailPage() {
 
                         {/* Review Text */}
                         <div className="mb-4">
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-200 mb-2">
                                 Your Review
                             </label>
                             <textarea
                                 value={userReview}
                                 onChange={(e) => setUserReview(e.target.value)}
                                 placeholder="Share your experience with this shop..."
-                                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00a082] text-sm"
+                                className="w-full px-3 py-2 border border-gray-200 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#00a082] text-sm"
                                 rows={4}
                             />
                         </div>
 
                         {/* Display Name */}
                         <div className="mb-4">
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-200 mb-2">
                                 Display Name
                             </label>
                             <input
@@ -1816,7 +1816,7 @@ export default function ShopDetailPage() {
                                 value={displayName}
                                 onChange={(e) => setDisplayName(e.target.value)}
                                 placeholder="Ahmed Hassan"
-                                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00a082] text-sm"
+                                className="w-full px-3 py-2 border border-gray-200 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#00a082] text-sm"
                             />
                         </div>
 
@@ -1829,7 +1829,7 @@ export default function ShopDetailPage() {
                                 onChange={(e) => setIsVerifiedPurchase(e.target.checked)}
                                 className="rounded cursor-pointer"
                             />
-                            <label htmlFor="verified" className="text-sm text-gray-700 dark:text-slate-300 cursor-pointer">
+                            <label htmlFor="verified" className="text-sm text-gray-700 dark:text-neutral-200 cursor-pointer">
                                 I purchased from this shop
                             </label>
                         </div>
@@ -1882,10 +1882,10 @@ export default function ShopDetailPage() {
             {messagingModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <div className="absolute inset-0" onClick={() => setMessagingModalOpen(false)} />
-                    <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 z-10 border border-gray-100 dark:border-slate-800">
+                    <div className="relative bg-white dark:bg-neutral-950 rounded-2xl shadow-2xl max-w-md w-full p-6 z-10 border border-gray-100 dark:border-neutral-800">
                         <button
                             onClick={() => setMessagingModalOpen(false)}
-                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-slate-400"
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-neutral-300"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -1896,7 +1896,7 @@ export default function ShopDetailPage() {
                             value={messageText}
                             onChange={(e) => setMessageText(e.target.value)}
                             placeholder="Type your message..."
-                            className="w-full h-32 p-4 border border-gray-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#00a082] resize-none mb-4"
+                            className="w-full h-32 p-4 border border-gray-200 dark:border-neutral-800 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#00a082] resize-none mb-4"
                         />
 
                         <button

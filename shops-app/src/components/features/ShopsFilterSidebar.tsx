@@ -70,7 +70,7 @@ export const ShopsFilterSidebar: React.FC<ShopsFilterSidebarProps> = ({
       <div>
         <motion.button
           onClick={() => toggleSection('sort')}
-          className="w-full flex items-center justify-between py-3 px-4 bg-gray-50 dark:bg-slate-800 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+          className="w-full flex items-center justify-between py-3 px-4 bg-gray-50 dark:bg-neutral-900 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
         >
           <span className="font-bold text-gray-900 dark:text-white">Sort By</span>
           <ChevronDown
@@ -107,7 +107,7 @@ export const ShopsFilterSidebar: React.FC<ShopsFilterSidebarProps> = ({
                     }
                     className="w-4 h-4 rounded border-gray-300 text-[#5bc0e8]"
                   />
-                  <span className="text-sm text-gray-700 dark:text-slate-300">
+                  <span className="text-sm text-gray-700 dark:text-neutral-200">
                     {option.label}
                   </span>
                 </label>
@@ -121,7 +121,7 @@ export const ShopsFilterSidebar: React.FC<ShopsFilterSidebarProps> = ({
       <div>
         <motion.button
           onClick={() => toggleSection('filters')}
-          className="w-full flex items-center justify-between py-3 px-4 bg-gray-50 dark:bg-slate-800 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+          className="w-full flex items-center justify-between py-3 px-4 bg-gray-50 dark:bg-neutral-900 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
         >
           <span className="font-bold text-gray-900 dark:text-white">Filters</span>
           <ChevronDown
@@ -147,7 +147,7 @@ export const ShopsFilterSidebar: React.FC<ShopsFilterSidebarProps> = ({
                   onChange={() => handleToggle('openNow')}
                   className="w-4 h-4 rounded border-gray-300 text-[#5bc0e8]"
                 />
-                <span className="text-sm text-gray-700 dark:text-slate-300">Open Now</span>
+                <span className="text-sm text-gray-700 dark:text-neutral-200">Open Now</span>
               </label>
 
               {/* Verified Only */}
@@ -158,7 +158,7 @@ export const ShopsFilterSidebar: React.FC<ShopsFilterSidebarProps> = ({
                   onChange={() => handleToggle('verified')}
                   className="w-4 h-4 rounded border-gray-300 text-[#5bc0e8]"
                 />
-                <span className="text-sm text-gray-700 dark:text-slate-300">Verified Only</span>
+                <span className="text-sm text-gray-700 dark:text-neutral-200">Verified Only</span>
               </label>
 
               {/* Free Delivery */}
@@ -169,7 +169,7 @@ export const ShopsFilterSidebar: React.FC<ShopsFilterSidebarProps> = ({
                   onChange={() => handleToggle('freeDelivery')}
                   className="w-4 h-4 rounded border-gray-300 text-[#5bc0e8]"
                 />
-                <span className="text-sm text-gray-700 dark:text-slate-300">Free Delivery</span>
+                <span className="text-sm text-gray-700 dark:text-neutral-200">Free Delivery</span>
               </label>
             </motion.div>
           )}
@@ -190,7 +190,7 @@ export const ShopsFilterSidebar: React.FC<ShopsFilterSidebarProps> = ({
                 onChange={() => handleRatingChange(rating)}
                 className="w-4 h-4 rounded border-gray-300 text-[#5bc0e8]"
               />
-              <span className="text-sm text-gray-700 dark:text-slate-300">
+              <span className="text-sm text-gray-700 dark:text-neutral-200">
                  {rating}+ ({rating === 4 ? 'Excellent' : rating === 3.5 ? 'Very Good' : rating === 3 ? 'Good' : 'Fair'})
               </span>
             </label>
@@ -212,7 +212,7 @@ export const ShopsFilterSidebar: React.FC<ShopsFilterSidebarProps> = ({
                 onChange={() => handleDistanceChange(distance)}
                 className="w-4 h-4 rounded border-gray-300 text-[#5bc0e8]"
               />
-              <span className="text-sm text-gray-700 dark:text-slate-300">
+              <span className="text-sm text-gray-700 dark:text-neutral-200">
                 Within {distance} km
               </span>
             </label>
@@ -235,7 +235,7 @@ export const ShopsFilterSidebar: React.FC<ShopsFilterSidebarProps> = ({
               sortBy: undefined,
             })
           }
-          className="w-full py-3 px-4 bg-gray-200 dark:bg-slate-700 text-gray-900 dark:text-white font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors"
+          className="w-full py-3 px-4 bg-gray-200 dark:bg-neutral-800 text-gray-900 dark:text-white font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-neutral-700 transition-colors"
         >
           Reset All Filters
         </motion.button>
@@ -262,13 +262,13 @@ export const ShopsFilterSidebar: React.FC<ShopsFilterSidebarProps> = ({
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              className="fixed right-0 top-0 bottom-0 w-full max-w-sm bg-white dark:bg-slate-900 shadow-2xl z-50 overflow-y-auto"
+              className="fixed right-0 top-0 bottom-0 w-full max-w-sm bg-white dark:bg-neutral-950 shadow-2xl z-50 overflow-y-auto"
             >
-              <div className="sticky top-0 flex items-center justify-between p-4 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800">
+              <div className="sticky top-0 flex items-center justify-between p-4 bg-white dark:bg-neutral-950 border-b border-gray-200 dark:border-neutral-800">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">Filters</h2>
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-lg transition-colors"
                 >
                   <X className="h-6 w-6" />
                 </button>
@@ -285,7 +285,7 @@ export const ShopsFilterSidebar: React.FC<ShopsFilterSidebarProps> = ({
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800 p-6 h-fit sticky top-24"
+      className="bg-white dark:bg-neutral-950 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 p-6 h-fit sticky top-24"
     >
       {content}
     </motion.div>

@@ -290,13 +290,13 @@ export default function ProductDetailPage() {
     if (isLoading) {
         return (
             <div className="mx-auto max-w-7xl px-4 py-8 animate-pulse space-y-8 pb-24">
-                <div className="h-6 w-32 bg-gray-200 dark:bg-slate-800 rounded-full" />
+                <div className="h-6 w-32 bg-gray-200 dark:bg-neutral-900 rounded-full" />
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="md:col-span-1 aspect-square bg-gray-200 dark:bg-slate-800 rounded-lg" />
+                    <div className="md:col-span-1 aspect-square bg-gray-200 dark:bg-neutral-900 rounded-lg" />
                     <div className="md:col-span-2 space-y-6">
-                        <div className="h-8 bg-gray-200 dark:bg-slate-800 rounded-xl" />
-                        <div className="h-6 w-1/4 bg-gray-200 dark:bg-slate-800 rounded-xl" />
-                        <div className="h-24 bg-gray-200 dark:bg-slate-800 rounded-xl" />
+                        <div className="h-8 bg-gray-200 dark:bg-neutral-900 rounded-xl" />
+                        <div className="h-6 w-1/4 bg-gray-200 dark:bg-neutral-900 rounded-xl" />
+                        <div className="h-24 bg-gray-200 dark:bg-neutral-900 rounded-xl" />
                     </div>
                 </div>
             </div>
@@ -319,21 +319,21 @@ export default function ProductDetailPage() {
     const sellerSlug = listing.owner ? shopSlug(sellerName, listing.owner_id) : '';
 
     return (
-        <div className="pb-28 md:pb-0 bg-gray-50 dark:bg-slate-950 min-h-screen">
+        <div className="pb-28 md:pb-0 bg-gray-50 dark:bg-black min-h-screen">
             <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
                 {/* Header Navigation */}
                 <button
                     onClick={() => router.back()}
-                    className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 dark:text-neutral-300 dark:hover:text-white"
                 >
                     <ArrowLeft className="h-4 w-4" />
                     <span>Back</span>
                 </button>
 
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-8 bg-white dark:bg-slate-900 rounded-2xl p-4 md:p-8">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-8 bg-white dark:bg-neutral-950 rounded-2xl p-4 md:p-8">
                     {/* Left: Image gallery */}
                     <div className="md:col-span-2 space-y-3">
-                        <div className="aspect-square overflow-hidden rounded-xl border border-gray-200 dark:border-slate-800 bg-gray-100 dark:bg-slate-800 relative">
+                        <div className="aspect-square overflow-hidden rounded-xl border border-gray-200 dark:border-neutral-800 bg-gray-100 dark:bg-neutral-900 relative">
                             <img
                                 src={activeImage}
                                 alt={field(listing.title_en, listing.title_so)}
@@ -351,7 +351,7 @@ export default function ProductDetailPage() {
                                     <button
                                         key={idx}
                                         onClick={() => setActiveImage(img)}
-                                        className={`h-16 w-16 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${activeImage === img ? 'border-orange-500' : 'border-gray-200 dark:border-slate-700'}`}
+                                        className={`h-16 w-16 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${activeImage === img ? 'border-orange-500' : 'border-gray-200 dark:border-neutral-800'}`}
                                     >
                                         <img src={img} alt="" className="h-full w-full object-cover" />
                                     </button>
@@ -377,18 +377,18 @@ export default function ProductDetailPage() {
                                     <div className="flex items-center gap-2">
                                         <div className="flex items-center gap-0.5">
                                             {Array.from({ length: 5 }).map((_, i) => (
-                                                <Star key={i} className={`h-4 w-4 ${i < Math.round(ratingAvg) ? 'fill-amber-400 text-amber-400' : 'text-gray-300 dark:text-slate-600'}`} />
+                                                <Star key={i} className={`h-4 w-4 ${i < Math.round(ratingAvg) ? 'fill-amber-400 text-amber-400' : 'text-gray-300 dark:text-neutral-300'}`} />
                                             ))}
                                         </div>
-                                        <span className="text-sm font-semibold text-gray-700 dark:text-slate-300">
+                                        <span className="text-sm font-semibold text-gray-700 dark:text-neutral-200">
                                             {ratingAvg.toFixed(1)} ({feedback.length} {feedback.length === 1 ? 'review' : 'reviews'})
                                         </span>
                                     </div>
                                 ) : (
-                                    <span className="text-sm text-gray-500 dark:text-slate-400">No ratings yet</span>
+                                    <span className="text-sm text-gray-500 dark:text-neutral-300">No ratings yet</span>
                                 )}
                                 {typeof listing.views === 'number' && (
-                                    <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-slate-500">
+                                    <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-neutral-400">
                                         <Eye className="h-3.5 w-3.5" /> {listing.views} views
                                     </span>
                                 )}
@@ -401,18 +401,18 @@ export default function ProductDetailPage() {
                                 {formatConvertedPrice(listing?.price ?? 0, listing.currency || 'USD', displayCurrency)}
                             </span>
                             {listing.is_negotiable && (
-                                <span className="text-xs font-bold text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-full">Negotiable</span>
+                                <span className="text-xs font-bold text-gray-500 dark:text-neutral-300 bg-gray-100 dark:bg-neutral-900 px-2 py-1 rounded-full">Negotiable</span>
                             )}
                         </div>
 
                         {/* Quantity */}
                         {!isSold && (
                             <div>
-                                <div className="text-xs font-bold text-gray-700 dark:text-slate-300 mb-2 uppercase tracking-wide">Quantity</div>
-                                <div className="inline-flex items-center gap-3 border border-gray-200 dark:border-slate-700 rounded-full px-1 py-1">
+                                <div className="text-xs font-bold text-gray-700 dark:text-neutral-200 mb-2 uppercase tracking-wide">Quantity</div>
+                                <div className="inline-flex items-center gap-3 border border-gray-200 dark:border-neutral-800 rounded-full px-1 py-1">
                                     <button
                                         onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                                        className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                                        className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors"
                                         aria-label="Decrease quantity"
                                     >
                                         <Minus className="h-3.5 w-3.5" />
@@ -420,7 +420,7 @@ export default function ProductDetailPage() {
                                     <span className="w-6 text-center text-sm font-bold text-gray-900 dark:text-white">{quantity}</span>
                                     <button
                                         onClick={() => setQuantity((q) => Math.min(99, q + 1))}
-                                        className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                                        className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors"
                                         aria-label="Increase quantity"
                                     >
                                         <Plus className="h-3.5 w-3.5" />
@@ -432,13 +432,13 @@ export default function ProductDetailPage() {
                         {/* Secondary links */}
                         <div className="flex items-center gap-4 text-sm">
                             {listing.owner && (
-                                <Link href={`/shop/${sellerSlug}`} className="flex items-center gap-1.5 font-semibold text-gray-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400">
+                                <Link href={`/shop/${sellerSlug}`} className="flex items-center gap-1.5 font-semibold text-gray-700 dark:text-neutral-200 hover:text-orange-600 dark:hover:text-orange-400">
                                     <Store className="h-4 w-4" /> View Shop
                                 </Link>
                             )}
                             <button
                                 onClick={handleToggleFavorite}
-                                className={`flex items-center gap-1.5 font-semibold ${isFavorite ? 'text-red-500' : 'text-gray-700 dark:text-slate-300 hover:text-red-500'}`}
+                                className={`flex items-center gap-1.5 font-semibold ${isFavorite ? 'text-red-500' : 'text-gray-700 dark:text-neutral-200 hover:text-red-500'}`}
                             >
                                 <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
                                 {isFavorite ? 'Wishlisted' : 'Add to Wishlist'}
@@ -465,46 +465,46 @@ export default function ProductDetailPage() {
                         )}
                         <Link
                             href={`/messages?userId=${listing.owner_id}&productId=${listing.id}`}
-                            className="flex items-center justify-center gap-2 w-full rounded-full bg-gray-900 dark:bg-slate-800 text-white font-bold py-2.5 text-sm hover:bg-gray-800 dark:hover:bg-slate-700 transition-colors"
+                            className="flex items-center justify-center gap-2 w-full rounded-full bg-gray-900 dark:bg-neutral-900 text-white font-bold py-2.5 text-sm hover:bg-gray-800 dark:hover:bg-neutral-800 transition-colors"
                         >
                             <MessageSquare className="h-4 w-4" />
                             Contact Seller
                         </Link>
 
                         {/* Location chip */}
-                        <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-neutral-300">
                             <MapPin className="h-3.5 w-3.5" /> {listing.location || 'Somalia'}
                         </div>
 
                         {/* Share + Report */}
-                        <div className="flex items-center justify-between border-t border-gray-200 dark:border-slate-700 pt-3">
+                        <div className="flex items-center justify-between border-t border-gray-200 dark:border-neutral-800 pt-3">
                             <div className="flex items-center gap-2">
-                                <span className="text-xs font-semibold text-gray-700 dark:text-slate-300 mr-1">Share:</span>
+                                <span className="text-xs font-semibold text-gray-700 dark:text-neutral-200 mr-1">Share:</span>
                                 <button
                                     onClick={handleNativeShare}
                                     aria-label={linkCopied ? 'Link copied' : 'Share this listing'}
-                                    className="h-8 w-8 rounded-full border border-gray-200 dark:border-slate-700 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
+                                    className="h-8 w-8 rounded-full border border-gray-200 dark:border-neutral-800 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-neutral-900 transition-all"
                                 >
                                     {linkCopied ? <Check className="h-4 w-4 text-green-600" /> : <Share2 className="h-4 w-4 text-blue-600" />}
                                 </button>
                                 <button
                                     onClick={shareToX}
                                     aria-label="Share on X"
-                                    className="h-8 w-8 rounded-full border border-gray-200 dark:border-slate-700 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
+                                    className="h-8 w-8 rounded-full border border-gray-200 dark:border-neutral-800 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-neutral-900 transition-all"
                                 >
                                     <X className="h-4 w-4 text-gray-900 dark:text-white" />
                                 </button>
                                 <button
                                     onClick={shareToWhatsApp}
                                     aria-label="Share on WhatsApp"
-                                    className="h-8 w-8 rounded-full border border-gray-200 dark:border-slate-700 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
+                                    className="h-8 w-8 rounded-full border border-gray-200 dark:border-neutral-800 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-neutral-900 transition-all"
                                 >
                                     <MessageCircle className="h-4 w-4 text-green-600" />
                                 </button>
                             </div>
                             <button
                                 onClick={() => setShowReportModal(true)}
-                                className="text-xs text-gray-500 dark:text-slate-400 hover:underline font-medium flex items-center gap-1"
+                                className="text-xs text-gray-500 dark:text-neutral-300 hover:underline font-medium flex items-center gap-1"
                             >
                                 <AlertTriangle className="h-3 w-3" />
                                 Report
@@ -514,8 +514,8 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Detail Tabs */}
-                <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 md:p-8">
-                    <div className="flex gap-6 border-b border-gray-200 dark:border-slate-800 mb-5">
+                <div className="bg-white dark:bg-neutral-950 rounded-2xl p-4 md:p-8">
+                    <div className="flex gap-6 border-b border-gray-200 dark:border-neutral-800 mb-5">
                         {([
                             { key: 'description', label: 'Description' },
                             { key: 'specs', label: 'Specs' },
@@ -524,7 +524,7 @@ export default function ProductDetailPage() {
                             <button
                                 key={tab.key}
                                 onClick={() => setActiveTab(tab.key)}
-                                className={`pb-3 text-sm font-bold border-b-2 transition-colors ${activeTab === tab.key ? 'border-orange-500 text-gray-900 dark:text-white' : 'border-transparent text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300'}`}
+                                className={`pb-3 text-sm font-bold border-b-2 transition-colors ${activeTab === tab.key ? 'border-orange-500 text-gray-900 dark:text-white' : 'border-transparent text-gray-400 dark:text-neutral-400 hover:text-gray-600 dark:hover:text-neutral-200'}`}
                             >
                                 {tab.label}
                             </button>
@@ -532,7 +532,7 @@ export default function ProductDetailPage() {
                     </div>
 
                     {activeTab === 'description' && (
-                        <p className="text-sm text-gray-700 dark:text-slate-300 whitespace-pre-line leading-relaxed">
+                        <p className="text-sm text-gray-700 dark:text-neutral-200 whitespace-pre-line leading-relaxed">
                             {field(listing.description_en, listing.description_so)}
                         </p>
                     )}
@@ -546,8 +546,8 @@ export default function ProductDetailPage() {
                                 ['Posted', new Date(listing.created_at).toLocaleDateString()],
                                 ['Negotiable', listing.is_negotiable ? 'Yes' : 'No'],
                             ].map(([label, value]) => (
-                                <div key={label} className="flex justify-between border-b border-gray-100 dark:border-slate-800 pb-2">
-                                    <dt className="text-sm text-gray-500 dark:text-slate-400">{label}</dt>
+                                <div key={label} className="flex justify-between border-b border-gray-100 dark:border-neutral-800 pb-2">
+                                    <dt className="text-sm text-gray-500 dark:text-neutral-300">{label}</dt>
                                     <dd className="text-sm font-semibold text-gray-900 dark:text-white">{value}</dd>
                                 </div>
                             ))}
@@ -565,7 +565,7 @@ export default function ProductDetailPage() {
                                         <span className="font-bold text-gray-900 dark:text-white">{sellerName}</span>
                                         {listing.owner.is_verified && <ShieldCheck className="h-4 w-4 text-green-600 dark:text-green-400" />}
                                     </div>
-                                    <div className="text-xs text-gray-500 dark:text-slate-400">
+                                    <div className="text-xs text-gray-500 dark:text-neutral-300">
                                         {ratingAvg !== null ? `${ratingAvg.toFixed(1)}★ rated seller` : 'New seller'}
                                     </div>
                                 </div>
@@ -574,7 +574,7 @@ export default function ProductDetailPage() {
                                 {listing.owner.phone && (
                                     <a
                                         href={`tel:${listing.owner.phone}`}
-                                        className="flex items-center gap-1.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-full px-4 py-2 text-xs font-bold text-gray-700 dark:text-slate-300 transition-all"
+                                        className="flex items-center gap-1.5 bg-gray-100 dark:bg-neutral-900 hover:bg-gray-200 dark:hover:bg-neutral-800 border border-gray-200 dark:border-neutral-800 rounded-full px-4 py-2 text-xs font-bold text-gray-700 dark:text-neutral-200 transition-all"
                                     >
                                         <Phone className="h-3.5 w-3.5" /> Call
                                     </a>
@@ -588,7 +588,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Ratings & Reviews */}
-                <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 md:p-8">
+                <div className="bg-white dark:bg-neutral-950 rounded-2xl p-4 md:p-8">
                     <h2 className="text-lg font-black text-gray-900 dark:text-white mb-6">Ratings & Reviews</h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
@@ -599,51 +599,51 @@ export default function ProductDetailPage() {
                             <div>
                                 <div className="flex items-center gap-0.5 mb-1">
                                     {Array.from({ length: 5 }).map((_, i) => (
-                                        <Star key={i} className={`h-4 w-4 ${ratingAvg !== null && i < Math.round(ratingAvg) ? 'fill-amber-400 text-amber-400' : 'text-gray-300 dark:text-slate-600'}`} />
+                                        <Star key={i} className={`h-4 w-4 ${ratingAvg !== null && i < Math.round(ratingAvg) ? 'fill-amber-400 text-amber-400' : 'text-gray-300 dark:text-neutral-300'}`} />
                                     ))}
                                 </div>
-                                <div className="text-xs text-gray-500 dark:text-slate-400">{feedback.length} {feedback.length === 1 ? 'review' : 'reviews'}</div>
+                                <div className="text-xs text-gray-500 dark:text-neutral-300">{feedback.length} {feedback.length === 1 ? 'review' : 'reviews'}</div>
                             </div>
                         </div>
 
                         <div className="md:col-span-3 space-y-1.5">
                             {ratingBreakdown.map(({ star, count, pct }) => (
                                 <div key={star} className="flex items-center gap-2 text-xs">
-                                    <span className="flex items-center gap-0.5 w-8 shrink-0 font-semibold text-gray-600 dark:text-slate-400">
+                                    <span className="flex items-center gap-0.5 w-8 shrink-0 font-semibold text-gray-600 dark:text-neutral-300">
                                         {star} <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
                                     </span>
-                                    <div className="flex-1 h-2 rounded-full bg-gray-100 dark:bg-slate-800 overflow-hidden">
+                                    <div className="flex-1 h-2 rounded-full bg-gray-100 dark:bg-neutral-900 overflow-hidden">
                                         <div className="h-full bg-amber-400" style={{ width: `${pct}%` }} />
                                     </div>
-                                    <span className="w-6 text-right text-gray-400 dark:text-slate-500 shrink-0">{count}</span>
+                                    <span className="w-6 text-right text-gray-400 dark:text-neutral-400 shrink-0">{count}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
                     {feedback.length > 0 && (
-                        <div className="space-y-4 mt-8 pt-6 border-t border-gray-100 dark:border-slate-800">
+                        <div className="space-y-4 mt-8 pt-6 border-t border-gray-100 dark:border-neutral-800">
                             {feedback.slice(0, 5).map((f) => (
-                                <div key={f.id} className="pb-4 border-b border-gray-100 dark:border-slate-800 last:border-b-0">
+                                <div key={f.id} className="pb-4 border-b border-gray-100 dark:border-neutral-800 last:border-b-0">
                                     <div className="flex items-center gap-2 mb-2">
                                         {Array.from({ length: 5 }).map((_, i) => (
-                                            <Star key={i} className={`h-3.5 w-3.5 ${i < f.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-300 dark:text-slate-600'}`} />
+                                            <Star key={i} className={`h-3.5 w-3.5 ${i < f.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-300 dark:text-neutral-300'}`} />
                                         ))}
-                                        <span className="text-xs text-gray-400 dark:text-slate-500 ml-1">{new Date(f.created_at).toLocaleDateString()}</span>
+                                        <span className="text-xs text-gray-400 dark:text-neutral-400 ml-1">{new Date(f.created_at).toLocaleDateString()}</span>
                                     </div>
-                                    {f.comment && <p className="text-sm text-gray-700 dark:text-slate-300">{f.comment}</p>}
+                                    {f.comment && <p className="text-sm text-gray-700 dark:text-neutral-200">{f.comment}</p>}
                                 </div>
                             ))}
                         </div>
                     )}
 
                     {/* Write a review */}
-                    <div className="mt-8 pt-6 border-t border-gray-100 dark:border-slate-800">
+                    <div className="mt-8 pt-6 border-t border-gray-100 dark:border-neutral-800">
                         <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3">Write a review</h3>
                         <div className="flex items-center gap-1 mb-3">
                             {Array.from({ length: 5 }).map((_, i) => (
                                 <button key={i} onClick={() => setReviewRating(i + 1)} aria-label={`Rate ${i + 1} stars`}>
-                                    <Star className={`h-6 w-6 transition-colors ${i < reviewRating ? 'fill-amber-400 text-amber-400' : 'text-gray-300 dark:text-slate-600'}`} />
+                                    <Star className={`h-6 w-6 transition-colors ${i < reviewRating ? 'fill-amber-400 text-amber-400' : 'text-gray-300 dark:text-neutral-300'}`} />
                                 </button>
                             ))}
                         </div>
@@ -652,7 +652,7 @@ export default function ProductDetailPage() {
                             onChange={(e) => setReviewComment(e.target.value)}
                             placeholder="Share your experience with this item or seller..."
                             rows={3}
-                            className="w-full rounded-xl border border-gray-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm focus:outline-none focus:border-orange-500 resize-none mb-3"
+                            className="w-full rounded-xl border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white px-4 py-3 text-sm focus:outline-none focus:border-orange-500 resize-none mb-3"
                         />
                         <button
                             onClick={handleSubmitReview}
@@ -679,7 +679,7 @@ export default function ProductDetailPage() {
 
             {/* Sticky mobile action bar */}
             {!isSold && (
-                <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 p-3 flex gap-2">
+                <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-neutral-950 border-t border-gray-200 dark:border-neutral-800 p-3 flex gap-2">
                     <button
                         onClick={handleAddToCart}
                         className="flex-1 flex items-center justify-center gap-2 rounded-full border-2 border-orange-500 text-orange-600 dark:text-orange-400 font-black py-2.5 text-sm"
@@ -699,12 +699,12 @@ export default function ProductDetailPage() {
             {/* Buy Now / Order Modal */}
             {showOrderModal && (
                 <div className="fixed inset-0 z-50 bg-black/50 flex items-end md:items-center justify-center">
-                    <div className="bg-white dark:bg-slate-900 rounded-t-2xl md:rounded-2xl w-full md:max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white dark:bg-neutral-950 rounded-t-2xl md:rounded-2xl w-full md:max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
                         {orderPlaced ? (
                             <div className="text-center py-6 space-y-3">
                                 <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
                                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">Order request sent!</h2>
-                                <p className="text-sm text-gray-500 dark:text-slate-400">
+                                <p className="text-sm text-gray-500 dark:text-neutral-300">
                                     The seller will reach out to confirm details. You can also message them directly from this listing.
                                 </p>
                                 <button
@@ -717,36 +717,36 @@ export default function ProductDetailPage() {
                         ) : (
                             <>
                                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">Confirm your order</h2>
-                                <div className="flex items-center justify-between bg-gray-50 dark:bg-slate-800 rounded-xl p-3">
-                                    <span className="text-sm font-semibold text-gray-700 dark:text-slate-300">{quantity} × {field(listing.title_en, listing.title_so)}</span>
+                                <div className="flex items-center justify-between bg-gray-50 dark:bg-neutral-900 rounded-xl p-3">
+                                    <span className="text-sm font-semibold text-gray-700 dark:text-neutral-200">{quantity} × {field(listing.title_en, listing.title_so)}</span>
                                     <span className="text-sm font-black text-gray-900 dark:text-white">
                                         {formatConvertedPrice((listing.price ?? 0) * quantity, listing.currency || 'USD', displayCurrency)}
                                     </span>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">Delivery / meetup location</label>
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-200 mb-2">Delivery / meetup location</label>
                                     <input
                                         type="text"
                                         value={orderLocation}
                                         onChange={(e) => setOrderLocation(e.target.value)}
                                         placeholder="e.g. Mogadishu, Bakaara Market"
-                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:outline-none focus:border-orange-500"
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:border-orange-500"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">Notes (optional)</label>
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-200 mb-2">Notes (optional)</label>
                                     <textarea
                                         value={orderNotes}
                                         onChange={(e) => setOrderNotes(e.target.value)}
                                         placeholder="Anything the seller should know..."
                                         rows={3}
-                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:outline-none focus:border-orange-500 resize-none"
+                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:border-orange-500 resize-none"
                                     />
                                 </div>
                                 <div className="flex gap-3 pt-2">
                                     <button
                                         onClick={() => setShowOrderModal(false)}
-                                        className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-slate-700 text-gray-700 dark:text-slate-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
+                                        className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-800 text-gray-700 dark:text-neutral-200 font-semibold hover:bg-gray-50 dark:hover:bg-neutral-900 transition-all"
                                     >
                                         Cancel
                                     </button>
@@ -767,17 +767,17 @@ export default function ProductDetailPage() {
             {/* Report Listing Modal */}
             {showReportModal && (
                 <div className="fixed inset-0 z-50 bg-black/50 flex items-end md:items-center justify-center">
-                    <div className="bg-white dark:bg-slate-900 rounded-t-2xl md:rounded-2xl w-full md:w-full md:max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white dark:bg-neutral-950 rounded-t-2xl md:rounded-2xl w-full md:w-full md:max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
                         <h2 className="text-lg font-bold text-gray-900 dark:text-white">Report this product</h2>
 
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-200 mb-2">
                                 What's the problem?
                             </label>
                             <select
                                 value={reportReason}
                                 onChange={(e) => setReportReason(e.target.value)}
-                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:outline-none focus:border-orange-500"
+                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:border-orange-500"
                             >
                                 <option value="">Select a reason...</option>
                                 <option value="incorrect_info">Incorrect product information</option>
@@ -790,14 +790,14 @@ export default function ProductDetailPage() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-200 mb-2">
                                 Additional details (optional)
                             </label>
                             <textarea
                                 value={reportDescription}
                                 onChange={(e) => setReportDescription(e.target.value)}
                                 placeholder="Please provide more information..."
-                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:outline-none focus:border-orange-500 resize-none"
+                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:border-orange-500 resize-none"
                                 rows={4}
                             />
                         </div>
@@ -809,7 +809,7 @@ export default function ProductDetailPage() {
                                     setReportReason('');
                                     setReportDescription('');
                                 }}
-                                className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-slate-700 text-gray-700 dark:text-slate-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
+                                className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-800 text-gray-700 dark:text-neutral-200 font-semibold hover:bg-gray-50 dark:hover:bg-neutral-900 transition-all"
                             >
                                 Cancel
                             </button>

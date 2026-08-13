@@ -35,7 +35,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   return (
     <motion.div
       whileHover={{ y: -2 }}
-      className="bg-white dark:bg-[#151D2A] rounded-3xl p-5 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex items-center justify-between transition-all"
+      className="bg-white dark:bg-neutral-950 rounded-3xl p-5 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex items-center justify-between transition-all"
     >
       <div className="flex items-center gap-4">
         {/* Icon Pill */}
@@ -45,7 +45,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 
         {/* Content */}
         <div>
-          <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mb-0.5">{label}</p>
+          <p className="text-xs font-semibold text-slate-400 dark:text-neutral-400 mb-0.5">{label}</p>
           <div className="flex items-baseline gap-2">
             <h3 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">{value}</h3>
           </div>

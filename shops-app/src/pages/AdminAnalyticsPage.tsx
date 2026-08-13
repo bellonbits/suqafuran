@@ -196,7 +196,7 @@ const AnalyticsPage = () => {
           <button
             onClick={() => loadAnalytics(true)}
             disabled={refreshing}
-            className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white dark:bg-[#151D2A] border border-slate-100 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-100 dark:border-neutral-800 text-xs font-bold text-slate-600 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-900 shadow-sm transition-colors"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-indigo-500' : ''}`} />
             {refreshing ? 'Refreshing…' : 'Refresh'}
@@ -213,7 +213,7 @@ const AnalyticsPage = () => {
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.07 }}
-                className="bg-white dark:bg-[#151D2A] rounded-3xl p-5 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.03)] relative overflow-hidden"
+                className="bg-white dark:bg-neutral-950 rounded-3xl p-5 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.03)] relative overflow-hidden"
               >
                 {/* Gradient wash */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${card.bgClass} pointer-events-none`} />
@@ -236,7 +236,7 @@ const AnalyticsPage = () => {
         {/* Middle: Health Rings + Breakdown Bars */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Health Rings */}
-          <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+          <div className="bg-white dark:bg-neutral-950 rounded-3xl p-6 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
               <Activity className="w-4 h-4 text-indigo-500" /> Platform Health Scores
             </h3>
@@ -244,16 +244,16 @@ const AnalyticsPage = () => {
               {healthMetrics.map((m, i) => {
                 const Icon = m.icon;
                 return (
-                  <div key={i} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40">
+                  <div key={i} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-neutral-900/40">
                     <div className="relative flex-shrink-0">
                       <RadialRing pct={m.pct} color={m.color} size={52} strokeWidth={5} />
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-[10px] font-extrabold text-slate-700 dark:text-slate-200">{m.pct}%</span>
+                        <span className="text-[10px] font-extrabold text-slate-700 dark:text-neutral-100">{m.pct}%</span>
                       </div>
                     </div>
                     <div>
                       <Icon className={`w-3.5 h-3.5 ${m.iconColor} mb-0.5`} />
-                      <p className="text-xs font-bold text-slate-700 dark:text-slate-200 leading-tight">{m.label}</p>
+                      <p className="text-xs font-bold text-slate-700 dark:text-neutral-100 leading-tight">{m.label}</p>
                     </div>
                   </div>
                 );
@@ -262,7 +262,7 @@ const AnalyticsPage = () => {
           </div>
 
           {/* Breakdown Bars */}
-          <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+          <div className="bg-white dark:bg-neutral-950 rounded-3xl p-6 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-indigo-500" /> Detailed Breakdown
             </h3>
@@ -272,12 +272,12 @@ const AnalyticsPage = () => {
                 return (
                   <div key={i}>
                     <div className="flex items-center justify-between text-xs mb-1.5">
-                      <span className="font-semibold text-slate-600 dark:text-slate-300">{row.label}</span>
+                      <span className="font-semibold text-slate-600 dark:text-neutral-200">{row.label}</span>
                       <span className="font-extrabold text-slate-900 dark:text-white">
                         {row.value?.toLocaleString()} <span className="text-slate-400 font-medium">({pct}%)</span>
                       </span>
                     </div>
-                    <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-slate-100 dark:bg-neutral-900 rounded-full overflow-hidden">
                       <motion.div
                         className={`h-full rounded-full ${row.color}`}
                         initial={{ width: 0 }}
@@ -309,7 +309,7 @@ const AnalyticsPage = () => {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.3 + idx * 0.05 }}
-                className="bg-white dark:bg-[#151D2A] rounded-2xl border border-slate-100 dark:border-slate-800 p-4 text-center shadow-[0_1px_6px_rgba(0,0,0,0.02)]"
+                className="bg-white dark:bg-neutral-950 rounded-2xl border border-slate-100 dark:border-neutral-800 p-4 text-center shadow-[0_1px_6px_rgba(0,0,0,0.02)]"
               >
                 <div className={`w-8 h-8 rounded-xl ${item.bg} flex items-center justify-center mx-auto mb-2`}>
                   <Icon className={`w-4 h-4 ${item.color}`} />

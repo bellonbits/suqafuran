@@ -71,7 +71,7 @@ export const ListingStep4Review: React.FC<Step4Props> = ({ data }) => {
         <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
           {data.title}
         </h3>
-        <p className="text-gray-600 dark:text-slate-400 mb-4">
+        <p className="text-gray-600 dark:text-neutral-300 mb-4">
           {data.description}
         </p>
 
@@ -93,8 +93,8 @@ export const ListingStep4Review: React.FC<Step4Props> = ({ data }) => {
       {/* Details Grid */}
       <div className="grid grid-cols-2 gap-4">
         {/* Price */}
-        <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
-          <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+        <div className="p-4 bg-gray-50 dark:bg-neutral-900 rounded-lg">
+          <p className="text-xs font-semibold text-gray-500 dark:text-neutral-300 uppercase tracking-wider mb-1">
             Price
           </p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -108,8 +108,8 @@ export const ListingStep4Review: React.FC<Step4Props> = ({ data }) => {
         </div>
 
         {/* Condition */}
-        <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
-          <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+        <div className="p-4 bg-gray-50 dark:bg-neutral-900 rounded-lg">
+          <p className="text-xs font-semibold text-gray-500 dark:text-neutral-300 uppercase tracking-wider mb-1">
             Condition
           </p>
           <p className="text-lg font-bold text-gray-900 dark:text-white capitalize">
@@ -118,8 +118,8 @@ export const ListingStep4Review: React.FC<Step4Props> = ({ data }) => {
         </div>
 
         {/* Category */}
-        <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
-          <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+        <div className="p-4 bg-gray-50 dark:bg-neutral-900 rounded-lg">
+          <p className="text-xs font-semibold text-gray-500 dark:text-neutral-300 uppercase tracking-wider mb-1">
             Category
           </p>
           <p className="text-sm font-bold text-gray-900 dark:text-white">
@@ -128,8 +128,8 @@ export const ListingStep4Review: React.FC<Step4Props> = ({ data }) => {
         </div>
 
         {/* Photos */}
-        <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
-          <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+        <div className="p-4 bg-gray-50 dark:bg-neutral-900 rounded-lg">
+          <p className="text-xs font-semibold text-gray-500 dark:text-neutral-300 uppercase tracking-wider mb-1">
             Photos
           </p>
           <p className="text-lg font-bold text-gray-900 dark:text-white">
@@ -151,7 +151,7 @@ export const ListingStep4Review: React.FC<Step4Props> = ({ data }) => {
               disabled
               className="w-5 h-5 mt-0.5 rounded border-gray-300 text-green-600"
             />
-            <span className="text-sm text-gray-700 dark:text-slate-300">
+            <span className="text-sm text-gray-700 dark:text-neutral-200">
               Title and description are accurate and clear
             </span>
           </label>
@@ -162,7 +162,7 @@ export const ListingStep4Review: React.FC<Step4Props> = ({ data }) => {
               disabled
               className="w-5 h-5 mt-0.5 rounded border-gray-300 text-green-600"
             />
-            <span className="text-sm text-gray-700 dark:text-slate-300">
+            <span className="text-sm text-gray-700 dark:text-neutral-200">
               Photos clearly show the item's condition
             </span>
           </label>
@@ -173,7 +173,7 @@ export const ListingStep4Review: React.FC<Step4Props> = ({ data }) => {
               disabled
               className="w-5 h-5 mt-0.5 rounded border-gray-300 text-green-600"
             />
-            <span className="text-sm text-gray-700 dark:text-slate-300">
+            <span className="text-sm text-gray-700 dark:text-neutral-200">
               Price is competitive and realistic
             </span>
           </label>
@@ -184,7 +184,7 @@ export const ListingStep4Review: React.FC<Step4Props> = ({ data }) => {
               disabled
               className="w-5 h-5 mt-0.5 rounded border-gray-300 text-green-600"
             />
-            <span className="text-sm text-gray-700 dark:text-slate-300">
+            <span className="text-sm text-gray-700 dark:text-neutral-200">
               All information is honest and accurate
             </span>
           </label>

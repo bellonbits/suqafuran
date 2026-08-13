@@ -76,7 +76,7 @@ function KpiCard({
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl p-5 border border-gray-200 dark:border-slate-800 hover:shadow-md transition-shadow">
+    <div className="bg-white dark:bg-neutral-950 rounded-xl p-5 border border-gray-200 dark:border-neutral-800 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
         <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${colorMap[color]}`}>
           <Icon className="w-5 h-5" />
@@ -89,7 +89,7 @@ function KpiCard({
         )}
       </div>
       <p className="text-2xl font-black text-gray-900 dark:text-white">{value.toLocaleString()}</p>
-      <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">{label}</p>
+      <p className="text-xs text-gray-500 dark:text-neutral-300 mt-1">{label}</p>
     </div>
   );
 }
@@ -185,19 +185,19 @@ function AnalyticsDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-gray-900 dark:text-white">Analytics</h1>
-          <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">Track your shop performance and buyer behaviour</p>
+          <p className="text-gray-500 dark:text-neutral-300 text-sm mt-1">Track your shop performance and buyer behaviour</p>
         </div>
 
         {/* Period switcher */}
-        <div className="flex items-center gap-1 bg-gray-100 dark:bg-slate-800 rounded-xl p-1">
+        <div className="flex items-center gap-1 bg-gray-100 dark:bg-neutral-900 rounded-xl p-1">
           {(['daily', 'weekly', 'monthly'] as Period[]).map((p) => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all capitalize ${
                 period === p
-                  ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
+                  ? 'bg-white dark:bg-neutral-800 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-neutral-300 hover:text-gray-700 dark:hover:text-neutral-200'
               }`}
             >
               {p}
@@ -233,7 +233,7 @@ function AnalyticsDashboard() {
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Visitors + Views line chart */}
-            <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl p-6 border border-gray-200 dark:border-slate-800">
+            <div className="lg:col-span-2 bg-white dark:bg-neutral-950 rounded-xl p-6 border border-gray-200 dark:border-neutral-800">
               <h3 className="text-base font-black text-gray-900 dark:text-white mb-5">Visitors & Views</h3>
               <ResponsiveContainer width="100%" height={260}>
                 <LineChart data={chartData}>
@@ -250,7 +250,7 @@ function AnalyticsDashboard() {
             </div>
 
             {/* Traffic Sources donut */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-gray-200 dark:border-slate-800">
+            <div className="bg-white dark:bg-neutral-950 rounded-xl p-6 border border-gray-200 dark:border-neutral-800">
               <h3 className="text-base font-black text-gray-900 dark:text-white mb-5">
                 <Globe className="w-4 h-4 inline mr-2 text-gray-400" />
                 Traffic Sources
@@ -270,7 +270,7 @@ function AnalyticsDashboard() {
                   <div key={s.name} className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
-                      <span className="text-gray-600 dark:text-slate-400">{s.name}</span>
+                      <span className="text-gray-600 dark:text-neutral-300">{s.name}</span>
                     </div>
                     <span className="font-semibold text-gray-900 dark:text-white">{s.value}%</span>
                   </div>
@@ -282,7 +282,7 @@ function AnalyticsDashboard() {
           {/* Bottom Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Most Viewed Products */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-gray-200 dark:border-slate-800">
+            <div className="bg-white dark:bg-neutral-950 rounded-xl p-6 border border-gray-200 dark:border-neutral-800">
               <h3 className="text-base font-black text-gray-900 dark:text-white mb-5">
                 <Package className="w-4 h-4 inline mr-2 text-gray-400" />
                 Most Viewed Products
@@ -296,12 +296,12 @@ function AnalyticsDashboard() {
                     return (
                       <div key={p.id} className="space-y-1">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-gray-700 dark:text-slate-300 font-medium truncate flex-1 mr-3">
+                          <span className="text-gray-700 dark:text-neutral-200 font-medium truncate flex-1 mr-3">
                             #{idx + 1} {p.title}
                           </span>
-                          <span className="text-gray-500 dark:text-slate-400 flex-shrink-0">{p.views.toLocaleString()} views</span>
+                          <span className="text-gray-500 dark:text-neutral-300 flex-shrink-0">{p.views.toLocaleString()} views</span>
                         </div>
-                        <div className="h-1.5 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-gray-100 dark:bg-neutral-900 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-full"
                             style={{ width: `${(p.views / maxViews) * 100}%` }}
@@ -315,7 +315,7 @@ function AnalyticsDashboard() {
             </div>
 
             {/* Top Search Keywords */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-gray-200 dark:border-slate-800">
+            <div className="bg-white dark:bg-neutral-950 rounded-xl p-6 border border-gray-200 dark:border-neutral-800">
               <h3 className="text-base font-black text-gray-900 dark:text-white mb-5">
                 <Search className="w-4 h-4 inline mr-2 text-gray-400" />
                 Top Search Keywords
@@ -326,12 +326,12 @@ function AnalyticsDashboard() {
                   return (
                     <div key={kw.keyword} className="space-y-1">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-700 dark:text-slate-300 font-medium">
+                        <span className="text-gray-700 dark:text-neutral-200 font-medium">
                           #{idx + 1} {kw.keyword}
                         </span>
-                        <span className="text-gray-500 dark:text-slate-400">{kw.count} searches</span>
+                        <span className="text-gray-500 dark:text-neutral-300">{kw.count} searches</span>
                       </div>
-                      <div className="h-1.5 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-gray-100 dark:bg-neutral-900 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full"
                           style={{ width: `${(kw.count / maxCount) * 100}%` }}
@@ -343,8 +343,8 @@ function AnalyticsDashboard() {
               </div>
 
               {/* Daily/Weekly/Monthly breakdown */}
-              <div className="mt-6 pt-4 border-t border-gray-100 dark:border-slate-800">
-                <h4 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-3">Quick Stats</h4>
+              <div className="mt-6 pt-4 border-t border-gray-100 dark:border-neutral-800">
+                <h4 className="text-xs font-bold text-gray-500 dark:text-neutral-300 uppercase tracking-wide mb-3">Quick Stats</h4>
                 <div className="grid grid-cols-3 gap-3 text-center">
                   <div>
                     <p className="text-lg font-black text-gray-900 dark:text-white">{kpi.visitors.toLocaleString()}</p>

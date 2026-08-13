@@ -164,7 +164,7 @@ const SellersPage = () => {
             placeholder="Search sellers, owners, email…"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-sky-400 bg-white dark:bg-[#151D2A] shadow-sm"
+            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-neutral-800 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-sky-400 bg-white dark:bg-neutral-950 shadow-sm"
           />
         </div>
       </div>
@@ -233,19 +233,19 @@ const SellersPage = () => {
               <thead>
                 <tr>
                   <th>
-                    <button onClick={() => toggleSort('name')} className="flex items-center hover:text-slate-700 dark:text-slate-300 transition-colors">
+                    <button onClick={() => toggleSort('name')} className="flex items-center hover:text-slate-700 dark:text-neutral-200 transition-colors">
                       Seller <SortIcon col="name" />
                     </button>
                   </th>
                   <th className="hidden md:table-cell">Contact</th>
                   <th className="hidden sm:table-cell">Joined</th>
                   <th>
-                    <button onClick={() => toggleSort('listings')} className="flex items-center hover:text-slate-700 dark:text-slate-300 transition-colors">
+                    <button onClick={() => toggleSort('listings')} className="flex items-center hover:text-slate-700 dark:text-neutral-200 transition-colors">
                       Listings <SortIcon col="listings" />
                     </button>
                   </th>
                   <th>
-                    <button onClick={() => toggleSort('active')} className="flex items-center hover:text-slate-700 dark:text-slate-300 transition-colors">
+                    <button onClick={() => toggleSort('active')} className="flex items-center hover:text-slate-700 dark:text-neutral-200 transition-colors">
                       Active <SortIcon col="active" />
                     </button>
                   </th>

@@ -237,13 +237,13 @@ function MessagesPageContent() {
 
     return (
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 h-[calc(100vh-8rem)]">
-            <div className="h-full rounded-[32px] overflow-hidden bg-white border border-gray-100 shadow-2xl dark:bg-slate-900 dark:border-slate-800 flex">
+            <div className="h-full rounded-[32px] overflow-hidden bg-white border border-gray-100 shadow-2xl dark:bg-neutral-950 dark:border-neutral-800 flex">
 
                 {/* Conversations Left Panel */}
-                <aside className={`${selectedUserId ? 'hidden md:flex' : 'flex'} w-full md:w-80 shrink-0 border-r border-gray-100 dark:border-slate-800 flex-col h-full bg-slate-50/50 dark:bg-slate-950/20`}>
+                <aside className={`${selectedUserId ? 'hidden md:flex' : 'flex'} w-full md:w-80 shrink-0 border-r border-gray-100 dark:border-neutral-800 flex-col h-full bg-slate-50/50 dark:bg-black/20`}>
                     <div className="p-4 space-y-3">
                         <div className="flex items-center justify-between">
-                            <h2 className="text-base font-black text-gray-900 dark:text-slate-100">Messages</h2>
+                            <h2 className="text-base font-black text-gray-900 dark:text-neutral-50">Messages</h2>
                             <div className={`h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} title={isConnected ? 'Connected' : 'Disconnected'} />
                         </div>
                         <div className="relative">
@@ -253,7 +253,7 @@ function MessagesPageContent() {
                                 placeholder="Search conversations..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full rounded-2xl border border-gray-200 bg-white px-9 py-2 text-xs font-semibold outline-none focus:border-[#00a082] dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+                                className="w-full rounded-2xl border border-gray-200 bg-white px-9 py-2 text-xs font-semibold outline-none focus:border-[#00a082] dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-50"
                             />
                         </div>
                     </div>
@@ -265,17 +265,17 @@ function MessagesPageContent() {
                     ) : filteredConversations.length === 0 ? (
                         <div className="flex-1 flex items-center justify-center text-center p-4">
                             <div className="space-y-2">
-                                <MessageSquare className="h-8 w-8 text-gray-300 dark:text-slate-700 mx-auto" />
-                                <p className="text-xs text-gray-400 dark:text-slate-500">No conversations yet</p>
+                                <MessageSquare className="h-8 w-8 text-gray-300 dark:text-neutral-200 mx-auto" />
+                                <p className="text-xs text-gray-400 dark:text-neutral-400">No conversations yet</p>
                             </div>
                         </div>
                     ) : (
-                        <div className="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-slate-800/50">
+                        <div className="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-neutral-800/50">
                             {filteredConversations.map((conv) => (
                                 <button
                                     key={conv.other_user_id}
                                     onClick={() => setSelectedUserId(conv.other_user_id)}
-                                    className={`w-full p-4 flex gap-3 text-left transition-all ${selectedUserId === conv.other_user_id ? 'bg-white dark:bg-slate-900' : 'hover:bg-white/50 dark:hover:bg-slate-900/50'}`}
+                                    className={`w-full p-4 flex gap-3 text-left transition-all ${selectedUserId === conv.other_user_id ? 'bg-white dark:bg-neutral-950' : 'hover:bg-white/50 dark:hover:bg-neutral-950/50'}`}
                                 >
                                     {conv.other_user_avatar ? (
                                         <img
@@ -290,17 +290,17 @@ function MessagesPageContent() {
                                     )}
                                     <div className="flex-1 flex flex-col justify-between py-0.5 min-w-0">
                                         <div className="flex justify-between items-start gap-2 min-w-0">
-                                            <h4 className="text-xs font-black text-gray-900 dark:text-slate-100 truncate">
+                                            <h4 className="text-xs font-black text-gray-900 dark:text-neutral-50 truncate">
                                                 {conv.other_user_name || `User ${conv.other_user_id}`}
                                             </h4>
                                             {conv.last_message_time && (
-                                                <span className="text-[9px] text-gray-400 dark:text-slate-500 font-bold shrink-0 whitespace-nowrap">
+                                                <span className="text-[9px] text-gray-400 dark:text-neutral-400 font-bold shrink-0 whitespace-nowrap">
                                                     {new Date(conv.last_message_time).toLocaleDateString()}
                                                 </span>
                                             )}
                                         </div>
                                         <div className="flex justify-between items-center gap-2 min-w-0">
-                                            <p className="text-[11px] text-gray-400 dark:text-slate-500 truncate font-semibold">
+                                            <p className="text-[11px] text-gray-400 dark:text-neutral-400 truncate font-semibold">
                                                 {conv.last_message || 'No messages yet'}
                                             </p>
                                             {(conv.unread_count ?? 0) > 0 && (
@@ -317,13 +317,13 @@ function MessagesPageContent() {
                 </aside>
 
                 {/* Conversation Right Panel */}
-                <div className={`${selectedUserId ? 'flex' : 'hidden md:flex'} flex-1 flex-col h-full bg-white dark:bg-slate-900`}>
+                <div className={`${selectedUserId ? 'flex' : 'hidden md:flex'} flex-1 flex-col h-full bg-white dark:bg-neutral-950`}>
                     {selectedUserId && selectedConversation ? (
                         <>
                             {/* Chat Header */}
-                            <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
+                            <div className="p-4 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <button onClick={() => setSelectedUserId(null)} className="md:hidden -ml-1 mr-1 text-gray-400 hover:text-gray-700 dark:hover:text-slate-200">
+                                    <button onClick={() => setSelectedUserId(null)} className="md:hidden -ml-1 mr-1 text-gray-400 hover:text-gray-700 dark:hover:text-neutral-100">
                                         <ArrowLeft className="h-5 w-5" />
                                     </button>
                                     {selectedConversation.other_user_avatar ? (
@@ -338,10 +338,10 @@ function MessagesPageContent() {
                                         </div>
                                     )}
                                     <div>
-                                        <h3 className="text-xs font-black text-gray-900 dark:text-slate-100">
+                                        <h3 className="text-xs font-black text-gray-900 dark:text-neutral-50">
                                             {selectedConversation.other_user_name || `User ${selectedConversation.other_user_id}`}
                                         </h3>
-                                        <p className="text-[10px] text-gray-500 dark:text-slate-400">
+                                        <p className="text-[10px] text-gray-500 dark:text-neutral-300">
                                             {isOtherUserTyping ? (
                                                 <span className="flex items-center gap-1">
                                                     <span>typing</span>
@@ -356,7 +356,7 @@ function MessagesPageContent() {
                             </div>
 
                             {/* Chat History View */}
-                            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/40 dark:bg-slate-950/10">
+                            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/40 dark:bg-black/10">
                                 {isLoading ? (
                                     <div className="text-center py-8 text-xs text-gray-400">Loading messages...</div>
                                 ) : messages.length === 0 ? (
@@ -368,7 +368,7 @@ function MessagesPageContent() {
                                                 key={msg.id}
                                                 className={`flex ${msg.sender_id === selectedUserId ? 'justify-start' : 'justify-end'}`}
                                             >
-                                                <div className={`max-w-[70%] rounded-2xl p-4 space-y-2 shadow-sm ${msg.sender_id === selectedUserId ? 'bg-white border border-gray-100 text-gray-800 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 rounded-bl-none' : 'bg-[#00a082] text-white rounded-br-none'}`}>
+                                                <div className={`max-w-[70%] rounded-2xl p-4 space-y-2 shadow-sm ${msg.sender_id === selectedUserId ? 'bg-white border border-gray-100 text-gray-800 dark:bg-neutral-900 dark:border-neutral-800 dark:text-neutral-50 rounded-bl-none' : 'bg-[#00a082] text-white rounded-br-none'}`}>
                                                     <p className="text-xs font-semibold leading-relaxed break-words">{msg.content}</p>
                                                     <div className="flex items-center justify-end gap-1.5 pt-0.5">
                                                         <span className="text-[8px] opacity-75 font-semibold">
@@ -383,14 +383,14 @@ function MessagesPageContent() {
                             </div>
 
                             {/* Chat Input form */}
-                            <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-100 dark:border-slate-800 flex gap-2">
+                            <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-100 dark:border-neutral-800 flex gap-2">
                                 <input
                                     type="text"
                                     placeholder="Type a message..."
                                     value={inputText}
                                     onChange={handleInputChange}
                                     disabled={isSending}
-                                    className="w-full rounded-2xl border border-gray-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-2.5 text-xs font-semibold outline-none focus:border-[#00a082] focus:bg-white dark:text-slate-100 disabled:opacity-50"
+                                    className="w-full rounded-2xl border border-gray-200 dark:border-neutral-800 bg-slate-50 dark:bg-black px-4 py-2.5 text-xs font-semibold outline-none focus:border-[#00a082] focus:bg-white dark:text-neutral-50 disabled:opacity-50"
                                 />
                                 <button
                                     type="submit"
@@ -404,12 +404,12 @@ function MessagesPageContent() {
                     ) : (
                         /* Empty state */
                         <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center p-8 bg-slate-50/20">
-                            <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center text-gray-300 dark:bg-slate-950 dark:text-slate-700">
+                            <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center text-gray-300 dark:bg-black dark:text-neutral-200">
                                 <MessageSquare className="h-8 w-8" />
                             </div>
                             <div className="space-y-1">
-                                <h3 className="text-sm font-black text-gray-900 dark:text-slate-100">No Conversation Selected</h3>
-                                <p className="text-xs text-gray-400 dark:text-slate-500 font-semibold max-w-xs leading-relaxed">
+                                <h3 className="text-sm font-black text-gray-900 dark:text-neutral-50">No Conversation Selected</h3>
+                                <p className="text-xs text-gray-400 dark:text-neutral-400 font-semibold max-w-xs leading-relaxed">
                                     Select a conversation from the sidebar or start a new message.
                                 </p>
                             </div>

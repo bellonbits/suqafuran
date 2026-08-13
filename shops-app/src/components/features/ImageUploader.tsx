@@ -79,7 +79,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         onDragOver={(e) => e.preventDefault()}
         className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
           loading || disabled
-            ? 'border-gray-300 bg-gray-50 dark:border-slate-700 dark:bg-slate-900/50'
+            ? 'border-gray-300 bg-gray-50 dark:border-neutral-800 dark:bg-neutral-950/50'
             : 'border-blue-300 dark:border-blue-700 hover:border-blue-400 cursor-pointer'
         }`}
       >
@@ -96,7 +96,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         {loading ? (
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="h-8 w-8 text-[#5bc0e8] animate-spin" />
-            <p className="text-sm text-gray-600 dark:text-slate-400">Uploading...</p>
+            <p className="text-sm text-gray-600 dark:text-neutral-300">Uploading...</p>
           </div>
         ) : (
           <button
@@ -110,7 +110,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
               <p className="font-semibold text-gray-900 dark:text-white">
                 Click to upload or drag and drop
               </p>
-              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-gray-500 dark:text-neutral-300 mt-1">
                 PNG, JPG, GIF up to 10MB each ({images.length}/{maxImages})
               </p>
             </div>
@@ -130,7 +130,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 
       {images.length > 0 && (
         <div className="mt-6">
-          <p className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-3">
+          <p className="text-sm font-semibold text-gray-700 dark:text-neutral-200 mb-3">
             Uploaded Images ({images.length})
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">

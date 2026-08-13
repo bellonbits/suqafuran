@@ -70,10 +70,10 @@ export default function SettingsPage() {
     <div className="space-y-6 max-w-2xl">
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Settings</h1>
-        <p className="text-gray-600 dark:text-slate-400">Manage your account and notification preferences</p>
+        <p className="text-gray-600 dark:text-neutral-300">Manage your account and notification preferences</p>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 p-6">
+      <div className="bg-white dark:bg-neutral-950 rounded-lg border border-gray-200 dark:border-neutral-800 p-6">
         <div className="flex items-center gap-3 mb-6">
           <Bell className="w-5 h-5 text-orange-600" />
           <h2 className="text-lg font-bold text-gray-900 dark:text-white">Notifications</h2>
@@ -83,7 +83,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="font-semibold text-gray-900 dark:text-white">Push Notifications</p>
-              <p className="text-xs text-gray-600 dark:text-slate-400">Receive push notifications on your device</p>
+              <p className="text-xs text-gray-600 dark:text-neutral-300">Receive push notifications on your device</p>
             </div>
             <input
               type="checkbox"
@@ -95,7 +95,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="font-semibold text-gray-900 dark:text-white">Email Notifications</p>
-              <p className="text-xs text-gray-600 dark:text-slate-400">Receive email updates about your orders</p>
+              <p className="text-xs text-gray-600 dark:text-neutral-300">Receive email updates about your orders</p>
             </div>
             <input
               type="checkbox"
@@ -107,7 +107,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="font-semibold text-gray-900 dark:text-white">Order Alerts</p>
-              <p className="text-xs text-gray-600 dark:text-slate-400">Get notified when you receive new orders</p>
+              <p className="text-xs text-gray-600 dark:text-neutral-300">Get notified when you receive new orders</p>
             </div>
             <input
               type="checkbox"
@@ -119,7 +119,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="font-semibold text-gray-900 dark:text-white">Low Stock Alerts</p>
-              <p className="text-xs text-gray-600 dark:text-slate-400">Get notified when products are running low</p>
+              <p className="text-xs text-gray-600 dark:text-neutral-300">Get notified when products are running low</p>
             </div>
             <input
               type="checkbox"
@@ -131,14 +131,14 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 p-6">
+      <div className="bg-white dark:bg-neutral-950 rounded-lg border border-gray-200 dark:border-neutral-800 p-6">
         <div className="flex items-center gap-3 mb-6">
           <Lock className="w-5 h-5 text-red-600" />
           <h2 className="text-lg font-bold text-gray-900 dark:text-white">Account Security</h2>
         </div>
 
         <div className="space-y-4">
-          <button className="w-full px-4 py-3 border border-gray-200 dark:border-slate-800 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 text-left font-semibold text-gray-900 dark:text-white">
+          <button className="w-full px-4 py-3 border border-gray-200 dark:border-neutral-800 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-900 text-left font-semibold text-gray-900 dark:text-white">
             Change Password
           </button>
           <button className="w-full px-4 py-3 border border-red-200 dark:border-red-900 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-left font-semibold text-red-600">

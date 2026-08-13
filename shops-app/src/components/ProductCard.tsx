@@ -62,11 +62,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         whileHover={{ y: -6 }}
         whileTap={{ scale: 0.98 }}
         onClick={handleCardClick}
-        className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden card-shadow-premium hover:shadow-[0_12px_32px_rgba(0,0,0,0.12)] border border-gray-100 dark:border-slate-800 transition-all cursor-pointer group flex flex-col h-full"
+        className="bg-white dark:bg-neutral-950 rounded-3xl overflow-hidden card-shadow-premium hover:shadow-[0_12px_32px_rgba(0,0,0,0.12)] border border-gray-100 dark:border-neutral-800 transition-all cursor-pointer group flex flex-col h-full"
         style={{ pointerEvents: 'auto' }}
       >
       {/* Image Container (65-70% ratio height) */}
-      <div className="relative h-56 sm:h-64 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-900 overflow-hidden shrink-0">
+      <div className="relative h-56 sm:h-64 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-neutral-900 dark:to-neutral-950 overflow-hidden shrink-0">
         <img
           src={optimizeCloudinaryUrl(image, { width: 500, quality: 'auto', fetch_format: 'auto' }) || image}
           alt={name}
@@ -88,11 +88,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             e.stopPropagation();
             setIsFavorite(!isFavorite);
           }}
-          className="absolute top-3 right-3 w-9 h-9 rounded-full border border-gray-200/80 dark:border-slate-700 flex items-center justify-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-md transition-all shadow-sm"
+          className="absolute top-3 right-3 w-9 h-9 rounded-full border border-gray-200/80 dark:border-neutral-800 flex items-center justify-center bg-white/90 dark:bg-neutral-950/90 backdrop-blur-md transition-all shadow-sm"
         >
           <Heart
             className={`w-4 h-4 transition-colors ${
-              isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400 dark:text-slate-400'
+              isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400 dark:text-neutral-300'
             }`}
           />
         </motion.button>
@@ -108,7 +108,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </span>
             <div className="flex items-center gap-1 text-xs font-bold text-amber-500 shrink-0">
               <span>★</span>
-              <span className="text-gray-800 dark:text-slate-200">{rating.toFixed(1)}</span>
+              <span className="text-gray-800 dark:text-neutral-100">{rating.toFixed(1)}</span>
             </div>
           </div>
 
@@ -118,11 +118,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </h3>
 
           {/* Weight / Detail */}
-          {weight && <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">{weight}</p>}
+          {weight && <p className="text-xs text-gray-500 dark:text-neutral-300 mb-2">{weight}</p>}
         </div>
 
         {/* Price & Elevated Action Button */}
-        <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-100 dark:border-slate-800">
+        <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-100 dark:border-neutral-800">
           <div className="flex flex-col">
             <span className="text-base font-black text-gray-900 dark:text-white leading-tight">
               KSh {price.toLocaleString()}

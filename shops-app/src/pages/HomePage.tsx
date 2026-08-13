@@ -187,7 +187,7 @@ export default function HomePage() {
     }
 
     return (
-        <div className="min-h-screen bg-white dark:bg-slate-950 pb-20">
+        <div className="min-h-screen bg-white dark:bg-black pb-20">
             <div className="max-w-[1440px] mx-auto">
                 <div className="px-4 md:px-6 lg:px-8 pt-4 md:pt-6">
                     <HomepageBannerRotation />
@@ -215,7 +215,7 @@ export default function HomePage() {
                                             className="relative z-10 w-7 h-7 md:w-10 md:h-10 object-contain"
                                         />
                                     </div>
-                                    <span className="text-[10px] md:text-[12px] font-bold mt-1.5 md:mt-2 tracking-tight text-center w-14 md:w-20 leading-tight block text-gray-700 dark:text-slate-300 group-hover:text-orange-500 transition-colors">
+                                    <span className="text-[10px] md:text-[12px] font-bold mt-1.5 md:mt-2 tracking-tight text-center w-14 md:w-20 leading-tight block text-gray-700 dark:text-neutral-200 group-hover:text-orange-500 transition-colors">
                                         {cat.name_en}
                                     </span>
                                 </Link>

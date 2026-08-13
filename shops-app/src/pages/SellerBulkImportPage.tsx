@@ -167,13 +167,13 @@ function BulkImportContent() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-gray-900 dark:text-white">Bulk Import</h1>
-          <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">
+          <p className="text-gray-500 dark:text-neutral-300 text-sm mt-1">
             Upload hundreds of products at once with a CSV file
           </p>
         </div>
         <button
           onClick={handleDownloadTemplate}
-          className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl text-sm font-semibold text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800"
+          className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 dark:border-neutral-800 rounded-xl text-sm font-semibold text-gray-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-900"
         >
           <Download className="w-4 h-4" />
           Download Template
@@ -207,13 +207,13 @@ function BulkImportContent() {
           className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all ${
             dragOver
               ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/10'
-              : 'border-gray-300 dark:border-slate-700 hover:border-orange-400 dark:hover:border-orange-600'
+              : 'border-gray-300 dark:border-neutral-800 hover:border-orange-400 dark:hover:border-orange-600'
           }`}
         >
-          <FileSpreadsheet className="w-12 h-12 text-gray-300 dark:text-slate-600 mx-auto mb-4" />
-          <p className="text-base font-bold text-gray-700 dark:text-slate-300">Drop your CSV file here</p>
-          <p className="text-sm text-gray-400 dark:text-slate-500 mt-1">or click to browse files</p>
-          <p className="text-xs text-gray-400 dark:text-slate-500 mt-3">.csv or .xlsx · up to 5 MB</p>
+          <FileSpreadsheet className="w-12 h-12 text-gray-300 dark:text-neutral-300 mx-auto mb-4" />
+          <p className="text-base font-bold text-gray-700 dark:text-neutral-200">Drop your CSV file here</p>
+          <p className="text-sm text-gray-400 dark:text-neutral-400 mt-1">or click to browse files</p>
+          <p className="text-xs text-gray-400 dark:text-neutral-400 mt-3">.csv or .xlsx · up to 5 MB</p>
           <input
             ref={fileInputRef}
             type="file"
@@ -226,19 +226,19 @@ function BulkImportContent() {
 
       {/* File info + change */}
       {file && (
-        <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl">
+        <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl">
           <div className="flex items-center gap-3">
             <FileSpreadsheet className="w-8 h-8 text-green-500" />
             <div>
               <p className="text-sm font-semibold text-gray-900 dark:text-white">{file.name}</p>
-              <p className="text-xs text-gray-500 dark:text-slate-400">
+              <p className="text-xs text-gray-500 dark:text-neutral-300">
                 {rows.length} rows · {validCount} valid · {invalidCount} with errors
               </p>
             </div>
           </div>
           <button
             onClick={() => { setFile(null); setRows([]); setResult(null); setProgress(0); }}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-lg"
           >
             <X className="w-4 h-4 text-gray-400" />
           </button>
@@ -247,8 +247,8 @@ function BulkImportContent() {
 
       {/* Preview table */}
       {rows.length > 0 && !result && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden">
-          <div className="p-5 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between">
+        <div className="bg-white dark:bg-neutral-950 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden">
+          <div className="p-5 border-b border-gray-200 dark:border-neutral-800 flex items-center justify-between">
             <h2 className="font-black text-gray-900 dark:text-white">Preview</h2>
             <div className="flex items-center gap-3 text-xs">
               <span className="flex items-center gap-1 text-green-600 dark:text-green-400 font-semibold">
@@ -264,25 +264,25 @@ function BulkImportContent() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 dark:bg-slate-800">
-                  <th className="text-left py-3 px-4 text-xs font-bold text-gray-500 dark:text-slate-400">#</th>
-                  <th className="text-left py-3 px-4 text-xs font-bold text-gray-500 dark:text-slate-400">Name</th>
-                  <th className="text-left py-3 px-4 text-xs font-bold text-gray-500 dark:text-slate-400">Price</th>
-                  <th className="text-left py-3 px-4 text-xs font-bold text-gray-500 dark:text-slate-400">Stock</th>
-                  <th className="text-left py-3 px-4 text-xs font-bold text-gray-500 dark:text-slate-400">Category</th>
-                  <th className="text-left py-3 px-4 text-xs font-bold text-gray-500 dark:text-slate-400">Status</th>
+                <tr className="bg-gray-50 dark:bg-neutral-900">
+                  <th className="text-left py-3 px-4 text-xs font-bold text-gray-500 dark:text-neutral-300">#</th>
+                  <th className="text-left py-3 px-4 text-xs font-bold text-gray-500 dark:text-neutral-300">Name</th>
+                  <th className="text-left py-3 px-4 text-xs font-bold text-gray-500 dark:text-neutral-300">Price</th>
+                  <th className="text-left py-3 px-4 text-xs font-bold text-gray-500 dark:text-neutral-300">Stock</th>
+                  <th className="text-left py-3 px-4 text-xs font-bold text-gray-500 dark:text-neutral-300">Category</th>
+                  <th className="text-left py-3 px-4 text-xs font-bold text-gray-500 dark:text-neutral-300">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.slice(0, 20).map((row, idx) => (
-                  <tr key={idx} className={`border-t border-gray-100 dark:border-slate-800 ${!row._valid ? 'bg-red-50 dark:bg-red-900/5' : ''}`}>
-                    <td className="py-3 px-4 text-gray-500 dark:text-slate-500">{idx + 2}</td>
+                  <tr key={idx} className={`border-t border-gray-100 dark:border-neutral-800 ${!row._valid ? 'bg-red-50 dark:bg-red-900/5' : ''}`}>
+                    <td className="py-3 px-4 text-gray-500 dark:text-neutral-400">{idx + 2}</td>
                     <td className="py-3 px-4 font-medium text-gray-900 dark:text-white max-w-[200px] truncate">{row.name}</td>
-                    <td className="py-3 px-4 text-gray-700 dark:text-slate-300">
+                    <td className="py-3 px-4 text-gray-700 dark:text-neutral-200">
                       {row.price ? `KSh ${Number(row.price).toLocaleString()}` : '—'}
                     </td>
-                    <td className="py-3 px-4 text-gray-700 dark:text-slate-300">{row.stock || '—'}</td>
-                    <td className="py-3 px-4 text-gray-700 dark:text-slate-300 max-w-[120px] truncate">{row.category || '—'}</td>
+                    <td className="py-3 px-4 text-gray-700 dark:text-neutral-200">{row.stock || '—'}</td>
+                    <td className="py-3 px-4 text-gray-700 dark:text-neutral-200 max-w-[120px] truncate">{row.category || '—'}</td>
                     <td className="py-3 px-4">
                       {row._valid ? (
                         <span className="flex items-center gap-1 text-green-600 text-xs font-semibold">
@@ -299,14 +299,14 @@ function BulkImportContent() {
               </tbody>
             </table>
             {rows.length > 20 && (
-              <p className="text-xs text-gray-400 dark:text-slate-500 p-4 border-t border-gray-100 dark:border-slate-800">
+              <p className="text-xs text-gray-400 dark:text-neutral-400 p-4 border-t border-gray-100 dark:border-neutral-800">
                 Showing first 20 of {rows.length} rows
               </p>
             )}
           </div>
 
           {/* Import button */}
-          <div className="p-5 border-t border-gray-200 dark:border-slate-800 flex flex-col sm:flex-row items-center gap-4">
+          <div className="p-5 border-t border-gray-200 dark:border-neutral-800 flex flex-col sm:flex-row items-center gap-4">
             {invalidCount > 0 && (
               <div className="flex items-center gap-2 text-amber-600 text-sm flex-1">
                 <AlertTriangle className="w-4 h-4 flex-shrink-0" />
@@ -327,12 +327,12 @@ function BulkImportContent() {
 
       {/* Progress bar */}
       {importing && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 p-6">
+        <div className="bg-white dark:bg-neutral-950 rounded-xl border border-gray-200 dark:border-neutral-800 p-6">
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-semibold text-gray-900 dark:text-white">Importing products...</p>
             <p className="text-sm text-gray-500">{progress}%</p>
           </div>
-          <div className="h-2 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
+          <div className="h-2 bg-gray-100 dark:bg-neutral-900 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
@@ -343,7 +343,7 @@ function BulkImportContent() {
 
       {/* Result */}
       {result && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 p-6 space-y-4">
+        <div className="bg-white dark:bg-neutral-950 rounded-xl border border-gray-200 dark:border-neutral-800 p-6 space-y-4">
           <h2 className="font-black text-gray-900 dark:text-white">Import Complete</h2>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/10 rounded-xl">
@@ -370,7 +370,7 @@ function BulkImportContent() {
           )}
           <button
             onClick={() => { setFile(null); setRows([]); setResult(null); setProgress(0); }}
-            className="flex items-center gap-2 px-5 py-2.5 border border-gray-300 dark:border-slate-700 rounded-xl text-sm font-semibold text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800"
+            className="flex items-center gap-2 px-5 py-2.5 border border-gray-300 dark:border-neutral-800 rounded-xl text-sm font-semibold text-gray-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-900"
           >
             Import Another File
           </button>

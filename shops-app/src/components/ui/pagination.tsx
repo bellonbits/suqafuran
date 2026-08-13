@@ -34,7 +34,7 @@ const PaginationLink = ({ className, isActive, isDisabled, ...props }: Paginatio
   <a
     aria-current={isActive ? "page" : undefined}
     className={cn(
-      "inline-flex h-11 min-w-11 items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 dark:border-slate-600 dark:bg-slate-900 dark:hover:bg-slate-800",
+      "inline-flex h-11 min-w-11 items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 dark:border-neutral-700 dark:bg-neutral-950 dark:hover:bg-neutral-900",
       isActive && "border-blue-600 bg-blue-50 text-[#5bc0e8] dark:bg-blue-900/30 dark:text-[#6cd4ff] dark:border-blue-500",
       isDisabled && "pointer-events-none opacity-50",
       className

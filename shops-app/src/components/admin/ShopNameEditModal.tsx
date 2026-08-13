@@ -74,15 +74,15 @@ export const ShopNameEditModal: React.FC<ShopNameEditModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50 }}>
-      <div className="bg-white dark:bg-slate-900 rounded-lg max-w-md w-full shadow-lg mx-4">
+      <div className="bg-white dark:bg-neutral-950 rounded-lg max-w-md w-full shadow-lg mx-4">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
+        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-neutral-800">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
             Edit Shop Name
           </h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200"
           >
             <X className="h-5 w-5" />
           </button>
@@ -91,21 +91,21 @@ export const ShopNameEditModal: React.FC<ShopNameEditModalProps> = ({
         {/* Content */}
         <div className="p-6 space-y-4">
           {/* Shop Info */}
-          <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
-            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+          <div className="bg-slate-50 dark:bg-neutral-900 rounded-lg p-4">
+            <p className="text-xs font-medium text-slate-600 dark:text-neutral-300 mb-1">
               Shop Owner
             </p>
             <p className="text-sm font-medium text-slate-900 dark:text-white">
               {shop.full_name}
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-xs text-slate-500 dark:text-neutral-300 mt-1">
               {shop.email}
             </p>
           </div>
 
           {/* Input */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">
               Shop Name
             </label>
             <input
@@ -118,9 +118,9 @@ export const ShopNameEditModal: React.FC<ShopNameEditModalProps> = ({
               placeholder="Enter new shop name"
               maxLength={100}
               disabled={store.isSaving}
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
+              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
             />
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-xs text-slate-500 dark:text-neutral-300 mt-1">
               {newName.length}/100 characters
             </p>
           </div>
@@ -147,11 +147,11 @@ export const ShopNameEditModal: React.FC<ShopNameEditModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 p-6 border-t border-slate-200 dark:border-slate-800">
+        <div className="flex gap-3 p-6 border-t border-slate-200 dark:border-neutral-800">
           <button
             onClick={onClose}
             disabled={store.isSaving}
-            className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 font-medium transition-colors"
+            className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-neutral-700 text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-900 disabled:opacity-50 font-medium transition-colors"
           >
             Cancel
           </button>

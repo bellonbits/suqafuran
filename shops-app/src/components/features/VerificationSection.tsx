@@ -273,13 +273,13 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ onClos
 
                     <div className="space-y-6">
                         {/* Document Type */}
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-slate-800">
+                        <div className="bg-white dark:bg-neutral-950 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-neutral-800">
                             <h3 className="font-bold text-gray-900 dark:text-white mb-4">Select Document Type</h3>
                             <div className="relative">
                                 <select
                                     value={documentType}
                                     onChange={e => setDocumentType(e.target.value)}
-                                    className="w-full appearance-none border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 pr-10 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                                    className="w-full appearance-none border border-gray-200 dark:border-neutral-800 rounded-xl px-4 py-3 pr-10 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                                 >
                                     {DOCUMENT_TYPE_KEYS.map(dt => (
                                         <option key={dt.value} value={dt.value}>{dt.label}</option>
@@ -290,21 +290,21 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ onClos
                         </div>
 
                         {/* ID Number */}
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-slate-800">
+                        <div className="bg-white dark:bg-neutral-950 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-neutral-800">
                             <h3 className="font-bold text-gray-900 dark:text-white mb-4">ID Number</h3>
                             <input
                                 type="text"
                                 value={idNumber}
                                 onChange={e => setIdNumber(e.target.value)}
                                 placeholder="Enter your ID or business registration number"
-                                className="w-full border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                                className="w-full border border-gray-200 dark:border-neutral-800 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                             />
                         </div>
 
                         {/* Premium Tier Additional Fields */}
                         {tier === 'premium' && (
                             <div className="space-y-6 animate-in fade-in">
-                                <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-slate-800">
+                                <div className="bg-white dark:bg-neutral-950 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-neutral-800">
                                     <h3 className="font-bold text-gray-900 dark:text-white mb-1">Proof of Address</h3>
                                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Upload a utility bill or bank statement showing your name and address.</p>
                                     <label className="block cursor-pointer">
@@ -317,7 +317,7 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ onClos
                                         <div className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${
                                             proofOfAddressFile
                                                 ? 'border-amber-300 bg-amber-50 dark:bg-amber-900/20'
-                                                : 'border-gray-200 dark:border-slate-700 hover:border-sky-300'
+                                                : 'border-gray-200 dark:border-neutral-800 hover:border-sky-300'
                                         }`}>
                                             <div className="flex flex-col items-center gap-2">
                                                 <Upload className={`h-6 w-6 ${proofOfAddressFile ? 'text-amber-500' : 'text-gray-400'}`} />
@@ -329,7 +329,7 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ onClos
                                     </label>
                                 </div>
 
-                                <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-slate-800">
+                                <div className="bg-white dark:bg-neutral-950 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-neutral-800">
                                     <h3 className="font-bold text-gray-900 dark:text-white mb-1">Video Selfie</h3>
                                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">A short 30-second video of yourself stating your name and holding your ID.</p>
                                     <label className="block cursor-pointer">
@@ -343,7 +343,7 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ onClos
                                         <div className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${
                                             videoSelfieFile
                                                 ? 'border-amber-300 bg-amber-50 dark:bg-amber-900/20'
-                                                : 'border-gray-200 dark:border-slate-700 hover:border-sky-300'
+                                                : 'border-gray-200 dark:border-neutral-800 hover:border-sky-300'
                                         }`}>
                                             <div className="flex flex-col items-center gap-2">
                                                 <Camera className={`h-6 w-6 ${videoSelfieFile ? 'text-amber-500' : 'text-gray-400'}`} />
@@ -358,7 +358,7 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ onClos
                         )}
 
                         {/* Document Upload */}
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-slate-800">
+                        <div className="bg-white dark:bg-neutral-950 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-neutral-800">
                             <h3 className="font-bold text-gray-900 dark:text-white mb-1">Upload ID Document</h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Upload both sides of your ID or passport</p>
 
@@ -373,7 +373,7 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ onClos
                                 <div className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${
                                     documentFiles.length > 0
                                         ? 'border-sky-300 bg-sky-50 dark:bg-sky-900/20'
-                                        : 'border-gray-200 dark:border-slate-700 hover:border-sky-300'
+                                        : 'border-gray-200 dark:border-neutral-800 hover:border-sky-300'
                                 }`}>
                                     {documentFiles.length > 0 ? (
                                         <div className="space-y-2">
@@ -388,9 +388,9 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ onClos
                                                 {documentFiles.map((file, i) => {
                                                     const isPdf = file.type === 'application/pdf' || file.name.endsWith('.pdf');
                                                     return (
-                                                        <div key={i} className="relative rounded-xl overflow-hidden border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 aspect-[4/3] shadow-sm">
+                                                        <div key={i} className="relative rounded-xl overflow-hidden border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 aspect-[4/3] shadow-sm">
                                                             {isPdf ? (
-                                                                <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 dark:bg-slate-900 text-gray-400 p-2">
+                                                                <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 dark:bg-neutral-950 text-gray-400 p-2">
                                                                     <FileText className="w-8 h-8 text-gray-400 mb-1" />
                                                                     <span className="text-[10px] font-bold truncate max-w-full px-1 text-gray-600 dark:text-gray-400">{file.name}</span>
                                                                 </div>
@@ -422,7 +422,7 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ onClos
                         </div>
 
                         {/* Selfie */}
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-slate-800">
+                        <div className="bg-white dark:bg-neutral-950 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-neutral-800">
                             <div className="flex items-center justify-between mb-4">
                                 <div>
                                     <h3 className="font-bold text-gray-900 dark:text-white">Take a Selfie</h3>
@@ -434,7 +434,7 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ onClos
                                         className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                                             selfieMode === 'upload'
                                                 ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300'
-                                                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800'
+                                                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-900'
                                         }`}
                                     >
                                         <ImageIcon className="w-3.5 h-3.5 inline mr-1" />Upload
@@ -444,7 +444,7 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ onClos
                                         className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                                             selfieMode === 'webcam'
                                                 ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300'
-                                                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800'
+                                                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-900'
                                         }`}
                                     >
                                         <Camera className="w-3.5 h-3.5 inline mr-1" />Camera
@@ -456,7 +456,7 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ onClos
                                 <label className="block cursor-pointer">
                                     <input type="file" accept="image/*" capture="user" onChange={handleSelfieFile} className="hidden" />
                                     <div className={`border-2 border-dashed rounded-xl transition-colors overflow-hidden ${
-                                        selfieCapture ? 'border-sky-300' : 'border-gray-200 dark:border-slate-700 hover:border-sky-300'
+                                        selfieCapture ? 'border-sky-300' : 'border-gray-200 dark:border-neutral-800 hover:border-sky-300'
                                     }`}>
                                         {selfieCapture ? (
                                             <div className="relative">
@@ -503,7 +503,7 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ onClos
                                     {selfieCapture ? (
                                         <button
                                             onClick={() => setSelfieCapture(null)}
-                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
+                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 text-gray-700 dark:text-gray-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-neutral-900 transition-colors flex items-center justify-center gap-2"
                                         >
                                             <RefreshCw className="w-4 h-4" />Retake
                                         </button>
@@ -526,7 +526,7 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({ onClos
                             className={`w-full px-4 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors ${
                                 canSubmit
                                     ? 'bg-sky-500 hover:bg-sky-600 text-white'
-                                    : 'bg-gray-200 dark:bg-slate-800 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                                    : 'bg-gray-200 dark:bg-neutral-900 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                             }`}
                         >
                             {isCompressing ? (

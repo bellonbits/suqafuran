@@ -34,7 +34,7 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({ isOpen, onClose, darkMode,
         <Link
             href={href}
             onClick={onClose}
-            className="flex items-center gap-3.5 px-5 py-3.5 text-sm font-bold text-gray-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-gray-100 dark:border-slate-800"
+            className="flex items-center gap-3.5 px-5 py-3.5 text-sm font-bold text-gray-800 dark:text-neutral-100 hover:bg-slate-50 dark:hover:bg-neutral-900 border-b border-gray-100 dark:border-neutral-800"
         >
             {icon}
             {label}
@@ -44,10 +44,10 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({ isOpen, onClose, darkMode,
     return (
         <>
             <div className="fixed inset-0 z-[9998] bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
-            <div className="fixed inset-y-0 left-0 z-[9999] w-full max-w-xs bg-white dark:bg-slate-900 shadow-2xl flex flex-col animate-scale-in overflow-y-auto">
-                <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-slate-800 shrink-0">
+            <div className="fixed inset-y-0 left-0 z-[9999] w-full max-w-xs bg-white dark:bg-neutral-950 shadow-2xl flex flex-col animate-scale-in overflow-y-auto">
+                <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-neutral-800 shrink-0">
                     <img src="/icon1.png" alt="Suqafuran" className="h-7 w-auto object-contain" />
-                    <button onClick={onClose} className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-gray-500 cursor-pointer">
+                    <button onClick={onClose} className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-neutral-900 text-gray-500 cursor-pointer">
                         <X className="h-5 w-5" />
                     </button>
                 </div>
@@ -61,7 +61,7 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({ isOpen, onClose, darkMode,
                     ) : (
                         <button
                             onClick={() => { openAuthModal('signin'); onClose(); }}
-                            className="w-full flex items-center gap-3.5 px-5 py-3.5 text-sm font-bold text-gray-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-gray-100 dark:border-slate-800 cursor-pointer text-left"
+                            className="w-full flex items-center gap-3.5 px-5 py-3.5 text-sm font-bold text-gray-800 dark:text-neutral-100 hover:bg-slate-50 dark:hover:bg-neutral-900 border-b border-gray-100 dark:border-neutral-800 cursor-pointer text-left"
                         >
                             <PlusCircle className="h-4.5 w-4.5 text-gray-400" /> {t('Sell')}
                         </button>
@@ -78,20 +78,20 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({ isOpen, onClose, darkMode,
 
                     <button
                         onClick={() => setIsLocationModalOpen(true)}
-                        className="w-full flex items-center gap-3.5 px-5 py-3.5 text-sm font-bold text-gray-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-gray-100 dark:border-slate-800 cursor-pointer text-left"
+                        className="w-full flex items-center gap-3.5 px-5 py-3.5 text-sm font-bold text-gray-800 dark:text-neutral-100 hover:bg-slate-50 dark:hover:bg-neutral-900 border-b border-gray-100 dark:border-neutral-800 cursor-pointer text-left"
                     >
                         <MapPin className="h-4.5 w-4.5 text-gray-400" />
                         <span className="flex-1 truncate">{city || t('Select Location')}</span>
                     </button>
                 </nav>
 
-                <div className="p-5 space-y-3 border-t border-gray-100 dark:border-slate-800">
+                <div className="p-5 space-y-3 border-t border-gray-100 dark:border-neutral-800">
                     <div className="flex items-center justify-between gap-2">
                         <LanguageToggle />
                         <CurrencyToggle />
                         <button
                             onClick={onToggleDarkMode}
-                            className="rounded-full p-2 bg-slate-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 cursor-pointer shrink-0"
+                            className="rounded-full p-2 bg-slate-100 dark:bg-neutral-900 text-gray-600 dark:text-neutral-200 cursor-pointer shrink-0"
                         >
                             {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                         </button>
@@ -100,7 +100,7 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({ isOpen, onClose, darkMode,
                     {isAuthenticated ? (
                         <button
                             onClick={() => { logout(); onClose(); }}
-                            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-slate-100 dark:bg-slate-800 text-red-500 font-black text-sm py-3 cursor-pointer"
+                            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-slate-100 dark:bg-neutral-900 text-red-500 font-black text-sm py-3 cursor-pointer"
                         >
                             <LogOut className="h-4 w-4" /> {t('Sign Out')}
                         </button>
@@ -108,7 +108,7 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({ isOpen, onClose, darkMode,
                         <div className="flex gap-2">
                             <button
                                 onClick={() => { openAuthModal('signin'); onClose(); }}
-                                className="flex-1 flex items-center justify-center gap-1.5 rounded-2xl border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-200 font-black text-sm py-3 cursor-pointer"
+                                className="flex-1 flex items-center justify-center gap-1.5 rounded-2xl border border-gray-200 dark:border-neutral-800 text-gray-800 dark:text-neutral-100 font-black text-sm py-3 cursor-pointer"
                             >
                                 <LogIn className="h-4 w-4" /> {t('Sign In')}
                             </button>

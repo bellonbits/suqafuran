@@ -134,7 +134,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   };
 
   return (
-    <div className={`min-h-screen bg-[#F3F4F8] text-[#1E293B] font-sans antialiased flex flex-col md:flex-row p-3 md:p-5 gap-5 overflow-x-hidden ${darkMode ? 'dark bg-[#0B0F19] text-white' : ''}`}>
+    <div className={`min-h-screen bg-[#F3F4F8] text-[#1E293B] font-sans antialiased flex flex-col md:flex-row p-3 md:p-5 gap-5 overflow-x-hidden ${darkMode ? 'dark bg-black text-white' : ''}`}>
 
       {/* ── Mobile Sidebar Overlay ── */}
       <AnimatePresence>
@@ -152,7 +152,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -300, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="fixed top-3 left-3 bottom-3 w-[280px] bg-white dark:bg-[#151D2A] rounded-3xl p-4 shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col z-50 md:hidden overflow-y-auto"
+              className="fixed top-3 left-3 bottom-3 w-[280px] bg-white dark:bg-neutral-950 rounded-3xl p-4 shadow-2xl border border-slate-100 dark:border-neutral-800 flex flex-col z-50 md:hidden overflow-y-auto"
             >
               {/* Mobile Close Button */}
               <div className="flex items-center justify-between px-2 py-2 mb-4">
@@ -173,7 +173,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 </div>
                 <button
                   onClick={() => setMobileOpen(false)}
-                  className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-700 transition-colors"
+                  className="p-2 rounded-xl bg-slate-100 dark:bg-neutral-900 text-slate-500 hover:text-slate-700 transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -191,8 +191,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                         onClick={() => { router.push(item.href); setMobileOpen(false); }}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm font-medium transition-all ${
                           isActive
-                            ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold shadow-md'
-                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                            ? 'bg-slate-900 dark:bg-white text-white dark:text-neutral-100 font-bold shadow-md'
+                            : 'text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-900/60'
                         }`}
                       >
                         <span className="flex-shrink-0">{item.icon}</span>
@@ -207,9 +207,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               </div>
 
               {/* Mobile Footer */}
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3 flex-shrink-0">
-                <div className="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-50 dark:bg-slate-800/40">
-                  <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <div className="pt-4 border-t border-slate-100 dark:border-neutral-800 space-y-3 flex-shrink-0">
+                <div className="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-50 dark:bg-neutral-900/40">
+                  <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-neutral-200">
                     <Moon className="w-4 h-4 text-slate-400" />
                     <span>Dark Mode</span>
                   </div>
@@ -238,7 +238,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         initial={false}
         animate={{ width: sidebarOpen ? 260 : 80 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="hidden md:flex bg-white dark:bg-[#151D2A] rounded-3xl p-4 shadow-[0_4px_24px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-slate-800 flex-col flex-shrink-0 relative z-30 transition-colors"
+        className="hidden md:flex bg-white dark:bg-neutral-950 rounded-3xl p-4 shadow-[0_4px_24px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-neutral-800 flex-col flex-shrink-0 relative z-30 transition-colors"
       >
         {/* Brand Header & Toggle */}
         <div className="flex items-center justify-between px-2 py-2 mb-4">
@@ -269,7 +269,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           </div>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 transition-colors hidden md:block"
+            className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-neutral-900 text-slate-400 hover:text-slate-600 transition-colors hidden md:block"
           >
             <X className={`w-4 h-4 transition-transform ${!sidebarOpen ? 'rotate-180' : ''}`} />
           </button>
@@ -280,7 +280,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           {/* Main Section */}
           <div>
             {sidebarOpen && (
-              <p className="px-3 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">
+              <p className="px-3 text-[11px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-widest mb-2">
                 Main
               </p>
             )}
@@ -303,12 +303,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                       title={!sidebarOpen ? item.label : undefined}
                       className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-sm font-medium transition-all group ${
                         isActive
-                          ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-semibold shadow-sm'
-                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
+                          ? 'bg-slate-900 text-white dark:bg-white dark:text-neutral-100 font-semibold shadow-sm'
+                          : 'text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-900/60 hover:text-slate-900 dark:hover:text-white'
                       } ${!sidebarOpen ? 'justify-center px-0' : ''}`}
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white dark:text-slate-900' : 'text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200'}`}>
+                        <div className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white dark:text-neutral-100' : 'text-slate-400 group-hover:text-slate-700 dark:group-hover:text-neutral-100'}`}>
                           {item.icon}
                         </div>
                         {sidebarOpen && (
@@ -342,7 +342,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                               className={`w-full text-left px-3 py-1.5 rounded-xl text-xs transition-colors ${
                                 isSubActive
                                   ? 'text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50 dark:bg-indigo-950/40'
-                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                                  : 'text-slate-500 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-neutral-900/40'
                               }`}
                             >
                               {sub.label}
@@ -362,11 +362,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         </div>
 
         {/* Footer controls (Dark Mode Toggle & Logout) */}
-        <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 space-y-3 flex-shrink-0">
+        <div className="pt-4 border-t border-slate-100 dark:border-neutral-800/80 space-y-3 flex-shrink-0">
           {/* Dark Mode Switcher */}
-          <div className={`flex items-center ${sidebarOpen ? 'justify-between' : 'justify-center'} px-3 py-2 rounded-2xl bg-slate-50 dark:bg-slate-800/40`}>
+          <div className={`flex items-center ${sidebarOpen ? 'justify-between' : 'justify-center'} px-3 py-2 rounded-2xl bg-slate-50 dark:bg-neutral-900/40`}>
             {sidebarOpen && (
-              <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-neutral-200">
                 <Moon className="w-4 h-4 text-slate-400" />
                 <span>Dark Mode</span>
               </div>
@@ -403,7 +403,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             {/* Mobile Hamburger Menu */}
             <button
               onClick={() => setMobileOpen(true)}
-              className="md:hidden p-2.5 rounded-2xl bg-white dark:bg-[#151D2A] border border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-300 shadow-sm hover:bg-slate-50 transition-colors"
+              className="md:hidden p-2.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-100 dark:border-neutral-800 text-slate-600 dark:text-neutral-200 shadow-sm hover:bg-slate-50 transition-colors"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -419,7 +419,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                   setShowUserMenu(false);
                 }}
                 title="Notifications"
-                className="relative p-2.5 rounded-2xl bg-white dark:bg-[#151D2A] border border-slate-100 dark:border-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white shadow-sm transition-colors"
+                className="relative p-2.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-100 dark:border-neutral-800 text-slate-500 hover:text-slate-800 dark:hover:text-white shadow-sm transition-colors"
               >
                 <Bell className="w-4 h-4" />
                 {unreadCount > 0 && (
@@ -435,9 +435,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-[#151D2A] rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 py-3 z-50 overflow-hidden"
+                    className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-neutral-950 rounded-3xl shadow-2xl border border-slate-100 dark:border-neutral-800 py-3 z-50 overflow-hidden"
                   >
-                    <div className="flex items-center justify-between px-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center justify-between px-4 pb-3 border-b border-slate-100 dark:border-neutral-800">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-extrabold text-slate-900 dark:text-white">Notifications</span>
                         {unreadCount > 0 && (
@@ -456,7 +456,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                       )}
                     </div>
 
-                    <div className="max-h-80 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-800/40">
+                    <div className="max-h-80 overflow-y-auto divide-y divide-slate-50 dark:divide-neutral-800/40">
                       {notifications.length > 0 ? (
                         notifications.map((notif) => (
                           <div
@@ -466,7 +466,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                               setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n));
                               setShowNotifications(false);
                             }}
-                            className={`p-3.5 flex gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors ${
+                            className={`p-3.5 flex gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-neutral-900/40 transition-colors ${
                               !notif.read ? 'bg-indigo-50/20 dark:bg-indigo-950/10' : ''
                             }`}
                           >
@@ -490,7 +490,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                                 <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{notif.title}</p>
                                 {notif.time && <span className="text-[10px] text-slate-400 flex-shrink-0">{notif.time}</span>}
                               </div>
-                              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">{notif.message}</p>
+                              <p className="text-[11px] text-slate-500 dark:text-neutral-300 mt-0.5 line-clamp-2 leading-relaxed">{notif.message}</p>
                             </div>
                             {!notif.read && (
                               <div className="w-2 h-2 rounded-full bg-indigo-500 self-center flex-shrink-0" />
@@ -499,14 +499,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                         ))
                       ) : (
                         <div className="py-8 text-center">
-                          <Bell className="w-8 h-8 text-slate-200 dark:text-slate-700 mx-auto mb-2" />
+                          <Bell className="w-8 h-8 text-slate-200 dark:text-neutral-200 mx-auto mb-2" />
                           <p className="text-xs font-semibold text-slate-400">No notifications</p>
-                          <p className="text-[10px] text-slate-300 dark:text-slate-600">You're all caught up!</p>
+                          <p className="text-[10px] text-slate-300 dark:text-neutral-300">You're all caught up!</p>
                         </div>
                       )}
                     </div>
 
-                    <div className="pt-2 px-4 border-t border-slate-100 dark:border-slate-800 text-center">
+                    <div className="pt-2 px-4 border-t border-slate-100 dark:border-neutral-800 text-center">
                       <button
                         onClick={() => {
                           router.push('/admin-monitoring/notifications');
@@ -530,9 +530,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 placeholder="Search anything"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-white dark:bg-[#151D2A] border border-slate-100 dark:border-slate-800 rounded-2xl pl-10 pr-12 py-2 text-xs md:text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 outline-none focus:ring-2 ring-indigo-500/20 shadow-sm w-48 lg:w-64 transition-all"
+                className="bg-white dark:bg-neutral-950 border border-slate-100 dark:border-neutral-800 rounded-2xl pl-10 pr-12 py-2 text-xs md:text-sm text-slate-800 dark:text-neutral-50 placeholder-slate-400 outline-none focus:ring-2 ring-indigo-500/20 shadow-sm w-48 lg:w-64 transition-all"
               />
-              <div className="absolute right-3 flex items-center gap-0.5 text-[10px] font-extrabold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md">
+              <div className="absolute right-3 flex items-center gap-0.5 text-[10px] font-extrabold text-slate-400 bg-slate-100 dark:bg-neutral-900 px-1.5 py-0.5 rounded-md">
                 <Command className="w-2.5 h-2.5" /> K
               </div>
             </div>
@@ -541,7 +541,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             <div className="relative">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center gap-2 bg-white dark:bg-[#151D2A] p-1.5 pr-3 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:border-slate-200 dark:hover:border-slate-700 transition-colors"
+                className="flex items-center gap-2 bg-white dark:bg-neutral-950 p-1.5 pr-3 rounded-2xl border border-slate-100 dark:border-neutral-800 shadow-sm hover:border-slate-200 dark:hover:border-neutral-800 transition-colors"
               >
                 {user?.avatar_url ? (
                   <img
@@ -563,25 +563,25 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#151D2A] rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-2 z-50 overflow-hidden"
+                    className="absolute right-0 mt-2 w-56 bg-white dark:bg-neutral-950 rounded-2xl shadow-xl border border-slate-100 dark:border-neutral-800 py-2 z-50 overflow-hidden"
                   >
-                    <div className="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
+                    <div className="px-4 py-2.5 border-b border-slate-100 dark:border-neutral-800">
                       <p className="text-xs font-bold text-slate-900 dark:text-white">{user?.full_name || 'Admin User'}</p>
                       <p className="text-[11px] text-slate-400 truncate">{user?.email || 'admin@suqafuran.com'}</p>
                     </div>
                     <button
                       onClick={() => { router.push('/admin-dashboard/settings'); setShowUserMenu(false); }}
-                      className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors"
+                      className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-neutral-900/60 text-xs font-medium text-slate-700 dark:text-neutral-200 transition-colors"
                     >
                       Account Settings
                     </button>
                     <button
                       onClick={() => { router.push('/'); setShowUserMenu(false); }}
-                      className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors"
+                      className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-neutral-900/60 text-xs font-medium text-slate-700 dark:text-neutral-200 transition-colors"
                     >
                       Back to Shops
                     </button>
-                    <hr className="my-1 border-slate-100 dark:border-slate-800" />
+                    <hr className="my-1 border-slate-100 dark:border-neutral-800" />
                     <button
                       onClick={() => { handleLogout(); setShowUserMenu(false); }}
                       className="w-full text-left px-4 py-2 hover:bg-red-50 dark:hover:bg-red-950/30 text-xs font-bold text-red-600 dark:text-red-400 transition-colors"

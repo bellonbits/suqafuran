@@ -64,7 +64,7 @@ export const Sidebar: React.FC = () => {
         <aside
             className={`${
                 collapsed ? 'w-16' : 'w-60'
-            } border-r border-gray-100 bg-white hidden md:flex flex-col justify-between h-[calc(100vh-4rem)] sticky top-16 dark:border-slate-800 dark:bg-slate-900 overflow-y-auto shrink-0 pb-6 scrollbar-thin scrollbar-thumb-gray-200 transition-all duration-200`}
+            } border-r border-gray-100 bg-white hidden md:flex flex-col justify-between h-[calc(100vh-4rem)] sticky top-16 dark:border-neutral-800 dark:bg-neutral-950 overflow-y-auto shrink-0 pb-6 scrollbar-thin scrollbar-thumb-gray-200 transition-all duration-200`}
         >
             <div className="py-4 space-y-0.5">
                 {allItems.map((item, idx) => {
@@ -81,7 +81,7 @@ export const Sidebar: React.FC = () => {
                             } ${
                                 isActive
                                     ? 'text-[#FF3008] bg-red-50/60 dark:bg-red-500/10 dark:text-red-400 font-bold'
-                                    : 'text-gray-600 hover:bg-slate-50 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
+                                    : 'text-gray-600 hover:bg-slate-50 hover:text-gray-900 dark:text-neutral-300 dark:hover:bg-neutral-900 dark:hover:text-neutral-50'
                             }`}
                         >
                             {/* Active indicator bar */}
@@ -96,11 +96,11 @@ export const Sidebar: React.FC = () => {
             </div>
 
             {!isAuthenticated && (
-                <div className={`${collapsed ? 'px-2' : 'px-5'} pt-4 border-t border-gray-100 dark:border-slate-800`}>
+                <div className={`${collapsed ? 'px-2' : 'px-5'} pt-4 border-t border-gray-100 dark:border-neutral-800`}>
                     <button
                         onClick={() => openAuthModal('signin')}
                         title={collapsed ? 'Sign up or Login' : undefined}
-                        className={`flex items-center text-xs font-bold text-gray-700 hover:text-[#FF3008] dark:text-slate-200 dark:hover:text-red-400 cursor-pointer ${
+                        className={`flex items-center text-xs font-bold text-gray-700 hover:text-[#FF3008] dark:text-neutral-100 dark:hover:text-red-400 cursor-pointer ${
                             collapsed ? 'justify-center w-full' : 'gap-3'
                         }`}
                     >

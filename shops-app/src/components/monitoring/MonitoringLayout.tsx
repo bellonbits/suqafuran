@@ -43,16 +43,16 @@ export const MonitoringLayout: React.FC<MonitoringLayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-slate-50 dark:bg-black">
       {/* Header */}
-      <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+      <header className="border-b border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-4 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
                 System Monitoring
               </h1>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+              <p className="text-sm text-slate-600 dark:text-neutral-300 mt-1">
                 Real-time dashboard for Kafka, notifications, and system health
               </p>
             </div>
@@ -62,7 +62,7 @@ export const MonitoringLayout: React.FC<MonitoringLayoutProps> = ({
               <button
                 onClick={handleRefresh}
                 disabled={isRefreshing || isLoading}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 disabled:opacity-50 transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-neutral-900 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-200 disabled:opacity-50 transition-colors"
                 title="Refresh data"
               >
                 <RefreshCw
@@ -76,7 +76,7 @@ export const MonitoringLayout: React.FC<MonitoringLayoutProps> = ({
                 className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                   autoRefresh
                     ? 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300'
-                    : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    : 'bg-slate-100 text-slate-700 dark:bg-neutral-900 dark:text-neutral-200 hover:bg-slate-200 dark:hover:bg-neutral-800'
                 }`}
                 title={autoRefresh ? 'Pause auto-refresh' : 'Resume auto-refresh'}
               >
@@ -102,8 +102,8 @@ export const MonitoringLayout: React.FC<MonitoringLayoutProps> = ({
                   href={page.href}
                   className={`px-4 py-2 rounded-t-lg font-medium text-sm whitespace-nowrap transition-colors ${
                     isActive
-                      ? 'bg-white dark:bg-slate-900 text-orange-600 dark:text-orange-400 border-b-2 border-orange-600'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-300'
+                      ? 'bg-white dark:bg-neutral-950 text-orange-600 dark:text-orange-400 border-b-2 border-orange-600'
+                      : 'text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-neutral-200'
                   }`}
                 >
                   {page.label}

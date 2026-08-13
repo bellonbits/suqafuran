@@ -41,7 +41,7 @@ export default function KafkaTopicsPage() {
       >
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
-            <p className="text-slate-600 dark:text-slate-400">Loading Kafka topics...</p>
+            <p className="text-slate-600 dark:text-neutral-300">Loading Kafka topics...</p>
           </div>
         </div>
       </MonitoringLayout>
@@ -87,16 +87,16 @@ export default function KafkaTopicsPage() {
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
           Kafka Topics
         </h1>
-        <p className="text-slate-600 dark:text-slate-400">
+        <p className="text-slate-600 dark:text-neutral-300">
           {store.topics.length} topics • {laggingTopics} lagging • {stalledTopics} stalled
         </p>
       </div>
 
       {/* Topics Table */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+      <div className="bg-white dark:bg-neutral-950 rounded-xl border border-slate-200 dark:border-neutral-800 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
+            <thead className="border-b border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900">
               <tr>
                 <th className="px-4 py-4 text-left font-semibold text-slate-900 dark:text-white">
                   Topic Name
@@ -121,10 +121,10 @@ export default function KafkaTopicsPage() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-200 dark:divide-neutral-800">
               {store.topics.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
+                  <td colSpan={7} className="px-4 py-8 text-center text-slate-500 dark:text-neutral-300">
                     No topics available
                   </td>
                 </tr>
@@ -132,21 +132,21 @@ export default function KafkaTopicsPage() {
                 store.topics.map((topic) => (
                   <tr
                     key={topic.name}
-                    className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    className="hover:bg-slate-50 dark:hover:bg-neutral-900 transition-colors"
                   >
                     <td className="px-4 py-4 font-medium text-slate-900 dark:text-white">
                       {topic.name}
                     </td>
-                    <td className="px-4 py-4 text-right text-slate-600 dark:text-slate-400">
+                    <td className="px-4 py-4 text-right text-slate-600 dark:text-neutral-300">
                       {topic.partition_count}
                     </td>
-                    <td className="px-4 py-4 text-right text-slate-600 dark:text-slate-400">
+                    <td className="px-4 py-4 text-right text-slate-600 dark:text-neutral-300">
                       {topic.total_messages.toLocaleString()}
                     </td>
-                    <td className="px-4 py-4 text-right text-slate-600 dark:text-slate-400">
+                    <td className="px-4 py-4 text-right text-slate-600 dark:text-neutral-300">
                       {topic.messages_per_sec.toFixed(2)} msg/s
                     </td>
-                    <td className="px-4 py-4 text-right text-slate-600 dark:text-slate-400">
+                    <td className="px-4 py-4 text-right text-slate-600 dark:text-neutral-300">
                       {topic.consumer_lag.toLocaleString()}
                     </td>
                     <td className="px-4 py-4">
@@ -173,7 +173,7 @@ export default function KafkaTopicsPage() {
       </div>
 
       {/* Last Updated */}
-      <div className="mt-4 text-right text-xs text-slate-500 dark:text-slate-400">
+      <div className="mt-4 text-right text-xs text-slate-500 dark:text-neutral-300">
         Last updated: {store.lastUpdated?.toLocaleTimeString()}
       </div>
     </MonitoringLayout>

@@ -62,7 +62,7 @@ export default function NotificationCenter() {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+        className="relative p-2 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-lg transition-colors"
       >
         <Bell size={24} className="text-gray-700 dark:text-gray-300" />
 
@@ -96,10 +96,10 @@ export default function NotificationCenter() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="absolute top-20 right-0 z-40 w-96 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-gray-200 dark:border-slate-800 overflow-hidden"
+              className="absolute top-20 right-0 z-40 w-96 bg-white dark:bg-neutral-950 rounded-xl shadow-2xl border border-gray-200 dark:border-neutral-800 overflow-hidden"
             >
               {/* Header */}
-              <div className="p-6 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between">
+              <div className="p-6 border-b border-gray-200 dark:border-neutral-800 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-black text-gray-900 dark:text-white">
                     Notifications
@@ -113,14 +113,14 @@ export default function NotificationCenter() {
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   onClick={() => setIsOpen(false)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-lg"
                 >
                   <X size={20} />
                 </motion.button>
               </div>
 
               {/* Filter Tabs */}
-              <div className="flex gap-2 px-6 py-4 border-b border-gray-200 dark:border-slate-800">
+              <div className="flex gap-2 px-6 py-4 border-b border-gray-200 dark:border-neutral-800">
                 {(['all', 'unread'] as const).map((tab) => (
                   <motion.button
                     key={tab}
@@ -129,7 +129,7 @@ export default function NotificationCenter() {
                     className={`px-3 py-1 rounded-full text-sm font-bold transition-all ${
                       filter === tab
                         ? 'bg-[#5bc0e8] text-white'
-                        : 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white'
+                        : 'bg-gray-100 dark:bg-neutral-900 text-gray-900 dark:text-white'
                     }`}
                   >
                     {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -152,7 +152,7 @@ export default function NotificationCenter() {
                         className={`p-4 rounded-lg cursor-pointer transition-all group ${
                           notification.status === 'unread'
                             ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'
-                            : 'bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700'
+                            : 'bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800'
                         } hover:shadow-md`}
                       >
                         <div className="flex items-start gap-3">
@@ -189,7 +189,7 @@ export default function NotificationCenter() {
                                 e.stopPropagation();
                                 markAsRead(notification.id);
                               }}
-                              className="p-1 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors"
+                              className="p-1 hover:bg-white dark:hover:bg-neutral-800 rounded transition-colors"
                               title="Mark as read"
                             >
                               <Check size={16} className="text-green-600" />
@@ -202,7 +202,7 @@ export default function NotificationCenter() {
                               e.stopPropagation();
                               archiveNotification(notification.id);
                             }}
-                            className="p-1 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors"
+                            className="p-1 hover:bg-white dark:hover:bg-neutral-800 rounded transition-colors"
                             title="Archive"
                           >
                             <Archive size={16} className="text-gray-600" />
@@ -214,7 +214,7 @@ export default function NotificationCenter() {
                               e.stopPropagation();
                               deleteNotification(notification.id);
                             }}
-                            className="p-1 hover:bg-white dark:hover:bg-slate-700 rounded transition-colors"
+                            className="p-1 hover:bg-white dark:hover:bg-neutral-800 rounded transition-colors"
                             title="Delete"
                           >
                             <Trash2 size={16} className="text-red-600" />
@@ -235,7 +235,7 @@ export default function NotificationCenter() {
 
               {/* Footer Actions */}
               {filteredNotifications.length > 0 && (
-                <div className="border-t border-gray-200 dark:border-slate-800 p-4 flex gap-2">
+                <div className="border-t border-gray-200 dark:border-neutral-800 p-4 flex gap-2">
                   {unreadCount > 0 && (
                     <motion.button
                       whileHover={{ scale: 1.05 }}
@@ -249,7 +249,7 @@ export default function NotificationCenter() {
 
                   <Link
                     href="/notifications/preferences"
-                    className="flex-1 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-900 dark:text-white font-bold py-2 px-3 rounded-lg text-sm transition-all flex items-center justify-center gap-2"
+                    className="flex-1 bg-gray-100 dark:bg-neutral-900 hover:bg-gray-200 dark:hover:bg-neutral-800 text-gray-900 dark:text-white font-bold py-2 px-3 rounded-lg text-sm transition-all flex items-center justify-center gap-2"
                   >
                     <Settings size={16} />
                     Settings

@@ -625,13 +625,13 @@ export default function ShopsAdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-800/40 p-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-neutral-900/40 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Shop Management</h1>
-            <p className="text-slate-600 dark:text-slate-300 mt-2">Manage shop details, banners, and settings</p>
+            <p className="text-slate-600 dark:text-neutral-200 mt-2">Manage shop details, banners, and settings</p>
           </div>
           <Link href="/admin/shops/new">
             <button className="flex items-center gap-2 bg-[#5bc0e8] text-white px-4 py-2 rounded-lg hover:bg-blue-700">
@@ -656,7 +656,7 @@ export default function ShopsAdminPage() {
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-100 dark:bg-slate-800 border-b">
+              <thead className="bg-slate-100 dark:bg-neutral-900 border-b">
                 <tr>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">Shop Name (A-Z)</th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">Owner</th>
@@ -675,14 +675,14 @@ export default function ShopsAdminPage() {
                   </tr>
                 ) : (
                   filteredShops.map((shop) => (
-                    <tr key={shop.id} className="hover:bg-slate-50 dark:bg-slate-800/40">
+                    <tr key={shop.id} className="hover:bg-slate-50 dark:bg-neutral-900/40">
                       <td className="px-6 py-4">
                         <div>
                           <p className="font-medium text-slate-900 dark:text-white">{shop.business_name}</p>
                           <p className="text-sm text-slate-400">{shop.email}</p>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">{shop.full_name}</td>
+                      <td className="px-6 py-4 text-sm text-slate-700 dark:text-neutral-200">{shop.full_name}</td>
                       <td className="px-6 py-4 text-sm">
                         <div className="flex gap-2">
                           {shop.shop_page_banner && (
@@ -696,7 +696,7 @@ export default function ShopsAdminPage() {
                             </span>
                           )}
                           {!shop.shop_page_banner && !shop.shop_detail_banner && (
-                            <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded text-xs">
+                            <span className="px-2 py-1 bg-slate-100 dark:bg-neutral-900 text-slate-800 dark:text-neutral-100 rounded text-xs">
                               None
                             </span>
                           )}
@@ -762,7 +762,7 @@ export default function ShopsAdminPage() {
 
         {/* Shop Count */}
         <div className="mt-6 flex justify-between items-center">
-          <p className="text-sm text-slate-600 dark:text-slate-300">
+          <p className="text-sm text-slate-600 dark:text-neutral-200">
             <span className="inline-block bg-[#e0f7ff] text-blue-800 px-2 py-1 rounded mr-2 text-xs font-semibold">
               WITH ADS ONLY
             </span>
@@ -777,11 +777,11 @@ export default function ShopsAdminPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full shadow-lg">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+            <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-neutral-800">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Edit Shop Name</h2>
               <button
                 onClick={() => setEditingShop(null)}
-                className="text-slate-400 hover:text-slate-600 dark:text-slate-300"
+                className="text-slate-400 hover:text-slate-600 dark:text-neutral-200"
               >
                 <X size={20} />
               </button>
@@ -790,15 +790,15 @@ export default function ShopsAdminPage() {
             {/* Content */}
             <div className="p-6 space-y-4">
               {/* Shop Info */}
-              <div className="bg-slate-50 dark:bg-slate-800/40 rounded-lg p-4">
-                <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Shop Owner</p>
+              <div className="bg-slate-50 dark:bg-neutral-900/40 rounded-lg p-4">
+                <p className="text-xs font-medium text-slate-600 dark:text-neutral-200 mb-1">Shop Owner</p>
                 <p className="text-sm font-medium text-slate-900 dark:text-white">{editingShop.full_name}</p>
                 <p className="text-xs text-slate-400 mt-1">{editingShop.email}</p>
               </div>
 
               {/* Input */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">
                   Shop Name
                 </label>
                 <input
@@ -836,11 +836,11 @@ export default function ShopsAdminPage() {
             </div>
 
             {/* Footer */}
-            <div className="flex gap-3 p-6 border-t border-slate-200 dark:border-slate-700">
+            <div className="flex gap-3 p-6 border-t border-slate-200 dark:border-neutral-800">
               <button
                 onClick={() => setEditingShop(null)}
                 disabled={editSaving}
-                className="flex-1 px-4 py-2 rounded-xl border border-gray-300 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800 disabled:opacity-50 font-medium"
+                className="flex-1 px-4 py-2 rounded-xl border border-gray-300 text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:bg-neutral-900 disabled:opacity-50 font-medium"
               >
                 Cancel
               </button>
@@ -860,16 +860,16 @@ export default function ShopsAdminPage() {
       {detailShop && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-lg w-full shadow-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+            <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-neutral-800">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Edit Shop</h2>
-              <button onClick={closeDetailModal} className="text-slate-400 hover:text-slate-600 dark:text-slate-300">
+              <button onClick={closeDetailModal} className="text-slate-400 hover:text-slate-600 dark:text-neutral-200">
                 <X size={20} />
               </button>
             </div>
 
             <div className="p-6 space-y-5">
-              <div className="bg-slate-50 dark:bg-slate-800/40 rounded-lg p-4">
-                <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Shop Owner</p>
+              <div className="bg-slate-50 dark:bg-neutral-900/40 rounded-lg p-4">
+                <p className="text-xs font-medium text-slate-600 dark:text-neutral-200 mb-1">Shop Owner</p>
                 <p className="text-sm font-medium text-slate-900 dark:text-white">{detailShop.full_name}</p>
                 <p className="text-xs text-slate-400 mt-1">{detailShop.email}</p>
               </div>
@@ -882,7 +882,7 @@ export default function ShopsAdminPage() {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Shop Name</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">Shop Name</label>
                 <input
                   type="text"
                   value={detailForm.business_name}
@@ -894,7 +894,7 @@ export default function ShopsAdminPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Description</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">Description</label>
                 <textarea
                   value={detailForm.shop_description}
                   onChange={(e) => setDetailForm((f) => ({ ...f, shop_description: e.target.value }))}
@@ -906,7 +906,7 @@ export default function ShopsAdminPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Location</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">Location</label>
                 <input
                   type="text"
                   value={detailForm.location}
@@ -923,17 +923,17 @@ export default function ShopsAdminPage() {
                 { key: 'shop_detail_banner', kind: 'detail_banner', label: 'Shop Page Banner' },
               ] as const).map(({ key, kind, label }) => (
                 <div key={key}>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{label}</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-neutral-200 mb-2">{label}</label>
                   <div className="flex items-center gap-3">
                     {detailForm[key] ? (
-                      <img src={detailForm[key]} alt="" className="w-16 h-16 rounded-lg object-cover border border-slate-200 dark:border-slate-700" />
+                      <img src={detailForm[key]} alt="" className="w-16 h-16 rounded-lg object-cover border border-slate-200 dark:border-neutral-800" />
                     ) : (
-                      <div className="w-16 h-16 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-lg bg-slate-100 dark:bg-neutral-900 flex items-center justify-center">
                         <ImageIcon className="w-5 h-5 text-slate-400" />
                       </div>
                     )}
                     <label className="flex-1 cursor-pointer">
-                      <div className="px-4 py-2 rounded-xl border border-dashed border-gray-300 text-center text-xs font-semibold text-slate-600 dark:text-slate-300 hover:border-blue-400 hover:text-blue-600 transition-colors">
+                      <div className="px-4 py-2 rounded-xl border border-dashed border-gray-300 text-center text-xs font-semibold text-slate-600 dark:text-neutral-200 hover:border-blue-400 hover:text-blue-600 transition-colors">
                         {detailUploading === kind ? 'Uploading...' : 'Upload image'}
                       </div>
                       <input
@@ -958,7 +958,7 @@ export default function ShopsAdminPage() {
                   { key: 'free_delivery', label: 'Free Delivery' },
                   { key: 'is_active', label: 'Active' },
                 ] as const).map(({ key, label }) => (
-                  <label key={key} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer">
+                  <label key={key} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-neutral-800 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={detailForm[key]}
@@ -966,15 +966,15 @@ export default function ShopsAdminPage() {
                       onChange={(e) => setDetailForm((f) => ({ ...f, [key]: e.target.checked }))}
                       className="rounded"
                     />
-                    <span className="text-sm text-slate-700 dark:text-slate-300">{label}</span>
+                    <span className="text-sm text-slate-700 dark:text-neutral-200">{label}</span>
                   </label>
                 ))}
               </div>
 
               {/* Items in this shop */}
-              <div className="border-t border-slate-200 dark:border-slate-700 pt-5">
+              <div className="border-t border-slate-200 dark:border-neutral-800 pt-5">
                 <div className="flex items-center justify-between mb-3">
-                  <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+                  <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-neutral-200">
                     <Package size={16} />
                     Items in this Shop {shopListings.length > 0 && `(${shopListings.length})`}
                   </label>
@@ -997,7 +997,7 @@ export default function ShopsAdminPage() {
                 </div>
 
                 {showBulkImport && (
-                  <div className="mb-4 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 space-y-3">
+                  <div className="mb-4 p-4 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900/40 space-y-3">
                     <div className="flex items-center justify-between gap-3 flex-wrap">
                       <p className="text-xs text-slate-500">
                         Columns: <code className="font-mono">title_en, title_so, description_en, price, location, condition, category, subcategory, subsubcategory</code>.
@@ -1037,9 +1037,9 @@ export default function ShopsAdminPage() {
 
                     {bulkRows.length > 0 && (
                       <>
-                        <div className="max-h-64 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-700">
+                        <div className="max-h-64 overflow-y-auto rounded-lg border border-slate-200 dark:border-neutral-800">
                           <table className="w-full text-xs">
-                            <thead className="bg-slate-100 dark:bg-slate-800 sticky top-0">
+                            <thead className="bg-slate-100 dark:bg-neutral-900 sticky top-0">
                               <tr>
                                 <th className="px-2 py-1.5 text-left">Title</th>
                                 <th className="px-2 py-1.5 text-left">Price</th>
@@ -1047,7 +1047,7 @@ export default function ShopsAdminPage() {
                                 <th className="px-2 py-1.5 text-left">Status</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tbody className="divide-y divide-slate-100 dark:divide-neutral-800">
                               {bulkRows.map((row, i) => (
                                 <tr key={i} className={row.error ? 'bg-red-50/60' : ''}>
                                   <td className="px-2 py-1.5 max-w-[140px] truncate">{row.title_en || <span className="text-slate-400">—</span>}</td>
@@ -1091,7 +1091,7 @@ export default function ShopsAdminPage() {
                 )}
 
                 {showAddItem && (
-                  <div className="mb-4 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 space-y-3">
+                  <div className="mb-4 p-4 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900/40 space-y-3">
                     <input
                       type="text"
                       placeholder="Item title"
@@ -1195,7 +1195,7 @@ export default function ShopsAdminPage() {
                     >
                       {newItemImages.map((url, i) => (
                         <div key={i} className="relative w-14 h-14">
-                          <img src={url} alt="" className="w-14 h-14 rounded-lg object-cover border border-slate-200 dark:border-slate-700" />
+                          <img src={url} alt="" className="w-14 h-14 rounded-lg object-cover border border-slate-200 dark:border-neutral-800" />
                           <button
                             type="button"
                             onClick={() => setNewItemImages((imgs) => imgs.filter((_, idx) => idx !== i))}
@@ -1254,11 +1254,11 @@ export default function ShopsAdminPage() {
                 ) : (
                   <div className="space-y-2 max-h-64 overflow-y-auto">
                     {shopListings.map((item) => (
-                      <div key={item.id} className="flex items-center gap-3 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
+                      <div key={item.id} className="flex items-center gap-3 p-2 rounded-lg border border-slate-200 dark:border-neutral-800">
                         {item.images?.[0] ? (
                           <img src={item.images[0]} alt="" className="w-10 h-10 rounded-md object-cover shrink-0" />
                         ) : (
-                          <div className="w-10 h-10 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                          <div className="w-10 h-10 rounded-md bg-slate-100 dark:bg-neutral-900 flex items-center justify-center shrink-0">
                             <ImageIcon className="w-4 h-4 text-slate-400" />
                           </div>
                         )}
@@ -1269,7 +1269,7 @@ export default function ShopsAdminPage() {
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 ${
                           item.status === 'active' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400' :
                           item.status === 'pending' ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400' :
-                          'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                          'bg-slate-100 text-slate-600 dark:bg-neutral-900 dark:text-neutral-200'
                         }`}>
                           {item.status}
                         </span>
@@ -1293,11 +1293,11 @@ export default function ShopsAdminPage() {
               )}
             </div>
 
-            <div className="flex gap-3 p-6 border-t border-slate-200 dark:border-slate-700">
+            <div className="flex gap-3 p-6 border-t border-slate-200 dark:border-neutral-800">
               <button
                 onClick={closeDetailModal}
                 disabled={detailSaving}
-                className="flex-1 px-4 py-2 rounded-xl border border-gray-300 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800 disabled:opacity-50 font-medium"
+                className="flex-1 px-4 py-2 rounded-xl border border-gray-300 text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:bg-neutral-900 disabled:opacity-50 font-medium"
               >
                 Cancel
               </button>

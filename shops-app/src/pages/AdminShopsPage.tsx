@@ -268,12 +268,12 @@ const ShopsPage = () => {
               }}
               onFocus={() => searchQuery && setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-              className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-sky-400 bg-white dark:bg-[#151D2A] shadow-sm"
+              className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-neutral-800 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-sky-400 bg-white dark:bg-neutral-950 shadow-sm"
             />
 
             {/* Autocomplete Dropdown */}
             {showSuggestions && searchQuery && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 dark:border-neutral-800 rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto">
                 {shops
                   .filter(s =>
                     s.shop_name?.toLowerCase().startsWith(searchQuery.toLowerCase()) ||
@@ -287,7 +287,7 @@ const ShopsPage = () => {
                         setSearchQuery(shop.shop_name);
                         setShowSuggestions(false);
                       }}
-                      className="w-full text-left px-4 py-2.5 hover:bg-sky-50 border-b border-slate-100 dark:border-slate-800 last:border-b-0 transition-colors flex flex-col gap-0.5"
+                      className="w-full text-left px-4 py-2.5 hover:bg-sky-50 border-b border-slate-100 dark:border-neutral-800 last:border-b-0 transition-colors flex flex-col gap-0.5"
                     >
                       <p className="font-semibold text-slate-900 dark:text-white text-sm">{shop.shop_name}</p>
                       <p className="text-xs text-slate-400">{shop.owner_name} • {shop.total_products} products</p>
@@ -381,19 +381,19 @@ const ShopsPage = () => {
               <thead>
                 <tr>
                   <th>
-                    <button onClick={() => toggleSort('name')} className="flex items-center hover:text-slate-700 dark:text-slate-300 transition-colors">
+                    <button onClick={() => toggleSort('name')} className="flex items-center hover:text-slate-700 dark:text-neutral-200 transition-colors">
                       Shop <SortIcon col="name" />
                     </button>
                   </th>
                   <th className="hidden md:table-cell">Contact</th>
                   <th className="hidden sm:table-cell">Joined</th>
                   <th>
-                    <button onClick={() => toggleSort('listings')} className="flex items-center hover:text-slate-700 dark:text-slate-300 transition-colors">
+                    <button onClick={() => toggleSort('listings')} className="flex items-center hover:text-slate-700 dark:text-neutral-200 transition-colors">
                       Listings <SortIcon col="listings" />
                     </button>
                   </th>
                   <th>
-                    <button onClick={() => toggleSort('active')} className="flex items-center hover:text-slate-700 dark:text-slate-300 transition-colors">
+                    <button onClick={() => toggleSort('active')} className="flex items-center hover:text-slate-700 dark:text-neutral-200 transition-colors">
                       Active <SortIcon col="active" />
                     </button>
                   </th>
@@ -441,7 +441,7 @@ const ShopsPage = () => {
                       </td>
                       {/* Listings */}
                       <td>
-                        <span className="text-lg font-black text-slate-800 dark:text-slate-200">{shop.total_products}</span>
+                        <span className="text-lg font-black text-slate-800 dark:text-neutral-100">{shop.total_products}</span>
                       </td>
                       {/* Active */}
                       <td>
@@ -458,7 +458,7 @@ const ShopsPage = () => {
                       <td className="text-right">
                         <button
                           onClick={() => toggleExpanded(shop.id)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:bg-sky-950/30 hover:text-sky-700 text-slate-600 dark:text-slate-300 text-xs font-semibold transition-all"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-neutral-900 hover:bg-sky-50 dark:bg-sky-950/30 hover:text-sky-700 text-slate-600 dark:text-neutral-200 text-xs font-semibold transition-all"
                         >
                           {expandedShop === shop.id ? (
                             <><ChevronUp className="w-3.5 h-3.5" /> Hide</>
@@ -474,7 +474,7 @@ const ShopsPage = () => {
                       <tr>
                         <td colSpan={7} className="px-0 py-0 bg-slate-50 border-t border-b border-sky-100">
                           <div className="p-5">
-                            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
+                            <h4 className="text-sm font-bold text-slate-800 dark:text-neutral-100 mb-3 flex items-center gap-2">
                               <Package className="w-4 h-4 text-sky-500" />
                               Listings for {shop.shop_name}
                               <span className="ml-1 badge badge-blue">{shop.listings.length}</span>
@@ -504,7 +504,7 @@ const ShopsPage = () => {
                                           <td>
                                             <div className="flex items-center gap-3">
                                               {listing.images?.[0] ? (
-                                                <img src={listing.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-slate-200 dark:border-slate-700" />
+                                                <img src={listing.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-slate-200 dark:border-neutral-800" />
                                               ) : (
                                                 <div className="w-10 h-10 rounded-lg bg-gray-200 flex-shrink-0" />
                                               )}
@@ -551,14 +551,14 @@ const ShopsPage = () => {
                               </button>
 
                               {showAddItem && (
-                                <div className="mt-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#151D2A] space-y-3 max-w-lg">
+                                <div className="mt-3 p-4 rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 space-y-3 max-w-lg">
                                   <input
                                     type="text"
                                     placeholder="Item title"
                                     value={newItem.title_en}
                                     onChange={(e) => setNewItem((f) => ({ ...f, title_en: e.target.value }))}
                                     disabled={newItemSaving}
-                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-neutral-800 text-sm bg-white dark:bg-neutral-950 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
                                   />
                                   <textarea
                                     placeholder="Description"
@@ -566,7 +566,7 @@ const ShopsPage = () => {
                                     onChange={(e) => setNewItem((f) => ({ ...f, description_en: e.target.value }))}
                                     rows={2}
                                     disabled={newItemSaving}
-                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50 resize-none"
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-neutral-800 text-sm bg-white dark:bg-neutral-950 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50 resize-none"
                                   />
                                   <div className="grid grid-cols-2 gap-3">
                                     <input
@@ -575,13 +575,13 @@ const ShopsPage = () => {
                                       value={newItem.price}
                                       onChange={(e) => setNewItem((f) => ({ ...f, price: e.target.value }))}
                                       disabled={newItemSaving}
-                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
+                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-neutral-800 text-sm bg-white dark:bg-neutral-950 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
                                     />
                                     <select
                                       value={newItem.condition}
                                       onChange={(e) => setNewItem((f) => ({ ...f, condition: e.target.value }))}
                                       disabled={newItemSaving}
-                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
+                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-neutral-800 text-sm bg-white dark:bg-neutral-950 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
                                     >
                                       <option value="New">New</option>
                                       <option value="Used">Used</option>
@@ -595,13 +595,13 @@ const ShopsPage = () => {
                                       value={newItem.location}
                                       onChange={(e) => setNewItem((f) => ({ ...f, location: e.target.value }))}
                                       disabled={newItemSaving}
-                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
+                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-neutral-800 text-sm bg-white dark:bg-neutral-950 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
                                     />
                                     <select
                                       value={newItem.category_id}
                                       onChange={(e) => setNewItem((f) => ({ ...f, category_id: e.target.value, subcategory_id: '', subsubcategory_id: '' }))}
                                       disabled={newItemSaving}
-                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
+                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-neutral-800 text-sm bg-white dark:bg-neutral-950 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
                                     >
                                       <option value="">Category&hellip;</option>
                                       {categories.map((c) => (
@@ -620,7 +620,7 @@ const ShopsPage = () => {
                                           value={newItem.subcategory_id}
                                           onChange={(e) => setNewItem((f) => ({ ...f, subcategory_id: e.target.value, subsubcategory_id: '' }))}
                                           disabled={newItemSaving}
-                                          className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
+                                          className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-neutral-800 text-sm bg-white dark:bg-neutral-950 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
                                         >
                                           <option value="">Subcategory&hellip;</option>
                                           {selectedCat.subcategories.map((s: any) => (
@@ -632,7 +632,7 @@ const ShopsPage = () => {
                                             value={newItem.subsubcategory_id}
                                             onChange={(e) => setNewItem((f) => ({ ...f, subsubcategory_id: e.target.value }))}
                                             disabled={newItemSaving}
-                                            className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
+                                            className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-neutral-800 text-sm bg-white dark:bg-neutral-950 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50"
                                           >
                                             <option value="">Sub-subcategory&hellip;</option>
                                             {selectedSub.subsubcategories.map((ss: any) => (
@@ -655,7 +655,7 @@ const ShopsPage = () => {
                                   >
                                     {newItemImages.map((url, i) => (
                                       <div key={i} className="relative w-14 h-14">
-                                        <img src={url} alt="" className="w-14 h-14 rounded-lg object-cover border border-slate-200 dark:border-slate-700" />
+                                        <img src={url} alt="" className="w-14 h-14 rounded-lg object-cover border border-slate-200 dark:border-neutral-800" />
                                         <button
                                           type="button"
                                           onClick={() => setNewItemImages((imgs) => imgs.filter((_, idx) => idx !== i))}
@@ -666,7 +666,7 @@ const ShopsPage = () => {
                                       </div>
                                     ))}
                                     <label className="cursor-pointer">
-                                      <div className="w-14 h-14 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-[9px] text-center leading-tight px-1 text-slate-500 hover:border-sky-400 hover:text-sky-600">
+                                      <div className="w-14 h-14 rounded-lg border border-dashed border-slate-300 dark:border-neutral-800 flex items-center justify-center text-[9px] text-center leading-tight px-1 text-slate-500 hover:border-sky-400 hover:text-sky-600">
                                         {newItemUploading ? '...' : 'Add Photos'}
                                       </div>
                                       <input
@@ -714,8 +714,8 @@ const ShopsPage = () => {
           </div>
 
           {/* Table footer */}
-          <div className="px-6 py-3 border-t border-slate-100 dark:border-slate-800 bg-gray-50/50 flex items-center justify-between text-xs text-slate-400">
-            <span>Showing <span className="font-semibold text-slate-600 dark:text-slate-300">{filtered.length}</span> of <span className="font-semibold text-slate-600 dark:text-slate-300">{shops.length}</span> shops</span>
+          <div className="px-6 py-3 border-t border-slate-100 dark:border-neutral-800 bg-gray-50/50 flex items-center justify-between text-xs text-slate-400">
+            <span>Showing <span className="font-semibold text-slate-600 dark:text-neutral-200">{filtered.length}</span> of <span className="font-semibold text-slate-600 dark:text-neutral-200">{shops.length}</span> shops</span>
             <span>Click "Listings" to expand a shop's products</span>
           </div>
         </div>

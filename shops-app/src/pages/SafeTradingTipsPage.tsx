@@ -38,11 +38,11 @@ const TIPS = [
 
 export default function SafeTradingTipsPage() {
     return (
-        <div className="min-h-screen bg-white dark:bg-slate-950">
+        <div className="min-h-screen bg-white dark:bg-black">
             <div className="max-w-3xl mx-auto px-4 py-10 sm:py-14">
                 <div className="text-center mb-10">
-                    <h1 className="text-3xl font-black text-gray-900 dark:text-slate-100">Safe Trading Tips</h1>
-                    <p className="mt-3 text-sm text-gray-500 dark:text-slate-400">
+                    <h1 className="text-3xl font-black text-gray-900 dark:text-neutral-50">Safe Trading Tips</h1>
+                    <p className="mt-3 text-sm text-gray-500 dark:text-neutral-300">
                         Suqafuran connects buyers and sellers directly — here's how to trade safely and confidently.
                     </p>
                 </div>
@@ -53,15 +53,15 @@ export default function SafeTradingTipsPage() {
                         return (
                             <div
                                 key={tip.title}
-                                className="rounded-2xl border border-gray-200 dark:border-slate-800 p-5"
+                                className="rounded-2xl border border-gray-200 dark:border-neutral-800 p-5"
                             >
                                 <div className="h-9 w-9 rounded-xl bg-primary/10 dark:bg-sky-400/10 flex items-center justify-center mb-3">
                                     <Icon className="h-4.5 w-4.5 text-primary dark:text-sky-400" />
                                 </div>
-                                <h2 className="text-sm font-black text-gray-900 dark:text-slate-100 mb-1.5">
+                                <h2 className="text-sm font-black text-gray-900 dark:text-neutral-50 mb-1.5">
                                     {tip.title}
                                 </h2>
-                                <p className="text-xs leading-relaxed text-gray-600 dark:text-slate-400">
+                                <p className="text-xs leading-relaxed text-gray-600 dark:text-neutral-300">
                                     {tip.body}
                                 </p>
                             </div>

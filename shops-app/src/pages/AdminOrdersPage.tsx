@@ -171,13 +171,13 @@ export default function AdminOrdersPage() {
             placeholder="Search by receipt ID, buyer, or shop…"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 bg-white dark:bg-[#151D2A] shadow-sm"
+            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-neutral-800 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 bg-white dark:bg-neutral-950 shadow-sm"
           />
         </div>
         <select
           value={contactFilter}
           onChange={e => setContactFilter(e.target.value as any)}
-          className="px-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-700 dark:text-slate-300 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400/30 cursor-pointer"
+          className="px-3 py-2.5 border border-slate-200 dark:border-neutral-800 rounded-xl text-sm text-slate-700 dark:text-neutral-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400/30 cursor-pointer"
         >
           <option value="all">All Checkouts</option>
           <option value="contacted">Contacted Seller</option>
@@ -234,13 +234,13 @@ export default function AdminOrdersPage() {
                         </div>
                       </td>
                       <td>
-                        <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                        <div className="flex items-center gap-1.5 text-slate-700 dark:text-neutral-200">
                           <Store className="w-3.5 h-3.5 text-slate-400" />
                           {receipt.seller?.shop_name || 'Unknown Shop'}
                         </div>
                       </td>
                       <td>
-                        <span className="text-slate-600 dark:text-slate-300 font-medium">
+                        <span className="text-slate-600 dark:text-neutral-200 font-medium">
                           {receipt.items?.length || 0} item{receipt.items?.length === 1 ? '' : 's'}
                         </span>
                       </td>
@@ -265,7 +265,7 @@ export default function AdminOrdersPage() {
                           <div className="space-y-1.5">
                             {(receipt.items || []).map((item, idx) => (
                               <div key={idx} className="flex items-center justify-between text-sm">
-                                <span className="text-slate-700 dark:text-slate-300">{item.title} <span className="text-slate-400">× {item.quantity}</span></span>
+                                <span className="text-slate-700 dark:text-neutral-200">{item.title} <span className="text-slate-400">× {item.quantity}</span></span>
                                 <span className="font-semibold text-slate-900 dark:text-white">Ksh {Math.round((item.price || 0) * (item.quantity || 1)).toLocaleString()}</span>
                               </div>
                             ))}
@@ -283,8 +283,8 @@ export default function AdminOrdersPage() {
               </tbody>
             </table>
           </div>
-          <div className="px-6 py-3 border-t border-slate-100 dark:border-slate-800 bg-gray-50/50 text-xs text-slate-400">
-            Showing <span className="font-semibold text-slate-600 dark:text-slate-300">{filtered.length}</span> of <span className="font-semibold text-slate-600 dark:text-slate-300">{receipts.length}</span> checkouts
+          <div className="px-6 py-3 border-t border-slate-100 dark:border-neutral-800 bg-gray-50/50 text-xs text-slate-400">
+            Showing <span className="font-semibold text-slate-600 dark:text-neutral-200">{filtered.length}</span> of <span className="font-semibold text-slate-600 dark:text-neutral-200">{receipts.length}</span> checkouts
           </div>
         </div>
       )}

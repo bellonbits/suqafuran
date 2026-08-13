@@ -43,7 +43,7 @@ export const StoreListingCard: React.FC<{ store: DerivedStore }> = ({ store }) =
             onTouchStart={() => setIsActive((v) => !v)}
             className="block rounded-2xl overflow-hidden hover:opacity-95 transition-opacity"
         >
-            <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 group">
+            <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 dark:bg-neutral-900 group">
                 {items.length > 0 ? (
                     items.map((item, i) => (
                         <img
@@ -54,7 +54,7 @@ export const StoreListingCard: React.FC<{ store: DerivedStore }> = ({ store }) =
                         />
                     ))
                 ) : (
-                    <div className="h-full w-full flex items-center justify-center text-3xl font-black text-gray-300 dark:text-slate-700">
+                    <div className="h-full w-full flex items-center justify-center text-3xl font-black text-gray-300 dark:text-neutral-200">
                         {store.name.charAt(0).toUpperCase()}
                     </div>
                 )}
@@ -99,11 +99,11 @@ export const StoreListingCard: React.FC<{ store: DerivedStore }> = ({ store }) =
 
             <div className="pt-2.5 space-y-0.5">
                 <div className="flex items-center gap-1.5">
-                    <h4 className="text-sm font-bold text-gray-900 dark:text-slate-100 truncate">{store.name}</h4>
+                    <h4 className="text-sm font-bold text-gray-900 dark:text-neutral-50 truncate">{store.name}</h4>
                     {store.isVerified && <ShieldCheck className="h-3.5 w-3.5 text-accent shrink-0" />}
                 </div>
 
-                <div className="flex items-center gap-1 text-[13px] text-gray-500 dark:text-slate-400">
+                <div className="flex items-center gap-1 text-[13px] text-gray-500 dark:text-neutral-300">
                     <Tag className="h-3 w-3" />
                     <span>{store.listingCount} listing{store.listingCount === 1 ? '' : 's'}</span>
                     {store.distance && (
@@ -116,7 +116,7 @@ export const StoreListingCard: React.FC<{ store: DerivedStore }> = ({ store }) =
                 </div>
 
                 {store.responseTime && (
-                    <p className="text-[13px] text-gray-500 dark:text-slate-400">{store.responseTime}</p>
+                    <p className="text-[13px] text-gray-500 dark:text-neutral-300">{store.responseTime}</p>
                 )}
             </div>
         </Link>

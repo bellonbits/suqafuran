@@ -309,7 +309,7 @@ const ListingsManagementPage = () => {
       case 'pending':
         return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400';
       default:
-        return 'bg-slate-100 dark:bg-slate-800 dark:bg-gray-700 text-slate-700 dark:text-slate-300 dark:text-gray-300';
+        return 'bg-slate-100 dark:bg-neutral-900 dark:bg-gray-700 text-slate-700 dark:text-neutral-200 dark:text-gray-300';
     }
   };
 
@@ -348,7 +348,7 @@ const ListingsManagementPage = () => {
               placeholder="Search listings..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-slate-900 dark:text-white dark:text-white placeholder-gray-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-slate-900 dark:text-white dark:text-white placeholder-gray-500 dark:placeholder-neutral-300 focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
           </div>
 
@@ -356,7 +356,7 @@ const ListingsManagementPage = () => {
           <div className="relative z-40">
             <button
               onClick={() => setCategoryOpen(!categoryOpen)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-slate-900 dark:text-white dark:text-white hover:bg-slate-50 dark:bg-slate-800/40 dark:hover:bg-gray-600 font-medium flex items-center gap-2 transition-colors min-w-48"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-slate-900 dark:text-white dark:text-white hover:bg-slate-50 dark:bg-neutral-900/40 dark:hover:bg-gray-600 font-medium flex items-center gap-2 transition-colors min-w-48"
             >
               Category: {categoryFilter === 'all' ? 'All' : (categories.find(c => c.id == categoryFilter)?.name_en || 'Select')}
               <ChevronDown className="w-4 h-4" />
@@ -367,7 +367,7 @@ const ListingsManagementPage = () => {
                 <div className="absolute top-full mt-2 left-0 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50 min-w-64 max-h-96 overflow-y-auto">
                   <button
                     onClick={() => { setCategoryFilter('all'); setCategoryOpen(false); }}
-                    className="w-full text-left px-4 py-3 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-gray-700 border-b border-slate-200 dark:border-slate-700 dark:border-gray-600 font-medium text-slate-900 dark:text-white dark:text-white bg-white dark:bg-gray-800"
+                    className="w-full text-left px-4 py-3 hover:bg-slate-100 dark:bg-neutral-900 dark:hover:bg-gray-700 border-b border-slate-200 dark:border-neutral-800 dark:border-gray-600 font-medium text-slate-900 dark:text-white dark:text-white bg-white dark:bg-gray-800"
                   >
                     All Categories
                   </button>
@@ -376,7 +376,7 @@ const ListingsManagementPage = () => {
                       <button
                         key={cat.id}
                         onClick={() => { setCategoryFilter(cat.id); setCategoryOpen(false); }}
-                        className="w-full text-left px-4 py-3 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-gray-700 border-b border-slate-200 dark:border-slate-700 dark:border-gray-600 text-slate-900 dark:text-white dark:text-white bg-white dark:bg-gray-800"
+                        className="w-full text-left px-4 py-3 hover:bg-slate-100 dark:bg-neutral-900 dark:hover:bg-gray-700 border-b border-slate-200 dark:border-neutral-800 dark:border-gray-600 text-slate-900 dark:text-white dark:text-white bg-white dark:bg-gray-800"
                       >
                         {cat.name_en || cat.name_so || 'Unnamed'}
                       </button>
@@ -393,7 +393,7 @@ const ListingsManagementPage = () => {
           <div className="relative z-40">
             <button
               onClick={() => setStatusOpen(!statusOpen)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-slate-900 dark:text-white dark:text-white hover:bg-slate-50 dark:bg-slate-800/40 dark:hover:bg-gray-600 font-medium flex items-center gap-2 transition-colors"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-slate-900 dark:text-white dark:text-white hover:bg-slate-50 dark:bg-neutral-900/40 dark:hover:bg-gray-600 font-medium flex items-center gap-2 transition-colors"
             >
               Status: {statusFilter === 'all' ? 'All' : statusFilter}
               <ChevronDown className="w-4 h-4" />
@@ -406,7 +406,7 @@ const ListingsManagementPage = () => {
                     <button
                       key={status}
                       onClick={() => { setStatusFilter(status); setStatusOpen(false); }}
-                      className="w-full text-left px-4 py-3 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-gray-700 border-b border-slate-200 dark:border-slate-700 dark:border-gray-600 text-slate-900 dark:text-white dark:text-white bg-white dark:bg-gray-800"
+                      className="w-full text-left px-4 py-3 hover:bg-slate-100 dark:bg-neutral-900 dark:hover:bg-gray-700 border-b border-slate-200 dark:border-neutral-800 dark:border-gray-600 text-slate-900 dark:text-white dark:text-white bg-white dark:bg-gray-800"
                     >
                       {status === 'all' ? 'All Statuses' : status}
                     </button>
@@ -420,7 +420,7 @@ const ListingsManagementPage = () => {
           <div className="relative z-40">
             <button
               onClick={() => setApprovalStatusOpen(!approvalStatusOpen)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-slate-900 dark:text-white dark:text-white hover:bg-slate-50 dark:bg-slate-800/40 dark:hover:bg-gray-600 font-medium flex items-center gap-2 transition-colors"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-slate-900 dark:text-white dark:text-white hover:bg-slate-50 dark:bg-neutral-900/40 dark:hover:bg-gray-600 font-medium flex items-center gap-2 transition-colors"
             >
               Approval: {approvalStatusFilter === 'all' ? 'All' : approvalStatusFilter}
               <ChevronDown className="w-4 h-4" />
@@ -433,7 +433,7 @@ const ListingsManagementPage = () => {
                     <button
                       key={status}
                       onClick={() => { setApprovalStatusFilter(status); setApprovalStatusOpen(false); }}
-                      className="w-full text-left px-4 py-3 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-gray-700 border-b border-slate-200 dark:border-slate-700 dark:border-gray-600 text-slate-900 dark:text-white dark:text-white bg-white dark:bg-gray-800 flex items-center gap-2"
+                      className="w-full text-left px-4 py-3 hover:bg-slate-100 dark:bg-neutral-900 dark:hover:bg-gray-700 border-b border-slate-200 dark:border-neutral-800 dark:border-gray-600 text-slate-900 dark:text-white dark:text-white bg-white dark:bg-gray-800 flex items-center gap-2"
                     >
                       {status === 'all' && 'All Approval Statuses'}
                       {status === 'pending' && (
@@ -462,7 +462,7 @@ const ListingsManagementPage = () => {
           </div>
         </div>
 
-        <p className="text-xs text-slate-400 dark:text-slate-400 mb-4">CSV includes: images (pipe-separated URLs)</p>
+        <p className="text-xs text-slate-400 dark:text-neutral-300 mb-4">CSV includes: images (pipe-separated URLs)</p>
 
         {/* Table */}
         {loading ? (
@@ -470,11 +470,11 @@ const ListingsManagementPage = () => {
             <Loader className="w-8 h-8 animate-spin text-orange-500" />
           </div>
         ) : (
-          <div className="bg-white dark:bg-gray-800 border border-slate-200 dark:border-slate-700 dark:border-gray-700 rounded-lg overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 border border-slate-200 dark:border-neutral-800 dark:border-gray-700 rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-200 dark:border-slate-700 dark:border-gray-700 bg-slate-50 dark:bg-slate-800/40 dark:bg-gray-900">
+                  <tr className="border-b border-slate-200 dark:border-neutral-800 dark:border-gray-700 bg-slate-50 dark:bg-neutral-900/40 dark:bg-gray-900">
                     <th className="px-4 py-4 text-left text-sm font-bold text-slate-900 dark:text-white dark:text-white">TITLE</th>
                     <th className="px-4 py-4 text-left text-sm font-bold text-slate-900 dark:text-white dark:text-white">PRICE</th>
                     <th className="px-4 py-4 text-left text-sm font-bold text-slate-900 dark:text-white dark:text-white">CATEGORY</th>
@@ -488,7 +488,7 @@ const ListingsManagementPage = () => {
                 <tbody>
                   {listings.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-4 py-8 text-center text-slate-400 dark:text-slate-400">
+                      <td colSpan={8} className="px-4 py-8 text-center text-slate-400 dark:text-neutral-300">
                         No listings found
                       </td>
                     </tr>
@@ -496,7 +496,7 @@ const ListingsManagementPage = () => {
                     listings.map((listing) => (
                       <tr
                         key={listing.id}
-                        className="border-b border-slate-200 dark:border-slate-700 dark:border-gray-700 hover:bg-slate-50 dark:bg-slate-800/40 dark:hover:bg-gray-700/50 transition-colors"
+                        className="border-b border-slate-200 dark:border-neutral-800 dark:border-gray-700 hover:bg-slate-50 dark:bg-neutral-900/40 dark:hover:bg-gray-700/50 transition-colors"
                       >
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
@@ -525,7 +525,7 @@ const ListingsManagementPage = () => {
                           </p>
                         </td>
                         <td className="px-4 py-4">
-                          <p className="text-sm text-slate-600 dark:text-slate-300 dark:text-slate-400">
+                          <p className="text-sm text-slate-600 dark:text-neutral-200 dark:text-neutral-300">
                             {getCategoryName(listing.category_id)}
                           </p>
                         </td>
@@ -556,7 +556,7 @@ const ListingsManagementPage = () => {
                                 ? 'bg-emerald-50 dark:bg-emerald-950/30 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                                 : listing.status === 'pending'
                                 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
-                                : 'bg-slate-100 dark:bg-slate-800 dark:bg-gray-700 text-slate-700 dark:text-slate-300 dark:text-gray-300'
+                                : 'bg-slate-100 dark:bg-neutral-900 dark:bg-gray-700 text-slate-700 dark:text-neutral-200 dark:text-gray-300'
                             }`}
                           >
                             {listing.status}
@@ -585,7 +585,7 @@ const ListingsManagementPage = () => {
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 dark:text-slate-400">
+                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-neutral-200 dark:text-neutral-300">
                           {listing.views || 0}
                         </td>
                         <td className="px-4 py-4">
@@ -655,7 +655,7 @@ const ListingsManagementPage = () => {
       {showRejectionModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full">
-            <div className="border-b border-slate-200 dark:border-slate-700 dark:border-gray-700 p-6 flex items-center justify-between">
+            <div className="border-b border-slate-200 dark:border-neutral-800 dark:border-gray-700 p-6 flex items-center justify-between">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white dark:text-white flex items-center gap-2">
                 <XCircle className="w-6 h-6 text-red-600" />
                 Reject Listing
@@ -667,9 +667,9 @@ const ListingsManagementPage = () => {
                   setRejectionReason('');
                   setRejectionNotes('');
                 }}
-                className="p-1 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-gray-700 rounded transition-colors"
+                className="p-1 hover:bg-slate-100 dark:bg-neutral-900 dark:hover:bg-gray-700 rounded transition-colors"
               >
-                <X className="w-6 h-6 text-slate-600 dark:text-slate-300 dark:text-slate-400" />
+                <X className="w-6 h-6 text-slate-600 dark:text-neutral-200 dark:text-neutral-300" />
               </button>
             </div>
 
@@ -682,10 +682,10 @@ const ListingsManagementPage = () => {
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
                   placeholder="Why is this listing being rejected? (e.g., Duplicate listing, Policy violation, Poor quality images)"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-slate-900 dark:text-white dark:text-white placeholder-gray-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-slate-900 dark:text-white dark:text-white placeholder-gray-500 dark:placeholder-neutral-300 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
                   rows={4}
                 />
-                <p className="mt-1 text-xs text-slate-600 dark:text-slate-300 dark:text-slate-400">
+                <p className="mt-1 text-xs text-slate-600 dark:text-neutral-200 dark:text-neutral-300">
                   This will be shown to the seller
                 </p>
               </div>
@@ -698,7 +698,7 @@ const ListingsManagementPage = () => {
                   value={rejectionNotes}
                   onChange={(e) => setRejectionNotes(e.target.value)}
                   placeholder="Add internal notes for moderation team..."
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-slate-900 dark:text-white dark:text-white placeholder-gray-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-slate-900 dark:text-white dark:text-white placeholder-gray-500 dark:placeholder-neutral-300 focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
                   rows={3}
                 />
               </div>
@@ -711,7 +711,7 @@ const ListingsManagementPage = () => {
                     setRejectionReason('');
                     setRejectionNotes('');
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-slate-900 dark:text-white dark:text-white rounded-lg font-semibold hover:bg-slate-50 dark:bg-slate-800/40 dark:hover:bg-gray-700 transition-colors"
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-slate-900 dark:text-white dark:text-white rounded-lg font-semibold hover:bg-slate-50 dark:bg-neutral-900/40 dark:hover:bg-gray-700 transition-colors"
                 >
                   Cancel
                 </button>
@@ -732,13 +732,13 @@ const ListingsManagementPage = () => {
       {viewingListing && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-slate-200 dark:border-slate-700 dark:border-gray-700 p-6 flex items-center justify-between">
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-slate-200 dark:border-neutral-800 dark:border-gray-700 p-6 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white dark:text-white">Listing Details</h2>
               <button
                 onClick={() => setViewingListing(null)}
-                className="p-1 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-gray-700 rounded transition-colors"
+                className="p-1 hover:bg-slate-100 dark:bg-neutral-900 dark:hover:bg-gray-700 rounded transition-colors"
               >
-                <X className="w-6 h-6 text-slate-600 dark:text-slate-300 dark:text-slate-400" />
+                <X className="w-6 h-6 text-slate-600 dark:text-neutral-200 dark:text-neutral-300" />
               </button>
             </div>
 
@@ -764,49 +764,49 @@ const ListingsManagementPage = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs font-bold text-slate-600 dark:text-slate-300 dark:text-slate-400 mb-1">TITLE (EN)</p>
+                  <p className="text-xs font-bold text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mb-1">TITLE (EN)</p>
                   <p className="text-sm text-slate-900 dark:text-white dark:text-white">{viewingListing.title_en}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-600 dark:text-slate-300 dark:text-slate-400 mb-1">TITLE (SO)</p>
+                  <p className="text-xs font-bold text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mb-1">TITLE (SO)</p>
                   <p className="text-sm text-slate-900 dark:text-white dark:text-white">{viewingListing.title_so}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-600 dark:text-slate-300 dark:text-slate-400 mb-1">PRICE</p>
+                  <p className="text-xs font-bold text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mb-1">PRICE</p>
                   <p className="text-sm text-slate-900 dark:text-white dark:text-white">
                     {viewingListing.currency} {viewingListing.price?.toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-600 dark:text-slate-300 dark:text-slate-400 mb-1">LOCATION</p>
+                  <p className="text-xs font-bold text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mb-1">LOCATION</p>
                   <p className="text-sm text-slate-900 dark:text-white dark:text-white">{viewingListing.location}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-600 dark:text-slate-300 dark:text-slate-400 mb-1">CONDITION</p>
+                  <p className="text-xs font-bold text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mb-1">CONDITION</p>
                   <p className="text-sm text-slate-900 dark:text-white dark:text-white">{viewingListing.condition}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-600 dark:text-slate-300 dark:text-slate-400 mb-1">CATEGORY</p>
+                  <p className="text-xs font-bold text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mb-1">CATEGORY</p>
                   <p className="text-sm text-slate-900 dark:text-white dark:text-white">
                     {getCategoryName(viewingListing.category_id)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-600 dark:text-slate-300 dark:text-slate-400 mb-1">STATUS</p>
+                  <p className="text-xs font-bold text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mb-1">STATUS</p>
                   <span
                     className={`px-2 py-1 rounded text-xs font-bold inline-block ${
                       viewingListing.status === 'active'
                         ? 'bg-emerald-50 dark:bg-emerald-950/30 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                         : viewingListing.status === 'pending'
                         ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
-                        : 'bg-slate-100 dark:bg-slate-800 dark:bg-gray-700 text-slate-700 dark:text-slate-300 dark:text-gray-300'
+                        : 'bg-slate-100 dark:bg-neutral-900 dark:bg-gray-700 text-slate-700 dark:text-neutral-200 dark:text-gray-300'
                     }`}
                   >
                     {viewingListing.status}
                   </span>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-600 dark:text-slate-300 dark:text-slate-400 mb-1">APPROVAL STATUS</p>
+                  <p className="text-xs font-bold text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mb-1">APPROVAL STATUS</p>
                   <span className={`px-2 py-1 rounded text-xs font-bold inline-block ${getApprovalStatusColor(viewingListing.approval_status || 'pending')}`}>
                     {viewingListing.approval_status === 'approved' && 'Approved'}
                     {viewingListing.approval_status === 'rejected' && 'Rejected'}
@@ -814,18 +814,18 @@ const ListingsManagementPage = () => {
                   </span>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-600 dark:text-slate-300 dark:text-slate-400 mb-1">VIEWS</p>
+                  <p className="text-xs font-bold text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mb-1">VIEWS</p>
                   <p className="text-sm text-slate-900 dark:text-white dark:text-white">{viewingListing.views || 0}</p>
                 </div>
               </div>
 
               <div>
-                <p className="text-xs font-bold text-slate-600 dark:text-slate-300 dark:text-slate-400 mb-2">DESCRIPTION (EN)</p>
+                <p className="text-xs font-bold text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mb-2">DESCRIPTION (EN)</p>
                 <p className="text-sm text-slate-900 dark:text-white dark:text-white">{viewingListing.description_en}</p>
               </div>
 
               <div>
-                <p className="text-xs font-bold text-slate-600 dark:text-slate-300 dark:text-slate-400 mb-2">DESCRIPTION (SO)</p>
+                <p className="text-xs font-bold text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mb-2">DESCRIPTION (SO)</p>
                 <p className="text-sm text-slate-900 dark:text-white dark:text-white">{viewingListing.description_so}</p>
               </div>
 
@@ -868,12 +868,12 @@ const ListingsManagementPage = () => {
             <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-slate-200 dark:border-gray-700 p-6 flex items-center justify-between z-10">
               <div>
                 <h2 className="text-2xl font-black text-slate-900 dark:text-white">Edit Listing</h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">ID: #{editingListing.id}</p>
+                <p className="text-xs text-slate-500 dark:text-neutral-300 mt-0.5">ID: #{editingListing.id}</p>
               </div>
               <button
                 onClick={() => setEditingListing(null)}
                 disabled={savingEdit}
-                className="p-2 hover:bg-slate-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50 text-slate-500 dark:text-slate-400"
+                className="p-2 hover:bg-slate-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50 text-slate-500 dark:text-neutral-300"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -882,7 +882,7 @@ const ListingsManagementPage = () => {
             <div className="p-6 space-y-6">
               {/* Title EN */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-neutral-200 uppercase mb-1">
                   Title (English) <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -897,7 +897,7 @@ const ListingsManagementPage = () => {
 
               {/* Title SO */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-neutral-200 uppercase mb-1">
                   Title (Somali)
                 </label>
                 <input
@@ -911,7 +911,7 @@ const ListingsManagementPage = () => {
 
               {/* Description EN */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-neutral-200 uppercase mb-1">
                   Description (English)
                 </label>
                 <textarea
@@ -925,7 +925,7 @@ const ListingsManagementPage = () => {
 
               {/* Description SO */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-neutral-200 uppercase mb-1">
                   Description (Somali)
                 </label>
                 <textarea
@@ -940,7 +940,7 @@ const ListingsManagementPage = () => {
               {/* Price & Currency */}
               <div className="grid grid-cols-3 gap-4">
                 <div className="col-span-2">
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-neutral-200 uppercase mb-1">
                     Price <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -954,7 +954,7 @@ const ListingsManagementPage = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-neutral-200 uppercase mb-1">
                     Currency
                   </label>
                   <select
@@ -973,7 +973,7 @@ const ListingsManagementPage = () => {
 
               {/* Location */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-neutral-200 uppercase mb-1">
                   Location
                 </label>
                 <input
@@ -988,7 +988,7 @@ const ListingsManagementPage = () => {
               {/* Categories Hierarchy */}
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-neutral-200 uppercase mb-1">
                     Category <span className="text-red-500">*</span>
                   </label>
                   <select
@@ -1007,7 +1007,7 @@ const ListingsManagementPage = () => {
                 {/* Subcategory */}
                 {editForm.category_id && (
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-neutral-200 uppercase mb-1">
                       Sub-Category
                     </label>
                     <select
@@ -1028,7 +1028,7 @@ const ListingsManagementPage = () => {
                 {/* Subsubcategory */}
                 {editForm.subcategory_id && (
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-neutral-200 uppercase mb-1">
                       Sub-Sub-Category
                     </label>
                     <select
@@ -1050,7 +1050,7 @@ const ListingsManagementPage = () => {
                 {/* Brand - only once the full category path is picked */}
                 {editForm.subsubcategory_id && (
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-neutral-200 uppercase mb-1">
                       Brand
                     </label>
                     {!isCustomBrand ? (
@@ -1101,7 +1101,7 @@ const ListingsManagementPage = () => {
               {/* Condition & Status */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-neutral-200 uppercase mb-1">
                     Condition
                   </label>
                   <select
@@ -1117,7 +1117,7 @@ const ListingsManagementPage = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-neutral-200 uppercase mb-1">
                     Status
                   </label>
                   <select
@@ -1142,7 +1142,7 @@ const ListingsManagementPage = () => {
                     onChange={(e) => setEditForm((f: any) => ({ ...f, is_negotiable: e.target.checked }))}
                     className="w-4 h-4 text-sky-500 rounded focus:ring-sky-500"
                   />
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Price is negotiable</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-neutral-200">Price is negotiable</span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -1151,20 +1151,20 @@ const ListingsManagementPage = () => {
                     onChange={(e) => setEditForm((f: any) => ({ ...f, is_sold: e.target.checked }))}
                     className="w-4 h-4 text-sky-500 rounded focus:ring-sky-500"
                   />
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Mark as sold</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-neutral-200">Mark as sold</span>
                 </label>
               </div>
 
               {/* Images Management */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-3">
+                <label className="block text-xs font-bold text-slate-700 dark:text-neutral-200 uppercase mb-3">
                   Product Images
                 </label>
 
                 {/* Existing Images */}
                 {editImages.length > 0 && (
                   <div className="mb-4">
-                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Current Images ({editImages.length})</p>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-neutral-300 mb-2">Current Images ({editImages.length})</p>
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                       {editImages.map((img, idx) => (
                         <div key={idx} className="relative group rounded-lg overflow-hidden border border-slate-200 dark:border-gray-700">
@@ -1196,7 +1196,7 @@ const ListingsManagementPage = () => {
                 {/* New Images Preview */}
                 {newEditImages.length > 0 && (
                   <div className="mb-4">
-                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">New Images to Upload ({newEditImages.length})</p>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-neutral-300 mb-2">New Images to Upload ({newEditImages.length})</p>
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                       {newEditImages.map((file, idx) => (
                         <div key={idx} className="relative group rounded-lg overflow-hidden border border-sky-300 dark:border-sky-700">
@@ -1222,7 +1222,7 @@ const ListingsManagementPage = () => {
                 <label className="block cursor-pointer">
                   <div className="border-2 border-dashed border-slate-300 dark:border-gray-600 rounded-lg p-5 text-center hover:border-sky-500 transition-colors">
                     <Upload className="mx-auto mb-2 text-slate-400 w-6 h-6" />
-                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Click to add product images</p>
+                    <p className="text-xs font-bold text-slate-700 dark:text-neutral-200">Click to add product images</p>
                     <p className="text-[11px] text-slate-400 mt-0.5">PNG, JPG up to 5MB per image</p>
                   </div>
                   <input
@@ -1247,25 +1247,25 @@ const ListingsManagementPage = () => {
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
                       <p className="text-slate-400 font-semibold">Name</p>
-                      <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                      <p className="font-bold text-slate-800 dark:text-neutral-100 mt-0.5">
                         {editingListing.owner?.full_name || editingListing.seller?.full_name || 'N/A'}
                       </p>
                     </div>
                     <div>
                       <p className="text-slate-400 font-semibold">Phone</p>
-                      <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                      <p className="font-bold text-slate-800 dark:text-neutral-100 mt-0.5">
                         {editingListing.owner?.phone || editingListing.seller?.phone || 'N/A'}
                       </p>
                     </div>
                     <div>
                       <p className="text-slate-400 font-semibold">Email</p>
-                      <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5 truncate">
+                      <p className="font-bold text-slate-800 dark:text-neutral-100 mt-0.5 truncate">
                         {editingListing.owner?.email || editingListing.seller?.email || 'N/A'}
                       </p>
                     </div>
                     <div>
                       <p className="text-slate-400 font-semibold">Verified</p>
-                      <p className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                      <p className="font-bold text-slate-800 dark:text-neutral-100 mt-0.5">
                         {editingListing.owner?.is_verified || editingListing.seller?.is_verified ? 'Yes' : 'No'}
                       </p>
                     </div>
@@ -1279,7 +1279,7 @@ const ListingsManagementPage = () => {
                   type="button"
                   onClick={() => setEditingListing(null)}
                   disabled={savingEdit}
-                  className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-bold hover:bg-slate-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-slate-700 dark:text-neutral-100 rounded-lg text-xs font-bold hover:bg-slate-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>

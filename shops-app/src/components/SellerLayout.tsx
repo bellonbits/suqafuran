@@ -109,10 +109,10 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
   ];
 
   return (
-    <div className={`min-h-screen bg-[#F4F5F9] dark:bg-[#0B0F19] text-slate-800 dark:text-slate-100 font-sans antialiased flex flex-col md:flex-row p-3 md:p-5 gap-5 overflow-x-hidden ${darkMode ? 'dark' : ''}`}>
+    <div className={`min-h-screen bg-[#F4F5F9] dark:bg-black text-slate-800 dark:text-neutral-50 font-sans antialiased flex flex-col md:flex-row p-3 md:p-5 gap-5 overflow-x-hidden ${darkMode ? 'dark' : ''}`}>
 
       {/* ── Desktop Floating Sidebar (SadaxCart style) ── */}
-      <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-[#151D2A] rounded-3xl p-4 border border-slate-100 dark:border-slate-800 shadow-[0_4px_24px_rgba(0,0,0,0.03)] flex-shrink-0 relative z-30 transition-colors">
+      <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-neutral-950 rounded-3xl p-4 border border-slate-100 dark:border-neutral-800 shadow-[0_4px_24px_rgba(0,0,0,0.03)] flex-shrink-0 relative z-30 transition-colors">
         {/* Brand Header */}
         <div
           className="flex items-center gap-3 px-2 py-2 mb-4 cursor-pointer group"
@@ -137,9 +137,9 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
             placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50 rounded-2xl pl-9 pr-10 py-2 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 outline-none focus:ring-2 focus:ring-teal-500/20 transition-all"
+            className="w-full bg-slate-50 dark:bg-neutral-900/60 border border-slate-200/60 dark:border-neutral-800/50 rounded-2xl pl-9 pr-10 py-2 text-xs text-slate-800 dark:text-neutral-50 placeholder-slate-400 outline-none focus:ring-2 focus:ring-teal-500/20 transition-all"
           />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-0.5 text-[9px] font-extrabold text-slate-400 bg-slate-200/60 dark:bg-slate-700 px-1 py-0.5 rounded-md">
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-0.5 text-[9px] font-extrabold text-slate-400 bg-slate-200/60 dark:bg-neutral-800 px-1 py-0.5 rounded-md">
             ⌘ S
           </div>
         </div>
@@ -148,7 +148,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
         <div className="flex-1 overflow-y-auto no-scrollbar space-y-6 pr-1">
           {/* Main Menu */}
           <div>
-            <p className="px-3 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">
+            <p className="px-3 text-[11px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-widest mb-2">
               Main Menu
             </p>
             <nav className="space-y-1">
@@ -164,8 +164,8 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
                         onClick={() => toggleSection(item.label)}
                         className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs md:text-sm font-medium transition-colors ${
                           isActive
-                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold'
-                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
+                            ? 'bg-slate-100 dark:bg-neutral-900 text-slate-900 dark:text-white font-bold'
+                            : 'text-slate-600 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-neutral-900/60 hover:text-slate-900 dark:hover:text-white'
                         }`}
                       >
                         <div className="flex items-center gap-3">
@@ -192,7 +192,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
                                   className={`block px-3 py-2 rounded-xl text-xs transition-colors ${
                                     isSubActive
                                       ? 'text-sky-600 dark:text-teal-400 font-extrabold bg-sky-50 dark:bg-teal-950/30'
-                                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                      : 'text-slate-500 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white'
                                   }`}
                                 >
                                   {sub.label}
@@ -213,7 +213,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
                     className={`flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs md:text-sm font-medium transition-colors ${
                       isActive
                         ? 'bg-sky-500 text-white font-bold shadow-md shadow-sky-500/20'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
+                        : 'text-slate-600 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-neutral-900/60 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -228,7 +228,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
 
           {/* Others Menu */}
           <div>
-            <p className="px-3 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">
+            <p className="px-3 text-[11px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-widest mb-2">
               Others
             </p>
             <nav className="space-y-1">
@@ -241,7 +241,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
                     className={`flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs md:text-sm font-medium transition-colors ${
                       isActive
                         ? 'bg-sky-500 text-white font-bold shadow-md shadow-sky-500/20'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
+                        : 'text-slate-600 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-neutral-900/60 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -263,7 +263,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
         </div>
 
         {/* Bottom Section (Upgrade to Premium & Profile Widget) */}
-        <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 space-y-3 flex-shrink-0">
+        <div className="pt-4 border-t border-slate-100 dark:border-neutral-800/80 space-y-3 flex-shrink-0">
           
           {/* Upgrade to Premium Card */}
           <div className="bg-gradient-to-br from-sky-500 via-sky-600 to-indigo-600 p-4 rounded-3xl text-white shadow-lg shadow-sky-500/20 relative overflow-hidden group">
@@ -288,7 +288,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
           </div>
 
           {/* Profile Widget */}
-          <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/50 rounded-2xl p-2.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <div className="flex items-center justify-between bg-slate-50 dark:bg-neutral-900/40 border border-slate-200/60 dark:border-neutral-800/50 rounded-2xl p-2.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-neutral-900 transition-colors">
             <div className="flex items-center gap-2.5 overflow-hidden">
               {user?.avatar_url ? (
                 <img src={user.avatar_url} alt={user.full_name || 'Seller'} className="w-8 h-8 rounded-xl object-cover flex-shrink-0" />
@@ -298,7 +298,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
                 </div>
               )}
               <div className="overflow-hidden">
-                <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{user?.full_name || 'Store Owner'}</p>
+                <p className="text-xs font-bold text-slate-800 dark:text-neutral-50 truncate">{user?.full_name || 'Store Owner'}</p>
                 <p className="text-[10px] text-slate-400 truncate">Store Manager</p>
               </div>
             </div>
@@ -314,11 +314,11 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
       </aside>
 
       {/* ── Mobile Top Bar (Phone Responsive Header) ── */}
-      <header className="md:hidden flex items-center justify-between bg-white dark:bg-[#151D2A] px-4 py-3 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm sticky top-0 z-40">
+      <header className="md:hidden flex items-center justify-between bg-white dark:bg-neutral-950 px-4 py-3 rounded-2xl border border-slate-100 dark:border-neutral-800 shadow-sm sticky top-0 z-40">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
+            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-neutral-900 text-slate-600 dark:text-neutral-200 transition-colors"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -333,7 +333,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
         <div className="flex items-center gap-2">
           <button
             onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+            className="p-2 rounded-xl bg-slate-50 dark:bg-neutral-900 text-slate-500 dark:text-neutral-300"
           >
             {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-500" />}
           </button>
@@ -356,10 +356,10 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 left-0 bottom-0 w-72 bg-white dark:bg-[#151D2A] z-50 p-5 flex flex-col justify-between shadow-2xl md:hidden overflow-y-auto"
+              className="fixed top-0 left-0 bottom-0 w-72 bg-white dark:bg-neutral-950 z-50 p-5 flex flex-col justify-between shadow-2xl md:hidden overflow-y-auto"
             >
               <div>
-                <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-neutral-800">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-2xl bg-sky-500 flex items-center justify-center text-white">
                       <Store className="w-5 h-5" />
@@ -371,7 +371,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
                   </div>
                   <button
                     onClick={() => setMobileMenuOpen(false)}
-                    className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400"
+                    className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-neutral-900 text-slate-400"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -390,7 +390,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
                           className={`flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-semibold ${
                             pathname === item.href
                               ? 'bg-sky-500 text-white font-bold'
-                              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                              : 'text-slate-600 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-900'
                           }`}
                         >
                           <span>{item.icon}</span>
@@ -411,7 +411,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
                           className={`flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-semibold ${
                             pathname === item.href
                               ? 'bg-sky-500 text-white font-bold'
-                              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                              : 'text-slate-600 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-900'
                           }`}
                         >
                           <span>{item.icon}</span>
@@ -424,7 +424,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
               </div>
 
               {/* Mobile Drawer Logout */}
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+              <div className="pt-4 border-t border-slate-100 dark:border-neutral-800">
                 <button
                   onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30"
@@ -447,7 +447,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
               <Home className="w-3.5 h-3.5" /> <span>Home</span>
             </Link>
             <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-            <span className="font-extrabold text-slate-800 dark:text-slate-100">{currentPageLabel}</span>
+            <span className="font-extrabold text-slate-800 dark:text-neutral-50">{currentPageLabel}</span>
           </div>
 
           {/* Right Header Actions */}
@@ -460,9 +460,9 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
                 placeholder="Search orders, products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-white dark:bg-[#151D2A] border border-slate-100 dark:border-slate-800 rounded-2xl pl-10 pr-12 py-2 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 outline-none focus:ring-2 focus:ring-teal-500/20 shadow-sm w-48 lg:w-64 transition-all"
+                className="bg-white dark:bg-neutral-950 border border-slate-100 dark:border-neutral-800 rounded-2xl pl-10 pr-12 py-2 text-xs text-slate-800 dark:text-neutral-50 placeholder-slate-400 outline-none focus:ring-2 focus:ring-teal-500/20 shadow-sm w-48 lg:w-64 transition-all"
               />
-              <div className="absolute right-3 flex items-center gap-0.5 text-[10px] font-extrabold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md">
+              <div className="absolute right-3 flex items-center gap-0.5 text-[10px] font-extrabold text-slate-400 bg-slate-100 dark:bg-neutral-900 px-1.5 py-0.5 rounded-md">
                 <Command className="w-2.5 h-2.5" /> K
               </div>
             </div>
@@ -470,14 +470,14 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
             {/* Dark Mode Switcher */}
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className="p-2.5 rounded-2xl bg-white dark:bg-[#151D2A] border border-slate-100 dark:border-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white shadow-sm transition-colors"
+              className="p-2.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-100 dark:border-neutral-800 text-slate-500 hover:text-slate-800 dark:hover:text-white shadow-sm transition-colors"
             >
               {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
             </button>
 
             {/* Notifications Bell */}
             <Link to="/seller-dashboard/messages">
-              <button className="relative p-2.5 rounded-2xl bg-white dark:bg-[#151D2A] border border-slate-100 dark:border-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white shadow-sm transition-colors">
+              <button className="relative p-2.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-100 dark:border-neutral-800 text-slate-500 hover:text-slate-800 dark:hover:text-white shadow-sm transition-colors">
                 <Bell className="w-4 h-4" />
                 <span className="absolute -top-1 -right-1 bg-sky-500 text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center shadow-sm">
                   3
@@ -488,7 +488,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
             {/* Back to Marketplace */}
             <Link
               to="/"
-              className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-white dark:bg-[#151D2A] border border-slate-100 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 transition-colors shadow-sm"
+              className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-100 dark:border-neutral-800 text-xs font-bold text-slate-600 dark:text-neutral-200 hover:bg-slate-50 transition-colors shadow-sm"
             >
               <span>Back to Marketplace</span>
               <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
@@ -503,7 +503,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
       </div>
 
       {/* ── Mobile Fixed Bottom Navigation Bar (Ultra Phone Responsive) ── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#151D2A]/95 backdrop-blur-lg border-t border-slate-200/80 dark:border-slate-800 px-4 py-2 flex items-center justify-around shadow-[0_-4px_20px_rgba(0,0,0,0.05)] pb-safe">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-lg border-t border-slate-200/80 dark:border-neutral-800 px-4 py-2 flex items-center justify-around shadow-[0_-4px_20px_rgba(0,0,0,0.05)] pb-safe">
         {[
           { label: 'Home', icon: Home, href: '/seller-dashboard' },
           { label: 'Products', icon: Package, href: '/seller-dashboard/products' },

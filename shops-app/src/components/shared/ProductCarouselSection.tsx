@@ -30,7 +30,7 @@ export function ProductCarouselSection({ title, subtitle, icon, viewAllHref, chi
                         {title}
                     </h2>
                     {subtitle && (
-                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{subtitle}</p>
+                        <p className="text-xs text-gray-500 dark:text-neutral-300 mt-0.5">{subtitle}</p>
                     )}
                 </div>
                 {viewAllHref && (

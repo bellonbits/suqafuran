@@ -97,11 +97,11 @@ export default function CheckoutPage() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <AlertCircle className="w-12 h-12 text-orange-600 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Cart Empty</h2>
-          <p className="text-gray-600 dark:text-slate-400 mb-6">Add items to your cart before checking out.</p>
+          <p className="text-gray-600 dark:text-neutral-300 mb-6">Add items to your cart before checking out.</p>
           <button
             onClick={() => router.push('/')}
             className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-8 rounded-full"
@@ -351,11 +351,11 @@ Thanks!`;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-gray-50 dark:bg-black">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800">
+      <div className="sticky top-0 z-40 bg-white dark:bg-neutral-950 border-b border-gray-200 dark:border-neutral-800">
         <div className="px-4 py-4 flex items-center gap-3">
-          <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg">
+          <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-lg">
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="text-2xl font-black text-gray-900 dark:text-white">Checkout</h1>
@@ -367,7 +367,7 @@ Thanks!`;
         {!receiptGenerated && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             {/* Buyer Information */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-gray-200 dark:border-slate-800">
+            <div className="bg-white dark:bg-neutral-950 rounded-2xl p-6 border border-gray-200 dark:border-neutral-800">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Your Information</h2>
 
               <div className="space-y-4">
@@ -376,20 +376,20 @@ Thanks!`;
                   placeholder="Full Name"
                   value={buyerName}
                   onChange={(e) => setBuyerName(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
                 <input
                   type="tel"
                   placeholder="Phone Number (e.g., +254712345678)"
                   value={buyerPhone}
                   onChange={(e) => setBuyerPhone(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
               </div>
             </div>
 
             {/* Location Display with Map Info */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-gray-200 dark:border-slate-800">
+            <div className="bg-white dark:bg-neutral-950 rounded-2xl p-6 border border-gray-200 dark:border-neutral-800">
               <div className="flex items-center gap-2 mb-4">
                 <MapPin className="w-5 h-5 text-orange-600" />
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">Your Location</h2>
@@ -397,7 +397,7 @@ Thanks!`;
 
               {locationLoading ? (
                 <div className="text-center py-4">
-                  <p className="text-gray-600 dark:text-slate-400">Getting your location...</p>
+                  <p className="text-gray-600 dark:text-neutral-300">Getting your location...</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -418,7 +418,7 @@ Thanks!`;
                     View on Google Maps
                   </a>
 
-                  <p className="text-xs text-gray-600 dark:text-slate-400 bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
+                  <p className="text-xs text-gray-600 dark:text-neutral-300 bg-gray-50 dark:bg-neutral-900 p-3 rounded-lg">
                     ℹ️ Your location will be shared with the seller so they know where you're located. You'll arrange the exact meeting point directly with them.
                   </p>
                 </div>
@@ -426,7 +426,7 @@ Thanks!`;
             </div>
 
             {/* Order Summary */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-gray-200 dark:border-slate-800">
+            <div className="bg-white dark:bg-neutral-950 rounded-2xl p-6 border border-gray-200 dark:border-neutral-800">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Order Summary</h2>
 
               <div className="space-y-3 mb-4">
@@ -434,23 +434,23 @@ Thanks!`;
                   <div key={item.id} className="flex items-center justify-between">
                     <div className="flex-1">
                       <p className="font-semibold text-gray-900 dark:text-white">{item.title || item.title_en || 'Product'}</p>
-                      <p className="text-sm text-gray-600 dark:text-slate-400">from {item.owner?.full_name}</p>
+                      <p className="text-sm text-gray-600 dark:text-neutral-300">from {item.owner?.full_name}</p>
                     </div>
                     <p className="font-bold text-gray-900 dark:text-white">KSh {(item?.price || 0).toLocaleString()}</p>
                   </div>
                 ))}
               </div>
 
-              <div className="border-t border-gray-200 dark:border-slate-700 pt-4 space-y-2">
-                <div className="flex justify-between text-gray-700 dark:text-slate-400">
+              <div className="border-t border-gray-200 dark:border-neutral-800 pt-4 space-y-2">
+                <div className="flex justify-between text-gray-700 dark:text-neutral-300">
                   <span>Subtotal</span>
                   <span>KSh {subtotal.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-gray-700 dark:text-slate-400">
+                <div className="flex justify-between text-gray-700 dark:text-neutral-300">
                   <span>Platform Fee (2%)</span>
                   <span>KSh {platformFee}</span>
                 </div>
-                <div className="flex justify-between text-lg font-bold text-gray-900 dark:text-white pt-2 border-t border-gray-200 dark:border-slate-700">
+                <div className="flex justify-between text-lg font-bold text-gray-900 dark:text-white pt-2 border-t border-gray-200 dark:border-neutral-800">
                   <span>Total</span>
                   <span className="text-orange-600">KSh {total.toLocaleString()}</span>
                 </div>
@@ -490,14 +490,14 @@ Thanks!`;
             <div className="flex justify-center py-8">
               <div className="w-full max-w-2xl">
                 {/* Receipt Card */}
-                <div ref={receiptRef} className="bg-white dark:bg-slate-900 rounded-3xl p-8 border-2 border-gray-200 dark:border-slate-700 shadow-2xl relative">
+                <div ref={receiptRef} className="bg-white dark:bg-neutral-950 rounded-3xl p-8 border-2 border-gray-200 dark:border-neutral-800 shadow-2xl relative">
                   {/* Perforated edges left */}
-                  <div className="absolute left-0 top-1/4 w-4 h-4 bg-gray-50 dark:bg-slate-950 rounded-full transform -translate-x-2"></div>
-                  <div className="absolute left-0 bottom-1/4 w-4 h-4 bg-gray-50 dark:bg-slate-950 rounded-full transform -translate-x-2"></div>
+                  <div className="absolute left-0 top-1/4 w-4 h-4 bg-gray-50 dark:bg-black rounded-full transform -translate-x-2"></div>
+                  <div className="absolute left-0 bottom-1/4 w-4 h-4 bg-gray-50 dark:bg-black rounded-full transform -translate-x-2"></div>
 
                   {/* Perforated edges right */}
-                  <div className="absolute right-0 top-1/4 w-4 h-4 bg-gray-50 dark:bg-slate-950 rounded-full transform translate-x-2"></div>
-                  <div className="absolute right-0 bottom-1/4 w-4 h-4 bg-gray-50 dark:bg-slate-950 rounded-full transform translate-x-2"></div>
+                  <div className="absolute right-0 top-1/4 w-4 h-4 bg-gray-50 dark:bg-black rounded-full transform translate-x-2"></div>
+                  <div className="absolute right-0 bottom-1/4 w-4 h-4 bg-gray-50 dark:bg-black rounded-full transform translate-x-2"></div>
 
                   {/* Content */}
                   <div className="text-center space-y-6">
@@ -509,24 +509,24 @@ Thanks!`;
                     {/* Thank You Message */}
                     <div>
                       <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-2">Thank you!</h2>
-                      <p className="text-gray-600 dark:text-slate-400 text-sm">Your order has been created</p>
+                      <p className="text-gray-600 dark:text-neutral-300 text-sm">Your order has been created</p>
                     </div>
 
                     {/* Divider */}
-                    <div className="border-t-2 border-dashed border-gray-300 dark:border-slate-600 pt-6"></div>
+                    <div className="border-t-2 border-dashed border-gray-300 dark:border-neutral-700 pt-6"></div>
 
                     {/* Order ID, Amount, Date & Time - 3 Columns */}
                     <div className="grid grid-cols-3 gap-4">
                       <div className="text-left">
-                        <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-1">Order ID</p>
+                        <p className="text-xs font-bold text-gray-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Order ID</p>
                         <p className="text-lg font-black text-gray-900 dark:text-white break-all">{orderNumber}</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-1">Total</p>
+                        <p className="text-xs font-bold text-gray-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Total</p>
                         <p className="text-lg font-black text-orange-600">{total.toLocaleString()}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider mb-1">Date & Time</p>
+                        <p className="text-xs font-bold text-gray-500 dark:text-neutral-400 uppercase tracking-wider mb-1">Date & Time</p>
                         <p className="text-sm font-semibold text-gray-900 dark:text-white">{new Date().toLocaleDateString()} {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
                       </div>
                     </div>
@@ -535,11 +535,11 @@ Thanks!`;
                     <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-4 border border-orange-200 dark:border-orange-800">
                       <div className="flex items-center gap-2 mb-3">
                         <User className="w-4 h-4 text-orange-600" />
-                        <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider">Buyer Information</p>
+                        <p className="text-xs font-bold text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Buyer Information</p>
                       </div>
                       <div className="space-y-2 text-left text-sm">
                         <p><span className="font-semibold text-gray-900 dark:text-white">{buyerName}</span></p>
-                        <p className="text-gray-600 dark:text-slate-400">{buyerPhone}</p>
+                        <p className="text-gray-600 dark:text-neutral-300">{buyerPhone}</p>
                       </div>
                     </div>
 
@@ -547,7 +547,7 @@ Thanks!`;
                     <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
                       <div className="flex items-center gap-2 mb-3">
                         <MapPin className="w-4 h-4 text-blue-600" />
-                        <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider">Your Location</p>
+                        <p className="text-xs font-bold text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Your Location</p>
                       </div>
                       <a 
                         href={`https://maps.google.com/maps?q=${currentLocation?.lat},${currentLocation?.lng}&z=15`}
@@ -560,22 +560,22 @@ Thanks!`;
                     </div>
 
                     {/* Items List - Detailed */}
-                    <div className="text-left bg-gray-50 dark:bg-slate-800 rounded-lg p-4">
+                    <div className="text-left bg-gray-50 dark:bg-neutral-900 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-4">
                         <Package className="w-4 h-4 text-orange-600" />
-                        <p className="text-xs font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider">Items ({cartItems.length})</p>
+                        <p className="text-xs font-bold text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Items ({cartItems.length})</p>
                       </div>
                       <div className="space-y-3">
                         {cartItems && cartItems.length > 0 ? (
                           cartItems.map((item: CheckoutItem, idx: number) => (
-                            <div key={item.id} className="pb-3 mb-3 border-b border-gray-300 dark:border-slate-700 last:border-b-0">
+                            <div key={item.id} className="pb-3 mb-3 border-b border-gray-300 dark:border-neutral-800 last:border-b-0">
                               <div className="flex justify-between items-start gap-3">
                                 <div className="flex-1 min-w-0 pr-2">
                                   <p className="font-bold text-gray-900 dark:text-white text-base leading-tight mb-2">
                                     {item.title || item.title_en || 'Product' || 'Product'}
                                   </p>
                                   {item.owner && (
-                                    <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">from {item.owner.full_name}</p>
+                                    <p className="text-xs text-gray-500 dark:text-neutral-300 mb-1">from {item.owner.full_name}</p>
                                   )}
                                 </div>
                                 <div className="text-right whitespace-nowrap">
@@ -585,21 +585,21 @@ Thanks!`;
                             </div>
                           ))
                         ) : (
-                          <p className="text-gray-600 dark:text-slate-400 text-sm">No items in order</p>
+                          <p className="text-gray-600 dark:text-neutral-300 text-sm">No items in order</p>
                         )}
                       </div>
 
                       {/* Pricing Summary */}
-                      <div className="border-t border-gray-300 dark:border-slate-700 mt-4 pt-4 space-y-2 text-sm">
+                      <div className="border-t border-gray-300 dark:border-neutral-800 mt-4 pt-4 space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-gray-600 dark:text-slate-400">Subtotal</span>
+                          <span className="text-gray-600 dark:text-neutral-300">Subtotal</span>
                           <span className="font-semibold text-gray-900 dark:text-white">{subtotal.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600 dark:text-slate-400">Platform Fee (2%)</span>
+                          <span className="text-gray-600 dark:text-neutral-300">Platform Fee (2%)</span>
                           <span className="font-semibold text-gray-900 dark:text-white">{platformFee}</span>
                         </div>
-                        <div className="flex justify-between border-t border-gray-300 dark:border-slate-700 pt-2 text-base">
+                        <div className="flex justify-between border-t border-gray-300 dark:border-neutral-800 pt-2 text-base">
                           <span className="font-bold text-gray-900 dark:text-white">Grand Total</span>
                           <span className="font-black text-orange-600 text-lg">{total.toLocaleString()}</span>
                         </div>
@@ -607,19 +607,19 @@ Thanks!`;
                     </div>
 
                     {/* Divider */}
-                    <div className="border-t-2 border-dashed border-gray-300 dark:border-slate-600"></div>
+                    <div className="border-t-2 border-dashed border-gray-300 dark:border-neutral-700"></div>
 
                     {/* Barcode */}
                     <div className="flex justify-center py-4">
                       <div className="text-center">
-                        <div className="font-mono text-xs text-gray-600 dark:text-slate-400 mb-2">{orderNumber}</div>
+                        <div className="font-mono text-xs text-gray-600 dark:text-neutral-300 mb-2">{orderNumber}</div>
                         <svg
                           width="200"
                           height="50"
                           viewBox="0 0 200 50"
                           className="mx-auto"
                         >
-                          <rect width="200" height="50" fill="white" className="dark:fill-slate-900" />
+                          <rect width="200" height="50" fill="white" className="dark:fill-neutral-100" />
                           {[...Array(50)].map((_, i) => (
                             <line
                               key={i}
@@ -667,9 +667,9 @@ Thanks!`;
             </div>
 
             {/* Contact Seller Section */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-gray-200 dark:border-slate-800">
+            <div className="bg-white dark:bg-neutral-950 rounded-2xl p-6 border border-gray-200 dark:border-neutral-800">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Contact Seller(s)</h2>
-              <p className="text-gray-600 dark:text-slate-400 mb-6">Choose how you want to contact the seller. They'll see your location and order details.</p>
+              <p className="text-gray-600 dark:text-neutral-300 mb-6">Choose how you want to contact the seller. They'll see your location and order details.</p>
 
               <div className="flex items-center justify-center gap-8">
                 <motion.button

@@ -77,7 +77,7 @@ export default function AgentListingsPage() {
           </div>
           <button
             onClick={() => loadListings(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#151D2A] border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl text-xs font-bold shadow-sm hover:bg-slate-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-100 rounded-2xl text-xs font-bold shadow-sm hover:bg-slate-50 transition-colors"
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-sky-500' : ''}`} />
             Refresh
@@ -91,7 +91,7 @@ export default function AgentListingsPage() {
             { label: 'Active Listings', value: totalActive, badge: 'Active', badgeColor: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400' },
             { label: 'Pending Review', value: totalPending, badge: 'Pending', badgeColor: 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400' },
           ].map((s, i) => (
-            <div key={i} className="bg-white dark:bg-[#151D2A] rounded-3xl p-5 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+            <div key={i} className="bg-white dark:bg-neutral-950 rounded-3xl p-5 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
               <div className="flex items-baseline justify-between mt-2">
                 <h2 className="text-2xl font-black text-slate-900 dark:text-white">{s.value.toLocaleString()}</h2>
@@ -102,7 +102,7 @@ export default function AgentListingsPage() {
         </div>
 
         {/* Filter Toolbar */}
-        <div className="bg-white dark:bg-[#151D2A] rounded-3xl p-4 border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <div className="bg-white dark:bg-neutral-950 rounded-3xl p-4 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -110,13 +110,13 @@ export default function AgentListingsPage() {
               placeholder="Search by product title or seller name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 outline-none focus:ring-2 focus:ring-sky-500/20"
+              className="w-full bg-slate-50 dark:bg-neutral-900/60 border border-slate-200/60 dark:border-neutral-800/50 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-slate-800 dark:text-neutral-50 placeholder-slate-400 outline-none focus:ring-2 focus:ring-sky-500/20"
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-2xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-sky-500/20"
+            className="bg-slate-50 dark:bg-neutral-900/60 border border-slate-200/60 dark:border-neutral-800/50 text-slate-700 dark:text-neutral-100 text-xs font-bold rounded-2xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-sky-500/20"
           >
             <option value="All Status">All Status</option>
             <option value="Active">Active</option>
@@ -125,32 +125,32 @@ export default function AgentListingsPage() {
         </div>
 
         {/* Listings Table */}
-        <div className="bg-white dark:bg-[#151D2A] rounded-3xl border border-slate-100 dark:border-slate-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] overflow-hidden">
+        <div className="bg-white dark:bg-neutral-950 rounded-3xl border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)] overflow-hidden">
           {filteredListings.length > 0 ? (
             <>
               {/* Desktop */}
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="bg-slate-50/60 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800 text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
+                    <tr className="bg-slate-50/60 dark:bg-neutral-900/40 border-b border-slate-100 dark:border-neutral-800 text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
                       <th className="py-3.5 px-5">Product Info</th>
                       <th className="py-3.5 px-5">Seller</th>
                       <th className="py-3.5 px-5">Price (Ksh)</th>
                       <th className="py-3.5 px-5">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50 dark:divide-slate-800/40">
+                  <tbody className="divide-y divide-slate-50 dark:divide-neutral-800/40">
                     {filteredListings.map((l, i) => {
                       const title = l.title_en || l.title || 'Untitled';
                       const img = l.images?.[0] || l.image_url;
                       return (
-                        <tr key={l.id || i} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors">
+                        <tr key={l.id || i} className="hover:bg-slate-50/80 dark:hover:bg-neutral-900/30 transition-colors">
                           <td className="py-4 px-5">
                             <div className="flex items-center gap-3">
                               {img ? (
                                 <img src={img} alt={title} className="w-10 h-10 rounded-xl object-cover border border-slate-100 flex-shrink-0" />
                               ) : (
-                                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center flex-shrink-0">
+                                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-neutral-900 flex items-center justify-center flex-shrink-0">
                                   <Package className="w-5 h-5 text-slate-400" />
                                 </div>
                               )}
@@ -160,7 +160,7 @@ export default function AgentListingsPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="py-4 px-5 font-medium text-slate-600 dark:text-slate-300">{l.seller_name || l.seller?.full_name || '—'}</td>
+                          <td className="py-4 px-5 font-medium text-slate-600 dark:text-neutral-200">{l.seller_name || l.seller?.full_name || '—'}</td>
                           <td className="py-4 px-5 font-black text-slate-900 dark:text-white">Ksh {(l.price || 0).toLocaleString()}</td>
                           <td className="py-4 px-5">
                             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${l.status === 'active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700 border border-amber-100'}`}>
@@ -176,7 +176,7 @@ export default function AgentListingsPage() {
               </div>
 
               {/* Mobile */}
-              <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+              <div className="md:hidden divide-y divide-slate-100 dark:divide-neutral-800">
                 {filteredListings.map((l, i) => {
                   const title = l.title_en || l.title || 'Untitled';
                   const img = l.images?.[0] || l.image_url;
@@ -204,8 +204,8 @@ export default function AgentListingsPage() {
             </>
           ) : (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
-              <Package className="w-12 h-12 text-slate-200 dark:text-slate-700" />
-              <p className="text-base font-extrabold text-slate-700 dark:text-slate-200">No Listings Found</p>
+              <Package className="w-12 h-12 text-slate-200 dark:text-neutral-200" />
+              <p className="text-base font-extrabold text-slate-700 dark:text-neutral-100">No Listings Found</p>
               <p className="text-xs text-slate-400 max-w-sm text-center">No product listings match your current search or filters.</p>
             </div>
           )}

@@ -39,12 +39,12 @@ export default function FavoritesPage() {
 
     return (
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
-            <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100 font-poppins">My Favorites</h1>
+            <h1 className="text-2xl font-black text-gray-900 dark:text-neutral-50 font-poppins">My Favorites</h1>
 
             {loading ? (
                 <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
                     {Array.from({ length: 8 }).map((_, i) => (
-                        <div key={i} className="aspect-square rounded-2xl bg-gray-100 dark:bg-slate-900 animate-pulse" />
+                        <div key={i} className="aspect-square rounded-2xl bg-gray-100 dark:bg-neutral-950 animate-pulse" />
                     ))}
                 </div>
             ) : favorites.length > 0 ? (

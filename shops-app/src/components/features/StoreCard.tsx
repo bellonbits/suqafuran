@@ -254,7 +254,7 @@ export const StoreCard: React.FC<StoreCardProps> = ({
   return (
     <div className="cursor-pointer" onClick={handleCardClick}>
       {/* CARD - Image Banner Only */}
-      <div className="relative w-full bg-gray-200 dark:bg-slate-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow" style={{ aspectRatio: '16 / 9', minHeight: '160px' }}>
+      <div className="relative w-full bg-gray-200 dark:bg-neutral-900 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow" style={{ aspectRatio: '16 / 9', minHeight: '160px' }}>
         {/* Banner Image */}
         {!imageError ? (
           <img
@@ -264,7 +264,7 @@ export const StoreCard: React.FC<StoreCardProps> = ({
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-300 dark:bg-slate-700">
+          <div className="w-full h-full flex items-center justify-center bg-gray-300 dark:bg-neutral-800">
             <span className="text-4xl">🏪</span>
           </div>
         )}
@@ -285,17 +285,17 @@ export const StoreCard: React.FC<StoreCardProps> = ({
         </h3>
 
         {/* Location - Secondary text */}
-        <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 line-clamp-1">
+        <p className="text-xs text-gray-500 dark:text-neutral-300 mt-0.5 line-clamp-1">
           Eastleigh Market
         </p>
 
         {/* Rating + Stats Row */}
-        <div className="flex items-center gap-2 text-xs text-gray-700 dark:text-slate-300 mt-2">
+        <div className="flex items-center gap-2 text-xs text-gray-700 dark:text-neutral-200 mt-2">
           <span className="font-bold text-gray-900 dark:text-white flex items-center gap-0.5">
             ⭐ {(rating || 4.5).toFixed(1)}
           </span>
           <span className="text-gray-400">•</span>
-          <span className="text-gray-600 dark:text-slate-400">
+          <span className="text-gray-600 dark:text-neutral-300">
             {productCount || 150} Products
           </span>
         </div>
@@ -303,7 +303,7 @@ export const StoreCard: React.FC<StoreCardProps> = ({
         {/* Categories - if available */}
         {subcategories && subcategories.length > 0 && (
           <div className="mt-2">
-            <span className="text-xs text-gray-600 dark:text-slate-400 line-clamp-1">
+            <span className="text-xs text-gray-600 dark:text-neutral-300 line-clamp-1">
               {subcategories.slice(0, 2).join(' • ')}
             </span>
           </div>

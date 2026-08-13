@@ -37,7 +37,7 @@ export default function AlertsPage() {
     <div className="space-y-6 p-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white dark:text-white mb-2">Alert Rules</h1>
-        <p className="text-slate-600 dark:text-slate-300 dark:text-slate-400">Manage and monitor system alert rules</p>
+        <p className="text-slate-600 dark:text-neutral-200 dark:text-neutral-300">Manage and monitor system alert rules</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -73,11 +73,11 @@ export default function AlertsPage() {
         <h2 className="text-xl font-bold text-slate-900 dark:text-white dark:text-white mb-4">Alert Rules</h2>
         <div className="space-y-3">
           {alerts.map((alert) => (
-            <div key={alert.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 dark:border-slate-700 p-4">
+            <div key={alert.id} className="bg-white dark:bg-neutral-900 rounded-xl border border-slate-200 dark:border-neutral-800 dark:border-neutral-800 p-4">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h3 className="font-semibold text-slate-900 dark:text-white dark:text-white">{alert.name}</h3>
-                  <div className="text-sm text-slate-600 dark:text-slate-300 dark:text-slate-400 mt-1">
+                  <div className="text-sm text-slate-600 dark:text-neutral-200 dark:text-neutral-300 mt-1">
                     <p>Metric: <span className="font-mono text-blue-600 dark:text-blue-400">{alert.metric}</span></p>
                     <p>Threshold: {alert.threshold} | Current: {alert.current}</p>
                     <p className="text-xs mt-1">Last triggered: {alert.lastTriggered}</p>

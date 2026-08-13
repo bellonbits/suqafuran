@@ -204,8 +204,8 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({
             key={i}
             className="shrink-0 flex flex-col items-center gap-2"
           >
-            <div className="w-20 h-20 bg-gray-200 dark:bg-slate-700 rounded-2xl animate-pulse" />
-            <div className="h-3 w-12 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
+            <div className="w-20 h-20 bg-gray-200 dark:bg-neutral-800 rounded-2xl animate-pulse" />
+            <div className="h-3 w-12 bg-gray-200 dark:bg-neutral-800 rounded animate-pulse" />
           </div>
         ))}
       </div>
@@ -220,9 +220,9 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           onClick={() => scroll('left')}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-slate-900 shadow-lg rounded-full p-2 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-neutral-950 shadow-lg rounded-full p-2 hover:bg-gray-50 dark:hover:bg-neutral-900 transition-all"
         >
-          <ChevronLeft className="h-5 w-5 text-gray-700 dark:text-slate-300" />
+          <ChevronLeft className="h-5 w-5 text-gray-700 dark:text-neutral-200" />
         </motion.button>
       )}
 
@@ -249,12 +249,12 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({
           <div className={`w-24 h-24 flex items-center justify-center rounded-full ${
             selectedCategories.size === 0
               ? 'bg-[#e0f7ff] dark:bg-blue-900'
-              : 'bg-gray-100 dark:bg-slate-800'
+              : 'bg-gray-100 dark:bg-neutral-900'
           }`}>
             <ShoppingBag className={`w-12 h-12 ${
               selectedCategories.size === 0
                 ? 'text-[#5bc0e8] dark:text-blue-300'
-                : 'text-gray-700 dark:text-slate-300'
+                : 'text-gray-700 dark:text-neutral-200'
             }`} />
           </div>
           <span className={`text-sm font-bold w-20 line-clamp-2 ${
@@ -297,7 +297,7 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({
                 <div className={`w-24 h-24 flex items-center justify-center rounded-full border-2 transition-all ${
                   isSelected
                     ? 'bg-[#e0f7ff] dark:bg-blue-900 border-blue-500 dark:border-blue-400'
-                    : 'bg-gray-100 dark:bg-slate-800 border-transparent'
+                    : 'bg-gray-100 dark:bg-neutral-900 border-transparent'
                 }`}>
                   <img
                     src={iconPath}
@@ -326,9 +326,9 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           onClick={() => scroll('right')}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-slate-900 shadow-lg rounded-full p-2 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-neutral-950 shadow-lg rounded-full p-2 hover:bg-gray-50 dark:hover:bg-neutral-900 transition-all"
         >
-          <ChevronRight className="h-5 w-5 text-gray-700 dark:text-slate-300" />
+          <ChevronRight className="h-5 w-5 text-gray-700 dark:text-neutral-200" />
         </motion.button>
       )}
     </div>

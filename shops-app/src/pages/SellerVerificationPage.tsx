@@ -31,7 +31,7 @@ function StatusBanner({ status }: { status: VerificationStatus }) {
   const configs = {
     not_started: {
       icon: Shield,
-      bg: 'bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700',
+      bg: 'bg-gray-50 dark:bg-neutral-900 border-gray-200 dark:border-neutral-800',
       iconColor: 'text-gray-400',
       title: 'Not Verified',
       description: 'Submit your documents to get the verified badge.',
@@ -61,12 +61,12 @@ function StatusBanner({ status }: { status: VerificationStatus }) {
   const { icon: Icon, bg, iconColor, title, description } = configs[status];
   return (
     <div className={`flex items-start gap-4 p-5 rounded-xl border ${bg}`}>
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${iconColor} bg-white dark:bg-slate-900 shadow-sm`}>
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${iconColor} bg-white dark:bg-neutral-950 shadow-sm`}>
         <Icon className="w-5 h-5" />
       </div>
       <div>
         <h3 className="font-bold text-gray-900 dark:text-white">{title}</h3>
-        <p className="text-sm text-gray-600 dark:text-slate-400 mt-0.5">{description}</p>
+        <p className="text-sm text-gray-600 dark:text-neutral-300 mt-0.5">{description}</p>
       </div>
     </div>
   );
@@ -76,11 +76,11 @@ function BadgePreview() {
   return (
     <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/10 dark:to-amber-900/10 border border-orange-200 dark:border-orange-800/30 rounded-xl p-6 text-center">
       <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 uppercase tracking-wide mb-4">Badge Preview</p>
-      <div className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-green-300 dark:border-green-700 rounded-full shadow-sm mb-3">
+      <div className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-neutral-900 border border-green-300 dark:border-green-700 rounded-full shadow-sm mb-3">
         <CheckCircle2 className="w-4 h-4 text-green-500" />
         <span className="text-sm font-bold text-gray-900 dark:text-white">Verified Shop</span>
       </div>
-      <p className="text-xs text-gray-500 dark:text-slate-400">Displayed on your shop page and product listings</p>
+      <p className="text-xs text-gray-500 dark:text-neutral-300">Displayed on your shop page and product listings</p>
     </div>
   );
 }
@@ -242,7 +242,7 @@ export default function VerificationPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-black text-gray-900 dark:text-white">Shop Verification</h1>
-        <p className="text-gray-500 dark:text-slate-400 text-sm mt-1">
+        <p className="text-gray-500 dark:text-neutral-300 text-sm mt-1">
           Get the <span className="font-semibold text-green-600">✓ Verified Shop</span> badge and unlock higher search rankings
         </p>
       </div>
@@ -263,7 +263,7 @@ export default function VerificationPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Requirements */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 p-6">
+        <div className="bg-white dark:bg-neutral-950 rounded-xl border border-gray-200 dark:border-neutral-800 p-6">
           <h2 className="font-black text-gray-900 dark:text-white mb-5">Requirements</h2>
           <div className="space-y-4">
             {requirements.map((req) => (
@@ -271,12 +271,12 @@ export default function VerificationPage() {
                 <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
                   req.completed
                     ? 'bg-green-100 dark:bg-green-900/20 text-green-600'
-                    : 'bg-gray-100 dark:bg-slate-800 text-gray-400'
+                    : 'bg-gray-100 dark:bg-neutral-900 text-gray-400'
                 }`}>
                   {req.completed ? (
                     <CheckCircle2 className="w-3.5 h-3.5" />
                   ) : (
-                    <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-slate-600" />
+                    <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-neutral-700" />
                   )}
                 </div>
                 <div>
@@ -286,7 +286,7 @@ export default function VerificationPage() {
                       <span className="ml-2 text-xs font-normal text-gray-400">(optional)</span>
                     )}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{req.description}</p>
+                  <p className="text-xs text-gray-500 dark:text-neutral-300 mt-0.5">{req.description}</p>
                 </div>
               </div>
             ))}
@@ -298,7 +298,7 @@ export default function VerificationPage() {
           <BadgePreview />
 
           {/* Benefits */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 p-5">
+          <div className="bg-white dark:bg-neutral-950 rounded-xl border border-gray-200 dark:border-neutral-800 p-5">
             <h3 className="font-black text-gray-900 dark:text-white mb-4 text-sm">Benefits</h3>
             <div className="space-y-3">
               {benefits.map((b) => (
@@ -308,7 +308,7 @@ export default function VerificationPage() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-gray-900 dark:text-white">{b.label}</p>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{b.desc}</p>
+                    <p className="text-xs text-gray-500 dark:text-neutral-300 mt-0.5">{b.desc}</p>
                   </div>
                 </div>
               ))}
@@ -319,9 +319,9 @@ export default function VerificationPage() {
 
       {/* Document Upload (only if can submit) */}
       {canSubmit && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 p-6">
+        <div className="bg-white dark:bg-neutral-950 rounded-xl border border-gray-200 dark:border-neutral-800 p-6">
           <h2 className="font-black text-gray-900 dark:text-white mb-2">Upload Documents</h2>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mb-5">
+          <p className="text-sm text-gray-500 dark:text-neutral-300 mb-5">
             Upload a clear photo of your National ID, Passport, or business registration documents.
             Accepted formats: JPG, PNG, PDF.
           </p>
@@ -329,11 +329,11 @@ export default function VerificationPage() {
           {/* Dropzone */}
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-xl p-8 text-center cursor-pointer hover:border-orange-400 dark:hover:border-orange-600 transition-colors"
+            className="border-2 border-dashed border-gray-300 dark:border-neutral-800 rounded-xl p-8 text-center cursor-pointer hover:border-orange-400 dark:hover:border-orange-600 transition-colors"
           >
             <Upload className="w-8 h-8 text-gray-400 mx-auto mb-3" />
-            <p className="text-sm font-semibold text-gray-700 dark:text-slate-300">Click to upload documents</p>
-            <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">JPG, PNG, PDF up to 10 MB each</p>
+            <p className="text-sm font-semibold text-gray-700 dark:text-neutral-200">Click to upload documents</p>
+            <p className="text-xs text-gray-400 dark:text-neutral-400 mt-1">JPG, PNG, PDF up to 10 MB each</p>
             <input
               ref={fileInputRef}
               type="file"
@@ -348,14 +348,14 @@ export default function VerificationPage() {
           {files.length > 0 && (
             <div className="mt-4 space-y-2">
               {files.map((f, idx) => (
-                <div key={idx} className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-slate-800 rounded-lg">
+                <div key={idx} className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-neutral-900 rounded-lg">
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
                       <Upload className="w-4 h-4 text-orange-500" />
                     </div>
-                    <p className="text-sm text-gray-700 dark:text-slate-300 truncate">{f.name}</p>
+                    <p className="text-sm text-gray-700 dark:text-neutral-200 truncate">{f.name}</p>
                   </div>
-                  <button onClick={() => removeFile(idx)} className="p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded ml-2 flex-shrink-0">
+                  <button onClick={() => removeFile(idx)} className="p-1 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded ml-2 flex-shrink-0">
                     <X className="w-4 h-4 text-gray-400" />
                   </button>
                 </div>

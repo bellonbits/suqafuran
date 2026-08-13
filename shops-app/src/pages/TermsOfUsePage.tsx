@@ -104,14 +104,14 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
 
 export default function TermsOfUsePage() {
     return (
-        <div className="min-h-screen bg-white dark:bg-slate-950">
+        <div className="min-h-screen bg-white dark:bg-black">
             <div className="max-w-3xl mx-auto px-4 py-10 sm:py-14">
                 <div className="mb-10">
-                    <h1 className="text-3xl font-black text-gray-900 dark:text-slate-100">Terms of Use</h1>
-                    <p className="mt-3 text-sm text-gray-500 dark:text-slate-400">
+                    <h1 className="text-3xl font-black text-gray-900 dark:text-neutral-50">Terms of Use</h1>
+                    <p className="mt-3 text-sm text-gray-500 dark:text-neutral-300">
                         Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
                     </p>
-                    <p className="mt-4 text-sm leading-relaxed text-gray-600 dark:text-slate-400">
+                    <p className="mt-4 text-sm leading-relaxed text-gray-600 dark:text-neutral-300">
                         These Terms of Use govern your access to and use of Suqafuran. By creating an account or
                         using the platform, you agree to these Terms.
                     </p>
@@ -120,10 +120,10 @@ export default function TermsOfUsePage() {
                 <div className="space-y-8">
                     {SECTIONS.map((section) => (
                         <div key={section.title}>
-                            <h2 className="text-sm font-black text-gray-900 dark:text-slate-100 mb-2">
+                            <h2 className="text-sm font-black text-gray-900 dark:text-neutral-50 mb-2">
                                 {section.title}
                             </h2>
-                            <p className="text-xs leading-relaxed text-gray-600 dark:text-slate-400">
+                            <p className="text-xs leading-relaxed text-gray-600 dark:text-neutral-300">
                                 {section.body}
                             </p>
                         </div>

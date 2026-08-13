@@ -150,7 +150,7 @@ const VerificationsPage = () => {
             placeholder="Search by name or phone…"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 bg-white dark:bg-[#151D2A] shadow-sm"
+            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-neutral-800 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 bg-white dark:bg-neutral-950 shadow-sm"
           />
         </div>
         <div className="flex gap-2">
@@ -161,7 +161,7 @@ const VerificationsPage = () => {
               className={`px-4 py-2.5 rounded-xl text-sm font-semibold capitalize transition-all ${
                 statusFilter === s
                   ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'bg-white border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-gray-50'
+                  : 'bg-white border border-slate-200 dark:border-neutral-800 text-slate-600 dark:text-neutral-200 hover:bg-gray-50'
               }`}
             >
               {s} {s !== 'all' && <span className="ml-1 opacity-70 text-xs">({
@@ -233,7 +233,7 @@ const VerificationsPage = () => {
                         </td>
                         {/* Doc type */}
                         <td className="hidden md:table-cell">
-                          <span className="text-slate-600 dark:text-slate-300 text-sm">{v.document_type || v.id_type || '—'}</span>
+                          <span className="text-slate-600 dark:text-neutral-200 text-sm">{v.document_type || v.id_type || '—'}</span>
                         </td>
                         {/* Match score */}
                         <td>
@@ -304,9 +304,9 @@ const VerificationsPage = () => {
             </table>
           </div>
 
-          <div className="px-6 py-3 border-t border-slate-100 dark:border-slate-800 bg-gray-50/50 text-xs text-slate-400">
-            Showing <span className="font-semibold text-slate-600 dark:text-slate-300">{filtered.length}</span> of{' '}
-            <span className="font-semibold text-slate-600 dark:text-slate-300">{verifications.length}</span> verifications
+          <div className="px-6 py-3 border-t border-slate-100 dark:border-neutral-800 bg-gray-50/50 text-xs text-slate-400">
+            Showing <span className="font-semibold text-slate-600 dark:text-neutral-200">{filtered.length}</span> of{' '}
+            <span className="font-semibold text-slate-600 dark:text-neutral-200">{verifications.length}</span> verifications
           </div>
         </div>
       )}
@@ -319,14 +319,14 @@ const VerificationsPage = () => {
         >
           <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
             {/* Modal header */}
-            <div className="sticky top-0 bg-white border-b border-slate-200 dark:border-slate-700 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+            <div className="sticky top-0 bg-white border-b border-slate-200 dark:border-neutral-800 px-6 py-4 flex items-center justify-between rounded-t-2xl">
               <div>
                 <h2 className="text-lg font-black text-slate-900 dark:text-white">Verification #{selectedVerification.id}</h2>
                 <p className="text-xs text-slate-400 mt-0.5">Identity verification request details</p>
               </div>
               <button
                 onClick={() => setSelectedVerification(null)}
-                className="p-2 hover:bg-slate-100 dark:bg-slate-800 rounded-xl transition-colors text-slate-400"
+                className="p-2 hover:bg-slate-100 dark:bg-neutral-900 rounded-xl transition-colors text-slate-400"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -334,7 +334,7 @@ const VerificationsPage = () => {
 
             <div className="p-6 space-y-5">
               {/* User info */}
-              <div className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-4">
+              <div className="bg-slate-50 dark:bg-neutral-900/40 rounded-xl p-4">
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">User Information</p>
                 <div className="grid grid-cols-2 gap-4">
                   {[
@@ -352,7 +352,7 @@ const VerificationsPage = () => {
               </div>
 
               {/* Verification info */}
-              <div className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-4">
+              <div className="bg-slate-50 dark:bg-neutral-900/40 rounded-xl p-4">
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Verification Details</p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -417,12 +417,12 @@ const VerificationsPage = () => {
                     </p>
                     <div className="grid grid-cols-1 gap-3">
                       {unique.map((doc, i) => (
-                        <div key={i} className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-                          <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-700">
+                        <div key={i} className="border border-slate-200 dark:border-neutral-800 rounded-xl overflow-hidden">
+                          <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-neutral-900/40 border-b border-slate-200 dark:border-neutral-800">
                             {doc.type === 'pdf' ? <FileImage className="w-4 h-4 text-red-500" /> :
                              doc.type === 'video' ? <Video className="w-4 h-4 text-sky-500" /> :
                              <FileImage className="w-4 h-4 text-slate-400" />}
-                            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{doc.label}</span>
+                            <span className="text-xs font-semibold text-slate-600 dark:text-neutral-200">{doc.label}</span>
                           </div>
                           {doc.type === 'pdf' ? (
                             <div className="p-6 flex flex-col items-center gap-3 bg-white">
@@ -436,7 +436,7 @@ const VerificationsPage = () => {
                               <video src={doc.url} controls className="w-full max-h-64" />
                             </div>
                           ) : (
-                            <img src={doc.url} alt={doc.label} className="w-full max-h-80 object-contain bg-slate-50 dark:bg-slate-800/40" />
+                            <img src={doc.url} alt={doc.label} className="w-full max-h-80 object-contain bg-slate-50 dark:bg-neutral-900/40" />
                           )}
                         </div>
                       ))}
@@ -454,7 +454,7 @@ const VerificationsPage = () => {
               )}
 
               {/* Modal actions */}
-              <div className="flex gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex gap-3 pt-2 border-t border-slate-100 dark:border-neutral-800">
                 {selectedVerification.status === 'pending' && (
                   <>
                     <button
@@ -486,7 +486,7 @@ const VerificationsPage = () => {
                 )}
                 <button
                   onClick={() => setSelectedVerification(null)}
-                  className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-gray-200 text-slate-700 dark:text-slate-300 rounded-xl font-semibold transition-colors"
+                  className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-900 hover:bg-gray-200 text-slate-700 dark:text-neutral-200 rounded-xl font-semibold transition-colors"
                 >
                   Close
                 </button>

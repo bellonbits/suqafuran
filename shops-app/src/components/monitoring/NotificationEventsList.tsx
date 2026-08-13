@@ -93,8 +93,8 @@ export const NotificationEventsList: React.FC<NotificationEventsListProps> = ({
 
   if (events.length === 0 && !isLoading) {
     return (
-      <div className="flex items-center justify-center h-40 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-        <p className="text-slate-500 dark:text-slate-400">No notification events found</p>
+      <div className="flex items-center justify-center h-40 bg-slate-50 dark:bg-neutral-950 rounded-lg border border-slate-200 dark:border-neutral-800">
+        <p className="text-slate-500 dark:text-neutral-300">No notification events found</p>
       </div>
     );
   }
@@ -104,11 +104,11 @@ export const NotificationEventsList: React.FC<NotificationEventsListProps> = ({
       {events.map((event) => (
         <div
           key={event.id}
-          className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden"
+          className="bg-white dark:bg-neutral-950 rounded-lg border border-slate-200 dark:border-neutral-800 overflow-hidden"
         >
           {/* Main Row */}
           <div
-            className="flex items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="flex items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
             onClick={() =>
               setExpandedId(expandedId === event.id ? null : event.id)
             }
@@ -121,14 +121,14 @@ export const NotificationEventsList: React.FC<NotificationEventsListProps> = ({
               <p className="font-medium text-slate-900 dark:text-white text-sm">
                 {event.event_type}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-neutral-300">
                 {event.channel} via {event.provider}
               </p>
             </div>
 
             {/* User ID */}
             <div className="hidden sm:block">
-              <p className="text-sm text-slate-700 dark:text-slate-300 font-mono text-xs">
+              <p className="text-sm text-slate-700 dark:text-neutral-200 font-mono text-xs">
                 User {event.user_id}
               </p>
             </div>
@@ -140,13 +140,13 @@ export const NotificationEventsList: React.FC<NotificationEventsListProps> = ({
 
             {/* Delivery Time */}
             {event.delivery_time_ms && (
-              <div className="hidden md:block text-xs text-slate-600 dark:text-slate-400">
+              <div className="hidden md:block text-xs text-slate-600 dark:text-neutral-300">
                 {event.delivery_time_ms}ms
               </div>
             )}
 
             {/* Expand Toggle */}
-            <button className="shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+            <button className="shrink-0 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200">
               {expandedId === event.id ? (
                 <ChevronUp className="h-5 w-5" />
               ) : (
@@ -157,7 +157,7 @@ export const NotificationEventsList: React.FC<NotificationEventsListProps> = ({
 
           {/* Expanded Details */}
           {expandedId === event.id && (
-            <div className="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 p-4 space-y-4">
+            <div className="border-t border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900 p-4 space-y-4">
               {/* Error Message (if failed) */}
               {event.error_message && (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-3">
@@ -174,12 +174,12 @@ export const NotificationEventsList: React.FC<NotificationEventsListProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {/* Correlation ID */}
                 <div>
-                  <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                  <p className="text-xs font-medium text-slate-600 dark:text-neutral-300 mb-1">
                     Correlation ID
                   </p>
                   <button
                     onClick={() => copyToClipboard(event.correlation_id)}
-                    className="w-full flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 text-xs font-mono text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-2 bg-white dark:bg-neutral-800 rounded border border-slate-200 dark:border-neutral-700 text-xs font-mono text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-700 transition-colors"
                   >
                     <span className="truncate">{event.correlation_id}</span>
                     <Copy className="h-3 w-3 shrink-0" />
@@ -188,12 +188,12 @@ export const NotificationEventsList: React.FC<NotificationEventsListProps> = ({
 
                 {/* Trace ID */}
                 <div>
-                  <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                  <p className="text-xs font-medium text-slate-600 dark:text-neutral-300 mb-1">
                     Trace ID
                   </p>
                   <button
                     onClick={() => copyToClipboard(event.trace_id)}
-                    className="w-full flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-700 rounded border border-slate-200 dark:border-slate-600 text-xs font-mono text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-2 bg-white dark:bg-neutral-800 rounded border border-slate-200 dark:border-neutral-700 text-xs font-mono text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-700 transition-colors"
                   >
                     <span className="truncate">{event.trace_id}</span>
                     <Copy className="h-3 w-3 shrink-0" />
@@ -204,19 +204,19 @@ export const NotificationEventsList: React.FC<NotificationEventsListProps> = ({
               {/* Timestamps */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
-                  <p className="font-medium text-slate-600 dark:text-slate-400 mb-1">
+                  <p className="font-medium text-slate-600 dark:text-neutral-300 mb-1">
                     Dispatched
                   </p>
-                  <p className="text-slate-700 dark:text-slate-300">
+                  <p className="text-slate-700 dark:text-neutral-200">
                     {new Date(event.dispatched_at).toLocaleString()}
                   </p>
                 </div>
                 {event.delivered_at && (
                   <div>
-                    <p className="font-medium text-slate-600 dark:text-slate-400 mb-1">
+                    <p className="font-medium text-slate-600 dark:text-neutral-300 mb-1">
                       Delivered
                     </p>
-                    <p className="text-slate-700 dark:text-slate-300">
+                    <p className="text-slate-700 dark:text-neutral-200">
                       {new Date(event.delivered_at).toLocaleString()}
                     </p>
                   </div>
