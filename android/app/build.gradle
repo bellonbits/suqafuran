@@ -18,7 +18,7 @@ android {
         // an already-submitted version (fits comfortably in the int32 range
         // Play Console requires; won't overflow until the year ~6053).
         versionCode ((int) (System.currentTimeMillis() / 60000))
-        versionName "1.8.0"
+        versionName "2.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
