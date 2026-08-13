@@ -361,7 +361,7 @@ export const ListingWizard: React.FC = () => {
   const [isCustomBrand, setIsCustomBrand] = useState(false);
   const [categoryBrands, setCategoryBrands] = useState<string[]>([]);
   const [categorySubcategories, setCategorySubcategories] = useState<Array<{ id: number; name: string }>>([]);
-  const [subcategorySubsubcategories, setSubcategorySubsubcategories] = useState<Array<{ id: number; name: string }>>([]);
+  const [subcategorySubsubcategories, setSubcategorySubsubcategories] = useState<Array<{ id: number; name: string; brands?: string[] }>>([]);
   const [allCategories, setAllCategories] = useState<Array<{ id: number; name: string; name_en?: string }>>([]);
   const locationInputRef = useRef<HTMLInputElement>(null);
 
@@ -432,36 +432,26 @@ export const ListingWizard: React.FC = () => {
     fetchSubsubcategories();
   }, [formData.subcategory_id]);
 
-  // Fetch category attributes to get brand options
+  // Brand options: prefer the selected sub-subcategory's own brand list
+  // (seeded per sub-subcategory on the backend), falling back to the
+  // category-level defaults when the sub-subcategory has none set.
   useEffect(() => {
+    if (formData.subsubcategory_id) {
+      const selected = subcategorySubsubcategories.find((s) => s.id === formData.subsubcategory_id);
+      if (selected?.brands && selected.brands.length > 0) {
+        setCategoryBrands(selected.brands);
+        return;
+      }
+    }
+
     if (!formData.category_id) {
       setCategoryBrands([]);
       return;
     }
 
-    const fetchCategoryBrands = async () => {
-      try {
-        const catList = allCategories.length > 0 ? allCategories : CATEGORIES;
-        const category = Array.isArray(catList)
-          ? catList.find((c: any) => c.id === formData.category_id)
-          : null;
-
-        if (!category) {
-          setCategoryBrands([]);
-          return;
-        }
-
-        // Use default brands for this category (API fetching removed due to schema issues)
-        const defaultBrands = BRANDS_BY_CATEGORY[formData.category_id] || [];
-        setCategoryBrands(defaultBrands);
-      } catch (err) {
-        console.error('Failed to load category brands:', err);
-        setCategoryBrands([]);
-      }
-    };
-
-    fetchCategoryBrands();
-  }, [formData.category_id, formData.subcategory_id, formData.subsubcategory_id]);
+    const defaultBrands = BRANDS_BY_CATEGORY[formData.category_id] || [];
+    setCategoryBrands(defaultBrands);
+  }, [formData.category_id, formData.subcategory_id, formData.subsubcategory_id, subcategorySubsubcategories]);
 
   const updateFormData = (data: Partial<ListingFormData>) => {
     setFormData((prev) => ({ ...prev, ...data }));
