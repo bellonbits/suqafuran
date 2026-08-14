@@ -72,8 +72,19 @@ export function RealtimeConnection() {
                 ws.onmessage = (event) => {
                     try {
                         const data = JSON.parse(event.data);
-                        if (data?.type && data?.payload) {
-                            useRealtimeStore.getState().pushEvent(data);
+                        // Only "notification" is a real, user-facing event -- "connection"
+                        // (handshake ack), "pong" (keep-alive reply), and "error" (protocol
+                        // warnings) are internal to the socket and were leaking into the
+                        // notification bell as fake entries with no real timestamp.
+                        if (data?.type === 'notification' && data?.payload) {
+                            useRealtimeStore.getState().pushEvent({
+                                ...data,
+                                // The backend doesn't send a top-level timestamp (real
+                                // notifications carry created_at inside payload instead) --
+                                // stamp receipt time here so the bell always has something
+                                // valid to render.
+                                timestamp: (data.payload as Record<string, unknown>).created_at as string || new Date().toISOString(),
+                            });
                         }
                     } catch {
                         // Non-JSON frame (e.g. a stray ping) — ignore.
