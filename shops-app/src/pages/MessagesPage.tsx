@@ -45,16 +45,24 @@ function MessagesPageContent() {
 
     // Load conversations from API
     useEffect(() => {
+        let isFirstLoad = true;
+
         const loadConversations = async () => {
             try {
-                setIsLoading(true);
+                // Only show the loading state for the very first fetch -- the
+                // 30s background refresh below re-fetches silently so the list
+                // doesn't visibly flash/reset while someone's reading it.
+                if (isFirstLoad) setIsLoading(true);
                 const response = await api.get('/messages/conversations');
                 setConversations(response.data || []);
             } catch (error) {
                 console.error('Failed to load conversations:', error);
-                setConversations([]);
+                if (isFirstLoad) setConversations([]);
             } finally {
-                setIsLoading(false);
+                if (isFirstLoad) {
+                    setIsLoading(false);
+                    isFirstLoad = false;
+                }
             }
         };
 
@@ -130,6 +138,16 @@ function MessagesPageContent() {
         };
 
         loadMessages();
+
+        // Opening a conversation reads it -- clear the unread badge right
+        // away instead of waiting on the next 30s conversations poll, and
+        // tell the backend so it stays cleared on refresh/other devices.
+        setConversations((prev) => prev.map((c) =>
+            c.other_user_id === selectedUserId ? { ...c, unread_count: 0 } : c
+        ));
+        api.post(`/messages/${selectedUserId}/read`).catch((error) => {
+            console.error('Failed to mark conversation as read:', error);
+        });
     }, [selectedUserId]);
 
     // Join the per-conversation channel so the server's broadcasts (new
