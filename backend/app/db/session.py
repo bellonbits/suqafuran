@@ -5,9 +5,9 @@ engine = create_engine(
     settings.DATABASE_URL,
     pool_pre_ping=True,
     pool_recycle=60,
-    pool_size=3,
-    max_overflow=3,
-    pool_timeout=15,
+    pool_size=10,
+    max_overflow=10,
+    pool_timeout=30,
     connect_args={"connect_timeout": 10, "options": "-c statement_timeout=30000"},
 )
 
