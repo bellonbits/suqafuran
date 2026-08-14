@@ -1,21 +1,21 @@
-import { PushNotifications } from '@capacitor/push-notifications';
+import { FirebaseMessaging } from '@capacitor-firebase/messaging';
 import { Capacitor } from '@capacitor/core';
 import api from './api';
-import { capacitorCache } from './capacitor-cache';
+
+let listenersRegistered = false;
 
 export const pushNotificationsService = {
+  /** Call once the user is authenticated -- requests permission, registers for a
+   *  real FCM token (works on both Android and iOS; this plugin handles the
+   *  APNs<->FCM token exchange on iOS internally) and sends it to the backend. */
   async initialize() {
-    if (!Capacitor.isNativePlatform()) {
-      console.log('Push notifications: Not on native platform');
-      return;
-    }
+    if (!Capacitor.isNativePlatform()) return;
 
     try {
-      // Request permission
-      let permission = await PushNotifications.checkPermissions();
+      let permission = await FirebaseMessaging.checkPermissions();
 
       if (permission.receive === 'prompt') {
-        permission = await PushNotifications.requestPermissions();
+        permission = await FirebaseMessaging.requestPermissions();
       }
 
       if (permission.receive !== 'granted') {
@@ -23,33 +23,23 @@ export const pushNotificationsService = {
         return;
       }
 
-      // Register for push notifications
-      await PushNotifications.register();
+      if (!listenersRegistered) {
+        listenersRegistered = true;
 
-      // Listen for registration token
-      PushNotifications.addListener('registration', async (token) => {
-        console.log('Push registration token:', token.value);
-        // Send token to backend
-        await this.registerDeviceToken(token.value);
-      });
+        FirebaseMessaging.addListener('tokenReceived', (event) => {
+          this.registerDeviceToken(event.token);
+        });
 
-      // Listen for push notifications
-      PushNotifications.addListener('pushNotificationReceived', (notification) => {
-        console.log('Push received:', notification);
-      });
+        FirebaseMessaging.addListener('notificationActionPerformed', (event) => {
+          const path = (event.notification.data as Record<string, string> | undefined)?.path;
+          if (path) {
+            window.dispatchEvent(new CustomEvent('push-notification-tap', { detail: { path } }));
+          }
+        });
+      }
 
-      PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
-        console.log('Push action:', notification);
-        // Handle notification tap
-        this.handleNotificationTap(notification);
-      });
-
-      // Handle registration errors
-      PushNotifications.addListener('registrationError', (error) => {
-        console.error('Push registration error:', error);
-      });
-
-      console.log('Push notifications initialized');
+      const { token } = await FirebaseMessaging.getToken();
+      await this.registerDeviceToken(token);
     } catch (error) {
       console.error('Failed to initialize push notifications:', error);
     }
@@ -57,35 +47,20 @@ export const pushNotificationsService = {
 
   async registerDeviceToken(token: string) {
     try {
-      // Save locally first
-      await capacitorCache.setAppSettings({
-        deviceToken: token,
-        deviceTokenUpdated: Date.now(),
-      });
-
-      // Send to backend if authenticated
-      const jwtToken = await capacitorCache.getJWT();
-      if (jwtToken) {
-        await api.post('/notifications/device-token', { token });
-      }
+      await api.put('/users/me/device-token', { device_token: token });
     } catch (error) {
       console.error('Failed to register device token:', error);
     }
   },
 
-  handleNotificationTap(notification: any) {
-    // Handle notification tap - navigate to relevant screen
-    const { data } = notification.notification;
-
-    if (data?.type === 'message') {
-      // Navigate to messages
-      window.location.hash = `/messages/${data.chatId}`;
-    } else if (data?.type === 'order') {
-      // Navigate to order
-      window.location.hash = `/orders/${data.orderId}`;
-    } else if (data?.type === 'listing') {
-      // Navigate to listing
-      window.location.hash = `/listings/${data.listingId}`;
+  /** Call on logout so this device stops receiving push for the signed-out account. */
+  async unregister() {
+    if (!Capacitor.isNativePlatform()) return;
+    try {
+      await api.delete('/users/me/device-token');
+      await FirebaseMessaging.deleteToken();
+    } catch (error) {
+      console.error('Failed to unregister push notifications:', error);
     }
   },
 };

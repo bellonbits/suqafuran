@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import { Onboarding, hasSeenOnboarding } from './components/Onboarding'
 import { isCapacitorApp } from './lib/capacitor-utils'
+import { useAuthStore } from './store/useAuth'
+import { pushNotificationsService } from './services/push-notifications'
 import { Header } from './components/shared/Header'
 import { Footer } from './components/shared/Footer'
 import { AuthModal } from './components/shared/AuthModal'
@@ -137,6 +139,34 @@ function ScrollToTop() {
   return null
 }
 
+// Registers/unregisters this device for push notifications as the user signs
+// in and out, and routes taps on a received notification to the relevant
+// screen (the backend sends a ready-to-use `path` in the notification data
+// for every push it triggers -- see app/utils/push.py callers).
+function PushNotificationsBridge() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      pushNotificationsService.initialize()
+    } else {
+      pushNotificationsService.unregister()
+    }
+  }, [isAuthenticated])
+
+  useEffect(() => {
+    const handleTap = (e: Event) => {
+      const path = (e as CustomEvent<{ path: string }>).detail?.path
+      if (path) navigate(path)
+    }
+    window.addEventListener('push-notification-tap', handleTap)
+    return () => window.removeEventListener('push-notification-tap', handleTap)
+  }, [navigate])
+
+  return null
+}
+
 export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(() => isCapacitorApp() && !hasSeenOnboarding())
 
@@ -147,6 +177,7 @@ export default function App() {
   return (
     <>
     <ScrollToTop />
+    <PushNotificationsBridge />
     <Routes>
       {/* Marketplace Pages */}
       <Route element={<AppLayout><HomePage /></AppLayout>} path="/" />

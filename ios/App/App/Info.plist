@@ -70,5 +70,9 @@
 	<string>This app requires permission to save photos to your library if you choose to download or backup your listing images.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We use your location to show you relevant marketplace listings in your area and to set the correct region for your ads.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>
