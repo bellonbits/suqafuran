@@ -6,7 +6,7 @@ import { useParams, useLocation } from 'react-router-dom';
 import { useRouter } from 'next/navigation';
 import {
     MapPin, ShieldCheck, Phone, Heart, Share2, MessageSquare, ArrowLeft, Eye, Star, X,
-    MessageCircle, AlertTriangle, Minus, Plus, ShoppingCart, Store, CheckCircle2, Check,
+    AlertTriangle, Minus, Plus, ShoppingCart, Store, CheckCircle2, Check,
 } from 'lucide-react';
 import api from '@/services/api';
 import { listingsService } from '@/services/listings';
@@ -499,7 +499,7 @@ export default function ProductDetailPage() {
                                     aria-label="Share on WhatsApp"
                                     className="h-8 w-8 rounded-full border border-gray-200 dark:border-neutral-800 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-neutral-900 transition-all"
                                 >
-                                    <MessageCircle className="h-4 w-4 text-green-600" />
+                                    <img src="/whatsapp-icon.png" alt="" className="h-4 w-4" />
                                 </button>
                             </div>
                             <button

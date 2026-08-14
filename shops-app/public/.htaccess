@@ -9,6 +9,13 @@
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
+  # Social-media link-preview crawlers don't run JS, so they'd otherwise get
+  # the same generic site-wide og:image on every /listing/{id} page. Hand
+  # them a tiny server-rendered page with that listing's own photo instead --
+  # real visitors never match this and continue straight to the SPA below.
+  RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|TelegramBot|Slackbot|Discordbot|Pinterest|redditbot|SkypeUriPreview|vkShare|Applebot) [NC]
+  RewriteRule ^listing/([0-9]+)/?$ listing-share.php?id=$1 [L,QSA]
+
   # Everything else goes through index.html so React Router can handle the route
   RewriteRule ^ index.html [L]
 </IfModule>
