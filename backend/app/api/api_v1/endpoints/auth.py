@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Any, Optional
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Request, BackgroundTasks
 from sqlmodel import Session, select
 from sqlalchemy.exc import IntegrityError
 from app.api import deps
@@ -16,6 +16,7 @@ from app.services.africastalking_service import africastalking_service
 from app.services.kafka_producer import publish_signup_event, publish_signin_event
 from app.services.marketing_service import marketing_service
 from app.models.marketing import EmailEventType
+from app.utils.security_alerts import notify_if_new_device
 from pydantic import BaseModel
 from app.core.metrics import USER_REGISTRATIONS_TOTAL, SUCCESSFUL_LOGINS_TOTAL
 
@@ -95,6 +96,8 @@ def signup(
 async def verify_otp(
     response: Response,
     payload: VerifyOtpIn,
+    request: Request,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(deps.get_db)
 ) -> Any:
     is_valid = email_service.check_verification_code(payload.email, payload.otp)
@@ -191,6 +194,8 @@ async def verify_otp(
         db.commit()
         db.refresh(user)
 
+        notify_if_new_device(db, user, request, background_tasks)
+
         # Publish signin event to Kafka (non-blocking)
         logger.info(f"🔔 Attempting to publish signin event for user {user.id} ({user.email})")
         try:
@@ -284,6 +289,8 @@ def request_phone_otp(
 async def verify_phone_otp(
     response: Response,
     payload: VerifyPhoneOtpIn,
+    request: Request,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(deps.get_db),
 ) -> Any:
     try:
@@ -362,6 +369,8 @@ async def verify_phone_otp(
         ))
         db.commit()
         db.refresh(user)
+
+        notify_if_new_device(db, user, request, background_tasks)
 
         # Publish signin event to Kafka (non-blocking)
         try:

@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Any
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Request, BackgroundTasks
 from pydantic import BaseModel
 from sqlmodel import Session
 from app.api import deps
@@ -9,6 +9,7 @@ from app.core import security
 from app.core.config import settings
 from app.crud import crud_user
 from app.services.kafka_producer import publish_signin_event
+from app.utils.security_alerts import notify_if_new_device
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,8 @@ class LoginRequest(BaseModel):
 async def login_access_token(
     response: Response,
     credentials: LoginRequest,
+    request: Request,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(deps.get_db)
 ) -> Any:
     """
@@ -41,6 +44,8 @@ async def login_access_token(
             status_code=400,
             detail="Email not verified. Please check your inbox for the verification code."
         )
+
+    notify_if_new_device(db, user, request, background_tasks)
 
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(

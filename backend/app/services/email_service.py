@@ -1357,6 +1357,40 @@ class EmailService:
         )
         return self._send_and_log(email, "⚠️ Security Alert: Login on new device detected", html_body, "safety_new_device", user_id)
 
+    def send_profile_updated_email(
+        self,
+        email: str,
+        name: str,
+        changed_fields: List[str],
+        timestamp: str,
+        user_id: Optional[int] = None
+    ) -> bool:
+        fields_list = " and ".join(changed_fields) if len(changed_fields) <= 2 else ", ".join(changed_fields[:-1]) + f", and {changed_fields[-1]}"
+        content = f"""
+        <div style="background: #fffbeb; border-radius: 12px; padding: 16px; border: 1px solid #fef3c7; color: #b45309; font-size: 14px; font-weight: 700; margin-bottom: 20px;">
+          ⚠️ Notice: Your account details were updated
+        </div>
+        <p style="font-size: 14px; color: #475569; line-height: 1.6;">
+          Hello {name},<br><br>
+          This is an automated security notification that your <strong>{fields_list}</strong> was changed on <strong>{timestamp}</strong>.
+        </p>
+        <div style="background: #f8fafc; padding: 16px; border-radius: 12px; margin: 24px 0; font-size: 13px; color: #64748b;">
+          <strong>If this was you:</strong> You can safely ignore this notice.<br><br>
+          <strong>If this wasn't you:</strong> Please lock your profile immediately and contact platform safety moderators.
+        </div>
+        <div style="text-align: center;">
+          <a href="{settings.FRONTEND_URL}/lock-account" style="display: inline-block; background: #b45309; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            Lock My Account Instantly
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Account Details Updated",
+            subtitle="Security configurations updated on your profile.",
+            content=content
+        )
+        return self._send_and_log(email, "⚠️ Security Notice: Account details changed on Suqafuran", html_body, "safety_profile_updated", user_id)
+
     # 3. Additional Engagement & Retention Emails
     def send_recommended_items_email(
         self,

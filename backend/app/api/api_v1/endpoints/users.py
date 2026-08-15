@@ -135,11 +135,39 @@ def update_user_me(
     db: Session = Depends(deps.get_db),
     user_in: UserUpdate,
     current_user: User = Depends(deps.get_current_active_user),
+    request: Request,
+    background_tasks: BackgroundTasks,
 ) -> Any:
     """
     Update own user.
     """
+    from app.services.email_service import email_service
+    from datetime import datetime as _datetime
+
+    update_data = user_in.model_dump(exclude_unset=True)
+    notify_email = current_user.email
+    name = current_user.full_name or "Customer"
+    timestamp = _datetime.utcnow().strftime("%B %d, %Y at %H:%M UTC")
+    ip = request.client.host if request.client else "Unknown"
+
+    password_changed = bool(update_data.get("password"))
+    changed_contact_fields = []
+    if update_data.get("email") and update_data["email"] != current_user.email:
+        changed_contact_fields.append("email address")
+    if update_data.get("phone") and update_data["phone"] != current_user.phone:
+        changed_contact_fields.append("phone number")
+
     user = crud_user.update_user(db, db_obj=current_user, user_in=user_in)
+
+    if password_changed:
+        background_tasks.add_task(
+            email_service.send_password_change_alert, notify_email, name, timestamp, ip, user.id
+        )
+    if changed_contact_fields:
+        background_tasks.add_task(
+            email_service.send_profile_updated_email, notify_email, name, changed_contact_fields, timestamp, user.id
+        )
+
     return user
 
 
@@ -319,14 +347,27 @@ def change_password(
     db: Session = Depends(deps.get_db),
     password_in: PasswordChange,
     current_user: User = Depends(deps.get_current_active_user),
+    request: Request,
+    background_tasks: BackgroundTasks,
 ) -> Any:
     """
     Change own password.
     """
     if not crud_user.authenticate(db, email=current_user.email, password=password_in.current_password):
         raise HTTPException(status_code=400, detail="Incorrect current password")
-    
+
     crud_user.update_user(db, db_obj=current_user, user_in=UserUpdate(password=password_in.new_password))
+
+    from app.services.email_service import email_service
+    from datetime import datetime as _datetime
+
+    ip = request.client.host if request.client else "Unknown"
+    timestamp = _datetime.utcnow().strftime("%B %d, %Y at %H:%M UTC")
+    background_tasks.add_task(
+        email_service.send_password_change_alert,
+        current_user.email, current_user.full_name or "Customer", timestamp, ip, current_user.id
+    )
+
     return {"message": "Password changed successfully"}
 
 
@@ -410,21 +451,33 @@ def reset_password(
     email: str = Body(...),
     code: str = Body(...),
     new_password: str = Body(...),
+    request: Request,
+    background_tasks: BackgroundTasks,
 ) -> Any:
     """
     Reset password using code.
     """
     from app.utils.redis import get_reset_token, delete_reset_token
-    
+
     stored_code = get_reset_token(email)
     if not stored_code or stored_code != code:
         raise HTTPException(status_code=400, detail="Invalid or expired reset code")
-    
+
     user = crud_user.get_user_by_email(db, email=email)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     crud_user.update_user(db, db_obj=user, user_in=UserUpdate(password=new_password))
     delete_reset_token(email)
-    
+
+    from app.services.email_service import email_service
+    from datetime import datetime as _datetime
+
+    ip = request.client.host if request.client else "Unknown"
+    timestamp = _datetime.utcnow().strftime("%B %d, %Y at %H:%M UTC")
+    background_tasks.add_task(
+        email_service.send_password_change_alert,
+        user.email, user.full_name or "Customer", timestamp, ip, user.id
+    )
+
     return {"message": "Password reset successfully"}
