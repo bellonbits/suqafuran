@@ -16,7 +16,7 @@ from app.services.africastalking_service import africastalking_service
 from app.services.kafka_producer import publish_signup_event, publish_signin_event
 from app.services.marketing_service import marketing_service
 from app.models.marketing import EmailEventType
-from app.utils.security_alerts import notify_if_new_device
+from app.utils.security_alerts import notify_if_new_device, link_signup_device
 from pydantic import BaseModel
 from app.core.metrics import USER_REGISTRATIONS_TOTAL, SUCCESSFUL_LOGINS_TOTAL
 
@@ -141,6 +141,7 @@ async def verify_otp(
             ))
             db.commit()
             db.refresh(user)
+            link_signup_device(db, user, request)
 
             # Send signup email via marketing automation
             try:
@@ -343,6 +344,7 @@ async def verify_phone_otp(
             ))
             db.commit()
             db.refresh(user)
+            link_signup_device(db, user, request)
             africastalking_service.delete_pending_signup(phone)
 
             # Publish signup event to Kafka (non-blocking)
