@@ -798,34 +798,6 @@ class EmailService:
         )
         return self._send_and_log(email, f"Deal status update: {item_title}", html_body, "transaction_deal_update", user_id)
 
-    def send_payment_status(self, email: str, name: str, amount: str, status: str, tx_ref: str, user_id: Optional[int] = None) -> bool:
-        bg = "#f0fdf4" if status.lower() == "successful" else "#fef2f2"
-        color = "#16a34a" if status.lower() == "successful" else "#dc2626"
-        content = f"""
-        <div style="background: {bg}; border-radius: 16px; padding: 24px; border: 1px solid {color}50; margin: 24px 0;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-            <tr>
-              <td style="padding:6px 0; color:#64748b;">Transaction Reference</td>
-              <td style="padding:6px 0; text-align:right; font-weight:800; color:#1e293b;">{tx_ref}</td>
-            </tr>
-            <tr>
-              <td style="padding:6px 0; color:#64748b;">Amount Paid</td>
-              <td style="padding:6px 0; text-align:right; font-weight:800; color:#1e293b;">KES {amount}</td>
-            </tr>
-            <tr>
-              <td style="padding:6px 0; color:#64748b;">Status</td>
-              <td style="padding:6px 0; text-align:right; font-weight:800; color:{color};">{status.upper()}</td>
-            </tr>
-          </table>
-        </div>
-        """
-        html_body = self._get_base_template(
-            title="Payment Processing Complete",
-            subtitle="Here is your official payment transaction status record.",
-            content=content
-        )
-        return self._send_and_log(email, f"Payment {status}: KES {amount}", html_body, "transaction_payment", user_id)
-
     # D. Trust & Safety Emails
     def send_suspicious_activity_alert(
         self,
@@ -1201,94 +1173,6 @@ class EmailService:
             content=content
         )
         return self._send_and_log(email, f"Update on your offer: '{item_title}'", html_body, "transaction_offer_response", user_id)
-
-    def send_receipt_email(
-        self,
-        email: str,
-        name: str,
-        items: List[dict],
-        total_amount: str,
-        tx_ref: str,
-        payment_method: str,
-        user_id: Optional[int] = None
-    ) -> bool:
-        rows = ""
-        for item in items:
-            rows += f"""
-            <tr style="border-bottom: 1px solid #f1f5f9;">
-              <td style="padding: 12px 0; font-size: 14px; color: #1e293b; font-weight: 700;">{item.get("title")}</td>
-              <td style="padding: 12px 0; text-align: right; font-size: 14px; color: #ea580c; font-weight: 800;">KES {item.get("price")}</td>
-            </tr>
-            """
-        content = f"""
-        <p style="font-size: 15px; color: #475569;">
-          Hello {name},<br><br>
-          Thank you for your purchase on Suqafuran! Here is your official transaction receipt record.
-        </p>
-        <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin: 24px 0; border: 1px solid #e2e8f0;">
-          <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr style="border-bottom: 2px solid #e2e8f0;">
-                <th style="text-align: left; padding-bottom: 8px; font-size: 12px; color: #64748b; text-transform: uppercase;">Item Description</th>
-                <th style="text-align: right; padding-bottom: 8px; font-size: 12px; color: #64748b; text-transform: uppercase;">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows}
-              <tr>
-                <td style="padding: 16px 0 0 0; font-weight: 800; font-size: 16px; color: #1e293b;">Total Amount Paid</td>
-                <td style="padding: 16px 0 0 0; text-align: right; font-weight: 900; font-size: 18px; color: #ea580c;">KES {total_amount}</td>
-              </tr>
-            </tbody>
-          </table>
-          <div style="margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 12px; color: #64748b;">
-            💳 <strong>Payment Method:</strong> {payment_method}<br>
-            <strong>Reference:</strong> {tx_ref}
-          </div>
-        </div>
-        """
-        html_body = self._get_base_template(
-            title="Official Transaction Receipt",
-            subtitle="Your payment has been successfully processed.",
-            content=content
-        )
-        return self._send_and_log(email, f"Your Suqafuran Payment Receipt: {tx_ref}", html_body, "transaction_receipt", user_id)
-
-    def send_order_confirmation(
-        self,
-        email: str,
-        name: str,
-        order_id: str,
-        item_title: str,
-        seller_name: str,
-        delivery_estimate: str,
-        user_id: Optional[int] = None
-    ) -> bool:
-        content = f"""
-        <p style="font-size: 15px; color: #475569;">
-          Hello {name},<br><br>
-          Your order has been formally submitted and confirmed with the seller <strong>{seller_name}</strong>!
-        </p>
-        <div style="background: #f0fdf4; border-radius: 12px; padding: 20px; margin: 24px 0; border: 1px solid #bbf7d0;">
-          <h4 style="margin: 0 0 8px 0; color: #16a34a; font-weight: 800;">Order Confirmed</h4>
-          <p style="margin: 0; font-size: 14px; color: #1e293b; line-height: 1.6;">
-            📦 <strong>Item:</strong> {item_title}<br>
-            🆔 <strong>Order ID:</strong> {order_id}<br>
-            📅 <strong>Est. Delivery:</strong> {delivery_estimate}
-          </p>
-        </div>
-        <div style="text-align: center;">
-          <a href="{settings.FRONTEND_URL}/orders/{order_id}" style="display: inline-block; background: #16a34a; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
-            Track Order Status
-          </a>
-        </div>
-        """
-        html_body = self._get_base_template(
-            title="Order Confirmed!",
-            subtitle="The seller is preparing your package for dispatch.",
-            content=content
-        )
-        return self._send_and_log(email, f"Order Confirmed: #{order_id} - '{item_title}'", html_body, "transaction_order_confirmation", user_id)
 
     # 2. Additional Trust & Safety Emails
     def send_password_change_alert(

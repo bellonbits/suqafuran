@@ -24,8 +24,6 @@ DB_TEMPLATE_EVENT_TYPES = {
     "offer_received": "transaction_offer",
     "offer_response": "transaction_offer_response",
     "deal_update": "transaction_deal_update",
-    "payment": "transaction_payment",
-    "order_confirmation": "transaction_order_confirmation",
     "suspicious": "safety_suspicious_login",
     "scam_warning": "safety_scam_warning",
     "account_protection": "safety_protection",
@@ -210,36 +208,6 @@ def dispatch_growth_email_task(
                 status=context["status"],
                 user_id=user_id
             )
-        elif email_type == "payment":
-            email_service.send_payment_status(
-                email,
-                name=context["name"],
-                amount=context["amount"],
-                status=context["status"],
-                tx_ref=context["tx_ref"],
-                user_id=user_id
-            )
-        elif email_type == "receipt":
-            email_service.send_receipt_email(
-                email,
-                name=context["name"],
-                items=context["items"],
-                total_amount=context["total_amount"],
-                tx_ref=context["tx_ref"],
-                payment_method=context["payment_method"],
-                user_id=user_id
-            )
-        elif email_type == "order_confirmation":
-            email_service.send_order_confirmation(
-                email,
-                name=context["name"],
-                order_id=context["order_id"],
-                item_title=context["item_title"],
-                seller_name=context["seller_name"],
-                delivery_estimate=context["delivery_estimate"],
-                user_id=user_id
-            )
-
         # 4. Trust & Safety
         elif email_type == "suspicious":
             email_service.send_suspicious_activity_alert(

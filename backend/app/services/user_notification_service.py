@@ -149,32 +149,6 @@ class UserNotificationService:
             logger.error(f"Failed to send search match notification to {user.email}: {e}")
             return False
 
-    def notify_order_status_update(
-        self,
-        user: User,
-        order_id: str,
-        item_title: str,
-        status: str,
-        delivery_estimate: str = "2-3 business days",
-    ) -> bool:
-        """Send email when order status updates."""
-        if not self._should_send_email(user, "email_order_updates"):
-            return False
-
-        try:
-            return self.email_service.send_order_confirmation(
-                email=user.email,
-                name=user.full_name or "User",
-                order_id=order_id,
-                item_title=item_title,
-                seller_name="Suqafuran Seller",
-                delivery_estimate=delivery_estimate,
-                user_id=user.id,
-            )
-        except Exception as e:
-            logger.error(f"Failed to send order update notification to {user.email}: {e}")
-            return False
-
 
 # Global instance
 user_notification_service = UserNotificationService()

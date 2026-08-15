@@ -70,6 +70,18 @@ class MarketingAutomationService:
             """
         },
         
+        EmailEventType.LISTING_REJECTED: {
+            "subject": "Your listing needs changes before it can go live",
+            "template": """
+            <h1>Your listing wasn't approved</h1>
+            <p>Hi {{ first_name }},</p>
+            <p><strong>{{ listing_title }}</strong> could not be approved as submitted.</p>
+            <p><strong>Reason:</strong> {{ rejection_reason }}</p>
+            <p>You're welcome to fix the issue and resubmit the listing.</p>
+            <p>Questions? <a href="{{ support_link }}">Contact support</a> or email {{ support_email }}.</p>
+            """
+        },
+
         EmailEventType.LISTING_VIEWS_MILESTONE: {
             "subject": "🎉 Your listing hit {{ views }} views!",
             "template": """
@@ -174,13 +186,18 @@ class MarketingAutomationService:
     ):
         """Send email based on event type."""
         
-        # Check user preferences
+        # Check user preferences. A missing row means the user has never
+        # opened notification settings -- treat that as opted-in (every
+        # field on EmailPreference defaults to True), not opted-out, matching
+        # the precedent in admin.py's send_broadcast_email. Returning early
+        # here used to silently drop every marketing_service-routed email
+        # (signup, listing_approved, weekly_digest, etc.) for any user
+        # without a preferences row -- almost certainly most users.
         preference = session.exec(
             select(EmailPreference).where(EmailPreference.user_id == user_id)
         ).first()
-        
         if not preference:
-            return  # User has no preferences set
+            preference = EmailPreference(user_id=user_id)
         
         # Check if user wants this email type
         if not self._should_send_email(event_type, preference):
