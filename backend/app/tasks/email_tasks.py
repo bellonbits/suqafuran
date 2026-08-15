@@ -437,3 +437,80 @@ def dispatch_growth_email_task(
     except Exception as exc:
         logger.error(f"Task failed for email_type '{email_type}': {exc}")
         raise self.retry(exc=exc, countdown=60)
+
+
+@shared_task(name="app.tasks.email_tasks.send_marketing_broadcast", bind=True, max_retries=0)
+def send_marketing_broadcast(self, subject: str, html_content: str, campaign_id: str):
+    """
+    Send a marketing email to every user who hasn't opted out of
+    promotional emails. Runs in the background since a full-platform send
+    can take a while -- this is not something an HTTP request should block
+    on. A per-send delay keeps this well under Resend's rate limit rather
+    than firing hundreds of requests at once.
+
+    Opt-out model: EmailPreference.promotional_emails defaults to True on
+    the model itself, and the row is only ever created lazily the first
+    time a user opens notification settings (see marketing.py's
+    get_email_preferences) -- so most users have no row at all. Treating
+    "no row" as opted-in (not opted-out, unlike send_event_email's stricter
+    per-event check) is the correct read of that default for a broadcast
+    like this; only an explicit promotional_emails=False should exclude
+    someone.
+    """
+    import time
+    from sqlmodel import Session, select
+    from app.db.session import engine
+    from app.models.user import User
+    from app.models.marketing import EmailPreference
+    from app.services.email_service import email_service
+
+    sent = 0
+    failed = 0
+    skipped = 0
+
+    with Session(engine) as session:
+        opted_out_ids = set(
+            session.exec(
+                select(EmailPreference.user_id).where(EmailPreference.promotional_emails == False)  # noqa: E712
+            ).all()
+        )
+
+        users = session.exec(
+            select(User).where(User.email != None, User.email != "")  # noqa: E711
+        ).all()
+
+        total = len(users)
+        logger.info(f"Marketing broadcast '{campaign_id}': {total} users, {len(opted_out_ids)} opted out")
+
+        for i, user in enumerate(users):
+            if user.id in opted_out_ids:
+                skipped += 1
+                continue
+
+            try:
+                ok = email_service.send_email(
+                    to=user.email,
+                    subject=subject,
+                    html_content=html_content,
+                    user_id=user.id,
+                )
+                if ok:
+                    sent += 1
+                else:
+                    failed += 1
+            except Exception as e:
+                failed += 1
+                logger.error(f"Broadcast send failed for user {user.id}: {e}")
+
+            # ~6/sec -- comfortably under typical provider rate limits for a
+            # background job with no user waiting on it.
+            time.sleep(0.15)
+
+            if (i + 1) % 200 == 0:
+                logger.info(f"Marketing broadcast '{campaign_id}': {i + 1}/{total} processed")
+
+    logger.info(
+        f"Marketing broadcast '{campaign_id}' complete: "
+        f"{sent} sent, {failed} failed, {skipped} opted out (of {total} users)"
+    )
+    return {"sent": sent, "failed": failed, "skipped": skipped, "total": total}
