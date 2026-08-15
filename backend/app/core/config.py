@@ -23,6 +23,12 @@ class Settings(BaseSettings):
     EMAIL_FROM: str = "no-reply@guri24.com"
     EMAIL_FROM_NAME: str = "Suqafuran"
 
+    # BREVO EMAIL (marketing/promotional sends only -- see email_service.py's
+    # _send_and_log preferred_provider param)
+    BREVO_API_KEY: Optional[str] = None
+    BREVO_FROM_EMAIL: str = "marketing@suqafuran.com"
+    BREVO_FROM_NAME: str = "Suqafuran"
+
     # AFRICA'S TALKING (SMS notifications)
     AFRICASTALKING_USERNAME: str = "sandbox"
     AFRICASTALKING_API_KEY: str = ""

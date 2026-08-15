@@ -321,7 +321,8 @@ class EmailService:
         email_type: str,
         user_id: Optional[int] = None,
         campaign_id: Optional[str] = None,
-        metadata: Optional[dict] = None
+        metadata: Optional[dict] = None,
+        preferred_provider: str = "resend"
     ) -> bool:
         import json
         import re
@@ -359,9 +360,38 @@ class EmailService:
         success = False
         provider = None
         failed_reason = None
-        
-        # Primary: Resend API Delivery
-        if settings.RESEND_API_KEY:
+
+        # Marketing/promotional sends prefer Brevo; everything else prefers
+        # Resend. Whichever isn't preferred still acts as a fallback below.
+        if preferred_provider == "brevo" and settings.BREVO_API_KEY:
+            try:
+                import requests
+
+                resp = requests.post(
+                    "https://api.brevo.com/v3/smtp/email",
+                    headers={
+                        "api-key": settings.BREVO_API_KEY,
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                    },
+                    json={
+                        "sender": {"name": settings.BREVO_FROM_NAME, "email": settings.BREVO_FROM_EMAIL},
+                        "to": [{"email": email}],
+                        "subject": subject,
+                        "htmlContent": html_body_tracked,
+                    },
+                    timeout=15,
+                )
+                resp.raise_for_status()
+                print(f"[Email] {email_type} sent via Brevo to {email}")
+                success = True
+                provider = "Brevo"
+            except Exception as e:
+                failed_reason = f"Brevo failed: {str(e)}"
+                print(f"[Email] Brevo failed ({e}), trying Resend fallback...")
+
+        # Primary (or fallback, if Brevo was preferred and failed): Resend API Delivery
+        if not success and settings.RESEND_API_KEY:
             try:
                 import resend
 
@@ -377,7 +407,7 @@ class EmailService:
                 success = True
                 provider = "Resend"
             except Exception as e:
-                failed_reason = f"Resend failed: {str(e)}"
+                failed_reason = (failed_reason + " | " if failed_reason else "") + f"Resend failed: {str(e)}"
                 print(f"[Email] Resend failed ({e}), trying SMTP fallback...")
 
         # Secondary: SMTP Fallback Delivery Chain
@@ -662,7 +692,7 @@ class EmailService:
             subtitle="We found new items matching your saved search criteria.",
             content=content
         )
-        return self._send_and_log(email, f"New matches for '{search_query}'", html_body, "activity_saved_search", user_id)
+        return self._send_and_log(email, f"New matches for '{search_query}'", html_body, "activity_saved_search", user_id, preferred_provider="brevo")
 
     def send_price_drop_alert(
         self,
@@ -720,7 +750,7 @@ class EmailService:
             subtitle="Here are the hottest, most-viewed items in your neighborhood right now.",
             content=content
         )
-        return self._send_and_log(email, f"Top trending items in {location} today", html_body, "activity_trending", user_id)
+        return self._send_and_log(email, f"Top trending items in {location} today", html_body, "activity_trending", user_id, preferred_provider="brevo")
 
     # C. Transaction / Trust Layer
     def send_message_notification(
@@ -918,7 +948,7 @@ class EmailService:
             subtitle="Hand-picked deals and trending items matching your profile.",
             content=content
         )
-        return self._send_and_log(email, f"Weekly Deals Digest in {location}", html_body, "retention_weekly_digest", user_id)
+        return self._send_and_log(email, f"Weekly Deals Digest in {location}", html_body, "retention_weekly_digest", user_id, preferred_provider="brevo")
 
     def send_reengagement_email(self, email: str, name: str, reason: str, featured_items: List[dict], user_id: Optional[int] = None) -> bool:
         items_html = ""
@@ -952,7 +982,7 @@ class EmailService:
             subtitle=reason,
             content=content
         )
-        return self._send_and_log(email, "We miss you — new deals waiting", html_body, "retention_reengagement", user_id)
+        return self._send_and_log(email, "We miss you — new deals waiting", html_body, "retention_reengagement", user_id, preferred_provider="brevo")
 
     def send_abandoned_action_email(self, email: str, name: str, action: str, user_id: Optional[int] = None) -> bool:
         if action == "listing":
@@ -1399,7 +1429,7 @@ class EmailService:
             subtitle="Based on your search history and recent interactions on the platform.",
             content=content
         )
-        return self._send_and_log(email, "Recommended Deals specifically selected for you", html_body, "retention_recommendations", user_id)
+        return self._send_and_log(email, "Recommended Deals specifically selected for you", html_body, "retention_recommendations", user_id, preferred_provider="brevo")
 
     def send_category_interest_email(
         self,
@@ -1436,7 +1466,7 @@ class EmailService:
             subtitle=f"Check out what's fresh in your favorite marketplace section today.",
             content=content
         )
-        return self._send_and_log(email, f"Fresh deals in '{category_name}' matching your interests", html_body, "retention_category_interest", user_id)
+        return self._send_and_log(email, f"Fresh deals in '{category_name}' matching your interests", html_body, "retention_category_interest", user_id, preferred_provider="brevo")
 
     def send_market_summary_email(
         self,
@@ -1876,7 +1906,7 @@ class EmailService:
                 subtitle=subtitle or "Direct communication from Suqafuran Support",
                 content=content
             )
-        return self._send_and_log(email, subject, html_body, f"crm_manual_{campaign_id or 'custom'}", user_id, campaign_id=campaign_id)
+        return self._send_and_log(email, subject, html_body, f"crm_manual_{campaign_id or 'custom'}", user_id, campaign_id=campaign_id, preferred_provider="brevo")
 
     def check_verification_code(self, email: str, code: str) -> bool:
         from app.services.otp_log_service import otp_log
