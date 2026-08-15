@@ -208,7 +208,14 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: suqafuran-celery
-    command: celery -A app.tasks.celery_app worker -l info -c 4
+    # -Q must list every queue name used in task_routes (celery_app.py) plus
+    # the built-in "celery" default -- without -Q, a worker only consumes
+    # "celery" itself, so anything task_routes sends to a differently-named
+    # queue (default/notifications/promotions) is published to Redis and
+    # never picked up. That's exactly what was happening: alert_tasks/
+    # subscription_tasks (unrouted, so they land on "celery") were running
+    # fine while every email/notification/promotion task sat stuck forever.
+    command: celery -A app.tasks.celery_app worker -l info -c 4 -Q celery,default,notifications,promotions
     environment:
       DATABASE_URL: ${DATABASE_URL}
       POSTGRES_SERVER: ${POSTGRES_SERVER}
