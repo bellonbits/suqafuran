@@ -1290,6 +1290,7 @@ def delete_listing(
     db: Session = Depends(deps.get_db),
     id: int,
     current_user: User = Depends(deps.get_current_active_user),
+    background_tasks: BackgroundTasks,
 ) -> Any:
     """
     Delete a listing.
@@ -1301,6 +1302,8 @@ def delete_listing(
         raise HTTPException(status_code=400, detail="Not enough privileges")
 
     owner_id = listing.owner_id
+    is_admin_takedown = current_user.is_admin and owner_id != current_user.id
+    listing_title = listing.title_en
     listing = crud_listing.remove_listing(db=db, id=id)
 
     # Recalculate shop's primary category after deletion
@@ -1311,6 +1314,19 @@ def delete_listing(
         cache.delete_pattern("public_shops:*")
     except Exception:
         pass  # Never fail request due to category update
+
+    # Only notify the owner when an admin removed their live listing --
+    # not when they deleted it themselves.
+    if is_admin_takedown:
+        owner = db.get(User, owner_id)
+        if owner and owner.email:
+            from app.services.email_service import email_service
+            background_tasks.add_task(
+                email_service.send_listing_removed_email,
+                owner.email, owner.full_name or "Customer", listing_title,
+                "This listing was removed by a Suqafuran moderator for violating platform policy.",
+                owner.id
+            )
 
     return listing
 

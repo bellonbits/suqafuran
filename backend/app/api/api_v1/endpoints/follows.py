@@ -1,7 +1,8 @@
 from typing import List, Any
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlmodel import Session, select
 from app.api import deps
+from app.core.config import settings
 from app.models.follow import Follow
 from app.models.user import User
 
@@ -21,26 +22,40 @@ def get_my_followers(
 
 @router.post("/follow/{user_id}")
 def follow_user(
+    *,
     user_id: int,
     db: Session = Depends(deps.get_db),
     current_user = Depends(deps.get_current_active_user),
+    background_tasks: BackgroundTasks,
 ) -> Any:
     """
     Follow a user.
     """
     if user_id == current_user.id:
         raise HTTPException(status_code=400, detail="You cannot follow yourself")
-    
+
     existing = db.exec(select(Follow).where(
         (Follow.follower_id == current_user.id) & (Follow.followed_id == user_id)
     )).first()
-    
+
     if existing:
         return {"message": "Already following"}
-    
+
     follow = Follow(follower_id=current_user.id, followed_id=user_id)
     db.add(follow)
     db.commit()
+
+    followed = db.get(User, user_id)
+    if followed and followed.email:
+        from app.services.email_service import email_service
+        background_tasks.add_task(
+            email_service.send_new_follower_email,
+            followed.email, followed.full_name or "Customer",
+            current_user.full_name or "A Suqafuran user",
+            f"{settings.FRONTEND_URL}/shops/{current_user.id}",
+            followed.id
+        )
+
     return {"message": "Success"}
 
 

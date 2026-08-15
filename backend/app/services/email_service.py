@@ -1321,6 +1321,50 @@ class EmailService:
         )
         return self._send_and_log(email, "⚠️ Your Suqafuran account has been temporarily locked", html_body, "safety_account_locked", user_id)
 
+    def send_new_follower_email(self, email: str, name: str, follower_name: str, follower_profile_url: str, user_id: Optional[int] = None) -> bool:
+        content = f"""
+        <p style="font-size: 15px; color: #475569; line-height: 1.6;">
+          Hello {name},<br><br>
+          <strong>{follower_name}</strong> just started following your shop on Suqafuran and will get notified whenever you post new listings.
+        </p>
+        <div style="text-align: center; margin-top: 24px;">
+          <a href="{follower_profile_url}" style="display: inline-block; background: #ea580c; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            View Your Shop
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="You Have a New Follower!",
+            subtitle="Someone's keeping an eye on your listings.",
+            content=content
+        )
+        return self._send_and_log(email, f"{follower_name} started following your shop on Suqafuran", html_body, "activity_new_follower", user_id)
+
+    def send_listing_removed_email(self, email: str, name: str, listing_title: str, removal_reason: str, user_id: Optional[int] = None) -> bool:
+        content = f"""
+        <div style="background: #fef2f2; border-radius: 12px; padding: 16px; border: 1px solid #fecaca; color: #b91c1c; font-size: 14px; font-weight: 700; margin-bottom: 20px;">
+          Your listing has been taken down
+        </div>
+        <p style="font-size: 14px; color: #475569; line-height: 1.6;">
+          Hello {name},<br><br>
+          Your listing <strong>{listing_title}</strong> was live on Suqafuran but has since been removed.
+        </p>
+        <div style="background: #f8fafc; padding: 16px; border-radius: 12px; margin: 24px 0; font-size: 13px; color: #64748b;">
+          <strong>Reason:</strong> {removal_reason}
+        </div>
+        <div style="text-align: center;">
+          <a href="{settings.FRONTEND_URL}/support" style="display: inline-block; background: #64748b; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            Contact Support
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Listing Removed",
+            subtitle="One of your live listings was taken down.",
+            content=content
+        )
+        return self._send_and_log(email, f"Your listing '{listing_title}' has been removed", html_body, "seller_listing_removed", user_id)
+
     # 3. Additional Engagement & Retention Emails
     def send_recommended_items_email(
         self,

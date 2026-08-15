@@ -64,6 +64,8 @@ calls = [
     lambda: email_service.send_profile_updated_email(EMAIL, P, ["{{changed_field}}"], "{{timestamp}}"),
     lambda: email_service.send_account_deleted_email(EMAIL, P),
     lambda: email_service.send_account_deactivated_email(EMAIL, P, "{{reason}}"),
+    lambda: email_service.send_new_follower_email(EMAIL, P, "{{follower_name}}", "{{follower_profile_url}}"),
+    lambda: email_service.send_listing_removed_email(EMAIL, P, "{{listing_title}}", "{{removal_reason}}"),
     lambda: email_service.send_weekly_digest(EMAIL, P, "{{location}}", [item(1)], [{"name": "{{category_name}}"}]),
     lambda: email_service.send_reengagement_email(EMAIL, P, "{{reason}}", [item(1), item(2)]),
     lambda: email_service.send_abandoned_action_email(EMAIL, P, "listing"),
