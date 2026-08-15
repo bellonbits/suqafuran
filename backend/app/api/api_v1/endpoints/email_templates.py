@@ -114,7 +114,7 @@ def create_email_template(
     variables = sorted(list(set(variables)))
 
     template = EmailTemplate(
-        **template_in.dict(),
+        **template_in.dict(exclude={"variables"}),
         variables=json.dumps(variables),
         created_by=current_user.id,
         updated_by=current_user.id
