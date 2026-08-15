@@ -1726,16 +1726,21 @@ class EmailService:
         campaign_id: Optional[str] = None,
         user_id: Optional[int] = None
     ) -> bool:
-        # Resolve target user details dynamically for functional placeholder interpolation
+        # Resolve target user details + a real recent listing, so any
+        # {{item_title}}/{{offer_amount}}/{{listing_id}}-style placeholder in
+        # an admin-authored template (Send Test / Broadcast) renders real
+        # data instead of shipping the literal "{{...}}" to the recipient.
         user_name = "Customer"
         user_email = email
         user_phone = "None"
         user_location = "None"
-        
+
         from sqlmodel import Session, select
         from app.db.session import engine
         from app.models.user import User
-        
+        from app.models.listing import Listing, Category
+
+        sample_ctx: dict = {}
         try:
             with Session(engine) as session:
                 u = None
@@ -1747,24 +1752,81 @@ class EmailService:
                     user_name = u.full_name or "Customer"
                     user_email = u.email or email
                     user_phone = u.phone or "None"
-                    user_location = u.location or "None"
+                    user_location = u.location or user_location
                     if not user_id:
                         user_id = u.id
+
+                listing_row = session.exec(
+                    select(Listing, Category)
+                    .join(Category, Listing.category_id == Category.id)
+                    .where(Listing.status == "active")
+                    .order_by(Listing.id.desc())
+                ).first()
+                if listing_row:
+                    listing, category = listing_row
+                    price_str = f"{listing.price:,.0f}"
+                    sample_ctx.update({
+                        "item_title": listing.title_en, "listing_title": listing.title_en,
+                        "item_price": price_str, "price": price_str, "current_price": price_str,
+                        "offer_amount": price_str, "amount": price_str, "total_amount": price_str,
+                        "response_amount": price_str, "suggested_price": price_str,
+                        "old_price": price_str, "new_price": price_str,
+                        "listing_id": str(listing.id), "order_id": str(listing.id),
+                        "category": category.name_en, "category_name": category.name_en,
+                        "offer_url": f"https://suqafuran.com/listing/{listing.id}",
+                        "search_query": listing.title_en,
+                        "current_views": str(listing.views),
+                        "price_difference": "500",
+                    })
         except Exception as e:
-            print(f"[Email CRM] Error resolving user metadata: {e}")
+            print(f"[Email CRM] Error resolving user/listing metadata: {e}")
 
         import datetime
-        current_date_str = datetime.date.today().strftime("%B %d, %Y")
-        
+        now = datetime.datetime.utcnow()
+        current_date_str = now.strftime("%B %d, %Y")
+
+        sample_ctx.setdefault("location", user_location if user_location != "None" else "Nairobi")
+        sample_ctx.update({
+            "name": user_name, "email": user_email, "phone": user_phone, "date": current_date_str,
+            "timestamp": now.strftime("%B %d, %Y at %H:%M"),
+            "tx_ref": f"SQF-{now.strftime('%Y%m%d')}-{user_id or 1000}",
+            "chat_url": "https://suqafuran.com/messages",
+            "seller_name": "the seller", "sender_name": "a buyer",
+            "status": "accepted", "response_status": "accepted",
+            "ip": "102.68.79.14", "device": "Chrome on Android",
+            "reason": "unusual login activity", "action": "review your recent activity",
+            "delivery_estimate": "2-3 business days", "violation_reason": "policy review",
+            "milestone_type": "Top Seller", "badge_earned": "Top Seller",
+            "reward_detail": "a featured listing credit", "payment_method": "M-Pesa",
+            "message_excerpt": "Hi, is this still available?",
+            "keyword_1": "iPhone", "keyword_2": "Sofa set", "average_price_change": "+3%",
+            "subject": "Platform Update", "body": "", "component": "Payments",
+            "details": "All systems operational",
+        })
+        sample_ctx.setdefault("item_title", "your item")
+        sample_ctx.setdefault("listing_title", "your item")
+        sample_ctx.setdefault("category", "General")
+        sample_ctx.setdefault("category_name", "General")
+        for k in ("price", "item_price", "current_price", "offer_amount", "amount",
+                  "total_amount", "response_amount", "suggested_price", "old_price",
+                  "new_price", "price_difference"):
+            sample_ctx.setdefault(k, "1,500")
+        sample_ctx.setdefault("listing_id", "0")
+        sample_ctx.setdefault("order_id", "0")
+        sample_ctx.setdefault("offer_url", "https://suqafuran.com/messages")
+        sample_ctx.setdefault("search_query", "your saved search")
+        sample_ctx.setdefault("current_views", "0")
+
+        from jinja2 import Template as JinjaTemplate
+
         def apply_replacements(text: Optional[str]) -> Optional[str]:
             if not text:
                 return text
-            text = text.replace("{{name}}", user_name)
-            text = text.replace("{{email}}", user_email)
-            text = text.replace("{{phone}}", user_phone)
-            text = text.replace("{{location}}", user_location)
-            text = text.replace("{{date}}", current_date_str)
-            return text
+            try:
+                return JinjaTemplate(text).render(**sample_ctx)
+            except Exception as e:
+                print(f"[Email CRM] Jinja render failed, falling back to raw text: {e}")
+                return text
 
         # Dynamically interpolate placeholders
         subject = apply_replacements(subject)
@@ -1783,17 +1845,29 @@ class EmailService:
               </a>
             </div>
             """
-        content = f"""
-        <div style="font-size: 15px; color: #475569; line-height: 1.6;">
-          {content_html}
-        </div>
-        {cta_button}
-        """
-        html_body = self._get_base_template(
-            title=title,
-            subtitle=subtitle or "Direct communication from Suqafuran Support",
-            content=content
-        )
+
+        # An admin template's html_content is often already a full, self-wrapped
+        # document (see seed_email_templates.py / the real automatic-dispatch
+        # path in email_tasks.py, which sends EmailTemplate.html_content as-is).
+        # Wrapping that again in _get_base_template produces a duplicated
+        # logo/header/title nested inside itself. Only wrap bare fragments.
+        already_wrapped = "<!doctype html" in content_html.strip().lower()[:200] or "<html" in content_html.lower()[:500]
+        if already_wrapped:
+            html_body = content_html
+            if cta_button and cta_button not in html_body:
+                html_body = html_body.replace("</body>", f"{cta_button}</body>") if "</body>" in html_body else html_body + cta_button
+        else:
+            content = f"""
+            <div style="font-size: 15px; color: #475569; line-height: 1.6;">
+              {content_html}
+            </div>
+            {cta_button}
+            """
+            html_body = self._get_base_template(
+                title=title,
+                subtitle=subtitle or "Direct communication from Suqafuran Support",
+                content=content
+            )
         return self._send_and_log(email, subject, html_body, f"crm_manual_{campaign_id or 'custom'}", user_id, campaign_id=campaign_id)
 
     def check_verification_code(self, email: str, code: str) -> bool:
