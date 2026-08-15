@@ -201,8 +201,9 @@ export default function ProductDetailPage() {
             setReportReason('');
             setReportDescription('');
             alert('Thank you for your report!');
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to submit report', err);
+            alert(err?.response?.data?.detail || 'Failed to submit report. Please try again.');
         }
     };
 
