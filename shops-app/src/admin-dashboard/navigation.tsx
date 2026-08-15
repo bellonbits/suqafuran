@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, ShoppingCart, CheckCircle, Layers,
-  Gift, Megaphone, MessageSquare, BarChart3, FileText,
+  Gift, Megaphone, MessageSquare, FileText,
   AlertTriangle, AlertCircle, TrendingUp, Store, Grid3x3,
   DollarSign, Package, AlertOctagon, CreditCard, Star, Mail, MessageCircle,
   Image as ImageIcon,
@@ -20,7 +20,6 @@ export const ADMIN_NAV_ITEMS = [
   { label: 'Disputes', icon: AlertOctagon, href: '/admin-disputes' },
   { label: 'Fraud', icon: AlertTriangle, href: '/admin-fraud' },
   { label: 'Unusual Accounts', icon: AlertCircle, href: '/admin-unusual-accounts' },
-  { label: 'Marketing', icon: BarChart3, href: '/admin-marketing' },
   { label: 'Homepage Banners', icon: ImageIcon, href: '/admin-dashboard/marketing/banners' },
   { label: 'User Lifecycle', icon: TrendingUp, href: '/admin-dashboard/user-lifecycle' },
   { label: 'Email Templates', icon: Mail, href: '/admin-dashboard/email-templates' },

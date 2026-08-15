@@ -1093,8 +1093,22 @@ def send_broadcast_email(
     Saves in EmailLog and routes asynchronously via Celery worker queue.
     """
     from app.tasks.celery_app import celery_app
-    active_users = db.exec(select(User).where(User.is_active == True)).all()
-    
+    from app.models.marketing import EmailPreference
+
+    # EmailPreference.promotional_emails defaults to True on the model, and
+    # the row is only ever created lazily when a user opens notification
+    # settings -- so "no row" means the default (opted in), and only an
+    # explicit False should exclude someone from a broadcast like this.
+    opted_out_ids = set(
+        db.exec(
+            select(EmailPreference.user_id).where(EmailPreference.promotional_emails == False)  # noqa: E712
+        ).all()
+    )
+    active_users = [
+        u for u in db.exec(select(User).where(User.is_active == True)).all()
+        if u.id not in opted_out_ids
+    ]
+
     import datetime
     current_date_str = datetime.date.today().strftime("%B %d, %Y")
     

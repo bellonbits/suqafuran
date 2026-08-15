@@ -57,7 +57,6 @@ import AdminFraudPage from './pages/AdminFraudPage'
 import AdminReportsPage from './pages/AdminReportsPage'
 import AdminSupportPage from './pages/AdminSupportPage'
 import AdminVerificationsPage from './pages/AdminVerificationsPage'
-import AdminMarketingPage from './pages/AdminMarketingPage'
 import AdminUnusualAccountsPage from './pages/AdminUnusualAccountsPage'
 import AdminAnalyticsPage from './pages/AdminAnalyticsPage'
 import AdminAnalyticsMainPage from './pages/AdminAnalyticsMainPage'
@@ -213,7 +212,6 @@ export default function App() {
       <Route element={<ProtectedRoute requiredRole="admin"><AdminReportsPage /></ProtectedRoute>} path="/admin-reports" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminSupportPage /></ProtectedRoute>} path="/admin-support" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminVerificationsPage /></ProtectedRoute>} path="/admin-verifications" />
-      <Route element={<ProtectedRoute requiredRole="admin"><AdminMarketingPage /></ProtectedRoute>} path="/admin-marketing" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminUnusualAccountsPage /></ProtectedRoute>} path="/admin-unusual-accounts" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminAnalyticsPage /></ProtectedRoute>} path="/admin-analytics" />
 
