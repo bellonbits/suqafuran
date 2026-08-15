@@ -405,3 +405,58 @@ def dispatch_growth_email_task(
     except Exception as exc:
         logger.error(f"Task failed for email_type '{email_type}': {exc}")
         raise self.retry(exc=exc, countdown=60)
+
+
+@shared_task(name="app.tasks.email_tasks.run_promotional_rotation")
+def run_promotional_rotation_task():
+    """
+    Runs on a daily beat schedule (see celery_app.py). For each active user,
+    picks whichever promotional/lifecycle campaigns they're due for (rotation
+    engine handles cooldowns, weekly caps, and preference gating), sends them,
+    and logs each send to CampaignSendLog so future runs know not to repeat
+    them too soon.
+    """
+    from sqlmodel import Session, select
+    from app.db.session import engine
+    from app.models.user import User
+    from app.models.email_log import EmailLog
+    from app.services.rotation_engine import select_campaigns_for_user, record_send
+
+    BATCH_SIZE = 500
+    total_users = 0
+    total_sent = 0
+    offset = 0
+
+    while True:
+        with Session(engine) as db:
+            users = db.exec(
+                select(User).where(User.is_active == True, User.email.isnot(None))  # noqa: E712
+                .order_by(User.id).offset(offset).limit(BATCH_SIZE)
+            ).all()
+            if not users:
+                break
+
+            for user in users:
+                total_users += 1
+                try:
+                    selected = select_campaigns_for_user(db, user)
+                except Exception as exc:
+                    logger.warning(f"Rotation selection failed for user {user.id}: {exc}")
+                    continue
+
+                for campaign in selected:
+                    try:
+                        campaign.send_fn(user.email, user.full_name or "Customer", campaign.subject, campaign.content)
+                        log_row = db.exec(
+                            select(EmailLog).where(EmailLog.user_id == user.id)
+                            .order_by(EmailLog.sent_at.desc()).limit(1)
+                        ).first()
+                        record_send(db, user.id, campaign, log_row.id if log_row else None)
+                        total_sent += 1
+                    except Exception as exc:
+                        logger.warning(f"Campaign '{campaign.campaign_type}' failed for user {user.id}: {exc}")
+
+        offset += BATCH_SIZE
+
+    logger.info(f"Promotional rotation run complete: {total_users} users evaluated, {total_sent} emails sent")
+    return {"users_evaluated": total_users, "emails_sent": total_sent}

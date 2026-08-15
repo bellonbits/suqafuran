@@ -1,4 +1,5 @@
 from celery import Celery
+from celery.schedules import crontab
 from app.core.config import settings
 
 celery_app = Celery(
@@ -59,6 +60,13 @@ celery_app.conf.update(
         "expire-ended-subscriptions": {
             "task": "app.tasks.subscription_tasks.expire_ended_subscriptions",
             "schedule": 900.0,
+        },
+        # Promotional/lifecycle campaign rotation — daily at 09:00 UTC. The
+        # weekly frequency cap and per-campaign cooldowns are enforced inside
+        # the task itself (rotation_engine.py), not by this schedule.
+        "run-promotional-rotation": {
+            "task": "app.tasks.email_tasks.run_promotional_rotation",
+            "schedule": crontab(hour=9, minute=0),
         },
     },
 )
