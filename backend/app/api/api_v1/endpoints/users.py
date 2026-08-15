@@ -257,6 +257,7 @@ def delete_user_me(
     *,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
+    background_tasks: BackgroundTasks,
 ) -> Any:
     """
     Permanently delete the current user's account and all associated data.
@@ -275,6 +276,10 @@ def delete_user_me(
     from app.models.promotion import Promotion
 
     uid = current_user.id
+    # Captured before the row is deleted below -- current_user is detached
+    # from the session (and its fields unusable) once db.commit() runs.
+    deleted_email = current_user.email
+    deleted_name = current_user.full_name or "Customer"
 
     # 1. Audit logs
     for row in db.exec(select(AuditLog).where(AuditLog.user_id == uid)).all():
@@ -338,6 +343,10 @@ def delete_user_me(
     # 10. Finally delete the user
     db.delete(current_user)
     db.commit()
+
+    from app.services.email_service import email_service
+    background_tasks.add_task(email_service.send_account_deleted_email, deleted_email, deleted_name, uid)
+
     return {"message": "Account deleted successfully"}
 
 

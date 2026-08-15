@@ -1,5 +1,5 @@
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Query, File, UploadFile, BackgroundTasks
 from sqlmodel import Session, select, func
 from pydantic import BaseModel
 from app.api import deps
@@ -399,6 +399,8 @@ def update_user_status(
     current_user: User = Depends(deps.get_current_active_superuser),
     user_id: int,
     is_active: bool,
+    reason: Optional[str] = None,
+    background_tasks: BackgroundTasks,
 ) -> Any:
     """
     Deactivate or activate a user account.
@@ -406,10 +408,11 @@ def update_user_status(
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
+    was_active = user.is_active
     user.is_active = is_active
     db.add(user)
-    
+
     # Audit log
     db.add(AuditLog(
         user_id=current_user.id,
@@ -418,9 +421,16 @@ def update_user_status(
         resource_id=user_id,
         details=f"User {'activated' if is_active else 'deactivated'}"
     ))
-    
+
     db.commit()
     db.refresh(user)
+
+    if was_active and not is_active and user.email:
+        from app.services.email_service import email_service
+        background_tasks.add_task(
+            email_service.send_account_deactivated_email, user.email, user.full_name or "Customer", reason, user.id
+        )
+
     return user
 
 

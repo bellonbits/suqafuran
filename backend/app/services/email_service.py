@@ -1193,11 +1193,11 @@ class EmailService:
         </p>
         <div style="background: #f8fafc; padding: 16px; border-radius: 12px; margin: 24px 0; font-size: 13px; color: #64748b;">
           <strong>If this was you:</strong> You can safely ignore this warning notice.<br><br>
-          <strong>If this wasn't you:</strong> Please lock your profile immediately and contact platform safety moderators.
+          <strong>If this wasn't you:</strong> Contact platform safety moderators immediately.
         </div>
         <div style="text-align: center;">
-          <a href="{settings.FRONTEND_URL}/lock-account" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
-            Lock My Account Instantly
+          <a href="{settings.FRONTEND_URL}/support" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            Contact Support
           </a>
         </div>
         """
@@ -1260,11 +1260,11 @@ class EmailService:
         </p>
         <div style="background: #f8fafc; padding: 16px; border-radius: 12px; margin: 24px 0; font-size: 13px; color: #64748b;">
           <strong>If this was you:</strong> You can safely ignore this notice.<br><br>
-          <strong>If this wasn't you:</strong> Please lock your profile immediately and contact platform safety moderators.
+          <strong>If this wasn't you:</strong> Contact platform safety moderators immediately.
         </div>
         <div style="text-align: center;">
-          <a href="{settings.FRONTEND_URL}/lock-account" style="display: inline-block; background: #b45309; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
-            Lock My Account Instantly
+          <a href="{settings.FRONTEND_URL}/support" style="display: inline-block; background: #b45309; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            Contact Support
           </a>
         </div>
         """
@@ -1274,6 +1274,52 @@ class EmailService:
             content=content
         )
         return self._send_and_log(email, "⚠️ Security Notice: Account details changed on Suqafuran", html_body, "safety_profile_updated", user_id)
+
+    def send_account_deleted_email(self, email: str, name: str, user_id: Optional[int] = None) -> bool:
+        content = f"""
+        <p style="font-size: 15px; color: #475569; line-height: 1.6;">
+          Hello {name},<br><br>
+          This confirms that your Suqafuran account and all associated data (listings, messages, favorites, and account history) have been permanently deleted, as you requested.
+        </p>
+        <div style="background: #f8fafc; padding: 16px; border-radius: 12px; margin: 24px 0; font-size: 13px; color: #64748b;">
+          If you didn't request this, or changed your mind, contact support right away — this action cannot be undone once complete.
+        </div>
+        <div style="text-align: center;">
+          <a href="mailto:support@suqafuran.com" style="display: inline-block; background: #64748b; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            Contact Support
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Your Account Has Been Deleted",
+            subtitle="Confirming your Suqafuran account was permanently removed.",
+            content=content
+        )
+        return self._send_and_log(email, "Your Suqafuran account has been deleted", html_body, "account_deleted", user_id)
+
+    def send_account_deactivated_email(self, email: str, name: str, reason: Optional[str] = None, user_id: Optional[int] = None) -> bool:
+        reason_html = f'<p style="margin-top:12px; font-size:13px; color:#64748b;"><strong>Reason:</strong> {reason}</p>' if reason else ""
+        content = f"""
+        <div style="background: #fef2f2; border-radius: 12px; padding: 16px; border: 1px solid #fecaca; color: #b91c1c; font-size: 14px; font-weight: 700; margin-bottom: 20px;">
+          ⚠️ Your account has been temporarily locked
+        </div>
+        <p style="font-size: 14px; color: #475569; line-height: 1.6;">
+          Hello {name},<br><br>
+          Your Suqafuran account has been temporarily locked by our platform safety team, and you won't be able to sign in until it's reviewed.
+        </p>
+        {reason_html}
+        <div style="text-align: center; margin-top:24px;">
+          <a href="{settings.FRONTEND_URL}/support" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
+            Contact Support
+          </a>
+        </div>
+        """
+        html_body = self._get_base_template(
+            title="Account Temporarily Locked",
+            subtitle="Your account access has been restricted pending review.",
+            content=content
+        )
+        return self._send_and_log(email, "⚠️ Your Suqafuran account has been temporarily locked", html_body, "safety_account_locked", user_id)
 
     # 3. Additional Engagement & Retention Emails
     def send_recommended_items_email(
