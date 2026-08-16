@@ -7,7 +7,19 @@ import { useToast } from '@/hooks/use-toast';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ADMIN_NAV_ITEMS } from '@/navigation';
 import { useAuthStore } from '@/store/useAuth';
-import { Mail, Edit2, Trash2, Plus, Eye, Save, X, Send, Megaphone } from 'lucide-react';
+import { Mail, Edit2, Trash2, Plus, Eye, Save, X, Send, Megaphone, XCircle, RefreshCw } from 'lucide-react';
+
+interface BroadcastJob {
+  id: number;
+  subject: string;
+  title: string;
+  status: 'in_progress' | 'completed' | 'cancelled';
+  total_recipients: number;
+  sent_count: number;
+  failed_count: number;
+  daily_limit: number;
+  created_at: string;
+}
 
 interface EmailTemplate {
   id: number;
@@ -37,6 +49,8 @@ export default function EmailTemplatesPage() {
   const [sendingTemplate, setSendingTemplate] = useState<EmailTemplate | null>(null);
   const [broadcastingTemplate, setBroadcastingTemplate] = useState<EmailTemplate | null>(null);
   const [audienceCount, setAudienceCount] = useState<number | null>(null);
+  const [broadcastJobs, setBroadcastJobs] = useState<BroadcastJob[]>([]);
+  const [loadingJobs, setLoadingJobs] = useState(false);
 
   const navItems = ADMIN_NAV_ITEMS.map(({ icon: Icon, ...item }) => ({
     ...item,
@@ -46,8 +60,44 @@ export default function EmailTemplatesPage() {
   useEffect(() => {
     if (user?.is_admin) {
       fetchTemplates();
+      fetchBroadcastJobs();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (!user?.is_admin) return;
+    const hasActiveJob = broadcastJobs.some(j => j.status === 'in_progress');
+    if (!hasActiveJob) return;
+    const interval = setInterval(fetchBroadcastJobs, 30000);
+    return () => clearInterval(interval);
+  }, [user, broadcastJobs]);
+
+  const fetchBroadcastJobs = async () => {
+    setLoadingJobs(true);
+    try {
+      const response = await api.get('/admin/email/broadcast-jobs');
+      setBroadcastJobs(response.data);
+    } catch (error) {
+      console.error('Failed to fetch broadcast jobs:', error);
+    } finally {
+      setLoadingJobs(false);
+    }
+  };
+
+  const handleCancelJob = async (jobId: number) => {
+    if (!confirm('Stop sending any further recipients for this broadcast?')) return;
+    try {
+      await api.post(`/admin/email/broadcast-jobs/${jobId}/cancel`);
+      toast({ title: 'Broadcast cancelled', description: 'No further recipients will be sent.' });
+      fetchBroadcastJobs();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.detail || 'Failed to cancel broadcast',
+        variant: 'destructive'
+      });
+    }
+  };
 
   const fetchTemplates = async () => {
     try {
@@ -155,7 +205,7 @@ export default function EmailTemplatesPage() {
     }
   };
 
-  const handleBroadcast = async (template: EmailTemplate) => {
+  const handleBroadcast = async (template: EmailTemplate, dailyLimit: number) => {
     try {
       const res = await api.post('/admin/email/broadcast', {
         subject: template.subject,
@@ -165,9 +215,11 @@ export default function EmailTemplatesPage() {
         action_text: template.action_text || undefined,
         action_url: template.action_url || undefined,
         campaign_id: `broadcast_${template.event_type}_${Date.now()}`,
+        daily_limit: dailyLimit,
       });
       toast({ title: 'Broadcast queued', description: res.data?.message || 'Sending to all active customers' });
       setBroadcastingTemplate(null);
+      fetchBroadcastJobs();
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -210,6 +262,72 @@ export default function EmailTemplatesPage() {
             New Template
           </button>
         </div>
+
+        {/* Broadcast Jobs */}
+        {broadcastJobs.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                <Megaphone className="w-5 h-5 text-orange-600" />
+                Broadcast Jobs
+              </h2>
+              <button
+                onClick={fetchBroadcastJobs}
+                disabled={loadingJobs}
+                className="p-2 text-slate-500 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-900 rounded disabled:opacity-50"
+                title="Refresh"
+              >
+                <RefreshCw className={`w-4 h-4 ${loadingJobs ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
+            <div className="grid gap-3">
+              {broadcastJobs.map(job => {
+                const pct = job.total_recipients > 0
+                  ? Math.round((job.sent_count / job.total_recipients) * 100)
+                  : 0;
+                const statusStyle = {
+                  in_progress: 'bg-blue-50 dark:bg-blue-950/30 text-blue-800',
+                  completed: 'bg-emerald-50 dark:bg-emerald-950/30 text-green-800',
+                  cancelled: 'bg-slate-100 dark:bg-neutral-900 text-gray-800',
+                }[job.status];
+                return (
+                  <Card key={job.id} className="p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-semibold text-slate-900 dark:text-white truncate">{job.title}</p>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold shrink-0 ${statusStyle}`}>
+                            {job.status.replace('_', ' ')}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-neutral-400 mb-2">
+                          {job.sent_count.toLocaleString()} / {job.total_recipients.toLocaleString()} sent
+                          {job.failed_count > 0 && <span className="text-red-600"> &middot; {job.failed_count} failed</span>}
+                          {' '}&middot; up to {job.daily_limit.toLocaleString()}/day
+                        </p>
+                        <div className="w-full h-1.5 bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${job.status === 'cancelled' ? 'bg-slate-400' : 'bg-orange-500'}`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                      {job.status === 'in_progress' && (
+                        <button
+                          onClick={() => handleCancelJob(job.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded shrink-0"
+                          title="Cancel broadcast"
+                        >
+                          <XCircle className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Template List */}
         <div className="grid gap-4">
@@ -343,7 +461,7 @@ export default function EmailTemplatesPage() {
           <BroadcastConfirmModal
             template={broadcastingTemplate}
             audienceCount={audienceCount}
-            onConfirm={() => handleBroadcast(broadcastingTemplate)}
+            onConfirm={(dailyLimit) => handleBroadcast(broadcastingTemplate, dailyLimit)}
             onCancel={() => setBroadcastingTemplate(null)}
           />
         )}
@@ -631,12 +749,14 @@ function BroadcastConfirmModal({
 }: {
   template: EmailTemplate;
   audienceCount: number | null;
-  onConfirm: () => void;
+  onConfirm: (dailyLimit: number) => void | Promise<void>;
   onCancel: () => void;
 }) {
   const [confirmText, setConfirmText] = useState('');
+  const [dailyLimit, setDailyLimit] = useState(250);
   const [sending, setSending] = useState(false);
-  const canSend = confirmText.trim().toUpperCase() === 'SEND';
+  const canSend = confirmText.trim().toUpperCase() === 'SEND' && dailyLimit > 0;
+  const days = audienceCount && dailyLimit > 0 ? Math.ceil(audienceCount / dailyLimit) : null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -648,14 +768,28 @@ function BroadcastConfirmModal({
           </div>
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
             <p className="text-sm text-orange-900">
-              This sends "<strong>{template.name}</strong>" to{' '}
+              This queues "<strong>{template.name}</strong>" for{' '}
               {audienceCount !== null ? (
                 <strong>~{audienceCount.toLocaleString()} active customers</strong>
               ) : (
                 'all active customers'
-              )}{' '}
-              right now. This cannot be undone.
+              )}
+              , sending up to <strong>{dailyLimit.toLocaleString()}/day</strong>
+              {days ? <> (~{days} day{days !== 1 ? 's' : ''} to finish)</> : null} to stay under your sending limits.
+              You can cancel it anytime from the Broadcast Jobs list below.
             </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-900 dark:text-white mb-1">
+              Emails per day
+            </label>
+            <input
+              type="number"
+              min={1}
+              value={dailyLimit}
+              onChange={(e) => setDailyLimit(Math.max(1, parseInt(e.target.value) || 0))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-900 dark:text-white mb-1">
@@ -675,14 +809,14 @@ function BroadcastConfirmModal({
             <button
               onClick={async () => {
                 setSending(true);
-                await onConfirm();
+                await onConfirm(dailyLimit);
                 setSending(false);
               }}
               disabled={!canSend || sending}
               className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
             >
               <Megaphone className="w-4 h-4" />
-              {sending ? 'Sending...' : 'Broadcast Now'}
+              {sending ? 'Queuing...' : 'Queue Broadcast'}
             </button>
           </div>
         </div>
