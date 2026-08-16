@@ -81,44 +81,59 @@ function MessagesPageContent() {
         }
     }, [sharedProductId]);
 
-    // Handle initial target user from query params
+    // Handle initial target user from query params. Deliberately depends
+    // only on targetUserId, not on `conversations` -- the mark-as-read
+    // update and the 30s poll both give `conversations` a new array
+    // reference on every cycle, and including it here used to re-run this
+    // effect on every such refresh.
     useEffect(() => {
-        if (targetUserId) {
-            const targetIdNum = Number(targetUserId);
-            setSelectedUserId(targetIdNum);
+        if (!targetUserId) return;
+        const targetIdNum = Number(targetUserId);
+        setSelectedUserId(targetIdNum);
 
-            // Always create/fetch stub for target user, even if conversations is empty
-            if (!conversations.some(c => c.other_user_id === targetIdNum)) {
-                api.get(`/sellers/${targetIdNum}`)
-                    .then(res => {
-                        const seller = res.data;
-                        const stubConv: Conversation = {
-                            other_user_id: targetIdNum,
-                            other_user_name: seller.business_name || seller.full_name || `Seller #${targetIdNum}`,
-                            other_user_avatar: seller.avatar_url,
-                            last_message: 'Start a new conversation...',
-                            last_message_time: new Date().toISOString(),
-                            unread_count: 0
-                        };
-                        setConversations(prev => [stubConv, ...prev]);
-                    })
-                    .catch(() => {
-                        // Fallback: create stub with just user ID
-                        const stubConv: Conversation = {
-                            other_user_id: targetIdNum,
-                            other_user_name: `User #${targetIdNum}`,
-                            last_message: 'Start a new conversation...',
-                            last_message_time: new Date().toISOString(),
-                            unread_count: 0
-                        };
-                        setConversations(prev => [stubConv, ...prev]);
-                    });
-            }
-        } else if (conversations.length > 0 && typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches) {
-            // Only default to first conversation if no target user specified in URL
+        // Always create/fetch stub for target user, even if conversations is empty
+        if (!conversations.some(c => c.other_user_id === targetIdNum)) {
+            api.get(`/sellers/${targetIdNum}`)
+                .then(res => {
+                    const seller = res.data;
+                    const stubConv: Conversation = {
+                        other_user_id: targetIdNum,
+                        other_user_name: seller.business_name || seller.full_name || `Seller #${targetIdNum}`,
+                        other_user_avatar: seller.avatar_url,
+                        last_message: 'Start a new conversation...',
+                        last_message_time: new Date().toISOString(),
+                        unread_count: 0
+                    };
+                    setConversations(prev => [stubConv, ...prev]);
+                })
+                .catch(() => {
+                    // Fallback: create stub with just user ID
+                    const stubConv: Conversation = {
+                        other_user_id: targetIdNum,
+                        other_user_name: `User #${targetIdNum}`,
+                        last_message: 'Start a new conversation...',
+                        last_message_time: new Date().toISOString(),
+                        unread_count: 0
+                    };
+                    setConversations(prev => [stubConv, ...prev]);
+                });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [targetUserId]);
+
+    // Default to the first conversation on desktop when nothing is selected
+    // yet. Guarded on selectedUserId being null so this never fires again
+    // once the user has picked a conversation -- without that guard, any
+    // later `conversations` refresh (30s poll, mark-as-read update) would
+    // re-run this and snap the selection straight back to the first
+    // conversation, making clicking any other conversation appear to do
+    // nothing.
+    useEffect(() => {
+        if (targetUserId || selectedUserId !== null || conversations.length === 0) return;
+        if (typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches) {
             setSelectedUserId(conversations[0].other_user_id);
         }
-    }, [targetUserId, conversations]);
+    }, [targetUserId, selectedUserId, conversations]);
 
     // Load messages when selected user changes
     useEffect(() => {
