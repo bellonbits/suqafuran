@@ -407,7 +407,7 @@ def dispatch_growth_email_task(
         raise self.retry(exc=exc, countdown=60)
 
 
-@shared_task(name="app.tasks.email_tasks.run_promotional_rotation")
+@shared_task(name="app.tasks.email_tasks.run_promotional_rotation", acks_late=False)
 def run_promotional_rotation_task():
     """
     Runs on a daily beat schedule (see celery_app.py). For each active user,
@@ -415,6 +415,15 @@ def run_promotional_rotation_task():
     engine handles cooldowns, weekly caps, and preference gating), sends them,
     and logs each send to CampaignSendLog so future runs know not to repeat
     them too soon.
+
+    acks_late=False (overriding the celery_app.py default) is deliberate: this
+    task loops over every user and can run long. With acks_late, a worker
+    restart mid-run (e.g. during a deploy) leaves the message unacked, and the
+    next worker that starts redelivers and reruns the WHOLE task from
+    scratch -- duplicate sends to everyone already processed, not just a
+    resumed tail. This job is inherently self-healing (cooldowns mean anyone
+    missed just gets picked up on tomorrow's run), so losing an interrupted
+    run is far safer than redelivering it.
     """
     from sqlmodel import Session, select
     from app.db.session import engine
@@ -430,7 +439,11 @@ def run_promotional_rotation_task():
     while True:
         with Session(engine) as db:
             users = db.exec(
-                select(User).where(User.is_active == True, User.email.isnot(None))  # noqa: E712
+                select(User).where(
+                    User.is_active == True,  # noqa: E712
+                    User.email.isnot(None),
+                    User.email.notlike("%@suqafuran.local"),
+                )
                 .order_by(User.id).offset(offset).limit(BATCH_SIZE)
             ).all()
             if not users:
@@ -462,7 +475,7 @@ def run_promotional_rotation_task():
     return {"users_evaluated": total_users, "emails_sent": total_sent}
 
 
-@shared_task(name="app.tasks.email_tasks.process_broadcast_jobs")
+@shared_task(name="app.tasks.email_tasks.process_broadcast_jobs", acks_late=False)
 def process_broadcast_jobs_task():
     """
     Runs every 30 minutes (see celery_app.py). For each in-progress
@@ -471,6 +484,12 @@ def process_broadcast_jobs_task():
     user base drips out under a sending provider's daily quota instead of
     firing everyone at once. Marks a job "completed" once every recipient
     has been attempted.
+
+    acks_late=False, and each recipient's "sent" status is committed
+    individually rather than once at the end of the batch -- both for the
+    same reason as run_promotional_rotation_task: a worker restart mid-batch
+    under acks_late redelivers the message and resends the entire batch,
+    including recipients already emailed but not yet committed as "sent".
     """
     from datetime import datetime
     from sqlmodel import Session, select, func
@@ -527,6 +546,8 @@ def process_broadcast_jobs_task():
                     job.failed_count += 1
                     logger.warning(f"Broadcast job {job.id} failed to send to {recipient.email}: {exc}")
                 db.add(recipient)
+                db.add(job)
+                db.commit()
 
             remaining_pending = db.exec(
                 select(func.count()).where(
