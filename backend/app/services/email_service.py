@@ -390,8 +390,10 @@ class EmailService:
                 failed_reason = f"Brevo failed: {str(e)}"
                 print(f"[Email] Brevo failed ({e}), trying Resend fallback...")
 
-        # Primary (or fallback, if Brevo was preferred and failed): Resend API Delivery
-        if not success and settings.RESEND_API_KEY:
+        # Primary Resend API Delivery -- skipped entirely when Brevo was the
+        # preferred provider (marketing/promotional sends): those should
+        # never fall back to Resend, only to SMTP/dev-bypass beyond Brevo.
+        if not success and settings.RESEND_API_KEY and preferred_provider != "brevo":
             try:
                 import resend
 
