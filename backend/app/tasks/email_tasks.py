@@ -460,3 +460,86 @@ def run_promotional_rotation_task():
 
     logger.info(f"Promotional rotation run complete: {total_users} users evaluated, {total_sent} emails sent")
     return {"users_evaluated": total_users, "emails_sent": total_sent}
+
+
+@shared_task(name="app.tasks.email_tasks.process_broadcast_jobs")
+def process_broadcast_jobs_task():
+    """
+    Runs every 30 minutes (see celery_app.py). For each in-progress
+    BroadcastJob, sends up to `daily_limit` more recipients -- counting only
+    what's already gone out today for that job -- so a broadcast to a large
+    user base drips out under a sending provider's daily quota instead of
+    firing everyone at once. Marks a job "completed" once every recipient
+    has been attempted.
+    """
+    from datetime import datetime
+    from sqlmodel import Session, select, func
+    from app.db.session import engine
+    from app.models.broadcast_job import BroadcastJob, BroadcastJobRecipient
+    from app.services.email_service import email_service
+
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    jobs_processed = 0
+    total_sent = 0
+
+    with Session(engine) as db:
+        jobs = db.exec(select(BroadcastJob).where(BroadcastJob.status == "in_progress")).all()
+
+        for job in jobs:
+            sent_today = db.exec(
+                select(func.count()).where(
+                    BroadcastJobRecipient.job_id == job.id,
+                    BroadcastJobRecipient.status == "sent",
+                    BroadcastJobRecipient.sent_at >= today_start,
+                )
+            ).one() or 0
+
+            remaining_today = job.daily_limit - sent_today
+            if remaining_today <= 0:
+                continue
+
+            batch = db.exec(
+                select(BroadcastJobRecipient)
+                .where(BroadcastJobRecipient.job_id == job.id, BroadcastJobRecipient.status == "pending")
+                .limit(remaining_today)
+            ).all()
+
+            for recipient in batch:
+                try:
+                    email_service.send_custom_manual_email(
+                        recipient.email,
+                        subject=job.subject,
+                        title=job.title,
+                        subtitle=job.subtitle,
+                        content_html=job.content_html,
+                        action_text=job.action_text,
+                        action_url=job.action_url,
+                        campaign_id=job.campaign_id,
+                        user_id=recipient.user_id,
+                    )
+                    recipient.status = "sent"
+                    recipient.sent_at = datetime.utcnow()
+                    job.sent_count += 1
+                    total_sent += 1
+                except Exception as exc:
+                    recipient.status = "failed"
+                    recipient.failed_reason = str(exc)
+                    job.failed_count += 1
+                    logger.warning(f"Broadcast job {job.id} failed to send to {recipient.email}: {exc}")
+                db.add(recipient)
+
+            remaining_pending = db.exec(
+                select(func.count()).where(
+                    BroadcastJobRecipient.job_id == job.id, BroadcastJobRecipient.status == "pending"
+                )
+            ).one() or 0
+            if remaining_pending == 0:
+                job.status = "completed"
+
+            job.updated_at = datetime.utcnow()
+            db.add(job)
+            db.commit()
+            jobs_processed += 1
+
+    logger.info(f"Broadcast job processing complete: {jobs_processed} job(s) processed, {total_sent} emails sent")
+    return {"jobs_processed": jobs_processed, "emails_sent": total_sent}

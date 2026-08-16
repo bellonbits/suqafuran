@@ -1055,6 +1055,7 @@ class BroadcastEmailSend(BaseModel):
     action_text: Optional[str] = None
     action_url: Optional[str] = None
     campaign_id: Optional[str] = None
+    daily_limit: int = 250
 
 
 @router.post("/email/send-manual")
@@ -1099,11 +1100,15 @@ def send_broadcast_email(
     current_user: User = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
-    Broadcast a manual tracked custom email to ALL active customer profiles at once.
-    Saves in EmailLog and routes asynchronously via Celery worker queue.
+    Broadcast a manual tracked custom email to ALL active customer profiles,
+    drip-fed at up to `daily_limit` sends per day (see process_broadcast_jobs_task
+    in app/tasks/email_tasks.py, run on a schedule) rather than all at once --
+    keeps large broadcasts under a sending provider's daily quota. Per-recipient
+    personalization (name/email/phone/location/date + real-data placeholder
+    substitution) happens at actual send time in send_custom_manual_email.
     """
-    from app.tasks.celery_app import celery_app
     from app.models.marketing import EmailPreference
+    from app.models.broadcast_job import BroadcastJob, BroadcastJobRecipient
 
     # EmailPreference.promotional_emails defaults to True on the model, and
     # the row is only ever created lazily when a user opens notification
@@ -1116,59 +1121,90 @@ def send_broadcast_email(
     )
     active_users = [
         u for u in db.exec(select(User).where(User.is_active == True)).all()
-        if u.id not in opted_out_ids
+        if u.id not in opted_out_ids and u.email
     ]
 
-    import datetime
-    current_date_str = datetime.date.today().strftime("%B %d, %Y")
-    
-    count = 0
-    for u in active_users:
-        if not u.email:
-            continue
-        
-        # Resolve user metadata
-        name_placeholder = u.full_name or "customer"
-        email_placeholder = u.email
-        phone_placeholder = u.phone or "None"
-        location_placeholder = u.location or "None"
-        
-        # Apply replacements to all fields
-        def apply_replacements(text: Optional[str]) -> Optional[str]:
-            if not text:
-                return text
-            text = text.replace("{{name}}", name_placeholder)
-            text = text.replace("{{email}}", email_placeholder)
-            text = text.replace("{{phone}}", phone_placeholder)
-            text = text.replace("{{location}}", location_placeholder)
-            text = text.replace("{{date}}", current_date_str)
-            return text
-            
-        subj = apply_replacements(payload.subject)
-        tit = apply_replacements(payload.title)
-        subt = apply_replacements(payload.subtitle)
-        body = apply_replacements(payload.content_html)
-        action_text = apply_replacements(payload.action_text)
-        action_url = apply_replacements(payload.action_url)
-        
-        celery_app.send_task(
-            "app.tasks.email_tasks.dispatch_growth_email",
-            args=["crm_manual", u.email, {
-                "subject": subj,
-                "title": tit,
-                "subtitle": subt,
-                "content_html": body,
-                "action_text": action_text,
-                "action_url": action_url
-            }],
-            kwargs={
-                "user_id": u.id,
-                "campaign_id": payload.campaign_id or "broadcast_all"
-            }
-        )
-        count += 1
-        
-    return {"success": True, "message": f"Broadcast successfully queued for {count} active customers."}
+    job = BroadcastJob(
+        subject=payload.subject,
+        title=payload.title,
+        subtitle=payload.subtitle,
+        content_html=payload.content_html,
+        action_text=payload.action_text,
+        action_url=payload.action_url,
+        campaign_id=payload.campaign_id or "broadcast_all",
+        daily_limit=max(1, payload.daily_limit),
+        total_recipients=len(active_users),
+        created_by=current_user.id,
+    )
+    db.add(job)
+    db.commit()
+    db.refresh(job)
+
+    db.bulk_save_objects([
+        BroadcastJobRecipient(job_id=job.id, user_id=u.id, email=u.email)
+        for u in active_users
+    ])
+    db.commit()
+
+    days_estimate = -(-len(active_users) // job.daily_limit) if active_users else 0  # ceil division
+    return {
+        "success": True,
+        "job_id": job.id,
+        "total_recipients": len(active_users),
+        "daily_limit": job.daily_limit,
+        "estimated_days": days_estimate,
+        "message": (
+            f"Broadcast queued for {len(active_users)} customers, sending up to "
+            f"{job.daily_limit}/day (~{days_estimate} day{'s' if days_estimate != 1 else ''} to finish)."
+        ),
+    }
+
+
+@router.get("/email/broadcast-jobs")
+def list_broadcast_jobs(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+    limit: int = 20,
+) -> Any:
+    """List recent broadcast jobs with their send progress."""
+    from app.models.broadcast_job import BroadcastJob
+
+    jobs = db.exec(select(BroadcastJob).order_by(BroadcastJob.created_at.desc()).limit(limit)).all()
+    return jobs
+
+
+@router.get("/email/broadcast-jobs/{job_id}")
+def get_broadcast_job(
+    job_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """Get a single broadcast job's send progress."""
+    from app.models.broadcast_job import BroadcastJob
+
+    job = db.get(BroadcastJob, job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Broadcast job not found")
+    return job
+
+
+@router.post("/email/broadcast-jobs/{job_id}/cancel")
+def cancel_broadcast_job(
+    job_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """Stop sending any further recipients for an in-progress broadcast job."""
+    from app.models.broadcast_job import BroadcastJob
+
+    job = db.get(BroadcastJob, job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Broadcast job not found")
+    if job.status == "in_progress":
+        job.status = "cancelled"
+        db.add(job)
+        db.commit()
+    return {"success": True, "status": job.status}
 
 
 @router.get("/businesses/queue", response_model=List[Business])

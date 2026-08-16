@@ -19,6 +19,7 @@ from app.models.device import Device, UserDeviceLink
 from app.models.fraud import FraudEvent, RiskHistory
 from app.models.email_log import EmailLog
 from app.models.campaign_send_log import CampaignSendLog
+from app.models.broadcast_job import BroadcastJob, BroadcastJobRecipient
 from app.models.otp_log import OTPLog
 from app.models.saved_address import SavedAddress
 from app.models.order import Order, OrderItem, OrderStatus, FulfillmentType

@@ -68,5 +68,13 @@ celery_app.conf.update(
             "task": "app.tasks.email_tasks.run_promotional_rotation",
             "schedule": crontab(hour=9, minute=0),
         },
+        # Drip-feed admin broadcast campaigns — every 30 minutes. The
+        # per-job daily_limit is enforced inside the task itself, so running
+        # this often just means a job resumes promptly if it was paused
+        # (e.g. worker restart) rather than waiting a full day.
+        "process-broadcast-jobs": {
+            "task": "app.tasks.email_tasks.process_broadcast_jobs",
+            "schedule": 1800.0,
+        },
     },
 )
