@@ -6,9 +6,10 @@ Enforces:
   - A weekly cap on promotional sends per user (WEEKLY_PROMO_CAP).
   - A per-campaign-type cooldown (no repeating the same campaign_type for a
     user within CampaignDefinition.cooldown_days).
-  - A per-run cap on total sends per user (MAX_SENDS_PER_RUN), so a user who
-    happens to be eligible for several campaigns at once still gets a
-    manageable number of emails from a single run.
+  - A per-run cap on total sends per user (MAX_SENDS_PER_RUN = 1), so a user
+    eligible for several campaigns at once still only gets one email from a
+    single run -- the others wait for a later run rather than all landing
+    back-to-back the same day.
 
 Round-robins subject-line variants per user+campaign_type based on how many
 times that pair has been sent before, and hands campaign_selector_fn a
@@ -28,7 +29,7 @@ from app.models.campaign_send_log import CampaignSendLog
 from app.services.campaign_catalog import CATALOG, CampaignDefinition
 
 WEEKLY_PROMO_CAP = 3
-MAX_SENDS_PER_RUN = 2
+MAX_SENDS_PER_RUN = 1
 
 # Campaigns with their own dedicated EmailPreference field, checked instead
 # of (not in addition to) promotional_emails for non-promotional entries.
