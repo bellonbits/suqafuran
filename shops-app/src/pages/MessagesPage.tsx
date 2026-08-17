@@ -3,12 +3,23 @@
 import React, { useEffect, useState, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Send, Search, AlertCircle, ShoppingBag, ArrowLeft, MessageSquare, Loader } from 'lucide-react';
-import api from '@/services/api';
+import api, { optimizeCloudinaryUrl } from '@/services/api';
 import { listingsService } from '@/services/listings';
 import { useChat } from '@/hooks/useChat';
 import { useAuthStore } from '@/store/useAuth';
+import { useCurrencyStore } from '@/store/useCurrency';
+import { formatConvertedPrice } from '@/lib/currency';
+import { useLocalizedField } from '@/lib/i18n';
 import { trackEvent } from '@/lib/analytics';
 import type { ChatMessage, Listing } from '@/types';
+
+// A plain "hello" opener gets ignored; naming the actual product and asking
+// something concrete (availability) is what actually earns a reply -- this
+// is the one thing every "contact seller" tap has in common, so it's the
+// one line worth writing well instead of leaving to a generic placeholder.
+function buildOpeningMessage(productTitle: string): string {
+    return `Hi! \u{1F44B} I just came across your listing for "${productTitle}" -- is it still available? I'd love to know a bit more.`;
+}
 
 interface Conversation {
     other_user_id: number;
@@ -23,11 +34,19 @@ function MessagesPageContent() {
     const searchParams = useSearchParams();
     const targetUserId = searchParams.get('userId');
     const sharedProductId = searchParams.get('productId');
+    const field = useLocalizedField();
+    const currency = useCurrencyStore((s) => s.currency);
 
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputText, setInputText] = useState('');
+    // The listing this thread is about -- seeded from ?productId= when
+    // arriving via a "Contact Seller" tap, or recovered from the loaded
+    // thread's own messages when reopening a conversation later, so the
+    // product card and listing_id tagging persist across the whole chat,
+    // not just the first visit.
+    const [activeListingId, setActiveListingId] = useState<string | null>(null);
     const [sharedProduct, setSharedProduct] = useState<Listing | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isSending, setIsSending] = useState(false);
@@ -73,14 +92,27 @@ function MessagesPageContent() {
         return () => clearInterval(interval);
     }, []);
 
-    // Load shared product if present in parameters
+    // A fresh "Contact Seller" tap carries the listing in the URL, scoped
+    // to the specific conversation it was meant for -- switching to a
+    // different conversation shouldn't keep tagging it onto that one too.
     useEffect(() => {
-        if (sharedProductId) {
-            listingsService.getListing(sharedProductId)
-                .then(setSharedProduct)
-                .catch(err => console.error('Failed to load shared product details', err));
+        if (sharedProductId && selectedUserId === Number(targetUserId)) {
+            setActiveListingId(sharedProductId);
         }
-    }, [sharedProductId]);
+    }, [sharedProductId, targetUserId, selectedUserId]);
+
+    // Load and pin the product card for whichever listing this thread is
+    // currently about, however that got set (URL param, or recovered from
+    // the loaded thread below).
+    useEffect(() => {
+        if (!activeListingId) {
+            setSharedProduct(null);
+            return;
+        }
+        listingsService.getListing(activeListingId)
+            .then(setSharedProduct)
+            .catch(err => console.error('Failed to load shared product details', err));
+    }, [activeListingId]);
 
     // Handle initial target user from query params. Deliberately depends
     // only on targetUserId, not on `conversations` -- the mark-as-read
@@ -144,7 +176,16 @@ function MessagesPageContent() {
             try {
                 setIsLoading(true);
                 const response = await api.get(`/messages/${selectedUserId}`);
-                setMessages(response.data || []);
+                const loaded: ChatMessage[] = response.data || [];
+                setMessages(loaded);
+
+                // Recover which listing this thread is about from its own
+                // history, unless the URL already pins one for this exact
+                // conversation (a fresh arrival from "Contact Seller").
+                if (!(sharedProductId && selectedUserId === Number(targetUserId))) {
+                    const withListing = [...loaded].reverse().find((m) => m.listing_id);
+                    setActiveListingId(withListing ? String(withListing.listing_id) : null);
+                }
             } catch (error) {
                 console.error('Failed to load messages:', error);
                 setMessages([]);
@@ -165,6 +206,17 @@ function MessagesPageContent() {
             console.error('Failed to mark conversation as read:', error);
         });
     }, [selectedUserId]);
+
+    // Pre-fill a real opening line for a brand-new, product-initiated
+    // conversation -- once messages have actually loaded (so this never
+    // fires while a conversation with history is still loading) and only
+    // if the buyer hasn't already started typing their own.
+    useEffect(() => {
+        if (!isLoading && messages.length === 0 && sharedProduct && !inputText) {
+            setInputText(buildOpeningMessage(field(sharedProduct.title_en, sharedProduct.title_so) || sharedProduct.title_en));
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoading, sharedProduct]);
 
     // Join the per-conversation channel so the server's broadcasts (new
     // messages, typing, presence) actually reach this connection -- without
@@ -240,10 +292,14 @@ function MessagesPageContent() {
             setIsSending(true);
             const isNewConversation = messages.length === 0;
 
-            // Send via HTTP first (to save to DB)
+            // Send via HTTP first (to save to DB). Tagging every message in
+            // the thread with the same listing_id (not just the first) keeps
+            // them landing in the same conversation on the backend instead
+            // of fragmenting into a "with listing" / "without listing" pair.
             const sendResponse = await api.post('/messages/', {
                 receiver_id: selectedUserId,
-                content: text
+                content: text,
+                ...(activeListingId ? { listing_id: Number(activeListingId) } : {}),
             });
 
             trackEvent('Message Sent', { receiver_id: selectedUserId });
@@ -394,6 +450,34 @@ function MessagesPageContent() {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Pinned product context -- whenever this thread is
+                                about a specific listing, keep it visible so
+                                neither side has to scroll up to remember what
+                                the conversation is actually about. */}
+                            {sharedProduct && (
+                                <a
+                                    href={`/listing/${sharedProduct.id}`}
+                                    className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-100 dark:border-neutral-800 bg-amber-50/60 dark:bg-amber-500/5 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors"
+                                >
+                                    <img
+                                        src={optimizeCloudinaryUrl(sharedProduct.images?.[0], { width: 80 }) || sharedProduct.images?.[0]}
+                                        alt={field(sharedProduct.title_en, sharedProduct.title_so) || sharedProduct.title_en}
+                                        className="h-11 w-11 rounded-xl object-cover shrink-0 bg-gray-100 dark:bg-neutral-800"
+                                    />
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-[9px] font-bold uppercase tracking-wide text-amber-700 dark:text-amber-400 flex items-center gap-1">
+                                            <ShoppingBag className="h-3 w-3" /> Chatting about
+                                        </p>
+                                        <p className="text-xs font-black text-gray-900 dark:text-neutral-50 truncate">
+                                            {field(sharedProduct.title_en, sharedProduct.title_so) || sharedProduct.title_en}
+                                        </p>
+                                    </div>
+                                    <p className="text-xs font-black text-[#00a082] shrink-0">
+                                        {formatConvertedPrice(sharedProduct.price, sharedProduct.currency, currency)}
+                                    </p>
+                                </a>
+                            )}
 
                             {/* Chat History View */}
                             <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/40 dark:bg-black/10">
