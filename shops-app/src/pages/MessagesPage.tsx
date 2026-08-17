@@ -7,6 +7,7 @@ import api from '@/services/api';
 import { listingsService } from '@/services/listings';
 import { useChat } from '@/hooks/useChat';
 import { useAuthStore } from '@/store/useAuth';
+import { trackEvent } from '@/lib/analytics';
 import type { ChatMessage, Listing } from '@/types';
 
 interface Conversation {
@@ -237,12 +238,18 @@ function MessagesPageContent() {
 
         try {
             setIsSending(true);
+            const isNewConversation = messages.length === 0;
 
             // Send via HTTP first (to save to DB)
             const sendResponse = await api.post('/messages/', {
                 receiver_id: selectedUserId,
                 content: text
             });
+
+            trackEvent('Message Sent', { receiver_id: selectedUserId });
+            if (isNewConversation) {
+                trackEvent('Conversation Started', { receiver_id: selectedUserId });
+            }
 
             // Then broadcast via WebSocket for instant delivery
             if (isConnected) {

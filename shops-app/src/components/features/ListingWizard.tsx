@@ -7,6 +7,7 @@ import { ListingStep3Images } from './listing-wizard/Step3Images';
 import { ListingStep4Review } from './listing-wizard/Step4Review';
 import { listingsService } from '../../services/listings';
 import { useRouter } from 'next/navigation';
+import { trackEvent } from '../../lib/analytics';
 
 export interface ListingFormData {
   shop_id?: number;
@@ -551,6 +552,11 @@ export const ListingWizard: React.FC = () => {
 
       const result = await listingsService.createListing(payload);
       if (result?.id) {
+        trackEvent('Listing Posted', {
+          listing_id: result.id,
+          category_id: formData.category_id,
+          price: formData.price,
+        });
         router.push(`/listings/${result.id}`);
       }
     } catch (err: any) {

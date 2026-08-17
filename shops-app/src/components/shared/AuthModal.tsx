@@ -5,6 +5,7 @@ import { X, Mail, Lock, User as UserIcon, Phone, Loader2, RotateCw } from 'lucid
 import { useAuthModal } from '../../store/useAuthModal';
 import { useAuthStore } from '../../store/useAuth';
 import { authService } from '../../services/auth';
+import { identifyUser, trackEvent } from '../../lib/analytics';
 
 type Method = 'email' | 'phone';
 type Step = 'form' | 'otp';
@@ -58,6 +59,8 @@ export const AuthModal: React.FC = () => {
     const finishLogin = async (token: string) => {
         const user = await authService.getMe(token);
         storeLogin(user, token);
+        identifyUser(user);
+        trackEvent(mode === 'signup' ? 'Signup Completed' : 'Login', { method });
         close();
     };
 

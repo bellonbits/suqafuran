@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { User } from '../types';
+import { resetAnalytics } from '../lib/analytics';
 
 interface AuthState {
     user: User | null;
@@ -21,7 +22,10 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
             isHydrated: false,
             login: (user, token) => set({ user, token, isAuthenticated: true }),
-            logout: () => set({ user: null, token: null, isAuthenticated: false }),
+            logout: () => {
+                resetAnalytics();
+                set({ user: null, token: null, isAuthenticated: false });
+            },
             setUser: (user) => set({ user }),
             setHydrated: (state) => set({ isHydrated: state }),
         }),

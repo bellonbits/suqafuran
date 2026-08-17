@@ -13,6 +13,7 @@ import { FaWhatsapp } from 'react-icons/fa';
 import { MdMessage } from 'react-icons/md';
 import { messageService } from '@/services/messageService';
 import { checkoutReceiptService } from '@/services/checkoutReceipt';
+import { trackEvent } from '@/lib/analytics';
 interface CheckoutItem {
   id: string;
   title: string;
@@ -241,6 +242,11 @@ Your delivery: Arrange with seller
       alert('Please generate receipt first');
       return;
     }
+
+    // Suqafuran is peer-to-peer -- there's no in-app payment/checkout
+    // completion, so "contacted the seller with real purchase intent" is
+    // the closest thing to a completed-deal signal available client-side.
+    trackEvent('Contacted Seller', { method, cart_size: (cartItems as any[]).length });
 
     // Group items by seller, using embedded owner data or sellerInfoMap fallback
     type SellerGroup = { phone: string; name: string; items: any[] };
