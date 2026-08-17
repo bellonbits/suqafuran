@@ -72,12 +72,19 @@ services:
   redis:
     image: redis:7-alpine
     container_name: suqafuran-redis
-    ports:
-      - "6379:6379"
+    # --requirepass was missing entirely -- .env has always set
+    # REDIS_PASSWORD, but nothing ever passed it to the server, so it's been
+    # accepting unauthenticated connections from anyone who can reach it.
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    # No host port publish -- nothing outside this docker network needs
+    # direct Redis access; only backend/celery-worker/celery-beat do, and
+    # they reach it via the "redis" hostname on suqafuran-network already.
+    # Publishing 6379:6379 meant it was reachable from the public internet
+    # on top of having no password.
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "PING"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "--no-auth-warning", "PING"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -163,7 +170,7 @@ services:
       # share since it handles concurrent HTTP traffic (see app/db/session.py).
       DB_POOL_SIZE: "8"
       DB_MAX_OVERFLOW: "4"
-      REDIS_URL: redis://redis:6379/0
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
       ENVIRONMENT: ${ENVIRONMENT:-production}
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
       SMTP_USER: ${SMTP_USER}
@@ -229,7 +236,7 @@ services:
       # DB_POOL_SIZE comment above for the full max_connections budget).
       DB_POOL_SIZE: "4"
       DB_MAX_OVERFLOW: "2"
-      REDIS_URL: redis://redis:6379/0
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
       ENVIRONMENT: ${ENVIRONMENT:-production}
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
       SMTP_USER: ${SMTP_USER}
@@ -281,7 +288,7 @@ services:
       # (see backend's DB_POOL_SIZE comment above for the full budget).
       DB_POOL_SIZE: "1"
       DB_MAX_OVERFLOW: "1"
-      REDIS_URL: redis://redis:6379/0
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
       ENVIRONMENT: ${ENVIRONMENT:-production}
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
       SMTP_USER: ${SMTP_USER}
