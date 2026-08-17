@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Minus, ShoppingBag } from 'lucide-react';
+import { optimizeCloudinaryUrl } from '@/services/api';
 
 interface CompactProductCardProps {
     product: any;
@@ -30,8 +31,9 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
             <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-gray-200 dark:bg-neutral-800 flex-shrink-0">
                 {product.images?.[0] ? (
                     <img
-                        src={product.images[0]}
+                        src={optimizeCloudinaryUrl(product.images[0], { width: 150 }) || product.images[0]}
                         alt={product.title_en}
+                        loading="lazy"
                         className="w-full h-full object-cover"
                     />
                 ) : (

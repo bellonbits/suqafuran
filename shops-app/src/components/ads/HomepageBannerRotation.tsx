@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { advertisingService, HomepageBanner } from '@/services/advertising';
 import { useWindowSize } from '@/hooks/use-window-size';
+import { optimizeCloudinaryUrl } from '@/services/api';
 
 const AUTO_SLIDE_MS = 5000;
 const TRANSITION_MS = 400;
@@ -140,8 +141,13 @@ export function HomepageBannerRotation() {
       >
         <img
           key={currentBanner.id}
-          src={imageUrl}
+          src={optimizeCloudinaryUrl(imageUrl, { width: 1200 }) || imageUrl}
           alt={currentBanner.title}
+          // This is the homepage's LCP element -- eager + high priority so
+          // the browser fetches it immediately instead of treating it like
+          // any other below-the-fold image.
+          loading="eager"
+          fetchPriority="high"
           className={`w-full h-full object-cover transition-all ease-out ${
             isTransitioning
               ? direction === 'next'

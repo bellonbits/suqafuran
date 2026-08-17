@@ -183,14 +183,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                             <button
                                 onClick={handleToggleFavorite}
                                 aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                                className="h-8 w-8 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50 active:scale-95 transition-all dark:bg-neutral-900 dark:border-neutral-800 cursor-pointer"
+                                className="h-10 w-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50 active:scale-95 transition-all dark:bg-neutral-900 dark:border-neutral-800 cursor-pointer"
                             >
                                 <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-neutral-100'}`} />
                             </button>
                             <button
                                 onClick={handleAddToCart}
                                 aria-label="Add to cart"
-                                className="h-8 w-8 rounded-full bg-sky-500 hover:bg-sky-600 shadow-sm flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                                className="h-10 w-10 rounded-full bg-sky-500 hover:bg-sky-600 shadow-sm flex items-center justify-center active:scale-95 transition-all cursor-pointer"
                             >
                                 <Plus className="h-4 w-4 text-white stroke-[3]" />
                             </button>
@@ -223,7 +223,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                 <button
                     onClick={handleToggleFavorite}
                     aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                    className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/90 border border-gray-200 shadow-md flex items-center justify-center hover:bg-white active:scale-95 transition-all dark:bg-neutral-900/90 dark:border-neutral-800 cursor-pointer"
+                    className="absolute top-2 right-2 h-10 w-10 rounded-full bg-white/90 border border-gray-200 shadow-md flex items-center justify-center hover:bg-white active:scale-95 transition-all dark:bg-neutral-900/90 dark:border-neutral-800 cursor-pointer"
                 >
                     <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-neutral-100'}`} />
                 </button>
@@ -231,7 +231,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                 <button
                     onClick={handleAddToCart}
                     aria-label="Add to cart"
-                    className="absolute bottom-2.5 right-2.5 h-8 w-8 rounded-full bg-sky-500 hover:bg-sky-600 shadow-md flex items-center justify-center active:scale-95 transition-all cursor-pointer z-10"
+                    className="absolute bottom-2.5 right-2.5 h-10 w-10 rounded-full bg-sky-500 hover:bg-sky-600 shadow-md flex items-center justify-center active:scale-95 transition-all cursor-pointer z-10"
                 >
                     <Plus className="h-4 w-4 text-white stroke-[3]" />
                 </button>

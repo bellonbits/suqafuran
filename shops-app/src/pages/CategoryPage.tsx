@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'react-router-dom';
 import { ChevronRight, Star, ShieldCheck, ShoppingBag } from 'lucide-react';
 import { listingsService } from '@/services/listings';
-import api, { resolveMediaUrl } from '@/services/api';
+import api, { resolveMediaUrl, optimizeCloudinaryUrl } from '@/services/api';
 import type { Listing } from '@/types';
 import { CANONICAL_CATEGORIES } from '@/components/shared/Sidebar';
 import { ProductCard } from '@/components/features/ProductCard';
@@ -94,10 +94,11 @@ function CategoryStoreCard({ store, category }: { store: Store; category: string
         >
             {/* Circular Logo */}
             <div className="h-12 w-12 rounded-full border border-gray-100 dark:border-neutral-800 flex items-center justify-center bg-white dark:bg-black shrink-0 overflow-hidden shadow-sm">
-                <img 
-                    src={store.logo_url || store.image} 
-                    alt={store.name} 
-                    className="h-full w-full object-cover" 
+                <img
+                    src={optimizeCloudinaryUrl(store.logo_url || store.image, { width: 100 }) || store.logo_url || store.image}
+                    alt={store.name}
+                    loading="lazy"
+                    className="h-full w-full object-cover"
                 />
             </div>
             

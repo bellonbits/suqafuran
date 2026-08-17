@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { Onboarding, hasSeenOnboarding } from './components/Onboarding'
 import { isCapacitorApp } from './lib/capacitor-utils'
@@ -8,92 +8,92 @@ import { AuthModal } from './components/shared/AuthModal'
 import { AISupportChat } from './components/shared/AISupportChat'
 import ProtectedRoute from './components/ProtectedRoute'
 import { SellerLayout } from './components/SellerLayout'
-import HomePage from './pages/HomePage'
-import ShopsPage from './pages/ShopsPage'
-import ShopDetailPage from './pages/ShopDetailPage'
-import CheckoutPage from './pages/CheckoutPage'
-import CategoryPage from './pages/CategoryPage'
-import SearchPage from './pages/SearchPage'
-import ListingDetailPage from './pages/ListingDetailPage'
-import LoginPage from './pages/LoginPage'
-import SignupPage from './pages/SignupPage'
-import ResetPasswordPage from './pages/ResetPasswordPage'
-import AccountPage from './pages/AccountPage'
-import SettingsPage from './pages/SettingsPage'
-import MessagesPage from './pages/MessagesPage'
-import OrdersPage from './pages/OrdersPage'
-import FavoritesPage from './pages/FavoritesPage'
-import SavedSearchesPage from './pages/SavedSearchesPage'
-import PriceAlertsPage from './pages/PriceAlertsPage'
-import FollowingPage from './pages/FollowingPage'
-import PostAdPage from './pages/PostAdPage'
-import SellerDashboardPage from './pages/SellerDashboardPage'
-import SellerShopPage from './pages/SellerShopPage'
-import SellerProductsPage from './pages/SellerProductsPage'
-import SellerBulkImportPage from './pages/SellerBulkImportPage'
-import SellerOrdersPage from './pages/SellerOrdersPage'
-import SellerMessagesPage from './pages/SellerMessagesPage'
-import SellerCustomersPage from './pages/SellerCustomersPage'
-import SellerFinancePage from './pages/SellerFinancePage'
-import SellerAnalyticsPage from './pages/SellerAnalyticsPage'
-import SellerInventoryPage from './pages/SellerInventoryPage'
-import SellerMarketingPage from './pages/SellerMarketingPage'
-import SellerFeaturedAdsPage from './pages/SellerFeaturedAdsPage'
-import SellerReviewsPage from './pages/SellerReviewsPage'
-import SellerVerificationPage from './pages/SellerVerificationPage'
-import SellerSettingsPage from './pages/SellerSettingsPage'
-import SellerStaffPage from './pages/SellerStaffPage'
-import SellerSubscriptionPage from './pages/SellerSubscriptionPage'
-import SellerReportsPage from './pages/SellerReportsPage'
-import AdminDashboardMainPage from './pages/AdminDashboardMainPage'
-import AdminListingsPage from './pages/AdminListingsPage'
-import AdminSellersPage from './pages/AdminSellersPage'
-import AdminShopsPage from './pages/AdminShopsPage'
-import AdminUsersPage from './pages/AdminUsersPage'
-import AdminCategoriesPage from './pages/AdminCategoriesPage'
-import AdminOrdersPage from './pages/AdminOrdersPage'
-import AdminDisputesPage from './pages/AdminDisputesPage'
-import AdminFraudPage from './pages/AdminFraudPage'
-import AdminReportsPage from './pages/AdminReportsPage'
-import AdminSupportPage from './pages/AdminSupportPage'
-import AdminVerificationsPage from './pages/AdminVerificationsPage'
-import AdminUnusualAccountsPage from './pages/AdminUnusualAccountsPage'
-import AdminAnalyticsPage from './pages/AdminAnalyticsPage'
-import AdminAnalyticsMainPage from './pages/AdminAnalyticsMainPage'
-import AdminAnalyticsUsersPage from './pages/AdminAnalyticsUsersPage'
-import AdminAnalyticsSellersPage from './pages/AdminAnalyticsSellersPage'
-import AdminAnalyticsDevicesPage from './pages/AdminAnalyticsDevicesPage'
-import AdminAnalyticsGeographicPage from './pages/AdminAnalyticsGeographicPage'
-import AdminAnalyticsAlertsPage from './pages/AdminAnalyticsAlertsPage'
-import AdminBulkProductsPage from './pages/AdminBulkProductsPage'
-import AdminHomepageBannersPage from './pages/AdminHomepageBannersPage'
-import AdminCustomerSegmentsPage from './pages/AdminCustomerSegmentsPage'
-import AdminEmailAnalyticsPage from './pages/AdminEmailAnalyticsPage'
-import AdminEmailTemplatesPage from './pages/AdminEmailTemplatesPage'
-import AdminFeaturedAdsPage from './pages/AdminFeaturedAdsPage'
-import AdminSubscriptionsPage from './pages/AdminSubscriptionsPage'
-import AdminSystemMessagesPage from './pages/AdminSystemMessagesPage'
-import AdminUserLifecyclePage from './pages/AdminUserLifecyclePage'
-import AdminMonitoringAlertsPage from './pages/AdminMonitoringAlertsPage'
-import AdminMonitoringKafkaPage from './pages/AdminMonitoringKafkaPage'
-import AdminMonitoringLivePage from './pages/AdminMonitoringLivePage'
-import AdminMonitoringNotificationsPage from './pages/AdminMonitoringNotificationsPage'
-import AdminMonitoringTracesPage from './pages/AdminMonitoringTracesPage'
-import AdminShopsAltPage from './pages/AdminShopsAltPage'
-import AdminMonitoringAlertsAltPage from './pages/AdminMonitoringAlertsAltPage'
-import AdminMonitoringKafkaAltPage from './pages/AdminMonitoringKafkaAltPage'
-import AdminMonitoringLiveAltPage from './pages/AdminMonitoringLiveAltPage'
-import AdminMonitoringNotificationsAltPage from './pages/AdminMonitoringNotificationsAltPage'
-import AdminMonitoringTracesAltPage from './pages/AdminMonitoringTracesAltPage'
-import AgentDashboardPage from './pages/AgentDashboardPage'
-import AgentEarningsPage from './pages/AgentEarningsPage'
-import AgentAnalyticsPage from './pages/AgentAnalyticsPage'
-import AgentInquiriesPage from './pages/AgentInquiriesPage'
-import AgentListingsPage from './pages/AgentListingsPage'
-import AgentShopsPage from './pages/AgentShopsPage'
-import HelpCenterPage from './pages/HelpCenterPage'
-import SafeTradingTipsPage from './pages/SafeTradingTipsPage'
-import TermsOfUsePage from './pages/TermsOfUsePage'
+const HomePage = lazy(() => import('./pages/HomePage'))
+const ShopsPage = lazy(() => import('./pages/ShopsPage'))
+const ShopDetailPage = lazy(() => import('./pages/ShopDetailPage'))
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'))
+const CategoryPage = lazy(() => import('./pages/CategoryPage'))
+const SearchPage = lazy(() => import('./pages/SearchPage'))
+const ListingDetailPage = lazy(() => import('./pages/ListingDetailPage'))
+const LoginPage = lazy(() => import('./pages/LoginPage'))
+const SignupPage = lazy(() => import('./pages/SignupPage'))
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
+const AccountPage = lazy(() => import('./pages/AccountPage'))
+const SettingsPage = lazy(() => import('./pages/SettingsPage'))
+const MessagesPage = lazy(() => import('./pages/MessagesPage'))
+const OrdersPage = lazy(() => import('./pages/OrdersPage'))
+const FavoritesPage = lazy(() => import('./pages/FavoritesPage'))
+const SavedSearchesPage = lazy(() => import('./pages/SavedSearchesPage'))
+const PriceAlertsPage = lazy(() => import('./pages/PriceAlertsPage'))
+const FollowingPage = lazy(() => import('./pages/FollowingPage'))
+const PostAdPage = lazy(() => import('./pages/PostAdPage'))
+const SellerDashboardPage = lazy(() => import('./pages/SellerDashboardPage'))
+const SellerShopPage = lazy(() => import('./pages/SellerShopPage'))
+const SellerProductsPage = lazy(() => import('./pages/SellerProductsPage'))
+const SellerBulkImportPage = lazy(() => import('./pages/SellerBulkImportPage'))
+const SellerOrdersPage = lazy(() => import('./pages/SellerOrdersPage'))
+const SellerMessagesPage = lazy(() => import('./pages/SellerMessagesPage'))
+const SellerCustomersPage = lazy(() => import('./pages/SellerCustomersPage'))
+const SellerFinancePage = lazy(() => import('./pages/SellerFinancePage'))
+const SellerAnalyticsPage = lazy(() => import('./pages/SellerAnalyticsPage'))
+const SellerInventoryPage = lazy(() => import('./pages/SellerInventoryPage'))
+const SellerMarketingPage = lazy(() => import('./pages/SellerMarketingPage'))
+const SellerFeaturedAdsPage = lazy(() => import('./pages/SellerFeaturedAdsPage'))
+const SellerReviewsPage = lazy(() => import('./pages/SellerReviewsPage'))
+const SellerVerificationPage = lazy(() => import('./pages/SellerVerificationPage'))
+const SellerSettingsPage = lazy(() => import('./pages/SellerSettingsPage'))
+const SellerStaffPage = lazy(() => import('./pages/SellerStaffPage'))
+const SellerSubscriptionPage = lazy(() => import('./pages/SellerSubscriptionPage'))
+const SellerReportsPage = lazy(() => import('./pages/SellerReportsPage'))
+const AdminDashboardMainPage = lazy(() => import('./pages/AdminDashboardMainPage'))
+const AdminListingsPage = lazy(() => import('./pages/AdminListingsPage'))
+const AdminSellersPage = lazy(() => import('./pages/AdminSellersPage'))
+const AdminShopsPage = lazy(() => import('./pages/AdminShopsPage'))
+const AdminUsersPage = lazy(() => import('./pages/AdminUsersPage'))
+const AdminCategoriesPage = lazy(() => import('./pages/AdminCategoriesPage'))
+const AdminOrdersPage = lazy(() => import('./pages/AdminOrdersPage'))
+const AdminDisputesPage = lazy(() => import('./pages/AdminDisputesPage'))
+const AdminFraudPage = lazy(() => import('./pages/AdminFraudPage'))
+const AdminReportsPage = lazy(() => import('./pages/AdminReportsPage'))
+const AdminSupportPage = lazy(() => import('./pages/AdminSupportPage'))
+const AdminVerificationsPage = lazy(() => import('./pages/AdminVerificationsPage'))
+const AdminUnusualAccountsPage = lazy(() => import('./pages/AdminUnusualAccountsPage'))
+const AdminAnalyticsPage = lazy(() => import('./pages/AdminAnalyticsPage'))
+const AdminAnalyticsMainPage = lazy(() => import('./pages/AdminAnalyticsMainPage'))
+const AdminAnalyticsUsersPage = lazy(() => import('./pages/AdminAnalyticsUsersPage'))
+const AdminAnalyticsSellersPage = lazy(() => import('./pages/AdminAnalyticsSellersPage'))
+const AdminAnalyticsDevicesPage = lazy(() => import('./pages/AdminAnalyticsDevicesPage'))
+const AdminAnalyticsGeographicPage = lazy(() => import('./pages/AdminAnalyticsGeographicPage'))
+const AdminAnalyticsAlertsPage = lazy(() => import('./pages/AdminAnalyticsAlertsPage'))
+const AdminBulkProductsPage = lazy(() => import('./pages/AdminBulkProductsPage'))
+const AdminHomepageBannersPage = lazy(() => import('./pages/AdminHomepageBannersPage'))
+const AdminCustomerSegmentsPage = lazy(() => import('./pages/AdminCustomerSegmentsPage'))
+const AdminEmailAnalyticsPage = lazy(() => import('./pages/AdminEmailAnalyticsPage'))
+const AdminEmailTemplatesPage = lazy(() => import('./pages/AdminEmailTemplatesPage'))
+const AdminFeaturedAdsPage = lazy(() => import('./pages/AdminFeaturedAdsPage'))
+const AdminSubscriptionsPage = lazy(() => import('./pages/AdminSubscriptionsPage'))
+const AdminSystemMessagesPage = lazy(() => import('./pages/AdminSystemMessagesPage'))
+const AdminUserLifecyclePage = lazy(() => import('./pages/AdminUserLifecyclePage'))
+const AdminMonitoringAlertsPage = lazy(() => import('./pages/AdminMonitoringAlertsPage'))
+const AdminMonitoringKafkaPage = lazy(() => import('./pages/AdminMonitoringKafkaPage'))
+const AdminMonitoringLivePage = lazy(() => import('./pages/AdminMonitoringLivePage'))
+const AdminMonitoringNotificationsPage = lazy(() => import('./pages/AdminMonitoringNotificationsPage'))
+const AdminMonitoringTracesPage = lazy(() => import('./pages/AdminMonitoringTracesPage'))
+const AdminShopsAltPage = lazy(() => import('./pages/AdminShopsAltPage'))
+const AdminMonitoringAlertsAltPage = lazy(() => import('./pages/AdminMonitoringAlertsAltPage'))
+const AdminMonitoringKafkaAltPage = lazy(() => import('./pages/AdminMonitoringKafkaAltPage'))
+const AdminMonitoringLiveAltPage = lazy(() => import('./pages/AdminMonitoringLiveAltPage'))
+const AdminMonitoringNotificationsAltPage = lazy(() => import('./pages/AdminMonitoringNotificationsAltPage'))
+const AdminMonitoringTracesAltPage = lazy(() => import('./pages/AdminMonitoringTracesAltPage'))
+const AgentDashboardPage = lazy(() => import('./pages/AgentDashboardPage'))
+const AgentEarningsPage = lazy(() => import('./pages/AgentEarningsPage'))
+const AgentAnalyticsPage = lazy(() => import('./pages/AgentAnalyticsPage'))
+const AgentInquiriesPage = lazy(() => import('./pages/AgentInquiriesPage'))
+const AgentListingsPage = lazy(() => import('./pages/AgentListingsPage'))
+const AgentShopsPage = lazy(() => import('./pages/AgentShopsPage'))
+const HelpCenterPage = lazy(() => import('./pages/HelpCenterPage'))
+const SafeTradingTipsPage = lazy(() => import('./pages/SafeTradingTipsPage'))
+const TermsOfUsePage = lazy(() => import('./pages/TermsOfUsePage'))
 
 const AdminDashboardPagePlaceholder = () => (
   <div className="w-full">
@@ -101,6 +101,16 @@ const AdminDashboardPagePlaceholder = () => (
       <h1 className="text-3xl font-bold mb-4">Admin Dashboard</h1>
       <p className="text-gray-600">Loading admin dashboard...</p>
     </div>
+  </div>
+)
+
+// Shown briefly while a lazy-loaded route's chunk downloads. Every page
+// import above is now code-split (was previously one ~2MB bundle covering
+// every storefront and admin page at once), so this fires on first visit
+// to each route and essentially never again once the chunk is cached.
+const RouteLoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-[50vh]">
+    <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
   </div>
 )
 
@@ -146,6 +156,7 @@ export default function App() {
   return (
     <>
     <ScrollToTop />
+    <Suspense fallback={<RouteLoadingFallback />}>
     <Routes>
       {/* Marketplace Pages */}
       <Route element={<AppLayout><HomePage /></AppLayout>} path="/" />
@@ -257,6 +268,7 @@ export default function App() {
       <Route element={<ProtectedRoute requiredRole="agent"><AgentListingsPage /></ProtectedRoute>} path="/agent-listings" />
       <Route element={<ProtectedRoute requiredRole="agent"><AgentShopsPage /></ProtectedRoute>} path="/agent-shops" />
     </Routes>
+    </Suspense>
     </>
   )
 }

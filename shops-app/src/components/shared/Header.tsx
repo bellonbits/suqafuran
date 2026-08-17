@@ -349,6 +349,8 @@ export const Header: React.FC = () => {
                         <button
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                             className="sm:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors"
+                            aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+                            aria-expanded={isMobileMenuOpen}
                         >
                             {isMobileMenuOpen ? (
                                 <X className="w-5 h-5" />

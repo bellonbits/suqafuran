@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Star, Percent, Package } from 'lucide-react';
 import { listingsService, PublicShop } from '@/services/listings';
-import { resolveMediaUrl } from '@/services/api';
+import { resolveMediaUrl, optimizeCloudinaryUrl } from '@/services/api';
 
 function getShopBanner(shop: PublicShop): string | null {
   // Prioritize custom shop page banner (Cloudinary URL)
@@ -156,8 +156,9 @@ export function GlovoShopCard({ shop, index, hideRating }: GlovoShopCardProps) {
                 {[...previewImages!, ...previewImages!].map((src, i) => (
                   <img
                     key={i}
-                    src={src}
+                    src={optimizeCloudinaryUrl(src, { width: 250 }) || src}
                     alt=""
+                    loading="lazy"
                     className="h-full aspect-square object-cover shrink-0"
                     draggable={false}
                   />
@@ -168,8 +169,9 @@ export function GlovoShopCard({ shop, index, hideRating }: GlovoShopCardProps) {
           ) : banner ? (
             <>
               <img
-                src={banner}
+                src={optimizeCloudinaryUrl(banner, { width: 500 }) || banner}
                 alt={shop.shop_name}
+                loading="lazy"
                 className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
                 onError={() => setImgError(true)}
               />

@@ -8,7 +8,7 @@ import {
     MapPin, ShieldCheck, Phone, Heart, Share2, MessageSquare, ArrowLeft, Eye, Star, X,
     AlertTriangle, Minus, Plus, ShoppingCart, Store, CheckCircle2, Check,
 } from 'lucide-react';
-import api from '@/services/api';
+import api, { optimizeCloudinaryUrl } from '@/services/api';
 import { listingsService } from '@/services/listings';
 import { feedbackService, averageRating } from '@/services/feedback';
 import { useFavoritesStore } from '@/store/useFavorites';
@@ -336,8 +336,11 @@ export default function ProductDetailPage() {
                     <div className="md:col-span-2 space-y-3">
                         <div className="aspect-square overflow-hidden rounded-xl border border-gray-200 dark:border-neutral-800 bg-gray-100 dark:bg-neutral-900 relative">
                             <img
-                                src={activeImage}
+                                src={optimizeCloudinaryUrl(activeImage, { width: 900 }) || activeImage}
                                 alt={field(listing.title_en, listing.title_so)}
+                                // This is the listing page's LCP element.
+                                loading="eager"
+                                fetchPriority="high"
                                 className="h-full w-full object-cover"
                             />
                             {isSold && (
@@ -354,7 +357,7 @@ export default function ProductDetailPage() {
                                         onClick={() => setActiveImage(img)}
                                         className={`h-16 w-16 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${activeImage === img ? 'border-orange-500' : 'border-gray-200 dark:border-neutral-800'}`}
                                     >
-                                        <img src={img} alt="" className="h-full w-full object-cover" />
+                                        <img src={optimizeCloudinaryUrl(img, { width: 100 }) || img} alt="" loading="lazy" className="h-full w-full object-cover" />
                                     </button>
                                 ))}
                             </div>
