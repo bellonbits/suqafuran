@@ -8,6 +8,8 @@ from app.models.user import User
 from app.models.promotion import Promotion, PromotionStatus
 from app.models.audit import AuditLog
 from app.models.business import Business
+from app.models.report import ListingReport
+from app.models.message import Message
 from app.services.storage_service import storage_service
 from app.services.cache_service import cache
 
@@ -1929,4 +1931,143 @@ async def list_shops(
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+# ============== LISTING REPORTS & CHAT REVIEW ==============
+# Buyer/seller chats are never browsable at large -- an admin can only pull
+# up a conversation from here, after a report has been filed, and every
+# view is written to AuditLog. This mirrors how most marketplaces handle
+# private-message access: support looks at messages when there's a
+# complaint to investigate, not on a standing basis.
+
+@router.get("/reports/listings")
+def list_listing_reports(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+    status: Optional[str] = Query(None, description="Filter by status: pending, resolved, dismissed"),
+    skip: int = 0,
+    limit: int = 50,
+) -> Any:
+    """
+    Admin queue of listing reports, most recent first. Each row carries
+    enough about the reporter, listing and listing owner to decide whether
+    to open the conversation between them.
+    """
+    query = select(ListingReport)
+    if status:
+        query = query.where(ListingReport.status == status)
+    total = db.exec(select(func.count(ListingReport.id)).where(ListingReport.status == status) if status else select(func.count(ListingReport.id))).one()
+
+    reports = db.exec(query.order_by(ListingReport.created_at.desc()).offset(skip).limit(limit)).all()
+
+    results = []
+    for report in reports:
+        listing = db.get(Listing, report.listing_id)
+        reporter = db.get(User, report.reporter_id)
+        owner = db.get(User, listing.owner_id) if listing else None
+        results.append({
+            "id": report.id,
+            "listing_id": report.listing_id,
+            "listing_title": listing.title_en if listing else None,
+            "reason": report.reason,
+            "description": report.description,
+            "status": report.status,
+            "created_at": report.created_at,
+            "reporter": {"id": reporter.id, "name": reporter.full_name} if reporter else None,
+            "listing_owner": {"id": owner.id, "name": owner.full_name} if owner else None,
+        })
+
+    return {"reports": results, "total": total, "skip": skip, "limit": limit}
+
+
+class ReportStatusUpdate(BaseModel):
+    status: str  # pending, resolved, dismissed
+
+
+@router.patch("/reports/listings/{report_id}")
+def update_listing_report_status(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+    report_id: int,
+    update: ReportStatusUpdate,
+) -> Any:
+    """
+    Mark a listing report resolved/dismissed after review.
+    """
+    if update.status not in ("pending", "resolved", "dismissed"):
+        raise HTTPException(status_code=400, detail="status must be pending, resolved, or dismissed")
+
+    report = db.get(ListingReport, report_id)
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    report.status = update.status
+    db.add(report)
+    db.add(AuditLog(
+        user_id=current_user.id,
+        action="LISTING_REPORT_STATUS_UPDATE",
+        resource_type="listing_report",
+        resource_id=report_id,
+        details=f"Status set to {update.status}"
+    ))
+    db.commit()
+    return {"id": report_id, "status": update.status}
+
+
+@router.get("/conversations")
+def admin_view_conversation(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+    user_a_id: int,
+    user_b_id: int,
+    listing_id: Optional[int] = None,
+    report_id: Optional[int] = Query(None, description="The listing report this view is investigating, if any"),
+) -> Any:
+    """
+    Read-only view of the message thread between two users, for
+    investigating a filed report. Every call is written to AuditLog with
+    both user ids and the report it's tied to, so chat access is always
+    attributable to a specific investigation.
+    """
+    from app.crud.crud_message import crud_message
+
+    user_a = db.get(User, user_a_id)
+    user_b = db.get(User, user_b_id)
+    if not user_a or not user_b:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    messages = crud_message.get_conversation(
+        db, user_id=user_a_id, other_user_id=user_b_id, listing_id=listing_id
+    )
+
+    db.add(AuditLog(
+        user_id=current_user.id,
+        action="ADMIN_VIEWED_CONVERSATION",
+        resource_type="message_thread",
+        resource_id=report_id if report_id is not None else 0,
+        details=f"Viewed conversation between user {user_a_id} and user {user_b_id}" + (f" (listing {listing_id})" if listing_id else "") + (f" re: report {report_id}" if report_id else " (no report_id provided)")
+    ))
+    db.commit()
+
+    return {
+        "participants": [
+            {"id": user_a.id, "name": user_a.full_name},
+            {"id": user_b.id, "name": user_b.full_name},
+        ],
+        "messages": [
+            {
+                "id": m.id,
+                "sender_id": m.sender_id,
+                "receiver_id": m.receiver_id,
+                "content": m.content,
+                "listing_id": m.listing_id,
+                "is_read": m.is_read,
+                "created_at": m.created_at,
+            }
+            for m in messages
+        ],
+    }
 
