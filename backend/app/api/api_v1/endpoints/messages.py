@@ -29,6 +29,15 @@ def send_message(
     # 1. Risk-Based Rate Limiting
     risk_security.check_messaging_limit(current_user)
 
+    # 1b. An admin can suspend a specific conversation thread (e.g. mid
+    # investigation) -- check before it's created so re-opening it with a
+    # different listing_id can't be used to route around a suspension.
+    existing_conversation = crud_message.get_conversation_for_pair(
+        db, user_a_id=current_user.id, user_b_id=message_in.receiver_id, listing_id=message_in.listing_id
+    )
+    if existing_conversation and existing_conversation.status == "suspended":
+        raise HTTPException(status_code=403, detail="This conversation has been suspended by Suqafuran support.")
+
     # 2. Content Moderation
     is_flagged, reason = moderation_service.analyze_message(db, current_user, message_in.content)
     if is_flagged:

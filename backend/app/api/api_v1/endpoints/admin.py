@@ -10,6 +10,7 @@ from app.models.audit import AuditLog
 from app.models.business import Business
 from app.models.report import ListingReport
 from app.models.message import Message
+from app.models.marketplace_conversation import MarketplaceConversation as Conversation
 from app.services.storage_service import storage_service
 from app.services.cache_service import cache
 
@@ -2016,58 +2017,221 @@ def update_listing_report_status(
     return {"id": report_id, "status": update.status}
 
 
-@router.get("/conversations")
-def admin_view_conversation(
+def _conversation_summary(db: Session, conv: "Conversation") -> dict:
+    buyer = db.get(User, conv.buyer_id)
+    seller = db.get(User, conv.seller_id)
+    listing = db.get(Listing, conv.listing_id) if conv.listing_id else None
+    return {
+        "id": conv.id,
+        "buyer": {"id": buyer.id, "name": buyer.full_name} if buyer else None,
+        "seller": {"id": seller.id, "name": seller.business_name or seller.full_name} if seller else None,
+        "listing": {"id": listing.id, "title": listing.title_en} if listing else None,
+        "last_message_preview": conv.last_message_preview,
+        "message_count": conv.message_count,
+        "unread_count": conv.buyer_unread_count + conv.seller_unread_count,
+        "status": conv.status,
+        "admin_reviewed": conv.admin_reviewed,
+        "last_message_at": conv.last_message_at,
+        "created_at": conv.created_at,
+    }
+
+
+@router.get("/conversations/stats")
+def get_conversation_stats(
     *,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_superuser),
-    user_a_id: int,
-    user_b_id: int,
+) -> Any:
+    """Summary cards for the admin Messages panel."""
+    from datetime import datetime, timedelta
+    from app.models.report import ListingReport
+
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+
+    total = db.exec(select(func.count(Conversation.id))).one()
+    active = db.exec(select(func.count(Conversation.id)).where(Conversation.status == "active")).one()
+    unread = db.exec(select(func.count(Conversation.id)).where(
+        (Conversation.buyer_unread_count > 0) | (Conversation.seller_unread_count > 0)
+    )).one()
+    today = db.exec(select(func.count(Conversation.id)).where(Conversation.created_at >= today_start)).one()
+    reported_listing_ids = db.exec(select(ListingReport.listing_id).distinct()).all()
+    reported = db.exec(select(func.count(Conversation.id)).where(
+        Conversation.listing_id.in_(reported_listing_ids)
+    )).one() if reported_listing_ids else 0
+
+    return {
+        "total_conversations": total,
+        "active_conversations": active,
+        "unread_conversations": unread,
+        "today_conversations": today,
+        "reported_conversations": reported,
+    }
+
+
+@router.get("/conversations")
+def list_conversations(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+    status: Optional[str] = Query(None, description="active, closed, flagged, suspended"),
+    unread_only: bool = False,
+    period: Optional[str] = Query(None, description="today, week, month"),
+    buyer_id: Optional[int] = None,
+    seller_id: Optional[int] = None,
     listing_id: Optional[int] = None,
-    report_id: Optional[int] = Query(None, description="The listing report this view is investigating, if any"),
+    search: Optional[str] = Query(None, description="Match against buyer/seller name or listing title"),
+    skip: int = 0,
+    limit: int = 50,
 ) -> Any:
     """
-    Read-only view of the message thread between two users, for
-    investigating a filed report. Every call is written to AuditLog with
-    both user ids and the report it's tied to, so chat access is always
-    attributable to a specific investigation.
+    Every buyer<->seller conversation on the platform, most recently active
+    first -- not gated on a report being filed. This is standing admin
+    visibility into marketplace communication (view/flag/suspend only;
+    admins can never send as either party).
     """
-    from app.crud.crud_message import crud_message
+    from datetime import datetime, timedelta
 
-    user_a = db.get(User, user_a_id)
-    user_b = db.get(User, user_b_id)
-    if not user_a or not user_b:
-        raise HTTPException(status_code=404, detail="User not found")
+    query = select(Conversation)
+    if status:
+        query = query.where(Conversation.status == status)
+    if unread_only:
+        query = query.where((Conversation.buyer_unread_count > 0) | (Conversation.seller_unread_count > 0))
+    if period:
+        since = {
+            "today": datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0),
+            "week": datetime.utcnow() - timedelta(days=7),
+            "month": datetime.utcnow() - timedelta(days=30),
+        }.get(period)
+        if since:
+            query = query.where(Conversation.created_at >= since)
+    if buyer_id:
+        query = query.where(Conversation.buyer_id == buyer_id)
+    if seller_id:
+        query = query.where(Conversation.seller_id == seller_id)
+    if listing_id:
+        query = query.where(Conversation.listing_id == listing_id)
 
-    messages = crud_message.get_conversation(
-        db, user_id=user_a_id, other_user_id=user_b_id, listing_id=listing_id
-    )
+    total = db.exec(select(func.count()).select_from(query.subquery())).one()
+
+    conversations = db.exec(
+        query.order_by(Conversation.last_message_at.desc()).offset(skip).limit(limit)
+    ).all()
+
+    results = [_conversation_summary(db, c) for c in conversations]
+
+    if search:
+        term = search.lower()
+        results = [
+            r for r in results
+            if (r["buyer"] and term in (r["buyer"]["name"] or "").lower())
+            or (r["seller"] and term in (r["seller"]["name"] or "").lower())
+            or (r["listing"] and term in (r["listing"]["title"] or "").lower())
+        ]
+
+    return {"conversations": results, "total": total, "skip": skip, "limit": limit}
+
+
+@router.get("/conversations/{conversation_id}")
+def get_conversation_detail(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+    conversation_id: int,
+) -> Any:
+    """
+    Full conversation detail: buyer/seller/listing context plus the
+    complete message thread. Every view is written to AuditLog against the
+    admin's account -- standing visibility is still individually
+    attributable, even without a report attached.
+    """
+    conversation = db.get(Conversation, conversation_id)
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    buyer = db.get(User, conversation.buyer_id)
+    seller = db.get(User, conversation.seller_id)
+    listing = db.get(Listing, conversation.listing_id) if conversation.listing_id else None
+
+    messages = db.exec(
+        select(Message).where(Message.conversation_id == conversation_id).order_by(Message.created_at)
+    ).all()
 
     db.add(AuditLog(
         user_id=current_user.id,
         action="ADMIN_VIEWED_CONVERSATION",
-        resource_type="message_thread",
-        resource_id=report_id if report_id is not None else 0,
-        details=f"Viewed conversation between user {user_a_id} and user {user_b_id}" + (f" (listing {listing_id})" if listing_id else "") + (f" re: report {report_id}" if report_id else " (no report_id provided)")
+        resource_type="conversation",
+        resource_id=conversation_id,
+        details=f"Viewed conversation {conversation_id} (buyer {conversation.buyer_id}, seller {conversation.seller_id})"
     ))
     db.commit()
 
     return {
-        "participants": [
-            {"id": user_a.id, "name": user_a.full_name},
-            {"id": user_b.id, "name": user_b.full_name},
-        ],
+        "id": conversation.id,
+        "status": conversation.status,
+        "admin_reviewed": conversation.admin_reviewed,
+        "buyer": {
+            "id": buyer.id, "name": buyer.full_name, "email": buyer.email, "phone": buyer.phone,
+            "registered_at": buyer.created_at, "is_active": buyer.is_active, "is_suspended": buyer.is_suspended,
+        } if buyer else None,
+        "seller": {
+            "id": seller.id, "shop_name": seller.business_name, "name": seller.full_name,
+            "is_verified": seller.is_verified, "is_active": seller.is_active, "is_suspended": seller.is_suspended,
+        } if seller else None,
+        "listing": {
+            "id": listing.id, "title": listing.title_en, "price": listing.price, "currency": listing.currency,
+            "status": listing.status, "url": f"/listing/{listing.id}",
+        } if listing else None,
         "messages": [
             {
                 "id": m.id,
                 "sender_id": m.sender_id,
                 "receiver_id": m.receiver_id,
                 "content": m.content,
-                "listing_id": m.listing_id,
                 "is_read": m.is_read,
                 "created_at": m.created_at,
             }
             for m in messages
         ],
     }
+
+
+class ConversationStatusUpdate(BaseModel):
+    status: Optional[str] = None  # active, closed, flagged, suspended
+    admin_reviewed: Optional[bool] = None
+
+
+@router.patch("/conversations/{conversation_id}")
+def update_conversation(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+    conversation_id: int,
+    update: ConversationStatusUpdate,
+) -> Any:
+    """
+    Admin actions on a conversation: mark reviewed, flag, suspend (blocks
+    further sends between these two users on this thread), or close/reopen.
+    Never allows sending as either party.
+    """
+    conversation = db.get(Conversation, conversation_id)
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    if update.status is not None:
+        if update.status not in ("active", "closed", "flagged", "suspended"):
+            raise HTTPException(status_code=400, detail="Invalid status")
+        conversation.status = update.status
+    if update.admin_reviewed is not None:
+        conversation.admin_reviewed = update.admin_reviewed
+
+    db.add(conversation)
+    db.add(AuditLog(
+        user_id=current_user.id,
+        action="ADMIN_UPDATED_CONVERSATION",
+        resource_type="conversation",
+        resource_id=conversation_id,
+        details=f"status={update.status}, admin_reviewed={update.admin_reviewed}"
+    ))
+    db.commit()
+    return _conversation_summary(db, conversation)
 

@@ -40,6 +40,7 @@ from app.models.campaign import Campaign
 from app.models.seller_profile import SellerProfile
 from app.models.seller_settings import SellerSettings
 from app.models.conversation import Conversation, ConversationMessage
+from app.models.marketplace_conversation import MarketplaceConversation
 from app.models.report import SalesReport
 from app.models.subcategory import Subcategory
 from app.models.attribute_group import AttributeGroup
@@ -123,6 +124,7 @@ __all__ = [
     "SellerProfile",
     "SellerSettings",
     "Conversation",
+    "MarketplaceConversation",
     "ConversationMessage",
     "SalesReport",
     "Subcategory",

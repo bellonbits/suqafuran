@@ -7,6 +7,7 @@ class Message(SQLModel, table=True):
     sender_id: int = Field(foreign_key="user.id")
     receiver_id: int = Field(foreign_key="user.id")
     listing_id: Optional[int] = Field(default=None, foreign_key="listing.id")
+    conversation_id: Optional[int] = Field(default=None, foreign_key="marketplace_conversation.id", index=True)
     content: str
     is_read: bool = Field(default=False)
     created_at: datetime = Field(default_factory=datetime.utcnow)
