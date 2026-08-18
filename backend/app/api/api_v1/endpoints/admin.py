@@ -151,20 +151,93 @@ def read_admin_stats(
     current_user: User = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
-    Get platform statistics.
+    Platform-wide stats for the admin dashboard's Management Overview.
+    Sellers are defined the same way the rest of the app already does (a
+    business_name set), matching get_public_shops -- there's no separate
+    is_seller flag on User.
     """
+    from datetime import datetime, timedelta
+    from app.models.verification import VerificationRequest, VerificationStatus
+    from app.models.report import ListingReport
+
+    now = datetime.utcnow()
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    week_start = now - timedelta(days=7)
+    month_start = now - timedelta(days=30)
+    prev_month_start = now - timedelta(days=60)
+
     total_users = db.exec(select(func.count(User.id))).one()
+    active_users = db.exec(select(func.count(User.id)).where(User.is_active == True)).one()  # noqa: E712
+    suspended_accounts = db.exec(select(func.count(User.id)).where(User.is_suspended == True)).one()  # noqa: E712
+
+    is_seller = User.business_name.isnot(None)
+    active_sellers = db.exec(select(func.count(User.id)).where(is_seller, User.is_active == True)).one()  # noqa: E712
+    active_buyers = max(active_users - active_sellers, 0)
+    verified_sellers = db.exec(select(func.count(User.id)).where(is_seller, User.is_verified == True)).one()  # noqa: E712
+
+    total_shops = db.exec(
+        select(func.count(func.distinct(Listing.owner_id)))
+        .select_from(Listing)
+        .join(User, User.id == Listing.owner_id)
+        .where(Listing.status == "active", User.is_verified == True)  # noqa: E712
+    ).one()
+
     total_listings = db.exec(select(func.count(Listing.id))).one()
     active_listings = db.exec(select(func.count(Listing.id)).where(Listing.status == "active")).one()
     pending_listings = db.exec(select(func.count(Listing.id)).where(Listing.status == "pending")).one()
     pending_promotions = db.exec(select(func.count(Promotion.id)).where(Promotion.status == PromotionStatus.SUBMITTED)).one()
-    
+
+    pending_seller_verifications = db.exec(
+        select(func.count(VerificationRequest.id)).where(VerificationRequest.status == VerificationStatus.PENDING)
+    ).one()
+
+    reported_listings = db.exec(
+        select(func.count(func.distinct(ListingReport.listing_id))).where(ListingReport.status == "pending")
+    ).one()
+    open_disputes = db.exec(select(func.count(ListingReport.id)).where(ListingReport.status == "pending")).one()
+
+    new_signups_today = db.exec(select(func.count(User.id)).where(User.created_at >= today_start)).one()
+    new_signups_week = db.exec(select(func.count(User.id)).where(User.created_at >= week_start)).one()
+    new_signups_month = db.exec(select(func.count(User.id)).where(User.created_at >= month_start)).one()
+
+    signups_this_month = new_signups_month
+    signups_prev_month = db.exec(
+        select(func.count(User.id)).where(User.created_at >= prev_month_start, User.created_at < month_start)
+    ).one()
+    growth_rate = (
+        round((signups_this_month - signups_prev_month) / signups_prev_month * 100, 1)
+        if signups_prev_month else (100.0 if signups_this_month else 0.0)
+    )
+
+    listings_today = db.exec(select(func.count(Listing.id)).where(Listing.created_at >= today_start)).one()
+    messages_today = db.exec(
+        select(func.count(Message.id)).where(Message.created_at >= today_start)
+    ).one()
+
     return {
         "total_users": total_users,
+        "active_users": active_users,
+        "active_sellers": active_sellers,
+        "active_buyers": active_buyers,
+        "total_shops": total_shops,
         "total_listings": total_listings,
         "active_listings": active_listings,
         "pending_listings": pending_listings,
         "pending_promotions": pending_promotions,
+        "verified_sellers": verified_sellers,
+        "pending_seller_verifications": pending_seller_verifications,
+        "suspended_accounts": suspended_accounts,
+        "reported_listings": reported_listings,
+        "open_disputes": open_disputes,
+        "new_signups_today": new_signups_today,
+        "new_signups_this_week": new_signups_week,
+        "new_signups_this_month": new_signups_month,
+        "new_users_this_week": new_signups_week,  # legacy key the dashboard already read
+        "platform_growth_rate": growth_rate,
+        "marketplace_activity": {
+            "listings_posted_today": listings_today,
+            "messages_sent_today": messages_today,
+        },
     }
 
 

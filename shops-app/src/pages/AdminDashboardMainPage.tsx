@@ -7,7 +7,8 @@ import {
   Users, DollarSign, ShoppingCart, TrendingUp, Package,
   ArrowUpRight, ArrowDownRight, Filter, SlidersHorizontal,
   Box, Activity, Loader2, RefreshCw, LayoutGrid,
-  CheckCircle, Clock, AlertTriangle, Megaphone
+  CheckCircle, Clock, AlertTriangle, Megaphone, Store, UserCheck,
+  UserX, ShieldAlert, Flag, UserPlus, MessageSquare
 } from 'lucide-react';
 import { MetricCard } from '@/components/MetricCard';
 import { DashboardLayout } from '@/components/DashboardLayout';
@@ -25,6 +26,21 @@ interface AdminStats {
   total_revenue?: number;
   new_users_this_week?: number;
   pending_orders?: number;
+  // Management Overview
+  active_users?: number;
+  active_sellers?: number;
+  active_buyers?: number;
+  total_shops?: number;
+  verified_sellers?: number;
+  pending_seller_verifications?: number;
+  suspended_accounts?: number;
+  reported_listings?: number;
+  open_disputes?: number;
+  new_signups_today?: number;
+  new_signups_this_week?: number;
+  new_signups_this_month?: number;
+  platform_growth_rate?: number;
+  marketplace_activity?: { listings_posted_today: number; messages_sent_today: number };
 }
 
 interface Order {
@@ -116,6 +132,80 @@ const AdminDashboard = () => {
     },
   ] : [];
 
+  const overviewMetrics = stats ? [
+    {
+      icon: <UserCheck className="w-5 h-5" />,
+      label: 'Active Users',
+      value: stats.active_users?.toLocaleString() ?? '—',
+      subtext: `of ${stats.total_users?.toLocaleString() ?? 0} total`,
+      color: 'green' as const,
+    },
+    {
+      icon: <Store className="w-5 h-5" />,
+      label: 'Active Sellers',
+      value: stats.active_sellers?.toLocaleString() ?? '—',
+      subtext: `${stats.active_buyers?.toLocaleString() ?? 0} active buyers`,
+      color: 'blue' as const,
+    },
+    {
+      icon: <Package className="w-5 h-5" />,
+      label: 'Total Shops',
+      value: stats.total_shops?.toLocaleString() ?? '—',
+      subtext: 'Verified, active listings',
+      color: 'purple' as const,
+    },
+    {
+      icon: <CheckCircle className="w-5 h-5" />,
+      label: 'Verified Sellers',
+      value: stats.verified_sellers?.toLocaleString() ?? '—',
+      subtext: `${stats.pending_seller_verifications?.toLocaleString() ?? 0} pending review`,
+      color: stats.pending_seller_verifications ? 'orange' as const : 'green' as const,
+    },
+    {
+      icon: <UserX className="w-5 h-5" />,
+      label: 'Suspended Accounts',
+      value: stats.suspended_accounts?.toLocaleString() ?? '—',
+      subtext: 'Currently suspended',
+      color: stats.suspended_accounts ? 'orange' as const : 'green' as const,
+    },
+    {
+      icon: <Flag className="w-5 h-5" />,
+      label: 'Reported Listings',
+      value: stats.reported_listings?.toLocaleString() ?? '—',
+      subtext: 'Pending review',
+      color: stats.reported_listings ? 'orange' as const : 'green' as const,
+    },
+    {
+      icon: <ShieldAlert className="w-5 h-5" />,
+      label: 'Open Disputes',
+      value: stats.open_disputes?.toLocaleString() ?? '—',
+      subtext: 'Awaiting resolution',
+      color: stats.open_disputes ? 'orange' as const : 'green' as const,
+    },
+    {
+      icon: <UserPlus className="w-5 h-5" />,
+      label: 'New Signups Today',
+      value: stats.new_signups_today?.toLocaleString() ?? '—',
+      subtext: `${stats.new_signups_this_week ?? 0} this week · ${stats.new_signups_this_month ?? 0} this month`,
+      color: 'blue' as const,
+    },
+    {
+      icon: <TrendingUp className="w-5 h-5" />,
+      label: 'Platform Growth Rate',
+      value: stats.platform_growth_rate !== undefined ? `${stats.platform_growth_rate > 0 ? '+' : ''}${stats.platform_growth_rate}%` : '—',
+      subtext: 'Signups vs. prior 30 days',
+      trend: (stats.platform_growth_rate ?? 0) >= 0 ? 'up' as const : 'down' as const,
+      color: (stats.platform_growth_rate ?? 0) >= 0 ? 'green' as const : 'orange' as const,
+    },
+    {
+      icon: <MessageSquare className="w-5 h-5" />,
+      label: 'Marketplace Activity',
+      value: `${stats.marketplace_activity?.listings_posted_today ?? 0}`,
+      subtext: `listings + ${stats.marketplace_activity?.messages_sent_today ?? 0} messages today`,
+      color: 'purple' as const,
+    },
+  ] : [];
+
   // Quick action hub items
   const quickLinks = [
     { label: 'Users', icon: Users, href: '/admin-users', color: 'bg-blue-50 text-blue-600 border-blue-100', desc: 'Manage accounts' },
@@ -186,6 +276,25 @@ const AdminDashboard = () => {
             </motion.div>
           ))}
         </div>
+
+        {/* Management Overview */}
+        {overviewMetrics.length > 0 && (
+          <div>
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mb-3">Management Overview</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {overviewMetrics.map((metric, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                >
+                  <MetricCard {...metric} />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Middle Row: Platform Health + Quick Links */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
