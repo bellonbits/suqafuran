@@ -170,9 +170,10 @@ export default function ShopsAdminPage() {
       console.log(`✅ Received ${response.data?.length || 0} shops from API`);
       console.log(' First shop:', response.data?.[0]);
 
-      const shopsData = Array.isArray(response.data) ? response.data : response.data?.data || [];
+      const shopsData = response.data?.shops || (Array.isArray(response.data) ? response.data : []);
+      const totalCount = response.data?.total || shopsData.length;
       setShops(shopsData);
-      setTotalPages(1); // Since we fetch all shops at once, only 1 page
+      setTotalPages(Math.ceil(totalCount / itemsPerPage) || 1);
     } catch (error: any) {
       console.error('❌ Error loading shops:', error);
       console.error('Status:', error.response?.status);
