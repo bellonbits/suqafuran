@@ -2036,56 +2036,107 @@ async def update_shop_name(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/shops")
-async def list_shops(
+# The unrestricted "all shops" listing lives at /shops/directory, not
+# /shops -- GET /shops above (get_all_shops) already owns that exact
+# path+method and FastAPI resolves routes in registration order, so a
+# second `@router.get("/shops")` here was silently unreachable dead code.
+# Removed; its logic (every business_name user, not just verified/active/
+# has-active-listing ones) is what /shops/directory below is for.
+
+@router.get("/shops/stats")
+def get_shop_stats(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """Counts for the Shop Management summary cards -- every seller
+    (business_name set), not just the verified+active+has-listings subset
+    GET /shops itself is scoped to."""
+    is_seller = User.business_name.isnot(None)
+    total = db.exec(select(func.count(User.id)).where(is_seller)).one()
+    active = db.exec(select(func.count(User.id)).where(is_seller, User.is_active == True, User.is_suspended == False)).one()  # noqa: E712
+    pending = db.exec(select(func.count(User.id)).where(is_seller, User.is_verified == False)).one()  # noqa: E712
+    verified = db.exec(select(func.count(User.id)).where(is_seller, User.is_verified == True)).one()  # noqa: E712
+    suspended = db.exec(select(func.count(User.id)).where(is_seller, User.is_suspended == True)).one()  # noqa: E712
+    return {"total": total, "active": active, "pending": pending, "verified": verified, "suspended": suspended}
+
+
+@router.get("/shops/directory")
+def get_shops_directory(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=500),
     search: Optional[str] = Query(None),
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user),
-) -> dict[str, Any]:
-    """Admin endpoint to list all shops with their names.
-
-    Query Params:
-    - skip: Number of shops to skip (for pagination)
-    - limit: Max shops to return (1-500)
-    - search: Optional search by business name
+    status: Optional[str] = Query(None, description="active, pending, verified, suspended"),
+) -> Any:
     """
-    if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+    Every seller account (business_name set) with real listing/follower
+    counts and a shop rating -- unlike GET /shops, not restricted to
+    verified+active+has-active-listing, so newly-signed-up or unverified
+    shops show up here too.
+    """
+    from sqlmodel import func as _func
+    from app.models.follow import Follow
 
-    try:
-        query = select(User).where(User.business_name.isnot(None))
+    query = select(User).where(User.business_name.isnot(None))
+    if search:
+        query = query.where(User.business_name.ilike(f"%{search}%"))
+    if status == "active":
+        query = query.where(User.is_active == True, User.is_suspended == False)  # noqa: E712
+    elif status == "pending":
+        query = query.where(User.is_verified == False)  # noqa: E712
+    elif status == "verified":
+        query = query.where(User.is_verified == True)  # noqa: E712
+    elif status == "suspended":
+        query = query.where(User.is_suspended == True)  # noqa: E712
 
-        if search:
-            search_term = f"%{search.lower()}%"
-            query = query.where(func.lower(User.business_name).like(search_term))
+    total = db.exec(select(_func.count()).select_from(query.subquery())).one()
+    sellers = db.exec(query.order_by(User.created_at.desc()).offset(skip).limit(limit)).all()
 
-        total = db.exec(select(func.count(User.id)).where(User.business_name.isnot(None))).one()
+    seller_ids = [s.id for s in sellers]
+    listing_counts: dict = {}
+    active_listing_counts: dict = {}
+    follower_counts: dict = {}
+    if seller_ids:
+        for owner_id, total_count in db.exec(
+            select(Listing.owner_id, _func.count()).where(Listing.owner_id.in_(seller_ids)).group_by(Listing.owner_id)
+        ).all():
+            listing_counts[owner_id] = total_count
+        for owner_id, active_count in db.exec(
+            select(Listing.owner_id, _func.count()).where(Listing.owner_id.in_(seller_ids), Listing.status == "active").group_by(Listing.owner_id)
+        ).all():
+            active_listing_counts[owner_id] = active_count
+        for followed_id, follower_count in db.exec(
+            select(Follow.followed_id, _func.count()).where(Follow.followed_id.in_(seller_ids)).group_by(Follow.followed_id)
+        ).all():
+            follower_counts[followed_id] = follower_count
 
-        shops = db.exec(query.offset(skip).limit(limit)).all()
-
-        return {
-            "shops": [
-                {
-                    "id": shop.id,
-                    "business_name": shop.business_name,
-                    "full_name": shop.full_name,
-                    "email": shop.email,
-                    "phone": shop.phone,
-                    "is_verified": shop.is_verified,
-                    "is_active": shop.is_active,
-                    "created_at": shop.created_at,
-                    "updated_at": shop.updated_at,
-                }
-                for shop in shops
-            ],
-            "total": total,
-            "skip": skip,
-            "limit": limit,
-        }
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return {
+        "shops": [
+            {
+                "id": s.id,
+                "business_name": s.business_name,
+                "full_name": s.full_name,
+                "email": s.email,
+                "phone": s.phone,
+                "location": s.location,
+                "is_verified": s.is_verified,
+                "is_active": s.is_active,
+                "is_suspended": s.is_suspended,
+                "trust_score": s.trust_score,
+                "total_listings": listing_counts.get(s.id, 0),
+                "active_listings": active_listing_counts.get(s.id, 0),
+                "followers": follower_counts.get(s.id, 0),
+                "created_at": s.created_at,
+            }
+            for s in sellers
+        ],
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+    }
 
 
 # ============== PRODUCT DATABASE ==============

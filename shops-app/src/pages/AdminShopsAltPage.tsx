@@ -158,11 +158,13 @@ export default function ShopsAdminPage() {
       console.log(`📡 Fetching shops: page=${page}, skip=${skip}, limit=${itemsPerPage}`);
 
       // Add cache-busting parameter to force fresh data
-      const response = await api.get('/admin/shops', {
-        params: { skip, limit: itemsPerPage, _t: Date.now() }
-      });
-
-      console.log(`✅ Response status: ${response.status}`);
+      const response = await api.get('/admin/shops/directory', {
+        params: {
+          search: searchQuery,
+          skip: (page - 1) * itemsPerPage,
+          limit: itemsPerPage,
+        },
+      });console.log(`✅ Response status: ${response.status}`);
       console.log(`✅ Response data type: ${typeof response.data}`);
       console.log(`✅ Is array: ${Array.isArray(response.data)}`);
       console.log(`✅ Received ${response.data?.length || 0} shops from API`);
