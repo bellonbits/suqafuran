@@ -239,6 +239,7 @@ export default function App() {
 
       {/* Admin Panel - Main Pages - Protected */}
       <Route element={<ProtectedRoute requiredRole="admin"><AdminDashboardMainPage /></ProtectedRoute>} path="/admin-dashboard" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AccountPage /></ProtectedRoute>} path="/admin-dashboard/settings" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminListingsPage /></ProtectedRoute>} path="/admin-listings" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminSellersPage /></ProtectedRoute>} path="/admin-sellers" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminShopsPage /></ProtectedRoute>} path="/admin-shops" />
