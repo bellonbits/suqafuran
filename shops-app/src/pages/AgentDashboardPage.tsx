@@ -137,10 +137,12 @@ export default function AgentDashboardPage() {
         if (rawUsers.length > 0) {
           const u = rawUsers[0];
           setCustomer({
+            id: u.id,
+            shop_id: u.id,
             name: u.full_name || u.business_name || 'Registered Customer',
             email: u.email || 'customer@suqafuran.local',
             phone: u.phone || '+254700000000',
-            shipping_address: u.location || u.market || 'Nairobi, Kenya',
+            shipping_address: u.location || u.market || 'Eastleigh Market',
             billing_address: 'Same as shipping address',
             avatar: u.avatar_url || u.logo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
           });
@@ -282,8 +284,8 @@ export default function AgentDashboardPage() {
                 </button>
 
                 <Link
-                  to="/shops"
-                  className="px-4 py-2 bg-white dark:bg-neutral-950 border border-slate-200/80 dark:border-neutral-800 text-xs font-extrabold text-slate-800 dark:text-neutral-50 hover:bg-slate-50 rounded-2xl shadow-sm transition-colors"
+                  to={customer.shop_id ? `/shop/${customer.shop_id}` : '/shops'}
+                  className="px-4 py-2 bg-white dark:bg-neutral-950 border border-slate-200/80 dark:border-neutral-800 text-xs font-extrabold text-slate-800 dark:text-neutral-50 hover:bg-slate-50 rounded-2xl shadow-sm transition-colors cursor-pointer"
                 >
                   View Shop
                 </Link>
@@ -410,12 +412,19 @@ export default function AgentDashboardPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 pt-2">
-                    <button className="py-2.5 bg-slate-100 dark:bg-neutral-900 hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-800 dark:text-neutral-50 rounded-2xl text-xs font-extrabold transition-colors">
+                    <a
+                      href={customer.phone ? `tel:${customer.phone}` : '#'}
+                      onClick={(e) => { if (!customer.phone) { e.preventDefault(); alert('No phone number on record for this customer'); } }}
+                      className="py-2.5 bg-slate-100 dark:bg-neutral-900 hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-800 dark:text-neutral-50 rounded-2xl text-xs font-extrabold transition-colors text-center block"
+                    >
                       Call
-                    </button>
-                    <button className="py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-2xl text-xs font-extrabold shadow-md shadow-sky-500/20 transition-all active:scale-95">
+                    </a>
+                    <Link
+                      to={`/messages?userId=${customer.id || ''}`}
+                      className="py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-2xl text-xs font-extrabold shadow-md shadow-sky-500/20 transition-all active:scale-95 text-center block"
+                    >
                       Message
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>
