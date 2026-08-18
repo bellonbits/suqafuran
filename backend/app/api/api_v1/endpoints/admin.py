@@ -4,7 +4,7 @@ from sqlmodel import Session, select, func
 from pydantic import BaseModel
 from app.api import deps
 from app.models.listing import Listing, Category, ListingRead
-from app.models.user import User
+from app.models.user import User, UserResponse
 from app.models.promotion import Promotion, PromotionStatus
 from app.models.audit import AuditLog
 from app.models.business import Business
@@ -298,21 +298,25 @@ def moderate_listing(
     return listing
 
 
-@router.get("/users", response_model=List[User])
-def read_users_admin(
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_superuser),
-    skip: int = 0,
-    limit: int = 100,
-    search: Optional[str] = Query(default=None, description="Search by name, email, or phone"),
-) -> Any:
-    """
-    List all users (Admin only) with optional search.
-    """
-    statement = select(User)
+def _apply_registered_signups_filters(
+    statement,
+    *,
+    search: Optional[str] = None,
+    user_type: Optional[str] = None,
+    status: Optional[str] = None,
+    verification: Optional[str] = None,
+    location: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+):
+    """Shared Date | User Type | Status | Location | Verification filter set
+    for the Registered Signups list and count endpoints, so the count shown
+    in pagination always matches what the list is actually filtered to."""
+    from datetime import datetime as dt
+    from sqlmodel import or_
+
     if search:
         pattern = f"%{search}%"
-        from sqlmodel import or_
         statement = statement.where(
             or_(
                 User.full_name.ilike(pattern),
@@ -320,6 +324,56 @@ def read_users_admin(
                 User.phone.ilike(pattern),
             )
         )
+    if user_type == "seller":
+        statement = statement.where(User.business_name.isnot(None))
+    elif user_type == "buyer":
+        statement = statement.where(User.business_name.is_(None), User.is_admin == False)  # noqa: E712
+    elif user_type == "admin":
+        statement = statement.where(User.is_admin == True)  # noqa: E712
+    if status == "active":
+        statement = statement.where(User.is_active == True, User.is_suspended == False)  # noqa: E712
+    elif status == "inactive":
+        statement = statement.where(User.is_active == False)  # noqa: E712
+    elif status == "suspended":
+        statement = statement.where(User.is_suspended == True)  # noqa: E712
+    if verification == "verified":
+        statement = statement.where(User.is_verified == True)  # noqa: E712
+    elif verification == "unverified":
+        statement = statement.where(User.is_verified == False)  # noqa: E712
+    if location:
+        statement = statement.where(User.location.ilike(f"%{location}%"))
+    if date_from:
+        statement = statement.where(User.created_at >= dt.fromisoformat(date_from))
+    if date_to:
+        statement = statement.where(User.created_at <= dt.fromisoformat(date_to))
+    return statement
+
+
+@router.get("/users", response_model=List[UserResponse])
+def read_users_admin(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+    skip: int = 0,
+    limit: int = 100,
+    search: Optional[str] = Query(default=None, description="Search by name, email, or phone"),
+    user_type: Optional[str] = Query(default=None, description="buyer, seller, or admin"),
+    status: Optional[str] = Query(default=None, description="active, inactive, or suspended"),
+    verification: Optional[str] = Query(default=None, description="verified or unverified"),
+    location: Optional[str] = Query(default=None),
+    date_from: Optional[str] = Query(default=None, description="ISO date, registered on/after"),
+    date_to: Optional[str] = Query(default=None, description="ISO date, registered on/before"),
+) -> Any:
+    """
+    List all users (Admin only), with the full Registered Signups filter set.
+    response_model is UserResponse (not the raw User table model) so
+    hashed_password never leaves the server -- the previous response_model
+    of List[User] was serializing every user's password hash into this
+    response.
+    """
+    statement = _apply_registered_signups_filters(
+        select(User), search=search, user_type=user_type, status=status,
+        verification=verification, location=location, date_from=date_from, date_to=date_to,
+    )
     statement = statement.order_by(User.created_at.desc()).offset(skip).limit(limit)
     users = db.exec(statement).all()
     return users
@@ -330,23 +384,50 @@ def count_users_admin(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_superuser),
     search: Optional[str] = Query(default=None),
+    user_type: Optional[str] = Query(default=None),
+    status: Optional[str] = Query(default=None),
+    verification: Optional[str] = Query(default=None),
+    location: Optional[str] = Query(default=None),
+    date_from: Optional[str] = Query(default=None),
+    date_to: Optional[str] = Query(default=None),
 ) -> Any:
     """
-    Count total users (for pagination).
+    Count total users matching the same filters as GET /users (for pagination).
     """
-    statement = select(func.count(User.id))
-    if search:
-        pattern = f"%{search}%"
-        from sqlmodel import or_
-        statement = statement.where(
-            or_(
-                User.full_name.ilike(pattern),
-                User.email.ilike(pattern),
-                User.phone.ilike(pattern),
-            )
-        )
+    statement = _apply_registered_signups_filters(
+        select(func.count(User.id)), search=search, user_type=user_type, status=status,
+        verification=verification, location=location, date_from=date_from, date_to=date_to,
+    )
     total = db.exec(statement).one()
     return {"total": total}
+
+
+@router.get("/users/signup-stats")
+def get_signup_stats(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """Breakdown counts for the Registered Signups summary cards."""
+    total = db.exec(select(func.count(User.id))).one()
+    buyers = db.exec(select(func.count(User.id)).where(User.business_name.is_(None), User.is_admin == False)).one()  # noqa: E712
+    sellers = db.exec(select(func.count(User.id)).where(User.business_name.isnot(None))).one()
+    admins = db.exec(select(func.count(User.id)).where(User.is_admin == True)).one()  # noqa: E712
+    verified = db.exec(select(func.count(User.id)).where(User.is_verified == True)).one()  # noqa: E712
+    unverified = db.exec(select(func.count(User.id)).where(User.is_verified == False)).one()  # noqa: E712
+    active = db.exec(select(func.count(User.id)).where(User.is_active == True)).one()  # noqa: E712
+    inactive = db.exec(select(func.count(User.id)).where(User.is_active == False)).one()  # noqa: E712
+    suspended = db.exec(select(func.count(User.id)).where(User.is_suspended == True)).one()  # noqa: E712
+    return {
+        "total": total,
+        "buyers": buyers,
+        "sellers": sellers,
+        "admins": admins,
+        "verified": verified,
+        "unverified": unverified,
+        "active": active,
+        "inactive": inactive,
+        "suspended": suspended,
+    }
 
 class AgentEmailIn(BaseModel):
     email: str
@@ -1835,7 +1916,7 @@ def delete_shop_logo(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.put("/users/{user_id}", response_model=User)
+@router.put("/users/{user_id}", response_model=UserResponse)
 def update_user_admin(
     user_id: int,
     user_data: UserAdminUpdate,

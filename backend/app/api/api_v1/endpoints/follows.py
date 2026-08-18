@@ -4,11 +4,11 @@ from sqlmodel import Session, select
 from app.api import deps
 from app.core.config import settings
 from app.models.follow import Follow
-from app.models.user import User
+from app.models.user import User, UserResponse
 
 router = APIRouter()
 
-@router.get("/my/followers", response_model=List[User])
+@router.get("/my/followers", response_model=List[UserResponse])
 def get_my_followers(
     db: Session = Depends(deps.get_db),
     current_user = Depends(deps.get_current_active_user),
@@ -77,7 +77,7 @@ def unfollow_user(
     return {"message": "Success"}
 
 
-@router.get("/my/following", response_model=List[User])
+@router.get("/my/following", response_model=List[UserResponse])
 def get_my_following(
     db: Session = Depends(deps.get_db),
     current_user = Depends(deps.get_current_active_user),
