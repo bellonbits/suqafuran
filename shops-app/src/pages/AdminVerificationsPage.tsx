@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   Search, Loader, Eye, CheckCircle, X, UserCheck,
-  FileText, Clock, XCircle, FileImage, Video, ExternalLink
+  FileText, Clock, XCircle, FileImage, Video, ExternalLink,
+  UserX, RotateCcw, MessageCircleQuestion, ShieldOff
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ADMIN_NAV_ITEMS } from '@/admin-dashboard/navigation';
@@ -49,8 +50,12 @@ const VerificationsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedVerification, setSelectedVerification] = useState<any>(null);
+  const [serverStats, setServerStats] = useState<{ pending: number; approved: number; rejected: number; suspended_sellers: number } | null>(null);
+  const [actionBusy, setActionBusy] = useState(false);
+  const [infoRequestText, setInfoRequestText] = useState('');
+  const [showInfoRequestBox, setShowInfoRequestBox] = useState(false);
 
-  useEffect(() => { loadVerifications(); }, []);
+  useEffect(() => { loadVerifications(); loadStats(); }, []);
 
   const loadVerifications = async () => {
     setLoading(true);
@@ -64,18 +69,76 @@ const VerificationsPage = () => {
     }
   };
 
+  const loadStats = async () => {
+    try {
+      const res = await api.get('/verifications/stats');
+      setServerStats(res.data);
+    } catch {
+      // Falls back to the client-side counts below
+    }
+  };
+
+  const refresh = () => { loadVerifications(); loadStats(); };
+
   const handleApprove = async (id: number) => {
     try {
       await api.patch(`/verifications/${id}`, { status: 'approved' }).catch(() => null);
-      loadVerifications();
+      refresh();
     } catch {}
   };
 
   const handleReject = async (id: number) => {
     try {
       await api.patch(`/verifications/${id}`, { status: 'rejected' }).catch(() => null);
-      loadVerifications();
+      refresh();
     } catch {}
+  };
+
+  const handleReverify = async (id: number) => {
+    setActionBusy(true);
+    try {
+      await api.post(`/verifications/${id}/reverify`);
+      refresh();
+      setSelectedVerification(null);
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  const handleSuspendSeller = async (id: number) => {
+    setActionBusy(true);
+    try {
+      await api.post(`/verifications/${id}/suspend-seller`, { reason: 'Suspended from verification review' });
+      refresh();
+      setSelectedVerification(null);
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  const handleReactivateSeller = async (id: number) => {
+    setActionBusy(true);
+    try {
+      await api.post(`/verifications/${id}/reactivate-seller`);
+      refresh();
+      setSelectedVerification(null);
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  const handleRequestInfo = async (id: number) => {
+    if (!infoRequestText.trim()) return;
+    setActionBusy(true);
+    try {
+      await api.post(`/verifications/${id}/request-info`, { message: infoRequestText.trim() });
+      setInfoRequestText('');
+      setShowInfoRequestBox(false);
+      refresh();
+      setSelectedVerification(null);
+    } finally {
+      setActionBusy(false);
+    }
   };
 
   const filtered = verifications.filter(v => {
@@ -87,9 +150,10 @@ const VerificationsPage = () => {
     return matchSearch && matchStatus;
   });
 
-  const pendingCount  = verifications.filter(v => v.status === 'pending').length;
-  const approvedCount = verifications.filter(v => v.status === 'approved').length;
-  const rejectedCount = verifications.filter(v => v.status === 'rejected').length;
+  const pendingCount  = serverStats?.pending ?? verifications.filter(v => v.status === 'pending').length;
+  const approvedCount = serverStats?.approved ?? verifications.filter(v => v.status === 'approved').length;
+  const rejectedCount = serverStats?.rejected ?? verifications.filter(v => v.status === 'rejected').length;
+  const suspendedSellersCount = serverStats?.suspended_sellers ?? 0;
 
   return (
     <DashboardLayout title="Verifications" navItems={adminNavItems} userRole="admin">
@@ -102,7 +166,7 @@ const VerificationsPage = () => {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-5 mb-7">
+      <div className="grid grid-cols-1 sm:grid-cols-5 gap-5 mb-7">
         <div className="stat-card flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-sky-50 dark:bg-sky-950/30 flex items-center justify-center">
             <UserCheck className="w-6 h-6 text-sky-600" />
@@ -137,6 +201,15 @@ const VerificationsPage = () => {
           <div>
             <p className="text-3xl font-black text-slate-900 dark:text-white">{rejectedCount}</p>
             <p className="text-sm text-slate-400 mt-0.5">Rejected</p>
+          </div>
+        </div>
+        <div className="stat-card flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-neutral-900 flex items-center justify-center">
+            <ShieldOff className="w-6 h-6 text-slate-600 dark:text-neutral-300" />
+          </div>
+          <div>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">{suspendedSellersCount}</p>
+            <p className="text-sm text-slate-400 mt-0.5">Suspended Sellers</p>
           </div>
         </div>
       </div>
@@ -339,8 +412,10 @@ const VerificationsPage = () => {
                 <div className="grid grid-cols-2 gap-4">
                   {[
                     { label: 'Full Name', val: selectedVerification.user?.full_name || selectedVerification.full_name || '—' },
+                    { label: 'Business Name', val: selectedVerification.user?.business_name || '—' },
                     { label: 'Phone', val: selectedVerification.user?.phone || selectedVerification.phone || '—' },
                     { label: 'Email', val: selectedVerification.user?.email || selectedVerification.email || '—' },
+                    { label: 'Location', val: selectedVerification.user?.location || '—' },
                     { label: 'Level', val: selectedVerification.tier || selectedVerification.user?.verified_level || 'STANDARD' },
                   ].map(f => (
                     <div key={f.label}>
@@ -384,6 +459,18 @@ const VerificationsPage = () => {
                     <p className="text-xs text-slate-400 font-semibold mb-1">Submitted</p>
                     <p className="text-sm text-slate-900 dark:text-white font-medium">
                       {selectedVerification.created_at ? new Date(selectedVerification.created_at).toLocaleDateString() : '—'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400 font-semibold mb-1">Verification Officer</p>
+                    <p className="text-sm text-slate-900 dark:text-white font-medium">
+                      {selectedVerification.reviewed_by || 'Not yet reviewed'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400 font-semibold mb-1">Verification Date</p>
+                    <p className="text-sm text-slate-900 dark:text-white font-medium">
+                      {selectedVerification.reviewed_at ? new Date(selectedVerification.reviewed_at).toLocaleDateString() : '—'}
                     </p>
                   </div>
                 </div>
@@ -453,8 +540,37 @@ const VerificationsPage = () => {
                 </div>
               )}
 
+              {/* Request more info */}
+              {showInfoRequestBox && (
+                <div className="bg-sky-50 dark:bg-sky-950/20 border border-sky-200 dark:border-sky-900/40 rounded-xl p-4">
+                  <p className="text-xs font-bold text-sky-700 uppercase tracking-wider mb-2">What's missing?</p>
+                  <textarea
+                    value={infoRequestText}
+                    onChange={(e) => setInfoRequestText(e.target.value)}
+                    placeholder="e.g. Your ID photo is blurry -- please re-upload a clearer copy."
+                    className="w-full text-sm p-3 rounded-lg border border-sky-200 dark:border-sky-900/40 bg-white dark:bg-neutral-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-300"
+                    rows={3}
+                  />
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      disabled={actionBusy || !infoRequestText.trim()}
+                      onClick={() => handleRequestInfo(selectedVerification.id)}
+                      className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-sm font-semibold disabled:opacity-50"
+                    >
+                      Send Request
+                    </button>
+                    <button
+                      onClick={() => { setShowInfoRequestBox(false); setInfoRequestText(''); }}
+                      className="px-4 py-2 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-lg text-sm font-semibold text-slate-600 dark:text-neutral-200"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Modal actions */}
-              <div className="flex gap-3 pt-2 border-t border-slate-100 dark:border-neutral-800">
+              <div className="flex flex-wrap gap-3 pt-2 border-t border-slate-100 dark:border-neutral-800">
                 {selectedVerification.status === 'pending' && (
                   <>
                     <button
@@ -469,23 +585,57 @@ const VerificationsPage = () => {
                     >
                       <XCircle className="w-4 h-4" /> Reject
                     </button>
+                    <button
+                      onClick={() => setShowInfoRequestBox(true)}
+                      className="flex-1 py-2.5 bg-sky-50 dark:bg-sky-950/30 hover:bg-sky-100 text-sky-700 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                    >
+                      <MessageCircleQuestion className="w-4 h-4" /> Request Info
+                    </button>
                   </>
                 )}
                 {selectedVerification.status === 'rejected' && (
-                  <button
-                    onClick={() => { handleApprove(selectedVerification.id); setSelectedVerification(null); }}
-                    className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
-                  >
-                    <CheckCircle className="w-4 h-4" /> Approve Anyway
-                  </button>
+                  <>
+                    <button
+                      onClick={() => { handleApprove(selectedVerification.id); setSelectedVerification(null); }}
+                      className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                    >
+                      <CheckCircle className="w-4 h-4" /> Approve Anyway
+                    </button>
+                    <button
+                      disabled={actionBusy}
+                      onClick={() => handleReverify(selectedVerification.id)}
+                      className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-900 hover:bg-gray-200 text-slate-700 dark:text-neutral-200 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      <RotateCcw className="w-4 h-4" /> Re-verify
+                    </button>
+                  </>
                 )}
                 {selectedVerification.status === 'approved' && (
                   <div className="flex-1 py-2.5 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 rounded-xl font-semibold text-center flex items-center justify-center gap-2">
                     <CheckCircle className="w-4 h-4" /> Already Approved
                   </div>
                 )}
+
+                {selectedVerification.user?.is_suspended ? (
+                  <button
+                    disabled={actionBusy}
+                    onClick={() => handleReactivateSeller(selectedVerification.id)}
+                    className="flex-1 py-2.5 bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-100 text-emerald-700 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <UserCheck className="w-4 h-4" /> Reactivate Seller
+                  </button>
+                ) : (
+                  <button
+                    disabled={actionBusy}
+                    onClick={() => handleSuspendSeller(selectedVerification.id)}
+                    className="flex-1 py-2.5 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 text-red-700 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <UserX className="w-4 h-4" /> Suspend Seller
+                  </button>
+                )}
+
                 <button
-                  onClick={() => setSelectedVerification(null)}
+                  onClick={() => { setSelectedVerification(null); setShowInfoRequestBox(false); setInfoRequestText(''); }}
                   className="flex-1 py-2.5 bg-slate-100 dark:bg-neutral-900 hover:bg-gray-200 text-slate-700 dark:text-neutral-200 rounded-xl font-semibold transition-colors"
                 >
                   Close
