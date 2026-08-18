@@ -490,3 +490,62 @@ def reset_password(
     )
 
     return {"message": "Password reset successfully"}
+
+
+@router.get("/me/security-log")
+def get_my_security_log(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    The current user's own security activity: real security alert emails
+    (password changes, new-device logins, account protection notices) plus
+    every device that's ever been linked to this account. Backs the
+    /security-logs page.
+    """
+    from sqlmodel import select
+    from app.models.email_log import EmailLog
+    from app.models.device import Device, UserDeviceLink
+
+    SECURITY_EMAIL_TYPES = [
+        "safety_password_change", "safety_suspicious_login",
+        "safety_protection", "safety_scam_warning",
+    ]
+
+    alert_rows = db.exec(
+        select(EmailLog)
+        .where(EmailLog.user_id == current_user.id, EmailLog.email_type.in_(SECURITY_EMAIL_TYPES))
+        .order_by(EmailLog.sent_at.desc())
+        .limit(100)
+    ).all()
+
+    device_rows = db.exec(
+        select(Device, UserDeviceLink.created_at)
+        .join(UserDeviceLink, UserDeviceLink.device_id == Device.id)
+        .where(UserDeviceLink.user_id == current_user.id)
+        .order_by(Device.last_seen_at.desc())
+    ).all()
+
+    return {
+        "alerts": [
+            {
+                "id": row.id,
+                "type": row.email_type,
+                "subject": row.subject,
+                "status": row.status,
+                "at": row.sent_at,
+            }
+            for row in alert_rows
+        ],
+        "devices": [
+            {
+                "id": device.id,
+                "first_seen_at": first_seen,
+                "last_seen_at": device.last_seen_at,
+                "is_banned": device.is_banned,
+                "metadata": device.device_metadata or {},
+            }
+            for device, first_seen in device_rows
+        ],
+    }

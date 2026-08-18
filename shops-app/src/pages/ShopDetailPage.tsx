@@ -227,6 +227,9 @@ export default function ShopDetailPage() {
                 setShopName(currentShop.shop_name || 'Shop');
                 setShopOwnerName(currentShop.owner_name || '');
                 setShopLocation(currentShop.shop_address || '');
+                if (currentShop.shop_name) {
+                    document.title = `${currentShop.shop_name} | Suqafuran`;
+                }
 
                 // Extract logo candidate: check logo_url first, then owner_avatar_url, user avatar_url, or cover_image
                 const rawLogo = currentShop.logo_url || currentShop.owner_avatar_url || currentShop.user?.avatar_url || currentShop.cover_image;
@@ -261,6 +264,10 @@ export default function ShopDetailPage() {
         };
 
         fetchData();
+
+        return () => {
+            document.title = "Suqafuran - Africa's Marketplace";
+        };
     }, [shopIdParam, city, isHydrated]);
 
     // Fetch user's follow/review/feedback status when component mounts or user changes

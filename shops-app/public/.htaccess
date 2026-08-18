@@ -9,12 +9,22 @@
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # Social-media link-preview crawlers don't run JS, so they'd otherwise get
-  # the same generic site-wide og:image on every /listing/{id} page. Hand
-  # them a tiny server-rendered page with that listing's own photo instead --
-  # real visitors never match this and continue straight to the SPA below.
-  RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|TelegramBot|Slackbot|Discordbot|Pinterest|redditbot|SkypeUriPreview|vkShare|Applebot) [NC]
+  # Social-media link-preview crawlers AND search-engine crawlers don't run
+  # JS on the first pass, so they'd otherwise get the same generic
+  # site-wide title/description on every /listing/{id} and /shop/{slug}
+  # page -- the root cause of Search Console showing hundreds of these
+  # pages as "Discovered/Crawled - currently not indexed" and "Duplicate
+  # without user-selected canonical" (every one of these URLs was
+  # byte-identical HTML with no canonical tag at crawl time). Hand
+  # crawlers a tiny server-rendered page with the real title, description
+  # and canonical URL instead -- real visitors never match this and
+  # continue straight to the SPA below. This is Google's documented
+  # "dynamic rendering" pattern for JS-heavy sites, not cloaking: bots get
+  # the same substantive content real users see, just pre-rendered.
+  RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|TelegramBot|Slackbot|Discordbot|Pinterest|redditbot|SkypeUriPreview|vkShare|Applebot|Googlebot|AdsBot-Google|Bingbot|DuckDuckBot|YandexBot) [NC]
   RewriteRule ^listing/([0-9]+)/?$ listing-share.php?id=$1 [L,QSA]
+  RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|TelegramBot|Slackbot|Discordbot|Pinterest|redditbot|SkypeUriPreview|vkShare|Applebot|Googlebot|AdsBot-Google|Bingbot|DuckDuckBot|YandexBot) [NC]
+  RewriteRule ^shop/([a-zA-Z0-9-]+)/?$ shop-share.php?slug=$1 [L,QSA]
 
   # Everything else goes through index.html so React Router can handle the route
   RewriteRule ^ index.html [L]

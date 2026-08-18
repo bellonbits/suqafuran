@@ -99,6 +99,7 @@ export default function ProductDetailPage() {
             setActiveTab('description');
             setActiveImage(preloaded.images?.[0] || FALLBACK_IMAGE);
             setIsLoading(false);
+            document.title = `${field(preloaded.title_en, preloaded.title_so) || preloaded.title_en} | Suqafuran`;
         } else {
             setIsLoading(true);
         }
@@ -126,6 +127,7 @@ export default function ProductDetailPage() {
             setActiveTab('description');
             setActiveImage(data.images && data.images.length > 0 ? data.images[0] : FALLBACK_IMAGE);
             setIsLoading(false);
+            document.title = `${field(data.title_en, data.title_so) || data.title_en} | Suqafuran`;
 
             feedbackService.getListingFeedback(data.id).then(setFeedback).catch(() => setFeedback([]));
 
@@ -149,6 +151,10 @@ export default function ProductDetailPage() {
             }).catch(() => {});
         };
         loadListingDetails();
+
+        return () => {
+            document.title = "Suqafuran - Africa's Marketplace";
+        };
     }, [id]);
 
     const handleToggleFavorite = () => {

@@ -14,9 +14,9 @@ export default function NotificationsPage() {
       try {
         const [notifRes, statsRes] = await Promise.all([
           api.get('/admin/monitoring/notifications/events?limit=10'),
-          api.get('/admin/monitoring/notifications/funnel')
+          api.get('/admin/monitoring/notifications/channel-stats')
         ]);
-        setNotifications(notifRes.data || []);
+        setNotifications(notifRes.data?.events || []);
         setStats(statsRes.data || {});
       } catch (err) {
         console.error('Failed to fetch notifications:', err);

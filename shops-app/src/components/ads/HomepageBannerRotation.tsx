@@ -141,7 +141,7 @@ export function HomepageBannerRotation() {
       >
         <img
           key={currentBanner.id}
-          src={optimizeCloudinaryUrl(imageUrl, { width: 1200 }) || imageUrl}
+          src={optimizeCloudinaryUrl(imageUrl, { width: 1920 }) || imageUrl}
           alt={currentBanner.title}
           // This is the homepage's LCP element -- eager + high priority so
           // the browser fetches it immediately instead of treating it like

@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuth';
 import { useAuthModal } from '@/store/useAuthModal';
 import { authService } from '@/services/authService';
-import { Mail, Phone, MapPin, Shield, Calendar, LogOut, Loader2, AlertCircle, Copy, Check, Camera, ExternalLink, Edit2, X, Save } from 'lucide-react';
+import { Mail, Phone, MapPin, Shield, Calendar, LogOut, Loader2, AlertCircle, Copy, Check, Camera, ExternalLink, Edit2, X, Save, Bell, ShieldCheck } from 'lucide-react';
 import api, { resolveMediaUrl } from '@/services/api';
 import { VerificationSection } from '@/components/features/VerificationSection';
 
@@ -407,13 +408,29 @@ function AccountPageContent() {
                 </div>
 
                 {/* Action Buttons */}
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 px-6 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Sign Out
-                </button>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Link
+                    href="/settings/notifications"
+                    className="flex items-center gap-2 px-6 py-3 bg-[#e0f7ff] dark:bg-sky-950/40 text-[#0ea5e9] font-bold rounded-full hover:bg-[#c9f0ff] transition-colors"
+                  >
+                    <Bell className="w-4 h-4" />
+                    Notification Settings
+                  </Link>
+                  <Link
+                    href="/security-logs"
+                    className="flex items-center gap-2 px-6 py-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 font-bold rounded-full hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    Security Activity
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-6 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </button>
+                </div>
               </>
             )}
           </div>

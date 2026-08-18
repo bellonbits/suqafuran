@@ -1,15 +1,20 @@
 <?php
 /**
- * Serves Open Graph / Twitter Card meta tags for a single listing, with the
- * listing's own photo as the preview image, to social-media link-preview
- * crawlers only (WhatsApp, Facebook, Twitter, LinkedIn, etc).
+ * Serves Open Graph / Twitter Card meta tags AND real per-listing
+ * title/description/canonical, with the listing's own photo as the
+ * preview image, to social-media link-preview crawlers and search-engine
+ * crawlers (WhatsApp, Facebook, Twitter, LinkedIn, Googlebot, Bingbot, etc).
  *
  * Why this exists: the site is a client-rendered SPA -- every route,
  * including /listing/{id}, is served the same static index.html with the
- * same generic site-wide og:image. Crawlers never run the SPA's JS, so
- * there's no way for a specific listing's real photo to reach them without
- * a route rewritten to point here (see .htaccess) before the normal
- * catch-all rule.
+ * same generic site-wide title/og:image and no canonical tag at all.
+ * Crawlers never run the SPA's JS on their first pass, so there's no way
+ * for a specific listing's real title/photo/canonical to reach them
+ * without a route rewritten to point here (see .htaccess) before the
+ * normal catch-all rule. Serving hundreds of URLs with byte-identical,
+ * uncanonicalized HTML is what produced the Search Console
+ * "Discovered/Crawled - currently not indexed" and "Duplicate without
+ * user-selected canonical" findings.
  *
  * Real visitors never see this page -- the .htaccess rewrite only sends
  * known crawler user-agents here; everyone else still gets the normal SPA.
@@ -24,6 +29,7 @@ $canonicalUrl = $id !== '' ? "https://suqafuran.com/listing/{$id}" : 'https://su
 $title = "Suqafuran - Africa's Marketplace";
 $description = "Buy and sell locally on Suqafuran -- browse thousands of products from local sellers and shops, or list your own.";
 $image = $fallbackImage;
+$notFound = false;
 
 if ($id !== '') {
     $ch = curl_init("https://app.suqafuran.com/api/v1/listings/{$id}");
@@ -36,7 +42,12 @@ if ($id !== '') {
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    if ($response !== false && $httpCode === 200) {
+    if ($httpCode === 404) {
+        // Listing was deleted/sold/expired. Without this, the SPA's
+        // always-200 catch-all would make Googlebot see 200 + generic
+        // shell content for a dead listing -- a textbook soft 404.
+        $notFound = true;
+    } elseif ($response !== false && $httpCode === 200) {
         $listing = json_decode($response, true);
         if (is_array($listing)) {
             $listingTitle = $listing['title_en'] ?? '';
@@ -64,6 +75,10 @@ if ($id !== '') {
     }
 }
 
+if ($notFound) {
+    http_response_code(404);
+}
+
 function og_escape($value) {
     return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 }
@@ -74,6 +89,7 @@ function og_escape($value) {
 <meta charset="UTF-8" />
 <title><?= og_escape($title) ?></title>
 <meta name="description" content="<?= og_escape($description) ?>" />
+<link rel="canonical" href="<?= og_escape($canonicalUrl) ?>" />
 
 <meta property="og:type" content="product" />
 <meta property="og:site_name" content="<?= og_escape($siteName) ?>" />
@@ -86,8 +102,6 @@ function og_escape($value) {
 <meta name="twitter:title" content="<?= og_escape($title) ?>" />
 <meta name="twitter:description" content="<?= og_escape($description) ?>" />
 <meta name="twitter:image" content="<?= og_escape($image) ?>" />
-
-<meta http-equiv="refresh" content="0; url=<?= og_escape($canonicalUrl) ?>" />
 </head>
 <body>
 <p><a href="<?= og_escape($canonicalUrl) ?>">View this listing on Suqafuran</a></p>

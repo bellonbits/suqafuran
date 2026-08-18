@@ -17,6 +17,7 @@ export const ADMIN_NAV_ITEMS = [
   { label: 'Sellers', icon: Package, href: '/admin-sellers' },
   { label: 'Categories', icon: Layers, href: '/admin-categories' },
   { label: 'Support', icon: MessageSquare, href: '/admin-support' },
+  { label: 'Messages', icon: MessageCircle, href: '/admin-messages' },
   { label: 'Disputes', icon: AlertOctagon, href: '/admin-disputes' },
   { label: 'Fraud', icon: AlertTriangle, href: '/admin-fraud' },
   { label: 'Unusual Accounts', icon: AlertCircle, href: '/admin-unusual-accounts' },

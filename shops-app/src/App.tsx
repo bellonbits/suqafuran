@@ -20,6 +20,8 @@ const SignupPage = lazy(() => import('./pages/SignupPage'))
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 const AccountPage = lazy(() => import('./pages/AccountPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
+const NotificationSettingsPage = lazy(() => import('./pages/NotificationSettingsPage'))
+const SecurityLogsPage = lazy(() => import('./pages/SecurityLogsPage'))
 const MessagesPage = lazy(() => import('./pages/MessagesPage'))
 const OrdersPage = lazy(() => import('./pages/OrdersPage'))
 const FavoritesPage = lazy(() => import('./pages/FavoritesPage'))
@@ -53,6 +55,7 @@ const AdminUsersPage = lazy(() => import('./pages/AdminUsersPage'))
 const AdminCategoriesPage = lazy(() => import('./pages/AdminCategoriesPage'))
 const AdminOrdersPage = lazy(() => import('./pages/AdminOrdersPage'))
 const AdminDisputesPage = lazy(() => import('./pages/AdminDisputesPage'))
+const AdminConversationsPage = lazy(() => import('./pages/AdminConversationsPage'))
 const AdminFraudPage = lazy(() => import('./pages/AdminFraudPage'))
 const AdminReportsPage = lazy(() => import('./pages/AdminReportsPage'))
 const AdminSupportPage = lazy(() => import('./pages/AdminSupportPage'))
@@ -149,6 +152,28 @@ function ScrollToTop() {
 export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(() => isCapacitorApp() && !hasSeenOnboarding())
 
+  // Route-level code splitting keeps the initial bundle small, but it means
+  // the very first tap on a product/shop card -- by far the most common
+  // action on the site -- has to fetch that page's JS chunk before it can
+  // even start rendering, which reads as "slow to open" even though the
+  // actual page is fast once loaded. Prefetch those two chunks in the
+  // background once the browser is idle, well after the homepage itself has
+  // painted, so by the time someone taps a card the chunk is usually already
+  // cached and the navigation is instant.
+  useEffect(() => {
+    const prefetch = () => {
+      import('./pages/ListingDetailPage')
+      import('./pages/ShopDetailPage')
+    }
+    const idleId = (window as any).requestIdleCallback
+      ? (window as any).requestIdleCallback(prefetch, { timeout: 3000 })
+      : setTimeout(prefetch, 2000)
+    return () => {
+      if ((window as any).cancelIdleCallback) (window as any).cancelIdleCallback(idleId)
+      else clearTimeout(idleId)
+    }
+  }, [])
+
   if (showOnboarding) {
     return <Onboarding onComplete={() => setShowOnboarding(false)} />
   }
@@ -182,6 +207,8 @@ export default function App() {
       {/* User Account Pages */}
       <Route element={<AppLayout><AccountPage /></AppLayout>} path="/account" />
       <Route element={<AppLayout><SettingsPage /></AppLayout>} path="/settings" />
+      <Route element={<AppLayout><NotificationSettingsPage /></AppLayout>} path="/settings/notifications" />
+      <Route element={<AppLayout><SecurityLogsPage /></AppLayout>} path="/security-logs" />
       <Route element={<AppLayout><MessagesPage /></AppLayout>} path="/messages" />
       <Route element={<AppLayout><OrdersPage /></AppLayout>} path="/orders" />
       <Route element={<AppLayout><FavoritesPage /></AppLayout>} path="/favorites" />
@@ -219,6 +246,7 @@ export default function App() {
       <Route element={<ProtectedRoute requiredRole="admin"><AdminCategoriesPage /></ProtectedRoute>} path="/admin-categories" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminOrdersPage /></ProtectedRoute>} path="/admin-orders" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminDisputesPage /></ProtectedRoute>} path="/admin-disputes" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminConversationsPage /></ProtectedRoute>} path="/admin-messages" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminFraudPage /></ProtectedRoute>} path="/admin-fraud" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminReportsPage /></ProtectedRoute>} path="/admin-reports" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminSupportPage /></ProtectedRoute>} path="/admin-support" />
@@ -249,7 +277,8 @@ export default function App() {
       <Route element={<AdminMonitoringAlertsPage />} path="/admin-dashboard/monitoring/alerts" />
       <Route element={<AdminMonitoringKafkaPage />} path="/admin-dashboard/monitoring/kafka" />
       <Route element={<AdminMonitoringLivePage />} path="/admin-dashboard/monitoring/live" />
-      <Route element={<AdminMonitoringNotificationsPage />} path="/admin-dashboard/monitoring/notifications" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminMonitoringNotificationsPage /></ProtectedRoute>} path="/admin-dashboard/monitoring/notifications" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminMonitoringNotificationsPage /></ProtectedRoute>} path="/admin-monitoring/notifications" />
       <Route element={<AdminMonitoringTracesPage />} path="/admin-dashboard/monitoring/traces" />
 
       {/* Admin Alt Routes - Protected */}

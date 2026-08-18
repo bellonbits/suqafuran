@@ -304,8 +304,24 @@ async def get_kafka_topic_messages(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# FUTURE ENDPOINTS (stubbed for Phase 2+)
+# NOTIFICATION DELIVERY MONITORING -- backed by real EmailLog/OTPLog rows
+# (see app/services/notification_monitor.py for exactly what's real vs not)
 # ─────────────────────────────────────────────────────────────────────────────
+
+@router.get("/notifications/channel-stats")
+async def get_notification_channel_stats(
+    db: Session = Depends(deps.get_db),
+    current_user: Any = Depends(deps.get_current_active_user),
+) -> Dict[str, Any]:
+    """Simple email/sms/push counts for the last 24h, for the summary cards."""
+    if not current_user or not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    from app.services.notification_monitor import NotificationMetrics
+
+    metrics = NotificationMetrics(db)
+    return metrics.get_channel_stats_24h()
+
 
 @router.get("/notifications/funnel")
 async def get_notification_funnel(

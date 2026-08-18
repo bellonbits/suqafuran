@@ -38,6 +38,14 @@ export function optimizeCloudinaryUrl(url?: string | null, options: { width?: nu
     // Only optimize Cloudinary URLs
     if (!url.includes('cloudinary.com')) return url;
 
+    // Animated GIFs break on the fly: f_auto/q_auto/dpr_auto transforms on
+    // an animated source can exceed Cloudinary's per-request processing
+    // limits (worse at larger widths) and come back as a 400 instead of an
+    // image. Serve these untouched rather than guess a safe parameter
+    // combination -- they're typically small ad-banner creatives anyway,
+    // so there's little to gain from transforming them.
+    if (/\.gif($|\?)/i.test(url)) return url;
+
     const { width = 1920, quality = 'auto', fetch_format = 'auto' } = options;
 
     // Insert optimization params into Cloudinary URL
