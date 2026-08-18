@@ -2007,6 +2007,45 @@ async def list_shops(
         raise HTTPException(status_code=400, detail=str(e))
 
 
+# ============== PRODUCT DATABASE ==============
+
+@router.get("/listings/stats")
+def get_listings_stats(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Counts for the Product Database summary cards. Built from the real
+    status/approval_status values in use today (there's no separate "draft"
+    concept in this schema -- every created listing starts at status
+    "pending" immediately, so pending review is the closest equivalent).
+    """
+    from app.models.report import ListingReport
+
+    total = db.exec(select(func.count(Listing.id))).one()
+    active = db.exec(select(func.count(Listing.id)).where(Listing.status == "active")).one()
+    pending = db.exec(select(func.count(Listing.id)).where(Listing.status == "pending")).one()
+    sold = db.exec(select(func.count(Listing.id)).where(Listing.status == "sold")).one()
+    suspended = db.exec(select(func.count(Listing.id)).where(Listing.status == "suspended")).one()
+    deleted = db.exec(select(func.count(Listing.id)).where(Listing.status == "deleted")).one()
+    rejected = db.exec(select(func.count(Listing.id)).where(Listing.approval_status == "rejected")).one()
+    reported = db.exec(
+        select(func.count(func.distinct(ListingReport.listing_id))).where(ListingReport.status == "pending")
+    ).one()
+
+    return {
+        "total": total,
+        "active": active,
+        "pending": pending,
+        "sold": sold,
+        "suspended": suspended,
+        "deleted": deleted,
+        "rejected": rejected,
+        "reported": reported,
+    }
+
+
 # ============== LISTING REPORTS & CHAT REVIEW ==============
 # Buyer/seller chats are never browsable at large -- an admin can only pull
 # up a conversation from here, after a report has been filed, and every

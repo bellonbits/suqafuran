@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Loader, ChevronLeft, Eye, Trash2, Edit2, X, ChevronDown, Download, Upload, ImageOff, Check, XCircle, AlertCircle } from 'lucide-react';
+import { Search, Loader, ChevronLeft, Eye, Trash2, Edit2, X, ChevronDown, Download, Upload, ImageOff, Check, XCircle, AlertCircle, Box, CheckCircle2, Clock, Ban, Star, PackageCheck } from 'lucide-react';
 import api from '@/services/api';
 import Papa from 'papaparse';
 import { DashboardLayout } from '@/components/DashboardLayout';
@@ -37,6 +37,8 @@ const ListingsManagementPage = () => {
   const [approvingListing, setApprovingListing] = useState<number | null>(null);
   const [hoveredRejectionReason, setHoveredRejectionReason] = useState<{id: number, reason: string} | null>(null);
   const [importingCSV, setImportingCSV] = useState(false);
+  const [stats, setStats] = useState<{ total: number; active: number; pending: number; sold: number; suspended: number; deleted: number; rejected: number; reported: number } | null>(null);
+  const [busyActionId, setBusyActionId] = useState<number | null>(null);
 
   const { user } = useAuthStore();
   const navItems = ADMIN_NAV_ITEMS.map(item => ({
@@ -46,7 +48,54 @@ const ListingsManagementPage = () => {
 
   useEffect(() => {
     loadCategories();
+    loadStats();
   }, []);
+
+  const loadStats = async () => {
+    try {
+      const res = await api.get('/admin/listings/stats');
+      setStats(res.data);
+    } catch {
+      // Cards just stay hidden if this fails -- the table itself still works
+    }
+  };
+
+  const handleSuspend = async (listing: any) => {
+    setBusyActionId(listing.id);
+    try {
+      const suspended = listing.status === 'suspended';
+      await api.patch(`/listings/${listing.id}`, { status: suspended ? 'active' : 'suspended' });
+      loadListings();
+      loadStats();
+    } finally {
+      setBusyActionId(null);
+    }
+  };
+
+  const handleMarkSold = async (listing: any) => {
+    setBusyActionId(listing.id);
+    try {
+      await api.patch(`/listings/${listing.id}`, { is_sold: true });
+      loadListings();
+      loadStats();
+    } finally {
+      setBusyActionId(null);
+    }
+  };
+
+  const handleToggleFeature = async (listing: any) => {
+    setBusyActionId(listing.id);
+    try {
+      const isFeatured = (listing.boost_level || 0) > 0;
+      const payload = isFeatured
+        ? { boost_level: 0, boost_expires_at: null }
+        : { boost_level: 1, boost_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() };
+      await api.patch(`/listings/${listing.id}`, payload);
+      loadListings();
+    } finally {
+      setBusyActionId(null);
+    }
+  };
 
   useEffect(() => {
     loadListings();
@@ -317,6 +366,31 @@ const ListingsManagementPage = () => {
     <DashboardLayout title="Posted Ads" navItems={navItems} userRole="admin">
       <div className="py-8">
 
+        {/* Stat cards */}
+        {stats && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
+            {[
+              { label: 'Total', value: stats.total, icon: Box, color: 'text-slate-500 bg-slate-50 dark:bg-neutral-900' },
+              { label: 'Active', value: stats.active, icon: CheckCircle2, color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30' },
+              { label: 'Pending', value: stats.pending, icon: Clock, color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/30' },
+              { label: 'Sold', value: stats.sold, icon: PackageCheck, color: 'text-sky-600 bg-sky-50 dark:bg-sky-950/30' },
+              { label: 'Suspended', value: stats.suspended, icon: Ban, color: 'text-orange-600 bg-orange-50 dark:bg-orange-950/30' },
+              { label: 'Rejected', value: stats.rejected, icon: XCircle, color: 'text-red-600 bg-rose-50 dark:bg-rose-950/30' },
+              { label: 'Reported', value: stats.reported, icon: AlertCircle, color: 'text-red-600 bg-rose-50 dark:bg-rose-950/30' },
+            ].map((c) => (
+              <div key={c.label} className="bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 rounded-2xl p-3.5 flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${c.color}`}>
+                  <c.icon className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-lg font-black text-slate-900 dark:text-white leading-none">{c.value?.toLocaleString() ?? 0}</p>
+                  <p className="text-[11px] text-slate-400 mt-1 truncate">{c.label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Buttons & Filters */}
         <div className="flex gap-3 flex-wrap mb-6 items-center">
           <button
@@ -402,7 +476,7 @@ const ListingsManagementPage = () => {
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setStatusOpen(false)} />
                 <div className="absolute top-full mt-2 left-0 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50 min-w-40 overflow-y-auto">
-                  {['all', 'active', 'inactive', 'pending'].map(status => (
+                  {['all', 'active', 'inactive', 'pending', 'suspended', 'sold'].map(status => (
                     <button
                       key={status}
                       onClick={() => { setStatusFilter(status); setStatusOpen(false); }}
@@ -556,11 +630,20 @@ const ListingsManagementPage = () => {
                                 ? 'bg-emerald-50 dark:bg-emerald-950/30 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                                 : listing.status === 'pending'
                                 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+                                : listing.status === 'suspended'
+                                ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
+                                : listing.status === 'sold'
+                                ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400'
                                 : 'bg-slate-100 dark:bg-neutral-900 dark:bg-gray-700 text-slate-700 dark:text-neutral-200 dark:text-gray-300'
                             }`}
                           >
                             {listing.status}
                           </span>
+                          {(listing.boost_level || 0) > 0 && (
+                            <span className="ml-1.5 inline-flex items-center gap-0.5 px-1.5 py-1 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
+                              <Star className="w-2.5 h-2.5 fill-current" /> Featured
+                            </span>
+                          )}
                         </td>
                         <td className="px-4 py-4">
                           <div className="relative">
@@ -626,6 +709,32 @@ const ListingsManagementPage = () => {
                               title="Edit"
                             >
                               <Edit2 className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                            </button>
+                            {!listing.is_sold && listing.status !== 'sold' && (
+                              <button
+                                onClick={() => handleMarkSold(listing)}
+                                disabled={busyActionId === listing.id}
+                                className="p-1.5 hover:bg-sky-50 dark:hover:bg-sky-900/30 rounded transition-colors disabled:opacity-50"
+                                title="Mark as Sold"
+                              >
+                                <PackageCheck className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleToggleFeature(listing)}
+                              disabled={busyActionId === listing.id}
+                              className="p-1.5 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded transition-colors disabled:opacity-50"
+                              title={(listing.boost_level || 0) > 0 ? 'Unfeature' : 'Feature'}
+                            >
+                              <Star className={`w-4 h-4 ${(listing.boost_level || 0) > 0 ? 'text-amber-500 fill-amber-500' : 'text-amber-500'}`} />
+                            </button>
+                            <button
+                              onClick={() => handleSuspend(listing)}
+                              disabled={busyActionId === listing.id}
+                              className="p-1.5 hover:bg-slate-100 dark:hover:bg-neutral-800 rounded transition-colors disabled:opacity-50"
+                              title={listing.status === 'suspended' ? 'Reactivate' : 'Suspend'}
+                            >
+                              <Ban className={`w-4 h-4 ${listing.status === 'suspended' ? 'text-slate-400' : 'text-slate-600 dark:text-neutral-300'}`} />
                             </button>
                             <button
                               onClick={() => handleDelete(listing.id)}
