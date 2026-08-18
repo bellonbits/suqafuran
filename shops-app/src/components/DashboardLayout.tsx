@@ -90,17 +90,20 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       }
 
       // 2. Fetch in-app user notifications
-      const notifRes = await api.get('/notifications/?limit=10').catch(() => null);
+      const notifRes = await api.get('/notifications/?limit=15').catch(() => null);
       if (notifRes?.data && Array.isArray(notifRes.data)) {
         notifRes.data.forEach((n: any) => {
+          const payload = n.data || {};
+          const notifTitle = n.title || payload.title || (n.type ? n.type.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()) : 'Notification');
+          const notifMessage = n.message || payload.message || payload.body || payload.text || 'System update event';
           items.push({
             id: n.id,
-            title: n.title || 'Notification',
-            message: n.message || '',
+            title: notifTitle,
+            message: notifMessage,
             time: n.created_at ? new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently',
-            type: 'info',
-            href: n.action_url || undefined,
-            read: n.status === 'read' || n.read === true
+            type: n.type === 'alert' || n.type === 'issue' ? 'alert' : n.type === 'promotion' ? 'promotion' : 'info',
+            href: n.action_url || payload.action_url || payload.href || undefined,
+            read: n.is_read === true || n.status === 'read' || n.read === true
           });
         });
       }

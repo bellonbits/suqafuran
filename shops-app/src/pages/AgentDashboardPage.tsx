@@ -132,15 +132,19 @@ export default function AgentDashboardPage() {
         }
       }
 
-      if (usersRes.status === 'fulfilled' && usersRes.value?.data && Array.isArray(usersRes.value.data) && usersRes.value.data.length > 0) {
-        const u = usersRes.value.data[0];
-        setCustomer(prev => ({
-          ...prev,
-          name: u.full_name || prev.name,
-          email: u.email || prev.email,
-          phone: u.phone || prev.phone,
-          avatar: u.avatar_url || prev.avatar,
-        }));
+      if (usersRes.status === 'fulfilled' && usersRes.value?.data) {
+        const rawUsers = Array.isArray(usersRes.value.data) ? usersRes.value.data : usersRes.value.data.users || [];
+        if (rawUsers.length > 0) {
+          const u = rawUsers[0];
+          setCustomer({
+            name: u.full_name || u.business_name || 'Registered Customer',
+            email: u.email || 'customer@suqafuran.local',
+            phone: u.phone || '+254700000000',
+            shipping_address: u.location || u.market || 'Nairobi, Kenya',
+            billing_address: 'Same as shipping address',
+            avatar: u.avatar_url || u.logo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
+          });
+        }
       }
 
       // 2. Load Tab Data
@@ -252,7 +256,7 @@ export default function AgentDashboardPage() {
                   <ArrowLeft className="w-3.5 h-3.5" /> Back to customers
                 </button>
                 <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                  Michel Jony
+                  {customer.name || 'Registered Customer'}
                 </h1>
               </div>
 
