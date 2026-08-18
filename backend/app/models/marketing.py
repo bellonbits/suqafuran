@@ -18,6 +18,7 @@ class EmailEventType(str, enum.Enum):
     ABANDONED_LISTING = "abandoned_listing"  # Draft not completed
     INACTIVE_SELLER = "inactive_seller"  # No login for 14 days
     BUYER_INTERESTED = "buyer_interested"  # Viewed many products
+    VIEWED_LISTING_NO_CONTACT = "viewed_listing_no_contact"  # Viewed a listing, never messaged the seller
     SAVED_SEARCH_MATCH = "saved_search_match"  # New listings match saved search
     MESSAGE_RECEIVED = "message_received"
     OFFER_ACCEPTED = "offer_accepted"

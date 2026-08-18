@@ -1159,6 +1159,7 @@ def read_listing(
     *,
     db: Session = Depends(deps.get_db),
     id: int,
+    current_user: Optional[User] = Depends(deps.get_current_user_optional),
 ) -> Any:
     """
     Get listing by ID.
@@ -1166,13 +1167,30 @@ def read_listing(
     listing = crud_listing.get_listing(db=db, id=id)
     if not listing:
         raise HTTPException(status_code=404, detail="Listing not found")
-    
+
     # Increment views
     listing.views += 1
     db.add(listing)
     db.commit()
     db.refresh(listing)
-    
+
+    # Per-user view record (guests aren't tracked -- nothing to email them
+    # at) so the "viewed but never messaged the seller" reminder and the
+    # browsing-history-personalized promo campaigns have real data to work
+    # from. Best-effort: a tracking write should never break the page.
+    if current_user and current_user.id != listing.owner_id:
+        try:
+            from app.models.marketing import UserBrowsingHistory
+            db.add(UserBrowsingHistory(
+                user_id=current_user.id,
+                listing_id=listing.id,
+                category_id=listing.category_id,
+                shop_id=listing.owner_id,
+            ))
+            db.commit()
+        except Exception:
+            db.rollback()
+
     # Query for owner's active business storefront and attach it
     listing_data = ListingRead.model_validate(listing)
     if listing_data.owner:

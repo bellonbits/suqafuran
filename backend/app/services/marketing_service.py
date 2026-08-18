@@ -214,7 +214,21 @@ class MarketingAutomationService:
         body_template = Template(template_data["template"])
 
         subject = subject_template.render(**context)
-        body = body_template.render(**context)
+        raw_body = body_template.render(**context)
+
+        # These 11 templates were going out as bare, unbranded HTML -- no
+        # logo, no card styling, no footer -- while every other marketing
+        # email (the promo rotation + retention emails in email_service.py)
+        # goes through the shared branded wrapper. Reuse that same wrapper
+        # here so every marketing email looks like it's from the same
+        # company: pull the template's own <h1> out as the branded title
+        # and wrap the rest of the content in it.
+        h1_match = re.match(r"\s*<h1>(.*?)</h1>\s*(.*)", raw_body, re.DOTALL)
+        if h1_match:
+            title, remaining_content = h1_match.group(1), h1_match.group(2)
+        else:
+            title, remaining_content = subject, raw_body
+        body = email_service._get_base_template(title=title, subtitle="", content=remaining_content)
 
         # Get user email
         user = session.get(User, user_id)

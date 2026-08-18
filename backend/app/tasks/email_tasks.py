@@ -475,6 +475,121 @@ def run_promotional_rotation_task():
     return {"users_evaluated": total_users, "emails_sent": total_sent}
 
 
+@shared_task(name="app.tasks.email_tasks.send_viewed_no_contact_reminders", acks_late=False)
+def send_viewed_no_contact_reminders_task():
+    """
+    Runs hourly (see celery_app.py). Finds listings someone viewed 3-24
+    hours ago and never messaged the seller about, and sends one reminder
+    per (user, listing) pair, ever -- logged to CampaignSendLog so it never
+    repeats. The 3h floor gives them a real chance to message on their own
+    first; the 24h ceiling keeps the nudge timely instead of stale.
+
+    acks_late=False for the same reason as run_promotional_rotation_task:
+    this loops over potentially many views and is safe to just re-run
+    tomorrow if interrupted, so losing a partial run beats redelivering and
+    reprocessing everyone already handled.
+    """
+    import json
+    from datetime import datetime, timedelta
+    from sqlmodel import Session, select
+    from app.core.config import settings
+    from app.db.session import engine
+    from app.models.marketing import UserBrowsingHistory, EmailPreference
+    from app.models.marketplace_conversation import MarketplaceConversation
+    from app.models.campaign_send_log import CampaignSendLog
+    from app.models.listing import Listing
+    from app.models.user import User
+    from app.services.email_service import email_service
+
+    CAMPAIGN_TYPE = "viewed_no_contact"
+    now = datetime.utcnow()
+    window_start = now - timedelta(hours=24)
+    window_end = now - timedelta(hours=3)
+
+    sent = 0
+    evaluated = 0
+
+    with Session(engine) as db:
+        views = db.exec(
+            select(UserBrowsingHistory)
+            .where(
+                UserBrowsingHistory.listing_id.isnot(None),
+                UserBrowsingHistory.viewed_at >= window_start,
+                UserBrowsingHistory.viewed_at <= window_end,
+            )
+            .order_by(UserBrowsingHistory.viewed_at.desc())
+        ).all()
+
+        seen_pairs = set()  # de-dupe repeat views of the same listing within this run
+
+        for view in views:
+            pair = (view.user_id, view.listing_id)
+            if pair in seen_pairs:
+                continue
+            seen_pairs.add(pair)
+            evaluated += 1
+
+            try:
+                listing = db.get(Listing, view.listing_id)
+                if not listing or listing.status != "active" or listing.owner_id == view.user_id:
+                    continue
+
+                user = db.get(User, view.user_id)
+                if not user or not user.email or user.email.endswith("@suqafuran.local") or not user.is_active:
+                    continue
+
+                already_contacted = db.exec(
+                    select(MarketplaceConversation.id).where(
+                        MarketplaceConversation.buyer_id == view.user_id,
+                        MarketplaceConversation.seller_id == listing.owner_id,
+                        MarketplaceConversation.listing_id == listing.id,
+                    )
+                ).first()
+                if already_contacted:
+                    continue
+
+                listing_ids_key = json.dumps([listing.id])
+                already_reminded = db.exec(
+                    select(CampaignSendLog.id).where(
+                        CampaignSendLog.user_id == view.user_id,
+                        CampaignSendLog.campaign_type == CAMPAIGN_TYPE,
+                        CampaignSendLog.listing_ids == listing_ids_key,
+                    )
+                ).first()
+                if already_reminded:
+                    continue
+
+                preference = db.exec(select(EmailPreference).where(EmailPreference.user_id == view.user_id)).first()
+                if preference and not preference.listing_updates:
+                    continue
+
+                success = email_service.send_viewed_no_contact_reminder(
+                    user.email,
+                    (user.full_name or "there").split()[0],
+                    listing.title_en,
+                    f"{listing.currency} {listing.price:,.0f}",
+                    (listing.images or [None])[0],
+                    f"{settings.FRONTEND_URL}/listing/{listing.id}",
+                    user.id,
+                )
+                if success:
+                    sent += 1
+                    db.add(CampaignSendLog(
+                        user_id=view.user_id,
+                        campaign_type=CAMPAIGN_TYPE,
+                        subject_variant="default",
+                        listing_ids=listing_ids_key,
+                        template_event_type="viewed_listing_no_contact",
+                    ))
+                    db.commit()
+            except Exception as exc:
+                logger.warning(f"Viewed-no-contact check failed for user {view.user_id}, listing {view.listing_id}: {exc}")
+                db.rollback()
+
+    logger.info(f"Viewed-no-contact reminders: {evaluated} views evaluated, {sent} sent")
+    return {"views_evaluated": evaluated, "emails_sent": sent}
+
+
 @shared_task(name="app.tasks.email_tasks.process_broadcast_jobs", acks_late=False)
 def process_broadcast_jobs_task():
     """

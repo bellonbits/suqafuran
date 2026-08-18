@@ -76,5 +76,13 @@ celery_app.conf.update(
             "task": "app.tasks.email_tasks.process_broadcast_jobs",
             "schedule": 1800.0,
         },
+        # Nudge buyers who viewed a listing but never messaged the seller
+        # about it — hourly. The task's own 3-24h window and CampaignSendLog
+        # dedup mean running it often just catches new candidates promptly,
+        # not repeated sends.
+        "send-viewed-no-contact-reminders": {
+            "task": "app.tasks.email_tasks.send_viewed_no_contact_reminders",
+            "schedule": 3600.0,
+        },
     },
 )

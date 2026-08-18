@@ -1470,6 +1470,45 @@ class EmailService:
         )
         return self._send_and_log(email, f"Fresh deals in '{category_name}' matching your interests", html_body, "retention_category_interest", user_id, preferred_provider="brevo")
 
+    def send_viewed_no_contact_reminder(
+        self,
+        email: str,
+        name: str,
+        listing_title: str,
+        listing_price: str,
+        listing_image: Optional[str],
+        listing_url: str,
+        user_id: Optional[int] = None
+    ) -> bool:
+        """Sent when someone views a listing but never messages the seller about
+        it (see app/tasks/email_tasks.py:send_viewed_no_contact_reminders_task).
+        One nudge per (user, listing), ever -- the point is a gentle reminder
+        the item is still there, not a repeated push."""
+        img_html = f'<img src="{listing_image}" style="width:100%; max-height:220px; object-fit:cover; border-radius:12px; margin-bottom:16px;" />' if listing_image else ''
+        content = f"""
+        <p style="font-size: 15px; color: #475569; margin-bottom: 20px; line-height: 1.6;">
+          Hello {name},<br><br>
+          You looked at this one but never got around to asking the seller anything. Good news -- it's still up for grabs:
+        </p>
+        <div style="background:#f8fafc; border:1px solid #f1f5f9; border-radius:16px; padding:16px; margin-bottom:20px;">
+          {img_html}
+          <h3 style="margin:0; font-size:16px; font-weight:800; color:#1e293b;">{listing_title}</h3>
+          <p style="margin:6px 0 16px 0; font-size:20px; color:#ea580c; font-weight:900;">{listing_price}</p>
+          <a href="{listing_url}" style="display:block; text-align:center; background:#00a082; color:white; font-size:14px; padding:12px; border-radius:10px; text-decoration:none; font-weight:800;">
+            Ask the seller a question
+          </a>
+        </div>
+        <p style="font-size: 13px; color: #94a3b8;">
+          A quick "Is this still available?" is usually all it takes to get things moving.
+        </p>
+        """
+        html_body = self._get_base_template(
+            title="Still thinking about it?",
+            subtitle="The item you checked out is still available.",
+            content=content
+        )
+        return self._send_and_log(email, f'Still interested in "{listing_title}"?', html_body, "retention_viewed_no_contact", user_id, preferred_provider="brevo")
+
     def send_market_summary_email(
         self,
         email: str,
