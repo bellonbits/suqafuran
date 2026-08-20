@@ -138,7 +138,7 @@ def list_verification_requests(
     status: Optional[VerificationStatus] = None,
     search: Optional[str] = None,
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 1000,
 ) -> Any:
     """
     (Admin) List all verification requests, with the requester's profile

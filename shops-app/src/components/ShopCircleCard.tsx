@@ -4,6 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { optimizeCloudinaryUrl } from '@/services/api';
+import { makeShopSlug } from '@/services/listings';
 
 interface ShopCircleCardProps {
   id: number;
@@ -28,7 +29,7 @@ export const ShopCircleCard: React.FC<ShopCircleCardProps> = ({
       transition={{ duration: 0.4, delay }}
       whileHover={{ scale: 1.08, y: -8 }}
       whileTap={{ scale: 0.95 }}
-      onClick={() => router.push(`/shop/${id}`)}
+      onClick={() => router.push(`/shop/${makeShopSlug(name, id)}`)}
       className="flex flex-col items-center gap-4 cursor-pointer group"
     >
       {/* Circular Image Container */}

@@ -9,7 +9,7 @@ import {
     AlertTriangle, Minus, Plus, ShoppingCart, Store, CheckCircle2, Check,
 } from 'lucide-react';
 import api, { optimizeCloudinaryUrl } from '@/services/api';
-import { listingsService } from '@/services/listings';
+import { listingsService, makeShopSlug } from '@/services/listings';
 import { feedbackService, averageRating } from '@/services/feedback';
 import { useFavoritesStore } from '@/store/useFavorites';
 import { useAuthStore } from '@/store/useAuth';
@@ -22,13 +22,6 @@ import { ProductCard } from '@/components/features/ProductCard';
 import { businessService } from '@/services/business';
 import type { Listing, Feedback } from '@/types';
 
-// Matches the slug the backend derives shop URLs from (get_public_shops in
-// listings.py) -- there's no stored slug column, it's computed from the
-// shop's display name the same way every time.
-function shopSlug(name: string, userId: number): string {
-    const slug = name.toLowerCase().trim().replace(/ /g, '').replace(/_/g, '').replace(/[^a-z0-9-]/g, '');
-    return slug || `shop_${userId}`;
-}
 
 type DetailTab = 'description' | 'specs' | 'seller';
 
@@ -39,13 +32,37 @@ export default function ProductDetailPage() {
     const { id = '' } = useParams<{ id: string }>();
     const location = useLocation();
 
-    // A ProductCard click hands the full listing it already has straight
-    // through as router state -- seeding state from it here means the very
-    // first render already has real content, no skeleton flash at all,
-    // instead of waiting on a network round trip for data we already had.
+    // Preload listing from router state, individual cache, or global listings cache
+    // so clicking a product renders IMMEDIATELY (0ms, no lag, no skeleton).
     const getPreload = (): Listing | null => {
         const preloaded = (location.state as { listing?: Listing } | null)?.listing;
-        return preloaded && String(preloaded.id) === id ? preloaded : null;
+        if (preloaded && String(preloaded.id) === String(id)) return preloaded;
+
+        if (typeof window !== 'undefined') {
+            try {
+                // 1. Direct listing cache
+                const direct = localStorage.getItem(`listing:${id}`);
+                if (direct) {
+                    const parsed = JSON.parse(direct);
+                    if (parsed.value) return parsed.value;
+                }
+                // 2. Scan all listings cache keys
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('listings:')) {
+                        const raw = localStorage.getItem(key);
+                        if (raw) {
+                            const data = JSON.parse(raw);
+                            if (Array.isArray(data.value)) {
+                                const match = data.value.find((l: any) => String(l.id) === String(id));
+                                if (match) return match;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+        return null;
     };
 
     const [listing, setListing] = useState<Listing | null>(() => getPreload());
@@ -323,7 +340,7 @@ export default function ProductDetailPage() {
 
     const isSold = listing.is_sold || listing.status !== 'active';
     const sellerName = listing.owner?.business_name || listing.owner?.full_name || 'Shop';
-    const sellerSlug = listing.owner ? shopSlug(sellerName, listing.owner_id) : '';
+    const sellerSlug = listing.owner ? makeShopSlug(sellerName, listing.owner_id) : '';
 
     return (
         <div className="pb-28 md:pb-0 bg-gray-50 dark:bg-black min-h-screen">

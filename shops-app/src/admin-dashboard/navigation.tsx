@@ -3,7 +3,7 @@ import {
   Gift, Megaphone, MessageSquare, FileText,
   AlertTriangle, AlertCircle, TrendingUp, Store, Grid3x3,
   DollarSign, Package, AlertOctagon, CreditCard, Star, Mail, MessageCircle,
-  Image as ImageIcon,
+  Image as ImageIcon, Activity,
 } from 'lucide-react';
 
 export const ADMIN_NAV_ITEMS = [

@@ -79,6 +79,13 @@ class ShopRead(BaseModel):
     free_delivery: bool = False
     is_active: bool = True
     email: str
+    total_listings: int = 0
+    active_listings: int = 0
+    phone: Optional[str] = None
+    is_suspended: bool = False
+    trust_score: int = 0
+    followers: int = 0
+    created_at: Optional[str] = None
 
 
 @router.get("/orders")
@@ -354,7 +361,7 @@ def read_users_admin(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_superuser),
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 1000,
     search: Optional[str] = Query(default=None, description="Search by name, email, or phone"),
     user_type: Optional[str] = Query(default=None, description="buyer, seller, or admin"),
     status: Optional[str] = Query(default=None, description="active, inactive, or suspended"),
@@ -1588,8 +1595,9 @@ def upload_shop_banners(
 @router.get("/shops", response_model=List[ShopRead])
 def get_all_shops(
     skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=500),
+    limit: int = Query(500, ge=1, le=1000),
     db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """Get verified sellers with at least one active listing."""
     import json
@@ -1615,19 +1623,26 @@ def get_all_shops(
         # what's transferred here. The edit modal fetches the full value
         # via GET /shops/{id} when it actually needs to render the image.
         query = text("""
+            WITH listing_stats AS (
+                SELECT
+                    l.owner_id,
+                    COUNT(l.id) AS total_listings,
+                    COUNT(CASE WHEN l.status = 'active' THEN 1 END) AS active_listings
+                FROM listing l
+                GROUP BY l.owner_id
+            )
             SELECT u.id, u.email, u.full_name, u.business_name, u.created_at,
                    LEFT(COALESCE(s.shop_page_banner, u.shop_page_banner), 200) as shop_page_banner,
                    LEFT(COALESCE(s.shop_detail_banner, u.shop_detail_banner), 200) as shop_detail_banner,
                    u.shop_description, u.logo_url, u.is_featured, u.free_delivery,
-                   u.is_verified, u.is_active, u.location
+                   u.is_verified, u.is_active, u.location,
+                   COALESCE(ls.total_listings, 0) AS total_listings,
+                   COALESCE(ls.active_listings, 0) AS active_listings,
+                   u.phone, u.is_suspended, u.trust_score
             FROM "user" u
             LEFT JOIN sellers s ON s.user_id = CAST(u.id AS VARCHAR)
-            WHERE u.is_verified = true
-              AND u.is_active = true
-              AND EXISTS (
-                  SELECT 1 FROM listing l
-                  WHERE l.owner_id = u.id AND l.status = 'active'
-              )
+            LEFT JOIN listing_stats ls ON ls.owner_id = u.id
+            WHERE u.business_name IS NOT NULL
             ORDER BY u.created_at DESC
             LIMIT :limit OFFSET :skip
         """)
@@ -1636,11 +1651,15 @@ def get_all_shops(
 
         shops = []
         for row in result:
+            import unicodedata as _ud
+            _name = row[3] or row[2] or ''
+            _norm = _ud.normalize('NFKD', _name).encode('ascii', 'ignore').decode('ascii')
+            _slug = ''.join(c for c in _norm.lower() if c.isalnum()) or f'shop{row[0]}'
             shop = ShopRead(
                 id=row[0],
                 email=row[1],
                 full_name=row[2],
-                business_name=row[3] or row[2],
+                business_name=_name,
                 shop_description=row[7] or "",
                 shop_page_banner=row[5],
                 shop_detail_banner=row[6],
@@ -1650,6 +1669,12 @@ def get_all_shops(
                 is_verified=bool(row[11]),
                 is_active=bool(row[12]),
                 location=row[13],
+                total_listings=int(row[14] or 0),
+                active_listings=int(row[15] or 0),
+                phone=row[16],
+                is_suspended=bool(row[17]) if row[17] is not None else False,
+                trust_score=int(row[18] or 0),
+                created_at=row[4].isoformat() if row[4] else None,
             )
             shops.append(shop)
 
@@ -2067,7 +2092,7 @@ def get_shops_directory(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_superuser),
     skip: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=500),
+    limit: int = Query(500, ge=1, le=1000),
     search: Optional[str] = Query(None),
     status: Optional[str] = Query(None, description="active, pending, verified, suspended"),
 ) -> Any:

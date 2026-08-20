@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { makeShopSlug } from '@/services/listings';
 
 interface StoreCardProps {
   id: number | string;
@@ -220,7 +221,7 @@ export const StoreCard: React.FC<StoreCardProps> = ({
   const [imageError, setImageError] = useState(false);
 
   const handleCardClick = () => {
-    router.push(`/shop/${id}`);
+    router.push(`/shop/${makeShopSlug(name, id)}`);
   };
 
   const ratingPercent = Math.round(rating * 10);

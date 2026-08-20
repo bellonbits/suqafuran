@@ -31,6 +31,19 @@
 </IfModule>
 
 <IfModule mod_headers.c>
+  # Security headers -- mirrors backend/app/main.py so the frontend and API
+  # present the same policy. CSP is intentionally permissive (allows any
+  # https: source) rather than an allowlist, since the SPA pulls from
+  # Cloudinary, Google Maps, OneSignal, etc. and a tighter policy would need
+  # every third party enumerated and kept in sync.
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set X-XSS-Protection "1; mode=block"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  Header always set Content-Security-Policy "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; frame-ancestors 'self';"
+
   # index.html must always be revalidated so visitors get the new build
   # (and its reference to the new hashed JS/CSS) immediately after a deploy,
   # instead of a stale cached copy of the old site.

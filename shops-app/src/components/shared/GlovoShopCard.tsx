@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Star, Percent, Package } from 'lucide-react';
-import { listingsService, PublicShop } from '@/services/listings';
+import { listingsService, PublicShop, makeShopSlug } from '@/services/listings';
 import { resolveMediaUrl, optimizeCloudinaryUrl } from '@/services/api';
 
 function getShopBanner(shop: PublicShop): string | null {
@@ -120,6 +120,12 @@ export function GlovoShopCard({ shop, index, hideRating }: GlovoShopCardProps) {
     return () => clearInterval(intervalId);
   }, [showPreview]);
 
+  // Build a clean slug: prefer the API-returned slug if it looks like a real
+  // name-based slug (not a raw numeric ID); otherwise derive it from the name.
+  const shopSlug = (shop.slug && !/^\d+$/.test(shop.slug))
+    ? shop.slug
+    : makeShopSlug(shop.shop_name, shop.id);
+
   // Use real data from API response
   const ratingPercent = shop.rating ? Math.round(shop.rating * 20) : 85;
   const hasPromo = false; // No promo data in API yet
@@ -133,7 +139,7 @@ export function GlovoShopCard({ shop, index, hideRating }: GlovoShopCardProps) {
       transition={{ delay: index * 0.03, duration: 0.28, ease: 'easeOut' }}
     >
       <Link
-        href={`/shop/${shop.slug}`}
+        href={`/shop/${shopSlug}`}
         className="group block"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}

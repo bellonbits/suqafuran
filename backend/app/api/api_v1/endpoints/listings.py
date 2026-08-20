@@ -966,18 +966,6 @@ def get_public_shops(
         rotation_seed = f"{_now.strftime('%Y-%m-%d-%H-%M')}-{_now.second // 10}"
         params["rotation_seed"] = rotation_seed
 
-        # Cache key for category views
-        cache_key = f"shops:cat:{category_id}:{skip}:{limit}:{rotation_seed}" if category_id else f"shops:all:{skip}:{limit}:{rotation_seed}"
-
-        # Use aggressive caching for category views (bypass for search/shop_id filters)
-        if not search and not shop_id:
-            try:
-                cached = cache.get(cache_key)
-                if cached:
-                    return _json.loads(cached)
-            except Exception:
-                pass
-
         # Fast CTE-based aggregation
         # Count all active listings per shop (not filtered by category)
         query_str = f"""
@@ -999,14 +987,15 @@ def get_public_shops(
                    COALESCE(u.response_time, 'Typically responds within a few hours'),
                    COALESCE(u.is_featured, false),
                    COALESCE(u.free_delivery, false),
-                   ss.listing_count,
+                   COALESCE(ss.listing_count, 0),
                    ss.latest_listing,
                    COALESCE(u.market, 'Eastleigh Market'),
                    u.phone,
-                   u.logo_url
+                   u.logo_url,
+                   u.is_verified
             FROM "user" u
-            INNER JOIN shop_stats ss ON ss.owner_id = u.id
-            WHERE u.is_verified = true
+            LEFT JOIN shop_stats ss ON ss.owner_id = u.id
+            WHERE u.business_name IS NOT NULL
               {category_filter}
               {search_filter}
             ORDER BY md5(u.id::text || :rotation_seed)
@@ -1017,8 +1006,7 @@ def get_public_shops(
         count_query_str = f"""
             SELECT COUNT(DISTINCT u.id)
             FROM "user" u
-            INNER JOIN listing l ON l.owner_id = u.id AND l.status = 'active'
-            WHERE u.is_verified = true
+            WHERE u.business_name IS NOT NULL
               {category_filter}
               {search_filter.replace('AND (u.business_name', 'AND (u.business_name') if search_filter else ''}
         """
@@ -1031,67 +1019,60 @@ def get_public_shops(
         # Build response from CTE results
         shops = []
         for row in rows:
-            # Generate URL-friendly slug from shop name
-            shop_name = row[2] or f'Shop_{row[0]}'
-            slug = shop_name.lower().strip().replace(' ', '').replace('_', '').replace('shop', 'shop')
-            # Remove non-alphanumeric except dash
-            slug = ''.join(c for c in slug if c.isalnum() or c == '-')
-            slug = slug or f'shop_{row[0]}'  # Fallback if slug is empty
+            # Generate URL-friendly slug from shop name: all lowercase, alphanumeric only
+            # e.g. "Moon Glow Cosmetics" -> "moonglowcosmetics"
+            shop_name = row[2] or f'shop{row[0]}'
+            import unicodedata
+            normalized = unicodedata.normalize('NFKD', shop_name).encode('ascii', 'ignore').decode('ascii')
+            slug = ''.join(c for c in normalized.lower() if c.isalnum())
+            slug = slug or f'shop{row[0]}'  # Fallback if slug is empty
 
             shops.append({
                 "id": str(row[0]),
                 "user_id": str(row[1]),
-                "shop_name": row[2],
-                "owner_name": row[3],
-                "category": None,
-                "shop_address": row[4],
-                "location_lat": 0,
-                "location_lng": 0,
-                "rating": 4.5,
-                "is_verified": True,
-                "listing_count": int(row[10]) if row[10] else 1,
-                "category_ids": [],
+                "shop_name": shop_name,
+                "owner_name": row[3] or row[2],
+                "category": "General",
+                "shop_address": row[4] or "Eastleigh Market",
+                "location_lat": -1.2789,
+                "location_lng": 36.8532,
+                "rating": 4.8,
+                "is_verified": bool(row[15]),
+                "listing_count": row[10],
+                "category_ids": [1, 2, 3],
                 "cover_image": None,
                 "shop_page_banner": row[6],
+                "logo_url": row[14],
+                "owner_avatar_url": row[14],
                 "slug": slug,
                 "created_at": row[5].isoformat() if row[5] else None,
+                "market": row[12] or "Eastleigh Market",
                 "response_time": row[7],
                 "is_featured": row[8],
                 "free_delivery": row[9],
-                "market": row[12],
                 "phone": row[13],
-                "logo_url": row[14],
+                "user": {
+                    "id": str(row[0]),
+                    "avatar_url": row[14],
+                }
             })
 
-        # Get total count of distinct shops matching filters
-        count_query_str = f"""
-            SELECT COUNT(DISTINCT u.id)
-            FROM "user" u
-            INNER JOIN listing l ON l.owner_id = u.id AND l.status = 'active'
-            WHERE u.is_verified = true
-              {category_filter}
-              {search_filter}
-        """
+        # Total count query
         count_query = text(count_query_str)
-        total_shops = db.execute(count_query, params).scalar() or 0
+        total_count = db.execute(count_query, params).scalar() or len(shops)
 
-        result_data = {"total": total_shops, "shops": shops}
+        # Cache the result for this rotation window
+        response_data = {"total": total_count, "shops": shops}
+        try:
+            cache.setex(cache_key, 10, _json.dumps(response_data))
+        except Exception:
+            pass
 
-        # Cache result - aggressive caching with short TTL for automatic updates
-        if not search and not shop_id:
-            try:
-                ttl = 12  # slightly over the 10s rotation window so a stale shuffle isn't served across windows
-                cache.set(cache_key, _json.dumps(result_data, default=str), ttl=ttl)
-            except Exception:
-                pass
-
-        return result_data
+        return response_data
     except Exception as e:
         import logging
         logger = logging.getLogger("listings_api")
         logger.error(f"Error in get_public_shops: {str(e)}", exc_info=True)
-        # Return empty rather than 500 to avoid blocking UI
-        # Cache should have served this if available
         return {"total": 0, "shops": []}
 
 
@@ -1102,22 +1083,71 @@ def get_shop_by_slug(
     db: Session = Depends(deps.get_db),
 ) -> Any:
     """
-    Get a single shop by slug, including logo_url.
+    Get a single shop by ID or slug, including logo_url and verified status.
     """
-    from sqlalchemy import text
-    import json as _json
-
     try:
-        # Fetch from get_public_shops and find matching slug
-        all_shops_result = get_public_shops(db=db, skip=0, limit=500)
-        shops = all_shops_result.get("shops", [])
+        user = None
+        # Check if slug is a numeric user ID -- only expose accounts that are
+        # actually shops (business_name set), never arbitrary user records,
+        # since this endpoint is public and unauthenticated.
+        if slug.isdigit():
+            candidate = db.get(User, int(slug))
+            if candidate and candidate.business_name:
+                user = candidate
 
-        shop = next((s for s in shops if s.get("slug", "").lower() == slug.lower()), None)
+        # If not found by ID, or slug is text, find by business name/slug match
+        if not user:
+            clean_slug = slug.lower().strip().replace('-', '').replace('_', '').replace(' ', '')
+            all_users = db.exec(select(User).where(User.business_name.isnot(None))).all()
+            for u in all_users:
+                u_name = (u.business_name or u.full_name or '').lower().strip().replace('-', '').replace('_', '').replace(' ', '')
+                if u_name == clean_slug or str(u.id) == slug:
+                    user = u
+                    break
 
-        if not shop:
+        if not user:
             raise HTTPException(status_code=404, detail="Shop not found")
 
-        return shop
+        # Count listings
+        from sqlalchemy import func
+        listing_count = db.exec(
+            select(func.count(Listing.id)).where(Listing.owner_id == user.id, Listing.status == "active")
+        ).one()
+
+        shop_name = user.business_name or user.full_name or f"shop{user.id}"
+        import unicodedata as _ud
+        _normalized = _ud.normalize('NFKD', shop_name).encode('ascii', 'ignore').decode('ascii')
+        derived_slug = ''.join(c for c in _normalized.lower() if c.isalnum()) or f"shop{user.id}"
+
+        return {
+            "id": str(user.id),
+            "user_id": str(user.id),
+            "shop_name": shop_name,
+            "owner_name": user.full_name or shop_name,
+            "category": "General",
+            "shop_address": user.location or "Eastleigh Market",
+            "location_lat": -1.2789,
+            "location_lng": 36.8532,
+            "rating": 4.8,
+            "is_verified": bool(user.is_verified),
+            "listing_count": listing_count,
+            "category_ids": [1, 2, 3],
+            "cover_image": user.shop_page_banner,
+            "shop_page_banner": user.shop_page_banner,
+            "logo_url": user.logo_url,
+            "owner_avatar_url": user.avatar_url or user.logo_url,
+            "slug": derived_slug,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "market": user.market or "Eastleigh Market",
+            "response_time": user.response_time or "Typically responds within a few hours",
+            "is_featured": bool(user.is_featured),
+            "free_delivery": bool(user.free_delivery),
+            "phone": user.phone,
+            "user": {
+                "id": str(user.id),
+                "avatar_url": user.avatar_url or user.logo_url,
+            }
+        }
     except HTTPException:
         raise
     except Exception as e:

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Eye, Loader, ChevronLeft, ChevronRight, X, AlertCircle, Check, Image as ImageIcon, Package, Upload, Download } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/services/api';
+import { makeShopSlug } from '@/services/listings';
 import Papa from 'papaparse';
 
 interface ShopListing {
@@ -739,7 +740,7 @@ export default function ShopsAdminPage() {
                           >
                             <Edit2 size={18} />
                           </button>
-                          <a href={`/shop/${shop.id}`} target="_blank">
+                          <a href={`/shop/${makeShopSlug(shop.business_name || shop.full_name || '', shop.id)}`} target="_blank">
                             <button className="p-2 text-green-600 hover:bg-green-50 rounded">
                               <Eye size={18} />
                             </button>

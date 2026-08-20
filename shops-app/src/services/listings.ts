@@ -11,6 +11,24 @@ function deduplicateById<T extends { id: number | string }>(items: T[]): T[] {
     });
 }
 
+/**
+ * Generates a clean, URL-safe shop slug from a shop/business name.
+ * Mirrors the backend logic: lowercase, alphanumeric chars only.
+ * e.g. "Moon Glow Cosmetics" → "moonglowcosmetics"
+ *      "Al-Amin First Floor"  → "alaminFirstfloor" ... wait, no:
+ *      strip non-alnum → "alamin1stfloor"... use only [a-z0-9]
+ */
+export function makeShopSlug(name: string, fallbackId?: string | number): string {
+    if (!name) return fallbackId ? `shop${fallbackId}` : '';
+    // Normalize unicode (strip accents etc.), lowercase, keep only [a-z0-9]
+    const clean = name
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '') // strip diacritic marks
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
+    return clean || (fallbackId ? `shop${fallbackId}` : name.toLowerCase().replace(/\s+/g, ''));
+}
+
 export interface PublicShop {
     id: string;
     user_id: string;
@@ -84,7 +102,31 @@ export const listingsService = {
     },
 
     async getListing(id: number | string): Promise<Listing> {
+        const cacheKey = `listing:${id}`;
+        if (typeof window !== 'undefined') {
+            const cached = localStorage.getItem(cacheKey);
+            if (cached) {
+                try {
+                    const data = JSON.parse(cached);
+                    if (data.timestamp && Date.now() - data.timestamp < 300000) {
+                        // Return fast cache, revalidate in background
+                        api.get(`/listings/${id}`).then(res => {
+                            localStorage.setItem(cacheKey, JSON.stringify({ value: res.data, timestamp: Date.now() }));
+                        }).catch(() => {});
+                        return data.value;
+                    }
+                } catch (e) {
+                    localStorage.removeItem(cacheKey);
+                }
+            }
+        }
+
         const response = await api.get(`/listings/${id}`);
+        if (typeof window !== 'undefined') {
+            try {
+                localStorage.setItem(cacheKey, JSON.stringify({ value: response.data, timestamp: Date.now() }));
+            } catch (e) {}
+        }
         return response.data;
     },
 

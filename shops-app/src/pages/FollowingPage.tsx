@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Users, ShieldCheck, UserMinus } from 'lucide-react';
 import { followsService } from '@/services/follows';
 import { resolveMediaUrl } from '@/services/api';
+import { makeShopSlug } from '@/services/listings';
 import { useAuthStore } from '@/store/useAuth';
 import { useAuthModal } from '@/store/useAuthModal';
 import type { User } from '@/types';
@@ -13,7 +14,7 @@ function UserRow({ user, action }: { user: User; action?: React.ReactNode }) {
     const avatar = resolveMediaUrl(user.avatar_url);
     return (
         <Link
-            href={`/shop/${user.id}`}
+            href={`/shop/${makeShopSlug(user.business_name || user.full_name, user.id)}`}
             className="flex items-center gap-3 p-3 rounded-2xl border border-gray-200 bg-white hover:bg-slate-50 dark:bg-neutral-950 dark:border-neutral-800 dark:hover:bg-neutral-900/60"
         >
             <div className="h-11 w-11 rounded-full overflow-hidden bg-slate-100 border border-gray-200 dark:bg-neutral-900 dark:border-neutral-800 shrink-0 flex items-center justify-center text-sm font-black text-gray-500 dark:text-neutral-200">
