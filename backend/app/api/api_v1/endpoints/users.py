@@ -56,8 +56,15 @@ def create_user_signup(
     if user:
         raise HTTPException(
             status_code=400,
-            detail="The user with this username already exists in the system",
+            detail="The user with this email address already exists in the system",
         )
+    if user_in.phone:
+        existing_phone = crud_user.get_user_by_phone(db, phone=user_in.phone)
+        if existing_phone:
+            raise HTTPException(
+                status_code=400,
+                detail="An account with this phone number already exists.",
+            )
     user = crud_user.create_user(db, user_in=user_in)
     
     # Save signals
@@ -157,7 +164,18 @@ def update_user_me(
     if update_data.get("phone") and update_data["phone"] != current_user.phone:
         changed_contact_fields.append("phone number")
 
-    user = crud_user.update_user(db, db_obj=current_user, user_in=user_in)
+    try:
+        user = crud_user.update_user(db, db_obj=current_user, user_in=user_in)
+    except ValueError as err:
+        err_code = str(err)
+        if err_code == "PHONE_ALREADY_EXISTS":
+            raise HTTPException(status_code=400, detail="This phone number is already registered to another account.")
+        elif err_code == "EMAIL_ALREADY_EXISTS":
+            raise HTTPException(status_code=400, detail="This email address is already registered to another account.")
+        elif err_code == "BUSINESS_NAME_ALREADY_EXISTS":
+            raise HTTPException(status_code=400, detail="A shop or business with this name already exists. Please choose a unique name.")
+        else:
+            raise HTTPException(status_code=400, detail=err_code)
 
     if password_changed:
         background_tasks.add_task(

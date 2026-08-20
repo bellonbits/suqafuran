@@ -82,6 +82,19 @@ async def logging_middleware(request: Request, call_next):
     )
     
     response.headers["X-Request-ID"] = request_id
+
+    # Security Headers
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; "
+        "frame-ancestors 'self';"
+    )
+
     return response
 
 

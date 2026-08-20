@@ -329,15 +329,26 @@ def update_current_seller_profile(
     # Track if this is a new shop creation
     is_new_shop = not current_user.business_name and profile_update.business_name
 
+    # Check phone uniqueness if changing
+    if profile_update.phone is not None and profile_update.phone != current_user.phone:
+        existing_phone = crud_user.get_user_by_phone(db, phone=profile_update.phone, exclude_user_id=current_user.id)
+        if existing_phone:
+            raise HTTPException(status_code=400, detail="This phone number is already registered to another account.")
+        cleaned_phone = crud_user.normalize_phone(profile_update.phone)
+        current_user.phone = cleaned_phone or profile_update.phone
+
+    # Check business name uniqueness if changing
+    if profile_update.business_name is not None and profile_update.business_name != current_user.business_name:
+        existing_biz = crud_user.get_user_by_business_name(db, business_name=profile_update.business_name, exclude_user_id=current_user.id)
+        if existing_biz:
+            raise HTTPException(status_code=400, detail="A shop or business with this name already exists. Please choose a unique name.")
+        current_user.business_name = profile_update.business_name
+
     # Update allowed fields
     if profile_update.full_name is not None:
         current_user.full_name = profile_update.full_name
-    if profile_update.business_name is not None:
-        current_user.business_name = profile_update.business_name
     if profile_update.shop_description is not None:
         current_user.shop_description = profile_update.shop_description
-    if profile_update.phone is not None:
-        current_user.phone = profile_update.phone
     if profile_update.location is not None:
         current_user.location = profile_update.location
     if profile_update.market is not None:

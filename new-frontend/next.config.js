@@ -70,6 +70,11 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://fonts.googleapis.com https://translate.googleapis.com https://translate-pa.googleapis.com https://res.cloudinary.com https://api.suqafuran.com https://*.suqafuran.com; img-src 'self' data: https:; frame-ancestors 'none'; upgrade-insecure-requests;",
           },
+          // Strict Transport Security (HSTS)
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains',
+          },
           // Prevent loading in iframe
           {
             key: 'X-Frame-Options',
