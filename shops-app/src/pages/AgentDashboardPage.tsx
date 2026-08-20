@@ -174,6 +174,10 @@ export default function AgentDashboardPage() {
 
   useEffect(() => {
     loadAgentData();
+    const interval = setInterval(() => {
+      loadAgentData(true);
+    }, 10000);
+    return () => clearInterval(interval);
   }, [activeMainTab]);
 
   const handleVerificationAction = async (id: number, status: 'approved' | 'rejected') => {
