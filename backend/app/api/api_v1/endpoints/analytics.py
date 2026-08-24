@@ -20,7 +20,7 @@ def track_item_view(
     device_type: Optional[str] = None,
     referrer: Optional[str] = None,
     request: Request,
-    current_user: Optional[User] = Depends(deps.get_current_user),
+    current_user: Optional[User] = Depends(deps.get_current_user_optional),
 ) -> Any:
     """Track when a user/guest views an item listing."""
     item_view = ItemView(
@@ -47,7 +47,7 @@ def track_shop_view(
     device_type: Optional[str] = None,
     referrer: Optional[str] = None,
     request: Request,
-    current_user: Optional[User] = Depends(deps.get_current_user),
+    current_user: Optional[User] = Depends(deps.get_current_user_optional),
 ) -> Any:
     """Track when a user/guest views a shop profile."""
     shop_view = ShopView(
@@ -336,7 +336,7 @@ def track_search(
     category_filter: Optional[str] = None,
     location_filter: Optional[str] = None,
     request: Request,
-    current_user: Optional[User] = Depends(deps.get_current_user),
+    current_user: Optional[User] = Depends(deps.get_current_user_optional),
 ) -> Any:
     """Track search queries for marketplace analytics."""
     from app.models.analytics import SearchEvent
@@ -364,7 +364,7 @@ def track_click(
     shop_id: Optional[int] = None,
     device_type: Optional[str] = None,
     request: Request,
-    current_user: Optional[User] = Depends(deps.get_current_user),
+    current_user: Optional[User] = Depends(deps.get_current_user_optional),
 ) -> Any:
     """Track user clicks (chat, call, favorite, etc.)."""
     from app.models.analytics import ClickEvent
@@ -391,7 +391,7 @@ def track_conversion(
     shop_id: Optional[int] = None,
     device_type: Optional[str] = None,
     request: Request,
-    current_user: Optional[User] = Depends(deps.get_current_user),
+    current_user: Optional[User] = Depends(deps.get_current_user_optional),
 ) -> Any:
     """Track conversion funnel events."""
     from app.models.analytics import ConversionFunnelEvent

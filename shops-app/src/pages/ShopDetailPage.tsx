@@ -9,10 +9,8 @@ import { LocationPickerModal } from '@/components/shared/LocationPickerModal';
 import { listingsService } from '@/services/listings';
 import api, { optimizeCloudinaryUrl, resolveMediaUrl } from '@/services/api';
 import {
-    ChevronRight, ChevronLeft, Star, Clock, MapPin, Plus, Minus, Search, ShoppingBag, X, Percent, ThumbsUp, Info, Heart, Filter, Phone, MessageCircle
+    ChevronRight, ChevronLeft, Star, Clock, MapPin, Plus, Minus, Search, ShoppingBag, X, Percent, ThumbsUp, Info, Heart, Filter, MessageCircle
 } from 'lucide-react';
-import { FaWhatsapp } from 'react-icons/fa';
-import { MdMessage, MdPhone, MdContentCopy } from 'react-icons/md';
 import { useCart } from '@/store/useCart';
 import { useAuthStore } from '@/store/useAuth';
 import { useTrackShopView } from '@/hooks/useViewTracking';
@@ -65,7 +63,6 @@ export default function ShopDetailPage() {
     const [shopLogo, setShopLogo] = useState('');
     const [shopAvatar, setShopAvatar] = useState('');
     const [avatarError, setAvatarError] = useState(false);
-    const [shopPhone, setShopPhone] = useState<string | null>(null);
 
     const [allListings, setAllListings] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -93,9 +90,6 @@ export default function ShopDetailPage() {
     const [selectedDiscounts, setSelectedDiscounts] = useState<Set<string>>(new Set());
     const [selectedRatings, setSelectedRatings] = useState<Set<string>>(new Set());
 
-    // Contact Modal State
-    const [contactModalOpen, setContactModalOpen] = useState(false);
-    const [selectedContactType, setSelectedContactType] = useState<'whatsapp' | 'call' | 'message' | null>(null);
     const [showMobileContactSheet, setShowMobileContactSheet] = useState(false);
 
     // Review/Rating State
@@ -275,7 +269,6 @@ export default function ShopDetailPage() {
                 setShopLogo(logoUrl);
                 setShopAvatar(logoUrl);
                 setAvatarError(false);
-                setShopPhone(currentShop.phone || null);
                 setShopOwnerId(ownerId);
                 setAllListings(shopListings || []);
                 console.log('📦 Sample listing:', shopListings?.[0]);
@@ -619,26 +612,13 @@ export default function ShopDetailPage() {
 
                             {/* Contact Buttons - Icon Row */}
                             <div className="flex items-center gap-2 ml-auto">
-                                <button
-                                    onClick={() => {
-                                        setContactModalOpen(true);
-                                        setSelectedContactType('whatsapp');
-                                    }}
+                                <a
+                                    href="tel:+254720073322"
+                                    title="Call Suqafuran: +254 720 073322"
                                     className="w-10 h-10 rounded-lg hover:scale-110 transition-transform flex items-center justify-center"
-                                    title="WhatsApp"
                                 >
-                                    <img src="/whatsapp-icon.png" alt="WhatsApp" className="w-6 h-6" />
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setContactModalOpen(true);
-                                        setSelectedContactType('call');
-                                    }}
-                                    className="w-10 h-10 rounded-lg hover:scale-110 transition-transform flex items-center justify-center"
-                                    title="Call"
-                                >
-                                    <img src="/call-icon.png" alt="Call" className="w-6 h-6" />
-                                </button>
+                                    <img src="/call-icon.png" alt="Call Suqafuran" className="w-6 h-6" />
+                                </a>
                                 <button
                                     onClick={() => {
                                         if (!isAuthenticated) {
@@ -1710,103 +1690,6 @@ export default function ShopDetailPage() {
                         </motion.div>
                     </div>
                 )}
-            
-            {/* CONTACT MODAL */}
-            {contactModalOpen && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-neutral-950 rounded-2xl shadow-2xl max-w-sm w-full p-6">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Contact Seller</h3>
-                            <button
-                                onClick={() => {
-                                    setContactModalOpen(false);
-                                    setSelectedContactType(null);
-                                }}
-                                className="text-gray-500 hover:text-gray-700 dark:text-neutral-300"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <div className="mb-4">
-                            <p className="text-sm text-gray-600 dark:text-neutral-300 mb-2">Seller: {shopName}</p>
-                            <p className="text-sm font-semibold text-gray-900 dark:text-white">Phone:</p>
-                            <p className="text-base font-bold text-[#00a082] mb-4">{shopPhone || 'Not available'}</p>
-                        </div>
-                        {shopPhone && (
-                            <>
-                                {selectedContactType === 'whatsapp' && (
-                                    <div className="space-y-2">
-                                        <button
-                                            onClick={() => {
-                                                analyticsService.trackClick({
-                                                    event_type: 'whatsapp',
-                                                    shop_id: shopOwnerId as number,
-                                                    device_type: analyticsService.getDeviceType(),
-                                                }).catch(() => {});
-                                                window.open(`https://wa.me/${shopPhone.replace(/\D/g, '')}`);
-                                            }}
-                                            className="w-full bg-[#25D366] text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-[#20BA5A] transition-colors"
-                                        >
-                                            <FaWhatsapp className="w-5 h-5" />
-                                            Chat WhatsApp
-                                        </button>
-                                        <button
-                                            onClick={() => navigator.clipboard.writeText(shopPhone)}
-                                            className="w-full bg-gray-200 text-gray-900 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-300 transition-colors"
-                                        >
-                                            <MdContentCopy className="w-5 h-5" />
-                                            Copy
-                                        </button>
-                                    </div>
-                                )}
-                                {selectedContactType === 'call' && (
-                                    <div className="space-y-2">
-                                        <button
-                                            onClick={() => {
-                                                analyticsService.trackClick({
-                                                    event_type: 'call',
-                                                    shop_id: shopOwnerId as number,
-                                                    device_type: analyticsService.getDeviceType(),
-                                                }).catch(() => {});
-                                                window.location.href = `tel:${shopPhone}`;
-                                            }}
-                                            className="w-full bg-[#FFC107] text-gray-900 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-[#FFB300] transition-colors"
-                                        >
-                                            <MdPhone className="w-5 h-5" />
-                                            Call
-                                        </button>
-                                        <button
-                                            onClick={() => navigator.clipboard.writeText(shopPhone)}
-                                            className="w-full bg-gray-200 text-gray-900 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-300 transition-colors"
-                                        >
-                                            <MdContentCopy className="w-5 h-5" />
-                                            Copy
-                                        </button>
-                                    </div>
-                                )}
-                                {selectedContactType === 'message' && (
-                                    <div className="space-y-2">
-                                        <button
-                                            onClick={() => window.location.href = `sms:${shopPhone}`}
-                                            className="w-full bg-[#00a082] text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-[#008f73] transition-colors"
-                                        >
-                                            <MdMessage className="w-5 h-5" />
-                                            Send SMS
-                                        </button>
-                                        <button
-                                            onClick={() => navigator.clipboard.writeText(shopPhone)}
-                                            className="w-full bg-gray-200 text-gray-900 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-300 transition-colors"
-                                        >
-                                            <MdContentCopy className="w-5 h-5" />
-                                            Copy
-                                        </button>
-                                    </div>
-                                )}
-                            </>
-                        )}
-                    </div>
-                </div>
-            )}
 
             {/* RATING MODAL */}
             {ratingModalOpen && (
