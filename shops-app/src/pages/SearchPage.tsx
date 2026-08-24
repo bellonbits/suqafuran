@@ -4,6 +4,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Grid, List, ChevronDown } from 'lucide-react';
 import { listingsService } from '@/services/listings';
+import { analyticsService } from '@/services/analytics';
 import { ProductCard } from '@/components/features/ProductCard';
 import type { Listing } from '@/types';
 
@@ -45,6 +46,14 @@ function SearchPageContent() {
                     return true;
                 });
                 setListings(unique);
+
+                if (query) {
+                    analyticsService.trackSearch({
+                        query,
+                        result_count: unique.length,
+                        device_type: analyticsService.getDeviceType(),
+                    }).catch(() => {});
+                }
             } catch (err) {
                 console.error('Failed to search listings', err);
             } finally {

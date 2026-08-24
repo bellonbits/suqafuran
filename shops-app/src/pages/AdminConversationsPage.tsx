@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   Loader, Search, X, MessageCircle, MessagesSquare, Eye, CircleDot,
   Flag, Ban, CheckCheck, ExternalLink, ShieldAlert,
@@ -212,10 +213,13 @@ function DetailModal({ conversationId, onClose, onUpdated }: { conversationId: n
 }
 
 export default function AdminConversationsPage() {
+  const searchParams = useSearchParams();
+  const initialFilter = (FILTERS.find((f) => f.key === searchParams.get('filter'))?.key || 'all') as typeof FILTERS[number]['key'];
+
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<typeof FILTERS[number]['key']>('all');
+  const [activeFilter, setActiveFilter] = useState<typeof FILTERS[number]['key']>(initialFilter);
   const [search, setSearch] = useState('');
   const [openConversationId, setOpenConversationId] = useState<number | null>(null);
 
@@ -245,6 +249,15 @@ export default function AdminConversationsPage() {
   }, [activeFilter, search]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Keep the list/stats live without yanking the table out from under an
+  // admin who has a conversation thread open.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (openConversationId === null) load();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [load, openConversationId]);
 
   const patchLocal = (updated: ConversationSummary) => {
     setConversations((prev) => prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)));

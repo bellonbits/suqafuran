@@ -191,6 +191,33 @@ class AnalyticsService {
     }
   }
 
+  async getCommunicationOverview(days = 7) {
+    try {
+      return await api.get(`/analytics/admin/communication-overview?days=${days}`);
+    } catch (error) {
+      console.error('Failed to fetch communication overview:', error);
+      throw error;
+    }
+  }
+
+  async getSellerResponseAnalytics(days = 30, limit = 20) {
+    try {
+      return await api.get(`/analytics/admin/seller-response-analytics?days=${days}&limit=${limit}`);
+    } catch (error) {
+      console.error('Failed to fetch seller response analytics:', error);
+      throw error;
+    }
+  }
+
+  async getHotListings(days = 1, limit = 6) {
+    try {
+      return await api.get(`/analytics/admin/hot-listings?days=${days}&limit=${limit}`);
+    } catch (error) {
+      console.error('Failed to fetch hot listings:', error);
+      throw error;
+    }
+  }
+
   async getGeographicAnalytics(days = 7, limit = 20) {
     try {
       return await api.get(`/analytics/admin/geographic-analytics?days=${days}&limit=${limit}`);

@@ -16,6 +16,7 @@ import { MdMessage, MdPhone, MdContentCopy } from 'react-icons/md';
 import { useCart } from '@/store/useCart';
 import { useAuthStore } from '@/store/useAuth';
 import { useTrackShopView } from '@/hooks/useViewTracking';
+import { analyticsService } from '@/services/analytics';
 import { getMockProductInfo } from '@/lib/mockProductInfo';
 
 
@@ -644,6 +645,11 @@ export default function ShopDetailPage() {
                                             router.push('/login?returnUrl=' + encodeURIComponent(window.location.pathname));
                                             return;
                                         }
+                                        analyticsService.trackClick({
+                                            event_type: 'chat',
+                                            shop_id: shopOwnerId as number,
+                                            device_type: analyticsService.getDeviceType(),
+                                        }).catch(() => {});
                                         router.push(`/messages?userId=${shopOwnerId}`);
                                     }}
                                     className="w-10 h-10 rounded-lg hover:scale-110 transition-transform flex items-center justify-center"
@@ -1731,7 +1737,14 @@ export default function ShopDetailPage() {
                                 {selectedContactType === 'whatsapp' && (
                                     <div className="space-y-2">
                                         <button
-                                            onClick={() => window.open(`https://wa.me/${shopPhone.replace(/\D/g, '')}`)}
+                                            onClick={() => {
+                                                analyticsService.trackClick({
+                                                    event_type: 'whatsapp',
+                                                    shop_id: shopOwnerId as number,
+                                                    device_type: analyticsService.getDeviceType(),
+                                                }).catch(() => {});
+                                                window.open(`https://wa.me/${shopPhone.replace(/\D/g, '')}`);
+                                            }}
                                             className="w-full bg-[#25D366] text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-[#20BA5A] transition-colors"
                                         >
                                             <FaWhatsapp className="w-5 h-5" />
@@ -1749,7 +1762,14 @@ export default function ShopDetailPage() {
                                 {selectedContactType === 'call' && (
                                     <div className="space-y-2">
                                         <button
-                                            onClick={() => window.location.href = `tel:${shopPhone}`}
+                                            onClick={() => {
+                                                analyticsService.trackClick({
+                                                    event_type: 'call',
+                                                    shop_id: shopOwnerId as number,
+                                                    device_type: analyticsService.getDeviceType(),
+                                                }).catch(() => {});
+                                                window.location.href = `tel:${shopPhone}`;
+                                            }}
                                             className="w-full bg-[#FFC107] text-gray-900 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-[#FFB300] transition-colors"
                                         >
                                             <MdPhone className="w-5 h-5" />

@@ -1,153 +1,368 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { ArrowLeft, Loader, TrendingUp, Users, ShoppingCart, DollarSign } from 'lucide-react';
-import { adminService } from '@/services';
-import type { AdminStats } from '@/services';
+import { BarChart3, Eye, Store, TrendingUp, RefreshCw, Calendar, MessageSquare, Heart, Phone, Search, AlertCircle, Flame } from 'lucide-react';
+import { analyticsService } from '@/services/analytics';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ADMIN_NAV_ITEMS } from '@/admin-dashboard/navigation';
-import { useAuthStore } from '@/store/useAuth';
+import { AnalyticsTabs } from '@/components/analytics/AnalyticsTabs';
 
-const AnalyticsPage = () => {
-  const [stats, setStats] = useState<AdminStats | null>(null);
-  const [loading, setLoading] = useState(true);
+interface OverviewStats {
+  total_visitors: number;
+  unique_users: number;
+  total_searches: number;
+  chat_clicks: number;
+  favorites_added: number;
+  conversion_rate: number;
+  total_views: number;
+  whatsapp_clicks: number;
+  call_clicks: number;
+}
 
-  const { user } = useAuthStore();
-  const navItems = ADMIN_NAV_ITEMS.map(item => ({
-    ...item,
-    icon: <item.icon className="w-5 h-5" />
-  }));
+interface SearchQuery {
+  query: string;
+  search_count: number;
+  avg_results: number;
+}
 
-  useEffect(() => {
-    loadAnalytics();
-  }, []);
+interface CategoryPerf {
+  category_id: number;
+  category_name: string;
+  view_count: number;
+  listing_count: number;
+  ctr: number;
+}
 
-  const loadAnalytics = async () => {
+interface FunnelStage {
+  stage: string;
+  count: number;
+  percentage: number;
+}
+
+interface HotListing {
+  listing_id: number;
+  listing_title: string;
+  views: number;
+  chats: number;
+  favorites: number;
+  pct_change: number;
+}
+
+export default function AnalyticsDashboard() {
+  const [overview, setOverview] = useState<OverviewStats | null>(null);
+  const [topSearches, setTopSearches] = useState<SearchQuery[]>([]);
+  const [noResultSearches, setNoResultSearches] = useState<SearchQuery[]>([]);
+  const [categoryPerf, setCategoryPerf] = useState<CategoryPerf[]>([]);
+  const [funnelData, setFunnelData] = useState<FunnelStage[]>([]);
+  const [hotListings, setHotListings] = useState<HotListing[]>([]);
+  const [days, setDays] = useState(7);
+  const [loading, setLoading] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+
+  const fetchAnalytics = async () => {
     setLoading(true);
     try {
-      const data = await adminService.getStats();
-      setStats(data);
+      const [overviewRes, searchRes, catRes, funnelRes, hotRes] = await Promise.all([
+        analyticsService.getOverview(days),
+        analyticsService.getSearchAnalytics(days),
+        analyticsService.getCategoryAnalytics(days),
+        analyticsService.getConversionFunnel(days),
+        analyticsService.getHotListings(1, 6),
+      ]);
+
+      setOverview(overviewRes.data || {});
+      setTopSearches(searchRes.data?.top_searches || []);
+      setNoResultSearches(searchRes.data?.no_result_searches || []);
+      setCategoryPerf(catRes.data?.categories || []);
+      setFunnelData(funnelRes.data?.funnel || []);
+      setHotListings(hotRes.data?.listings || []);
+      setLastRefresh(new Date());
     } catch (error) {
-      console.error('Error loading analytics:', error);
+      console.error('Failed to fetch analytics:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <DashboardLayout title="Analytics & Reports" navItems={navItems} userRole="admin">
-        <div className="flex items-center justify-center h-96">
-          <Loader className="w-8 h-8 animate-spin text-[#6cd4ff]" />
-        </div>
-      </DashboardLayout>
-    );
-  }
+  useEffect(() => {
+    fetchAnalytics();
+    const interval = setInterval(fetchAnalytics, 60000);
+    return () => clearInterval(interval);
+  }, [days]);
 
-  if (!stats) {
-    return (
-      <DashboardLayout title="Analytics & Reports" navItems={navItems} userRole="admin">
-        <div className="p-6 text-center text-slate-400">Failed to load analytics</div>
-      </DashboardLayout>
-    );
-  }
+  const navItems = ADMIN_NAV_ITEMS.map(item => ({
+    ...item,
+    icon: <item.icon className="w-5 h-5" />
+  }));
 
   return (
-    <DashboardLayout title="Analytics & Reports" navItems={navItems} userRole="admin">
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-slate-400 font-semibold">Total Users</p>
-                <p className="text-3xl font-black text-slate-900 dark:text-white mt-2">{stats.total_users}</p>
-              </div>
-              <Users className="w-10 h-10 text-[#6cd4ff]" />
-            </div>
+    <DashboardLayout title="Realtime Analytics" navItems={navItems} userRole="admin">
+    <AnalyticsTabs />
+    <div className="min-h-screen bg-slate-50 dark:bg-neutral-900/40 dark:bg-black">
+      <div className="sticky top-0 z-30 bg-white dark:bg-neutral-950 border-b border-slate-200 dark:border-neutral-800">
+        <div className="px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <BarChart3 className="w-6 h-6 text-orange-600" />
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Analytics Dashboard</h1>
           </div>
-
-          <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-slate-400 font-semibold">Total Listings</p>
-                <p className="text-3xl font-black text-slate-900 dark:text-white mt-2">{stats.total_listings}</p>
-              </div>
-              <ShoppingCart className="w-10 h-10 text-orange-500" />
-            </div>
-          </div>
-
-          <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-slate-400 font-semibold">Active Listings</p>
-                <p className="text-3xl font-black text-slate-900 dark:text-white mt-2">{stats.active_listings}</p>
-              </div>
-              <TrendingUp className="w-10 h-10 text-green-500" />
-            </div>
-          </div>
-
-          <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-slate-400 font-semibold">Total Revenue</p>
-                <p className="text-3xl font-black text-slate-900 dark:text-white mt-2">Ksh {(stats.total_revenue / 1000).toFixed(0)}k</p>
-              </div>
-              <DollarSign className="w-10 h-10 text-purple-500" />
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
-            <h3 className="text-lg font-black text-slate-900 dark:text-white mb-4">Pending Items</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-neutral-900/40 rounded-lg">
-                <span className="text-slate-600 dark:text-neutral-200 font-semibold">Listings</span>
-                <span className="text-2xl font-black text-slate-900 dark:text-white">{stats.pending_listings}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-neutral-900/40 rounded-lg">
-                <span className="text-slate-600 dark:text-neutral-200 font-semibold">Orders</span>
-                <span className="text-2xl font-black text-slate-900 dark:text-white">{stats.pending_orders}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-neutral-900/40 rounded-lg">
-                <span className="text-slate-600 dark:text-neutral-200 font-semibold">Promotions</span>
-                <span className="text-2xl font-black text-slate-900 dark:text-white">{stats.pending_promotions}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
-            <h3 className="text-lg font-black text-slate-900 dark:text-white mb-4">Orders</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-neutral-900/40 rounded-lg">
-                <span className="text-slate-600 dark:text-neutral-200 font-semibold">Total Orders</span>
-                <span className="text-2xl font-black text-slate-900 dark:text-white">{stats.total_orders || 0}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-neutral-900/40 rounded-lg">
-                <span className="text-slate-600 dark:text-neutral-200 font-semibold">Pending</span>
-                <span className="text-2xl font-black text-slate-900 dark:text-white">{stats.pending_orders}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
-            <h3 className="text-lg font-black text-slate-900 dark:text-white mb-4">Deliveries</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-neutral-900/40 rounded-lg">
-                <span className="text-slate-600 dark:text-neutral-200 font-semibold">Active</span>
-                <span className="text-2xl font-black text-slate-900 dark:text-white">{stats.active_deliveries}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-neutral-900/40 rounded-lg">
-                <span className="text-slate-600 dark:text-neutral-200 font-semibold">Delayed</span>
-                <span className="text-2xl font-black text-slate-900 dark:text-white">{stats.delayed_deliveries}</span>
-              </div>
-            </div>
-          </div>
+          <button
+            onClick={fetchAnalytics}
+            disabled={loading}
+            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-neutral-900 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
         </div>
       </div>
+
+      <div className="px-6 py-8 max-w-7xl mx-auto space-y-8">
+        {/* Controls & Live Polling */}
+        <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-slate-200 dark:border-neutral-800 flex flex-wrap gap-4 items-center justify-between">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-slate-600 dark:text-neutral-300" />
+              <label className="text-sm font-semibold text-slate-900 dark:text-white">Period:</label>
+              <select
+                value={days}
+                onChange={(e) => setDays(Number(e.target.value))}
+                className="rounded border border-gray-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3 py-1 text-sm font-semibold text-slate-900 dark:text-white"
+              >
+                <option value={1}>Today (24h)</option>
+                <option value={7}>Last 7 days</option>
+                <option value={30}>Last 30 days</option>
+                <option value={90}>Last 90 days</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2 border-l border-slate-200 dark:border-neutral-800 pl-4">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </span>
+              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Live Intent Stream Active</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {lastRefresh && (
+              <span className="text-xs text-slate-400 dark:text-neutral-400">
+                Auto-synced: {lastRefresh.toLocaleTimeString()}
+              </span>
+            )}
+            <button
+              onClick={fetchAnalytics}
+              disabled={loading}
+              className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              Sync Now
+            </button>
+          </div>
+        </div>
+
+        {/* Overview Cards */}
+        {overview && (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-slate-200 dark:border-neutral-800">
+              <p className="text-xs text-slate-400 dark:text-neutral-400 font-semibold">Visitors</p>
+              <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">{overview.total_visitors.toLocaleString()}</p>
+            </div>
+            <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-slate-200 dark:border-neutral-800">
+              <p className="text-xs text-slate-400 dark:text-neutral-400 font-semibold">Searches</p>
+              <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">{overview.total_searches.toLocaleString()}</p>
+            </div>
+            <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-slate-200 dark:border-neutral-800">
+              <p className="text-xs text-slate-400 dark:text-neutral-400 font-semibold">Chats</p>
+              <p className="text-2xl font-black text-blue-600 mt-1">{overview.chat_clicks.toLocaleString()}</p>
+            </div>
+            <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-slate-200 dark:border-neutral-800">
+              <p className="text-xs text-slate-400 dark:text-neutral-400 font-semibold">WhatsApp</p>
+              <p className="text-2xl font-black text-green-600 mt-1">{overview.whatsapp_clicks.toLocaleString()}</p>
+            </div>
+            <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-slate-200 dark:border-neutral-800">
+              <p className="text-xs text-slate-400 dark:text-neutral-400 font-semibold">Favorites</p>
+              <p className="text-2xl font-black text-red-600 mt-1">{overview.favorites_added.toLocaleString()}</p>
+            </div>
+            <div className="bg-white dark:bg-neutral-950 rounded-lg p-4 border border-slate-200 dark:border-neutral-800">
+              <p className="text-xs text-slate-400 dark:text-neutral-400 font-semibold">Conversion</p>
+              <p className="text-2xl font-black text-orange-600 mt-1">{overview.conversion_rate}%</p>
+            </div>
+          </div>
+        )}
+
+        {/* Conversion Funnel */}
+        <div className="bg-white dark:bg-neutral-950 rounded-lg border border-slate-200 dark:border-neutral-800 overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-200 dark:border-neutral-800 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Conversion Funnel</h2>
+            <span className="text-xs text-slate-500 dark:text-neutral-400 font-medium">Intent & Conversion Stages</span>
+          </div>
+          <div className="p-6 space-y-4">
+            {funnelData.length > 0 ? (
+              funnelData.map((stage, idx) => (
+                <div key={idx}>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-semibold text-slate-900 dark:text-white">{stage.stage}</span>
+                    <span className="text-sm text-slate-500 dark:text-neutral-400">{stage.count.toLocaleString()} ({stage.percentage}%)</span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-neutral-800 rounded-full h-3 overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all"
+                      style={{ width: `${stage.percentage}%` }}
+                    />
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="py-8 text-center">
+                <p className="text-sm font-semibold text-slate-700 dark:text-neutral-300">Tracking Funnel Initialized</p>
+                <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1">
+                  User visits, searches, chats, and WhatsApp clicks will populate real-time conversion percentages here.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Top Searches & Missing Inventory */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-white dark:bg-neutral-950 rounded-lg border border-slate-200 dark:border-neutral-800 overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-neutral-800 flex items-center gap-2">
+              <Search className="w-5 h-5 text-blue-600" />
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Top Searches</h2>
+            </div>
+            {topSearches.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-slate-50 dark:bg-neutral-900">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200">Query</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200">Searches</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200">Avg Results</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-neutral-800">
+                    {topSearches.map((search, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-neutral-900">
+                        <td className="px-6 py-3 text-sm font-semibold text-slate-900 dark:text-white">{search.query}</td>
+                        <td className="px-6 py-3 text-sm text-slate-900 dark:text-white">{search.search_count}</td>
+                        <td className="px-6 py-3 text-sm text-slate-900 dark:text-white">{search.avg_results}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="p-6 text-center text-xs text-slate-500 dark:text-neutral-400">
+                No search queries logged in this time window.
+              </div>
+            )}
+          </div>
+
+          <div className="bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800 overflow-hidden">
+            <div className="px-6 py-4 border-b border-red-200 dark:border-red-800 flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-red-600" />
+              <h2 className="text-lg font-bold text-red-900 dark:text-red-300">No Results Searches</h2>
+              <span className="text-xs text-red-700 dark:text-red-400 ml-auto font-medium">Missing Inventory</span>
+            </div>
+            {noResultSearches.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-red-100 dark:bg-red-900/40">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-bold text-red-900 dark:text-red-300">Query</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold text-red-900 dark:text-red-300">Count</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-red-200 dark:divide-red-800">
+                    {noResultSearches.map((search, idx) => (
+                      <tr key={idx} className="hover:bg-red-100 dark:hover:bg-red-900/30">
+                        <td className="px-6 py-3 text-sm font-semibold text-red-900 dark:text-red-300">{search.query}</td>
+                        <td className="px-6 py-3 text-sm text-red-900 dark:text-red-300">{search.search_count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="p-6 text-center text-xs text-red-700 dark:text-red-400">
+                All buyer searches currently return matching listings.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Category Performance */}
+        <div className="bg-white dark:bg-neutral-950 rounded-lg border border-slate-200 dark:border-neutral-800 overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-200 dark:border-neutral-800 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-green-600" />
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Category Performance</h2>
+          </div>
+          {categoryPerf.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-slate-50 dark:bg-neutral-900">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200">Category</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200">Views</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200">Listings</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200">CTR</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-neutral-800">
+                  {categoryPerf.map((cat, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-neutral-900">
+                      <td className="px-6 py-3 text-sm font-semibold text-slate-900 dark:text-white">{cat.category_name}</td>
+                      <td className="px-6 py-3 text-sm text-slate-900 dark:text-white">{cat.view_count.toLocaleString()}</td>
+                      <td className="px-6 py-3 text-sm text-slate-900 dark:text-white">{cat.listing_count}</td>
+                      <td className="px-6 py-3 text-sm font-bold text-green-600">{cat.ctr}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="p-6 text-center text-xs text-slate-500 dark:text-neutral-400">
+              No category view statistics recorded for this timeframe yet.
+            </div>
+          )}
+        </div>
+
+        {/* Hot Listings */}
+        <div className="bg-white dark:bg-neutral-950 rounded-lg border border-slate-200 dark:border-neutral-800 overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-200 dark:border-neutral-800 flex items-center gap-2">
+            <Flame className="w-5 h-5 text-orange-600" />
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Hot Listings</h2>
+            <span className="text-xs text-slate-500 dark:text-neutral-400 ml-auto font-medium">Last 24h momentum</span>
+          </div>
+          {hotListings.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+              {hotListings.map((item) => (
+                <div key={item.listing_id} className="p-4 bg-slate-50 dark:bg-neutral-900 rounded-lg border border-slate-200 dark:border-neutral-800">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <h3 className="font-semibold text-sm text-slate-900 dark:text-white line-clamp-2">
+                      🔥 {item.listing_title}
+                    </h3>
+                    {item.pct_change > 0 && (
+                      <span className="flex-shrink-0 text-[11px] font-bold text-green-600">
+                        +{item.pct_change}%
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-neutral-400">
+                    <span>{item.views.toLocaleString()} views</span>
+                    <span>{item.chats.toLocaleString()} chats</span>
+                    <span>{item.favorites.toLocaleString()} wishlists</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-6 text-center text-xs text-slate-500 dark:text-neutral-400">
+              No listing activity in the last 24 hours yet.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
     </DashboardLayout>
   );
-};
-
-export default AnalyticsPage;
+}

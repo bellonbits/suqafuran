@@ -1,0 +1,547 @@
+SUQAFURAN — REALTIME ANALYTICS
+Full reference: what it is, how it works, and how buyer-seller interactions are tracked.
+Last updated: 2026-08-24 (Phase 2: Communication, Hot Listings, Seller Response, deeper funnel)
+
+
+================================================================
+1. WHAT IT IS
+================================================================
+
+"Realtime Analytics" is the admin-facing analytics suite in shops-app, reachable
+from the admin sidebar. It lives at /admin-dashboard/analytics and six sub-pages,
+all sharing the same admin sidebar (DashboardLayout + ADMIN_NAV_ITEMS) and a
+horizontal tab strip (AnalyticsTabs) for jumping between the seven pages.
+
+There is no separate analytics pipeline, no Kafka/ETL job, no cron aggregation.
+It is 11 raw Postgres tables written to by lightweight POST /track/* endpoints,
+and the dashboard pages run live COUNT/GROUP BY SQL against those tables on
+each page load and on a 30-60s auto-refresh poll.
+
+
+================================================================
+2. THE SEVEN PAGES
+================================================================
+
+Route                                    File                                 What it shows
+----------------------------------------------------------------------------------------------
+/admin-dashboard/analytics                AdminAnalyticsMainPage.tsx           Overview: total visitors,
+                                                                                unique users, searches,
+                                                                                chat/WhatsApp/call clicks,
+                                                                                favorites, conversion rate,
+                                                                                conversion funnel (Views ->
+                                                                                Clicks -> Chats -> Orders),
+                                                                                top searches, no-result
+                                                                                searches, category
+                                                                                performance (views/CTR),
+                                                                                Hot Listings (24h momentum)
+
+/admin-dashboard/analytics/communication  AdminAnalyticsCommunicationPage.tsx  Real chat volume: active/
+                                                                                new conversations, messages
+                                                                                total & per hour, unanswered
+                                                                                count, avg first-response &
+                                                                                avg response time, chat ->
+                                                                                order conversion rate; links
+                                                                                out to Live Conversations
+                                                                                (/admin-messages)
+
+/admin-dashboard/analytics/users          AdminAnalyticsUsersPage.tsx          New vs returning users,
+                                                                                active/verified seller
+                                                                                counts, top users by
+                                                                                engagement (searches,
+                                                                                clicks, chats, visits)
+
+/admin-dashboard/analytics/sellers        AdminAnalyticsSellersPage.tsx        Seller leaderboard ranked
+                                                                                by views / chats /
+                                                                                conversions, medal-style
+                                                                                (gold/silver/bronze), plus
+                                                                                Seller Response Analytics
+                                                                                (response rate, avg response
+                                                                                time, unanswered count)
+
+/admin-dashboard/analytics/devices        AdminAnalyticsDevicesPage.tsx        Mobile/tablet/desktop split
+                                                                                for item views and shop
+                                                                                views
+
+/admin-dashboard/analytics/geographic     AdminAnalyticsGeographicPage.tsx     Visitors by city (Google
+                                                                                Map + table) and by
+                                                                                country
+
+/admin-dashboard/analytics/alerts         AdminAnalyticsAlertsPage.tsx         Configurable alert rules
+                                                                                (traffic spike, low
+                                                                                engagement, new seller,
+                                                                                suspicious activity) and
+                                                                                the triggered /
+                                                                                acknowledged / resolved
+                                                                                event log
+
+All seven pages live under: shops-app/src/pages/
+Shared nav: shops-app/src/components/analytics/AnalyticsTabs.tsx
+Sidebar:    shops-app/src/components/DashboardLayout.tsx +
+            shops-app/src/admin-dashboard/navigation.tsx (ADMIN_NAV_ITEMS)
+
+
+================================================================
+3. DATABASE SCHEMA
+================================================================
+
+File: backend/app/models/analytics.py
+
+UserSession           Active session tracking (device, IP, page history, clicks)
+UserActivity           Generic action log (view_listing, search, purchase, etc.)
+                        + drives ConversionFunnel stage updates
+ConversionFunnel        Per-user funnel timestamps: signup -> search -> view
+                        -> cart -> purchase -> repeat
+ItemView                Listing view events (device, IP, time spent, referrer)
+ShopView                Shop profile view events (same shape as ItemView)
+SearchEvent             Search queries (query text, result count, filters)
+ClickEvent              chat / whatsapp / call / favorite / share / review
+                        clicks tied to a listing_id and/or shop_id
+ConversionFunnelEvent   Stage events: view -> click -> chat -> contact ->
+                        transaction
+GeographicEvent         City/country/lat-lng per visitor event
+UserCohort              Per-user rollup: new/returning, seller/verified,
+                        total searches/clicks/chats
+DeviceMetric            Hourly/daily device-type buckets
+AdminAlert              Alert rule definitions (metric, threshold, comparison)
+AlertEvent              Log of triggered alerts (status: triggered /
+                        acknowledged / resolved)
+
+
+================================================================
+4. BACKEND ENDPOINTS
+================================================================
+
+File: backend/app/api/api_v1/endpoints/analytics.py
+Mounted at prefix /analytics (see backend/app/api/api_v1/api.py line 82)
+
+WRITE (called by the buyer-facing app, fire-and-forget):
+  POST /analytics/track/item-view        -> ItemView
+  POST /analytics/track/shop-view        -> ShopView
+  POST /analytics/track/search           -> SearchEvent
+  POST /analytics/track/click            -> ClickEvent (event_type=chat/
+                                             whatsapp/call/favorite)
+  POST /analytics/track/conversion       -> ConversionFunnelEvent
+
+READ (admin-only, current_user.is_admin required):
+  GET /analytics/admin/overview
+  GET /analytics/admin/search-analytics
+  GET /analytics/admin/category-analytics
+  GET /analytics/admin/conversion-funnel
+  GET /analytics/admin/user-analytics
+  GET /analytics/admin/device-analytics
+  GET /analytics/admin/geographic-analytics
+  GET /analytics/admin/seller-rankings
+  GET /analytics/admin/alerts
+  GET /analytics/admin/alert-events
+  GET /analytics/admin/top-items / top-shops / live-views
+  GET /analytics/admin/item-stats/{id} / shop-stats/{id} / listing-stats/{id}
+  POST /analytics/admin/alert/{id}/acknowledge
+
+Frontend service that calls all of the above:
+  shops-app/src/services/analytics.ts  (class AnalyticsService)
+
+
+================================================================
+5. FRONTEND SERVICES — TWO DIFFERENT TRACKERS, DON'T CONFUSE THEM
+================================================================
+
+There are two separate tracking clients in shops-app. Only one of them feeds
+the Realtime Analytics dashboard.
+
+  services/analytics.ts        (analyticsService)
+    - Query-param based POSTs matching the real backend signatures above.
+    - trackItemView / trackShopView / trackSearch / trackClick /
+      trackConversion.
+    - THIS is what the dashboard reads from (SearchEvent, ClickEvent,
+      ItemView, ShopView tables).
+
+  services/analytics-tracking.ts   (analyticsTracker, a global singleton)
+    - Auto-fires on every DOM click site-wide, plus scroll depth / time on
+      page / page views.
+    - Posts JSON bodies to /analytics/track/click and /analytics/track/
+      activity, gated to authenticated users only (anonymous browsing is
+      NOT tracked by this client).
+    - Its trackSearch() writes to UserActivity (via /track/activity), NOT
+      to SearchEvent — it does NOT feed the Top Searches panel.
+    - Its global click payload shape (element_id, x, y, page_width, ...)
+      does not match either /track/click endpoint's expected schema (see
+      Known Issues below) — it silently fails via sendBeacon.
+    - Net effect: this tracker is effectively non-functional for anything
+      the dashboard shows. It was left untouched.
+
+
+================================================================
+6. HOW THE PIPELINE WORKS END TO END (Overview page example)
+================================================================
+
+  1. Buyer opens a listing -> useTrackItemView() fires on unmount/id-change
+     -> POST /analytics/track/item-view -> row in ItemView.
+  2. Buyer clicks "Contact Seller" -> analyticsService.trackClick({event_
+     type: 'chat', listing_id, shop_id}) -> POST /analytics/track/click ->
+     row in ClickEvent (event_type='chat').
+  3. Buyer is redirected to /messages -> the REAL chat system takes over
+     (Conversation / ConversationMessage / Message tables, separate from
+     analytics entirely — see section 7).
+  4. Admin opens Realtime Analytics Overview -> frontend calls
+     analyticsService.getOverview(days) -> GET /analytics/admin/overview
+     -> backend runs live COUNT() queries against ItemView, ShopView,
+     SearchEvent, ClickEvent for the selected time window -> JSON returned
+     -> React state updated -> auto-refreshes every 60s.
+
+No caching layer, no pre-aggregation. Every dashboard load is a live query.
+
+
+================================================================
+7. BUYER <-> SELLER INTERACTION — TWO SEPARATE SYSTEMS
+================================================================
+
+IMPORTANT: "Are buyers and sellers interacting" has two different answers
+depending on which system you mean.
+
+A) THE REAL CHAT/MESSAGING SYSTEM (this is where actual conversations live)
+   CORRECTION (2026-08-24): an earlier version of this document named the
+   wrong tables here. The real buyer<->seller marketplace chat is:
+   Tables:   MarketplaceConversation (buyer_id, seller_id, listing_id,
+             status, last_message_at, buyer_unread_count,
+             seller_unread_count, message_count) and Message (sender_id,
+             receiver_id, listing_id, conversation_id, content, is_read;
+             no read_at timestamp — read state is a boolean only).
+   Backend:  backend/app/api/api_v1/endpoints/messages.py (buyer/seller
+             send + read), backend/app/api/api_v1/endpoints/admin.py
+             (admin-only: GET /admin/conversations, /admin/conversations/
+             stats, /admin/conversations/{id}, PATCH .../{id} — full
+             cross-seller monitor, ~line 2289-2472), chat_ws.py (WebSocket
+             delivery/presence only, no DB writes).
+   Frontend: MessagesPage.tsx (buyer), SellerMessagesPage.tsx (seller),
+             AdminConversationsPage.tsx (admin monitor: list, stats,
+             per-thread detail modal, flag/suspend/mark-reviewed actions;
+             now also 30s auto-refresh and a ?filter= deep-link param —
+             see section 11), AdminDisputesPage.tsx (read-only thread
+             viewer scoped to a filed report).
+   Status:   Fully functional, independent of analytics. Every real
+             message a buyer or seller sends is permanently stored here.
+             This is the source of truth for "who is talking to whom."
+
+   NOTE: `Conversation`/`ConversationMessage`
+   (backend/app/models/conversation.py, conversations.py endpoints) is a
+   SEPARATE, unrelated legacy feature — Suqafuran-as-system messaging a
+   user (keyed seller_id/customer_id, no listing_id) — not buyer<->seller
+   chat. Don't confuse the two when reading the codebase.
+
+B) THE ANALYTICS "INTENT" COUNTERS on the Realtime Analytics dashboard
+   (Chats / WhatsApp / Call / Favorites / Conversion Rate on the Overview
+   page, and the seller-rankings "chats"/"conversions" metrics)
+   These are NOT counts of real messages. They are counts of ClickEvent
+   rows created only when the frontend explicitly calls
+   analyticsService.trackClick({event_type: 'chat'|'whatsapp'|'call'|
+   'favorite', ...}) at the moment a buyer clicks a specific button.
+
+   AS OF THE ORIGINAL BUILD, THIS WAS NEVER WIRED UP ANYWHERE.
+   No Chat/WhatsApp/Call/Favorite button in the actual UI called
+   trackClick. Result: those specific dashboard numbers always read 0
+   against real traffic, even though real buyer-seller chat was working
+   fine underneath.
+
+   THIS HAS SINCE BEEN FIXED (2026-08-24) — see section 8.
+
+
+================================================================
+8. FIXES APPLIED (2026-08-24)
+================================================================
+
+Files touched: ListingDetailPage.tsx, ShopDetailPage.tsx, SearchPage.tsx,
+AdminAnalyticsGeographicPage.tsx, AdminAnalyticsMainPage.tsx,
+AdminAnalyticsDevicesPage.tsx, AdminAnalyticsUsersPage.tsx,
+AdminAnalyticsSellersPage.tsx, AdminAnalyticsAlertsPage.tsx,
+navigation.tsx (x2), .env
+
+1. Sidebar wiring
+   - shops-app/src/admin-dashboard/navigation.tsx and src/navigation.tsx:
+     renamed the "Analytics" nav item -> "Realtime Analytics" (was
+     colliding in meaning with the Kafka live-events page, which was
+     renamed "Live Events" to avoid ambiguity).
+
+2. Missing dashboard content restored
+   - AdminAnalyticsMainPage.tsx and AdminAnalyticsDevicesPage.tsx were
+     both accidentally pointing at a leftover stub page (generic user/
+     listing/revenue counts) instead of the real Overview / Device
+     dashboards. Replaced with the correct ported content from
+     new-frontend, matching the styling already used by the other four
+     (already-correct) sub-pages.
+
+3. Admin sidebar + cross-navigation added to all 6 pages
+   - Wrapped every analytics page in <DashboardLayout> (same floating
+     admin sidebar used by every other admin page) and added a new
+     <AnalyticsTabs> horizontal sub-nav (Overview/Users/Sellers/Devices/
+     Geographic/Alerts) so admins can move between them without going
+     back through the main sidebar each time.
+   - New file: shops-app/src/components/analytics/AnalyticsTabs.tsx
+
+4. Geographic map crash fixed
+   - AdminAnalyticsGeographicPage.tsx used process.env.NEXT_PUBLIC_
+     GOOGLE_MAPS_API_KEY (Next.js-style), which doesn't exist under Vite
+     and crashed the whole page on mount. Changed to
+     import.meta.env.VITE_GOOGLE_MAPS_API_KEY, matching the pattern
+     already used by components/GoogleMap.tsx elsewhere in the app.
+   - shops-app/.env: VITE_GOOGLE_MAPS_API_KEY was a placeholder
+     ("your_key_here"); the real key (previously stranded under the
+     wrong var name NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in .env.local, which
+     Vite never reads) was moved into the correct variable.
+
+5. Buyer-seller interaction tracking wired up (the actual gap)
+   ListingDetailPage.tsx:
+     - useTrackItemView() hook activated (was defined, never called) ->
+       item views + time-on-page now recorded, feeding Category
+       Performance too.
+     - "Add to Wishlist" button -> trackClick(event_type='favorite') on
+       add only (not on remove).
+     - "Contact Seller" link -> trackClick(event_type='chat').
+     - "Call" (tel:) link -> trackClick(event_type='call').
+
+   ShopDetailPage.tsx:
+     - "Message Seller" icon button -> trackClick(event_type='chat').
+     - Contact modal "Chat WhatsApp" button -> trackClick(event_type=
+       'whatsapp').
+     - Contact modal "Call" button -> trackClick(event_type='call').
+     - (Shop view tracking via useTrackShopView was already correct,
+       untouched.)
+
+   SearchPage.tsx:
+     - Every non-empty search query now posts to analyticsService.
+       trackSearch({query, result_count, device_type}) -> SearchEvent ->
+       feeds Top Searches / No-Result Searches.
+
+   Deliberately NOT tracked (semantic mismatch, left alone):
+     - "Share on WhatsApp" on ListingDetailPage — this shares the
+       listing's own URL to the buyer's own contacts (social share), not
+       a buyer-contacting-seller action. Tracking it as event_type=
+       'whatsapp' would have inflated/misrepresented the metric.
+     - The contact modal's SMS option on ShopDetailPage — not one of the
+       event types (chat/whatsapp/call/favorite/share/review) the
+       dashboard actually aggregates.
+
+
+================================================================
+9. KNOWN ISSUES STILL OUTSTANDING (not fixed, flagged only)
+================================================================
+
+1. Duplicate /track/click endpoint
+   backend/app/api/api_v1/endpoints/analytics_tracking.py defines its own
+   POST /track/click that instantiates ClickEvent with fields that don't
+   exist on the model (element_id, x, y, page_width, etc. instead of
+   event_type/listing_id/shop_id). It is mounted under the same /analytics
+   prefix AFTER the correct one in analytics.py (api.py lines 82-83), so
+   FastAPI's first-registered-route-wins behavior means this duplicate is
+   dead code today — but it's confusing and would break if route
+   registration order ever changes.
+
+2. Global raw click tracker (analytics-tracking.ts) is non-functional
+   Fires navigator.sendBeacon on every DOM click site-wide with a payload
+   shape that matches neither working /track/click schema, and is gated
+   to logged-in users only. It doesn't feed any dashboard panel. Left
+   as-is since nothing currently depends on it working.
+
+3. Google Maps API key
+   The real key now in shops-app/.env is a live key — make sure billing/
+   quotas on that Google Cloud project are configured before Geographic
+   Analytics gets real traffic, since the map will now actually call the
+   Maps JS API.
+
+4. No historical retention/rollup policy
+   All raw event tables (ItemView, ShopView, SearchEvent, ClickEvent,
+   GeographicEvent, etc.) grow unbounded — there is no archiving or
+   downsampling job. At high traffic volumes the live COUNT/GROUP BY
+   queries on the dashboard will get slower over time unless indexes are
+   monitored or a rollup job is added later.
+
+
+================================================================
+10. FILE MAP (QUICK REFERENCE)
+================================================================
+
+Backend
+  backend/app/models/analytics.py                    - all 11 tables
+  backend/app/api/api_v1/endpoints/analytics.py       - real endpoints
+  backend/app/api/api_v1/endpoints/analytics_tracking.py - dead duplicate
+  backend/app/api/api_v1/endpoints/conversations.py   - real chat (read)
+  backend/app/api/api_v1/endpoints/messages.py        - real chat
+  backend/app/api/api_v1/endpoints/chat_ws.py          - real chat (WS)
+  backend/app/models/conversation.py                  - chat models
+  backend/app/models/message.py                       - chat models
+
+Frontend (shops-app/src/)
+  services/analytics.ts                - working tracking/reporting client
+  services/analytics-tracking.ts       - non-functional global click tracker
+  hooks/useViewTracking.ts             - useTrackItemView / useTrackShopView
+  pages/AdminAnalyticsMainPage.tsx     - Overview
+  pages/AdminAnalyticsUsersPage.tsx    - Users
+  pages/AdminAnalyticsSellersPage.tsx  - Sellers
+  pages/AdminAnalyticsDevicesPage.tsx  - Devices
+  pages/AdminAnalyticsGeographicPage.tsx - Geographic
+  pages/AdminAnalyticsAlertsPage.tsx   - Alerts
+  components/analytics/AnalyticsTabs.tsx - sub-nav strip (new)
+  components/analytics/AnalyticsSidebar.tsx - unused, kept for reference
+  components/DashboardLayout.tsx       - shared admin sidebar
+  admin-dashboard/navigation.tsx       - ADMIN_NAV_ITEMS (primary)
+  navigation.tsx                       - ADMIN_NAV_ITEMS (secondary copy,
+                                          used by ~12 other admin pages)
+  pages/ListingDetailPage.tsx          - buyer tracking: view/favorite/
+                                          chat/call
+  pages/ShopDetailPage.tsx             - buyer tracking: view/chat/
+                                          whatsapp/call
+  pages/SearchPage.tsx                 - search tracking
+  pages/MessagesPage.tsx               - real buyer chat UI
+  pages/SellerMessagesPage.tsx         - real seller chat UI
+  pages/AdminConversationsPage.tsx     - admin chat oversight (live conv.
+                                          monitor; now auto-refreshes)
+  pages/AdminAnalyticsCommunicationPage.tsx - Communication tab (new)
+
+
+================================================================
+11. PHASE 2 ADDITIONS (2026-08-24) — COMMUNICATION, FUNNEL, SELLER
+    RESPONSE, HOT LISTINGS
+================================================================
+
+Built on top of the existing real chat system (section 7A) and the existing
+event tables (section 3) — no schema changes, no new infra. Plan file:
+/Users/mac/.claude/plans/swift-nibbling-fog.md
+
+Backend — new endpoints in backend/app/api/api_v1/endpoints/analytics.py
+(same is_admin-guarded pattern as every existing endpoint in that file):
+
+  GET /analytics/admin/communication-overview?days=
+    active_conversations (MarketplaceConversation, status not closed/
+    suspended, last_message_at within 24h), new_conversations, messages_
+    total, messages_per_hour, unanswered_conversations (seller_unread_
+    count > 0 — reuses the existing field, no computation needed),
+    avg_response_seconds / avg_first_response_seconds (derived by walking
+    ordered Message rows per conversation in Python — buyer message
+    immediately followed by a seller message — capped at 5000 messages in
+    the window; there is no read_at field to read this from directly),
+    conversation_to_order_rate (best-effort join: Order+OrderItem matched
+    to a MarketplaceConversation by buyer_id=customer_id, seller_id=
+    seller_id, listing_id=product_id, with the conversation predating the
+    order — no FK exists between the two tables, this is a heuristic).
+
+  GET /analytics/admin/seller-response-analytics?days=&limit=
+    Per seller: chats (conversation count), response_rate (% of that
+    seller's conversations with >=1 seller-sent Message), avg_response_
+    seconds (same walk-the-messages technique as above, grouped by
+    seller), unanswered (seller_unread_count > 0 count). Ranked by
+    response_rate desc.
+
+  GET /analytics/admin/hot-listings?days=&limit=
+    Recent-window vs prior-equal-window view/click/favorite counts per
+    listing (from ItemView/ClickEvent — richer and time-windowed, unlike
+    the static Listing.views/leads counters which have no time dimension),
+    ranked by a weighted score (views + chats*3 + favorites*2), with
+    %_change vs the prior window.
+
+  GET /analytics/admin/conversion-funnel — extended with a 4th stage
+    "Orders", using the same conversation->order heuristic as above,
+    counted against the existing "Views" denominator. Existing stages
+    (Views, Clicks, Chats Started) unchanged.
+
+Frontend:
+  services/analytics.ts        - added getCommunicationOverview(),
+                                  getSellerResponseAnalytics(),
+                                  getHotListings()
+  pages/AdminAnalyticsCommunicationPage.tsx - new page, route /admin-
+                                  dashboard/analytics/communication;
+                                  stat cards + an "unanswered" callout
+                                  linking to /admin-messages?filter=unread
+                                  + a "Live Conversations" card linking to
+                                  the existing AdminConversationsPage
+                                  (deliberately NOT rebuilt as a new page)
+  components/analytics/AnalyticsTabs.tsx - added "Communication" as a 7th
+                                  tab
+  pages/AdminAnalyticsMainPage.tsx - added a "Hot Listings" card grid
+                                  section (24h window, fixed independent
+                                  of the page's own period selector)
+  pages/AdminAnalyticsSellersPage.tsx - added a "Seller Response
+                                  Analytics" table below the existing
+                                  medal rankings
+  pages/AdminConversationsPage.tsx - added a 30s auto-refresh (paused
+                                  while a conversation detail modal is
+                                  open, so it doesn't yank the table out
+                                  from under an admin mid-read) and a
+                                  ?filter=<key> URL param read on mount
+                                  (matches the existing FILTERS keys:
+                                  all/unread/active/closed/flagged/
+                                  suspended/today/week/month) so other
+                                  pages can deep-link into a specific
+                                  filter
+
+Explicitly not built (out of agreed scope):
+  - Revenue/GMV dashboard section — needs Order/Payment plumbing into
+    analytics.py that doesn't exist today.
+  - WebSocket/SSE push layer for true real-time updates — the whole
+    suite remains poll-based (30-60s); this is a separate infra project.
+  - A new standalone "Conversation Monitor" page — AdminConversationsPage
+    already is one; extended in place instead of duplicated.
+  - New "Products"/"Categories" top-level nav tabs — folded into the
+    Overview page (Hot Listings) and the existing Category Performance
+    section instead, keeping AnalyticsTabs at 7 items instead of 9+.
+  - Search Intelligence changes — already fully covered by the existing
+    Top Searches / No-Result Searches panels plus the tracking fix in
+    section 8.
+
+
+================================================================
+12. POST-PHASE-2 FIXES (2026-08-24)
+================================================================
+
+1. Response-time window-scoping bug (self-review catch, before any user
+   report)
+   get_communication_overview and get_seller_response_analytics
+   (backend/app/api/api_v1/endpoints/analytics.py) were pulling in
+   MarketplaceConversation rows filtered by created_at >= cutoff_date
+   (conversation STARTED in the window) instead of last_message_at >=
+   cutoff_date (conversation ACTIVE in the window) — inconsistent with
+   how active_conversations/unanswered_conversations are already scoped,
+   and would silently exclude older-but-still-active threads from the
+   response-time and per-seller stats. Both changed to filter on
+   last_message_at.
+
+2. Grey empty space below short pages
+   Every analytics page's content wrapper had `min-h-screen` dropped when
+   it was wrapped in DashboardLayout earlier (to avoid double-viewport-
+   height nesting), but that left a mismatched-grey gap below any page
+   shorter than the viewport — DashboardLayout's own root background
+   (#F3F4F8) showing through below the page's own bg-slate-50 wrapper,
+   which ends exactly at the content height. Fixed by restoring
+   min-h-screen on the outer wrapper `<div>` in all 7 analytics pages
+   (AdminAnalyticsMainPage/Users/Sellers/Devices/Geographic/Alerts/
+   CommunicationPage.tsx). Confirmed via screenshot the empty-state
+   panels themselves (e.g. "Tracking Funnel Initialized", "No listing
+   activity in the last 24 hours yet") are correct, expected behavior for
+   an environment with no real traffic yet — not a bug.
+
+3. Category Performance showing raw numbers instead of names
+   GET /analytics/admin/category-analytics only ever returned
+   category_id, never a name — the Overview page's Category Performance
+   table rendered "#3", "#7", etc. with no way to know what category that
+   was. Fixed by outer-joining Listing.category_id against Category in
+   the same query (backend/app/models/listing.py has both models) and
+   returning category_name (falling back to "Category #{id}" only if the
+   category itself was deleted). Frontend (AdminAnalyticsMainPage.tsx)
+   updated to render category_name; table header changed from
+   "Category ID" to "Category". Every other panel in the suite already
+   showed names/titles as the primary label (Hot Listings, Seller
+   Rankings, Seller Response Analytics, Top Searches, Top Users,
+   Devices, Geographic) — this was the only remaining digits-only
+   display.
+
+
+================================================================
+13. DEPLOYMENT ARTIFACT
+================================================================
+
+shops-app/suqafuran_frontend_cpanel_2026-08-24.zip (65MB) — a fresh
+`npx vite build` output zipped as dist/ at the archive root, matching the
+structure of the pre-existing shops-app/suqafuran_frontend_cpanel.zip
+(a manual cPanel deploy artifact from 2026-08-20). Includes every change
+from this session: Phase 2 (Communication/Hot Listings/Seller Response/
+funnel), the grey-space fix, and the category-name fix. The original zip
+was left untouched rather than overwritten — replacing/deleting it is
+pending the user's decision.

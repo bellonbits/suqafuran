@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { Users, TrendingUp, Calendar, RefreshCw, Store, CheckCircle } from 'lucide-react';
 import { analyticsService } from '@/services/analytics';
+import { DashboardLayout } from '@/components/DashboardLayout';
+import { ADMIN_NAV_ITEMS } from '@/admin-dashboard/navigation';
+import { AnalyticsTabs } from '@/components/analytics/AnalyticsTabs';
 
 interface UserStats {
   new_users: number;
@@ -42,9 +45,16 @@ export default function UserAnalytics() {
     fetchAnalytics();
   }, [days]);
 
+  const navItems = ADMIN_NAV_ITEMS.map(item => ({
+    ...item,
+    icon: <item.icon className="w-5 h-5" />
+  }));
+
   return (
+    <DashboardLayout title="Realtime Analytics" navItems={navItems} userRole="admin">
+    <AnalyticsTabs />
     <div className="min-h-screen bg-slate-50 dark:bg-neutral-900/40 dark:bg-black">
-      <div className="sticky top-0 z-40 bg-white dark:bg-neutral-950 border-b border-slate-200 dark:border-neutral-800 dark:border-neutral-800">
+      <div className="sticky top-0 z-30 bg-white dark:bg-neutral-950 border-b border-slate-200 dark:border-neutral-800 dark:border-neutral-800">
         <div className="px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Users className="w-6 h-6 text-green-600" />
@@ -144,5 +154,6 @@ export default function UserAnalytics() {
         )}
       </div>
     </div>
+    </DashboardLayout>
   );
 }

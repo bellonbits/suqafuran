@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Trophy, TrendingUp, Calendar, RefreshCw, MessageSquare, Eye } from 'lucide-react';
+import { Trophy, TrendingUp, Calendar, RefreshCw, MessageSquare, Eye, Clock } from 'lucide-react';
 import { analyticsService } from '@/services/analytics';
+import { DashboardLayout } from '@/components/DashboardLayout';
+import { ADMIN_NAV_ITEMS } from '@/admin-dashboard/navigation';
+import { AnalyticsTabs } from '@/components/analytics/AnalyticsTabs';
 
 interface SellerRanking {
   rank: number;
@@ -11,8 +14,25 @@ interface SellerRanking {
   value: number;
 }
 
+interface SellerResponseStat {
+  seller_id: number;
+  seller_name: string;
+  chats: number;
+  response_rate: number;
+  avg_response_seconds: number;
+  unanswered: number;
+}
+
+function formatDuration(seconds: number): string {
+  if (!seconds) return '—';
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
+  return `${(seconds / 3600).toFixed(1)}h`;
+}
+
 export default function SellerRankings() {
   const [rankings, setRankings] = useState<SellerRanking[]>([]);
+  const [responseStats, setResponseStats] = useState<SellerResponseStat[]>([]);
   const [days, setDays] = useState(30);
   const [metric, setMetric] = useState<"views" | "chats" | "conversions">("views");
   const [loading, setLoading] = useState(false);
@@ -21,8 +41,12 @@ export default function SellerRankings() {
   const fetchRankings = async () => {
     setLoading(true);
     try {
-      const res = await analyticsService.getSellerRankings(days, metric);
-      setRankings(res.data?.rankings || []);
+      const [rankingsRes, responseRes] = await Promise.all([
+        analyticsService.getSellerRankings(days, metric),
+        analyticsService.getSellerResponseAnalytics(days, 20),
+      ]);
+      setRankings(rankingsRes.data?.rankings || []);
+      setResponseStats(responseRes.data?.sellers || []);
       setLastRefresh(new Date());
     } catch (error) {
       console.error('Failed to fetch seller rankings:', error);
@@ -51,9 +75,16 @@ export default function SellerRankings() {
     return `#${rank}`;
   };
 
+  const navItems = ADMIN_NAV_ITEMS.map(item => ({
+    ...item,
+    icon: <item.icon className="w-5 h-5" />
+  }));
+
   return (
+    <DashboardLayout title="Realtime Analytics" navItems={navItems} userRole="admin">
+    <AnalyticsTabs />
     <div className="min-h-screen bg-slate-50 dark:bg-neutral-900/40 dark:bg-black">
-      <div className="sticky top-0 z-40 bg-white dark:bg-neutral-950 border-b border-slate-200 dark:border-neutral-800 dark:border-neutral-800">
+      <div className="sticky top-0 z-30 bg-white dark:bg-neutral-950 border-b border-slate-200 dark:border-neutral-800 dark:border-neutral-800">
         <div className="px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Trophy className="w-6 h-6 text-amber-500" />
@@ -154,7 +185,63 @@ export default function SellerRankings() {
             ))}
           </div>
         )}
+
+        {/* Seller Response Analytics */}
+        <div className="bg-white dark:bg-neutral-950 rounded-lg border border-slate-200 dark:border-neutral-800 overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-200 dark:border-neutral-800 flex items-center gap-2">
+            <Clock className="w-5 h-5 text-blue-600" />
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Seller Response Analytics</h2>
+            <span className="text-xs text-slate-500 dark:text-neutral-400 ml-auto font-medium">Ranked by response rate</span>
+          </div>
+          {responseStats.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-slate-50 dark:bg-neutral-900">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200">Seller</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200">Chats</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200">Response Rate</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200">Avg Response</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200">Unanswered</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-neutral-800">
+                  {responseStats.map((seller) => (
+                    <tr key={seller.seller_id} className="hover:bg-slate-50 dark:hover:bg-neutral-900">
+                      <td className="px-6 py-3 text-sm font-semibold text-slate-900 dark:text-white">
+                        {seller.seller_name}
+                        <div className="text-xs text-slate-400 dark:text-neutral-400 font-normal">#{seller.seller_id}</div>
+                      </td>
+                      <td className="px-6 py-3 text-sm text-slate-900 dark:text-white">{seller.chats}</td>
+                      <td className="px-6 py-3 text-sm font-bold">
+                        <span className={
+                          seller.response_rate >= 80 ? 'text-green-600' :
+                          seller.response_rate >= 50 ? 'text-orange-600' : 'text-red-600'
+                        }>
+                          {seller.response_rate}%
+                        </span>
+                      </td>
+                      <td className="px-6 py-3 text-sm text-slate-900 dark:text-white">{formatDuration(seller.avg_response_seconds)}</td>
+                      <td className="px-6 py-3 text-sm">
+                        {seller.unanswered > 0 ? (
+                          <span className="font-bold text-red-600">{seller.unanswered}</span>
+                        ) : (
+                          <span className="text-slate-400 dark:text-neutral-400">0</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="p-6 text-center text-xs text-slate-500 dark:text-neutral-400">
+              No seller-buyer conversations recorded for this timeframe yet.
+            </div>
+          )}
+        </div>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

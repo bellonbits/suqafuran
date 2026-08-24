@@ -67,6 +67,7 @@ const AdminAnalyticsUsersPage = lazy(() => import('./pages/AdminAnalyticsUsersPa
 const AdminAnalyticsSellersPage = lazy(() => import('./pages/AdminAnalyticsSellersPage'))
 const AdminAnalyticsDevicesPage = lazy(() => import('./pages/AdminAnalyticsDevicesPage'))
 const AdminAnalyticsGeographicPage = lazy(() => import('./pages/AdminAnalyticsGeographicPage'))
+const AdminAnalyticsCommunicationPage = lazy(() => import('./pages/AdminAnalyticsCommunicationPage'))
 const AdminAnalyticsAlertsPage = lazy(() => import('./pages/AdminAnalyticsAlertsPage'))
 const AdminBulkProductsPage = lazy(() => import('./pages/AdminBulkProductsPage'))
 const AdminHomepageBannersPage = lazy(() => import('./pages/AdminHomepageBannersPage'))
@@ -262,6 +263,7 @@ export default function App() {
       <Route element={<AdminAnalyticsDevicesPage />} path="/admin-dashboard/analytics/devices" />
       <Route element={<AdminAnalyticsGeographicPage />} path="/admin-dashboard/analytics/geographic" />
       <Route element={<AdminAnalyticsAlertsPage />} path="/admin-dashboard/analytics/alerts" />
+      <Route element={<AdminAnalyticsCommunicationPage />} path="/admin-dashboard/analytics/communication" />
 
       {/* Admin Dashboard Features */}
       <Route element={<ProtectedRoute requiredRole="admin"><AdminHomepageBannersPage /></ProtectedRoute>} path="/admin-dashboard/marketing/banners" />

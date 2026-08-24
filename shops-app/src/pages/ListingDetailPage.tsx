@@ -11,6 +11,8 @@ import {
 import api, { optimizeCloudinaryUrl } from '@/services/api';
 import { listingsService, makeShopSlug } from '@/services/listings';
 import { feedbackService, averageRating } from '@/services/feedback';
+import { analyticsService } from '@/services/analytics';
+import { useTrackItemView } from '@/hooks/useViewTracking';
 import { useFavoritesStore } from '@/store/useFavorites';
 import { useAuthStore } from '@/store/useAuth';
 import { useAuthModal } from '@/store/useAuthModal';
@@ -98,6 +100,8 @@ export default function ProductDetailPage() {
     const addCartItem = useCart((s) => s.addItem);
     const field = useLocalizedField();
 
+    useTrackItemView(listing?.id || 0);
+
     useEffect(() => {
         setLoadError(false);
         setFeedback([]);
@@ -179,6 +183,14 @@ export default function ProductDetailPage() {
         if (!isAuthenticated) {
             openAuthModal('signin');
             return;
+        }
+        if (!isFavorite) {
+            analyticsService.trackClick({
+                event_type: 'favorite',
+                listing_id: listing.id,
+                shop_id: listing.owner_id,
+                device_type: analyticsService.getDeviceType(),
+            }).catch(() => {});
         }
         toggleFavorite(listing.id);
     };
@@ -492,6 +504,12 @@ export default function ProductDetailPage() {
                         )}
                         <Link
                             href={`/messages?userId=${listing.owner_id}&productId=${listing.id}`}
+                            onClick={() => analyticsService.trackClick({
+                                event_type: 'chat',
+                                listing_id: listing.id,
+                                shop_id: listing.owner_id,
+                                device_type: analyticsService.getDeviceType(),
+                            }).catch(() => {})}
                             className="flex items-center justify-center gap-2 w-full rounded-full bg-gray-900 dark:bg-neutral-900 text-white font-bold py-2.5 text-sm hover:bg-gray-800 dark:hover:bg-neutral-800 transition-colors"
                         >
                             <MessageSquare className="h-4 w-4" />
@@ -601,6 +619,12 @@ export default function ProductDetailPage() {
                                 {listing.owner.phone && (
                                     <a
                                         href={`tel:${listing.owner.phone}`}
+                                        onClick={() => analyticsService.trackClick({
+                                            event_type: 'call',
+                                            listing_id: listing.id,
+                                            shop_id: listing.owner_id,
+                                            device_type: analyticsService.getDeviceType(),
+                                        }).catch(() => {})}
                                         className="flex items-center gap-1.5 bg-gray-100 dark:bg-neutral-900 hover:bg-gray-200 dark:hover:bg-neutral-800 border border-gray-200 dark:border-neutral-800 rounded-full px-4 py-2 text-xs font-bold text-gray-700 dark:text-neutral-200 transition-all"
                                     >
                                         <Phone className="h-3.5 w-3.5" /> Call

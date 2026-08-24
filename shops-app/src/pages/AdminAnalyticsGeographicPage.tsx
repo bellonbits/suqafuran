@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, TrendingUp, Calendar, RefreshCw, Users, Globe } from 'lucide-react';
 import { analyticsService } from '@/services/analytics';
+import { DashboardLayout } from '@/components/DashboardLayout';
+import { ADMIN_NAV_ITEMS } from '@/admin-dashboard/navigation';
+import { AnalyticsTabs } from '@/components/analytics/AnalyticsTabs';
 
 interface CityData {
   city: string;
@@ -31,7 +34,7 @@ export default function GeographicAnalytics() {
   useEffect(() => {
     // Load Google Maps script
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`;
     script.async = true;
     script.defer = true;
     script.onload = () => setMapLoaded(true);
@@ -135,9 +138,16 @@ export default function GeographicAnalytics() {
     }
   }, [days, mapLoaded]);
 
+  const navItems = ADMIN_NAV_ITEMS.map(item => ({
+    ...item,
+    icon: <item.icon className="w-5 h-5" />
+  }));
+
   return (
+    <DashboardLayout title="Realtime Analytics" navItems={navItems} userRole="admin">
+    <AnalyticsTabs />
     <div className="min-h-screen bg-slate-50 dark:bg-neutral-900/40 dark:bg-black">
-      <div className="sticky top-0 z-40 bg-white dark:bg-neutral-950 border-b border-slate-200 dark:border-neutral-800 dark:border-neutral-800">
+      <div className="sticky top-0 z-30 bg-white dark:bg-neutral-950 border-b border-slate-200 dark:border-neutral-800 dark:border-neutral-800">
         <div className="px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Globe className="w-6 h-6 text-blue-600" />
@@ -235,5 +245,6 @@ export default function GeographicAnalytics() {
         )}
       </div>
     </div>
+    </DashboardLayout>
   );
 }
