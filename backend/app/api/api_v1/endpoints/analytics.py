@@ -655,16 +655,23 @@ def get_conversion_funnel(
         ).where(MarketplaceConversation.created_at >= cutoff_date)
     ).all()
 
-    order_rows = db.exec(
-        select(
-            Order.customer_id,
-            Order.seller_id,
-            OrderItem.product_id,
-            Order.created_at,
-        )
-        .join(OrderItem, OrderItem.order_id == Order.id)
-        .where(Order.created_at >= cutoff_date)
-    ).all()
+    try:
+        order_rows = db.exec(
+            select(
+                Order.customer_id,
+                Order.seller_id,
+                OrderItem.product_id,
+                Order.created_at,
+            )
+            .join(OrderItem, OrderItem.order_id == Order.id)
+            .where(Order.created_at >= cutoff_date)
+        ).all()
+    except Exception:
+        # Order/OrderItem tables may not be provisioned in every environment
+        # (e.g. a pending migration) -- degrade gracefully instead of 500ing
+        # the whole funnel over an optional, best-effort stage.
+        db.rollback()
+        order_rows = []
 
     conv_earliest: dict = {}
     for buyer_id, seller_id, listing_id, created_at in conv_rows:
@@ -1272,16 +1279,20 @@ def get_communication_overview(
     avg_first_response_seconds = round(sum(first_response_deltas) / len(first_response_deltas)) if first_response_deltas else 0
 
     # Conversation -> order conversion (best-effort match, no FK exists).
-    order_rows = db.exec(
-        select(
-            Order.customer_id,
-            Order.seller_id,
-            OrderItem.product_id,
-            Order.created_at,
-        )
-        .join(OrderItem, OrderItem.order_id == Order.id)
-        .where(Order.created_at >= cutoff_date)
-    ).all()
+    try:
+        order_rows = db.exec(
+            select(
+                Order.customer_id,
+                Order.seller_id,
+                OrderItem.product_id,
+                Order.created_at,
+            )
+            .join(OrderItem, OrderItem.order_id == Order.id)
+            .where(Order.created_at >= cutoff_date)
+        ).all()
+    except Exception:
+        db.rollback()
+        order_rows = []
 
     order_times_by_triplet: dict = {}
     for customer_id, seller_id, product_id, order_created_at in order_rows:
