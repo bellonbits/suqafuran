@@ -22,6 +22,7 @@ export interface ListingFormData {
   videos?: string[];
   attributes?: Record<string, any>;
   price: number;
+  compare_at_price?: number;
   negotiable: boolean;
   price_type: 'fixed' | 'negotiable' | 'contact';
   tags?: string[];
@@ -344,6 +345,7 @@ export const ListingWizard: React.FC = () => {
     title: '',
     description: '',
     price: 0,
+    compare_at_price: undefined,
     condition: 'good',
     negotiable: false,
     category_id: 0,
@@ -541,6 +543,7 @@ export const ListingWizard: React.FC = () => {
         title_en: formData.title,
         description_en: formData.description,
         price: formData.price,
+        compare_at_price: formData.compare_at_price && formData.compare_at_price > formData.price ? formData.compare_at_price : null,
         condition: formData.condition,
         category_id: formData.category_id,
         subcategory_id: formData.subcategory_id,
@@ -824,6 +827,26 @@ export const ListingWizard: React.FC = () => {
                     <option value="contact">Contact Seller</option>
                   </select>
                 </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                  Original Price (optional)
+                </label>
+                <input
+                  type="number"
+                  value={formData.compare_at_price || ''}
+                  onChange={(e) => updateFormData({ compare_at_price: e.target.value ? parseFloat(e.target.value) : undefined })}
+                  placeholder="e.g. 7000 -- shows as a discount if higher than your price"
+                  step="1"
+                  min="0"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                />
+                {typeof formData.compare_at_price === 'number' && formData.compare_at_price > 0 && formData.compare_at_price <= formData.price && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                    This should be higher than your price to show as a discount -- it won't be shown otherwise.
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">

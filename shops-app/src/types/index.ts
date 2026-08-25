@@ -30,6 +30,7 @@ export interface Listing {
     description_en: string;
     description_so?: string;
     price: number;
+    compare_at_price?: number | null;
     currency: string;
     location: string;
     condition: string;

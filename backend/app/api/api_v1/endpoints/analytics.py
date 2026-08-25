@@ -1484,3 +1484,83 @@ def get_hot_listings(
     results.sort(key=lambda r: r["score"], reverse=True)
 
     return {"period_days": days, "listings": results[:limit]}
+
+
+@router.get("/admin/sales-attribution")
+def get_sales_attribution(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    days: int = Query(30, ge=1, le=365),
+) -> Any:
+    """
+    Cross-channel sales attribution: which acquisition channel a buyer
+    signed up through (User.referral_code -> MarketingCode), joined
+    against their actual purchases (CheckoutReceipt). Buyers with no
+    referral_code are bucketed as "Organic / Direct".
+
+    This is a signup-channel attribution, not a per-purchase UTM/click
+    attribution -- there's no campaign tracking captured at checkout
+    time today, only at signup, so a repeat buyer's later purchases are
+    still attributed to whatever channel first brought them to the
+    platform.
+    """
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    from app.models.checkout_receipt import CheckoutReceipt
+    from app.models.marketing_code import MarketingCode
+
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+    receipts = db.exec(
+        select(CheckoutReceipt.buyer_id, CheckoutReceipt.total_amount)
+        .where(CheckoutReceipt.created_at >= cutoff_date)
+    ).all()
+
+    if not receipts:
+        return {"period_days": days, "channels": [], "total_orders": 0, "total_revenue": 0}
+
+    buyer_ids = list({r[0] for r in receipts})
+    buyer_codes = dict(
+        db.exec(
+            select(User.id, User.referral_code).where(User.id.in_(buyer_ids))
+        ).all()
+    )
+
+    codes_used = {code for code in buyer_codes.values() if code}
+    code_labels: dict = {}
+    if codes_used:
+        marketing_codes = db.exec(
+            select(MarketingCode.code, MarketingCode.description).where(MarketingCode.code.in_(codes_used))
+        ).all()
+        code_labels = {code: (description or code) for code, description in marketing_codes}
+
+    channel_stats: dict = {}
+    for buyer_id, total_amount in receipts:
+        code = buyer_codes.get(buyer_id)
+        channel = code_labels.get(code, code) if code else "Organic / Direct"
+        s = channel_stats.setdefault(channel, {"orders": 0, "revenue": 0.0})
+        s["orders"] += 1
+        s["revenue"] += total_amount or 0
+
+    total_orders = len(receipts)
+    total_revenue = sum(total_amount or 0 for _, total_amount in receipts)
+
+    channels = [
+        {
+            "channel": channel,
+            "orders": s["orders"],
+            "revenue": round(s["revenue"], 2),
+            "revenue_share": round((s["revenue"] / total_revenue * 100), 2) if total_revenue > 0 else 0,
+        }
+        for channel, s in channel_stats.items()
+    ]
+    channels.sort(key=lambda c: c["revenue"], reverse=True)
+
+    return {
+        "period_days": days,
+        "total_orders": total_orders,
+        "total_revenue": round(total_revenue, 2),
+        "channels": channels,
+    }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Eye, Store, TrendingUp, RefreshCw, Calendar, MessageSquare, Heart, Phone, Search, AlertCircle, Flame } from 'lucide-react';
+import { BarChart3, Eye, Store, TrendingUp, RefreshCw, Calendar, MessageSquare, Heart, Phone, Search, AlertCircle, Flame, DollarSign } from 'lucide-react';
 import { analyticsService } from '@/services/analytics';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ADMIN_NAV_ITEMS } from '@/admin-dashboard/navigation';
@@ -48,6 +48,13 @@ interface HotListing {
   pct_change: number;
 }
 
+interface SalesChannel {
+  channel: string;
+  orders: number;
+  revenue: number;
+  revenue_share: number;
+}
+
 export default function AnalyticsDashboard() {
   const [overview, setOverview] = useState<OverviewStats | null>(null);
   const [topSearches, setTopSearches] = useState<SearchQuery[]>([]);
@@ -55,6 +62,7 @@ export default function AnalyticsDashboard() {
   const [categoryPerf, setCategoryPerf] = useState<CategoryPerf[]>([]);
   const [funnelData, setFunnelData] = useState<FunnelStage[]>([]);
   const [hotListings, setHotListings] = useState<HotListing[]>([]);
+  const [salesChannels, setSalesChannels] = useState<SalesChannel[]>([]);
   const [days, setDays] = useState(7);
   const [loading, setLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
@@ -62,12 +70,13 @@ export default function AnalyticsDashboard() {
   const fetchAnalytics = async () => {
     setLoading(true);
     try {
-      const [overviewRes, searchRes, catRes, funnelRes, hotRes] = await Promise.all([
+      const [overviewRes, searchRes, catRes, funnelRes, hotRes, attributionRes] = await Promise.all([
         analyticsService.getOverview(days),
         analyticsService.getSearchAnalytics(days),
         analyticsService.getCategoryAnalytics(days),
         analyticsService.getConversionFunnel(days),
         analyticsService.getHotListings(1, 6),
+        analyticsService.getSalesAttribution(days),
       ]);
 
       setOverview(overviewRes.data || {});
@@ -76,6 +85,7 @@ export default function AnalyticsDashboard() {
       setCategoryPerf(catRes.data?.categories || []);
       setFunnelData(funnelRes.data?.funnel || []);
       setHotListings(hotRes.data?.listings || []);
+      setSalesChannels(attributionRes.data?.channels || []);
       setLastRefresh(new Date());
     } catch (error) {
       console.error('Failed to fetch analytics:', error);
@@ -358,6 +368,43 @@ export default function AnalyticsDashboard() {
           ) : (
             <div className="p-6 text-center text-xs text-slate-500 dark:text-neutral-400">
               No listing activity in the last 24 hours yet.
+            </div>
+          )}
+        </div>
+
+        {/* Sales Attribution */}
+        <div className="bg-white dark:bg-neutral-950 rounded-lg border border-slate-200 dark:border-neutral-800 overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-200 dark:border-neutral-800 flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-green-600" />
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Sales Attribution</h2>
+            <span className="text-xs text-slate-500 dark:text-neutral-400 ml-auto font-medium">By signup channel</span>
+          </div>
+          {salesChannels.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-slate-50 dark:bg-neutral-900">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200">Channel</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200">Orders</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200">Revenue</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200">Share</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-neutral-800">
+                  {salesChannels.map((c, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-neutral-900">
+                      <td className="px-6 py-3 text-sm font-semibold text-slate-900 dark:text-white">{c.channel}</td>
+                      <td className="px-6 py-3 text-sm text-slate-900 dark:text-white">{c.orders}</td>
+                      <td className="px-6 py-3 text-sm font-bold text-green-600">{c.revenue.toLocaleString()}</td>
+                      <td className="px-6 py-3 text-sm text-slate-900 dark:text-white">{c.revenue_share}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="p-6 text-center text-xs text-slate-500 dark:text-neutral-400">
+              No completed orders recorded for this timeframe yet.
             </div>
           )}
         </div>

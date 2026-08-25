@@ -16,6 +16,10 @@ class ListingBase(SQLModel):
     description_en: str
     description_so: Optional[str] = Field(default=None)
     price: float
+    # Original/"was" price for showing a discount ("Was X | Y% off"). Only
+    # meaningful when it's actually higher than `price` -- callers should
+    # treat compare_at_price <= price as "no discount to show", not an error.
+    compare_at_price: Optional[float] = Field(default=None)
     location: str = Field(index=True)
     condition: str  # New, Used, Refurbished
     category_id: int = Field(foreign_key="category.id", index=True)

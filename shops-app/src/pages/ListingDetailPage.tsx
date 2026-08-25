@@ -180,6 +180,45 @@ export default function ProductDetailPage() {
         };
     }, [id]);
 
+    // Product structured data (schema.org) for search-engine rich results --
+    // kept as a separate effect, keyed on `listing`, so it updates whether
+    // the page rendered from preload or from the real fetch.
+    useEffect(() => {
+        if (!listing || typeof document === 'undefined') return;
+
+        const productName = field(listing.title_en, listing.title_so) || listing.title_en;
+        const schema: Record<string, any> = {
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: productName,
+            description: field(listing.description_en, listing.description_so) || listing.description_en,
+            image: listing.images && listing.images.length > 0 ? listing.images : undefined,
+            sku: String(listing.id),
+            offers: {
+                '@type': 'Offer',
+                price: listing.price,
+                priceCurrency: listing.currency || 'KES',
+                availability: listing.is_sold || listing.status !== 'active'
+                    ? 'https://schema.org/OutOfStock'
+                    : 'https://schema.org/InStock',
+                url: `https://suqafuran.com/listings/${listing.id}`,
+            },
+        };
+
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.id = 'listing-product-schema';
+        script.text = JSON.stringify(schema);
+
+        const existing = document.getElementById('listing-product-schema');
+        if (existing) existing.remove();
+        document.head.appendChild(script);
+
+        return () => {
+            document.getElementById('listing-product-schema')?.remove();
+        };
+    }, [listing]);
+
     const handleToggleFavorite = () => {
         if (!listing) return;
         if (!isAuthenticated) {
@@ -397,6 +436,8 @@ export default function ProductDetailPage() {
     const isSold = listing.is_sold || listing.status !== 'active';
     const sellerName = listing.owner?.business_name || listing.owner?.full_name || 'Shop';
     const sellerSlug = listing.owner ? makeShopSlug(sellerName, listing.owner_id) : '';
+    const hasDiscount = typeof listing.compare_at_price === 'number' && listing.compare_at_price > (listing.price ?? 0);
+    const discountPct = hasDiscount ? Math.round((1 - (listing.price ?? 0) / (listing.compare_at_price as number)) * 100) : 0;
 
     return (
         <div className="pb-28 md:pb-0 bg-gray-50 dark:bg-black min-h-screen">
@@ -498,10 +539,20 @@ export default function ProductDetailPage() {
                         </div>
 
                         {/* Price */}
-                        <div className="flex items-baseline gap-2">
+                        <div className="flex items-baseline gap-2 flex-wrap">
                             <span className="text-3xl font-black text-gray-900 dark:text-white">
                                 {formatConvertedPrice(listing?.price ?? 0, listing.currency || 'USD', displayCurrency)}
                             </span>
+                            {hasDiscount && (
+                                <>
+                                    <span className="text-sm text-gray-400 dark:text-neutral-400 line-through">
+                                        {formatConvertedPrice(listing.compare_at_price as number, listing.currency || 'USD', displayCurrency)}
+                                    </span>
+                                    <span className="text-xs font-bold text-white bg-red-500 px-2 py-1 rounded-full">
+                                        {discountPct}% OFF
+                                    </span>
+                                </>
+                            )}
                             {listing.is_negotiable && (
                                 <span className="text-xs font-bold text-gray-500 dark:text-neutral-300 bg-gray-100 dark:bg-neutral-900 px-2 py-1 rounded-full">Negotiable</span>
                             )}

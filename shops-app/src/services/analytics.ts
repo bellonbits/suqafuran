@@ -209,6 +209,15 @@ class AnalyticsService {
     }
   }
 
+  async getSalesAttribution(days = 30) {
+    try {
+      return await api.get(`/analytics/admin/sales-attribution?days=${days}`);
+    } catch (error) {
+      console.error('Failed to fetch sales attribution:', error);
+      throw error;
+    }
+  }
+
   async getHotListings(days = 1, limit = 6) {
     try {
       return await api.get(`/analytics/admin/hot-listings?days=${days}&limit=${limit}`);
