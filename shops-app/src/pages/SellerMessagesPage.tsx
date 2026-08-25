@@ -1,14 +1,32 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useEffect as useLayoutEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Send, Loader, Search, Clock } from 'lucide-react';
 import api from '@/services/api';
 
+interface Conversation {
+  other_user_id: number;
+  other_user_name?: string;
+  other_user_avatar?: string;
+  last_message?: string;
+  last_message_time?: string;
+  unread_count?: number;
+}
+
+interface Message {
+  id: number;
+  sender_id: number;
+  receiver_id?: number;
+  content: string;
+  created_at?: string;
+  timestamp?: string;
+}
+
 export default function MessagesPage() {
-  const [conversations, setConversations] = useState<any[]>([]);
-  const [filteredConversations, setFilteredConversations] = useState<any[]>([]);
-  const [selectedConversation, setSelectedConversation] = useState<any>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [messageInput, setMessageInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,7 +42,7 @@ export default function MessagesPage() {
 
   useEffect(() => {
     const filtered = conversations.filter((conv) => {
-      const name = (conv.customer_name || conv.other_user_name || 'Unknown').toLowerCase();
+      const name = (conv.other_user_name || 'Unknown').toLowerCase();
       const message = (conv.last_message || '').toLowerCase();
       const query = searchQuery.toLowerCase();
       return name.includes(query) || message.includes(query);
@@ -34,7 +52,11 @@ export default function MessagesPage() {
 
   const loadConversations = async () => {
     try {
-      const res = await api.get('/conversations?limit=50').catch((err) => {
+      // The real buyer-seller chat system -- this used to call the
+      // unrelated legacy /conversations endpoint (a different,
+      // system-to-user messaging feature with no listing_id concept),
+      // so sellers never actually saw real buyer messages here.
+      const res = await api.get('/messages/conversations').catch((err) => {
         console.error('Error loading conversations:', err);
         if (err.response?.status === 500) {
           setError('Messaging service is temporarily unavailable. Please try again later.');
@@ -43,13 +65,13 @@ export default function MessagesPage() {
       });
 
       if (res?.data) {
-        const convsList = Array.isArray(res.data) ? res.data : [];
+        const convsList: Conversation[] = Array.isArray(res.data) ? res.data : [];
         setConversations(convsList);
         setError(null);
 
         if (!selectedConversation && convsList.length > 0) {
           setSelectedConversation(convsList[0]);
-          loadMessages(convsList[0].id);
+          loadMessages(convsList[0].other_user_id);
         }
       }
     } catch (error) {
@@ -60,14 +82,19 @@ export default function MessagesPage() {
     }
   };
 
-  const loadMessages = async (conversationId: string) => {
+  const loadMessages = async (otherUserId: number) => {
     try {
-      const res = await api.get(`/conversations/${conversationId}/messages?limit=100`).catch(() => null);
+      const res = await api.get(`/messages/${otherUserId}`).catch(() => null);
 
       if (res?.data) {
         setMessages(Array.isArray(res.data) ? res.data : []);
         setTimeout(() => scrollToBottom(), 100);
       }
+
+      setConversations((prev) => prev.map((c) =>
+        c.other_user_id === otherUserId ? { ...c, unread_count: 0 } : c
+      ));
+      api.post(`/messages/${otherUserId}/read`).catch(() => {});
     } catch (error) {
       console.error('Error loading messages:', error);
     }
@@ -77,9 +104,9 @@ export default function MessagesPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSelectConversation = (conversation: any) => {
+  const handleSelectConversation = (conversation: Conversation) => {
     setSelectedConversation(conversation);
-    loadMessages(conversation.id);
+    loadMessages(conversation.other_user_id);
   };
 
   const handleSendMessage = async () => {
@@ -87,12 +114,13 @@ export default function MessagesPage() {
 
     setSending(true);
     try {
-      await api.post(`/conversations/${selectedConversation.id}/messages`, {
-        message: messageInput,
+      await api.post('/messages/', {
+        receiver_id: selectedConversation.other_user_id,
+        content: messageInput,
       });
 
       setMessageInput('');
-      loadMessages(selectedConversation.id);
+      loadMessages(selectedConversation.other_user_id);
     } catch (error) {
       console.error('Error sending message:', error);
     } finally {
@@ -152,23 +180,25 @@ export default function MessagesPage() {
             ) : (
               filteredConversations.map((conv) => (
                 <button
-                  key={conv.id}
+                  key={conv.other_user_id}
                   onClick={() => handleSelectConversation(conv)}
                   className={`w-full text-left p-4 hover:bg-gray-50 dark:hover:bg-neutral-900 transition-colors ${
-                    selectedConversation?.id === conv.id ? 'bg-orange-50 dark:bg-orange-900/20' : ''
+                    selectedConversation?.other_user_id === conv.other_user_id ? 'bg-orange-50 dark:bg-orange-900/20' : ''
                   }`}
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <p className="font-semibold text-gray-900 dark:text-white text-sm truncate flex-1">{conv.customer_name || conv.other_user_name || 'Unknown'}</p>
-                    {conv.unread_count > 0 && (
+                    <p className="font-semibold text-gray-900 dark:text-white text-sm truncate flex-1">{conv.other_user_name || `User ${conv.other_user_id}`}</p>
+                    {(conv.unread_count ?? 0) > 0 && (
                       <span className="bg-orange-600 text-white text-xs rounded-full px-2 py-0.5 ml-2 flex-shrink-0">{conv.unread_count}</span>
                     )}
                   </div>
                   <p className="text-xs text-gray-600 dark:text-neutral-300 truncate mb-1">{conv.last_message || 'No messages'}</p>
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <Clock className="w-3 h-3" />
-                    {new Date(conv.updated_at).toLocaleDateString()}
-                  </div>
+                  {conv.last_message_time && (
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <Clock className="w-3 h-3" />
+                      {new Date(conv.last_message_time).toLocaleDateString()}
+                    </div>
+                  )}
                 </button>
               ))
             )}
@@ -178,9 +208,8 @@ export default function MessagesPage() {
         <div className="lg:col-span-2 bg-white dark:bg-neutral-950 rounded-lg border border-gray-200 dark:border-neutral-800 overflow-hidden flex flex-col">
           <div className="border-b border-gray-200 dark:border-neutral-800 p-4">
             <h3 className="font-semibold text-gray-900 dark:text-white">
-              {selectedConversation?.customer_name || selectedConversation?.other_user_name || 'Select a conversation'}
+              {selectedConversation?.other_user_name || 'Select a conversation'}
             </h3>
-            <p className="text-xs text-gray-500 mt-1">{selectedConversation?.id}</p>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {!selectedConversation ? (
@@ -193,22 +222,28 @@ export default function MessagesPage() {
               </div>
             ) : (
               <>
-                {messages.map((msg, i) => (
-                  <div key={i} className={`flex ${msg.sender_type === 'seller' ? 'justify-end' : 'justify-start'}`}>
-                    <div
-                      className={`rounded-lg px-4 py-2 max-w-xs text-sm ${
-                        msg.sender_type === 'seller'
-                          ? 'bg-orange-600 text-white'
-                          : 'bg-gray-100 dark:bg-neutral-900 text-gray-900 dark:text-white'
-                      }`}
-                    >
-                      <p>{msg.message || msg.content}</p>
-                      <p className="text-xs opacity-70 mt-1">
-                        {new Date(msg.created_at || msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </p>
+                {messages.map((msg) => {
+                  // Mirrors MessagesPage.tsx's logic: if the sender is the
+                  // other person in this thread, align left; otherwise it's
+                  // this seller's own message, align right.
+                  const isFromOtherUser = msg.sender_id === selectedConversation.other_user_id;
+                  return (
+                    <div key={msg.id} className={`flex ${isFromOtherUser ? 'justify-start' : 'justify-end'}`}>
+                      <div
+                        className={`rounded-lg px-4 py-2 max-w-xs text-sm ${
+                          isFromOtherUser
+                            ? 'bg-gray-100 dark:bg-neutral-900 text-gray-900 dark:text-white'
+                            : 'bg-orange-600 text-white'
+                        }`}
+                      >
+                        <p>{msg.content}</p>
+                        <p className="text-xs opacity-70 mt-1">
+                          {new Date(msg.created_at || msg.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 <div ref={messagesEndRef} />
               </>
             )}
