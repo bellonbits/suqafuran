@@ -1,6 +1,6 @@
 SUQAFURAN — REALTIME ANALYTICS
 Full reference: what it is, how it works, and how buyer-seller interactions are tracked.
-Last updated: 2026-08-24 (Phase 2: Communication, Hot Listings, Seller Response, deeper funnel)
+Last updated: 2026-08-25 (anonymous-tracking fix, orderitem-table fallback, Buy Now checkout fix)
 
 
 ================================================================
@@ -534,14 +534,80 @@ Explicitly not built (out of agreed scope):
 
 
 ================================================================
-13. DEPLOYMENT ARTIFACT
+13. DEPLOYMENT (2026-08-24 to 2026-08-25) — WHAT ACTUALLY WENT LIVE, AND HOW
 ================================================================
 
-shops-app/suqafuran_frontend_cpanel_2026-08-24.zip (65MB) — a fresh
-`npx vite build` output zipped as dist/ at the archive root, matching the
-structure of the pre-existing shops-app/suqafuran_frontend_cpanel.zip
-(a manual cPanel deploy artifact from 2026-08-20). Includes every change
-from this session: Phase 2 (Communication/Hot Listings/Seller Response/
-funnel), the grey-space fix, and the category-name fix. The original zip
-was left untouched rather than overwritten — replacing/deleting it is
-pending the user's decision.
+Backend deploy mechanism (discovered mid-session, not App Platform/K8s
+despite backend/k8s/*.yaml existing in the repo — those manifests are
+unused): SSH into the droplet running docker-compose (root-level
+docker-compose.yml, service "backend", container "suqafuran-backend",
+volume-mounts ./backend:/app so `git pull` alone updates the code) ->
+`git pull origin main` -> `docker-compose restart backend` (no rebuild
+needed for a plain Python change, since the code directory is mounted,
+not baked into the image).
+
+Frontend deploy mechanism: cPanel, manual. Build locally (`npx vite
+build`), zip the `dist/` output, upload+extract via cPanel File Manager,
+then move the extracted dist/ contents up into the actual document root
+(the first upload attempt extracted into a *new* dist/ subfolder instead
+of overwriting the live files — confirmed via the live index.html's
+Last-Modified header staying stale until the files were manually moved
+up a level).
+
+Three bugs found via production logs after the first successful backend
+deploy, all fixed and pushed same day:
+
+1. Anonymous tracking was completely broken (pre-existing, not
+   introduced this session). track_item_view, track_shop_view,
+   track_search, track_click, track_conversion all depended on
+   deps.get_current_user, which throws 401 for any request with no login
+   token -- instead of deps.get_current_user_optional, the dependency
+   actually meant for guest-friendly endpoints. Every anonymous buyer's
+   views/searches/clicks had been silently failing to record since
+   before this session. This was the dominant reason the dashboard
+   looked empty even after real browsing. Fixed: swapped to
+   get_current_user_optional on all 5.
+
+2. get_conversion_funnel and get_communication_overview 500'd in
+   production: `relation "orderitem" does not exist`. The `order` table
+   exists live but its `orderitem` migration was apparently never run
+   there (migration file backend/alembic/versions/
+   phase2_order_cart_models.py does create table 'orderitem', matching
+   the ORM's default table name -- the model/migration are correct, the
+   production DB is just behind). Fixed defensively: wrapped both
+   Order/OrderItem queries in try/except with a session rollback,
+   degrading to 0/empty for that one optional stage instead of losing
+   the whole response. Still pending: actually running the migration in
+   production so the Orders funnel stage / chat->order rate have real
+   data instead of always reading 0.
+
+3. "Buy Now" on ListingDetailPage never actually placed an order. It
+   called businessService.recordOrder('generic-business-id', ...) -- a
+   literal hardcoded placeholder string against POST /businesses/
+   {uuid}/orders, an employee-only internal tool (RequireEmployee) for
+   manually logging in-person sales at a specific business, completely
+   unrelated to buyer-facing checkout. The call always failed (422 on
+   the invalid UUID alone), and the catch block silently swallowed the
+   error before unconditionally showing "Order request sent!" -- nothing
+   was ever persisted. Fixed: switched to
+   checkoutReceiptService.createReceipt(), the same real endpoint
+   (POST /checkout-receipts/ -> CheckoutReceipt table) that
+   CheckoutPage.tsx's cart checkout already correctly uses. Since
+   CheckoutReceipt has no location/notes fields (deliberately -- this
+   marketplace is chat-first per the classifieds architecture, not a
+   delivery/logistics system), the buyer's meetup location and notes are
+   now relayed to the seller as a real chat message via
+   messageService.sendMessage() instead of being silently discarded.
+   Success is only shown on an actual successful receipt creation now;
+   failures show a real error state in the modal.
+
+Deployment artifact: /Users/mac/suqafuran/suqafuran_frontend_cpanel_
+2026-08-25.zip (65MB, at the repo root, not inside shops-app/ -- moved
+there partway through the session) -- a fresh `npx vite build` output
+zipped as dist/ at the archive root, matching the structure of the
+pre-existing shops-app/suqafuran_frontend_cpanel.zip (the original
+manual cPanel deploy artifact from 2026-08-20, left untouched). This
+file gets rebuilt and re-zipped in place after every frontend change in
+this session, so it always reflects the current code as of whenever it
+was last touched -- check its mtime, or just ask to have it rebuilt
+again, rather than assuming it's current from an earlier mention.
