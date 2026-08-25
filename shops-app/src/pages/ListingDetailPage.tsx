@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useLocation } from 'react-router-dom';
 import { useRouter } from 'next/navigation';
@@ -21,7 +21,8 @@ import { useCart } from '@/store/useCart';
 import { formatConvertedPrice } from '@/lib/currency';
 import { useLocalizedField } from '@/lib/i18n';
 import { ProductCard } from '@/components/features/ProductCard';
-import { businessService } from '@/services/business';
+import { checkoutReceiptService } from '@/services/checkoutReceipt';
+import { messageService } from '@/services/messageService';
 import type { Listing, Feedback } from '@/types';
 
 
@@ -91,8 +92,9 @@ export default function ProductDetailPage() {
     const [orderNotes, setOrderNotes] = useState('');
     const [submittingOrder, setSubmittingOrder] = useState(false);
     const [orderPlaced, setOrderPlaced] = useState(false);
+    const [orderError, setOrderError] = useState('');
 
-    const { isAuthenticated, user } = useAuthStore();
+    const { isAuthenticated } = useAuthStore();
     const openAuthModal = useAuthModal((s) => s.open);
     const isFavorite = useFavoritesStore((s) => listing ? s.isFavorite(listing.id) : false);
     const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
@@ -262,6 +264,34 @@ export default function ProductDetailPage() {
         setAddedToCart(true);
     };
 
+    const galleryTouchStartX = useRef<number | null>(null);
+    const galleryTouchDeltaX = useRef(0);
+
+    const goToImage = (delta: number) => {
+        if (!listing?.images || listing.images.length <= 1) return;
+        const currentIndex = Math.max(0, listing.images.indexOf(activeImage));
+        const nextIndex = (currentIndex + delta + listing.images.length) % listing.images.length;
+        setActiveImage(listing.images[nextIndex]);
+    };
+
+    const handleGalleryTouchStart = (e: React.TouchEvent) => {
+        galleryTouchStartX.current = e.touches[0].clientX;
+        galleryTouchDeltaX.current = 0;
+    };
+
+    const handleGalleryTouchMove = (e: React.TouchEvent) => {
+        if (galleryTouchStartX.current === null) return;
+        galleryTouchDeltaX.current = e.touches[0].clientX - galleryTouchStartX.current;
+    };
+
+    const handleGalleryTouchEnd = () => {
+        const SWIPE_THRESHOLD = 50;
+        if (galleryTouchDeltaX.current > SWIPE_THRESHOLD) goToImage(-1);
+        else if (galleryTouchDeltaX.current < -SWIPE_THRESHOLD) goToImage(1);
+        galleryTouchStartX.current = null;
+        galleryTouchDeltaX.current = 0;
+    };
+
     const shareTitle = listing ? (field(listing.title_en, listing.title_so) || listing.title_en) : '';
     // Never use window.location.href/origin for share links -- inside the
     // native app the WebView's origin is capacitor://localhost (or
@@ -305,21 +335,35 @@ export default function ProductDetailPage() {
             return;
         }
         setSubmittingOrder(true);
+        setOrderError('');
         try {
-            await businessService.recordOrder('generic-business-id', {
-                customer_id: user?.id ?? 0,
-                items: [{ product_id: listing.id, quantity }],
-                total_amount: (listing?.price ?? 0) * quantity,
-                notes: `Location: ${orderLocation}. Notes: ${orderNotes}`,
-            });
+            const itemTitle = field(listing.title_en, listing.title_so) || listing.title_en;
+            await checkoutReceiptService.createReceipt(
+                listing.owner_id,
+                [{ listing_id: listing.id, title: itemTitle, price: listing.price ?? 0, quantity }],
+                (listing.price ?? 0) * quantity,
+            );
+
+            // Relay the meetup/delivery details to the seller via chat --
+            // the receipt itself has no location/notes fields (this
+            // marketplace is chat-first, not a delivery/logistics system).
+            const messageLines = [
+                `I'd like to buy: ${quantity} x ${itemTitle}.`,
+                orderLocation.trim() ? `Delivery/meetup location: ${orderLocation.trim()}` : null,
+                orderNotes.trim() ? `Notes: ${orderNotes.trim()}` : null,
+            ].filter(Boolean);
+            messageService.sendMessage({
+                receiver_id: listing.owner_id,
+                listing_id: listing.id,
+                content: messageLines.join('\n'),
+            }).catch((err) => console.error('Order placed, but failed to message seller', err));
+
+            setOrderPlaced(true);
         } catch (err) {
-            console.error('Order creation simulation fallback error', err);
-            // Even if the backend call fails (mock business id), still show
-            // success -- the seller is contacted through the listing/chat
-            // regardless, this just records interest.
+            console.error('Failed to place order', err);
+            setOrderError('Could not place your order right now. Please try again, or message the seller directly.');
         } finally {
             setSubmittingOrder(false);
-            setOrderPlaced(true);
         }
     };
 
@@ -369,7 +413,12 @@ export default function ProductDetailPage() {
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-8 bg-white dark:bg-neutral-950 rounded-2xl p-4 md:p-8">
                     {/* Left: Image gallery */}
                     <div className="md:col-span-2 space-y-3">
-                        <div className="aspect-square overflow-hidden rounded-xl border border-gray-200 dark:border-neutral-800 bg-gray-100 dark:bg-neutral-900 relative">
+                        <div
+                            className="aspect-square overflow-hidden rounded-xl border border-gray-200 dark:border-neutral-800 bg-gray-100 dark:bg-neutral-900 relative touch-pan-y"
+                            onTouchStart={handleGalleryTouchStart}
+                            onTouchMove={handleGalleryTouchMove}
+                            onTouchEnd={handleGalleryTouchEnd}
+                        >
                             <img
                                 src={optimizeCloudinaryUrl(activeImage, { width: 900 }) || activeImage}
                                 alt={field(listing.title_en, listing.title_so)}
@@ -385,17 +434,31 @@ export default function ProductDetailPage() {
                             )}
                         </div>
                         {listing.images && listing.images.length > 1 && (
-                            <div className="flex gap-2 overflow-x-auto pb-1">
-                                {listing.images.slice(0, 6).map((img, idx) => (
-                                    <button
-                                        key={idx}
-                                        onClick={() => setActiveImage(img)}
-                                        className={`h-16 w-16 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${activeImage === img ? 'border-orange-500' : 'border-gray-200 dark:border-neutral-800'}`}
-                                    >
-                                        <img src={optimizeCloudinaryUrl(img, { width: 100 }) || img} alt="" loading="lazy" className="h-full w-full object-cover" />
-                                    </button>
-                                ))}
-                            </div>
+                            <>
+                                {/* Mobile: swipe + small pagination dots instead of a thumbnail strip */}
+                                <div className="flex md:hidden justify-center gap-1.5">
+                                    {listing.images.slice(0, 8).map((img, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => setActiveImage(img)}
+                                            aria-label={`Go to image ${idx + 1}`}
+                                            className={`h-1.5 rounded-full transition-all ${activeImage === img ? 'w-4 bg-orange-500' : 'w-1.5 bg-gray-300 dark:bg-neutral-700'}`}
+                                        />
+                                    ))}
+                                </div>
+                                {/* Desktop: thumbnail strip */}
+                                <div className="hidden md:flex gap-2 overflow-x-auto pb-1">
+                                    {listing.images.slice(0, 6).map((img, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => setActiveImage(img)}
+                                            className={`h-16 w-16 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${activeImage === img ? 'border-orange-500' : 'border-gray-200 dark:border-neutral-800'}`}
+                                        >
+                                            <img src={optimizeCloudinaryUrl(img, { width: 100 }) || img} alt="" loading="lazy" className="h-full w-full object-cover" />
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
                         )}
                     </div>
 
@@ -495,13 +558,29 @@ export default function ProductDetailPage() {
                                     {addedToCart ? 'Added!' : 'Add to Cart'}
                                 </button>
                                 <button
-                                    onClick={() => { setOrderPlaced(false); setShowOrderModal(true); }}
+                                    onClick={() => { setOrderPlaced(false); setOrderError(''); setShowOrderModal(true); }}
                                     className="flex-1 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-black py-3 transition-colors"
                                 >
                                     Buy Now
                                 </button>
                             </div>
                         )}
+
+                        {/* Trust badges */}
+                        <div className="flex items-center gap-4 flex-wrap text-xs font-semibold text-gray-600 dark:text-neutral-300">
+                            <span className="flex items-center gap-1">
+                                <Check className="h-3.5 w-3.5 text-green-600" /> Secure purchase
+                            </span>
+                            {listing.owner?.is_verified && (
+                                <span className="flex items-center gap-1">
+                                    <ShieldCheck className="h-3.5 w-3.5 text-green-600" /> Seller verified
+                                </span>
+                            )}
+                            <span className="flex items-center gap-1">
+                                <Check className="h-3.5 w-3.5 text-green-600" /> Buyer protection
+                            </span>
+                        </div>
+
                         <Link
                             href={`/messages?userId=${listing.owner_id}&productId=${listing.id}`}
                             onClick={() => analyticsService.trackClick({
@@ -730,7 +809,12 @@ export default function ProductDetailPage() {
 
             {/* Sticky mobile action bar */}
             {!isSold && (
-                <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-neutral-950 border-t border-gray-200 dark:border-neutral-800 p-3 flex gap-2">
+                <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-neutral-950 border-t border-gray-200 dark:border-neutral-800 p-3 flex items-center gap-2">
+                    <div className="flex-shrink-0 pr-1">
+                        <div className="text-sm font-black text-gray-900 dark:text-white whitespace-nowrap">
+                            {formatConvertedPrice(listing?.price ?? 0, listing.currency || 'USD', displayCurrency)}
+                        </div>
+                    </div>
                     <button
                         onClick={handleAddToCart}
                         className="flex-1 flex items-center justify-center gap-2 rounded-full border-2 border-orange-500 text-orange-600 dark:text-orange-400 font-black py-2.5 text-sm"
@@ -739,7 +823,7 @@ export default function ProductDetailPage() {
                         {addedToCart ? 'Added!' : 'Add to Cart'}
                     </button>
                     <button
-                        onClick={() => { setOrderPlaced(false); setShowOrderModal(true); }}
+                        onClick={() => { setOrderPlaced(false); setOrderError(''); setShowOrderModal(true); }}
                         className="flex-1 rounded-full bg-orange-500 text-white font-black py-2.5 text-sm"
                     >
                         Buy Now
@@ -756,7 +840,7 @@ export default function ProductDetailPage() {
                                 <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
                                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">Order request sent!</h2>
                                 <p className="text-sm text-gray-500 dark:text-neutral-300">
-                                    The seller will reach out to confirm details. You can also message them directly from this listing.
+                                    We've recorded your order and sent the seller a message with your delivery details. They'll reach out to confirm.
                                 </p>
                                 <button
                                     onClick={() => setShowOrderModal(false)}
@@ -794,6 +878,9 @@ export default function ProductDetailPage() {
                                         className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:border-orange-500 resize-none"
                                     />
                                 </div>
+                                {orderError && (
+                                    <p className="text-sm text-red-600 dark:text-red-400 font-semibold">{orderError}</p>
+                                )}
                                 <div className="flex gap-3 pt-2">
                                     <button
                                         onClick={() => setShowOrderModal(false)}
