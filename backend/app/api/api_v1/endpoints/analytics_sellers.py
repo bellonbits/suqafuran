@@ -1,8 +1,9 @@
 """
 Analytics Endpoints for Sellers - Dashboard metrics and tracking.
 """
+from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlmodel import Session
+from sqlmodel import Session, select, func
 
 from app.db.session import get_db
 from app.services.analytics_service import analytics_service
@@ -127,4 +128,37 @@ async def get_product_metrics(
     return {
         "status": "success",
         "product_metrics": metrics,
+    }
+
+
+@router.get("/sellers/{seller_id}/deals-summary")
+async def get_deals_summary(
+    seller_id: int,
+    days: int = Query(30, ge=1, le=365),
+    current_user = Depends(get_current_user),
+    session: Session = Depends(get_db),
+):
+    """Purchase-confirmation counts (pending/confirmed/denied) for a seller's
+    own dashboard -- sourced directly from Deal, not the generic event pipeline."""
+    if current_user.id != seller_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    from app.models.meeting_deal import Deal
+
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+    outcomes = session.exec(
+        select(Deal.outcome, func.count(Deal.id))
+        .where(Deal.seller_id == seller_id, Deal.created_at >= cutoff_date)
+        .group_by(Deal.outcome)
+    ).all()
+    counts = {outcome: count for outcome, count in outcomes}
+
+    return {
+        "status": "success",
+        "deals_summary": {
+            "pending": counts.get("pending", 0),
+            "confirmed": counts.get("bought", 0),
+            "denied": counts.get("not_bought", 0),
+        },
     }

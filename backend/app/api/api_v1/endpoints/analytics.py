@@ -687,6 +687,14 @@ def get_conversion_funnel(
         if conv_time is not None and conv_time <= order_created_at:
             orders_from_chat += 1
 
+    from app.models.meeting_deal import Deal
+
+    buyer_confirmed_count = db.exec(
+        select(func.count(Deal.id)).where(
+            Deal.buyer_confirmed_at.isnot(None), Deal.buyer_confirmed_at >= cutoff_date
+        )
+    ).one() or 0
+
     return {
         "period_days": days,
         "funnel": [
@@ -704,6 +712,11 @@ def get_conversion_funnel(
                 "stage": "Chats Started",
                 "count": chats,
                 "percentage": round((chats / views * 100), 2),
+            },
+            {
+                "stage": "Buyer Confirmed",
+                "count": buyer_confirmed_count,
+                "percentage": round((buyer_confirmed_count / views * 100), 2),
             },
             {
                 "stage": "Orders",
@@ -1563,4 +1576,96 @@ def get_sales_attribution(
         "total_orders": total_orders,
         "total_revenue": round(total_revenue, 2),
         "channels": channels,
+    }
+
+
+@router.get("/admin/buyer-seller-activity")
+def get_buyer_seller_activity(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    buyer_id: int,
+    seller_id: int,
+    listing_id: int,
+) -> Any:
+    """
+    Merged, timestamp-sorted activity timeline for one (buyer, seller,
+    listing) triplet -- views, wishlist/chat/call/whatsapp clicks, chat
+    messages, and purchase-confirmation events. No dedicated storage:
+    this reads straight from ItemView/ClickEvent/Message/Deal.
+    """
+    if not (current_user.is_admin or current_user.id in (buyer_id, seller_id)):
+        raise HTTPException(status_code=403, detail="Not authorized to view this activity")
+
+    from app.models.analytics import ItemView, ClickEvent
+    from app.models.marketplace_conversation import MarketplaceConversation
+    from app.models.message import Message
+    from app.models.meeting_deal import Deal
+
+    events: list = []
+
+    views = db.exec(
+        select(ItemView.viewed_at).where(
+            ItemView.listing_id == listing_id, ItemView.user_id == buyer_id
+        )
+    ).all()
+    for viewed_at in views:
+        events.append({"timestamp": viewed_at, "event": "Viewed product", "actor": "buyer"})
+
+    clicks = db.exec(
+        select(ClickEvent.event_type, ClickEvent.clicked_at).where(
+            ClickEvent.listing_id == listing_id, ClickEvent.user_id == buyer_id
+        )
+    ).all()
+    click_labels = {
+        "favorite": "Added to wishlist",
+        "chat": "Started conversation",
+        "call": "Clicked call",
+        "whatsapp": "Clicked WhatsApp",
+    }
+    for event_type, clicked_at in clicks:
+        events.append({"timestamp": clicked_at, "event": click_labels.get(event_type, event_type), "actor": "buyer"})
+
+    conversation = db.exec(
+        select(MarketplaceConversation.id).where(
+            MarketplaceConversation.buyer_id == buyer_id,
+            MarketplaceConversation.seller_id == seller_id,
+            MarketplaceConversation.listing_id == listing_id,
+        )
+    ).first()
+    if conversation:
+        messages = db.exec(
+            select(Message.sender_id, Message.created_at).where(Message.conversation_id == conversation)
+        ).all()
+        for sender_id, created_at in messages:
+            actor = "buyer" if sender_id == buyer_id else "seller"
+            events.append({"timestamp": created_at, "event": "Sent message", "actor": actor})
+
+    deal = db.exec(
+        select(Deal).where(
+            Deal.listing_id == listing_id, Deal.buyer_id == buyer_id, Deal.seller_id == seller_id
+        )
+    ).first()
+    if deal:
+        if deal.buyer_confirmed_at:
+            events.append({"timestamp": deal.buyer_confirmed_at, "event": "Buyer marked as purchased", "actor": "buyer"})
+        if deal.seller_confirmed_at:
+            label = "Seller confirmed purchase" if deal.outcome == "bought" else "Seller responded"
+            events.append({"timestamp": deal.seller_confirmed_at, "event": label, "actor": "seller"})
+
+    events.sort(key=lambda e: e["timestamp"])
+
+    return {
+        "buyer_id": buyer_id,
+        "seller_id": seller_id,
+        "listing_id": listing_id,
+        "deal_status": deal.outcome if deal else None,
+        "events": [
+            {
+                "timestamp": e["timestamp"].isoformat(),
+                "event": e["event"],
+                "actor": e["actor"],
+            }
+            for e in events
+        ],
     }

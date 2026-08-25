@@ -140,6 +140,20 @@ class SellerAnalyticsService {
       throw error;
     }
   }
+
+  /**
+   * Get purchase-confirmation counts (pending/confirmed/denied) for this
+   * seller's own dashboard (requires authentication)
+   */
+  async getDealsSummary(sellerId: number, days: number = 30): Promise<{ pending: number; confirmed: number; denied: number }> {
+    try {
+      const response = await api.get(`/analytics/sellers/${sellerId}/deals-summary?days=${days}`);
+      return response.data?.deals_summary || { pending: 0, confirmed: 0, denied: 0 };
+    } catch (error) {
+      console.error('Failed to fetch deals summary:', error);
+      throw error;
+    }
+  }
 }
 
 export const sellerAnalyticsService = new SellerAnalyticsService();

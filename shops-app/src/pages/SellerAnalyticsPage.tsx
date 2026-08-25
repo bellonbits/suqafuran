@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Users, Eye, MessageSquare, Phone, MousePointerClick,
   TrendingUp, TrendingDown, Package, Search, Globe,
-  Loader, Calendar
+  Loader, Calendar, CheckCircle2, Clock, XCircle
 } from 'lucide-react';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -105,6 +105,7 @@ function AnalyticsDashboard() {
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
   const [trafficSources, setTrafficSources] = useState<TrafficSource[]>([]);
   const [keywords, setKeywords] = useState<SearchKeyword[]>([]);
+  const [dealsSummary, setDealsSummary] = useState({ pending: 0, confirmed: 0, denied: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -121,10 +122,12 @@ function AnalyticsDashboard() {
       const days = period === 'daily' ? 1 : period === 'weekly' ? 7 : 30;
 
       // Fetch real analytics data from backend
-      const [summaryRes, dailyRes] = await Promise.all([
+      const [summaryRes, dailyRes, dealsRes] = await Promise.all([
         sellerAnalyticsService.getAnalyticsSummary(user.id, days).catch(() => null),
         sellerAnalyticsService.getDailyMetrics(user.id, days).catch(() => null),
+        sellerAnalyticsService.getDealsSummary(user.id, days).catch(() => null),
       ]);
+      setDealsSummary(dealsRes || { pending: 0, confirmed: 0, denied: 0 });
 
       const summary = summaryRes || {};
       const dailyMetrics = Array.isArray(dailyRes) ? dailyRes : [];
@@ -360,6 +363,37 @@ function AnalyticsDashboard() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Purchase Confirmations -- Suqafuran doesn't process payment, so
+                this is buyer/seller-confirmed intent, not a payment record. */}
+            <div className="bg-white dark:bg-neutral-950 rounded-xl p-6 border border-gray-200 dark:border-neutral-800">
+              <h3 className="text-base font-black text-gray-900 dark:text-white mb-5">
+                <CheckCircle2 className="w-4 h-4 inline mr-2 text-gray-400" />
+                Purchase Confirmations
+              </h3>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <Clock className="w-4 h-4 text-amber-500 mx-auto mb-1" />
+                  <p className="text-lg font-black text-gray-900 dark:text-white">{dealsSummary.pending}</p>
+                  <p className="text-xs text-gray-400">Awaiting you</p>
+                </div>
+                <div>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 mx-auto mb-1" />
+                  <p className="text-lg font-black text-gray-900 dark:text-white">{dealsSummary.confirmed}</p>
+                  <p className="text-xs text-gray-400">Confirmed</p>
+                </div>
+                <div>
+                  <XCircle className="w-4 h-4 text-gray-400 mx-auto mb-1" />
+                  <p className="text-lg font-black text-gray-900 dark:text-white">{dealsSummary.denied}</p>
+                  <p className="text-xs text-gray-400">Denied</p>
+                </div>
+              </div>
+              {dealsSummary.pending > 0 && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 font-semibold mt-4 pt-4 border-t border-gray-100 dark:border-neutral-800">
+                  {dealsSummary.pending} buyer{dealsSummary.pending !== 1 ? 's' : ''} waiting on your confirmation -- respond from your Messages.
+                </p>
+              )}
             </div>
           </div>
         </>

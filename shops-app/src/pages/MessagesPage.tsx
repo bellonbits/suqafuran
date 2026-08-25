@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Send, Search, AlertCircle, ShoppingBag, ArrowLeft, MessageSquare, Loader } from 'lucide-react';
+import { Send, Search, AlertCircle, ShoppingBag, ArrowLeft, MessageSquare, Loader, CheckCircle2, HelpCircle } from 'lucide-react';
 import api, { optimizeCloudinaryUrl } from '@/services/api';
 import { listingsService } from '@/services/listings';
+import { dealsService, type Deal } from '@/services/deals';
 import { useChat } from '@/hooks/useChat';
 import { useAuthStore } from '@/store/useAuth';
 import { useCurrencyStore } from '@/store/useCurrency';
@@ -57,6 +58,9 @@ function MessagesPageContent() {
     // The real auth token -- this used to read localStorage.getItem('access_token'),
     // a key nothing in the app ever writes to, so the socket never connected.
     const token = useAuthStore((s) => s.token) || '';
+    const currentUser = useAuthStore((s) => s.user);
+    const [deal, setDeal] = useState<Deal | null>(null);
+    const [dealActionLoading, setDealActionLoading] = useState(false);
 
     // Initialize WebSocket connection
     const { isConnected, sendMessage: wssSendMessage, setTyping, onMessage, subscribeToUser, userStatus } = useChat(token);
@@ -113,6 +117,62 @@ function MessagesPageContent() {
             .then(setSharedProduct)
             .catch(err => console.error('Failed to load shared product details', err));
     }, [activeListingId]);
+
+    // Whichever side of this listing's conversation the viewer is on --
+    // this same page is used by both buyers (via "Contact Seller") and
+    // sellers (via "Open Full Messages" from their dashboard), so the
+    // purchase-confirmation controls below need to know which role to show.
+    const isViewerSeller = !!(currentUser && sharedProduct && currentUser.id === sharedProduct.owner_id);
+    const buyerIdForDeal = isViewerSeller ? selectedUserId : currentUser?.id;
+
+    useEffect(() => {
+        if (!activeListingId || !buyerIdForDeal) {
+            setDeal(null);
+            return;
+        }
+        dealsService.getDeal(Number(activeListingId), buyerIdForDeal)
+            .then(setDeal)
+            .catch(() => setDeal(null));
+    }, [activeListingId, buyerIdForDeal]);
+
+    const handleMarkPurchased = async () => {
+        if (!activeListingId) return;
+        setDealActionLoading(true);
+        try {
+            const updated = await dealsService.markPurchased(Number(activeListingId));
+            setDeal(updated);
+        } catch (err) {
+            console.error('Failed to mark as purchased', err);
+        } finally {
+            setDealActionLoading(false);
+        }
+    };
+
+    const handleSellerConfirm = async () => {
+        if (!deal) return;
+        setDealActionLoading(true);
+        try {
+            const updated = await dealsService.sellerConfirm(deal.id);
+            setDeal(updated);
+        } catch (err) {
+            console.error('Failed to confirm deal', err);
+        } finally {
+            setDealActionLoading(false);
+        }
+    };
+
+    const handleSellerDeny = async () => {
+        if (!deal) return;
+        setDealActionLoading(true);
+        try {
+            const updated = await dealsService.sellerDeny(deal.id);
+            setDeal(updated);
+        } catch (err) {
+            console.error('Failed to deny deal', err);
+        } finally {
+            setDealActionLoading(false);
+        }
+    };
 
     // Handle initial target user from query params. Deliberately depends
     // only on targetUserId, not on `conversations` -- the mark-as-read
@@ -477,6 +537,66 @@ function MessagesPageContent() {
                                         {formatConvertedPrice(sharedProduct.price, sharedProduct.currency, currency)}
                                     </p>
                                 </a>
+                            )}
+
+                            {/* Purchase confirmation -- Suqafuran doesn't process payment,
+                                so this is the only signal the platform has that a sale
+                                actually happened, distinct from just "expressed interest". */}
+                            {sharedProduct && !isViewerSeller && !deal && (
+                                <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-gray-100 dark:border-neutral-800 bg-slate-50 dark:bg-black/20">
+                                    <p className="text-xs font-semibold text-gray-600 dark:text-neutral-300 flex items-center gap-1.5">
+                                        <HelpCircle className="h-3.5 w-3.5" /> Did you purchase this?
+                                    </p>
+                                    <button
+                                        onClick={handleMarkPurchased}
+                                        disabled={dealActionLoading}
+                                        className="text-[11px] font-black text-white bg-[#00a082] hover:bg-[#008f73] disabled:opacity-50 rounded-full px-3 py-1.5 transition-colors"
+                                    >
+                                        Yes, I purchased it
+                                    </button>
+                                </div>
+                            )}
+
+                            {sharedProduct && !isViewerSeller && deal?.outcome === 'pending' && (
+                                <div className="px-4 py-2 border-b border-gray-100 dark:border-neutral-800 bg-amber-50/60 dark:bg-amber-500/5 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+                                    Waiting for the seller to confirm your purchase...
+                                </div>
+                            )}
+
+                            {sharedProduct && isViewerSeller && deal?.outcome === 'pending' && (
+                                <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-gray-100 dark:border-neutral-800 bg-slate-50 dark:bg-black/20">
+                                    <p className="text-xs font-semibold text-gray-600 dark:text-neutral-300">
+                                        Buyer indicated they purchased this. Confirm the sale?
+                                    </p>
+                                    <div className="flex gap-2 shrink-0">
+                                        <button
+                                            onClick={handleSellerDeny}
+                                            disabled={dealActionLoading}
+                                            className="text-[11px] font-bold text-gray-600 dark:text-neutral-300 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 hover:bg-gray-50 disabled:opacity-50 rounded-full px-3 py-1.5 transition-colors"
+                                        >
+                                            I didn't sell this
+                                        </button>
+                                        <button
+                                            onClick={handleSellerConfirm}
+                                            disabled={dealActionLoading}
+                                            className="text-[11px] font-black text-white bg-[#00a082] hover:bg-[#008f73] disabled:opacity-50 rounded-full px-3 py-1.5 transition-colors"
+                                        >
+                                            Confirm Purchase
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {sharedProduct && deal?.outcome === 'bought' && (
+                                <div className="px-4 py-2 border-b border-gray-100 dark:border-neutral-800 bg-emerald-50 dark:bg-emerald-500/10 text-[11px] font-black text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                                    <CheckCircle2 className="h-3.5 w-3.5" /> Purchase confirmed
+                                </div>
+                            )}
+
+                            {sharedProduct && deal?.outcome === 'not_bought' && (
+                                <div className="px-4 py-2 border-b border-gray-100 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900 text-[11px] font-semibold text-gray-500 dark:text-neutral-400">
+                                    Marked as not purchased
+                                </div>
                             )}
 
                             {/* Chat History View */}
