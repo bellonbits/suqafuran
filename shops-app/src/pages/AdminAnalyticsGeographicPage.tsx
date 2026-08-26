@@ -22,6 +22,24 @@ interface CountryData {
   unique_users: number;
 }
 
+// Shared intensity scale so the map markers, city table, and country cards
+// all read the same "how busy is this place" language at a glance.
+const INTENSITY_LEVELS = [
+  { label: 'Low', threshold: 0, color: '#10b981', bg: 'bg-emerald-50 dark:bg-emerald-500/10', text: 'text-emerald-700 dark:text-emerald-400', dot: 'bg-emerald-500' },
+  { label: 'Medium', threshold: 0.25, color: '#eab308', bg: 'bg-yellow-50 dark:bg-yellow-500/10', text: 'text-yellow-700 dark:text-yellow-400', dot: 'bg-yellow-500' },
+  { label: 'High', threshold: 0.5, color: '#f97316', bg: 'bg-orange-50 dark:bg-orange-500/10', text: 'text-orange-700 dark:text-orange-400', dot: 'bg-orange-500' },
+  { label: 'Very High', threshold: 0.75, color: '#ef4444', bg: 'bg-red-50 dark:bg-red-500/10', text: 'text-red-700 dark:text-red-400', dot: 'bg-red-500' },
+] as const;
+
+function getIntensity(count: number, max: number) {
+  const ratio = max > 0 ? count / max : 0;
+  let level = INTENSITY_LEVELS[0];
+  for (const l of INTENSITY_LEVELS) {
+    if (ratio >= l.threshold) level = l;
+  }
+  return { ...level, ratio };
+}
+
 export default function GeographicAnalytics() {
   const [cities, setCities] = useState<CityData[]>([]);
   const [countries, setCountries] = useState<CountryData[]>([]);
@@ -98,17 +116,18 @@ export default function GeographicAnalytics() {
       const maxVisitors = Math.max(...citiesData.map(c => c.visitor_count));
 
       citiesData.forEach((city) => {
-        const size = Math.max(20, Math.min(50, (city.visitor_count / maxVisitors) * 50));
+        const scale = Math.max(8, Math.min(26, (city.visitor_count / maxVisitors) * 26));
+        const intensity = getIntensity(city.visitor_count, maxVisitors);
 
         const marker = new (window as any).google.maps.Marker({
           position: { lat: city.latitude, lng: city.longitude },
           map,
-          title: city.city,
+          title: `${city.city} — ${city.visitor_count} visitors (${intensity.label})`,
           icon: {
             path: (window as any).google.maps.SymbolPath.CIRCLE,
-            scale: size,
-            fillColor: '#ff9900',
-            fillOpacity: 0.8,
+            scale,
+            fillColor: intensity.color,
+            fillOpacity: 0.85,
             strokeColor: '#fff',
             strokeWeight: 2,
           },
@@ -118,6 +137,7 @@ export default function GeographicAnalytics() {
           content: `
             <div style="font-family: system-ui;">
               <strong>${city.city}, ${city.country}</strong><br/>
+              <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${intensity.color};margin-right:4px;"></span>${intensity.label} traffic<br/>
               Visitors: ${city.visitor_count}<br/>
               Unique Users: ${city.unique_users}
             </div>
@@ -193,6 +213,17 @@ export default function GeographicAnalytics() {
               <p className="text-slate-600 dark:text-neutral-200">Loading map...</p>
             </div>
           )}
+          {cities.length > 0 && (
+            <div className="flex flex-wrap items-center gap-4 px-4 py-3 border-t border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900/40">
+              <span className="text-xs font-bold text-slate-500 dark:text-neutral-400">Traffic:</span>
+              {INTENSITY_LEVELS.map((l) => (
+                <span key={l.label} className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-neutral-300">
+                  <span className={`w-2.5 h-2.5 rounded-full ${l.dot}`} />
+                  {l.label}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {cities.length > 0 && (
@@ -209,17 +240,41 @@ export default function GeographicAnalytics() {
                     <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200 dark:text-neutral-200">Country</th>
                     <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200 dark:text-neutral-200">Visitors</th>
                     <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200 dark:text-neutral-200">Users</th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 dark:text-neutral-200 dark:text-neutral-200">Traffic</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-neutral-800">
-                  {cities.map((city, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50 dark:bg-neutral-900/40 dark:hover:bg-neutral-900 cursor-pointer">
-                      <td className="px-6 py-3 text-sm font-semibold text-slate-900 dark:text-white dark:text-white">{city.city}</td>
-                      <td className="px-6 py-3 text-sm text-slate-900 dark:text-white dark:text-white">{city.country}</td>
-                      <td className="px-6 py-3 text-sm font-bold text-blue-600">{city.visitor_count.toLocaleString()}</td>
-                      <td className="px-6 py-3 text-sm text-slate-900 dark:text-white dark:text-white">{city.unique_users}</td>
-                    </tr>
-                  ))}
+                  {(() => {
+                    const maxVisitors = Math.max(...cities.map((c) => c.visitor_count), 1);
+                    return cities.map((city, idx) => {
+                      const intensity = getIntensity(city.visitor_count, maxVisitors);
+                      return (
+                        <tr
+                          key={idx}
+                          onClick={() => setSelectedCity(city)}
+                          className={`hover:bg-slate-50 dark:hover:bg-neutral-900 cursor-pointer ${selectedCity?.city === city.city ? intensity.bg : ''}`}
+                        >
+                          <td className="px-6 py-3 text-sm font-semibold text-slate-900 dark:text-white dark:text-white">{city.city}</td>
+                          <td className="px-6 py-3 text-sm text-slate-900 dark:text-white dark:text-white">{city.country}</td>
+                          <td className="px-6 py-3 text-sm font-bold text-blue-600">{city.visitor_count.toLocaleString()}</td>
+                          <td className="px-6 py-3 text-sm text-slate-900 dark:text-white dark:text-white">{city.unique_users}</td>
+                          <td className="px-6 py-3">
+                            <div className="flex items-center gap-2">
+                              <span className={`flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${intensity.bg} ${intensity.text}`}>
+                                {intensity.label}
+                              </span>
+                              <div className="w-16 h-1.5 bg-gray-200 dark:bg-neutral-800 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full ${intensity.dot}`}
+                                  style={{ width: `${Math.max(6, intensity.ratio * 100)}%` }}
+                                />
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    });
+                  })()}
                 </tbody>
               </table>
             </div>
@@ -233,13 +288,28 @@ export default function GeographicAnalytics() {
               <h2 className="text-lg font-bold text-slate-900 dark:text-white dark:text-white">Visitors by Country</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-              {countries.map((country, idx) => (
-                <div key={idx} className="p-4 bg-slate-50 dark:bg-neutral-900/40 dark:bg-neutral-900 rounded-lg">
-                  <p className="font-semibold text-slate-900 dark:text-white dark:text-white">{country.country}</p>
-                  <p className="text-2xl font-black text-purple-600 mt-2">{country.visitor_count.toLocaleString()}</p>
-                  <p className="text-xs text-slate-400 dark:text-neutral-300 mt-1">{country.unique_users} unique</p>
-                </div>
-              ))}
+              {(() => {
+                const maxVisitors = Math.max(...countries.map((c) => c.visitor_count), 1);
+                return countries.map((country, idx) => {
+                  const intensity = getIntensity(country.visitor_count, maxVisitors);
+                  return (
+                    <div
+                      key={idx}
+                      className="p-4 bg-slate-50 dark:bg-neutral-900/40 dark:bg-neutral-900 rounded-lg border-l-4"
+                      style={{ borderLeftColor: intensity.color }}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-semibold text-slate-900 dark:text-white dark:text-white">{country.country}</p>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${intensity.bg} ${intensity.text}`}>
+                          {intensity.label}
+                        </span>
+                      </div>
+                      <p className="text-2xl font-black text-purple-600 mt-2">{country.visitor_count.toLocaleString()}</p>
+                      <p className="text-xs text-slate-400 dark:text-neutral-300 mt-1">{country.unique_users} unique</p>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
         )}
