@@ -11,7 +11,7 @@ import { useAuthStore } from '@/store/useAuth';
 import { useCurrencyStore } from '@/store/useCurrency';
 import { formatConvertedPrice } from '@/lib/currency';
 import { useLocalizedField } from '@/lib/i18n';
-import { trackEvent } from '@/lib/analytics';
+import { trackEvent, trackCharge } from '@/lib/analytics';
 import type { ChatMessage, Listing } from '@/types';
 
 // A plain "hello" opener gets ignored; naming the actual product and asking
@@ -154,6 +154,21 @@ function MessagesPageContent() {
         try {
             const updated = await dealsService.sellerConfirm(deal.id);
             setDeal(updated);
+            // Only the two-sided confirmation counts as a sale. `revenue`
+            // is the listing's price at confirmation time -- Suqafuran
+            // doesn't process payment, so there's no verified transaction
+            // amount anywhere to pull instead; this is a best-effort
+            // estimate, not a payment-gateway-confirmed total.
+            if (updated.outcome === 'bought' && sharedProduct) {
+                const revenue = sharedProduct.price ?? 0;
+                trackEvent('Purchase', {
+                    revenue,
+                    listing_id: sharedProduct.id,
+                    category_id: sharedProduct.category_id,
+                    seller_id: updated.seller_id,
+                });
+                trackCharge(revenue, { listing_id: sharedProduct.id });
+            }
         } catch (err) {
             console.error('Failed to confirm deal', err);
         } finally {

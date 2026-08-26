@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Grid, List, ChevronDown } from 'lucide-react';
 import { listingsService } from '@/services/listings';
 import { analyticsService } from '@/services/analytics';
+import { trackEvent } from '@/lib/analytics';
 import { ProductCard } from '@/components/features/ProductCard';
 import type { Listing } from '@/types';
 
@@ -53,6 +54,7 @@ function SearchPageContent() {
                         result_count: unique.length,
                         device_type: analyticsService.getDeviceType(),
                     }).catch(() => {});
+                    trackEvent('Search', { query, result_count: unique.length });
                 }
             } catch (err) {
                 console.error('Failed to search listings', err);

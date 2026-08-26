@@ -23,6 +23,7 @@ import { useLocalizedField } from '@/lib/i18n';
 import { ProductCard } from '@/components/features/ProductCard';
 import { checkoutReceiptService } from '@/services/checkoutReceipt';
 import { messageService } from '@/services/messageService';
+import { trackEvent } from '@/lib/analytics';
 import type { Listing, Feedback } from '@/types';
 
 
@@ -103,6 +104,17 @@ export default function ProductDetailPage() {
     const field = useLocalizedField();
 
     useTrackItemView(listing?.id || 0);
+
+    useEffect(() => {
+        if (!listing) return;
+        trackEvent('Product Viewed', {
+            listing_id: listing.id,
+            category_id: listing.category_id,
+            price: listing.price,
+            seller_id: listing.owner_id,
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [listing?.id]);
 
     useEffect(() => {
         setLoadError(false);
@@ -232,6 +244,7 @@ export default function ProductDetailPage() {
                 shop_id: listing.owner_id,
                 device_type: analyticsService.getDeviceType(),
             }).catch(() => {});
+            trackEvent('Added to Wishlist', { listing_id: listing.id, price: listing.price });
         }
         toggleFavorite(listing.id);
     };
@@ -299,6 +312,12 @@ export default function ProductDetailPage() {
             quantity,
             image: activeImage,
             owner_id: listing.owner_id,
+        });
+        trackEvent('Add to Cart', {
+            listing_id: listing.id,
+            price: listing.price,
+            quantity,
+            cart_size: useCart.getState().items.length,
         });
         setAddedToCart(true);
     };
