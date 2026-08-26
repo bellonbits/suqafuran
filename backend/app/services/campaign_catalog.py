@@ -17,6 +17,7 @@ scheduled, and had real bugs -- wrong field names, a bad inactivity proxy --
 fixed here rather than carried forward).
 """
 
+import random
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, List, Optional
@@ -65,13 +66,26 @@ def _has_active_listings(db: Session, min_count: int = 3) -> bool:
     return count >= min_count
 
 
+def _sample(pool: list, k: int) -> list:
+    """Randomly picks up to k items from a pool pulled wider than what's
+    actually sent, so repeat sends (the cooldown windows here run from 3 to
+    21 days) don't keep showing the exact same deterministic top-N -- this
+    was the actual cause of emails always featuring the same products/shop:
+    every selector below used to be a plain ORDER BY ... LIMIT N with no
+    randomization, so the same top-ranked rows won every single time."""
+    if len(pool) <= k:
+        return pool
+    return random.sample(pool, k)
+
+
 # ---------------------------------------------------------------------------
 # Promotional: new arrivals
 
 def _new_arrivals_content(db: Session, user: User) -> Optional[Dict[str, Any]]:
-    listings = db.exec(_active_listing_query().order_by(Listing.created_at.desc()).limit(6)).all()
-    if not listings:
+    pool = db.exec(_active_listing_query().order_by(Listing.created_at.desc()).limit(24)).all()
+    if not pool:
         return None
+    listings = _sample(pool, 6)
     return {
         "listing_ids": [l.id for l in listings],
         "category_id": None,
@@ -108,12 +122,13 @@ def _category_spotlight_content(db: Session, user: User) -> Optional[Dict[str, A
     category = db.get(Category, category_id)
     if not category:
         return None
-    listings = db.exec(
+    pool = db.exec(
         _active_listing_query().where(Listing.category_id == category_id)
-        .order_by(Listing.created_at.desc()).limit(4)
+        .order_by(Listing.created_at.desc()).limit(16)
     ).all()
-    if not listings:
+    if not pool:
         return None
+    listings = _sample(pool, 4)
     return {
         "listing_ids": [l.id for l in listings],
         "category_id": category_id,
@@ -131,9 +146,13 @@ def _send_category_spotlight(email: str, name: str, subject: str, content: Dict[
 # Promotional: trending (most-viewed live listings, marketplace-wide)
 
 def _trending_content(db: Session, user: User) -> Optional[Dict[str, Any]]:
-    listings = db.exec(_active_listing_query().order_by(Listing.views.desc()).limit(6)).all()
-    if not listings:
+    # Views only ever grow, so a plain top-N-by-views is a fixed leaderboard
+    # that never changes order -- pull a wider "currently popular" pool and
+    # rotate which of them actually get featured on each send.
+    pool = db.exec(_active_listing_query().order_by(Listing.views.desc()).limit(24)).all()
+    if not pool:
         return None
+    listings = _sample(pool, 6)
     return {
         "listing_ids": [l.id for l in listings],
         "category_id": None,
@@ -147,17 +166,18 @@ def _trending_content(db: Session, user: User) -> Optional[Dict[str, Any]]:
 # Promotional: shop spotlight (a seller with several active listings)
 
 def _shop_spotlight_content(db: Session, user: User) -> Optional[Dict[str, Any]]:
-    row = db.exec(
-        select(Listing.owner_id, func.count().label("c"))
+    # Every qualifying shop (>=3 active listings), not just the single
+    # biggest one -- picking a random one each send is why this campaign
+    # used to feature the same top seller on every send, for every user.
+    rows = db.exec(
+        select(Listing.owner_id)
         .where(Listing.status == "active", Listing.moderation_status == "approved", Listing.owner_id != user.id)
         .group_by(Listing.owner_id)
         .having(func.count() >= 3)
-        .order_by(func.count().desc())
-        .limit(1)
-    ).first()
-    if not row:
+    ).all()
+    if not rows:
         return None
-    shop_owner_id = row[0]
+    shop_owner_id = random.choice(rows)
     seller = db.get(User, shop_owner_id)
     if not seller:
         return None
@@ -199,12 +219,13 @@ def _personalized_content(db: Session, user: User) -> Optional[Dict[str, Any]]:
     ).all()
     if not category_ids:
         return None
-    listings = db.exec(
+    pool = db.exec(
         _active_listing_query().where(Listing.category_id.in_(category_ids))
-        .order_by(Listing.created_at.desc()).limit(6)
+        .order_by(Listing.created_at.desc()).limit(20)
     ).all()
-    if not listings:
+    if not pool:
         return None
+    listings = _sample(pool, 6)
     return {
         "listing_ids": [l.id for l in listings],
         "category_id": category_ids[0],
@@ -222,15 +243,19 @@ def _send_personalized(email: str, name: str, subject: str, content: Dict[str, A
 
 def _new_shops_content(db: Session, user: User) -> Optional[Dict[str, Any]]:
     since = datetime.utcnow() - timedelta(days=14)
-    row = db.exec(
+    # All new shops in the window, not just whichever one the DB happens to
+    # return first with no ORDER BY -- that was pinning this campaign to
+    # the same "new shop" on every send until it aged out of the 14-day
+    # window entirely.
+    rows = db.exec(
         select(Listing.owner_id).where(
             Listing.status == "active", Listing.moderation_status == "approved",
             Listing.created_at >= since, Listing.owner_id != user.id,
-        ).group_by(Listing.owner_id).limit(1)
-    ).first()
-    if not row:
+        ).group_by(Listing.owner_id)
+    ).all()
+    if not rows:
         return None
-    shop_owner_id = row[0]
+    shop_owner_id = random.choice(rows)
     seller = db.get(User, shop_owner_id)
     listings = db.exec(
         _active_listing_query().where(Listing.owner_id == shop_owner_id)
@@ -256,11 +281,12 @@ def _send_new_shops(email: str, name: str, subject: str, content: Dict[str, Any]
 # logic shape -- pick recent listings + top categories for this user's area)
 
 def _weekly_digest_content(db: Session, user: User) -> Optional[Dict[str, Any]]:
-    listings = db.exec(
-        _active_listing_query().order_by(Listing.created_at.desc()).limit(5)
+    pool = db.exec(
+        _active_listing_query().order_by(Listing.created_at.desc()).limit(20)
     ).all()
-    if not listings:
+    if not pool:
         return None
+    listings = _sample(pool, 5)
     top_categories = db.exec(
         select(Category.name_en).join(Listing, Listing.category_id == Category.id)
         .where(Listing.status == "active").group_by(Category.name_en)
@@ -301,9 +327,10 @@ def _reengagement_eligible(db: Session, user: User) -> bool:
 
 
 def _reengagement_content(db: Session, user: User) -> Optional[Dict[str, Any]]:
-    listings = db.exec(_active_listing_query().order_by(Listing.views.desc()).limit(2)).all()
-    if not listings:
+    pool = db.exec(_active_listing_query().order_by(Listing.views.desc()).limit(12)).all()
+    if not pool:
         return None
+    listings = _sample(pool, 2)
     return {
         "listing_ids": [l.id for l in listings],
         "category_id": None,
@@ -339,9 +366,10 @@ def _saved_search_content(db: Session, user: User) -> Optional[Dict[str, Any]]:
     query = _active_listing_query().where(Listing.title_en.icontains(search.search_query))
     if search.category_id:
         query = query.where(Listing.category_id == search.category_id)
-    listings = db.exec(query.order_by(Listing.created_at.desc()).limit(3)).all()
-    if not listings:
+    pool = db.exec(query.order_by(Listing.created_at.desc()).limit(12)).all()
+    if not pool:
         return None
+    listings = _sample(pool, 3)
     search.last_email_sent = datetime.utcnow()
     db.add(search)
     db.commit()
