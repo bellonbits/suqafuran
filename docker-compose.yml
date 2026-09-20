@@ -282,7 +282,14 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: suqafuran-celery-beat
-    command: celery -A app.tasks.celery_app beat -l info --pidfile=/tmp/celerybeat.pid
+    # No --pidfile: `restart: unless-stopped` re-runs this command inside the
+    # SAME container on crash (not a fresh one), so a leftover pidfile from
+    # any ungraceful kill never gets cleaned up -- and if it ever records
+    # PID 1 (the container's own init process, always "alive"), the
+    # stale-instance check trivially passes forever, crash-looping
+    # indefinitely. container_name below already guarantees only one
+    # celery-beat container can run at a time, making the pidfile redundant.
+    command: celery -A app.tasks.celery_app beat -l info
     environment:
       DATABASE_URL: ${DATABASE_URL}
       POSTGRES_SERVER: ${POSTGRES_SERVER}
