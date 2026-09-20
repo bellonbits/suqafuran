@@ -168,8 +168,12 @@ services:
       # Managed Postgres max_connections=25 total, shared across this
       # container + celery-worker + celery-beat -- backend gets the largest
       # share since it handles concurrent HTTP traffic (see app/db/session.py).
-      DB_POOL_SIZE: "8"
-      DB_MAX_OVERFLOW: "4"
+      # Tightened from 8+4/4+2/1+1 (max 20 of 25) to 5+2/3+2/2+1 (max 15 of 25)
+      # for more headroom, and pool_recycle raised 60s -> 300s -- both aimed
+      # at the 9-14s "first request after idle" latency investigation.
+      DB_POOL_SIZE: "5"
+      DB_MAX_OVERFLOW: "2"
+      DB_POOL_RECYCLE: "300"
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
       ENVIRONMENT: ${ENVIRONMENT:-production}
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
@@ -234,8 +238,9 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       # -c 4 = up to 4 concurrent task threads, sized accordingly (see backend's
       # DB_POOL_SIZE comment above for the full max_connections budget).
-      DB_POOL_SIZE: "4"
+      DB_POOL_SIZE: "3"
       DB_MAX_OVERFLOW: "2"
+      DB_POOL_RECYCLE: "300"
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
       ENVIRONMENT: ${ENVIRONMENT:-production}
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
@@ -286,8 +291,9 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       # Scheduler only, never executes tasks itself -- barely touches the DB
       # (see backend's DB_POOL_SIZE comment above for the full budget).
-      DB_POOL_SIZE: "1"
+      DB_POOL_SIZE: "2"
       DB_MAX_OVERFLOW: "1"
+      DB_POOL_RECYCLE: "300"
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
       ENVIRONMENT: ${ENVIRONMENT:-production}
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production}

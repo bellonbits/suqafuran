@@ -13,11 +13,19 @@ from app.core.config import settings
 POOL_SIZE = int(os.getenv("DB_POOL_SIZE", "8"))
 MAX_OVERFLOW = int(os.getenv("DB_MAX_OVERFLOW", "4"))
 POOL_TIMEOUT = int(os.getenv("DB_POOL_TIMEOUT", "30"))
+# 60s meant every pooled connection was torn down and fully re-established
+# (fresh TCP+TLS+auth to the managed Postgres instance) after almost any
+# gap between requests -- the likely cause of the 9-14s "first request after
+# idle" latency spikes seen in production, since a reconnect occasionally
+# needed a retry against the 10s connect_timeout below. 300s is a more
+# typical value; pool_pre_ping still catches genuinely dead connections
+# before handing them to the application regardless of this setting.
+POOL_RECYCLE = int(os.getenv("DB_POOL_RECYCLE", "300"))
 
 engine = create_engine(
     settings.DATABASE_URL,
     pool_pre_ping=True,
-    pool_recycle=60,
+    pool_recycle=POOL_RECYCLE,
     pool_size=POOL_SIZE,
     max_overflow=MAX_OVERFLOW,
     pool_timeout=POOL_TIMEOUT,
