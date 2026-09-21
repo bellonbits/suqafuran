@@ -37,14 +37,24 @@ def retry_failed_stk_pushes():
     """
     Every-5-min beat task: retry STK pushes for promotions that are still
     WAITING_FOR_PAYMENT and have no lipana_tx_id (push never fired).
+
+    Deliberately does NOT hold a DB session open across the external Lipana
+    API call (initiate_stk_push has timeout=30, so a slow/hanging gateway
+    response used to hold a pooled connection checked out for up to 30s per
+    promo, sequentially, every 5 minutes -- a real contributor to production
+    latency spikes since celery-worker shares the DB's max_connections
+    budget with the web backend). Fetch the candidate list, close the
+    session, make the external calls, then a fresh short-lived session per
+    successful result just to persist it.
     """
     from sqlmodel import Session, select
     from app.db.session import engine
-    from app.models.promotion import Promotion, PromotionStatus, PromotionPlan
+    from app.models.promotion import Promotion, PromotionStatus
     from app.services import lipana as lipana_service
     from app.models.listing import Listing
 
     cutoff = datetime.utcnow() - timedelta(minutes=30)  # Only retry if < 30 min old
+
     with Session(engine) as db:
         promos = db.exec(
             select(Promotion).where(
@@ -53,26 +63,42 @@ def retry_failed_stk_pushes():
                 Promotion.created_at > cutoff,
             )
         ).all()
-
+        # Snapshot everything the external call needs before the session
+        # (and its pooled connection) closes. Listing has title_en/title_so,
+        # not .title -- the pre-refactor version referenced .title here too,
+        # silently caught by the try/except below every time a promo had a
+        # real listing; fixed properly now that this runs outside that
+        # per-promo exception handler.
+        candidates = []
         for promo in promos:
-            plan = db.get(PromotionPlan, promo.plan_id) if getattr(promo, "plan_id", None) else None
-            listing = db.get(Listing, promo.listing_id)
-            try:
-                result = lipana_service.initiate_stk_push(
-                    phone=promo.payment_phone,
-                    amount=promo.amount,
-                    reference=f"Promo {promo.id} (retry)",
-                    description=f"Boost: {listing.title if listing else 'Ad'}",
-                )
-                data = result.get("data", result)
-                tx_id = data.get("transactionId") or data.get("transaction_id")
-                if tx_id:
-                    promo.lipana_tx_id = tx_id
-                    db.add(promo)
-                    db.commit()
-                    logger.info(f"Retry STK push success for promo {promo.id}: {tx_id}")
-            except Exception as exc:
-                logger.warning(f"Retry STK push failed for promo {promo.id}: {exc}")
+            listing = db.get(Listing, promo.listing_id) if promo.listing_id else None
+            candidates.append({
+                "id": promo.id,
+                "payment_phone": promo.payment_phone,
+                "amount": promo.amount,
+                "listing_title": (listing.title_en if listing else None) or "Ad",
+            })
+
+    for c in candidates:
+        try:
+            result = lipana_service.initiate_stk_push(
+                phone=c["payment_phone"],
+                amount=c["amount"],
+                reference=f"Promo {c['id']} (retry)",
+                description=f"Boost: {c['listing_title'] or 'Ad'}",
+            )
+            data = result.get("data", result)
+            tx_id = data.get("transactionId") or data.get("transaction_id")
+            if tx_id:
+                with Session(engine) as db:
+                    promo = db.get(Promotion, c["id"])
+                    if promo:
+                        promo.lipana_tx_id = tx_id
+                        db.add(promo)
+                        db.commit()
+                logger.info(f"Retry STK push success for promo {c['id']}: {tx_id}")
+        except Exception as exc:
+            logger.warning(f"Retry STK push failed for promo {c['id']}: {exc}")
 
 
 @shared_task(
