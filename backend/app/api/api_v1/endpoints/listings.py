@@ -224,6 +224,23 @@ def read_categories(
     active_counts: dict[int, int] = {row.category_id: row.cnt for row in rows}
 
     categories = crud_listing.get_categories(db)
+
+    # Batch-fetch every subcategory and sub-subcategory up front instead of
+    # querying per category/subcategory. The old version ran one query per
+    # category for its subcategories, then one query per subcategory for its
+    # sub-subcategories -- 2+N+M total round trips to the DB for N
+    # categories/M subcategories, a real chunk of this endpoint's latency
+    # (measured ~0.7-1s server-side vs. <0.1s for sibling endpoints).
+    all_subs = crud_listing.get_subcategories(db)
+    subs_by_category: dict = {}
+    for sub in all_subs:
+        subs_by_category.setdefault(sub.category_id, []).append(sub)
+
+    all_subsubs = db.exec(select(SubSubCategory)).all()
+    subsubs_by_subcategory: dict = {}
+    for ssub in all_subsubs:
+        subsubs_by_subcategory.setdefault(ssub.subcategory_id, []).append(ssub)
+
     result = []
 
     for cat in categories:
@@ -232,9 +249,8 @@ def read_categories(
             try: cat_attrs = json.loads(cat_attrs)
             except: cat_attrs = {}
 
-        subs = crud_listing.get_subcategories(db, category_id=cat.id)
         subcategories = []
-        for sub in (subs or []):
+        for sub in subs_by_category.get(cat.id, []):
             subcategories.append({
                 "id": sub.id,
                 "name_en": sub.name_en,
@@ -250,7 +266,7 @@ def read_categories(
                         "image_url": ssub.image_url,
                         "brands": ssub.brands or [],
                     }
-                    for ssub in db.exec(select(SubSubCategory).where(SubSubCategory.subcategory_id == sub.id)).all() or []
+                    for ssub in subsubs_by_subcategory.get(sub.id, [])
                 ],
             })
 
