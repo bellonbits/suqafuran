@@ -141,10 +141,15 @@ services:
       QUERY_HTTP_SERVER_HOST_PORT: "0.0.0.0:16686"
       ADMIN_HTTP_HOST_PORT: "0.0.0.0:14269"
     ports:
-      - "4317:4317"    # OTLP gRPC receiver
-      - "4318:4318"    # OTLP HTTP receiver
-      - "16686:16686"  # Query UI
-      - "14269:14269"  # Admin API
+      # All four were bound to 0.0.0.0 with no auth -- the Query UI (16686)
+      # exposes all trace data (endpoint names, timings, span tags) publicly,
+      # and the OTLP receivers (4317/4318) would accept spans from anyone on
+      # the internet. Same treatment as kafka-ui/kafka: localhost only,
+      # SSH-tunnel in when you actually need the Jaeger UI.
+      - "127.0.0.1:4317:4317"    # OTLP gRPC receiver
+      - "127.0.0.1:4318:4318"    # OTLP HTTP receiver
+      - "127.0.0.1:16686:16686"  # Query UI
+      - "127.0.0.1:14269:14269"  # Admin API
     volumes:
       - jaeger_data:/badger
     networks:
