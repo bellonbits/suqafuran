@@ -102,7 +102,11 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     ports:
-      - "9092:9092"
+      # No auth configured; advertised listener is the internal Docker
+      # hostname (kafka:9092), which limits full external protocol use, but
+      # there's no reason for this to sit on the public internet at all --
+      # bind to localhost, tunnel in over SSH if ever needed directly.
+      - "127.0.0.1:9092:9092"
     depends_on:
       - zookeeper
     networks:
@@ -364,7 +368,13 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
     ports:
-      - "8080:8080"
+      # Was "8080:8080" (bound to 0.0.0.0, i.e. the public internet) with no
+      # auth configured -- found being actively exploited via kafka-ui's
+      # Groovy "smart filter" message-test feature (arbitrary code execution)
+      # to download and run a payload from an external host. Bind to
+      # localhost only; reach it via `ssh -L 8080:localhost:8080 <host>` when
+      # actually needed instead of leaving it on the public internet.
+      - "127.0.0.1:8080:8080"
     depends_on:
       - kafka
     networks:
