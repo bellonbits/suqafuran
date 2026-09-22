@@ -197,6 +197,7 @@ async def upload_video(
 
 
 @router.get("/categories", response_model=List[Any])
+@cache.cached(prefix="categories", ttl=60)
 def read_categories(
     db: Session = Depends(deps.get_db),
 ) -> Any:
@@ -204,6 +205,12 @@ def read_categories(
     Retrieve categories with subcategories.
     Includes active_listing_count so clients can filter to categories
     that actually have live ads.
+
+    Cached for 60s (see app/services/cache_service.py) -- every category/
+    subcategory mutation elsewhere in this file already calls
+    cache.delete_pattern("cache:categories:*") to invalidate it, but this
+    endpoint was never actually decorated to populate that cache, so every
+    request was hitting the DB regardless.
     """
     import json
     from sqlalchemy import text
