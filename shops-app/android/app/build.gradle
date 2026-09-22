@@ -17,12 +17,13 @@ android {
         applicationId "com.suqafuran.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        // Minutes since Unix epoch — always higher than any previous build's
-        // versionCode, so Play Console never rejects an upload for reusing
-        // an already-submitted version (fits comfortably in the int32 range
-        // Play Console requires; won't overflow until the year ~6053).
-        // Same scheme as the root app's build.gradle.
-        versionCode ((int) (System.currentTimeMillis() / 60000))
+        // Seconds since Unix epoch — was minutes-since-epoch, which caused a
+        // real "Version code X has already been used" rejection: two builds
+        // run within the same 60-second window truncate to the identical
+        // integer. Seconds granularity needs two builds in the exact same
+        // second to collide, which a human-triggered Gradle build can't
+        // realistically hit. Same scheme as the root app's build.gradle.
+        versionCode ((int) (System.currentTimeMillis() / 1000))
         // Continues from the root app's last published versionName (1.8.0) --
         // this now updates that same com.suqafuran.app listing, not a fresh one.
         versionName "2.0.3"

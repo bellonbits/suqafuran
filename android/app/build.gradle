@@ -13,11 +13,17 @@ android {
         applicationId "com.suqafuran.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        // Minutes since Unix epoch — always higher than any previous build's
-        // versionCode, so Play Console never rejects an upload for reusing
-        // an already-submitted version (fits comfortably in the int32 range
-        // Play Console requires; won't overflow until the year ~6053).
-        versionCode ((int) (System.currentTimeMillis() / 60000))
+        // Seconds since Unix epoch — was minutes-since-epoch, which caused a
+        // real "Version code X has already been used" rejection: two builds
+        // run within the same 60-second window truncate to the identical
+        // integer. Seconds granularity needs two builds in the exact same
+        // second to collide, which a human-triggered Gradle build (which
+        // itself takes well over a second to run) can't realistically hit.
+        // Still fits comfortably in the int32 range Play Console requires;
+        // overflows in 2038 (the classic 32-bit epoch-seconds limit) rather
+        // than the minutes-based scheme's ~6053, a trade worth making for
+        // collision resistance now.
+        versionCode ((int) (System.currentTimeMillis() / 1000))
         versionName "2.0.3"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
