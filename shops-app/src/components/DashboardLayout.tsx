@@ -51,9 +51,29 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [darkMode, setDarkMode] = useState(false);
+  // Was local-only state, disconnected from the rest of the app's dark mode
+  // (same bug as SellerLayout.tsx had) -- toggling dark mode elsewhere and
+  // navigating into admin/agent pages (both use this shared layout) reset
+  // it back to light every time. Reading/writing the same
+  // document.documentElement + localStorage mechanism Header.tsx uses
+  // keeps it in sync everywhere.
+  const [darkMode, setDarkMode] = useState(
+    typeof window !== 'undefined' ? localStorage.getItem('theme') === 'dark' : false
+  );
   const [expandedNav, setExpandedNav] = useState<string | null>('Orders');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const toggleDarkMode = () => {
+    const next = !darkMode;
+    setDarkMode(next);
+    if (next) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   const fetchAdminNotifications = async () => {
     try {
@@ -217,7 +237,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                     <span>Dark Mode</span>
                   </div>
                   <button
-                    onClick={() => setDarkMode(!darkMode)}
+                    onClick={toggleDarkMode}
                     className={`w-9 h-5 rounded-full transition-colors relative p-0.5 ${darkMode ? 'bg-indigo-600' : 'bg-slate-200'} flex items-center`}
                   >
                     <div className={`w-4 h-4 rounded-full bg-white transition-transform ${darkMode ? 'translate-x-4' : 'translate-x-0'}`} />
@@ -375,7 +395,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               </div>
             )}
             <button
-              onClick={() => setDarkMode(!darkMode)}
+              onClick={toggleDarkMode}
               title={!sidebarOpen ? 'Toggle Dark Mode' : undefined}
               className={`${sidebarOpen ? 'w-9 h-5' : 'w-8 h-8 rounded-xl'} rounded-full transition-colors relative p-0.5 ${darkMode ? 'bg-indigo-600' : 'bg-slate-200'} flex items-center justify-${sidebarOpen ? 'start' : 'center'}`}
             >
