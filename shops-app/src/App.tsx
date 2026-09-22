@@ -2,6 +2,7 @@ import { useEffect, useState, lazy, Suspense } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { Onboarding, hasSeenOnboarding } from './components/Onboarding'
 import { isCapacitorApp } from './lib/capacitor-utils'
+import { configureStatusBar } from './lib/status-bar'
 import { Header } from './components/shared/Header'
 import { Footer } from './components/shared/Footer'
 import { AuthModal } from './components/shared/AuthModal'
@@ -152,6 +153,10 @@ function ScrollToTop() {
 
 export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(() => isCapacitorApp() && !hasSeenOnboarding())
+
+  useEffect(() => {
+    configureStatusBar()
+  }, [])
 
   // Route-level code splitting keeps the initial bundle small, but it means
   // the very first tap on a product/shop card -- by far the most common

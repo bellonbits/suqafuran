@@ -356,6 +356,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1.25rem)' }}
               className="fixed top-0 left-0 bottom-0 w-72 bg-white dark:bg-neutral-950 z-50 p-5 flex flex-col justify-between shadow-2xl md:hidden overflow-y-auto"
             >
               <div>
