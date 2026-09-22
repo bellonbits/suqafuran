@@ -185,10 +185,14 @@ export const Header: React.FC = () => {
                             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full"></span>
                         </button>
 
-                        {/* Cart - Icon Only with Badge */}
+                        {/* Cart - Icon Only with Badge. Visible on mobile by
+                        default (not hidden behind sm:/md: like the other
+                        header controls) -- the cart is a primary action, not
+                        secondary chrome that belongs behind the hamburger
+                        menu. */}
                         <button
                             onClick={() => router.push('/checkout')}
-                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors relative hidden sm:flex"
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors relative flex"
                             title="Cart"
                         >
                             <ShoppingCart className="w-5 h-5 text-gray-600 dark:text-neutral-300" />
@@ -345,6 +349,18 @@ export const Header: React.FC = () => {
                             </div>
                         )}
 
+                        {/* Search - compact icon on mobile, since the full
+                        search bar now lives prominently in the homepage hero
+                        instead of being tucked inside the hamburger menu. */}
+                        <button
+                            onClick={() => router.push('/search')}
+                            className="sm:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors"
+                            aria-label="Search"
+                            title="Search"
+                        >
+                            <Search className="w-5 h-5 text-gray-600 dark:text-neutral-300" />
+                        </button>
+
                         {/* Mobile Menu */}
                         <button
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -387,19 +403,6 @@ export const Header: React.FC = () => {
                         <MapPin className="w-4 h-4 text-orange-600" />
                         <span className="text-sm font-medium">{city || 'Select Location'}</span>
                     </button>
-
-                    <form onSubmit={handleSearchSubmit} className="md:hidden">
-                        <div className="relative w-full">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 shrink-0" />
-                            <input
-                                type="text"
-                                placeholder="Search products, shops, services..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full h-10 pl-12 pr-4 rounded-lg bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-white text-sm placeholder:text-gray-500 dark:placeholder:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                            />
-                        </div>
-                    </form>
 
                     <button
                         onClick={() => router.push('/checkout')}

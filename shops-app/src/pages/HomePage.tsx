@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Loader2, Flame } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Loader2, Flame, Search } from 'lucide-react';
 import { listingsService, PublicShop } from '@/services/listings';
 import type { Listing } from '@/types';
 import { HomepageBannerRotation } from '@/components/ads/HomepageBannerRotation';
@@ -56,6 +57,8 @@ function pickDiverseBySeller(items: Listing[], count: number): Listing[] {
 }
 
 export default function HomePage() {
+    const router = useRouter();
+    const [heroSearchQuery, setHeroSearchQuery] = useState('');
     const [categories, setCategories] = useState<Category[]>([]);
     const [featuredPool, setFeaturedPool] = useState<Listing[]>([]);
     const [featuredSeed, setFeaturedSeed] = useState(0);
@@ -189,6 +192,32 @@ export default function HomePage() {
     return (
         <div className="min-h-screen bg-white dark:bg-black pb-20">
             <div className="max-w-[1440px] mx-auto">
+                {/* Search bar lives here, prominently in the hero, rather
+                than as a full input tucked inside the mobile header's
+                hamburger menu -- the header now only carries a compact
+                search icon (see Header.tsx) that lands here or on /search. */}
+                <div className="px-4 md:px-6 lg:px-8 pt-4 md:pt-6 sm:hidden">
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            if (heroSearchQuery.trim()) {
+                                router.push(`/search?q=${encodeURIComponent(heroSearchQuery.trim())}`);
+                            }
+                        }}
+                    >
+                        <div className="relative w-full">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 shrink-0" />
+                            <input
+                                type="text"
+                                placeholder="Search products, shops, services..."
+                                value={heroSearchQuery}
+                                onChange={(e) => setHeroSearchQuery(e.target.value)}
+                                className="w-full h-12 pl-12 pr-4 rounded-full bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-white text-sm font-medium placeholder:text-gray-500 dark:placeholder:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                            />
+                        </div>
+                    </form>
+                </div>
+
                 <div className="px-4 md:px-6 lg:px-8 pt-4 md:pt-6">
                     <HomepageBannerRotation />
                 </div>
