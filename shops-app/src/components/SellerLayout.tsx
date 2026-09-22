@@ -47,9 +47,32 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  // Was local-only state (useState(false)), disconnected from the rest of
+  // the app's dark mode -- toggling dark mode on the homepage and then
+  // navigating here reset it back to light, and this component's own root
+  // div carried both the `dark` toggle class and `dark:bg-*` utilities on
+  // itself, which Tailwind never applies (the dark: selector needs `dark`
+  // on an ANCESTOR, not the same element) -- descendants went dark
+  // correctly, but this root div's own background stayed stuck white.
+  // Reading/writing the same document.documentElement + localStorage
+  // mechanism Header.tsx uses fixes both problems at once.
+  const [darkMode, setDarkMode] = useState(
+    typeof window !== 'undefined' ? localStorage.getItem('theme') === 'dark' : false
+  );
   const [expandedSection, setExpandedSection] = useState<string | null>('My Shop');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const toggleDarkMode = () => {
+    const next = !darkMode;
+    setDarkMode(next);
+    if (next) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   const currentPageLabel = getPageLabel(pathname);
 
@@ -109,7 +132,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
   ];
 
   return (
-    <div className={`min-h-screen bg-white dark:bg-black text-slate-800 dark:text-neutral-50 font-sans antialiased flex flex-col md:flex-row p-3 md:p-5 gap-5 overflow-x-hidden ${darkMode ? 'dark' : ''}`}>
+    <div className="min-h-screen bg-white dark:bg-black text-slate-800 dark:text-neutral-50 font-sans antialiased flex flex-col md:flex-row p-3 md:p-5 gap-5 overflow-x-hidden">
 
       {/* ── Desktop Floating Sidebar (SadaxCart style) ── */}
       <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-neutral-950 rounded-3xl p-4 border border-slate-100 dark:border-neutral-800 shadow-[0_4px_24px_rgba(0,0,0,0.03)] flex-shrink-0 relative z-30 transition-colors">
@@ -332,7 +355,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setDarkMode(!darkMode)}
+            onClick={toggleDarkMode}
             className="p-2 rounded-xl bg-slate-50 dark:bg-neutral-900 text-slate-500 dark:text-neutral-300"
           >
             {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-500" />}
@@ -470,7 +493,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
 
             {/* Dark Mode Switcher */}
             <button
-              onClick={() => setDarkMode(!darkMode)}
+              onClick={toggleDarkMode}
               className="p-2.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-100 dark:border-neutral-800 text-slate-500 hover:text-slate-800 dark:hover:text-white shadow-sm transition-colors"
             >
               {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
