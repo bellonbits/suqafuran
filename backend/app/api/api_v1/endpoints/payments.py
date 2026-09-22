@@ -252,6 +252,55 @@ def initiate_mpesa_checkout(
 
             logger.info(f"[M-Pesa] SUCCESS Order created and confirmed: {order_id} for user {user_id}")
 
+            # ── POST-PURCHASE RETENTION FUNNEL ────────────────────────────────────
+            # Fire async notification tasks so the request path stays fast.
+            # Both tasks have max_retries=3 with 60s backoff.
+            try:
+                from app.tasks.retention_tasks import notify_order_confirmed, notify_seller_new_order
+
+                buyer_user = db.query(User).filter(User.id == user_id).first()
+                seller_user = db.query(User).filter(User.id == str(seller_record.user_id)).first()
+
+                items_summary = ", ".join([
+                    f"{item.get('title', 'Item')} × {item.get('quantity', 1)}"
+                    for item in items[:3]
+                ])
+                if len(items) > 3:
+                    items_summary += f" + {len(items) - 3} more"
+
+                buyer_email = getattr(buyer_user, "email", None) or f"{user_id}@suqafuran.local"
+                buyer_name = getattr(buyer_user, "full_name", None) or "Valued Customer"
+
+                notify_order_confirmed.apply_async(kwargs={
+                    "user_id": user_id,
+                    "buyer_name": buyer_name,
+                    "buyer_email": buyer_email,
+                    "buyer_phone": phone_number,
+                    "order_id": order_id,
+                    "seller_name": getattr(seller_user, "full_name", None) or getattr(seller_record, "business_name", "Seller"),
+                    "items_summary": items_summary,
+                    "total_amount": amount,
+                })
+
+                if seller_user and seller_user.email:
+                    notify_seller_new_order.apply_async(kwargs={
+                        "seller_user_id": seller_user.id,
+                        "seller_name": getattr(seller_user, "full_name", None) or getattr(seller_record, "business_name", "Seller"),
+                        "seller_email": seller_user.email,
+                        "seller_phone": getattr(seller_user, "phone", "") or "",
+                        "order_id": order_id,
+                        "buyer_name": buyer_name,
+                        "items_summary": items_summary,
+                        "total_amount": amount,
+                        "fulfillment_type": fulfillment_type,
+                        "delivery_address": str(delivery_address or "To be confirmed"),
+                    })
+
+                logger.info(f"[M-Pesa] Retention tasks dispatched for order {order_id}")
+            except Exception as notif_err:
+                # Never block order creation due to notification failure
+                logger.warning(f"[M-Pesa] Retention task dispatch failed (non-critical): {notif_err}")
+
         except Exception as db_error:
             db.rollback()
             logger.error(f"[M-Pesa] Error creating order: {str(db_error)}")

@@ -1,0 +1,381 @@
+SUQAFURAN — FEATURE SCOPE GAP ANALYSIS
+What already exists in the codebase vs. the "Updated Ecommerce Features" scope
+(19 sections / 12 modules), checked against real files, not assumed.
+Written: 2026-08-25
+
+
+================================================================
+HOW THIS WAS CHECKED
+================================================================
+
+Full inventory of backend/app/api/api_v1/endpoints/ (68 route modules) plus
+targeted greps for the specific items that weren't obviously covered by an
+existing endpoint name (gift cards, loyalty, referral, bundles, 2FA, device
+detection, product variants, collections, structured data, blog, customer
+tiers). Anything marked BUILT below has a real file path attached. Anything
+marked MISSING was actively searched for and not found — not just "I didn't
+happen to see it earlier."
+
+
+================================================================
+1. MARKETPLACE & PRODUCT CATALOGUE — mostly BUILT
+================================================================
+
+BUILT:
+  Listings CRUD, status/moderation/approval workflow, boost levels    listings.py, listings_complete.py, models/listing.py
+  Category -> Subcategory -> SubSubCategory hierarchy                  models/listing.py (Category, SubSubCategory), subcategory.py
+  Category attributes (per-category custom fields)                    category_attributes.py, attributes.py
+  Shop/storefront pages                                                ShopDetailPage.tsx, sellers.py, seller_profile.py
+  Search (full-text, category/subcategory-aware)                      search.py, SearchPage.tsx
+  Filters & sorting                                                    listings.py query params (category, price, location, condition, sort)
+  Cart                                                                 useCart store, CheckoutPage.tsx
+  Wishlist / favorites                                                 useFavoritesStore, favorites.py
+  Related/similar/recently-viewed products                             ListingDetailPage.tsx related-listings fetch, localStorage listing cache
+  Product reviews (ratings + written)                                  feedback.py, feedbackService, reviews.py
+  Follow a shop                                                        follows.py
+
+PARTIAL:
+  "Product recommendations" as a real algorithm — today's "related
+  listings" is same-category + backfill, not a similarity/behavior-
+  based recommender. Works, but isn't personalized.
+
+MISSING (confirmed absent):
+  Structured product VARIANTS (size/color/model as first-class SKU-
+  level records with their own price/stock) — Listing has a generic
+  `attributes: dict` JSON bag, not a variant system. A "Color: Black/
+  Blue" selector like the video's mockup would need new modeling.
+  Collections (curated product groupings, e.g. "Back to School") —
+  no model, no endpoint, no frontend concept of this at all.
+
+
+================================================================
+2. PRODUCT PAGES — BUILT, improved this session
+================================================================
+
+Already covers: breadcrumbs, gallery (now swipeable on mobile with
+pagination dots), title, rating/reviews, price, quantity, Add to
+Cart/Buy Now (now actually persists, see REALTIME_ANALYTICS.txt
+section 13.3), trust badges row, seller card, description/specs tabs,
+reviews with rating breakdown, related listings, sticky mobile
+purchase bar with price. File: ListingDetailPage.tsx.
+
+MISSING: discount/compare-at price display ("Was X | Y% off") — no
+`original_price`/`compare_at_price` field exists on Listing at all, so
+this can't be shown truthfully without a schema change first.
+
+
+================================================================
+3. CUSTOMER ACCOUNTS & DASHBOARD — BUILT
+================================================================
+
+Registration, login/logout, password reset, email verification,
+profile, settings, security alerts (see section 15), wishlist, saved
+searches, order/purchase history, notifications, messages: all present
+across auth.py, login.py, users.py, saved_searches.py,
+notification_preferences.py, AccountPage.tsx, SettingsPage.tsx,
+SecurityLogsPage.tsx, OrdersPage.tsx, MessagesPage.tsx,
+NotificationSettingsPage.tsx, FavoritesPage.tsx, SavedSearchesPage.tsx,
+PriceAlertsPage.tsx (price-change alerts specifically — already
+built, not just "wishlist").
+
+
+================================================================
+4. SELLER DASHBOARD & ANALYTICS — BUILT
+================================================================
+
+Dashboard overview, product management (add/edit/status/bulk import/
+bulk products), shop profile, staff/employees, customer messages,
+reviews, subscriptions, featured ads, marketing tools, settings: all
+present. SellerDashboardPage.tsx, SellerProductsPage.tsx,
+SellerBulkImportPage.tsx, SellerStaffPage.tsx (this is the "employee"
+concept businesses.py's order-recording endpoint is gated on),
+SellerShopPage.tsx, SellerMarketingPage.tsx, SellerSubscriptionPage.tsx,
+SellerFeaturedAdsPage.tsx, seller_settings.py, seller_profile.py.
+
+Seller analytics (product views, shop views, search appearances,
+wishlist/cart adds, enquiries, conversion rate, top/bottom performers,
+engagement): analytics_sellers.py (per-seller track/summary/daily/
+product endpoints) + this session's new Seller Response Analytics
+(response rate, response time, unanswered count) on the admin side.
+
+
+================================================================
+5. MARKETPLACE COMMUNICATION — BUILT, and admin monitoring is
+   already exactly what the doc describes
+================================================================
+
+Buyer<->seller messaging with conversation history, product/shop
+attached to the thread, read/unread, notifications, block/report,
+admin moderation: MarketplaceConversation + Message models,
+messages.py, chat_ws.py (WebSocket delivery), MessagesPage.tsx,
+SellerMessagesPage.tsx.
+
+Admin monitoring of conversations/reported threads/buyer/seller/
+product/timestamps/disputes — this already exists in exactly the shape
+described: GET /admin/conversations, /admin/conversations/stats,
+/admin/conversations/{id}, PATCH .../{id} (admin.py), surfaced by
+AdminConversationsPage.tsx (now with 30s auto-refresh, added this
+session) and AdminDisputesPage.tsx for report-scoped threads.
+
+
+================================================================
+6. CUSTOMER SUPPORT — BUILT
+================================================================
+
+Support tickets with status/history/replies: support.py (my-active-
+ticket, tickets list/detail/reply, stats), AdminSupportPage.tsx.
+Report seller/product/user: reports.py, AdminReportsPage.tsx,
+AdminFraudPage.tsx, AdminUnusualAccountsPage.tsx.
+Dispute reporting: trust_ops.py, AdminDisputesPage.tsx.
+
+PARTIAL: no dedicated public-facing FAQ/help-center content module was
+found — content.py exists but manages generic site copy/email tracking
+pixels, not a structured FAQ/help-category browser. Contextual FAQs
+per-flow (signup, buying, listing, etc.) aren't a distinct feature.
+
+
+================================================================
+7. MARKETING & AUTOMATED COMMUNICATIONS — BUILT, matches what was
+   already discussed this session for Black Friday
+================================================================
+
+Email capture/newsletter, segmentation, automated flows (welcome,
+abandoned cart, post-purchase, re-engagement, promotional with
+rotating content so the same message doesn't repeat): campaign_
+catalog.py (CampaignDefinition registry, promo_trending etc.),
+email_service.py, email_tasks.py, customer_segments.py,
+email_templates.py, AdminEmailTemplatesPage.tsx,
+AdminEmailAnalyticsPage.tsx, AdminCustomerSegmentsPage.tsx.
+
+Referral tracking exists at the marketing-attribution level
+(referral_code on User, MarketingCode lookup, first-listing-posted
+conversion tracking in listings.py) — this is signup-promo-code
+tracking, not a full referral rewards/payout program (see section 11).
+
+
+================================================================
+8. SOCIAL PROOF — BUILT (reviews), MISSING (UGC reuse pipeline)
+================================================================
+
+Star ratings, written reviews, seller responses, moderation: feedback.py/
+reviews.py, ListingDetailPage.tsx review section.
+
+MISSING: customer photo/video uploads on reviews, a "Verified Purchase"
+badge distinguishing real buyers (would need the CheckoutReceipt/Order
+link to feedback, which doesn't exist today), and any pipeline for
+reusing UGC in marketing banners/social posts.
+
+
+================================================================
+9. WISHLIST & PERSONALIZATION — mostly BUILT
+================================================================
+
+Wishlist, recently viewed, saved searches, new-listing/price-change
+alerts: all present (favorites.py, saved_searches.py, price_alerts.py,
+localStorage listing cache for recently-viewed).
+
+MISSING: "Recommended shops" / "Customers also viewed" as a real
+similarity-based recommendation — no such algorithm exists; only
+category-scoped "related listings."
+
+
+================================================================
+10. PROMOTIONS & MERCHANDISING — BUILT (discounts/featured), MISSING
+    (bundling)
+================================================================
+
+Percentage/fixed discounts, sale prices, promo codes, featured/
+trending/boosted listings: discount_codes.py, promotions.py,
+marketing.py, boosts.py (Listing.boost_level: basic/vip/diamond),
+featured_advertising.py, admin_advertising.py, advertising_public.py,
+AdminFeaturedAdsPage.tsx, SellerFeaturedAdsPage.tsx — this is a full
+paid-placement advertising system already (product/shop/banner/
+category placements per prior session notes).
+
+MISSING (confirmed, actively searched): bundling. No bundle model, no
+"frequently bought together" logic, no complementary-product pairing
+anywhere in backend or frontend. This would be new work.
+
+
+================================================================
+11. GIFT & LOYALTY — MISSING (matches the doc's own "Phase 2"
+    classification)
+================================================================
+
+Gift cards: not found anywhere (models, endpoints, or frontend).
+Loyalty points/rewards: not found — the only "loyalty" hit in the
+whole codebase is a `loyalty_score: int` field on the Business model
+(app/models/business.py), which looks like an internal scoring metric,
+not a customer-facing points/rewards system.
+Referral rewards/payouts: not found — only the promo-code attribution
+tracking described in section 7 above, no reward mechanism.
+Customer tiers: not found.
+
+The doc already classifies this whole section as "Phase 2, not
+essential" — the codebase agrees with that call; none of it exists yet.
+
+
+================================================================
+12. CONTENT & SEO — PARTIAL
+================================================================
+
+BUILT: sitemap.xml (seo.py), a landing-page endpoint (seo.py),
+generic site-content key/value management + versioning (content.py),
+email open/click tracking pixels (content.py) — that last one is
+actually email marketing infra living in an oddly-named file, not a
+content/SEO feature.
+
+MISSING (confirmed, actively searched):
+  Blog / articles / buying guides — no model, no endpoint, no page.
+  Structured data (schema.org JSON-LD, Product/Breadcrumb schema) —
+  zero hits anywhere in the frontend. Product pages have no schema
+  markup today.
+  robots.txt config as a managed/dynamic thing (may exist as a static
+  file in public/, not checked — worth a quick look if this matters).
+
+
+================================================================
+13. ANALYTICS & ATTRIBUTION — BUILT, this is most of what this
+    session's work was
+================================================================
+
+Customer analytics (visitors, views, searches, cart/wishlist adds,
+engagement), product analytics (most viewed/searched/wishlisted/
+best-worst performing), marketing analytics (email opens/clicks,
+campaign performance): the entire Realtime Analytics suite built and
+extended this session — see REALTIME_ANALYTICS.txt for the full
+breakdown. Email-specific analytics: admin_email_analytics.py,
+AdminEmailAnalyticsPage.tsx. Lifecycle analytics: lifecycle_analytics.py,
+AdminUserLifecyclePage.tsx.
+
+MISSING: unified cross-channel "sales attribution" (which marketing
+channel/campaign actually drove a given sale) — the pieces exist
+separately (campaign tracking, checkout receipts) but aren't joined
+into one attribution report.
+
+
+================================================================
+14. ADMIN & MODERATION — BUILT
+================================================================
+
+Users, sellers, shops, products, categories, reviews, reports,
+disputes, messages, banners, promotions management; seller approve/
+reject/suspend/verify; product moderation (approve/reject/flag/
+remove): this is the largest already-built surface in the whole
+platform. AdminUsersPage, AdminShopsPage, AdminListingsPage,
+AdminVerificationsPage, AdminSellersPage, AdminCategoriesPage,
+AdminSupportPage, AdminConversationsPage, AdminDisputesPage,
+AdminFraudPage, AdminUnusualAccountsPage, AdminHomepageBannersPage,
+AdminReportsPage, AdminBulkProductsPage, AdminFeaturedAdsPage,
+AdminSubscriptionsPage, plus everything in admin.py/admin_advertising.py/
+admin_system_messaging.py on the backend.
+
+No dedicated "Brands" or "Collections" admin management was found,
+consistent with section 1's finding that neither feature exists yet.
+
+
+================================================================
+15. SECURITY & PLATFORM MANAGEMENT — mostly BUILT
+================================================================
+
+BUILT: password hashing/JWT auth (deps.py, security.py), session
+management, email verification, password reset, new-device detection
++ login notifications (notify_if_new_device, device_fingerprint on
+User — app/utils/security_alerts.py, models/user.py), suspicious-
+activity alerts (AdminUnusualAccountsPage, AdminFraudPage), RBAC
+(is_admin / is_employee / RequireEmployee dependency), rate limiting
+(risk_security.check_messaging_limit and others), input validation
+(Pydantic/SQLModel throughout), audit logs (AuditLog, written by
+admin.py conversation actions).
+
+MISSING (confirmed, actively searched): two-factor authentication
+(2FA/TOTP) — no trace anywhere in the codebase. Full field-level data
+encryption at rest wasn't checked (out of scope for a grep-based pass;
+would need infra-level verification, not a code search).
+
+
+================================================================
+16. NOTIFICATIONS — BUILT
+================================================================
+
+Customer/seller/admin notification types (new message, review, wishlist
+update, saved-search alert, security, promotional, new enquiry, product
+approval, listing status, new reports/disputes/sellers/products, security
+alerts, platform activity): notifications.py, notifications_ws.py,
+notification_preferences.py, NotificationCenter.tsx,
+NotificationSettingsPage.tsx, plus the Kafka-based monitoring/alerting
+system referenced in AdminMonitoringLivePage.tsx and this session's
+AdminAnalyticsAlertsPage.tsx (AdminAlert/AlertEvent).
+
+
+================================================================
+17. INTEGRATIONS — PARTIAL
+================================================================
+
+BUILT: Kafka (event streaming, seen throughout monitoring), email
+(SMTP-based campaign sending), WhatsApp (wa.me deep links throughout
+the buyer-facing UI), image handling via Cloudinary
+(optimizeCloudinaryUrl used everywhere).
+
+NOT VERIFIED (not actively searched this pass, would need a dedicated
+check): CRM integration, dedicated email-marketing-platform integration
+beyond the in-house campaign system, Google Search Console, social
+media posting integrations, dedicated customer-support-tool integration
+(vs. the in-house support.py ticket system already covering this need).
+
+
+================================================================
+18. PHYSICAL STORE / POS — PARTIAL
+================================================================
+
+The businesses.py module (record_order_entry, employee-gated) is
+essentially a lightweight POS-style "record a manual sale" tool tied to
+a Business/Employee model — this is closer to what section 18 describes
+than to real ecommerce order recording, which is exactly why it was the
+wrong endpoint for the listing page's "Buy Now" button (see
+REALTIME_ANALYTICS.txt section 13.3). Store locations/opening hours/
+offline inventory sync were not found and are likely genuinely absent.
+
+
+================================================================
+19. CUSTOM MARKETPLACE FEATURES — BUILT
+================================================================
+
+Shop discovery, browse-by-category, featured/trending shops, follow a
+shop, WhatsApp/in-platform contact, product-specific enquiries, seller
+verification badge, seller ratings, report seller/product/user: all
+present (follows.py, sellers.py, ShopDetailPage.tsx shop browsing,
+verification system, review system, reports system).
+
+
+================================================================
+SUMMARY — GENUINE GAPS (confirmed absent, not just "didn't check")
+================================================================
+
+Real, net-new feature work if this scope gets prioritized:
+
+1. Structured product variants (size/color as real SKU records, not
+   just a JSON attributes bag) -- needed before a "Color: Black/Blue"
+   selector like the video mockup can be built honestly.
+2. Product collections (curated groupings).
+3. Discount/compare-at pricing on listings (original_price field) --
+   blocks the "Was X | Y% off" display from section 2 entirely.
+4. Bundling / "frequently bought together."
+5. Blog / content marketing pages.
+6. Structured data (schema.org / JSON-LD) on product pages -- an SEO
+   feature, not a UI feature, easy to add once prioritized.
+7. Verified-Purchase badges on reviews + customer photo/video uploads
+   on reviews.
+8. A real product recommendation algorithm (today's "related" and
+   "recently viewed" are simple, not personalized/behavioral).
+9. Gift cards, loyalty points, referral rewards payouts, customer
+   tiers -- all confirmed absent, matching the doc's own "Phase 2"
+   classification.
+10. Two-factor authentication.
+11. Cross-channel sales attribution reporting.
+
+Everything else in the 19-section scope -- which is the large majority
+of it -- already exists in the codebase today, in most cases more
+completely than the doc assumes (e.g. the admin conversation-monitoring
+described in section 5 is already built exactly as specified, not a
+gap at all).

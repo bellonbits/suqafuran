@@ -12,6 +12,7 @@ celery_app = Celery(
         "app.tasks.email_tasks",
         "app.tasks.alert_tasks",
         "app.tasks.subscription_tasks",
+        "app.tasks.retention_tasks",
     ],
 )
 
@@ -83,6 +84,32 @@ celery_app.conf.update(
         "send-viewed-no-contact-reminders": {
             "task": "app.tasks.email_tasks.send_viewed_no_contact_reminders",
             "schedule": 3600.0,
+        },
+        # ── RETENTION FUNNEL ─────────────────────────────────────────────────────
+        # Cross-sell: 7 days after delivery — daily at 10:00 UTC
+        "retention-cross-sell": {
+            "task": "app.tasks.retention_tasks.send_cross_sell_reminders",
+            "schedule": crontab(hour=10, minute=0),
+        },
+        # Replenishment: consumable products, 14 days after delivery — 10:30 UTC
+        "retention-replenishment": {
+            "task": "app.tasks.retention_tasks.send_replenishment_reminders",
+            "schedule": crontab(hour=10, minute=30),
+        },
+        # Win-back soft: 45-day lapse — daily at 11:00 UTC
+        "retention-winback-soft": {
+            "task": "app.tasks.retention_tasks.send_winback_soft",
+            "schedule": crontab(hour=11, minute=0),
+        },
+        # Win-back offer: 90-day lapse with 10% coupon — daily at 11:30 UTC
+        "retention-winback-offer": {
+            "task": "app.tasks.retention_tasks.send_winback_offer",
+            "schedule": crontab(hour=11, minute=30),
+        },
+        # Purchase anniversary coupons — daily at 09:00 UTC
+        "retention-anniversary": {
+            "task": "app.tasks.retention_tasks.send_anniversary_coupons",
+            "schedule": crontab(hour=9, minute=0),
         },
     },
 )

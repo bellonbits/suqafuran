@@ -2,11 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from datetime import datetime
 from typing import List, Optional
+import logging
 
 from database import get_db
 from models import Order, OrderItem, OrderStatus, User, Seller, Payment, Refund
 from app.api.deps import get_current_user
 import uuid
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -268,6 +271,45 @@ def update_delivery_status(
         order.status = new_status
         order.updated_at = datetime.utcnow()
         db.commit()
+
+        # ── RETENTION FUNNEL: delivery status notifications ──────────────────
+        try:
+            from app.tasks.retention_tasks import notify_order_dispatched, notify_order_delivered
+
+            buyer = db.query(User).filter(User.id == order.user_id).first()
+            seller = db.query(Seller).filter(Seller.id == order.seller_id).first()
+
+            if buyer and buyer.email:
+                buyer_name = getattr(buyer, "full_name", None) or "Valued Customer"
+                buyer_email = buyer.email
+                buyer_phone = getattr(buyer, "phone", "") or getattr(order, "phone_number", "") or ""
+                seller_name = getattr(seller, "business_name", None) or "Seller"
+                items_list = db.query(OrderItem).filter(OrderItem.order_id == order_id).all()
+                first_item_id = items_list[0].product_id if items_list else None
+
+                if new_status == OrderStatus.IN_DELIVERY.value:
+                    notify_order_dispatched.apply_async(kwargs={
+                        "user_id": buyer.id,
+                        "buyer_name": buyer_name,
+                        "buyer_email": buyer_email,
+                        "buyer_phone": buyer_phone,
+                        "order_id": order_id,
+                        "seller_name": seller_name,
+                        "estimated_delivery": "Within 24 hours",
+                    })
+
+                elif new_status == OrderStatus.DELIVERED.value:
+                    notify_order_delivered.apply_async(kwargs={
+                        "user_id": buyer.id,
+                        "buyer_name": buyer_name,
+                        "buyer_email": buyer_email,
+                        "order_id": order_id,
+                        "seller_name": seller_name,
+                        "listing_id": first_item_id,
+                    })
+        except Exception as notif_err:
+            logger.warning(f"[Order] Retention notification failed (non-critical): {notif_err}")
+        # ─────────────────────────────────────────────────────────────────────
 
         return {
             "success": True,
