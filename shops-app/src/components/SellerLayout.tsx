@@ -109,7 +109,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
   ];
 
   return (
-    <div className={`min-h-screen bg-[#F4F5F9] dark:bg-black text-slate-800 dark:text-neutral-50 font-sans antialiased flex flex-col md:flex-row p-3 md:p-5 gap-5 overflow-x-hidden ${darkMode ? 'dark' : ''}`}>
+    <div className={`min-h-screen bg-white dark:bg-black text-slate-800 dark:text-neutral-50 font-sans antialiased flex flex-col md:flex-row p-3 md:p-5 gap-5 overflow-x-hidden ${darkMode ? 'dark' : ''}`}>
 
       {/* ── Desktop Floating Sidebar (SadaxCart style) ── */}
       <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-neutral-950 rounded-3xl p-4 border border-slate-100 dark:border-neutral-800 shadow-[0_4px_24px_rgba(0,0,0,0.03)] flex-shrink-0 relative z-30 transition-colors">
