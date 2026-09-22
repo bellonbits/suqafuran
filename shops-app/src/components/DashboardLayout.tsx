@@ -214,7 +214,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                         onClick={() => { router.push(item.href); setMobileOpen(false); }}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm font-medium transition-all ${
                           isActive
-                            ? 'bg-slate-900 dark:bg-white text-white dark:text-neutral-100 font-bold shadow-md'
+                            ? 'bg-slate-900 dark:bg-white text-white dark:text-neutral-900 font-bold shadow-md'
                             : 'text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-900/60'
                         }`}
                       >
@@ -326,12 +326,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                       title={!sidebarOpen ? item.label : undefined}
                       className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-sm font-medium transition-all group ${
                         isActive
-                          ? 'bg-slate-900 text-white dark:bg-white dark:text-neutral-100 font-semibold shadow-sm'
+                          ? 'bg-slate-900 text-white dark:bg-white dark:text-neutral-900 font-semibold shadow-sm'
                           : 'text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-900/60 hover:text-slate-900 dark:hover:text-white'
                       } ${!sidebarOpen ? 'justify-center px-0' : ''}`}
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white dark:text-neutral-100' : 'text-slate-400 group-hover:text-slate-700 dark:group-hover:text-neutral-100'}`}>
+                        <div className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white dark:text-neutral-900' : 'text-slate-400 group-hover:text-slate-700 dark:group-hover:text-neutral-100'}`}>
                           {item.icon}
                         </div>
                         {sidebarOpen && (
