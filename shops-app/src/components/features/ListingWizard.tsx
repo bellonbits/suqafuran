@@ -886,7 +886,13 @@ export const ListingWizard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black py-8 px-4">
+    // No min-h-screen/py-8 here -- this only ever mounts inside
+    // PostAdPage.tsx, which already provides page-level padding (py-8) and
+    // sits inside SellerLayout's own min-h-screen. Having both meant: two
+    // stacked top paddings before any content appeared, and a forced
+    // full-viewport height that left a large empty gap below the Back/Next
+    // buttons since the actual form content doesn't fill 100vh.
+    <div className="bg-white dark:bg-black">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-6 md:mb-12">
