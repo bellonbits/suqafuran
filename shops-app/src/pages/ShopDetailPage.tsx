@@ -566,8 +566,9 @@ export default function ShopDetailPage() {
                     <div className="absolute bottom-4 left-5 w-16 h-16 rounded-full bg-white dark:bg-neutral-950 border-4 border-white dark:border-neutral-800 shadow-lg flex items-center justify-center overflow-hidden">
                         {shopAvatar && !avatarError ? (
                             <img
-                                src={shopAvatar}
+                                src={optimizeCloudinaryUrl(shopAvatar, { width: 128 }) || shopAvatar}
                                 alt={shopName}
+                                loading="lazy"
                                 className="w-full h-full object-cover"
                                 onError={() => setAvatarError(true)}
                             />
@@ -1147,8 +1148,9 @@ export default function ShopDetailPage() {
                                                     <div className="relative bg-gray-50 dark:bg-neutral-950/60 aspect-square rounded-lg overflow-hidden border border-gray-100 dark:border-neutral-800/80 mb-2.5 flex items-center justify-center transition-shadow group-hover:shadow-md">
                                                         {product.images?.[0] ? (
                                                             <img
-                                                                src={product.images[0]}
+                                                                src={optimizeCloudinaryUrl(product.images[0], { width: 500 }) || product.images[0]}
                                                                 alt={product.title_en}
+                                                                loading="lazy"
                                                                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-103"
                                                             />
                                                         ) : (
@@ -1578,8 +1580,9 @@ export default function ShopDetailPage() {
                                         {selectedProduct.images.map((src: string, i: number) => (
                                             <img
                                                 key={i}
-                                                src={src}
+                                                src={optimizeCloudinaryUrl(src, { width: 900 }) || src}
                                                 alt={`${selectedProduct.title_en} ${i + 1}`}
+                                                loading="lazy"
                                                 className="h-full w-full object-contain p-4 shrink-0 snap-center"
                                                 draggable={false}
                                             />
