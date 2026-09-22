@@ -20,7 +20,7 @@ export const BottomNav: React.FC = () => {
     const navItems = [
         { href: '/', icon: Home, label: 'Home', path: '/' },
         { href: '/favorites', icon: Heart, label: 'Favorites', path: '/favorites' },
-        { href: '/seller-dashboard', icon: PlusCircle, label: 'Sell', path: '/seller-dashboard' },
+        { href: '/seller-dashboard/products/add', icon: PlusCircle, label: 'Sell', path: '/seller-dashboard/products/add' },
         { href: '/messages', icon: MessageCircleMore, label: 'Chat', path: '/messages' },
         { href: '/account', icon: CircleUser, label: 'Profile', path: '/account' },
     ];
