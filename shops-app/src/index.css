@@ -75,19 +75,26 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
-/* Prevent zoom on input focus for mobile */
 input,
 textarea,
 select {
-  font-size: 16px;
   -webkit-font-smoothing: antialiased;
 }
 
-@supports (padding: max(0px)) {
+/* iOS Safari/WKWebView auto-zooms the page when an input whose font size is
+   under 16px gets focus. The previous bare `input { font-size: 16px }` rule
+   never worked: element selectors lose to Tailwind utility classes, so any
+   input with text-sm/text-xs (including both search bars) stayed at 14px/12px
+   and still zoomed. !important is needed to beat those utilities, and
+   -webkit-touch-callout is only supported by iOS WebKit, so Android and
+   desktop keep their designed sizes. Not using maximum-scale=1 on the
+   viewport instead -- that would disable pinch-zoom entirely, an
+   accessibility regression. */
+@supports (-webkit-touch-callout: none) {
   input,
   textarea,
   select {
-    font-size: 16px;
+    font-size: 16px !important;
   }
 }
 
