@@ -72,4 +72,4 @@ jobs:
         with:
           name: Suqafuran.ipa
           path: ~/Desktop/SuqafuranIPA/Suqafuran.ipa
-          retention-days: 30
+          retention-days: 1
