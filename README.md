@@ -154,3 +154,28 @@ export default defineConfig([
   },
 ])
 ```
+
+---
+
+## Building & releasing (Suqafuran)
+
+The live frontend is `shops-app/` (Vite + React), packaged for mobile with Capacitor.
+
+**Web (cPanel)** — `cd shops-app && npm run build`, then upload the contents of `shops-app/dist/` (including `.htaccess`) to the site's document root.
+
+**Android** — built locally, not in CI:
+
+```bash
+cd shops-app
+npm run build && npx cap sync android
+cd android
+JAVA_HOME=<JDK 21 path> ./gradlew bundleRelease
+# -> app/build/outputs/bundle/release/app-release.aab
+```
+
+- Use JDK 17 or 21. Gradle 8.14 fails on JDK 25 ("Unsupported class file major version 69").
+- Signing uses `android/key.properties` + `android/app/suqafuran.jks`.
+- `versionCode` is seconds since epoch (auto-generated); bump `versionName` in both `android/app/build.gradle` and `shops-app/android/app/build.gradle` for each release.
+- Upload the file from the `release/` folder, not `debug/`.
+
+**iOS** — built by the `iOS Build` GitHub Actions workflow (`.github/workflows/ios.yml`, Fastlane + App Store Connect API key secrets). It runs on every push to `main` and can be started manually from the Actions tab. The `.ipa` artifact is kept for 1 day, so download it promptly. Bump `MARKETING_VERSION` in both `ios/App` and `shops-app/ios/App` Xcode projects for each release.
