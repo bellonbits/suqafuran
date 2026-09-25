@@ -24,7 +24,7 @@ android {
         // than the minutes-based scheme's ~6053, a trade worth making for
         // collision resistance now.
         versionCode ((int) (System.currentTimeMillis() / 1000))
-        versionName "2.0.3"
+        versionName "2.0.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
