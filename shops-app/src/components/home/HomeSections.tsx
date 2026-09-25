@@ -317,45 +317,79 @@ export const TopSelling: React.FC<{ tabs: TopSellingTab[]; categoryNameById: Rec
 
 // ─── Built-in poster (pairs with the admin banner) ───────────────────────────
 /** Brand poster in the logo colours, same 16:9 card shape as the admin banners. */
-export const SellPoster: React.FC<{ title: string; subtitle: string; cta: string }> = ({ title, subtitle, cta }) => (
+/**
+ * Photo poster card shared by SellPoster and ShopsPoster: a full-bleed photo
+ * with a brand-colour scrim rising from the bottom, so the faces in the top
+ * of each photo stay clear while the headline and button sit on solid colour.
+ * Photos are ~1200px WebP (see public/cards) -- the originals were 2-4 MB.
+ */
+const PosterCard: React.FC<{
+  to: string;
+  image: string;
+  imagePosition: string;
+  scrim: string;
+  accent: string;
+  title: string;
+  subtitle: string;
+  cta: string;
+  ctaClass: string;
+}> = ({ to, image, imagePosition, scrim, accent, title, subtitle, cta, ctaClass }) => (
   <Link
-    to="/seller-dashboard"
-    className="group relative block aspect-video overflow-hidden rounded-2xl bg-gradient-to-r from-[#0078E8] via-[#0090F0] to-[#00BFFF] shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+    to={to}
+    className="group relative block aspect-video overflow-hidden rounded-2xl bg-gray-200 shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
   >
-    {/* logo smile, oversized, as background art */}
-    <svg viewBox="0 0 200 40" fill="none" preserveAspectRatio="none" aria-hidden className="absolute -right-8 bottom-1 w-[62%] h-[45%] opacity-90">
-      <path d="M4 10 C 50 42, 150 42, 196 8" stroke="#FF9600" strokeWidth="6" strokeLinecap="round" />
-      <path d="M182 4 L196 8 L188 20" stroke="#FF9600" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-    <div aria-hidden className="absolute -right-10 -top-16 w-56 h-56 rounded-full bg-white/10" />
-    <div className="relative h-full flex flex-col items-start justify-center gap-4 px-6 lg:px-8">
+    <img
+      src={image}
+      alt=""
+      aria-hidden
+      loading="lazy"
+      decoding="async"
+      style={{ objectPosition: imagePosition }}
+      className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+    />
+    <div aria-hidden className={`absolute inset-0 ${scrim}`} />
+    <div className="relative h-full flex flex-col items-start justify-end gap-2 sm:gap-3 px-4 pb-4 sm:px-5 sm:pb-5 lg:px-7 lg:pb-6">
       <div className="min-w-0">
-        <p className="text-white font-black uppercase tracking-tight leading-none text-[clamp(20px,2vw,28px)] [overflow-wrap:anywhere]">{title}</p>
-        <p className="mt-1.5 text-white/85 text-xs lg:text-sm line-clamp-1">{subtitle}</p>
+        <p className="text-white font-black uppercase tracking-tight leading-none text-[clamp(20px,2vw,28px)] [overflow-wrap:anywhere] drop-shadow-[0_2px_6px_rgba(0,0,0,0.35)]">{title}</p>
+        {/* the logo's "smile" swoosh, as an underline accent */}
+        <svg viewBox="0 0 64 10" fill="none" aria-hidden className="hidden sm:block mt-1.5 h-2 w-14">
+          <path d="M2 3 C 20 11, 44 11, 62 2" stroke={accent} strokeWidth="3.5" strokeLinecap="round" />
+        </svg>
+        <p className="mt-1.5 hidden sm:block text-white/90 text-xs lg:text-sm line-clamp-1 drop-shadow-[0_1px_4px_rgba(0,0,0,0.4)]">{subtitle}</p>
       </div>
-      <span className="shrink-0 inline-flex items-center h-9 lg:h-10 px-4 lg:px-5 rounded-full bg-[#FF9600] group-hover:bg-[#F08800] text-white text-sm font-bold shadow-[0_6px_16px_-6px_rgba(255,150,0,0.8)] transition-colors">
+      <span className={`shrink-0 inline-flex items-center h-8 sm:h-9 lg:h-10 px-3.5 sm:px-4 lg:px-5 rounded-full text-sm font-bold transition-colors ${ctaClass}`}>
         {cta} <SfIconChevronRight size="sm" />
       </span>
     </div>
   </Link>
 );
 
-/** Companion poster to SellPoster, same shape, in the brand orange. */
+/** "Sell on Suqafuran" -- shopkeeper turning her sign to OPEN, brand blue scrim. */
+export const SellPoster: React.FC<{ title: string; subtitle: string; cta: string }> = ({ title, subtitle, cta }) => (
+  <PosterCard
+    to="/seller-dashboard"
+    image="/cards/card_1.webp"
+    imagePosition="50% 90%"
+    scrim="bg-gradient-to-t from-[#00458a]/95 via-[#0078E8]/45 to-transparent"
+    accent="#FF9600"
+    title={title}
+    subtitle={subtitle}
+    cta={cta}
+    ctaClass="bg-[#FF9600] group-hover:bg-[#F08800] text-white shadow-[0_6px_16px_-6px_rgba(255,150,0,0.8)]"
+  />
+);
+
+/** Companion poster: friends shopping from a phone at a market stall, brand orange scrim. */
 export const ShopsPoster: React.FC<{ title: string; subtitle: string; cta: string; to?: string }> = ({ title, subtitle, cta, to = '/shops' }) => (
-  <Link
+  <PosterCard
     to={to}
-    className="group relative block aspect-video overflow-hidden rounded-2xl bg-gradient-to-br from-[#FF9600] via-[#FF8A00] to-[#F06A00] shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
-  >
-    <div aria-hidden className="absolute -right-10 -top-16 w-56 h-56 rounded-full bg-white/10" />
-    <div aria-hidden className="absolute -left-12 -bottom-20 w-48 h-48 rounded-full bg-white/10" />
-    <div className="relative h-full flex flex-col items-start justify-center gap-4 px-6 lg:px-8">
-      <div className="min-w-0">
-        <p className="text-white font-black uppercase tracking-tight leading-none text-[clamp(20px,2vw,28px)] [overflow-wrap:anywhere]">{title}</p>
-        <p className="mt-1.5 text-white/90 text-xs lg:text-sm line-clamp-1">{subtitle}</p>
-      </div>
-      <span className="shrink-0 inline-flex items-center h-9 lg:h-10 px-4 lg:px-5 rounded-full bg-white group-hover:bg-white/90 text-[#F06A00] text-sm font-bold shadow-[0_6px_16px_-6px_rgba(0,0,0,0.3)] transition-colors">
-        {cta} <SfIconChevronRight size="sm" />
-      </span>
-    </div>
-  </Link>
+    image="/cards/card_2.webp"
+    imagePosition="50% 60%"
+    scrim="bg-gradient-to-t from-[#b34700]/95 via-[#FF8A00]/40 to-transparent"
+    accent="#FFFFFF"
+    title={title}
+    subtitle={subtitle}
+    cta={cta}
+    ctaClass="bg-white group-hover:bg-white/90 text-[#F06A00] shadow-[0_6px_16px_-6px_rgba(0,0,0,0.3)]"
+  />
 );
