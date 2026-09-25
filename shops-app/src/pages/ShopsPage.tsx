@@ -8,6 +8,7 @@ import { listingsService, PublicShop } from '@/services/listings';
 import api from '@/services/api';
 import { MARKET_TO_CITY } from '@/constants/markets';
 import { HomepageBannerRotation } from '@/components/ads/HomepageBannerRotation';
+import { SellPoster, ShopsPoster } from '@/components/home/HomeSections';
 import { GlovoShopCard } from '@/components/shared/GlovoShopCard';
 import { getCategoryStickerIcon } from '@/lib/categoryIcons';
 import {
@@ -295,7 +296,27 @@ function ShopsPageContent() {
     <div className="min-h-screen bg-gray-50 dark:bg-black pb-20">
       {/* ── Hero Banner Carousel ───────────────────────────────────────── */}
       <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 pt-4 md:pt-6">
-        <HomepageBannerRotation />
+        {/* Same 3-card strip as the homepage: banners first, topped up with
+            posters so there are always 3. "Explore shops" would link this
+            page to itself, so the filler sends people to the products home. */}
+        <HomepageBannerRotation
+          pair
+          secondary={
+            <SellPoster
+              title="Sell on Suqafuran"
+              subtitle="Reach buyers in markets across Kenya"
+              cta="Start selling"
+            />
+          }
+          fillers={[
+            <ShopsPoster
+              to="/"
+              title="Shop the latest"
+              subtitle="Fresh deals from trusted local sellers"
+              cta="Browse products"
+            />,
+          ]}
+        />
       </div>
 
       {/* ── Page Title ─────────────────────────────────────────────────── */}

@@ -341,9 +341,9 @@ export const SellPoster: React.FC<{ title: string; subtitle: string; cta: string
 );
 
 /** Companion poster to SellPoster, same shape, in the brand orange. */
-export const ShopsPoster: React.FC<{ title: string; subtitle: string; cta: string }> = ({ title, subtitle, cta }) => (
+export const ShopsPoster: React.FC<{ title: string; subtitle: string; cta: string; to?: string }> = ({ title, subtitle, cta, to = '/shops' }) => (
   <Link
-    to="/shops"
+    to={to}
     className="group relative block aspect-video overflow-hidden rounded-2xl bg-gradient-to-br from-[#FF9600] via-[#FF8A00] to-[#F06A00] shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
   >
     <div aria-hidden className="absolute -right-10 -top-16 w-56 h-56 rounded-full bg-white/10" />
