@@ -130,7 +130,7 @@ export function GlovoShopCard({ shop, index, hideRating }: GlovoShopCardProps) {
   const ratingPercent = shop.rating ? Math.round(shop.rating * 20) : 85;
   const hasPromo = false; // No promo data in API yet
   const promoText = hasPromo ? '-10% some items' : null;
-  const market = shop.market || 'Eastleigh Market';
+  const market = shop.market || shop.location || 'Eastleigh Market';
 
   return (
     <motion.div
@@ -164,7 +164,8 @@ export function GlovoShopCard({ shop, index, hideRating }: GlovoShopCardProps) {
                     key={i}
                     src={optimizeCloudinaryUrl(src, { width: 250 }) || src}
                     alt=""
-                    loading="lazy"
+                    loading="eager"
+                    decoding="async"
                     className="h-full aspect-square object-cover shrink-0"
                     draggable={false}
                   />
@@ -177,7 +178,8 @@ export function GlovoShopCard({ shop, index, hideRating }: GlovoShopCardProps) {
               <img
                 src={optimizeCloudinaryUrl(banner, { width: 500 }) || banner}
                 alt={shop.shop_name}
-                loading="lazy"
+                loading="eager"
+                decoding="async"
                 className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
                 onError={() => setImgError(true)}
               />

@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocationStore } from '@/store/useLocation';
 import { LocationPickerModal } from '@/components/shared/LocationPickerModal';
@@ -51,15 +50,16 @@ function getCategoryPath(categoryId: number, subcategoryId: number | undefined, 
 }
 
 export default function ShopDetailPage() {
-    const params = useSearchParams();
-    const router = useRouter();
+    const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
     const { slug: slugParam } = useParams<{ slug?: string }>();
-    const shopIdParam = (slugParam || params.get("id")) as string;
+    const shopIdParam = (slugParam || searchParams.get("id")) as string;
     const { city, isHydrated } = useLocationStore();
 
     const [shopName, setShopName] = useState('');
     const [shopOwnerName, setShopOwnerName] = useState('');
     const [shopLocation, setShopLocation] = useState('');
+    const [shopPhone, setShopPhone] = useState('');
     const [shopLogo, setShopLogo] = useState('');
     const [shopAvatar, setShopAvatar] = useState('');
     const [avatarError, setAvatarError] = useState(false);
@@ -270,6 +270,7 @@ export default function ShopDetailPage() {
                 setShopAvatar(logoUrl);
                 setAvatarError(false);
                 setShopOwnerId(ownerId);
+                setShopPhone(currentShop.phone || '');
                 setAllListings(shopListings || []);
                 console.log('📦 Sample listing:', shopListings?.[0]);
                 console.log('📦 Has subcategory_id:', shopListings?.[0]?.subcategory_id);
@@ -477,7 +478,7 @@ export default function ShopDetailPage() {
                     </p>
                     <motion.button
                         whileHover={{ scale: 1.05 }}
-                        onClick={() => router.push('/shops')}
+                        onClick={() => navigate('/shops')}
                         className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-8 rounded-full"
                     >
                         Browse All Markets
@@ -506,11 +507,11 @@ export default function ShopDetailPage() {
             <div className="sticky top-0 z-40 bg-white dark:bg-black border-b border-gray-100 dark:border-neutral-800">
                 <div className="max-w-7xl mx-auto px-4 lg:px-6 py-3.5 flex items-center justify-between">
                     <div className="flex items-center gap-1.5 text-xs font-semibold">
-                        <button onClick={() => router.push('/')} className="text-gray-500 dark:text-neutral-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+                        <button onClick={() => navigate('/')} className="text-gray-500 dark:text-neutral-300 hover:text-gray-900 dark:hover:text-white transition-colors">
                             {city}
                         </button>
                         <ChevronRight className="w-3 h-3 text-gray-400" />
-                        <button onClick={() => router.push('/')} className="text-gray-500 dark:text-neutral-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+                        <button onClick={() => navigate('/shops')} className="text-gray-500 dark:text-neutral-300 hover:text-gray-900 dark:hover:text-white transition-colors">
                             Shops
                         </button>
                         <ChevronRight className="w-3 h-3 text-gray-400" />
@@ -530,7 +531,7 @@ export default function ShopDetailPage() {
 
                         {/* Cart Icon */}
                         <button
-                            onClick={() => router.push('/checkout')}
+                            onClick={() => navigate('/checkout')}
                             className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-900 text-gray-600 dark:text-neutral-300 transition-colors"
                             title="View cart"
                         >
@@ -568,7 +569,9 @@ export default function ShopDetailPage() {
                             <img
                                 src={optimizeCloudinaryUrl(shopAvatar, { width: 128 }) || shopAvatar}
                                 alt={shopName}
-                                loading="lazy"
+                                loading="eager"
+                                decoding="async"
+                                fetchPriority="high"
                                 className="w-full h-full object-cover"
                                 onError={() => setAvatarError(true)}
                             />
@@ -614,16 +617,16 @@ export default function ShopDetailPage() {
                             {/* Contact Buttons - Icon Row */}
                             <div className="flex items-center gap-2 ml-auto">
                                 <a
-                                    href="tel:+254720073322"
-                                    title="Call Suqafuran: +254 720 073322"
+                                    href={`tel:${shopPhone || '+254720073322'}`}
+                                    title={shopPhone ? `Call: ${shopPhone}` : "Call Seller"}
                                     className="w-10 h-10 rounded-lg hover:scale-110 transition-transform flex items-center justify-center"
                                 >
-                                    <img src="/call-icon.png" alt="Call Suqafuran" className="w-6 h-6" />
+                                    <img src="/call-icon.png" alt="Call" className="w-6 h-6" />
                                 </a>
                                 <button
                                     onClick={() => {
                                         if (!isAuthenticated) {
-                                            router.push('/login?returnUrl=' + encodeURIComponent(window.location.pathname));
+                                            navigate('/login?returnUrl=' + encodeURIComponent(window.location.pathname));
                                             return;
                                         }
                                         analyticsService.trackClick({
@@ -631,7 +634,7 @@ export default function ShopDetailPage() {
                                             shop_id: shopOwnerId as number,
                                             device_type: analyticsService.getDeviceType(),
                                         }).catch(() => {});
-                                        router.push(`/messages?userId=${shopOwnerId}`);
+                                        navigate(`/messages?userId=${shopOwnerId}`);
                                     }}
                                     className="w-10 h-10 rounded-lg hover:scale-110 transition-transform flex items-center justify-center"
                                     title="Message Seller"
@@ -1150,7 +1153,8 @@ export default function ShopDetailPage() {
                                                             <img
                                                                 src={optimizeCloudinaryUrl(product.images[0], { width: 500 }) || product.images[0]}
                                                                 alt={product.title_en}
-                                                                loading="lazy"
+                                                                loading="eager"
+                                                                decoding="async"
                                                                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-103"
                                                             />
                                                         ) : (
@@ -1315,7 +1319,7 @@ export default function ShopDetailPage() {
                                             </div>
                                             
                                             <button
-                                                onClick={() => router.push('/checkout')}
+                                                onClick={() => navigate('/checkout')}
                                                 className="w-full bg-[#00a082] hover:bg-[#008f73] text-white font-black py-2.5 px-4 rounded-full transition-colors flex items-center justify-center gap-1.5 shadow-sm text-xs"
                                             >
                                                 <span>Checkout</span>
@@ -1509,7 +1513,7 @@ export default function ShopDetailPage() {
                                 <button
                                     onClick={async () => {
                                         if (!isAuthenticated) {
-                                            router.push('/login?returnUrl=' + encodeURIComponent(window.location.pathname));
+                                            navigate('/login?returnUrl=' + encodeURIComponent(window.location.pathname));
                                             return;
                                         }
                                         try {
@@ -1582,7 +1586,8 @@ export default function ShopDetailPage() {
                                                 key={i}
                                                 src={optimizeCloudinaryUrl(src, { width: 900 }) || src}
                                                 alt={`${selectedProduct.title_en} ${i + 1}`}
-                                                loading="lazy"
+                                                loading="eager"
+                                                decoding="async"
                                                 className="h-full w-full object-contain p-4 shrink-0 snap-center"
                                                 draggable={false}
                                             />

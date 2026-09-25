@@ -22,6 +22,7 @@ interface StoreCardProps {
   promotion?: string;
   popularProducts?: any[];
   shopPageBanner?: string;
+  location?: string;
 }
 
 // Exact mapping of categories/subcategories to banner images
@@ -216,6 +217,7 @@ export const StoreCard: React.FC<StoreCardProps> = ({
   promotion,
   popularProducts = [],
   shopPageBanner,
+  location,
 }) => {
   const router = useRouter();
   const [imageError, setImageError] = useState(false);
@@ -287,7 +289,7 @@ export const StoreCard: React.FC<StoreCardProps> = ({
 
         {/* Location - Secondary text */}
         <p className="text-xs text-gray-500 dark:text-neutral-300 mt-0.5 line-clamp-1">
-          Eastleigh Market
+          {location || 'Eastleigh Market'}
         </p>
 
         {/* Rating + Stats Row */}

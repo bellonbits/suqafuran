@@ -49,6 +49,7 @@ export interface PublicShop {
     slug: string;
     created_at: string | null;
     market?: string;  // Kenyan market location (e.g., "Eastleigh Market")
+    location?: string;  // Free-text shop location, used when no market is set
     response_time?: string;
     is_featured?: boolean;
     free_delivery?: boolean;
@@ -59,8 +60,35 @@ export interface PublicShop {
     };
 }
 
+// Requests currently on the wire, keyed like the localStorage cache. A second
+// caller asking for the same listings (React StrictMode's double effect, a
+// hover prefetch racing the click) joins the first request instead of
+// starting another one against the API.
+const inFlightListings = new Map<string, Promise<Listing[]>>();
+let categoriesInFlight: Promise<Category[]> | null = null;
+
 export const listingsService = {
-    async getListings(params?: any): Promise<Listing[]> {
+    getListings(params?: any): Promise<Listing[]> {
+        const key = `listings:${JSON.stringify(params ?? {})}`;
+        const pending = inFlightListings.get(key);
+        if (pending) return pending;
+        const request = listingsService.fetchListings(params).finally(() => inFlightListings.delete(key));
+        inFlightListings.set(key, request);
+        return request;
+    },
+
+    /** Params a category page requests -- shared so a prefetch warms exactly that cache entry. */
+    categoryPageParams(slug: string) {
+        return { category_id: slug, limit: 60 };
+    },
+
+    /** Fire-and-forget warm-up for a category page (hover / touch on a category link). */
+    prefetchCategory(slug: string) {
+        if (!slug) return;
+        listingsService.getListings(listingsService.categoryPageParams(slug)).catch(() => {});
+    },
+
+    async fetchListings(params?: any): Promise<Listing[]> {
         // Cache key covers every param (not a hand-picked subset) -- a subset
         // previously missed category_id, so two different-category calls with
         // the same limit/skip collided into the same cached result.
@@ -135,7 +163,13 @@ export const listingsService = {
         return response.data;
     },
 
-    async getCategories(): Promise<Category[]> {
+    getCategories(): Promise<Category[]> {
+        // Large payload -- share one in-flight request between callers.
+        categoriesInFlight ??= listingsService.fetchCategories().finally(() => { categoriesInFlight = null; });
+        return categoriesInFlight;
+    },
+
+    async fetchCategories(): Promise<Category[]> {
         // Cache categories - they change rarely
         const cacheKey = 'listings:categories';
 

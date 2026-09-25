@@ -39,14 +39,14 @@ export const BottomNav: React.FC = () => {
                         <Link
                             key={item.href}
                             href={item.href}
-                            className="flex-1 flex flex-col items-center justify-center gap-1 relative active:scale-95 transition-transform"
+                            className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1 relative active:scale-95 transition-transform"
                         >
                             <Icon className={`w-6 h-6 transition-colors duration-200 ${
                                 active
                                     ? 'text-orange-600 dark:text-orange-400'
                                     : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-gray-400'
                             }`} />
-                            <span className={`text-[10px] tracking-wide transition-colors duration-200 ${
+                            <span className={`max-w-full truncate whitespace-nowrap leading-none tracking-tight text-[10px] transition-colors duration-200 ${
                                 active
                                     ? 'text-orange-600 dark:text-orange-400 font-bold'
                                     : 'text-gray-400 dark:text-zinc-500 font-semibold hover:text-gray-600 dark:hover:text-gray-400'

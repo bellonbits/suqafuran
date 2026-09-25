@@ -12,6 +12,7 @@ import { formatConvertedPrice } from '../../lib/currency';
 import { useLocalizedField } from '../../lib/i18n';
 import { FeaturedBadge } from '../ads/FeaturedBadge';
 import { advertisingService } from '@/services/advertising';
+import { optimizeCloudinaryUrl } from '@/services/api';
 import type { Listing } from '../../types';
 
 interface ProductCardProps {
@@ -74,9 +75,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
     };
 
     // Generate fallback visuals if listing images are missing
-    const displayImage = (listing.images && listing.images.length > 0)
+    const rawImage = (listing.images && listing.images.length > 0)
         ? listing.images[0]
         : 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop'; // fallback sneaker image
+    const displayImage = optimizeCloudinaryUrl(rawImage, { width: 500, quality: 'auto', fetch_format: 'auto' }) || rawImage;
 
     const cornerBadges = (
         <>
@@ -150,7 +152,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                         src={displayImage}
                         alt={listing.title_en}
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        loading="lazy"
+                        loading="eager"
+                        decoding="async"
                     />
                     {cornerBadges}
                 </div>
@@ -215,7 +218,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                     src={displayImage}
                     alt={listing.title_en}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    loading="lazy"
+                    loading="eager"
+                    decoding="async"
                 />
 
                 {cornerBadges}

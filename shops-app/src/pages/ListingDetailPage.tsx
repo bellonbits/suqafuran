@@ -485,6 +485,7 @@ export default function ProductDetailPage() {
                                 // This is the listing page's LCP element.
                                 loading="eager"
                                 fetchPriority="high"
+                                decoding="async"
                                 className="h-full w-full object-cover"
                             />
                             {isSold && (
@@ -514,7 +515,7 @@ export default function ProductDetailPage() {
                                             onClick={() => setActiveImage(img)}
                                             className={`h-16 w-16 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${activeImage === img ? 'border-orange-500' : 'border-gray-200 dark:border-neutral-800'}`}
                                         >
-                                            <img src={optimizeCloudinaryUrl(img, { width: 100 }) || img} alt="" loading="lazy" className="h-full w-full object-cover" />
+                                            <img src={optimizeCloudinaryUrl(img, { width: 100 }) || img} alt="" loading="eager" decoding="async" className="h-full w-full object-cover" />
                                         </button>
                                     ))}
                                 </div>
@@ -667,7 +668,7 @@ export default function ProductDetailPage() {
 
                         {/* Location chip */}
                         <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-neutral-300">
-                            <MapPin className="h-3.5 w-3.5" /> {listing.location || 'Somalia'}
+                            <MapPin className="h-3.5 w-3.5" /> {listing.location || 'Kenya'}
                         </div>
 
                         {/* Share + Report */}
@@ -934,7 +935,7 @@ export default function ProductDetailPage() {
                                         type="text"
                                         value={orderLocation}
                                         onChange={(e) => setOrderLocation(e.target.value)}
-                                        placeholder="e.g. Mogadishu, Bakaara Market"
+                                        placeholder="e.g. Nairobi, Eastleigh Market"
                                         className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:border-orange-500"
                                     />
                                 </div>
