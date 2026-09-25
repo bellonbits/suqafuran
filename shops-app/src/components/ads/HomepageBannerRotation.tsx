@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { advertisingService, HomepageBanner } from '@/services/advertising';
@@ -9,8 +10,26 @@ import { optimizeCloudinaryUrl } from '@/services/api';
 
 const AUTO_SLIDE_MS = 5000;
 const TRANSITION_MS = 400;
+const CARD_SLIDE_MS = 10000;
 
-export function HomepageBannerRotation() {
+interface HomepageBannerRotationProps {
+  /**
+   * Show every banner as a card in a horizontally swipeable strip (about
+   * 1.2 cards visible on phones, 3 on desktop) instead of one rotating
+   * strip. `secondary` is appended as the last card.
+   */
+  pair?: boolean;
+  secondary?: ReactNode;
+  /**
+   * Built-in cards used only to top the strip up to a full row of 3 when
+   * there aren't enough banners.
+   */
+  fillers?: ReactNode[];
+}
+
+const MIN_CARDS = 3;
+
+export function HomepageBannerRotation({ pair = false, secondary, fillers = [] }: HomepageBannerRotationProps = {}) {
   const navigate = useNavigate();
   const [banners, setBanners] = useState<HomepageBanner[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -22,6 +41,7 @@ export function HomepageBannerRotation() {
 
   const touchStartX = useRef<number | null>(null);
   const touchDeltaX = useRef(0);
+  const stripRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchBanners();
@@ -39,17 +59,39 @@ export function HomepageBannerRotation() {
     }
   };
 
-  // Track impression when banner changes
+  const isMobile = width < 768;
+
+  // Rotator: track an impression for the banner on screen
   useEffect(() => {
-    if (banners.length === 0 || impressionTracked.has(banners[currentIndex].id)) return;
+    if (pair || banners.length === 0) return;
+    const id = banners[currentIndex].id;
+    if (impressionTracked.has(id)) return;
 
     const timer = setTimeout(async () => {
-      await advertisingService.trackBannerImpression(banners[currentIndex].id);
-      setImpressionTracked(prev => new Set([...prev, banners[currentIndex].id]));
+      await advertisingService.trackBannerImpression(id);
+      setImpressionTracked(prev => new Set([...prev, id]));
     }, 100); // Small delay to ensure banner is visible
 
     return () => clearTimeout(timer);
-  }, [currentIndex, banners, impressionTracked]);
+  }, [pair, currentIndex, banners, impressionTracked]);
+
+  // Card strip: track an impression once a card is at least half scrolled
+  // into view.
+  useEffect(() => {
+    const strip = stripRef.current;
+    if (!pair || !strip || banners.length === 0) return;
+    const seen = new Set<number>();
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const id = Number((entry.target as HTMLElement).dataset.bannerId);
+        if (!entry.isIntersecting || seen.has(id)) return;
+        seen.add(id);
+        advertisingService.trackBannerImpression(id);
+      });
+    }, { root: strip, threshold: 0.5 });
+    strip.querySelectorAll<HTMLElement>('[data-banner-id]').forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [pair, banners]);
 
   const goTo = (index: number, dir: 'next' | 'prev') => {
     setDirection(dir);
@@ -68,29 +110,58 @@ export function HomepageBannerRotation() {
     goTo((currentIndex + 1) % banners.length, 'next');
   };
 
-  // Auto-rotate banners
+  // Card strip: advance one card every CARD_SLIDE_MS, wrapping back to the
+  // start at the end. Pauses while the user hovers or touches the strip.
   useEffect(() => {
-    if (banners.length <= 1) return;
+    const strip = stripRef.current;
+    if (!pair || !strip) return;
+    let paused = false;
+    const pause = () => { paused = true; };
+    const resume = () => { paused = false; };
+    strip.addEventListener('pointerenter', pause);
+    strip.addEventListener('pointerleave', resume);
+    strip.addEventListener('touchstart', pause, { passive: true });
+    strip.addEventListener('touchend', resume);
+
+    const interval = setInterval(() => {
+      const first = strip.firstElementChild as HTMLElement | null;
+      const max = strip.scrollWidth - strip.clientWidth;
+      if (paused || !first || max <= 0) return;
+      const step = first.offsetWidth + parseFloat(getComputedStyle(strip).columnGap || '0');
+      const next = strip.scrollLeft >= max - 4 ? 0 : Math.min(strip.scrollLeft + step, max);
+      strip.scrollTo({ left: next, behavior: 'smooth' });
+    }, CARD_SLIDE_MS);
+
+    return () => {
+      clearInterval(interval);
+      strip.removeEventListener('pointerenter', pause);
+      strip.removeEventListener('pointerleave', resume);
+      strip.removeEventListener('touchstart', pause);
+      strip.removeEventListener('touchend', resume);
+    };
+  }, [pair, loading, banners.length]);
+
+  // Auto-rotate banners (rotator only; the card strip slides on its own timer)
+  const rotates = !pair && banners.length > 1;
+  useEffect(() => {
+    if (!rotates) return;
 
     const interval = setInterval(() => {
       goTo((currentIndex + 1) % banners.length, 'next');
     }, AUTO_SLIDE_MS);
 
     return () => clearInterval(interval);
-  }, [banners.length, currentIndex]);
+  }, [rotates, banners.length, currentIndex]);
 
-  if (loading || banners.length === 0) return null;
+  if (loading || (banners.length === 0 && !(pair && secondary))) return null;
 
-  const currentBanner = banners[currentIndex];
-  const isMobile = width < 768;
-  const imageUrl = isMobile && currentBanner.mobile_image_url
-    ? currentBanner.mobile_image_url
-    : currentBanner.image_url;
+  const imageFor = (banner: HomepageBanner) =>
+    isMobile && banner.mobile_image_url ? banner.mobile_image_url : banner.image_url;
 
-  const handleClick = async () => {
-    await advertisingService.trackBannerClick(currentBanner.id);
+  const openBanner = async (banner: HomepageBanner) => {
+    await advertisingService.trackBannerClick(banner.id);
 
-    const link = currentBanner.button_link;
+    const link = banner.button_link;
     const isExternal = /^https?:\/\//i.test(link) && !link.includes(window.location.host);
 
     if (isExternal) {
@@ -124,54 +195,84 @@ export function HomepageBannerRotation() {
     touchDeltaX.current = 0;
   };
 
+  // Offer-card look: 16:9 with a 16px radius. The full-width rotator is
+  // capped at a fixed height from md up so it doesn't dominate the page.
+  const frame = pair ? 'aspect-video' : 'aspect-video md:aspect-auto md:h-[260px] lg:h-[300px]';
+  const radius = 'rounded-2xl';
+
+  const poster = (banner: HomepageBanner, primary: boolean) => (
+    // The uploaded creative is the whole message (title, offer, and CTA are
+    // already part of the designed graphic), so the entire image is just a
+    // clickable link with no extra overlay.
+    <button
+      onClick={() => openBanner(banner)}
+      className={`block w-full ${frame}`}
+      aria-label={banner.title}
+    >
+      <img
+        key={banner.id}
+        src={optimizeCloudinaryUrl(imageFor(banner), { width: pair ? 800 : 1920 }) || imageFor(banner)}
+        alt={banner.title}
+        loading={primary ? 'eager' : 'lazy'}
+        fetchPriority={primary ? 'high' : 'auto'}
+        className={`w-full h-full object-cover transition-all ease-out ${
+          !pair && isTransitioning
+            ? direction === 'next'
+              ? 'opacity-0 -translate-x-6'
+              : 'opacity-0 translate-x-6'
+            : 'opacity-100 translate-x-0'
+        }`}
+        style={{ transitionDuration: `${TRANSITION_MS}ms` }}
+      />
+    </button>
+  );
+
+  if (pair) {
+    const card = 'shrink-0 snap-start w-[82%] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]';
+    return (
+      // py-3/-my-3 leaves room for the card shadow inside the scroll container
+      <div ref={stripRef} className="flex gap-4 overflow-x-auto overscroll-x-contain snap-x snap-mandatory hide-scrollbar py-3 -my-3">
+        {banners.map((banner, i) => (
+          <div
+            key={banner.id}
+            data-banner-id={banner.id}
+            className={`${card} relative bg-gray-900 overflow-hidden ${radius} shadow-[0_4px_12px_rgba(0,0,0,0.08)]`}
+          >
+            {poster(banner, i === 0)}
+          </div>
+        ))}
+        {secondary && <div className={card}>{secondary}</div>}
+        {fillers
+          .slice(0, Math.max(0, MIN_CARDS - banners.length - (secondary ? 1 : 0)))
+          .map((filler, i) => <div key={`filler-${i}`} className={card}>{filler}</div>)}
+      </div>
+    );
+  }
+
+  const currentBanner = banners[currentIndex];
+
   return (
     <div
-      className="relative w-full bg-gray-900 overflow-hidden rounded-[20px] shadow-[0_10px_40px_rgba(0,0,0,0.08)]"
+      className={`relative w-full bg-gray-900 overflow-hidden ${radius} shadow-[0_10px_40px_rgba(0,0,0,0.08)]`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Banner Image — the uploaded creative is the whole message (title,
-          offer, and CTA are already part of the designed graphic), so the
-          entire image is just a clickable link with no extra overlay. */}
-      <button
-        onClick={handleClick}
-        className="block w-full h-[110px] sm:h-[140px] md:h-[180px] lg:h-[210px]"
-        aria-label={currentBanner.title}
-      >
-        <img
-          key={currentBanner.id}
-          src={optimizeCloudinaryUrl(imageUrl, { width: 1920 }) || imageUrl}
-          alt={currentBanner.title}
-          // This is the homepage's LCP element -- eager + high priority so
-          // the browser fetches it immediately instead of treating it like
-          // any other below-the-fold image.
-          loading="eager"
-          fetchPriority="high"
-          className={`w-full h-full object-cover transition-all ease-out ${
-            isTransitioning
-              ? direction === 'next'
-                ? 'opacity-0 -translate-x-6'
-                : 'opacity-0 translate-x-6'
-              : 'opacity-100 translate-x-0'
-          }`}
-          style={{ transitionDuration: `${TRANSITION_MS}ms` }}
-        />
-      </button>
+      {poster(currentBanner, true)}
 
       {/* Navigation arrows (desktop only — mobile uses swipe) */}
-      {banners.length > 1 && (
+      {rotates && (
         <>
           <button
             onClick={handlePrev}
-            className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/80 hover:bg-white rounded-full transition-colors"
+            className={`hidden md:flex absolute top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white rounded-full transition-colors left-4 p-2`}
             aria-label="Previous banner"
           >
             <ChevronLeft className="w-6 h-6 text-gray-900" />
           </button>
           <button
             onClick={handleNext}
-            className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/80 hover:bg-white rounded-full transition-colors"
+            className={`hidden md:flex absolute top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white rounded-full transition-colors right-4 p-2`}
             aria-label="Next banner"
           >
             <ChevronRight className="w-6 h-6 text-gray-900" />
@@ -180,8 +281,8 @@ export function HomepageBannerRotation() {
       )}
 
       {/* Dot indicators */}
-      {banners.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+      {rotates && (
+        <div className={`absolute left-1/2 -translate-x-1/2 flex gap-2 z-10 bottom-4`}>
           {banners.map((_, index) => (
             <button
               key={index}

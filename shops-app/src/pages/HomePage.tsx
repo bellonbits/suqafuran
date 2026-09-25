@@ -1,32 +1,43 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Loader2, Flame, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+import { SfButton, SfIconTune } from '@storefront-ui/react';
 import { listingsService, PublicShop } from '@/services/listings';
 import type { Listing } from '@/types';
 import { HomepageBannerRotation } from '@/components/ads/HomepageBannerRotation';
-import { ProductCard } from '@/components/features/ProductCard';
-import { GlovoShopCard } from '@/components/shared/GlovoShopCard';
 import { ProductCarouselSection } from '@/components/shared/ProductCarouselSection';
 import { getCategoryStickerIcon } from '@/lib/categoryIcons';
 import { getMockProductInfo } from '@/lib/mockProductInfo';
+import { useT, useLocalizedField } from '@/lib/i18n';
+// ── Storefront UI + Framer Motion components ──────────────────────────────────
+import {
+  ListingCard,
+  ShopCard,
+  SuqafuranSearchBar,
+  FilterDrawer,
+  HomeFilterBar,
+} from '@/components/storefront';
+import type { FilterState } from '@/components/storefront';
+import { CategoryNavBar, HomeHero, CategoryTiles, TopSelling, SellPoster, ShopsPoster } from '@/components/home/HomeSections';
+import type { HomeCategory, TopSellingTab } from '@/components/home/HomeSections';
+import { categoryPrefetchProps } from '@/lib/prefetch';
+import { shortCategoryName } from '@/lib/categoryName';
 
 interface Category {
     id: number;
     name_en: string;
+    name_so?: string;
     slug: string;
+    image_url?: string;
     active_listing_count?: number;
 }
 
 const PRODUCT_CARD_WIDTH = 'w-[160px] sm:w-[190px] shrink-0';
 const SHOP_CARD_WIDTH = 'w-[220px] sm:w-[260px] shrink-0';
 const TOP_CATEGORY_COUNT = 5;
-const DEALS_PAGE_SIZE = 10;
-const DEALS_ROTATION_MS = 20000;
-const FEATURED_PAGE_SIZE = 10;
-const FEATURED_ROTATION_MS = 20000;
 const CATEGORY_PAGE_SIZE = 10;
 const CATEGORY_ROTATION_MS = 30000;
 
@@ -41,8 +52,8 @@ function shuffle<T>(items: T[]): T[] {
 }
 
 // Greedily takes up to `count` listings, skipping any whose seller is
-// already represented -- keeps "Featured Products" from being dominated by
-// whichever seller happens to have the most active listings.
+// already represented -- keeps a grid from being dominated by whichever
+// seller happens to have the most active listings.
 function pickDiverseBySeller(items: Listing[], count: number): Listing[] {
     const seenSellers = new Set<number>();
     const result: Listing[] = [];
@@ -56,14 +67,23 @@ function pickDiverseBySeller(items: Listing[], count: number): Listing[] {
     return result;
 }
 
+const DEFAULT_FILTERS: FilterState = {
+    condition: [],
+    priceMin: '',
+    priceMax: '',
+    location: '',
+    sortBy: 'newest',
+    verifiedOnly: false,
+};
+
 export default function HomePage() {
-    const router = useRouter();
-    const [heroSearchQuery, setHeroSearchQuery] = useState('');
+    const navigate = useNavigate();
+    const t = useT();
+    const field = useLocalizedField();
+    const [filterOpen, setFilterOpen] = useState(false);
+    const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
     const [categories, setCategories] = useState<Category[]>([]);
-    const [featuredPool, setFeaturedPool] = useState<Listing[]>([]);
-    const [featuredSeed, setFeaturedSeed] = useState(0);
-    const [dealsPool, setDealsPool] = useState<Listing[]>([]);
-    const [dealsPage, setDealsPage] = useState(0);
+    const [pool, setPool] = useState<Listing[]>([]);
     const [shops, setShops] = useState<PublicShop[]>([]);
     const [categoryListings, setCategoryListings] = useState<Record<number, Listing[]>>({});
     const [categorySeed, setCategorySeed] = useState(0);
@@ -72,18 +92,14 @@ export default function HomePage() {
     useEffect(() => {
         async function load() {
             try {
-                const [cats, pool, shopsData] = await Promise.all([
+                const [cats, listings, shopsData] = await Promise.all([
                     listingsService.getCategories(),
-                    // Shared pool for both "Featured Products" and "Today's Deals" --
-                    // each rotates through a subset of it periodically rather than a
-                    // single static page, Featured Products picking distinct sellers
-                    // and Today's Deals filtering down to promo listings.
+                    // Shared pool for every "Top Selling" tab.
                     listingsService.getListings({ limit: 200 }),
                     listingsService.getShops({ limit: 30 }),
                 ]);
                 setCategories(cats || []);
-                setFeaturedPool(pool || []);
-                setDealsPool(shuffle((pool || []).filter((l) => getMockProductInfo(l).hasPromo)));
+                setPool(listings || []);
                 setShops(shopsData?.shops || []);
             } catch (err) {
                 console.error('Failed to load homepage data:', err);
@@ -94,32 +110,24 @@ export default function HomePage() {
         load();
     }, []);
 
-    // Advance the deals window on a timer so it keeps cycling through the
-    // whole pool for as long as someone stays on the page.
-    useEffect(() => {
-        if (dealsPool.length <= DEALS_PAGE_SIZE) return;
-        const totalPages = Math.ceil(dealsPool.length / DEALS_PAGE_SIZE);
-        const intervalId = setInterval(() => {
-            setDealsPage((p) => (p + 1) % totalPages);
-        }, DEALS_ROTATION_MS);
-        return () => clearInterval(intervalId);
-    }, [dealsPool.length]);
-
-    // Re-roll Featured Products on a timer, same as Today's Deals -- each
-    // tick reshuffles the pool and picks a fresh set of distinct sellers.
-    useEffect(() => {
-        if (featuredPool.length <= FEATURED_PAGE_SIZE) return;
-        const intervalId = setInterval(() => {
-            setFeaturedSeed((s) => s + 1);
-        }, FEATURED_ROTATION_MS);
-        return () => clearInterval(intervalId);
-    }, [featuredPool.length]);
-
-    // Real listing volume, not shop count -- this drives both the category
-    // icon row and which categories get their own product carousel below.
+    // Real listing volume, not shop count -- this drives the nav, hero slides,
+    // tiles and which categories get their own product carousel below.
     const topCategories = useMemo(
-        () => [...categories].sort((a, b) => (b.active_listing_count ?? 0) - (a.active_listing_count ?? 0)),
+        () => [...categories]
+            .filter((c) => (c.active_listing_count ?? 0) > 0)
+            .sort((a, b) => (b.active_listing_count ?? 0) - (a.active_listing_count ?? 0)),
         [categories]
+    );
+
+    const homeCategories: HomeCategory[] = useMemo(
+        () => topCategories.map((c) => ({
+            id: c.id,
+            slug: c.slug,
+            name: field(c.name_en, c.name_so) || c.name_en,
+            image_url: c.image_url,
+            active_listing_count: c.active_listing_count,
+        })),
+        [topCategories, field]
     );
 
     useEffect(() => {
@@ -127,9 +135,10 @@ export default function HomePage() {
         const top = topCategories.slice(0, TOP_CATEGORY_COUNT);
         Promise.all(
             top.map((cat) =>
-                // Bigger-than-displayed pool per category so there's something
-                // to rotate through, same idea as the featured/deals pools above.
-                listingsService.getListings({ category_id: cat.id, limit: 40 }).then((data) => [cat.id, data] as const)
+                // Same request the category page makes, so these top
+                // categories open instantly from cache. Also a bigger-than-
+                // displayed pool for the carousels to rotate through.
+                listingsService.getListings(listingsService.categoryPageParams(cat.slug)).then((data) => [cat.id, data] as const)
             )
         )
             .then((results) => setCategoryListings(Object.fromEntries(results)))
@@ -138,8 +147,8 @@ export default function HomePage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [topCategories.map((c) => c.id).join(',')]);
 
-    // Re-roll each category carousel on a timer too, same idea as Featured
-    // Products -- reshuffles every category's pool and picks a fresh page.
+    // Re-roll each category carousel on a timer -- reshuffles every
+    // category's pool and picks a fresh page.
     useEffect(() => {
         const hasRotatableCategory = Object.values(categoryListings).some((l) => l.length > CATEGORY_PAGE_SIZE);
         if (!hasRotatableCategory) return;
@@ -150,19 +159,12 @@ export default function HomePage() {
     }, [categoryListings]);
 
     const categoryNameById = useMemo(
-        () => Object.fromEntries(categories.map((c) => [c.id, c.name_en])),
-        [categories]
+        () => Object.fromEntries(categories.map((c) => [c.id, field(c.name_en, c.name_so) || c.name_en])),
+        [categories, field]
     );
 
-    // featuredSeed carries no data of its own -- bumping it on a timer is
-    // just what forces this to re-shuffle and re-pick periodically.
-    const featured = useMemo(
-        () => pickDiverseBySeller(shuffle(featuredPool), FEATURED_PAGE_SIZE),
-        [featuredPool, featuredSeed]
-    );
-
-    // categorySeed carries no data of its own, same as featuredSeed -- it
-    // just forces a re-shuffle of every category's pool on each tick.
+    // categorySeed carries no data of its own -- it just forces a
+    // re-shuffle of every category's pool on each tick.
     const visibleCategoryListings = useMemo(
         () =>
             Object.fromEntries(
@@ -171,10 +173,30 @@ export default function HomePage() {
         [categoryListings, categorySeed]
     );
 
-    const deals = useMemo(
-        () => dealsPool.slice(dealsPage * DEALS_PAGE_SIZE, dealsPage * DEALS_PAGE_SIZE + DEALS_PAGE_SIZE),
-        [dealsPool, dealsPage]
-    );
+    const topSellingTabs: TopSellingTab[] = useMemo(() => [
+        {
+            key: 'popular',
+            label: t('Most popular'),
+            listings: pickDiverseBySeller([...pool].sort((a, b) => (b.views || 0) - (a.views || 0)), 12),
+            seeAllHref: '/search?sort=popular',
+        },
+        {
+            key: 'new',
+            label: t('New arrivals'),
+            listings: [...pool].sort((a, b) => (b.created_at || '').localeCompare(a.created_at || '')).slice(0, 12),
+            seeAllHref: '/search',
+        },
+        {
+            key: 'deals',
+            label: t("Today's deals"),
+            listings: pickDiverseBySeller(pool.filter((l) => getMockProductInfo(l).hasPromo), 12),
+            seeAllHref: '/search?sort=price_asc',
+            extras: (l) => {
+                const { discountPercent, originalPrice } = getMockProductInfo(l);
+                return { discountPercent, originalPrice };
+            },
+        },
+    ], [pool, t]);
 
     const popularShops = useMemo(
         () => [...shops].sort((a, b) => (b.listing_count ?? 0) - (a.listing_count ?? 0)).slice(0, 10),
@@ -191,61 +213,67 @@ export default function HomePage() {
 
     return (
         <div className="min-h-screen bg-white dark:bg-black pb-20">
-            <div className="max-w-[1440px] mx-auto">
-                {/* Search bar lives here, prominently in the hero, rather
-                than as a full input tucked inside the mobile header's
-                hamburger menu -- the header now only carries a compact
-                search icon (see Header.tsx) that lands here or on /search. */}
-                <div className="px-4 md:px-6 lg:px-8 pt-4 md:pt-6 sm:hidden">
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            if (heroSearchQuery.trim()) {
-                                router.push(`/search?q=${encodeURIComponent(heroSearchQuery.trim())}`);
-                            }
-                        }}
-                    >
-                        <div className="relative w-full">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 shrink-0" />
-                            <input
-                                type="text"
-                                placeholder="Search products, shops, services..."
-                                value={heroSearchQuery}
-                                onChange={(e) => setHeroSearchQuery(e.target.value)}
-                                className="w-full h-12 pl-12 pr-4 rounded-full bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-white text-sm font-medium placeholder:text-gray-500 dark:placeholder:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+            {/* ── Filter drawer (SFUI + Framer) — mobile ────────────────── */}
+            <FilterDrawer
+                isOpen={filterOpen}
+                onClose={() => setFilterOpen(false)}
+                filters={filters}
+                onChange={setFilters}
+                onApply={() => {
+                    const params = new URLSearchParams();
+                    if (filters.location) params.set('location', filters.location);
+                    if (filters.priceMin) params.set('price_min', filters.priceMin);
+                    if (filters.priceMax) params.set('price_max', filters.priceMax);
+                    if (filters.condition.length) params.set('condition', filters.condition.join(','));
+                    if (filters.sortBy !== 'newest') params.set('sort', filters.sortBy);
+                    navigate(`/search?${params.toString()}`);
+                }}
+            />
+
+            <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8">
+                {/* ── Hero search bar (SFUI SfInput) — mobile only ────────── */}
+                <div className="pt-4 sm:hidden">
+                    <div className="flex items-center gap-2">
+                        <div className="flex-1">
+                            <SuqafuranSearchBar
+                                size="md"
+                                placeholder={t('Search listings in Kenya…')}
                             />
                         </div>
-                    </form>
+                        <SfButton
+                            variant="tertiary"
+                            onClick={() => setFilterOpen(true)}
+                            square
+                            className="!rounded-full !w-12 !h-12 !ring-1 !ring-gray-200 dark:!ring-neutral-700 !bg-white dark:!bg-neutral-900 !text-gray-700 dark:!text-neutral-200 shrink-0"
+                            aria-label="Open filters"
+                        >
+                            <SfIconTune size="sm" />
+                        </SfButton>
+                    </div>
                 </div>
 
-                <div className="px-4 md:px-6 lg:px-8 pt-4 md:pt-6">
-                    <HomepageBannerRotation />
+                {/* ── Category nav bar (tablet/desktop) ──────────────────── */}
+                <div className="pt-4 md:pt-5">
+                    <CategoryNavBar categories={homeCategories} />
                 </div>
 
-                {/* Shop by Category */}
-                <section className="mt-6">
+                {/* ── Category icons (mobile — the hero's category list is desktop only) ── */}
+                <section className="mt-4 md:hidden -mx-4">
                     <div className="w-full overflow-x-auto overscroll-x-contain hide-scrollbar">
-                        <div className="flex flex-row flex-nowrap items-start gap-2 md:gap-4 pb-2 min-w-max px-4 md:px-6 lg:px-8">
-                            {topCategories.map((cat) => (
+                        <div className="flex flex-row flex-nowrap items-start gap-2 pb-2 min-w-max px-4">
+                            {homeCategories.map((cat) => (
                                 <Link
                                     key={cat.id}
-                                    href={`/${cat.slug}`}
+                                    to={`/${cat.slug}`}
+                                    {...categoryPrefetchProps(cat.slug)}
                                     className="flex flex-col items-center shrink-0 cursor-pointer group"
                                 >
-                                    <div className="relative w-11 h-11 md:w-16 md:h-16 flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
-                                        <img
-                                            src="/icons/fork.png"
-                                            alt=""
-                                            className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-                                        />
-                                        <img
-                                            src={getCategoryStickerIcon(cat.slug)}
-                                            alt={cat.name_en}
-                                            className="relative z-10 w-7 h-7 md:w-10 md:h-10 object-contain"
-                                        />
+                                    <div className="relative w-11 h-11 flex items-center justify-center">
+                                        <img src="/icons/fork.png" alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
+                                        <img src={getCategoryStickerIcon(cat.slug)} alt={cat.name} className="relative z-10 w-7 h-7 object-contain" />
                                     </div>
-                                    <span className="text-[10px] md:text-[12px] font-bold mt-1.5 md:mt-2 tracking-tight text-center w-14 md:w-20 leading-tight block text-gray-700 dark:text-neutral-200 group-hover:text-orange-500 transition-colors">
-                                        {cat.name_en}
+                                    <span title={cat.name} className="text-[11px] font-bold mt-1.5 tracking-tight text-center w-16 leading-tight line-clamp-2 [overflow-wrap:anywhere] text-gray-700 dark:text-neutral-200">
+                                        {shortCategoryName(cat.name)}
                                     </span>
                                 </Link>
                             ))}
@@ -253,67 +281,85 @@ export default function HomePage() {
                     </div>
                 </section>
 
-                <div className="px-4 md:px-6 lg:px-8">
-                    {featured.length > 0 && (
-                        <ProductCarouselSection title="Featured Products">
-                            {featured.map((listing) => (
+                {/* ── Hero: Categories | Promo slider | Benefits ─────────── */}
+                <div className="mt-4 md:mt-5">
+                    <HomeHero categories={homeCategories} />
+                </div>
+
+                {/* ── Quick product filters → /search ─────────────────────── */}
+                <div className="mt-5">
+                    <HomeFilterBar categories={homeCategories.map((c) => ({ id: c.id, name: c.name }))} />
+                </div>
+
+                {/* ── Shop by category ────────────────────────────────────── */}
+                <div className="mt-10 md:mt-12">
+                    <CategoryTiles title={t('Shop by category')} categories={homeCategories} />
+                </div>
+
+                {/* ── Top Selling ─────────────────────────────────────────── */}
+                <div className="mt-12 md:mt-14">
+                    <TopSelling tabs={topSellingTabs} categoryNameById={categoryNameById} />
+                </div>
+
+                {/* ── Admin-managed promo banners ─────────────────────────── */}
+                <div className="mt-12">
+                    <HomepageBannerRotation
+                        pair
+                        secondary={
+                            <SellPoster
+                                title={t('Sell on Suqafuran')}
+                                subtitle={t('Reach buyers in markets across Kenya')}
+                                cta={t('Start selling')}
+                            />
+                        }
+                        fillers={[
+                            <ShopsPoster
+                                title={t('Explore shops')}
+                                subtitle={t('Discover trusted sellers near you')}
+                                cta={t('Browse shops')}
+                            />,
+                        ]}
+                    />
+                </div>
+
+                {/* ── Popular Shops ───────────────────────────────────────── */}
+                {popularShops.length > 0 && (
+                    <ProductCarouselSection title={t('Popular Shops')} viewAllHref="/shops">
+                        {popularShops.map((shop, i) => (
+                            <div key={shop.id} className={SHOP_CARD_WIDTH}>
+                                <ShopCard shop={shop} index={i} hideRating />
+                            </div>
+                        ))}
+                    </ProductCarouselSection>
+                )}
+
+                {/* ── Per-category carousels ───────────────────────────── */}
+                {topCategories.slice(0, TOP_CATEGORY_COUNT).map((cat) => {
+                    const listings = visibleCategoryListings[cat.id];
+                    if (!listings || listings.length === 0) return null;
+                    const catTitle = field(cat.name_en, cat.name_so) || cat.name_en;
+                    return (
+                        <ProductCarouselSection key={cat.id} title={catTitle} viewAllHref={`/${cat.slug}`}>
+                            {listings.map((listing, i) => (
                                 <div key={listing.id} className={PRODUCT_CARD_WIDTH}>
-                                    <ProductCard listing={listing} categoryName={categoryNameById[listing.category_id]} />
+                                    <ListingCard
+                                        listing={listing}
+                                        categoryName={catTitle}
+                                        delay={i * 0.03}
+                                    />
                                 </div>
                             ))}
                         </ProductCarouselSection>
-                    )}
+                    );
+                })}
 
-                    {deals.length > 0 && (
-                        <ProductCarouselSection title="Today's Deals" icon={<Flame className="w-5 h-5 text-[#e81f44]" />}>
-                            {deals.map((listing) => {
-                                const { discountPercent, originalPrice } = getMockProductInfo(listing);
-                                return (
-                                    <div key={listing.id} className={PRODUCT_CARD_WIDTH}>
-                                        <ProductCard
-                                            listing={listing}
-                                            discountPercent={discountPercent}
-                                            originalPrice={originalPrice}
-                                            categoryName={categoryNameById[listing.category_id]}
-                                        />
-                                    </div>
-                                );
-                            })}
-                        </ProductCarouselSection>
-                    )}
-
-                    {popularShops.length > 0 && (
-                        <ProductCarouselSection title="Popular Shops" viewAllHref="/shops">
-                            {popularShops.map((shop, i) => (
-                                <div key={shop.id} className={SHOP_CARD_WIDTH}>
-                                    <GlovoShopCard shop={shop} index={i} hideRating />
-                                </div>
-                            ))}
-                        </ProductCarouselSection>
-                    )}
-
-                    {topCategories.slice(0, TOP_CATEGORY_COUNT).map((cat) => {
-                        const listings = visibleCategoryListings[cat.id];
-                        if (!listings || listings.length === 0) return null;
-                        return (
-                            <ProductCarouselSection key={cat.id} title={cat.name_en} viewAllHref={`/${cat.slug}`}>
-                                {listings.map((listing) => (
-                                    <div key={listing.id} className={PRODUCT_CARD_WIDTH}>
-                                        <ProductCard listing={listing} categoryName={cat.name_en} />
-                                    </div>
-                                ))}
-                            </ProductCarouselSection>
-                        );
-                    })}
-
-                    <div className="flex justify-center mt-10">
-                        <Link
-                            href="/shops"
-                            className="px-6 py-3 rounded-full border-2 border-orange-500 text-orange-500 font-bold text-sm hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors"
-                        >
-                            View All Shops →
-                        </Link>
-                    </div>
+                <div className="flex justify-center mt-10">
+                    <Link
+                        to="/shops"
+                        className="px-6 py-3 rounded-full border-2 border-orange-500 text-orange-500 font-bold text-sm hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors"
+                    >
+                        {t('View All Shops')} →
+                    </Link>
                 </div>
             </div>
         </div>

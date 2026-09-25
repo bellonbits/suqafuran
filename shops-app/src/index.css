@@ -278,3 +278,53 @@ select {
     padding-bottom: calc(76px + max(env(safe-area-inset-bottom, 0px), 10px));
   }
 }
+
+/* ── Storefront UI checkbox tick ──────────────────────────────────────────
+   SfCheckbox draws its tick with `bg-checked-checkbox-current`, which only
+   exists in the SFUI Tailwind preset (not loaded here) -- without this a
+   checked box is just an empty square. */
+.sf-check:checked {
+  background-color: #f97316;
+  border-color: #f97316;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* ── Dual-thumb price slider: two stacked range inputs, only thumbs clickable ── */
+.range-dual {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  pointer-events: none;
+}
+.range-dual::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 2px solid #f97316;
+  cursor: grab;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+.range-dual::-moz-range-thumb {
+  pointer-events: auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 2px solid #f97316;
+  cursor: grab;
+}
+.range-dual:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid #fb923c;
+  outline-offset: 2px;
+}

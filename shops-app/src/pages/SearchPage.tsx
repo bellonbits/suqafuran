@@ -1,248 +1,369 @@
 "use client";
 
-import React, { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { Grid, List, ChevronDown } from 'lucide-react';
+import React, { useEffect, useMemo, useState, Suspense } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { SfInput, SfIconSearch, SfIconClose } from '@storefront-ui/react';
+import { PackageSearch } from 'lucide-react';
 import { listingsService } from '@/services/listings';
 import { analyticsService } from '@/services/analytics';
 import { trackEvent } from '@/lib/analytics';
-import { ProductCard } from '@/components/features/ProductCard';
-import type { Listing } from '@/types';
+import { useLocalizedField } from '@/lib/i18n';
+import {
+    ListingCard,
+    FilterPanel,
+    FilterSection,
+    FilterLinkList,
+    FilterCheckboxList,
+    PriceRangeFilter,
+    SortBar,
+    ViewToggle,
+    MobileFilterSheet,
+    MobileFilterButton,
+    Pagination,
+} from '@/components/storefront';
+import type { FilterOption } from '@/components/storefront';
+import type { Listing, Category } from '@/types';
+
+const PAGE_SIZE = 20;
+// The listings endpoint has no total count or sorting, so we pull one large
+// batch for the query/category and do price/condition/location/sort/paging
+// client-side over it.
+const FETCH_LIMIT = 200;
+
+// Param names match what HomePage's FilterDrawer and HomeFilterBar already
+// send, so links from the homepage land here pre-filtered.
+const SORT_OPTIONS: FilterOption[] = [
+    { value: 'newest', label: 'Newest' },
+    { value: 'popular', label: 'Popular' },
+];
+
+// Rounds the slider ceiling up to a friendly number (e.g. 1,370 → 1,500).
+function niceCeil(n: number): number {
+    if (n <= 10) return 10;
+    const mag = 10 ** Math.floor(Math.log10(n));
+    const step = mag / 2;
+    return Math.ceil(n / step) * step;
+}
+
+function countBy(items: Listing[], key: (l: Listing) => string | undefined): FilterOption[] {
+    const counts = new Map<string, number>();
+    for (const l of items) {
+        const k = key(l)?.trim();
+        if (k) counts.set(k, (counts.get(k) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .map(([value, count]) => ({ value, label: value.charAt(0).toUpperCase() + value.slice(1), count }));
+}
 
 function SearchPageContent() {
-    const searchParams = useSearchParams();
+    const [params, setParams] = useSearchParams();
+    const field = useLocalizedField();
+
+    // URL is the source of truth for every filter, so results are shareable
+    // and the back button steps through filter changes.
+    const query = params.get('q') || '';
+    const categoryParam = params.get('category');
+    const conditions = params.get('condition')?.split(',').filter(Boolean) ?? [];
+    const locations = params.get('location')?.split(',').filter(Boolean) ?? [];
+    const priceMinParam = params.get('price_min');
+    const priceMaxParam = params.get('price_max');
+    const sort = params.get('sort') || 'newest';
+    const page = Math.max(1, Number(params.get('page')) || 1);
+
     const [listings, setListings] = useState<Listing[]>([]);
-    const [filteredListings, setFilteredListings] = useState<Listing[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+    const [searchInput, setSearchInput] = useState(query);
 
-    // Filter states
-    // Derived straight from the URL on every render -- not local state.
-    // Searching again while already on this page (router.push to the same
-    // route) doesn't remount the component, so a useState initialized once
-    // from searchParams would go stale after the first search.
-    const query = searchParams.get('q') || '';
-    const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
-    const [selectedCondition, setSelectedCondition] = useState('all');
-    const [priceMin, setPriceMin] = useState('');
-    const [priceMax, setPriceMax] = useState('');
-    const [location, setLocation] = useState('all');
-    const [sortBy, setSortBy] = useState('recent');
-    const [openFilter, setOpenFilter] = useState<string | null>(null);
+    const update = (changes: Record<string, string | null>, resetPage = true) => {
+        setParams(prev => {
+            const next = new URLSearchParams(prev);
+            for (const [k, v] of Object.entries(changes)) {
+                if (v === null || v === '') next.delete(k);
+                else next.set(k, v);
+            }
+            if (resetPage) next.delete('page');
+            return next;
+        }, { replace: true });
+    };
+
+    // Keep the box in sync when the query changes from elsewhere (header search).
+    useEffect(() => setSearchInput(query), [query]);
+
+    // Debounce typing into the URL.
+    useEffect(() => {
+        if (searchInput === query) return;
+        const timer = setTimeout(() => update({ q: searchInput.trim() || null }), 400);
+        return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchInput]);
 
     useEffect(() => {
+        listingsService.getCategories().then(c => setCategories(c || [])).catch(() => {});
+    }, []);
+
+    // Category param may be an id or a slug (links from category pages use slugs).
+    const selectedCategory = useMemo(
+        () => categoryParam
+            ? categories.find(c => String(c.id) === categoryParam || c.slug === categoryParam) ?? null
+            : null,
+        [categories, categoryParam]
+    );
+
+    useEffect(() => {
+        let cancelled = false;
         const fetchListings = async () => {
             setIsLoading(true);
             try {
-                // The backend now does real matching (full-text search across
-                // title/description plus category/subcategory/subsubcategory
-                // names, with English stemming) -- send the query instead of
-                // fetching everything and substring-filtering client-side.
-                const data = await listingsService.getListings({ q: query || undefined, limit: 50 });
-                // Deduplication is now handled by the service, but double-check here
-                const seenIds = new Set<number>();
-                const unique = data.filter(l => {
-                    if (seenIds.has(l.id)) return false;
-                    seenIds.add(l.id);
-                    return true;
+                // The backend does full-text matching across title/description
+                // and category names, and accepts a category id or slug.
+                const data = await listingsService.getListings({
+                    q: query || undefined,
+                    category_id: categoryParam || undefined,
+                    limit: FETCH_LIMIT,
                 });
-                setListings(unique);
+                if (cancelled) return;
+                setListings(data);
 
                 if (query) {
                     analyticsService.trackSearch({
                         query,
-                        result_count: unique.length,
+                        result_count: data.length,
                         device_type: analyticsService.getDeviceType(),
                     }).catch(() => {});
-                    trackEvent('Search', { query, result_count: unique.length });
+                    trackEvent('Search', { query, result_count: data.length });
                 }
             } catch (err) {
                 console.error('Failed to search listings', err);
+                if (!cancelled) setListings([]);
             } finally {
-                setIsLoading(false);
+                if (!cancelled) setIsLoading(false);
             }
         };
         fetchListings();
-    }, [query]);
+        return () => { cancelled = true; };
+    }, [query, categoryParam]);
 
-    // Apply client side filters
-    useEffect(() => {
-        let results = [...listings];
+    // ── Derived filter options (counts reflect the current query/category) ──
+    const priceCeiling = useMemo(
+        () => niceCeil(Math.max(0, ...listings.map(l => l.price ?? 0))),
+        [listings]
+    );
+    const priceMin = Math.min(Number(priceMinParam) || 0, priceCeiling);
+    const priceMax = priceMaxParam ? Math.min(Number(priceMaxParam), priceCeiling) : priceCeiling;
 
-        if (selectedCondition !== 'all') {
-            results = results.filter(l => l.condition?.toLowerCase() === selectedCondition.toLowerCase());
-        }
+    const conditionOptions = useMemo(() => countBy(listings, l => l.condition?.toLowerCase()), [listings]);
+    const locationOptions = useMemo(() => countBy(listings, l => l.location), [listings]);
 
-        if (priceMin) {
-            results = results.filter(l => (l?.price ?? 0) >= Number(priceMin));
-        }
-        if (priceMax) {
-            results = results.filter(l => (l?.price ?? 0) <= Number(priceMax));
-        }
+    const categoryOptions: FilterOption[] = useMemo(
+        () => categories
+            .filter(c => ((c as any).active_listing_count ?? 1) > 0)
+            .sort((a, b) => ((b as any).active_listing_count ?? 0) - ((a as any).active_listing_count ?? 0))
+            .map(c => ({
+                value: String(c.id),
+                label: field(c.name_en, c.name_so) || c.name_en,
+                count: (c as any).active_listing_count,
+            })),
+        [categories, field]
+    );
 
-        if (location !== 'all') {
-            results = results.filter(l => l.location?.toLowerCase().includes(location.toLowerCase()));
-        }
+    // ── Apply client-side filters + sort ──
+    const filtered = useMemo(() => {
+        let results = listings.filter(l => {
+            const price = l.price ?? 0;
+            if (price < priceMin) return false;
+            if (priceMaxParam && price > priceMax) return false;
+            if (conditions.length && !conditions.includes(l.condition?.toLowerCase())) return false;
+            // Substring match so a region from the homepage drawer ("Nairobi")
+            // also matches fuller locations ("Westlands, Nairobi").
+            if (locations.length && !locations.some(loc => l.location?.toLowerCase().includes(loc.toLowerCase()))) return false;
+            return true;
+        });
+        if (sort === 'price_asc') results = [...results].sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+        else if (sort === 'price_desc') results = [...results].sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+        else if (sort === 'popular') results = [...results].sort((a, b) => (b.views || 0) - (a.views || 0));
+        else if (sort === 'newest') results = [...results].sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+        return results;
+        // conditions/locations are re-derived from the URL each render; key on the raw params.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [listings, priceMin, priceMax, priceMaxParam, params.get('condition'), params.get('location'), sort]);
 
-        if (sortBy === 'price-asc') {
-            results.sort((a, b) => (a?.price ?? 0) - (b?.price ?? 0));
-        } else if (sortBy === 'price-desc') {
-            results.sort((a, b) => (b?.price ?? 0) - (a?.price ?? 0));
-        } else if (sortBy === 'views') {
-            results.sort((a, b) => (b.views || 0) - (a.views || 0));
-        }
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    const currentPage = Math.min(page, totalPages);
+    const pageItems = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+    const rangeStart = filtered.length ? (currentPage - 1) * PAGE_SIZE + 1 : 0;
+    const rangeEnd = Math.min(currentPage * PAGE_SIZE, filtered.length);
 
-        setFilteredListings(results);
-    }, [listings, selectedCategory, selectedCondition, priceMin, priceMax, location, sortBy]);
+    const activeCount = [
+        selectedCategory,
+        conditions.length,
+        locations.length,
+        priceMinParam || priceMaxParam,
+    ].filter(Boolean).length;
 
-    const getSortLabel = () => {
-        switch(sortBy) {
-            case 'price-asc': return 'Price: Low to High';
-            case 'price-desc': return 'Price: High to Low';
-            case 'views': return 'Most Viewed';
-            default: return 'Recently Added';
-        }
+    const clearAll = () => update({ category: null, condition: null, location: null, price_min: null, price_max: null });
+
+    const goToPage = (pg: number) => {
+        update({ page: pg > 1 ? String(pg) : null }, false);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    const categoryNameById = useMemo(
+        () => Object.fromEntries(categories.map(c => [c.id, field(c.name_en, c.name_so) || c.name_en])),
+        [categories, field]
+    );
+
+    const filters = (
+        <FilterPanel activeCount={activeCount} onClear={clearAll}>
+            <FilterSection title="Price Range">
+                <PriceRangeFilter
+                    min={0}
+                    max={priceCeiling}
+                    value={[priceMin, priceMax]}
+                    step={priceCeiling > 1000 ? 10 : 1}
+                    onChange={([lo, hi]) => update({
+                        price_min: lo > 0 ? String(lo) : null,
+                        price_max: hi < priceCeiling ? String(hi) : null,
+                    })}
+                />
+            </FilterSection>
+
+            <FilterSection title="Category">
+                <FilterLinkList
+                    options={categoryOptions}
+                    value={selectedCategory ? String(selectedCategory.id) : null}
+                    onChange={v => update({ category: v })}
+                    allLabel="All Products"
+                />
+            </FilterSection>
+
+            {conditionOptions.length > 0 && (
+                <FilterSection title="Condition">
+                    <FilterCheckboxList
+                        options={conditionOptions}
+                        values={conditions}
+                        onChange={v => update({ condition: v.join(',') || null })}
+                    />
+                </FilterSection>
+            )}
+
+            {locationOptions.length > 0 && (
+                <FilterSection title="Location">
+                    <FilterCheckboxList
+                        options={locationOptions}
+                        values={locations}
+                        onChange={v => update({ location: v.join(',') || null })}
+                    />
+                </FilterSection>
+            )}
+        </FilterPanel>
+    );
+
+    const title = query
+        ? `Results for "${query}"`
+        : selectedCategory ? categoryNameById[selectedCategory.id] : 'All Products';
+
     return (
-        <div className="w-full">
-            {/* Filter Pills Bar */}
-            <div className="sticky top-16 z-10 bg-white dark:bg-neutral-950 border-b border-gray-100 dark:border-neutral-800">
-                <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex flex-col gap-4">
-                        {/* Results Count */}
-                        <div className="space-y-0.5">
-                            <h1 className="text-base font-bold text-gray-900 dark:text-neutral-50">
-                                {filteredListings.length} Products Found
-                            </h1>
-                        </div>
+        <div className="min-h-screen bg-gray-50 dark:bg-black pb-20">
+            <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 pt-6 md:pt-8">
+                <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight mb-6 truncate">{title}</h1>
 
-                        {/* Filter Pills */}
-                        <div className="flex flex-wrap gap-2 items-center">
-                            {/* Sort Dropdown */}
-                            <div className="relative">
-                                <button
-                                    onClick={() => setOpenFilter(openFilter === 'sort' ? null : 'sort')}
-                                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-neutral-900 text-gray-900 dark:text-neutral-50 rounded-full text-sm font-semibold hover:bg-gray-200 dark:hover:bg-neutral-800 transition-colors"
-                                >
-                                    {getSortLabel()}
-                                    <ChevronDown className="h-4 w-4" />
-                                </button>
-                                {openFilter === 'sort' && (
-                                    <div className="absolute top-full mt-2 left-0 bg-white dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg shadow-lg z-20">
-                                        <button onClick={() => { setSortBy('recent'); setOpenFilter(null); }} className="block w-full text-left px-4 py-2 text-sm font-semibold text-gray-900 dark:text-neutral-50 hover:bg-gray-50 dark:hover:bg-neutral-900">Recently Added</button>
-                                        <button onClick={() => { setSortBy('price-asc'); setOpenFilter(null); }} className="block w-full text-left px-4 py-2 text-sm font-semibold text-gray-900 dark:text-neutral-50 hover:bg-gray-50 dark:hover:bg-neutral-900">Price: Low to High</button>
-                                        <button onClick={() => { setSortBy('price-desc'); setOpenFilter(null); }} className="block w-full text-left px-4 py-2 text-sm font-semibold text-gray-900 dark:text-neutral-50 hover:bg-gray-50 dark:hover:bg-neutral-900">Price: High to Low</button>
-                                        <button onClick={() => { setSortBy('views'); setOpenFilter(null); }} className="block w-full text-left px-4 py-2 text-sm font-semibold text-gray-900 dark:text-neutral-50 hover:bg-gray-50 dark:hover:bg-neutral-900">Most Viewed</button>
-                                    </div>
-                                )}
+                <div className="flex gap-6 lg:gap-8 items-start">
+                    {/* ── Sidebar (desktop) ─────────────────────────────── */}
+                    <aside className="hidden lg:block w-72 shrink-0 sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto hide-scrollbar rounded-2xl">
+                        {filters}
+                    </aside>
+
+                    <MobileFilterSheet open={mobileFiltersOpen} onClose={() => setMobileFiltersOpen(false)} resultCount={filtered.length}>
+                        {filters}
+                    </MobileFilterSheet>
+
+                    {/* ── Results ─────────────────────────────────────────── */}
+                    <div className="flex-1 min-w-0">
+                        {/* Toolbar */}
+                        <div className="flex flex-col xl:flex-row xl:items-center gap-3 mb-5">
+                            <div className="flex items-center gap-2 xl:w-80 shrink-0">
+                                <MobileFilterButton onClick={() => setMobileFiltersOpen(true)} activeCount={activeCount} />
+                                <SfInput
+                                    value={searchInput}
+                                    onChange={e => setSearchInput(e.target.value)}
+                                    placeholder="Search products..."
+                                    aria-label="Search products"
+                                    wrapperClassName="flex-1 !rounded-full !bg-white dark:!bg-neutral-950 !ring-gray-200 dark:!ring-neutral-800 hover:!ring-orange-400 focus-within:!ring-2 focus-within:!ring-orange-500"
+                                    className="!bg-transparent !text-sm text-gray-900 dark:text-white placeholder:text-gray-400"
+                                    slotPrefix={<SfIconSearch size="sm" className="text-gray-400" />}
+                                    slotSuffix={searchInput ? (
+                                        <button type="button" onClick={() => setSearchInput('')} aria-label="Clear search" className="flex text-gray-400 hover:text-gray-600 dark:hover:text-neutral-200">
+                                            <SfIconClose size="sm" />
+                                        </button>
+                                    ) : undefined}
+                                />
                             </div>
 
-                            {/* Condition Dropdown */}
-                            <div className="relative">
-                                <button
-                                    onClick={() => setOpenFilter(openFilter === 'condition' ? null : 'condition')}
-                                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-neutral-900 text-gray-900 dark:text-neutral-50 rounded-full text-sm font-semibold hover:bg-gray-200 dark:hover:bg-neutral-800 transition-colors"
-                                >
-                                    {selectedCondition === 'all' ? 'Condition' : selectedCondition === 'new' ? 'Brand New' : 'Used / Like New'}
-                                    <ChevronDown className="h-4 w-4" />
-                                </button>
-                                {openFilter === 'condition' && (
-                                    <div className="absolute top-full mt-2 left-0 bg-white dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg shadow-lg z-20">
-                                        <button onClick={() => { setSelectedCondition('all'); setOpenFilter(null); }} className="block w-full text-left px-4 py-2 text-sm font-semibold text-gray-900 dark:text-neutral-50 hover:bg-gray-50 dark:hover:bg-neutral-900">All Conditions</button>
-                                        <button onClick={() => { setSelectedCondition('new'); setOpenFilter(null); }} className="block w-full text-left px-4 py-2 text-sm font-semibold text-gray-900 dark:text-neutral-50 hover:bg-gray-50 dark:hover:bg-neutral-900">Brand New</button>
-                                        <button onClick={() => { setSelectedCondition('used'); setOpenFilter(null); }} className="block w-full text-left px-4 py-2 text-sm font-semibold text-gray-900 dark:text-neutral-50 hover:bg-gray-50 dark:hover:bg-neutral-900">Used / Like New</button>
-                                    </div>
-                                )}
-                            </div>
+                            <p className="text-sm text-gray-500 dark:text-neutral-400 xl:flex-1 whitespace-nowrap">
+                                {isLoading ? 'Searching…' : `Showing ${rangeStart}–${rangeEnd} of ${filtered.length} results`}
+                            </p>
 
-                            {/* Price Dropdown */}
-                            <div className="relative">
-                                <button
-                                    onClick={() => setOpenFilter(openFilter === 'price' ? null : 'price')}
-                                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-neutral-900 text-gray-900 dark:text-neutral-50 rounded-full text-sm font-semibold hover:bg-gray-200 dark:hover:bg-neutral-800 transition-colors"
-                                >
-                                    Price {priceMin || priceMax ? '✓' : ''}
-                                    <ChevronDown className="h-4 w-4" />
-                                </button>
-                                {openFilter === 'price' && (
-                                    <div className="absolute top-full mt-2 left-0 bg-white dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg shadow-lg z-20 p-4 w-64">
-                                        <div className="space-y-3">
-                                            <input
-                                                type="number"
-                                                placeholder="Min"
-                                                value={priceMin}
-                                                onChange={(e) => setPriceMin(e.target.value)}
-                                                className="w-full rounded-lg border border-gray-200 dark:border-neutral-800 bg-white dark:bg-black px-3 py-2 text-sm font-semibold text-gray-900 dark:text-neutral-50 outline-none focus:border-blue-500"
-                                            />
-                                            <input
-                                                type="number"
-                                                placeholder="Max"
-                                                value={priceMax}
-                                                onChange={(e) => setPriceMax(e.target.value)}
-                                                className="w-full rounded-lg border border-gray-200 dark:border-neutral-800 bg-white dark:bg-black px-3 py-2 text-sm font-semibold text-gray-900 dark:text-neutral-50 outline-none focus:border-blue-500"
-                                            />
-                                            <button
-                                                onClick={() => setOpenFilter(null)}
-                                                className="w-full bg-blue-500 text-white font-semibold py-2 rounded-lg hover:bg-[#5bc0e8] transition-colors text-sm"
-                                            >
-                                                Apply
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* View Mode Toggle */}
-                            <div className="ml-auto flex border border-gray-200 dark:border-neutral-800 rounded-full p-1 bg-gray-100 dark:bg-neutral-900">
-                                <button
-                                    onClick={() => setViewMode('grid')}
-                                    className={`p-2 rounded-full cursor-pointer transition-colors ${viewMode === 'grid' ? 'bg-white dark:bg-neutral-950 shadow text-primary' : 'text-gray-400 hover:text-gray-600'}`}
-                                >
-                                    <Grid className="h-4 w-4" />
-                                </button>
-                                <button
-                                    onClick={() => setViewMode('list')}
-                                    className={`p-2 rounded-full cursor-pointer transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-neutral-950 shadow text-primary' : 'text-gray-400 hover:text-gray-600'}`}
-                                >
-                                    <List className="h-4 w-4" />
-                                </button>
+                            <div className="flex items-center justify-between gap-3">
+                                <SortBar options={SORT_OPTIONS} value={sort} onChange={v => update({ sort: v === 'newest' ? null : v })} withPrice />
+                                <ViewToggle value={viewMode} onChange={setViewMode} />
                             </div>
                         </div>
+
+                        {/* Results */}
+                        {isLoading ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
+                                {Array.from({ length: 8 }).map((_, i) => (
+                                    <div key={i} className="animate-pulse space-y-3 bg-white dark:bg-neutral-950 rounded-2xl p-3">
+                                        <div className="aspect-square rounded-xl bg-gray-200 dark:bg-neutral-900" />
+                                        <div className="h-4 w-3/4 rounded bg-gray-200 dark:bg-neutral-900" />
+                                        <div className="h-4 w-1/2 rounded bg-gray-200 dark:bg-neutral-900" />
+                                    </div>
+                                ))}
+                            </div>
+                        ) : filtered.length === 0 ? (
+                            <div className="text-center py-20 bg-white dark:bg-neutral-950 rounded-2xl border border-dashed border-gray-200 dark:border-neutral-800">
+                                <PackageSearch className="w-10 h-10 text-orange-500 mx-auto mb-3" />
+                                <p className="text-lg font-bold text-gray-900 dark:text-white">No products found</p>
+                                <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">Try a different search or remove some filters.</p>
+                                {activeCount > 0 && (
+                                    <button type="button" onClick={clearAll} className="mt-4 text-sm font-semibold text-orange-600 hover:underline">
+                                        Clear all filters
+                                    </button>
+                                )}
+                            </div>
+                        ) : viewMode === 'grid' ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
+                                {pageItems.map((listing, i) => (
+                                    <ListingCard
+                                        key={listing.id}
+                                        listing={listing}
+                                        categoryName={categoryNameById[listing.category_id]}
+                                        delay={i * 0.02}
+                                        priority={i < 4}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {pageItems.map((listing, i) => (
+                                    <ListingCard
+                                        key={listing.id}
+                                        listing={listing}
+                                        categoryName={categoryNameById[listing.category_id]}
+                                        layout="horizontal"
+                                        delay={i * 0.02}
+                                    />
+                                ))}
+                            </div>
+                        )}
+
+                        <Pagination page={currentPage} totalPages={totalPages} onChange={goToPage} />
                     </div>
                 </div>
-            </div>
-
-            {/* Results */}
-            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-                {isLoading ? (
-                    <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5">
-                        {[1, 2, 3, 4, 5, 6].map((i) => (
-                            <div key={i} className="animate-pulse space-y-4">
-                                <div className="aspect-square rounded-lg bg-gray-200 dark:bg-neutral-900" />
-                                <div className="h-4 w-3/4 rounded bg-gray-200 dark:bg-neutral-900" />
-                                <div className="h-4 w-1/2 rounded bg-gray-200 dark:bg-neutral-900" />
-                            </div>
-                        ))}
-                    </div>
-                ) : filteredListings.length === 0 ? (
-                    <div className="py-12 text-center">
-                        <p className="text-lg font-semibold text-gray-900 dark:text-neutral-50">No Results Found</p>
-                        <p className="text-sm text-gray-500 dark:text-neutral-300 mt-1">Try adjusting your filters or search query</p>
-                    </div>
-                ) : viewMode === 'grid' ? (
-                    <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5">
-                        {filteredListings.map((listing) => (
-                            <ProductCard key={listing.id} listing={listing} />
-                        ))}
-                    </div>
-                ) : (
-                    <div className="space-y-4 max-w-2xl">
-                        {filteredListings.map((listing) => (
-                            <ProductCard key={listing.id} listing={listing} layout="horizontal" />
-                        ))}
-                    </div>
-                )}
             </div>
         </div>
     );
