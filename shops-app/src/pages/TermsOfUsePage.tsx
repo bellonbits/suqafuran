@@ -46,7 +46,12 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
                 <a href="/safe-trading-tips" className="text-primary dark:text-sky-400 font-semibold hover:underline">
                     Safe Trading Tips
                 </a>{' '}
-                before meeting anyone to trade.
+                before meeting anyone to trade. Returns and refunds for items bought through Suqafuran are
+                covered by our{' '}
+                <a href="/return-policy" className="text-primary dark:text-sky-400 font-semibold hover:underline">
+                    Return &amp; Refund Policy
+                </a>
+                , which all sellers must honour.
             </>
         ),
     },

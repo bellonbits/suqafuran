@@ -99,6 +99,7 @@ const AgentShopsPage = lazy(() => import('./pages/AgentShopsPage'))
 const HelpCenterPage = lazy(() => import('./pages/HelpCenterPage'))
 const SafeTradingTipsPage = lazy(() => import('./pages/SafeTradingTipsPage'))
 const TermsOfUsePage = lazy(() => import('./pages/TermsOfUsePage'))
+const ReturnPolicyPage = lazy(() => import('./pages/ReturnPolicyPage'))
 
 const AdminDashboardPagePlaceholder = () => (
   <div className="w-full">
@@ -202,6 +203,9 @@ export default function App() {
       <Route element={<AppLayout><HelpCenterPage /></AppLayout>} path="/help-center" />
       <Route element={<AppLayout><SafeTradingTipsPage /></AppLayout>} path="/safe-trading-tips" />
       <Route element={<AppLayout><TermsOfUsePage /></AppLayout>} path="/terms-of-use" />
+      <Route element={<AppLayout><ReturnPolicyPage /></AppLayout>} path="/return-policy" />
+      <Route element={<AppLayout><ReturnPolicyPage /></AppLayout>} path="/returns" />
+      <Route element={<AppLayout><ReturnPolicyPage /></AppLayout>} path="/refund-policy" />
 
       <Route element={<AppLayout><CategoryPage /></AppLayout>} path="/:category" />
 

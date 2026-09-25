@@ -61,6 +61,11 @@ export const Footer: React.FC = () => {
                                     Terms of Use
                                 </Link>
                             </li>
+                            <li>
+                                <Link href="/return-policy" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-neutral-200 dark:hover:text-sky-400">
+                                    Return &amp; Refund Policy
+                                </Link>
+                            </li>
                         </ul>
                     </div>
 
