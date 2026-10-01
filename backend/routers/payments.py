@@ -10,6 +10,11 @@ from models import Payment, Order, User, Seller
 from schemas import MPesaPaymentRequest, PaymentStatusResponse, RefundRequest
 from config import settings
 from app.api.deps import get_current_user
+# Separate from `settings` above (that's this flat module's own config,
+# which only has MPESA_ENVIRONMENT for sandbox/production API selection) --
+# this is the real app-wide ENVIRONMENT flag used to gate the /mpesa/simulate
+# route below out of production.
+from app.core.config import settings as app_settings
 
 # DISABLED: This router creates guest users. Use app/api/api_v1/endpoints/payments.py instead
 # router = APIRouter(prefix="/payments", tags=["payments"])
@@ -348,83 +353,95 @@ def check_payment_status(
         "updated_at": payment.updated_at
     }
 
-@router.post("/mpesa/simulate")
-def simulate_mpesa_payment(
-    checkout_request_id: str,
-    success: bool = True,
-    db: Session = Depends(get_db)
-):
-    """
-    Simulate M-Pesa payment for testing.
-    """
-    try:
-        # Try to find and update payment in database
-        print(f"[Simulate] Looking for payment with checkout_request_id: {checkout_request_id}")
-        payment = db.query(Payment).filter(
-            Payment.checkout_request_id == checkout_request_id
-        ).first()
+# Security audit finding (2026-10-01): same missing-auth bug as the other two
+# /mpesa/simulate copies in this codebase (app/api/api_v1/endpoints/payments.py
+# and mobile_money.py), found independently here because this router's prefix
+# was already changed from /payments to /payments-disabled by a previous
+# change, taking it off the normally-documented path -- that rename alone
+# isn't real protection (the route is still live and still in the OpenAPI
+# schema at its new path), so it gets the same env gate + auth as the other
+# two. Left its order-matching logic as-is (not rewriting the fuzzy
+# checkout_request_id fallback match here -- out of scope for this fix, and
+# this route is already unreachable at the path the rest of the app expects).
+if app_settings.ENVIRONMENT != "production":
+    @router.post("/mpesa/simulate")
+    def simulate_mpesa_payment(
+        checkout_request_id: str,
+        success: bool = True,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
+    ):
+        """
+        Simulate M-Pesa payment for testing. Not registered in production.
+        """
+        try:
+            # Try to find and update payment in database
+            print(f"[Simulate] Looking for payment with checkout_request_id: {checkout_request_id}")
+            payment = db.query(Payment).filter(
+                Payment.checkout_request_id == checkout_request_id
+            ).first()
 
-        print(f"[Simulate] Payment found: {payment is not None}")
-        if payment:
-            print(f"[Simulate] Updating payment status to 'completed'")
-            if success:
-                payment.status = "completed"
-                payment.mpesa_reference = f"SIM{checkout_request_id[:8].upper()}"
-                payment.updated_at = datetime.utcnow()
+            print(f"[Simulate] Payment found: {payment is not None}")
+            if payment:
+                print(f"[Simulate] Updating payment status to 'completed'")
+                if success:
+                    payment.status = "completed"
+                    payment.mpesa_reference = f"SIM{checkout_request_id[:8].upper()}"
+                    payment.updated_at = datetime.utcnow()
 
-                print(f"[Simulate] Looking for order: {payment.order_id}")
-                order = db.query(Order).filter(Order.id == payment.order_id).first()
-                print(f"[Simulate] Order found: {order is not None}")
-                if order:
-                    order.payment_status = "completed"
-                    order.payment_reference = payment.mpesa_reference
-                    order.status = "confirmed"
-                    order.updated_at = datetime.utcnow()
-                    print(f"[Simulate] Updated order status to 'confirmed'")
-                print(f"[Simulate] Committing transaction...")
+                    print(f"[Simulate] Looking for order: {payment.order_id}")
+                    order = db.query(Order).filter(Order.id == payment.order_id).first()
+                    print(f"[Simulate] Order found: {order is not None}")
+                    if order:
+                        order.payment_status = "completed"
+                        order.payment_reference = payment.mpesa_reference
+                        order.status = "confirmed"
+                        order.updated_at = datetime.utcnow()
+                        print(f"[Simulate] Updated order status to 'confirmed'")
+                    print(f"[Simulate] Committing transaction...")
+                    db.commit()
+                    print(f"[Simulate] Commit successful")
+                    return {
+                        "success": True,
+                        "message": "Payment simulated successfully",
+                        "mpesa_reference": payment.mpesa_reference
+                    }
+                else:
+                    payment.status = "failed"
+                    payment.updated_at = datetime.utcnow()
+                    order = db.query(Order).filter(Order.id == payment.order_id).first()
+                    if order:
+                        order.payment_status = "failed"
+                        order.status = "cancelled"
+                        order.updated_at = datetime.utcnow()
+                    db.commit()
+                    return {"success": False, "message": "Payment simulation failed"}
+        except Exception as db_error:
+            print(f"[Simulate] Database error: {db_error}")
+            import traceback
+            traceback.print_exc()
+
+        # Return success for testing even if database fails
+        # Also mark associated order as confirmed
+        try:
+            order = db.query(Order).filter(
+                Order.id.like(f"%{checkout_request_id[:8]}%")
+            ).first()
+            if order:
+                order.status = "confirmed"
+                order.payment_status = "completed"
+                order.payment_reference = f"SIM{checkout_request_id[:8].upper()}"
+                order.updated_at = datetime.utcnow()
                 db.commit()
-                print(f"[Simulate] Commit successful")
-                return {
-                    "success": True,
-                    "message": "Payment simulated successfully",
-                    "mpesa_reference": payment.mpesa_reference
-                }
-            else:
-                payment.status = "failed"
-                payment.updated_at = datetime.utcnow()
-                order = db.query(Order).filter(Order.id == payment.order_id).first()
-                if order:
-                    order.payment_status = "failed"
-                    order.status = "cancelled"
-                    order.updated_at = datetime.utcnow()
-                db.commit()
-                return {"success": False, "message": "Payment simulation failed"}
-    except Exception as db_error:
-        print(f"[Simulate] Database error: {db_error}")
-        import traceback
-        traceback.print_exc()
-
-    # Return success for testing even if database fails
-    # Also mark associated order as confirmed
-    try:
-        order = db.query(Order).filter(
-            Order.id.like(f"%{checkout_request_id[:8]}%")
-        ).first()
-        if order:
-            order.status = "confirmed"
-            order.payment_status = "completed"
-            order.payment_reference = f"SIM{checkout_request_id[:8].upper()}"
-            order.updated_at = datetime.utcnow()
-            db.commit()
-    except Exception as e:
-        print(f"[Simulate] Could not update order: {e}")
+        except Exception as e:
+            print(f"[Simulate] Could not update order: {e}")
     
-    return {
-        "success": True,
-        "message": "Payment simulated successfully",
-        "mpesa_reference": f"SIM{checkout_request_id[:8].upper() if checkout_request_id else 'TEST'}",
-        "checkout_request_id": checkout_request_id
-    }
+        return {
+            "success": True,
+            "message": "Payment simulated successfully",
+            "mpesa_reference": f"SIM{checkout_request_id[:8].upper() if checkout_request_id else 'TEST'}",
+            "checkout_request_id": checkout_request_id
+        }
 
 
 @router.post("/{order_id}/refund")

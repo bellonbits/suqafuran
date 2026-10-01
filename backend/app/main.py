@@ -33,9 +33,18 @@ logger = get_logger("api")
 
 
 # Create upload directory if it doesn't exist
+# Security audit finding (2026-10-01): /docs, /redoc and the openapi.json
+# schema (300+ routes, including the full admin/payments route map) were
+# publicly browsable with no auth. Not a vulnerability by itself, but it
+# hands an attacker the complete API surface instead of making them guess
+# it. Disabled outside development; FastAPI treats None as "don't serve
+# this route" for all three.
+_is_prod = settings.ENVIRONMENT == "production"
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    openapi_url=None if _is_prod else f"{settings.API_V1_STR}/openapi.json",
+    docs_url=None if _is_prod else "/docs",
+    redoc_url=None if _is_prod else "/redoc",
 )
 
 # Initialize distributed tracing

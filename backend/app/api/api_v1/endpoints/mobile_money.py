@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, Body, HTTPException, Request
 from sqlmodel import Session, select
 from pydantic import BaseModel
 from app.api import deps
+from app.models.user import User
 from app.models.mobile_money import MobileTransaction
 from app.models.promotion import Promotion, PromotionStatus
 from app.services.payment_service import payment_service
@@ -215,17 +216,25 @@ async def receive_lipana_webhook(
         "matched": bool(matched_order)
     }
 
-@router.post("/simulate")
-def simulate_payment(
-    payload: PaymentWebhookPayload,
-    db: Session = Depends(deps.get_db),
-    # current_user: User = Depends(deps.get_current_active_superuser), # Optional: restrict to admin?
-) -> Any:
-    """
-    Dev Tool: Simulate a payment reception to test auto-matching.
-    """
-    # Add [SIM] prefix to reference if not present to avoid collisions
-    if not payload.reference.startswith("SIM-"):
-        payload.reference = f"SIM-{payload.reference}"
-    
-    return receive_payment_webhook(payload, db)
+# Security audit finding (2026-10-01): had no auth dependency at all -- the
+# commented-out current_user line below was never actually enabled, so any
+# unauthenticated request could inject a fake payment and trigger order
+# auto-matching. It's an explicit dev tool (see docstring), with no reason to
+# be reachable in production; restricted to superusers even outside
+# production, matching what the commented-out line already intended.
+if settings.ENVIRONMENT != "production":
+    @router.post("/simulate")
+    def simulate_payment(
+        payload: PaymentWebhookPayload,
+        db: Session = Depends(deps.get_db),
+        current_user: User = Depends(deps.get_current_active_superuser),
+    ) -> Any:
+        """
+        Dev Tool: Simulate a payment reception to test auto-matching.
+        Not registered in production.
+        """
+        # Add [SIM] prefix to reference if not present to avoid collisions
+        if not payload.reference.startswith("SIM-"):
+            payload.reference = f"SIM-{payload.reference}"
+
+        return receive_payment_webhook(payload, db)
