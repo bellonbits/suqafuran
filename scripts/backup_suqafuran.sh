@@ -18,28 +18,39 @@ BACKUP_DIR="${BACKUP_DIR:-/var/backups/suqafuran}"
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 RETENTION_DAYS="${RETENTION_DAYS:-7}"
 
-# 1. Load environment variables from project root .env and/or backend/.env
-if [ -f "${PROJECT_DIR}/.env" ]; then
-    set -a
-    # shellcheck disable=SC1090
-    source "${PROJECT_DIR}/.env"
-    set +a
-fi
+# Safe parser for .env files (avoids 'source' command execution failures on spaces/special characters)
+load_env_file() {
+    local env_file="$1"
+    [ -f "$env_file" ] || return 0
+    while IFS= read -r line || [ -n "$line" ]; do
+        # Clean carriage returns and leading spaces
+        line="$(echo "$line" | tr -d '\r' | sed -e 's/^[[:space:]]*//')"
+        # Skip empty lines and comments
+        [[ -z "$line" || "$line" =~ ^# ]] && continue
+        # Match KEY=VALUE
+        if [[ "$line" =~ ^([a-zA-Z_][a-zA-Z0-9_]*)=(.*)$ ]]; then
+            local key="${BASH_REMATCH[1]}"
+            local val="${BASH_REMATCH[2]}"
+            # Strip surrounding double or single quotes if present
+            if [[ "$val" =~ ^\"(.*)\"$ ]] || [[ "$val" =~ ^\'(.*)\'$ ]]; then
+                val="${BASH_REMATCH[1]}"
+            fi
+            export "$key=$val"
+        fi
+    done < "$env_file"
+}
 
-if [ -f "${PROJECT_DIR}/backend/.env" ]; then
-    set -a
-    # shellcheck disable=SC1090
-    source "${PROJECT_DIR}/backend/.env"
-    set +a
-fi
+# 1. Safely load environment variables from project root .env and backend/.env
+load_env_file "${PROJECT_DIR}/.env"
+load_env_file "${PROJECT_DIR}/backend/.env"
 
-# Ensure DATABASE_URL is constructed if only parts are provided
+# Ensure DATABASE_URL is constructed if only individual connection variables are provided
 if [ -z "${DATABASE_URL:-}" ] && [ -n "${POSTGRES_SERVER:-}" ]; then
     PG_PORT="${POSTGRES_PORT:-25060}"
     PG_USER="${POSTGRES_USER:-doadmin}"
     PG_PASS="${POSTGRES_PASSWORD:-}"
     PG_DB="${POSTGRES_DB:-defaultdb}"
-    DATABASE_URL="postgresql://${PG_USER}:${PG_PASS}@${PG_SERVER:-${POSTGRES_SERVER}}:${PG_PORT}/${PG_DB}?sslmode=require"
+    DATABASE_URL="postgresql://${PG_USER}:${PG_PASS}@${POSTGRES_SERVER}:${PG_PORT}/${PG_DB}?sslmode=require"
 fi
 
 # Ensure backup directories exist
