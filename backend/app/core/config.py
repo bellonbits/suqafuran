@@ -166,17 +166,35 @@ class Settings(BaseSettings):
     GROQ_MODEL: str = "meta-llama/llama-4-scout-17b-16e-instruct"   # multimodal, best Somali translation
     GROQ_TRANSLATE_MODEL: str = "meta-llama/llama-4-scout-17b-16e-instruct"  # dedicated translation model
 
+    @field_validator("ACCESS_TOKEN_EXPIRE_MINUTES", mode="before")
+    @classmethod
+    def validate_token_expiry(cls, v: Any) -> int:
+        try:
+            val = int(v)
+        except (ValueError, TypeError):
+            val = 60 * 24 * 7
+        # Security: cap access token lifetime at a maximum of 7 days (10080 minutes)
+        max_minutes = 60 * 24 * 7
+        if val > max_minutes:
+            return max_minutes
+        return val
+
     @field_validator("ALLOWED_EXTENSIONS", mode="before")
     @classmethod
     def assemble_allowed_extensions(cls, v: Any) -> List[str]:
         if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",")]
+            raw_list = [i.strip().lower().lstrip(".") for i in v.split(",")]
         elif isinstance(v, list):
-            return v
+            raw_list = [str(i).strip().lower().lstrip(".") for i in v]
         elif isinstance(v, str) and v.startswith("["):
             import json
-            return json.loads(v)
-        return v
+            raw_list = [str(i).strip().lower().lstrip(".") for i in json.loads(v)]
+        else:
+            raw_list = ["jpg", "jpeg", "png", "webp", "gif"]
+
+        # Security: Strip dangerous/executable/script formats (SVG, PDF, HTML, XML, EXE, PHP, SH, JS)
+        disallowed = {"svg", "pdf", "html", "htm", "xml", "exe", "sh", "php", "js"}
+        return [ext for ext in raw_list if ext and ext not in disallowed]
 
     model_config = SettingsConfigDict(
         env_file=".env", case_sensitive=True, extra="ignore"
