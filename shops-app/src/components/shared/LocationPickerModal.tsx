@@ -406,17 +406,17 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
                                     onClick={() => handleUseCurrentLocation(true)}
                                     className="px-3 py-1.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-xl text-xs font-bold text-gray-700 dark:text-neutral-200 hover:bg-gray-50 cursor-pointer shadow-sm transition-all"
                                 >
-                                    🌐 Use Network (IP) Location
+                                    Use Network (IP) Location
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => handleSelectDefaultCity(DEFAULT_KENYA_CITIES[0])}
                                     className="px-3 py-1.5 bg-primary/10 rounded-xl text-xs font-bold text-primary hover:bg-primary/20 cursor-pointer transition-all"
                                 >
-                                    📍 Use Nairobi (Default)
+                                    Use Nairobi (Default)
                                 </button>
                             </div>
-                            <p className="text-[11px] text-gray-500 dark:text-neutral-400">💡 On iOS Simulator: Simulator menu → Features → Location → Custom Location or preset</p>
+                            <p className="text-[11px] text-gray-500 dark:text-neutral-400">On iOS Simulator: Simulator menu - Features - Location - Custom Location or preset</p>
                         </div>
                     )}
                 </div>
