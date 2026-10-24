@@ -19,7 +19,7 @@ export const Header: React.FC = () => {
     const { user, isAuthenticated, logout } = useAuthStore();
     const openAuthModal = useAuthModal((s) => s.open);
     const { city } = useLocationStore();
-    const favoritesCount = useFavoritesStore((s) => s.favorites.length);
+    const favoritesCount = useFavoritesStore((s) => s.ids?.size ?? 0);
     const t = useT();
     const [searchQuery, setSearchQuery] = useState('');
     // Always default to light theme unless explicitly saved as dark

@@ -64,7 +64,7 @@ export function RealtimeConnection() {
 
                 ws.onopen = () => {
                     clearTimeout(connectionTimeout);
-                    console.log('[WebSocket] ✅ Connected successfully');
+                    console.log('[WebSocket] Connected successfully');
                     useRealtimeStore.getState().setConnected(true);
                     reconnectAttempt.current = 0;
                 };
@@ -72,17 +72,9 @@ export function RealtimeConnection() {
                 ws.onmessage = (event) => {
                     try {
                         const data = JSON.parse(event.data);
-                        // Only "notification" is a real, user-facing event -- "connection"
-                        // (handshake ack), "pong" (keep-alive reply), and "error" (protocol
-                        // warnings) are internal to the socket and were leaking into the
-                        // notification bell as fake entries with no real timestamp.
                         if (data?.type === 'notification' && data?.payload) {
                             useRealtimeStore.getState().pushEvent({
                                 ...data,
-                                // The backend doesn't send a top-level timestamp (real
-                                // notifications carry created_at inside payload instead) --
-                                // stamp receipt time here so the bell always has something
-                                // valid to render.
                                 timestamp: (data.payload as Record<string, unknown>).created_at as string || new Date().toISOString(),
                             });
                         }
@@ -94,28 +86,28 @@ export function RealtimeConnection() {
                 ws.onclose = (event) => {
                     clearTimeout(connectionTimeout);
                     const reason = event.reason || 'No reason provided';
-                    console.log(`[WebSocket] ❌ Closed (code: ${event.code}, reason: ${reason})`);
+                    console.log(`[WebSocket] Closed (code: ${event.code}, reason: ${reason})`);
                     useRealtimeStore.getState().setConnected(false);
                     if (!cancelled && event.code !== 4401 && reconnectAttempt.current < 5) {
                         const delay = Math.min(1000 * Math.pow(2, reconnectAttempt.current), 30000);
                         reconnectAttempt.current++;
-                        console.log(`[WebSocket] 🔄 Reconnecting in ${delay}ms (attempt ${reconnectAttempt.current})`);
+                        console.log(`[WebSocket] Reconnecting in ${delay}ms (attempt ${reconnectAttempt.current})`);
                         reconnectTimer.current = setTimeout(connect, delay);
                     }
                 };
 
                 ws.onerror = (event) => {
                     clearTimeout(connectionTimeout);
-                    console.error('[WebSocket] ⚠️ Error event fired');
+                    console.error('[WebSocket] Error event fired');
                     console.error('[WebSocket] WebSocket readyState:', ws.readyState, '(0=connecting, 1=open, 2=closing, 3=closed)');
                     ws.close();
                 };
             } catch (error) {
-                console.error('[WebSocket] ❌ Failed to create WebSocket:', error);
+                console.error('[WebSocket] Failed to create WebSocket:', error);
                 if (!cancelled && reconnectAttempt.current < 5) {
                     const delay = Math.min(1000 * Math.pow(2, reconnectAttempt.current), 30000);
                     reconnectAttempt.current++;
-                    console.log(`[WebSocket] 🔄 Retrying in ${delay}ms`);
+                    console.log(`[WebSocket] Retrying in ${delay}ms`);
                     reconnectTimer.current = setTimeout(connect, delay);
                 }
             }
