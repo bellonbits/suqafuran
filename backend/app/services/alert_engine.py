@@ -62,7 +62,7 @@ class AlertEngine:
         try:
             # Get all active rules
             rules = self.db.exec(
-                select(AlertRule).where(AlertRule.is_active == True)
+                select(AlertRule).where(AlertRule.enabled == True)
             ).all()
 
             results = []
@@ -76,7 +76,7 @@ class AlertEngine:
                     await emit_alert_event(
                         rule_id=str(rule.id),
                         alert_name=rule.name,
-                        message=result.message or rule.alert_message,
+                        message=result.message or rule.description,
                         severity=result.severity,
                     )
 
