@@ -70,8 +70,8 @@ if [ -n "${DATABASE_URL:-}" ]; then
         echo "[$(date)] Using host pg_dump..."
         pg_dump "${DATABASE_URL}" | gzip -9 > "${DB_BACKUP_FILE}"
     elif command -v docker &>/dev/null; then
-        echo "[$(date)] pg_dump not on host; running via docker postgres:15-alpine..."
-        docker run --rm --network host -i postgres:15-alpine pg_dump "${DATABASE_URL}" | gzip -9 > "${DB_BACKUP_FILE}"
+        echo "[$(date)] pg_dump not on host; running via docker postgres:alpine..."
+        docker run --rm --network host -i postgres:alpine pg_dump "${DATABASE_URL}" | gzip -9 > "${DB_BACKUP_FILE}"
     else
         echo "[!] ERROR: Neither pg_dump nor docker is available to execute dump!"
     fi
@@ -82,6 +82,7 @@ fi
 if [ -f "${DB_BACKUP_FILE}" ] && [ -s "${DB_BACKUP_FILE}" ]; then
     echo "[$(date)] Database backup completed successfully ($(du -h "${DB_BACKUP_FILE}" | cut -f1))."
 else
+    rm -f "${DB_BACKUP_FILE}"
     echo "[!] ERROR: Database backup file is empty or missing!"
 fi
 
