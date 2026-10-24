@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Package, Users, Settings, LogOut, Menu, X,
-  BarChart3, Wallet, Truck, Store, ShoppingCart, MessageSquare,
+  BarChart3, Wallet, Truck, Store, ShoppingBag, MessageSquare,
   Bell, Search, ChevronDown, ChevronRight, Home, Moon, Command,
   CheckCircle, AlertTriangle, Clock, Sparkles, Check, ExternalLink
 } from 'lucide-react';

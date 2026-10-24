@@ -7,7 +7,7 @@ import {
     LayoutDashboard,
     Store,
     Package,
-    ShoppingCart,
+    ShoppingBag,
     Users,
     CheckSquare,
     MessageSquare,
@@ -875,7 +875,7 @@ export function BusinessDashboard() {
                         { id: 'messages', label: 'Activity / Chat', icon: MessageSquare },
                         { id: 'storefront', label: 'Storefront Settings', icon: Store },
                         { id: 'inventory', label: 'Inventory / Catalog', icon: Package },
-                        { id: 'orders', label: 'Orders', icon: ShoppingCart },
+                        { id: 'orders', label: 'Orders', icon: ShoppingBag },
                         { id: 'team', label: 'Team Roster', icon: ShieldCheck },
                         { id: 'analytics', label: 'Analytics', icon: BarChart3 },
                         { id: 'ai', label: 'AI Copilot', icon: Bot }
@@ -1045,7 +1045,7 @@ export function BusinessDashboard() {
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
                                     {[
                                         { label: 'Workspace Revenue', value: `$${analytics?.revenue || '0.00'}`, trend: '+8.4%', trendColor: 'text-[#15803d] bg-[#ebf8f2]', icon: DollarSign, colorBg: 'bg-[#ebf8f2] border border-[#d1f2e1]/40', colorText: 'text-[#15803d]' },
-                                        { label: 'Completed Orders', value: analytics?.completed_orders || 0, trend: '+2.1%', trendColor: 'text-[#b45309] bg-[#fff6e0]', icon: ShoppingCart, colorBg: 'bg-[#fff6e0] border border-[#feebd1]/40', colorText: 'text-[#b45309]' },
+                                        { label: 'Completed Orders', value: analytics?.completed_orders || 0, trend: '+2.1%', trendColor: 'text-[#b45309] bg-[#fff6e0]', icon: ShoppingBag, colorBg: 'bg-[#fff6e0] border border-[#feebd1]/40', colorText: 'text-[#b45309]' },
                                         { label: 'Products in Catalog', value: analytics?.product_count || 0, trend: 'Catalog size', trendColor: 'text-[#0369a1] bg-[#e0f2fe]', icon: Package, colorBg: 'bg-[#e0f2fe] border border-[#bde4ff]/40', colorText: 'text-[#0369a1]' },
                                         { label: 'Active Customers', value: analytics?.customer_count || 0, trend: 'Relationships', trendColor: 'text-[#6d28d9] bg-[#faf5ff]', icon: Users, colorBg: 'bg-[#faf5ff] border border-[#f3e8ff]/40', colorText: 'text-[#6d28d9]' }
                                     ].map((c, i) => {

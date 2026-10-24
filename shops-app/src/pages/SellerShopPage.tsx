@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Save, Loader, Upload, X, MapPin, Clock, Tag, ChevronDown, Crosshair, FileText, Palette, ShoppingCart, Package, Eye, TrendingUp, ArrowRight } from 'lucide-react';
+import { Save, Loader, Upload, X, MapPin, Clock, Tag, ChevronDown, Crosshair, FileText, Palette, ShoppingBag, Package, Eye, TrendingUp, ArrowRight } from 'lucide-react';
 import api from '@/services/api';
 import { imageService } from '@/services/imageService';
 import { loadGoogleMapsScript } from '@/lib/googleMaps';
@@ -496,7 +496,7 @@ export default function ShopPage() {
               <p className="text-sm font-semibold text-green-900 dark:text-green-300 mb-1">View Orders</p>
               <p className="text-xs text-green-700 dark:text-green-400">Track customer orders</p>
             </div>
-            <ShoppingCart className="w-5 h-5 text-green-600" />
+            <ShoppingBag className="w-5 h-5 text-green-600" />
           </div>
         </Link>
       </div>

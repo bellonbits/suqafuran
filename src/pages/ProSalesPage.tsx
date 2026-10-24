@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingCart, Zap, TrendingUp, ShieldCheck, ArrowRight } from 'lucide-react';
+import { ShoppingBag, Zap, TrendingUp, ShieldCheck, ArrowRight } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -44,7 +44,7 @@ export const ProSalesPage: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-3xl p-10 border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center">
-                <ShoppingCart className="h-16 w-16 text-gray-100 mb-4" />
+                <ShoppingBag className="h-16 w-16 text-gray-100 mb-4" />
                 <h3 className="text-2xl font-bold text-gray-900">{t('proSales.manageSubscriptions', 'Manage Pro Subscriptions')}</h3>
                 <p className="text-gray-500 mt-2 max-w-md">
                     {t('proSales.manageSubscriptionsDesc', 'Track your active promotions, subscription renewals, and billing history all in one place.')}

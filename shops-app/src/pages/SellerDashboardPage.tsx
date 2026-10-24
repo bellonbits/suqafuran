@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Search, Filter, SlidersHorizontal, Calendar, ChevronRight,
   MoreHorizontal, Loader2, ArrowUpRight, ArrowDownRight, Package,
-  ShoppingCart, DollarSign, CheckCircle2, Clock, XCircle, AlertCircle,
+  ShoppingBag, DollarSign, CheckCircle2, Clock, XCircle, AlertCircle,
   Eye, RefreshCw, Sparkles, ExternalLink, Tag
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuth';
@@ -586,7 +586,7 @@ export default function SellerDashboard() {
           </>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
-            <ShoppingCart className="w-12 h-12 text-slate-200 dark:text-neutral-200" />
+            <ShoppingBag className="w-12 h-12 text-slate-200 dark:text-neutral-200" />
             <p className="text-base font-extrabold text-slate-700 dark:text-neutral-100">No Orders Yet</p>
             <p className="text-xs text-slate-400 max-w-sm">
               Orders placed by customers will automatically show up here with real customer details and Kenya Shillings (Ksh) amounts.

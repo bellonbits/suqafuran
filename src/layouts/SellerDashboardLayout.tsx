@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  LayoutDashboard, Package, ShoppingCart, Truck, Archive,
+  LayoutDashboard, Package, ShoppingBag, Truck, Archive,
   Users, MessageSquare, Megaphone, Star, BarChart2,
   DollarSign, Store, FileText, Settings, LogOut,
   Bell, Menu, X, ChevronRight, Zap, ExternalLink,
@@ -16,7 +16,7 @@ import { sellerDashboardService } from '../services/sellerDashboardService';
 const NAV_ITEMS = [
   { path: '/seller-dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { path: '/seller-dashboard/products', label: 'Products', icon: Package },
-  { path: '/seller-dashboard/orders', label: 'Orders', icon: ShoppingCart, badge: 'orders' },
+  { path: '/seller-dashboard/orders', label: 'Orders', icon: ShoppingBag, badge: 'orders' },
   { path: '/seller-dashboard/delivery', label: 'Delivery', icon: Truck },
   { path: '/seller-dashboard/inventory', label: 'Inventory', icon: Archive },
   { path: '/seller-dashboard/customers', label: 'Customers', icon: Users },

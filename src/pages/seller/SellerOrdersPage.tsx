@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  ShoppingCart, Clock, CheckCircle, XCircle, RefreshCw, Truck,
+  ShoppingBag, Clock, CheckCircle, XCircle, RefreshCw, Truck,
   Package, AlertTriangle, Eye, Phone, MapPin, Printer, Receipt,
   MessageSquare, X, Search, User
 } from 'lucide-react';
@@ -311,7 +311,7 @@ export const SellerOrdersPage: React.FC = () => {
         </div>
       ) : paginated.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-100">
-          <ShoppingCart className="w-14 h-14 text-slate-200 mb-4" />
+          <ShoppingBag className="w-14 h-14 text-slate-200 mb-4" />
           <h3 className="text-base font-bold text-slate-700">No orders found</h3>
           <p className="text-sm text-slate-400 mt-1">{search ? 'Try a different search' : 'Orders will appear here when customers place them'}</p>
         </div>

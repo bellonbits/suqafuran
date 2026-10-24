@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Loader2, TrendingUp, Users, ShoppingCart, Package, RefreshCw,
+  Loader2, TrendingUp, Users, ShoppingBag, Package, RefreshCw,
   Activity, Box, Truck, Clock, CheckCircle, AlertTriangle, BarChart3
 } from 'lucide-react';
 import { adminService } from '@/services';
@@ -143,7 +143,7 @@ const AnalyticsPage = () => {
       label: 'Total Orders',
       value: stats.total_orders?.toLocaleString() ?? '0',
       sub: `${stats.pending_orders ?? 0} pending`,
-      icon: ShoppingCart,
+      icon: ShoppingBag,
       color: '#0ea5e9',
       bgClass: 'from-sky-500/10 to-sky-400/5',
       iconBg: 'bg-sky-50 dark:bg-sky-950/40',
@@ -169,7 +169,7 @@ const AnalyticsPage = () => {
   const healthMetrics = [
     { label: 'Active Listings', pct: listingActiveRate, color: '#10b981', icon: CheckCircle, iconColor: 'text-emerald-500' },
     { label: 'Pending Listings', pct: listingPendingRate, color: '#f59e0b', icon: Clock, iconColor: 'text-amber-500' },
-    { label: 'Order Backlog', pct: orderPendingRate, color: '#6366f1', icon: ShoppingCart, iconColor: 'text-indigo-500' },
+    { label: 'Order Backlog', pct: orderPendingRate, color: '#6366f1', icon: ShoppingBag, iconColor: 'text-indigo-500' },
     { label: 'Delivery Delays', pct: deliveryDelayRate, color: '#ef4444', icon: Truck, iconColor: 'text-rose-500' },
   ];
 

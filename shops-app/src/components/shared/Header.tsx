@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, Sun, Moon, MapPin, Plus, Bell, User, Menu, X, LogOut, Store, ShoppingCart, LayoutDashboard, Shield, MessageSquare, Settings, ChevronRight, CircleUser } from 'lucide-react';
+import { Search, Sun, Moon, MapPin, Plus, Bell, User, Menu, X, LogOut, Store, Heart, LayoutDashboard, Shield, MessageSquare, Settings, ChevronRight, CircleUser } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuth';
 import { useAuthModal } from '../../store/useAuthModal';
 import { useLocationStore } from '../../store/useLocation';
-import { useCart } from '../../store/useCart';
+import { useFavoritesStore } from '../../store/useFavorites';
 import { useT } from '../../lib/i18n';
 import { LocationPickerModal } from './LocationPickerModal';
 import NotificationCenter from '../NotificationCenter';
@@ -19,7 +19,7 @@ export const Header: React.FC = () => {
     const { user, isAuthenticated, logout } = useAuthStore();
     const openAuthModal = useAuthModal((s) => s.open);
     const { city } = useLocationStore();
-    const { getTotalCount } = useCart();
+    const favoritesCount = useFavoritesStore((s) => s.favorites.length);
     const t = useT();
     const [searchQuery, setSearchQuery] = useState('');
     // Always default to light theme unless explicitly saved as dark
@@ -35,8 +35,6 @@ export const Header: React.FC = () => {
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
     const [isVerifiedSeller, setIsVerifiedSeller] = useState(false);
     const [userRole, setUserRole] = useState<'admin' | 'agent' | 'seller' | null>(null);
-    const [cartOpen, setCartOpen] = useState(false);
-    const cartCount = getTotalCount();
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -178,27 +176,27 @@ export const Header: React.FC = () => {
                         {/* Messages - Icon Only */}
                         <button
                             onClick={() => router.push('/messages')}
-                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors relative hidden lg:flex"
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors relative hidden sm:flex items-center justify-center"
                             title="Messages"
+                            aria-label="Messages"
                         >
                             <MessageSquare className="w-5 h-5 text-gray-600 dark:text-neutral-300" />
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full"></span>
+                            {unreadMessages > 0 && (
+                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full" />
+                            )}
                         </button>
 
-                        {/* Cart - Icon Only with Badge. Visible on mobile by
-                        default (not hidden behind sm:/md: like the other
-                        header controls) -- the cart is a primary action, not
-                        secondary chrome that belongs behind the hamburger
-                        menu. */}
+                        {/* Favorites / Saved Items */}
                         <button
-                            onClick={() => router.push('/checkout')}
+                            onClick={() => router.push('/favorites')}
                             className="w-9 h-9 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors relative flex items-center justify-center"
-                            title="Cart"
+                            title="Saved Items"
+                            aria-label="Saved items"
                         >
-                            <ShoppingCart className="w-5 h-5 text-gray-600 dark:text-neutral-300" />
-                            {cartCount > 0 && (
-                                <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-orange-600 text-white rounded-full">
-                                    {cartCount}
+                            <Heart className="w-5 h-5 text-gray-600 dark:text-neutral-300" />
+                            {favoritesCount > 0 && (
+                                <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold bg-orange-600 text-white rounded-full">
+                                    {favoritesCount}
                                 </span>
                             )}
                         </button>
@@ -396,7 +394,7 @@ export const Header: React.FC = () => {
                         className="md:hidden fixed inset-x-0 z-40 bg-white dark:bg-neutral-950 border-b border-gray-100 dark:border-neutral-800 px-4 py-3 space-y-2 max-h-[75vh] overflow-y-auto shadow-lg"
                         style={{ top: 'calc(env(safe-area-inset-top, 0px) + 3rem)' }}
                     >
-                    {/* Language, location, search and cart already live in the
+                    {/* Language, location, and search already live in the
                         header/home page, so the menu only holds what doesn't:
                         theme, account pages and sign-in. */}
                     <div className="flex items-center justify-between h-12 px-3">

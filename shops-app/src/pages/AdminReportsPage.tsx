@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Loader, ArrowLeft, Download, BarChart3, Users, ShoppingCart, DollarSign } from 'lucide-react';
+import { Search, Loader, ArrowLeft, Download, BarChart3, Users, ShoppingBag, DollarSign } from 'lucide-react';
 import api from '@/services/api';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ADMIN_NAV_ITEMS } from '@/admin-dashboard/navigation';
@@ -72,7 +72,7 @@ const ReportsPage = () => {
         {/* Key Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white border border-slate-200 dark:border-neutral-800 rounded-2xl p-6">
-            <ShoppingCart className="w-10 h-10 text-[#6cd4ff] mb-4" />
+            <ShoppingBag className="w-10 h-10 text-[#6cd4ff] mb-4" />
             <p className="text-3xl font-black text-slate-900 dark:text-white">{stats?.total_orders || 0}</p>
             <p className="text-sm text-slate-400 mt-1">Total Orders</p>
           </div>

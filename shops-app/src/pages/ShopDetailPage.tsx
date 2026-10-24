@@ -10,7 +10,6 @@ import api, { optimizeCloudinaryUrl, resolveMediaUrl } from '@/services/api';
 import {
     ChevronRight, ChevronLeft, Star, Clock, MapPin, Plus, Minus, Search, ShoppingBag, X, Percent, ThumbsUp, Info, Heart, Filter, MessageCircle
 } from 'lucide-react';
-import { useCart } from '@/store/useCart';
 import { useAuthStore } from '@/store/useAuth';
 import { useTrackShopView } from '@/hooks/useViewTracking';
 import { analyticsService } from '@/services/analytics';
@@ -119,7 +118,6 @@ export default function ShopDetailPage() {
     const [messageText, setMessageText] = useState('');
     const [isSendingMessage, setIsSendingMessage] = useState(false);
 
-    const { items: cartItems, addItem, updateQuantity: updateCartQuantity, getTotalPrice } = useCart();
     const { user, token, isAuthenticated } = useAuthStore();
 
     // Track shop profile views for analytics
@@ -150,10 +148,6 @@ export default function ShopDetailPage() {
       setActiveCategory(mainCategoryId);
     }
   };
-
-  const getCartQuantity = (productId: string) => {
-        return cartItems.find(item => item.id === productId)?.quantity || 0;
-    };
 
     // Resolve the URL's slug (or legacy numeric ID) to the full public shop
     // object in a single request, with robust fallbacks so every shop is accessible.
@@ -518,7 +512,7 @@ export default function ShopDetailPage() {
                         <span className="text-gray-900 dark:text-white truncate">{shopName}</span>
                     </div>
 
-                    {/* Right side icons: Location + Cart */}
+                    {/* Right side icons: Location */}
                     <div className="flex items-center gap-4">
                         {/* Location Icon */}
                         <button
@@ -529,18 +523,20 @@ export default function ShopDetailPage() {
                             <MapPin className="w-5 h-5" />
                         </button>
 
-                        {/* Cart Icon */}
+                        {/* Chat with Seller Icon */}
                         <button
-                            onClick={() => navigate('/checkout')}
-                            className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-900 text-gray-600 dark:text-neutral-300 transition-colors"
-                            title="View cart"
+                            onClick={() => {
+                                if (shopOwnerId) {
+                                    navigate(`/messages?userId=${shopOwnerId}`);
+                                } else {
+                                    navigate('/messages');
+                                }
+                            }}
+                            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-900 text-gray-600 dark:text-neutral-300 transition-colors"
+                            title="Chat with Seller"
+                            aria-label="Chat with Seller"
                         >
-                            <ShoppingBag className="w-5 h-5" />
-                            {Object.keys(cartItems).length > 0 && (
-                                <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                                    {Object.keys(cartItems).length}
-                                </span>
-                            )}
+                            <MessageCircle className="w-5 h-5 text-orange-500" />
                         </button>
                     </div>
                 </div>
@@ -1134,17 +1130,11 @@ export default function ShopDetailPage() {
 
                                             .map((product) => {
                                             const { hasPromo, originalPrice, promoText } = getMockProductInfo(product);
-                                            const cartQty = getCartQuantity(String(product.id));
 
                                             return (
                                                 <div
                                                     key={product.id}
-                                                    onClick={() => {
-                                                        setSelectedProduct(product);
-                                                        setModalQuantity(cartQty || 1);
-                                                        setModalActiveImage(0);
-                                                        if (modalGalleryRef.current) modalGalleryRef.current.scrollLeft = 0;
-                                                    }}
+                                                    onClick={() => navigate(`/listing/${product.id}`)}
                                                     className="cursor-pointer group"
                                                 >
                                                     {/* Card Image Container */}
@@ -1188,28 +1178,6 @@ export default function ShopDetailPage() {
                                                             <Heart className={`w-3.5 h-3.5 ${favorites.has(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
                                                         </button>
 
-                                                        {/* Circular overlay + button on the bottom-right */}
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                e.preventDefault();
-                                                                addItem({
-                                                                    owner_id: shopOwnerId ?? undefined,
-                                                                    id: String(product.id),
-                                                                    title: product.title_en,
-                                                                    price: product?.price ?? 0,
-                                                                    image: product.images?.[0],
-                                                                    quantity: cartQty + 1
-                                                                });
-                                                            }}
-                                                            className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-white dark:bg-neutral-950 text-[#00a082] shadow-md hover:scale-105 active:scale-95 flex items-center justify-center transition-all border border-gray-100 dark:border-neutral-800"
-                                                        >
-                                                            {cartQty > 0 ? (
-                                                                <span className="text-xs font-black text-gray-900 dark:text-white">{cartQty}</span>
-                                                            ) : (
-                                                                <Plus className="w-4 h-4 stroke-[3]" />
-                                                            )}
-                                                        </button>
                                                     </div>
 
                                                     {/* Card Title & Prices */}
@@ -1245,89 +1213,38 @@ export default function ShopDetailPage() {
                             ))}
                         </main>
 
-                        {/* 3. Right Sidebar (Your Order / Cart Summary) */}
+                        {/* 3. Right Sidebar (Seller Trust & Chat Action) */}
                         <aside className="col-span-12 lg:col-span-3 sticky top-28 self-start">
-                            <div className="bg-white dark:bg-neutral-950 border border-gray-100 dark:border-neutral-800 rounded-xl p-5 shadow-sm max-h-[75vh] flex flex-col">
-                                <div className="flex items-center gap-2 pb-4 border-b border-gray-100 dark:border-neutral-800 mb-4 shrink-0">
-                                    <ShoppingBag className="w-4.5 h-4.5 text-gray-500" />
-                                    <h3 className="font-extrabold text-gray-900 dark:text-white text-base">Your order</h3>
+                            <div className="bg-white dark:bg-neutral-950 border border-gray-100 dark:border-neutral-800 rounded-xl p-5 shadow-sm space-y-4">
+                                <div className="space-y-1">
+                                    <h3 className="font-extrabold text-gray-900 dark:text-white text-base">Direct Classifieds</h3>
+                                    <p className="text-xs text-gray-500 dark:text-neutral-400">
+                                        Deals are completed offline in person. Contact this seller to arrange meetup and inspection.
+                                    </p>
                                 </div>
 
-                                {cartItems.length === 0 ? (
-                                    <div className="flex-1 flex flex-col items-center justify-center py-10 text-center shrink-0">
-                                        <div className="w-16 h-16 bg-gray-50 dark:bg-neutral-950 rounded-full flex items-center justify-center mb-4">
-                                            <img src="/icons/shelves.png" className="w-8 h-8 object-contain opacity-40" alt="" />
-                                        </div>
-                                        <p className="font-bold text-gray-800 dark:text-white text-xs leading-tight">Your order is empty</p>
-                                        <p className="text-gray-450 dark:text-neutral-400 text-[10px] mt-1 max-w-[170px] leading-normal">
-                                            When you add products from a store, they will appear here.
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="flex-1 overflow-y-auto pr-1 space-y-4 mb-4 min-h-0 hide-scrollbar">
-                                        {cartItems.map((item) => (
-                                            <div key={item.id} className="flex gap-2 justify-between items-start text-xs">
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="font-semibold text-gray-900 dark:text-white truncate" title={item.title}>
-                                                        {item.title}
-                                                    </p>
-                                                    <p className="text-gray-500 dark:text-neutral-300 font-bold text-[10px] mt-0.5">
-                                                        KSh {(item?.price ?? 0) * (item?.quantity ?? 0).toLocaleString()}
-                                                    </p>
-                                                </div>
-                                                <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-neutral-900 px-2 py-0.5 rounded-full border border-gray-100 dark:border-neutral-800 shrink-0">
-                                                    <button
-                                                        onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
-                                                        className="text-gray-500 hover:text-gray-900 dark:text-neutral-300 dark:hover:text-neutral-100"
-                                                    >
-                                                        <Minus className="w-3 h-3" />
-                                                    </button>
-                                                    <span className="font-bold text-gray-900 dark:text-white text-[11px] px-0.5">
-                                                        {item.quantity}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
-                                                        className="text-orange-500 hover:text-orange-600 dark:text-orange-400 dark:hover:text-orange-300"
-                                                    >
-                                                        <Plus className="w-3 h-3" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                                <button
+                                    onClick={() => {
+                                        if (shopOwnerId) {
+                                            navigate(`/messages?userId=${shopOwnerId}`);
+                                        } else {
+                                            navigate('/messages');
+                                        }
+                                    }}
+                                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-3 px-4 rounded-full transition-colors flex items-center justify-center gap-2 shadow-sm text-sm"
+                                >
+                                    <MessageCircle className="w-4 h-4" />
+                                    <span>Chat with Seller</span>
+                                </button>
 
-                                <div className="mt-auto border-t border-gray-100 dark:border-neutral-800 pt-4 space-y-3 shrink-0">
-                                    {/* Delivery Threshold Notice */}
-                                    <div className="bg-amber-50/50 dark:bg-amber-950/10 border border-amber-100 dark:border-amber-900/30 rounded-lg p-2.5 text-[10px] text-amber-800 dark:text-amber-300 leading-normal">
-                                        {getTotalPrice() < 500 ? (
-                                            <p className="font-medium">
-                                                Reach <span className="font-bold">KSh 500.00</span> to avoid an extra fee of <span className="font-bold">KSh 300.00</span>.
-                                            </p>
-                                        ) : (
-                                            <p className="font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                                                <span>✓</span> You qualify for reduced fee checkout!
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {cartItems.length > 0 && (
-                                        <>
-                                            <div className="flex justify-between items-center text-xs font-semibold">
-                                                <span className="text-gray-500">Subtotal</span>
-                                                <span className="font-black text-gray-900 dark:text-white text-sm">KSh {getTotalPrice().toLocaleString()}</span>
-                                            </div>
-                                            
-                                            <button
-                                                onClick={() => navigate('/checkout')}
-                                                className="w-full bg-[#00a082] hover:bg-[#008f73] text-white font-black py-2.5 px-4 rounded-full transition-colors flex items-center justify-center gap-1.5 shadow-sm text-xs"
-                                            >
-                                                <span>Checkout</span>
-                                                <span>•</span>
-                                                <span>KSh {(getTotalPrice() + (getTotalPrice() < 500 ? 300 : 0)).toLocaleString()}</span>
-                                            </button>
-                                        </>
-                                    )}
+                                <div className="bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-800/40 rounded-xl p-3.5 space-y-2 text-xs">
+                                    <p className="font-bold text-amber-900 dark:text-amber-300">Safety Guidelines</p>
+                                    <ul className="text-amber-800/90 dark:text-amber-200/80 space-y-1 list-disc list-inside text-[11px]">
+                                        <li>Meet in a public location.</li>
+                                        <li>Inspect items thoroughly before paying.</li>
+                                        <li>Pay directly via Cash or M-Pesa.</li>
+                                        <li>Never send upfront deposits.</li>
+                                    </ul>
                                 </div>
                             </div>
                         </aside>
@@ -1655,44 +1572,15 @@ export default function ShopDetailPage() {
                                     </p>
                                 )}
 
-                                {/* Quantity Selector Counter Pill */}
-                                <div className="flex justify-center py-2">
-                                    <div className="flex items-center gap-4 bg-gray-50 dark:bg-neutral-900 px-4 py-2 rounded-full border border-gray-100 dark:border-neutral-800">
-                                        <button
-                                            onClick={() => setModalQuantity(q => Math.max(1, q - 1))}
-                                            className="p-1.5 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-full text-gray-500 dark:text-neutral-300 transition-colors"
-                                        >
-                                            <Minus className="w-4 h-4 stroke-[2.5]" />
-                                        </button>
-                                        <span className="text-lg font-black text-gray-900 dark:text-white min-w-[24px] text-center">
-                                            {modalQuantity}
-                                        </span>
-                                        <button
-                                            onClick={() => setModalQuantity(q => q + 1)}
-                                            className="p-1.5 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-full text-orange-500 dark:text-orange-400 transition-colors"
-                                        >
-                                            <Plus className="w-4 h-4 stroke-[2.5]" />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Full-width Add Button */}
                                 <button
                                     onClick={() => {
-                                        addItem({
-                                                                    owner_id: shopOwnerId ?? undefined,
-                                            id: String(selectedProduct.id),
-                                            title: selectedProduct.title_en,
-                                            price: selectedProduct?.price ?? 0,
-                                            image: selectedProduct.images?.[0],
-                                            quantity: modalQuantity
-                                        });
+                                        const id = selectedProduct.id;
                                         setSelectedProduct(null);
+                                        navigate(`/listing/${id}`);
                                     }}
-                                    className="w-full bg-[#00a082] hover:bg-[#008f73] text-white font-black py-4 px-6 rounded-full transition-colors flex items-center justify-between text-sm shadow-md mt-4"
+                                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-3.5 px-6 rounded-full transition-colors flex items-center justify-center gap-2 text-sm shadow-md mt-4"
                                 >
-                                    <span>Add {modalQuantity} to order</span>
-                                    <span>KSh {(selectedProduct?.price ?? 0) * (modalQuantity ?? 1).toLocaleString()}</span>
+                                    <span>View Details & Chat with Seller</span>
                                 </button>
                             </div>
                         </motion.div>

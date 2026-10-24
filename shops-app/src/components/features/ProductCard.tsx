@@ -7,7 +7,6 @@ import { useFavoritesStore } from '../../store/useFavorites';
 import { useAuthStore } from '../../store/useAuth';
 import { useAuthModal } from '../../store/useAuthModal';
 import { useCurrencyStore } from '../../store/useCurrency';
-import { useCart } from '../../store/useCart';
 import { formatConvertedPrice } from '../../lib/currency';
 import { useLocalizedField } from '../../lib/i18n';
 import { FeaturedBadge } from '../ads/FeaturedBadge';
@@ -35,7 +34,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
     const isFavorite = useFavoritesStore((s) => s.isFavorite(listing.id));
     const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
     const displayCurrency = useCurrencyStore((s) => s.currency);
-    const addItem = useCart((s) => s.addItem);
     const field = useLocalizedField();
 
     // Check if listing is featured
@@ -59,19 +57,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
             return;
         }
         toggleFavorite(listing.id);
-    };
-
-    const handleAddToCart = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        addItem({
-            id: String(listing.id),
-            title: field(listing.title_en, listing.title_so) || listing.title_en,
-            price: listing?.price ?? 0,
-            quantity: 1,
-            image: displayImage,
-            owner_id: listing.owner_id,
-        });
     };
 
     // Generate fallback visuals if listing images are missing
@@ -179,7 +164,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                         {sellerInfo}
                     </div>
 
-                    <div className="flex items-end gap-4 mt-2">
+                    <div className="flex items-end justify-between gap-4 mt-2">
                         {priceBlock}
 
                         <div className="flex items-center gap-2 shrink-0">
@@ -189,13 +174,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                                 className="h-10 w-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50 active:scale-95 transition-all dark:bg-neutral-900 dark:border-neutral-800 cursor-pointer"
                             >
                                 <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-neutral-100'}`} />
-                            </button>
-                            <button
-                                onClick={handleAddToCart}
-                                aria-label="Add to cart"
-                                className="h-10 w-10 rounded-full bg-sky-500 hover:bg-sky-600 shadow-sm flex items-center justify-center active:scale-95 transition-all cursor-pointer"
-                            >
-                                <Plus className="h-4 w-4 text-white stroke-[3]" />
                             </button>
                         </div>
                     </div>
@@ -227,17 +205,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                 <button
                     onClick={handleToggleFavorite}
                     aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                    className="absolute top-2 right-2 h-10 w-10 rounded-full bg-white/90 border border-gray-200 shadow-md flex items-center justify-center hover:bg-white active:scale-95 transition-all dark:bg-neutral-900/90 dark:border-neutral-800 cursor-pointer"
+                    className="absolute top-2 right-2 h-10 w-10 rounded-full bg-white/90 border border-gray-200 shadow-md flex items-center justify-center hover:bg-white active:scale-95 transition-all dark:bg-neutral-900/90 dark:border-neutral-800 cursor-pointer z-10"
                 >
                     <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-neutral-100'}`} />
-                </button>
-
-                <button
-                    onClick={handleAddToCart}
-                    aria-label="Add to cart"
-                    className="absolute bottom-2.5 right-2.5 h-10 w-10 rounded-full bg-sky-500 hover:bg-sky-600 shadow-md flex items-center justify-center active:scale-95 transition-all cursor-pointer z-10"
-                >
-                    <Plus className="h-4 w-4 text-white stroke-[3]" />
                 </button>
             </div>
 

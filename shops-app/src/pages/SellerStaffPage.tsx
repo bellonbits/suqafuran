@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   UserPlus, Trash2, Shield, Package, MessageSquare,
-  ShoppingCart, Crown, Users, Loader, Mail, X, AlertCircle, CheckCircle2
+  ShoppingBag, Crown, Users, Loader, Mail, X, AlertCircle, CheckCircle2
 } from 'lucide-react';
 import api from '@/services/api';
 import { useAuthStore } from '@/store/useAuth';

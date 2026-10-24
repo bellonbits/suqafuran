@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Heart, ShoppingCart, Star } from 'lucide-react';
+import { X, Heart, Star } from 'lucide-react';
 import { optimizeCloudinaryUrl } from '@/services/api';
 
 interface ProductQuickViewModalProps {
@@ -21,17 +22,14 @@ interface ProductQuickViewModalProps {
     category: string;
   };
   onClose: () => void;
-  onAddToCart?: (productId: number) => void;
 }
 
 export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
   isOpen,
   product,
   onClose,
-  onAddToCart,
 }) => {
   const [isFavorite, setIsFavorite] = useState(false);
-  const [quantity, setQuantity] = useState(1);
   const [mounted, setMounted] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
   const galleryRef = useRef<HTMLDivElement | null>(null);
@@ -169,37 +167,14 @@ export const ProductQuickViewModal: React.FC<ProductQuickViewModalProps> = ({
                   {product.description}
                 </p>
 
-                {/* Quantity Selector - Glovo Style */}
-                <div className="flex items-center justify-center gap-4 mb-6 bg-gray-100 rounded-full p-2 w-fit mx-auto">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-8 h-8 rounded-full hover:bg-gray-200 text-gray-700 font-bold text-lg transition-colors flex items-center justify-center"
-                  >
-                    −
-                  </button>
-                  <span className="w-8 text-center font-bold text-gray-900">
-                    {quantity}
-                  </span>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="w-8 h-8 rounded-full hover:bg-gray-200 text-gray-700 font-bold text-lg transition-colors flex items-center justify-center"
-                  >
-                    +
-                  </button>
-                </div>
-
-                {/* Add to Cart Button - Glovo Style */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    onAddToCart?.(product.id);
-                    onClose();
-                  }}
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-4 px-6 rounded-full text-lg transition-colors shadow-lg"
+                {/* View Details & Chat CTA */}
+                <Link
+                  to={`/listing/${product.id}`}
+                  onClick={onClose}
+                  className="block w-full text-center bg-orange-500 hover:bg-orange-600 text-white font-black py-3.5 px-6 rounded-full text-base transition-colors shadow-lg"
                 >
-                  Add {quantity} for KSh{((product?.price ?? 0) * quantity).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                </motion.button>
+                  View Details & Chat
+                </Link>
 
                 {/* Favorite Button - Bottom */}
                 <motion.button

@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Plus, Search, Edit2, Trash2, Copy, Archive, Eye,
   Package, ChevronDown, ChevronUp, X, Upload, Tag,
-  Loader2, BarChart2, Heart, ShoppingCart
+  Loader2, BarChart2, Heart, MessageSquare
 } from 'lucide-react';
 
 import { toast } from 'react-hot-toast';
@@ -377,7 +377,7 @@ export const SellerProductsPage: React.FC = () => {
                               {[
                                 { icon: Eye, label: 'Views', value: p.views ?? 0, color: 'text-sky-600' },
                                 { icon: Heart, label: 'Favorites', value: p.favorites_count ?? 0, color: 'text-pink-500' },
-                                { icon: ShoppingCart, label: 'Cart Adds', value: p.cart_count ?? 0, color: 'text-purple-600' },
+                                { icon: MessageSquare, label: 'Inquiries', value: p.cart_count ?? 0, color: 'text-purple-600' },
                                 { icon: Package, label: 'Orders', value: p.orders_count ?? 0, color: 'text-emerald-600' },
                                 { icon: Tag, label: 'Revenue', value: fmtKSh(p.revenue ?? 0), color: 'text-amber-600' },
                               ].map(item => (

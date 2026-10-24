@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
-  Users, DollarSign, ShoppingCart, TrendingUp, Package,
+  Users, DollarSign, ShoppingBag, TrendingUp, Package,
   ArrowUpRight, ArrowDownRight, Filter, SlidersHorizontal,
   Box, Activity, Loader2, RefreshCw, LayoutGrid,
   CheckCircle, Clock, AlertTriangle, Megaphone, Store, UserCheck,
@@ -211,7 +211,7 @@ const AdminDashboard = () => {
     { label: 'Users', icon: Users, href: '/admin-users', color: 'bg-blue-50 text-blue-600 border-blue-100', desc: 'Manage accounts' },
     { label: 'Listings', icon: LayoutGrid, href: '/admin-listings', color: 'bg-purple-50 text-purple-600 border-purple-100', desc: 'Review posts' },
     { label: 'Verifications', icon: CheckCircle, href: '/admin-verifications', color: 'bg-emerald-50 text-emerald-600 border-emerald-100', desc: 'ID checks' },
-    { label: 'Orders', icon: ShoppingCart, href: '/admin-orders', color: 'bg-indigo-50 text-indigo-600 border-indigo-100', desc: 'Track orders' },
+    { label: 'Orders', icon: ShoppingBag, href: '/admin-orders', color: 'bg-indigo-50 text-indigo-600 border-indigo-100', desc: 'Track orders' },
     { label: 'Fraud', icon: AlertTriangle, href: '/admin-fraud', color: 'bg-rose-50 text-rose-600 border-rose-100', desc: 'Flagged activity' },
     { label: 'Promotions', icon: Megaphone, href: '/admin-marketing', color: 'bg-amber-50 text-amber-600 border-amber-100', desc: 'Campaigns' },
     { label: 'Reports', icon: Activity, href: '/admin-reports', color: 'bg-slate-50 text-slate-600 border-slate-200', desc: 'Analytics' },
@@ -432,7 +432,7 @@ const AdminDashboard = () => {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
-              <ShoppingCart className="w-10 h-10 text-slate-200 dark:text-neutral-200" />
+              <ShoppingBag className="w-10 h-10 text-slate-200 dark:text-neutral-200" />
               <p className="text-sm font-semibold text-slate-400">No orders yet</p>
               <p className="text-xs text-slate-300 dark:text-neutral-300">Orders will appear here once customers check out</p>
             </div>

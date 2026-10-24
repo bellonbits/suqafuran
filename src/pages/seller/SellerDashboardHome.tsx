@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  TrendingUp, ShoppingCart, Package, DollarSign,
+  TrendingUp, ShoppingBag, Package, DollarSign,
   Eye, MessageSquare, Star, Users, Truck, RefreshCw,
   ArrowUpRight, ArrowDownRight, Clock, CheckCircle, XCircle,
   AlertTriangle, Plus, ChevronRight, BarChart2, Zap
@@ -294,7 +294,7 @@ export const SellerDashboardHome: React.FC = () => {
       <div>
         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Orders</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <StatCard title="Total Orders" value={totalOrders} icon={ShoppingCart} iconColor="text-blue-600" iconBg="bg-blue-50" trend={5} sparkData={ordersTrend.slice(0, 7)} sparkColor="#3b82f6" link="/seller-dashboard/orders" />
+          <StatCard title="Total Orders" value={totalOrders} icon={ShoppingBag} iconColor="text-blue-600" iconBg="bg-blue-50" trend={5} sparkData={ordersTrend.slice(0, 7)} sparkColor="#3b82f6" link="/seller-dashboard/orders" />
           <StatCard title="Pending" value={pendingOrders} icon={Clock} iconColor="text-amber-600" iconBg="bg-amber-50" link="/seller-dashboard/orders?status=pending" />
           <StatCard title="Processing" value={processingOrders} icon={RefreshCw} iconColor="text-purple-600" iconBg="bg-purple-50" link="/seller-dashboard/orders?status=processing" />
           <StatCard title="Delivered" value={deliveredOrders} icon={CheckCircle} iconColor="text-emerald-600" iconBg="bg-emerald-50" trend={3} link="/seller-dashboard/orders?status=delivered" />
@@ -415,7 +415,7 @@ export const SellerDashboardHome: React.FC = () => {
           </div>
           {orders.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <ShoppingCart className="w-10 h-10 text-slate-200 mb-3" />
+              <ShoppingBag className="w-10 h-10 text-slate-200 mb-3" />
               <p className="text-sm text-slate-400">No orders yet</p>
               <p className="text-xs text-slate-300 mt-1">Orders will appear here once customers start buying</p>
             </div>
@@ -451,7 +451,7 @@ export const SellerDashboardHome: React.FC = () => {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { label: 'Add Product', to: '/seller-dashboard/products', icon: Plus, color: 'from-sky-500 to-blue-600' },
-            { label: 'View Orders', to: '/seller-dashboard/orders', icon: ShoppingCart, color: 'from-emerald-500 to-teal-600' },
+            { label: 'View Orders', to: '/seller-dashboard/orders', icon: ShoppingBag, color: 'from-emerald-500 to-teal-600' },
             { label: 'Finance', to: '/seller-dashboard/finance', icon: DollarSign, color: 'from-purple-500 to-indigo-600' },
             { label: 'Shop Profile', to: '/seller-dashboard/shop', icon: Users, color: 'from-orange-500 to-amber-600' },
           ].map(a => (

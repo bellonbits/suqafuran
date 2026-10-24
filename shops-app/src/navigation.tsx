@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Users, ShoppingCart, CheckCircle, Layers,
+  LayoutDashboard, Users, ShoppingBag, CheckCircle, Layers,
   Gift, Megaphone, MessageSquare, BarChart3, FileText,
   AlertTriangle, AlertCircle, TrendingUp, Store, Grid3x3,
   DollarSign, Package, AlertOctagon, CreditCard, Star, Mail, MessageCircle,
@@ -33,7 +33,7 @@ export const ADMIN_NAV_ITEMS = [
   { label: 'Shops', icon: Store, href: '/admin-shops' },
   { label: 'Listings', icon: Grid3x3, href: '/admin-listings' },
   { label: 'Verifications', icon: CheckCircle, href: '/admin-verifications' },
-  { label: 'Orders', icon: ShoppingCart, href: '/admin-orders' },
+  { label: 'Orders', icon: ShoppingBag, href: '/admin-orders' },
   { label: 'Sellers', icon: Package, href: '/admin-sellers' },
   { label: 'Categories', icon: Layers, href: '/admin-categories' },
   { label: 'Support', icon: MessageSquare, href: '/admin-support' },

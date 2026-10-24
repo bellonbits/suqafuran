@@ -1,5 +1,5 @@
 import { useEffect, useState, lazy, Suspense } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { Onboarding, hasSeenOnboarding } from './components/Onboarding'
 import { isCapacitorApp } from './lib/capacitor-utils'
 import { configureStatusBar } from './lib/status-bar'
@@ -12,7 +12,6 @@ import { SellerLayout } from './components/SellerLayout'
 const HomePage = lazy(() => import('./pages/HomePage'))
 const ShopsPage = lazy(() => import('./pages/ShopsPage'))
 const ShopDetailPage = lazy(() => import('./pages/ShopDetailPage'))
-const CheckoutPage = lazy(() => import('./pages/CheckoutPage'))
 const CategoryPage = lazy(() => import('./pages/CategoryPage'))
 const SearchPage = lazy(() => import('./pages/SearchPage'))
 const ListingDetailPage = lazy(() => import('./pages/ListingDetailPage'))
@@ -197,7 +196,8 @@ export default function App() {
       <Route element={<AppLayout><ShopDetailPage /></AppLayout>} path="/shop/:slug" />
       <Route element={<AppLayout><SearchPage /></AppLayout>} path="/search" />
       <Route element={<AppLayout><ListingDetailPage /></AppLayout>} path="/listing/:id" />
-      <Route element={<AppLayout><CheckoutPage /></AppLayout>} path="/checkout" />
+      <Route element={<Navigate to="/favorites" replace />} path="/checkout" />
+      <Route element={<Navigate to="/favorites" replace />} path="/cart" />
 
       {/* Support & Legal Pages */}
       <Route element={<AppLayout><HelpCenterPage /></AppLayout>} path="/help-center" />

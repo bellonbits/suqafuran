@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LayoutDashboard, Package, ShoppingCart, Warehouse,
+  LayoutDashboard, Package, ShoppingBag, Warehouse,
   Users, MessageSquare, Megaphone, Star, BarChart3,
   DollarSign, Store, Settings, LogOut, Menu, X,
   ChevronRight, ChevronDown, Home, ArrowLeft, Zap, TrendingUp,
@@ -531,7 +531,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
         {[
           { label: 'Home', icon: Home, href: '/seller-dashboard' },
           { label: 'Products', icon: Package, href: '/seller-dashboard/products' },
-          { label: 'Orders', icon: ShoppingCart, href: '/seller-dashboard/orders' },
+          { label: 'Orders', icon: ShoppingBag, href: '/seller-dashboard/orders' },
           { label: 'Inbox', icon: MessageSquare, href: '/seller-dashboard/messages' },
           { label: 'Settings', icon: Settings, href: '/seller-dashboard/settings' },
         ].map((tab, idx) => {

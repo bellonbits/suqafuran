@@ -3,14 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Heart, ShoppingCart, MessageCircle, User, Store } from 'lucide-react';
+import { Home, Heart, PlusCircle, MessageCircle, User, Store } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuth';
 import api from '../../services/api';
 
 const baseNavItems = [
   { href: '/shops', label: 'Home', icon: Home },
-  { href: '/favorites', label: 'Favorites', icon: Heart },
-  { href: '/checkout', label: 'Cart', icon: ShoppingCart },
+  { href: '/favorites', label: 'Saved', icon: Heart },
+  { href: '/post-ad', label: 'Sell', icon: PlusCircle },
   { href: '/messages', label: 'Chat', icon: MessageCircle },
   { href: '/account', label: 'Profile', icon: User },
 ];
@@ -43,10 +43,10 @@ export const BottomNavigation: React.FC = () => {
     if (isVerifiedSeller && isAuthenticated) {
       setNavItems([
         { href: '/shops', label: 'Home', icon: Home },
-        { href: '/favorites', label: 'Favorites', icon: Heart },
-        { href: '/seller-dashboard', label: 'Seller', icon: Store },
+        { href: '/favorites', label: 'Saved', icon: Heart },
+        { href: '/post-ad', label: 'Sell', icon: PlusCircle },
         { href: '/messages', label: 'Chat', icon: MessageCircle },
-        { href: '/account', label: 'Profile', icon: User },
+        { href: '/seller-dashboard', label: 'Dashboard', icon: Store },
       ]);
     } else {
       setNavItems(baseNavItems);

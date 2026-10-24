@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { Heart, ShoppingCart } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { optimizeCloudinaryUrl } from '@/services/api';
 import { ProductQuickViewModal } from './ProductQuickViewModal';
 
@@ -22,7 +22,6 @@ interface ProductCardProps {
   delay?: number;
   shopName?: string;
   shopVerified?: boolean;
-  onAddToCart?: (productId: number) => void;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -40,7 +39,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   delay = 0,
   shopName,
   shopVerified,
-  onAddToCart,
 }) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -134,20 +132,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             )}
           </div>
 
-          {/* Rounded Elevated ○ + Button */}
+          {/* Rounded Elevated View Button */}
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={(e) => {
               e.stopPropagation();
-              if (onAddToCart) {
-                onAddToCart(id);
-              } else {
-                setIsModalOpen(true);
-              }
+              setIsModalOpen(true);
             }}
             className="w-9 h-9 rounded-full bg-orange-600 hover:bg-orange-500 text-white btn-shadow-elevated flex items-center justify-center transition-all shrink-0 font-black text-lg"
-            title="Add to cart"
+            title="View item"
           >
             +
           </motion.button>
@@ -170,10 +164,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         description,
       }}
       onClose={() => setIsModalOpen(false)}
-      onAddToCart={(productId) => {
-        onAddToCart?.(productId);
-        setIsModalOpen(false);
-      }}
     />
     </>
   );

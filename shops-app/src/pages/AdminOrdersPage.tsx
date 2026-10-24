@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
-  ShoppingCart, Search, Loader, DollarSign, CheckCircle2, MessageCircle,
+  ShoppingBag, Search, Loader, DollarSign, CheckCircle2, MessageCircle,
   Phone, MessageSquareText, Store, Clock, RadioTower
 } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
@@ -111,8 +111,8 @@ export default function AdminOrdersPage() {
       {/* Page header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white">Checkout Activity</h2>
-          <p className="text-sm text-slate-400 mt-0.5">What buyers put in their cart, from which shop, and whether they followed up with the seller</p>
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white">Order & Deal Activity</h2>
+          <p className="text-sm text-slate-400 mt-0.5">Buyer orders and inquiries, from which shop, and whether they followed up with the seller</p>
         </div>
         {lastRefreshed && (
           <div className="flex items-center gap-1.5 text-xs text-slate-400">
@@ -126,11 +126,11 @@ export default function AdminOrdersPage() {
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-5 mb-7">
         <div className="stat-card flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-sky-50 dark:bg-sky-950/30 flex items-center justify-center">
-            <ShoppingCart className="w-6 h-6 text-sky-600" />
+            <ShoppingBag className="w-6 h-6 text-sky-600" />
           </div>
           <div>
             <p className="text-3xl font-black text-slate-900 dark:text-white">{receipts.length}</p>
-            <p className="text-sm text-slate-400 mt-0.5">Total Checkouts</p>
+            <p className="text-sm text-slate-400 mt-0.5">Total Deals & Orders</p>
           </div>
         </div>
         <div className="stat-card flex items-center gap-4">
@@ -157,7 +157,7 @@ export default function AdminOrdersPage() {
           </div>
           <div>
             <p className="text-3xl font-black text-slate-900 dark:text-white">Ksh {Math.round(totalValue / 1000)}k</p>
-            <p className="text-sm text-slate-400 mt-0.5">Total Cart Value</p>
+            <p className="text-sm text-slate-400 mt-0.5">Total Order Value</p>
           </div>
         </div>
       </div>
@@ -189,8 +189,8 @@ export default function AdminOrdersPage() {
       {filtered.length === 0 ? (
         <div className="data-table-wrapper">
           <div className="py-20 text-center">
-            <ShoppingCart className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-slate-400 font-medium">No checkout activity found</p>
+            <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-slate-400 font-medium">No order activity found</p>
           </div>
         </div>
       ) : (
@@ -261,7 +261,7 @@ export default function AdminOrdersPage() {
                     {expandedId === receipt.id && (
                       <tr>
                         <td colSpan={7} className="bg-gray-50/70 px-6 py-4">
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Items in this checkout</p>
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Items in this order</p>
                           <div className="space-y-1.5">
                             {(receipt.items || []).map((item, idx) => (
                               <div key={idx} className="flex items-center justify-between text-sm">

@@ -21,8 +21,6 @@ import {
   SfIconFavorite,
   SfIconFavoriteFilled,
   SfBadge,
-  SfIconShoppingCart,
-  SfIconCheckCircle,
 } from '@storefront-ui/react';
 import type { Variants } from 'framer-motion';
 import { ShieldCheck, MapPin } from 'lucide-react';
@@ -31,7 +29,6 @@ import { useFavoritesStore } from '@/store/useFavorites';
 import { useAuthStore } from '@/store/useAuth';
 import { useAuthModal } from '@/store/useAuthModal';
 import { useCurrencyStore } from '@/store/useCurrency';
-import { useCart } from '@/store/useCart';
 import { formatConvertedPrice } from '@/lib/currency';
 import { useLocalizedField } from '@/lib/i18n';
 import { FeaturedBadge } from '@/components/ads/FeaturedBadge';
@@ -102,7 +99,6 @@ export const ListingCard: React.FC<ListingCardProps> = ({
   delay = 0,
   priority = false,
 }) => {
-  const [addedToCart, setAddedToCart] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
   const { isAuthenticated } = useAuthStore();
@@ -110,7 +106,6 @@ export const ListingCard: React.FC<ListingCardProps> = ({
   const isFavorite = useFavoritesStore((s) => s.isFavorite(listing.id));
   const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
   const displayCurrency = useCurrencyStore((s) => s.currency);
-  const addItem = useCart((s) => s.addItem);
   const field = useLocalizedField();
 
   const rawImage =
@@ -128,21 +123,6 @@ export const ListingCard: React.FC<ListingCardProps> = ({
       return;
     }
     toggleFavorite(listing.id);
-  };
-
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addItem({
-      id: String(listing.id),
-      title,
-      price: listing?.price ?? 0,
-      quantity: 1,
-      image: displayImage,
-      owner_id: listing.owner_id,
-    });
-    setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 2000);
   };
 
   // ── Price block ─────────────────────────────────────────────────────────
@@ -248,14 +228,6 @@ export const ListingCard: React.FC<ListingCardProps> = ({
                     <SfIconFavorite size="sm" />
                   )}
                 </SfButton>
-                <SfButton
-                  size="sm"
-                  onClick={handleAddToCart}
-                  className="!rounded-full !w-9 !h-9 !p-0 !bg-sky-500 hover:!bg-sky-600 !text-white !border-transparent"
-                  aria-label="Add to cart"
-                >
-                  <SfIconShoppingCart size="sm" />
-                </SfButton>
               </div>
             </div>
           </div>
@@ -340,41 +312,6 @@ export const ListingCard: React.FC<ListingCardProps> = ({
               )}
             </SfButton>
           </motion.div>
-
-          {/* ── Add to cart button (bottom right) ─────────────────── */}
-          <AnimatePresence mode="wait">
-            {addedToCart ? (
-              <motion.div
-                key="added"
-                variants={addedBannerVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="absolute bottom-2.5 right-2.5 z-10 flex items-center gap-1 bg-emerald-500 text-white text-[10px] font-black px-2.5 py-1.5 rounded-full shadow-lg"
-              >
-                <SfIconCheckCircle size="xs" />
-                Added!
-              </motion.div>
-            ) : (
-              <motion.div
-                key="add"
-                variants={addedBannerVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="absolute bottom-2.5 right-2.5 z-10"
-              >
-                <SfButton
-                  size="sm"
-                  onClick={handleAddToCart}
-                  className="!rounded-full !w-9 !h-9 !p-0 !bg-sky-500 hover:!bg-sky-600 !text-white !border-transparent !shadow-md hover:!shadow-[0_4px_16px_rgba(14,165,233,0.5)] !transition-shadow"
-                  aria-label="Add to cart"
-                >
-                  <SfIconShoppingCart size="sm" />
-                </SfButton>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
         {/* ── Text content ────────────────────────────────────────────── */}
