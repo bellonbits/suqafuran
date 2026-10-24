@@ -203,3 +203,156 @@ def track_email_click(token: str, redirect_url: str, request: Request, db: Sessi
 
     # Secure redirect to the absolute URL
     return RedirectResponse(url=redirect_url)
+
+
+@router.get("/email/unsubscribe")
+@router.post("/email/unsubscribe")
+def unsubscribe_email(
+    token: str,
+    request: Request,
+    db: Session = Depends(deps.get_db)
+) -> Any:
+    """
+    Handles recipient-specific, tokenized unsubscribe requests.
+    Supports both browser clicks (GET) and RFC 8058 one-click client headers (POST).
+    Safely marks EmailLog and updates EmailPreference to prevent any future marketing sends.
+    """
+    from datetime import datetime
+    from fastapi.responses import HTMLResponse, JSONResponse
+    from sqlmodel import select
+    from app.models.email_log import EmailLog
+    from app.models.marketing import EmailPreference
+    from app.models.notification_preferences import NotificationPreferences
+    from app.models.user import User
+
+    log_entry = db.exec(select(EmailLog).where(EmailLog.tracking_token == token)).first()
+    
+    email_display = "your email address"
+    if log_entry:
+        email_display = log_entry.email or email_display
+        log_entry.status = "unsubscribed"
+        db.add(log_entry)
+
+        # Resolve user
+        user = None
+        if log_entry.user_id:
+            user = db.get(User, log_entry.user_id)
+        if not user and log_entry.email:
+            user = db.exec(select(User).where(User.email == log_entry.email)).first()
+
+        if user:
+            # Update marketing preferences
+            pref = db.exec(select(EmailPreference).where(EmailPreference.user_id == user.id)).first()
+            if not pref:
+                pref = EmailPreference(user_id=user.id)
+            pref.promotional_emails = False
+            pref.marketplace_digest = False
+            pref.seller_tips = False
+            pref.seasonal_campaigns = False
+            pref.updated_at = datetime.utcnow()
+            db.add(pref)
+
+            # Update notification preferences
+            notif = db.exec(select(NotificationPreferences).where(NotificationPreferences.user_id == user.id)).first()
+            if notif:
+                notif.email_offers = False
+                notif.email_listings = False
+                db.add(notif)
+
+        db.commit()
+
+    if request.method == "POST":
+        return JSONResponse(
+            content={"status": "unsubscribed", "message": f"Successfully unsubscribed {email_display}"},
+            status_code=200
+        )
+
+    # Branded HTML confirmation page
+    html_page = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unsubscribed — Suqafuran</title>
+  <style>
+    body {{
+      margin: 0;
+      padding: 40px 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #F4F6F8;
+      color: #0F172A;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 80vh;
+    }}
+    .card {{
+      background: #FFFFFF;
+      max-width: 480px;
+      width: 100%;
+      padding: 40px 32px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      border: 1px solid #E2E8F0;
+      text-align: center;
+    }}
+    .logo {{
+      max-width: 150px;
+      margin-bottom: 24px;
+    }}
+    .icon {{
+      font-size: 40px;
+      margin-bottom: 16px;
+    }}
+    h1 {{
+      font-size: 22px;
+      font-weight: 800;
+      margin: 0 0 12px 0;
+      color: #0F172A;
+    }}
+    p {{
+      font-size: 14px;
+      line-height: 1.6;
+      color: #475569;
+      margin: 0 0 24px 0;
+    }}
+    .btn {{
+      display: inline-block;
+      background-color: #00BFFF;
+      color: #FFFFFF;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 12px 24px;
+      border-radius: 8px;
+    }}
+    .btn:hover {{
+      background-color: #0095D4;
+    }}
+    .footer-text {{
+      margin-top: 24px;
+      font-size: 12px;
+      color: #94A3B8;
+    }}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img src="https://suqafuran.com/logo.png" alt="Suqafuran" class="logo" />
+    <div class="icon">✅</div>
+    <h1>You've Been Unsubscribed</h1>
+    <p>
+      <strong>{email_display}</strong> will no longer receive marketing, promotional, or weekly digest emails from Suqafuran.
+    </p>
+    <p style="font-size: 13px; color: #64748B;">
+      Important transactional emails (like security alerts, login verification, and direct buyer messages) will still be delivered when you use the marketplace.
+    </p>
+    <a href="https://suqafuran.com" class="btn">Return to Suqafuran</a>
+    <div class="footer-text">
+      Made a mistake? You can re-enable marketing updates anytime in your <a href="https://suqafuran.com/settings/notifications" style="color: #0095D4;">account settings</a>.
+    </div>
+  </div>
+</body>
+</html>"""
+    return HTMLResponse(content=html_page, status_code=200)
+

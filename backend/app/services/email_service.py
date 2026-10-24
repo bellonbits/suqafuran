@@ -361,11 +361,28 @@ class EmailService:
         provider = None
         failed_reason = None
 
+        # Build recipient-specific List-Unsubscribe headers
+        unsub_url = (metadata or {}).get("list_unsubscribe_url")
+        if not unsub_url and log_entry.tracking_token:
+            unsub_url = f"{settings.BACKEND_URL}/api/v1/content/email/unsubscribe?token={log_entry.tracking_token}"
+
         # Marketing/promotional sends prefer Brevo; everything else prefers
         # Resend. Whichever isn't preferred still acts as a fallback below.
         if preferred_provider == "brevo" and settings.BREVO_API_KEY:
             try:
                 import requests
+
+                brevo_payload = {
+                    "sender": {"name": settings.BREVO_FROM_NAME, "email": settings.BREVO_FROM_EMAIL},
+                    "to": [{"email": email}],
+                    "subject": subject,
+                    "htmlContent": html_body_tracked,
+                }
+                if unsub_url:
+                    brevo_payload["headers"] = {
+                        "List-Unsubscribe": f"<{unsub_url}>, <mailto:support@suqafuran.com?subject=unsubscribe>",
+                        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+                    }
 
                 resp = requests.post(
                     "https://api.brevo.com/v3/smtp/email",
@@ -374,12 +391,7 @@ class EmailService:
                         "Content-Type": "application/json",
                         "Accept": "application/json",
                     },
-                    json={
-                        "sender": {"name": settings.BREVO_FROM_NAME, "email": settings.BREVO_FROM_EMAIL},
-                        "to": [{"email": email}],
-                        "subject": subject,
-                        "htmlContent": html_body_tracked,
-                    },
+                    json=brevo_payload,
                     timeout=15,
                 )
                 resp.raise_for_status()
@@ -399,12 +411,19 @@ class EmailService:
 
                 resend.api_key = settings.RESEND_API_KEY
 
-                resend.Emails.send({
+                resend_payload = {
                     "from": f"{settings.EMAIL_FROM_NAME} <{settings.EMAIL_FROM}>",
                     "to": [email],
                     "subject": subject,
                     "html": html_body_tracked,
-                })
+                }
+                if unsub_url:
+                    resend_payload["headers"] = {
+                        "List-Unsubscribe": f"<{unsub_url}>, <mailto:support@suqafuran.com?subject=unsubscribe>",
+                        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+                    }
+
+                resend.Emails.send(resend_payload)
                 print(f"[Email] {email_type} sent via Resend to {email}")
                 success = True
                 provider = "Resend"
@@ -423,6 +442,9 @@ class EmailService:
                 msg["Subject"] = subject
                 msg["From"] = f"{settings.EMAIL_FROM_NAME} <{settings.SMTP_USER}>"
                 msg["To"] = email
+                if unsub_url:
+                    msg["List-Unsubscribe"] = f"<{unsub_url}>, <mailto:support@suqafuran.com?subject=unsubscribe>"
+                    msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
                 msg.attach(MIMEText(html_body_tracked, "html"))
 
                 # Check for SSL vs TLS vs standard connection
@@ -475,31 +497,27 @@ class EmailService:
 
     # A. Onboarding / Activation Emails
     def send_welcome_email(self, email: str, name: str, user_id: Optional[int] = None) -> bool:
-        welcome_content = f"""
-        <p style="font-size: 15px; margin-bottom: 24px; color: #475569;">
-          Hello {name},<br><br>
-          We're absolutely thrilled to welcome you to <strong>Suqafuran</strong>! Africa's most trusted, premium, and lightning-fast marketplace.
-        </p>
-        <div style="background: #f0f9ff; border-radius: 16px; padding: 24px; margin: 32px 0; border: 1px solid #e0f2fe;">
-          <h4 style="margin: 0 0 12px 0; color: #0369a1; font-weight: 800;">Here's how to kickstart your journey:</h4>
-          <ul style="margin: 0; padding-left: 20px; color: #334155; font-size: 14px; line-height: 1.8;">
-            <li>⚡ <strong>Post in seconds:</strong> Snap a photo, add details, and start selling.</li>
-            <li><strong>Find amazing deals:</strong> Search by location, category, or trending status.</li>
-            <li>🛡️ <strong>Verified protection:</strong> Chat securely with verified buyers & sellers.</li>
-          </ul>
-        </div>
-        <div style="text-align: center; margin-bottom: 12px;">
-          <a href="{settings.FRONTEND_URL}/post" style="display: inline-block; background: #0ea5e9; color: white; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 800; font-size: 14px;">
-            Get Started Now
-          </a>
-        </div>
-        """
-        html_body = self._get_base_template(
-            title="Welcome to Suqafuran!",
-            subtitle="Let's find or sell your next great deal today.",
-            content=welcome_content
+        """Branded welcome email for users opting in to marketing updates."""
+        from app.services.marketing_emails import render_welcome_template, get_active_categories
+        from app.db.session import engine
+        from sqlmodel import Session
+
+        categories = None
+        try:
+            with Session(engine) as db:
+                categories = get_active_categories(db, limit=6)
+        except Exception:
+            pass
+
+        template_data = render_welcome_template(recipient_name=name, categories=categories)
+        return self._send_and_log(
+            email,
+            template_data["subject"],
+            template_data["html"],
+            "onboarding_welcome",
+            user_id,
+            preferred_provider="brevo"
         )
-        return self._send_and_log(email, "Welcome to Suqafuran", html_body, "onboarding_welcome", user_id)
 
     def send_subscription_ended_email(self, email: str, name: str, plan_name: str, is_trial: bool, user_id: Optional[int] = None) -> bool:
         noun = "free trial" if is_trial else "subscription"
@@ -596,34 +614,30 @@ class EmailService:
         return self._send_and_log(email, title, html_body, "onboarding_first_action", user_id)
 
     def send_promotional_email(self, email: str, name: str, user_id: Optional[int] = None) -> bool:
-        """General re-engagement/promotional email for existing customers."""
-        site_url = "https://suqafuran.com"
-        content = f"""
-        <p style="font-size: 15px; margin-bottom: 24px; color: #475569;">
-          Hello {name},<br><br>
-          It's been a while! Suqafuran has hundreds of verified shops and fresh deals waiting for you —
-          here's what you've been missing.
-        </p>
-        <div style="background: #f0f9ff; border-radius: 16px; padding: 24px; margin: 32px 0; border: 1px solid #e0f2fe;">
-          <h4 style="margin: 0 0 12px 0; color: #0369a1; font-weight: 800;">Why come back today:</h4>
-          <ul style="margin: 0; padding-left: 20px; color: #334155; font-size: 14px; line-height: 1.8;">
-            <li>🛍️ <strong>New arrivals daily:</strong> Fresh listings from verified local shops.</li>
-            <li>💬 <strong>Chat instantly:</strong> Message sellers directly, no middlemen.</li>
-            <li>🛡️ <strong>Shop with confidence:</strong> Verified badges and trusted reviews.</li>
-          </ul>
-        </div>
-        <div style="text-align: center; margin-bottom: 12px;">
-          <a href="{site_url}" style="display: inline-block; background: #0ea5e9; color: white; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: 800; font-size: 14px;">
-            Explore Suqafuran Now
-          </a>
-        </div>
-        """
-        html_body = self._get_base_template(
-            title="We miss you at Suqafuran!",
-            subtitle="Verified shops and fresh deals are waiting for you.",
-            content=content
+        """Marketplace promotional / re-engagement email."""
+        from app.services.marketing_emails import render_reengagement_template, get_reengagement_listings
+        from app.db.session import engine
+        from sqlmodel import Session
+
+        listings = None
+        try:
+            with Session(engine) as db:
+                listings = get_reengagement_listings(db, user_id=user_id, limit=4)
+        except Exception:
+            pass
+
+        template_data = render_reengagement_template(
+            recipient_name=name,
+            listings=listings
         )
-        return self._send_and_log(email, "We miss you — see what's new on Suqafuran", html_body, "promotional_reengagement", user_id)
+        return self._send_and_log(
+            email,
+            template_data["subject"],
+            template_data["html"],
+            "promotional_reengagement",
+            user_id,
+            preferred_provider="brevo"
+        )
 
     # B. Marketplace Activity / Core Growth Emails
     def send_new_listing_alert(
@@ -729,30 +743,20 @@ class EmailService:
         return self._send_and_log(email, f"🔥 Price dropped for '{listing_title}'!", html_body, "activity_price_drop", user_id)
 
     def send_trending_items_email(self, email: str, name: str, location: str, listings: List[dict], user_id: Optional[int] = None) -> bool:
-        items_html = ""
-        for idx, item in enumerate(listings[:4]):
-            img_html = f'<img src="{item.get("image_url")}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:8px;" />' if item.get("image_url") else ''
-            items_html += f"""
-            <div style="width:48%; display:inline-block; box-sizing:border-box; padding:6px; margin-bottom:12px; vertical-align:top;">
-              <div style="background:#f8fafc; border:1px solid #f1f5f9; padding:8px; border-radius:12px;">
-                {img_html}
-                <h4 style="margin:0; font-size:12px; font-weight:800; color:#1e293b; height:32px; overflow:hidden;">{item.get("title")}</h4>
-                <p style="margin:4px 0 0 0; font-size:13px; color:#ea580c; font-weight:700;">KES {item.get("price")}</p>
-                <a href="{settings.FRONTEND_URL}/listing/{item.get("id")}" style="display:block; text-align:center; background:#0ea5e9; color:white; font-size:11px; padding:6px; border-radius:6px; text-decoration:none; margin-top:8px; font-weight:800;">View Deal</a>
-              </div>
-            </div>
-            """
-        content = f"""
-        <div style="width:100%;">
-          {items_html}
-        </div>
-        """
-        html_body = self._get_base_template(
-            title=f"Trending in {location} Today",
-            subtitle="Here are the hottest, most-viewed items in your neighborhood right now.",
-            content=content
+        """Trending items / product discovery email."""
+        from app.services.marketing_emails import render_product_discovery_template
+        template_data = render_product_discovery_template(
+            recipient_name=name,
+            listings=listings
         )
-        return self._send_and_log(email, f"Top trending items in {location} today", html_body, "activity_trending", user_id, preferred_provider="brevo")
+        return self._send_and_log(
+            email,
+            template_data["subject"],
+            template_data["html"],
+            "activity_trending",
+            user_id,
+            preferred_provider="brevo"
+        )
 
     # C. Transaction / Trust Layer
     def send_message_notification(
@@ -914,77 +918,76 @@ class EmailService:
         categories: List[dict],
         user_id: Optional[int] = None
     ) -> bool:
-        items_html = ""
-        for item in items[:3]:
-            img_html = f'<td style="width:70px; padding-right:12px;"><img src="{item.get("image_url")}" style="width:70px; height:70px; object-fit:cover; border-radius:8px;" /></td>' if item.get("image_url") else ''
-            items_html += f"""
-            <tr style="border-bottom:1px solid #f1f5f9;">
-              {img_html}
-              <td style="padding:10px 0; vertical-align:top;">
-                <h4 style="margin:0; font-size:13px; font-weight:800; color:#1e293b;">{item.get("title")}</h4>
-                <p style="margin:4px 0 0 0; font-size:12px; color:#ea580c; font-weight:700;">KES {item.get("price")}</p>
-              </td>
-              <td style="text-align:right;">
-                <a href="{settings.FRONTEND_URL}/listing/{item.get("id")}" style="display:inline-block; background:#0ea5e9; color:white; font-size:11px; padding:4px 10px; border-radius:6px; text-decoration:none; font-weight:800;">View</a>
-              </td>
-            </tr>
-            """
-        
-        cats_html = ""
-        for cat in categories[:4]:
-            cats_html += f'<span style="display:inline-block; background:#f1f5f9; color:#475569; font-size:12px; font-weight:700; padding:6px 12px; border-radius:20px; margin:4px;">{cat.get("name")}</span>'
-            
-        content = f"""
-        <h3 style="margin-top:0; font-size:15px; color:#1e293b; font-weight:800;">🔥 Fresh Deals in {location}:</h3>
-        <table style="width:100%; border-collapse:collapse; margin-bottom:24px;">
-          {items_html}
-        </table>
-        
-        <h3 style="font-size:15px; color:#1e293b; font-weight:800; margin-bottom:12px;">Explore Popular Categories:</h3>
-        <div style="margin-bottom:24px;">
-          {cats_html}
-        </div>
-        """
-        html_body = self._get_base_template(
-            title="Your Weekly Suqafuran Digest",
-            subtitle="Hand-picked deals and trending items matching your profile.",
-            content=content
+        """Weekly marketplace roundup email."""
+        from app.services.marketing_emails import render_weekly_roundup_template
+        template_data = render_weekly_roundup_template(
+            recipient_name=name,
+            listings=items,
+            categories=categories,
+            location=location
         )
-        return self._send_and_log(email, f"Weekly Deals Digest in {location}", html_body, "retention_weekly_digest", user_id, preferred_provider="brevo")
+        return self._send_and_log(
+            email,
+            template_data["subject"],
+            template_data["html"],
+            "retention_weekly_digest",
+            user_id,
+            preferred_provider="brevo"
+        )
 
     def send_reengagement_email(self, email: str, name: str, reason: str, featured_items: List[dict], user_id: Optional[int] = None) -> bool:
-        items_html = ""
-        for item in featured_items[:2]:
-            img_html = f'<img src="{item.get("image_url")}" style="width:100%; height:110px; object-fit:cover; border-radius:8px; margin-bottom:8px;" />' if item.get("image_url") else ''
-            items_html += f"""
-            <div style="width:48%; display:inline-block; box-sizing:border-box; padding:4px; vertical-align:top;">
-              <div style="background:#f8fafc; border:1px solid #f1f5f9; padding:8px; border-radius:12px;">
-                {img_html}
-                <h4 style="margin:0; font-size:12px; font-weight:800; color:#1e293b; height:32px; overflow:hidden;">{item.get("title")}</h4>
-                <p style="margin:4px 0 0 0; font-size:12px; color:#ea580c; font-weight:700;">KES {item.get("price")}</p>
-              </div>
-            </div>
-            """
-        content = f"""
-        <p style="font-size:15px; color:#475569; margin-bottom:24px;">
-          Hello {name},<br><br>
-          We've missed you! There are so many newly uploaded deals matching your search patterns that we just couldn't keep them from you.
-        </p>
-        <div style="margin-bottom:24px;">
-          {items_html}
-        </div>
-        <div style="text-align: center;">
-          <a href="{settings.FRONTEND_URL}/search" style="display: inline-block; background: #0ea5e9; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
-            Come Back & Explore
-          </a>
-        </div>
-        """
-        html_body = self._get_base_template(
-            title="We Miss You!",
-            subtitle=reason,
-            content=content
+        """Re-engagement email for inactive users."""
+        from app.services.marketing_emails import render_reengagement_template
+        template_data = render_reengagement_template(
+            recipient_name=name,
+            listings=featured_items
         )
-        return self._send_and_log(email, "We miss you — new deals waiting", html_body, "retention_reengagement", user_id, preferred_provider="brevo")
+        return self._send_and_log(
+            email,
+            template_data["subject"],
+            template_data["html"],
+            "retention_reengagement",
+            user_id,
+            preferred_provider="brevo"
+        )
+
+    def send_seasonal_campaign_email(
+        self,
+        email: str,
+        name: str,
+        subject_line: Optional[str] = None,
+        headline: Optional[str] = None,
+        body_text: Optional[str] = None,
+        hero_image_url: Optional[str] = None,
+        discount_badge: Optional[str] = None,
+        campaign_dates: Optional[str] = None,
+        listings: Optional[List[dict]] = None,
+        cta_text: str = "Explore campaign deals",
+        cta_url: Optional[str] = None,
+        user_id: Optional[int] = None
+    ) -> bool:
+        """Seasonal or special marketplace campaign email."""
+        from app.services.marketing_emails import render_seasonal_campaign_template
+        template_data = render_seasonal_campaign_template(
+            recipient_name=name,
+            subject_line=subject_line,
+            headline=headline,
+            body_text=body_text,
+            hero_image_url=hero_image_url,
+            discount_badge=discount_badge,
+            campaign_dates=campaign_dates,
+            listings=listings,
+            cta_text=cta_text,
+            cta_url=cta_url
+        )
+        return self._send_and_log(
+            email,
+            template_data["subject"],
+            template_data["html"],
+            "seasonal_campaign",
+            user_id,
+            preferred_provider="brevo"
+        )
 
     def send_abandoned_action_email(self, email: str, name: str, action: str, user_id: Optional[int] = None) -> bool:
         if action == "listing":
@@ -1020,27 +1023,20 @@ class EmailService:
 
     # F. Seller Growth Emails
     def send_seller_tips(self, email: str, name: str, user_id: Optional[int] = None) -> bool:
-        content = f"""
-        <div style="background:#f0fdf4; border-radius:16px; padding:24px; border:1px solid #bbf7d0; margin-bottom:24px;">
-          <h4 style="margin:0 0 12px 0; color:#16a34a; font-weight:800;">🚀 How to Sell 5x Faster:</h4>
-          <ul style="margin:0; padding-left:20px; color:#334155; font-size:14px; line-height:1.8;">
-            <li>📸 <strong>Take bright, clear photos:</strong> Buyers ignore dark or blurry pictures.</li>
-            <li>🏷️ <strong>Price it right:</strong> Check similar items nearby and price competitively.</li>
-            <li>💬 <strong>Respond instantly:</strong> Quick response times increase sales conversion by 80%.</li>
-          </ul>
-        </div>
-        <div style="text-align: center;">
-          <a href="{settings.FRONTEND_URL}/post" style="display: inline-block; background: #16a34a; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
-            Create New Listing
-          </a>
-        </div>
-        """
-        html_body = self._get_base_template(
-            title="Pro Seller Tips",
-            subtitle="Learn how to close deals faster and make more money.",
-            content=content
+        """Seller tips and listing improvement email."""
+        from app.services.marketing_emails import render_seller_tips_template
+        template_data = render_seller_tips_template(
+            recipient_name=name,
+            seller_dashboard_url=f"{settings.FRONTEND_URL}/seller-dashboard"
         )
-        return self._send_and_log(email, "How to sell faster on Suqafuran", html_body, "seller_growth_tips", user_id)
+        return self._send_and_log(
+            email,
+            template_data["subject"],
+            template_data["html"],
+            "seller_growth_tips",
+            user_id,
+            preferred_provider="brevo"
+        )
 
     def send_boost_listing_suggestion(
         self,
@@ -1405,33 +1401,20 @@ class EmailService:
         items: List[dict],
         user_id: Optional[int] = None
     ) -> bool:
-        items_html = ""
-        for item in items[:4]:
-            img_html = f'<td style="width:70px; padding-right:12px;"><img src="{item.get("image_url")}" style="width:70px; height:70px; object-fit:cover; border-radius:8px;" /></td>' if item.get("image_url") else ''
-            items_html += f"""
-            <tr style="border-bottom:1px solid #f1f5f9;">
-              {img_html}
-              <td style="padding:10px 0; vertical-align:top;">
-                <h4 style="margin:0; font-size:13px; font-weight:800; color:#1e293b;">{item.get("title")}</h4>
-                <p style="margin:4px 0 0 0; font-size:12px; color:#ea580c; font-weight:700;">KES {item.get("price")}</p>
-                <p style="margin:2px 0 0 0; font-size:11px; color:#94a3b8;">{item.get("location")}</p>
-              </td>
-              <td style="text-align:right;">
-                <a href="{settings.FRONTEND_URL}/listing/{item.get("id")}" style="display:inline-block; background:#0ea5e9; color:white; font-size:11px; padding:4px 10px; border-radius:6px; text-decoration:none; font-weight:800;">View Deal</a>
-              </td>
-            </tr>
-            """
-        content = f"""
-        <table style="width:100%; border-collapse:collapse; margin-top:16px;">
-          {items_html}
-        </table>
-        """
-        html_body = self._get_base_template(
-            title="Handpicked Recommended Items",
-            subtitle="Based on your search history and recent interactions on the platform.",
-            content=content
+        """Personalized product discovery recommendations email."""
+        from app.services.marketing_emails import render_product_discovery_template
+        template_data = render_product_discovery_template(
+            recipient_name=name,
+            listings=items
         )
-        return self._send_and_log(email, "Recommended Deals specifically selected for you", html_body, "retention_recommendations", user_id, preferred_provider="brevo")
+        return self._send_and_log(
+            email,
+            template_data["subject"],
+            template_data["html"],
+            "retention_recommendations",
+            user_id,
+            preferred_provider="brevo"
+        )
 
     def send_category_interest_email(
         self,
@@ -1441,34 +1424,20 @@ class EmailService:
         items: List[dict],
         user_id: Optional[int] = None
     ) -> bool:
-        items_html = ""
-        for item in items[:4]:
-            img_html = f'<img src="{item.get("image_url")}" style="width:100%; height:110px; object-fit:cover; border-radius:8px; margin-bottom:8px;" />' if item.get("image_url") else ''
-            items_html += f"""
-            <div style="width:48%; display:inline-block; box-sizing:border-box; padding:4px; vertical-align:top; margin-bottom: 12px;">
-              <div style="background:#f8fafc; border:1px solid #f1f5f9; padding:8px; border-radius:12px;">
-                {img_html}
-                <h4 style="margin:0; font-size:12px; font-weight:800; color:#1e293b; height:32px; overflow:hidden;">{item.get("title")}</h4>
-                <p style="margin:4px 0 0 0; font-size:12px; color:#ea580c; font-weight:700;">KES {item.get("price")}</p>
-                <a href="{settings.FRONTEND_URL}/listing/{item.get("id")}" style="display:block; text-align:center; background:#0ea5e9; color:white; font-size:10px; padding:4px; border-radius:4px; text-decoration:none; margin-top:8px; font-weight:800;">Details</a>
-              </div>
-            </div>
-            """
-        content = f"""
-        <p style="font-size: 15px; color: #475569; margin-bottom: 20px;">
-          Hello {name},<br><br>
-          It looks like you've been searching for items in the <strong>{category_name}</strong> category. We gathered the absolute best trending ads just for you:
-        </p>
-        <div style="width:100%;">
-          {items_html}
-        </div>
-        """
-        html_body = self._get_base_template(
-            title=f"Hottest deals in {category_name}",
-            subtitle=f"Check out what's fresh in your favorite marketplace section today.",
-            content=content
+        """Category discovery / interest email."""
+        from app.services.marketing_emails import render_product_discovery_template
+        template_data = render_product_discovery_template(
+            recipient_name=name,
+            listings=items
         )
-        return self._send_and_log(email, f"Fresh deals in '{category_name}' matching your interests", html_body, "retention_category_interest", user_id, preferred_provider="brevo")
+        return self._send_and_log(
+            email,
+            template_data["subject"],
+            template_data["html"],
+            "retention_category_interest",
+            user_id,
+            preferred_provider="brevo"
+        )
 
     def send_viewed_no_contact_reminder(
         self,

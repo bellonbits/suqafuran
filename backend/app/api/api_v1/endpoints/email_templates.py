@@ -248,3 +248,279 @@ def restore_email_template(
 
     logger.info(f"Restored email template: {template.event_type} (ID: {template.id})")
     return template
+
+
+# ─────────────────────────────────────────────────────────────
+# Marketing Email Campaign System Endpoints
+# ─────────────────────────────────────────────────────────────
+
+class MarketingPreviewRequest(BaseModel):
+    template_key: str
+    recipient_name: Optional[str] = "Abdi"
+    subject: Optional[str] = None
+    headline: Optional[str] = None
+    body_text: Optional[str] = None
+    discount_badge: Optional[str] = None
+    campaign_dates: Optional[str] = None
+    hero_image_url: Optional[str] = None
+    cta_text: Optional[str] = None
+    cta_url: Optional[str] = None
+    include_sample_listings: bool = True
+    view_mode: str = "desktop"  # desktop or mobile
+
+
+class MarketingTestSendRequest(BaseModel):
+    template_key: str
+    test_email: str
+    recipient_name: Optional[str] = "Admin Tester"
+    subject: Optional[str] = None
+    headline: Optional[str] = None
+    body_text: Optional[str] = None
+    discount_badge: Optional[str] = None
+    campaign_dates: Optional[str] = None
+    hero_image_url: Optional[str] = None
+    cta_text: Optional[str] = None
+    cta_url: Optional[str] = None
+    include_sample_listings: bool = True
+
+
+@router.get("/marketing/catalog")
+def get_marketing_catalog(
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """List the 7 active branded marketing email campaign templates and their configurations."""
+    _check_admin_permission(current_user)
+
+    catalog = [
+        {
+            "key": "welcome",
+            "name": "Welcome to Suqafuran",
+            "default_subject": "Karibu Suqafuran — discover something you’ll love",
+            "default_preview_text": "Explore listings, discover local sellers, and find what you need.",
+            "description": "Welcomes verified users who opted in to marketing updates. Introduces the marketplace and categories.",
+            "supports_listings": False,
+            "supports_categories": True,
+        },
+        {
+            "key": "product_discovery",
+            "name": "Product Discovery",
+            "default_subject": "Kuna kitu poa unatafuta?",
+            "default_preview_text": "Explore available listings and see what catches your eye.",
+            "description": "Features 2 to 4 real active listings with prices in KSh and locations; gracefully falls back to categories if empty.",
+            "supports_listings": True,
+            "supports_categories": True,
+        },
+        {
+            "key": "weekly_roundup",
+            "name": "Weekly Marketplace Roundup",
+            "default_subject": "Your Suqafuran marketplace roundup",
+            "default_preview_text": "Take a look at listings available on Suqafuran this week.",
+            "description": "Weekly digest of fresh marketplace picks written in simple Kenyan English.",
+            "supports_listings": True,
+            "supports_categories": True,
+        },
+        {
+            "key": "seller_tips",
+            "name": "Seller Promotion and Listing Tips",
+            "default_subject": "Make your listings easier to discover",
+            "default_preview_text": "A few simple ways to improve your product listings.",
+            "description": "Practical advice for sellers on titles, natural photography, honest pricing in KSh, and prompt replies.",
+            "supports_listings": False,
+            "supports_categories": False,
+        },
+        {
+            "key": "category_discovery",
+            "name": "Category Discovery",
+            "default_subject": "What are you looking for today?",
+            "default_preview_text": "Browse categories and discover available products.",
+            "description": "Introduces users to marketplace categories that actually exist on Suqafuran.",
+            "supports_listings": False,
+            "supports_categories": True,
+        },
+        {
+            "key": "seasonal_campaign",
+            "name": "Seasonal or Special Campaign",
+            "default_subject": "Special Marketplace Deals on Suqafuran",
+            "default_preview_text": "Discover verified picks and special marketplace highlights.",
+            "description": "Fully configurable template for future holidays, celebrations, or verified promotions without hardcoded fake discounts.",
+            "supports_listings": True,
+            "supports_categories": False,
+        },
+        {
+            "key": "reengagement",
+            "name": "Re-engagement",
+            "default_subject": "See what’s available on Suqafuran",
+            "default_preview_text": "Explore listings and see what you might find.",
+            "description": "Friendly, non-pressuring message inviting inactive users to see what is new.",
+            "supports_listings": True,
+            "supports_categories": True,
+        },
+    ]
+    return {"templates": catalog, "total": len(catalog)}
+
+
+@router.post("/marketing/preview")
+def preview_marketing_template(
+    payload: MarketingPreviewRequest,
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """Generate desktop and mobile HTML and plain-text previews of any marketing campaign."""
+    _check_admin_permission(current_user)
+
+    from app.services.marketing_emails import (
+        render_welcome_template,
+        render_product_discovery_template,
+        render_weekly_roundup_template,
+        render_seller_tips_template,
+        render_category_discovery_template,
+        render_seasonal_campaign_template,
+        render_reengagement_template,
+        get_active_categories,
+        get_discovery_listings,
+    )
+
+    cats = get_active_categories(db, limit=8)
+    listings = get_discovery_listings(db, limit=4) if payload.include_sample_listings else []
+
+    key = payload.template_key.lower().strip()
+    name = payload.recipient_name or "there"
+
+    if key in ["welcome", "onboarding_welcome"]:
+        rendered = render_welcome_template(recipient_name=name, categories=cats)
+    elif key in ["product_discovery"]:
+        rendered = render_product_discovery_template(recipient_name=name, listings=listings, categories=cats)
+    elif key in ["weekly_roundup", "weekly_digest", "retention_weekly_digest"]:
+        rendered = render_weekly_roundup_template(recipient_name=name, listings=listings, categories=cats)
+    elif key in ["seller_tips", "seller_growth_tips"]:
+        rendered = render_seller_tips_template(recipient_name=name)
+    elif key in ["category_discovery", "retention_category_interest"]:
+        rendered = render_category_discovery_template(recipient_name=name, categories=cats)
+    elif key in ["seasonal_campaign"]:
+        rendered = render_seasonal_campaign_template(
+            recipient_name=name,
+            subject_line=payload.subject,
+            headline=payload.headline,
+            body_text=payload.body_text,
+            hero_image_url=payload.hero_image_url,
+            discount_badge=payload.discount_badge,
+            campaign_dates=payload.campaign_dates,
+            listings=listings,
+            cta_text=payload.cta_text or "Explore campaign deals",
+            cta_url=payload.cta_url,
+        )
+    elif key in ["reengagement", "retention_reengagement", "promotional_reengagement"]:
+        rendered = render_reengagement_template(recipient_name=name, listings=listings, categories=cats)
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown template key '{key}'. Valid keys: welcome, product_discovery, weekly_roundup, seller_tips, category_discovery, seasonal_campaign, reengagement."
+        )
+
+    # Optional overrides for subject
+    if payload.subject and key != "seasonal_campaign":
+        rendered["subject"] = payload.subject
+
+    return {
+        "status": "success",
+        "template_key": key,
+        "name": rendered["name"],
+        "subject": rendered["subject"],
+        "preview_text": rendered["preview_text"],
+        "html": rendered["html"],
+        "text": rendered["text"],
+        "view_mode": payload.view_mode,
+        "sample_item_count": len(listings),
+    }
+
+
+@router.post("/marketing/send-test")
+def send_test_marketing_email(
+    payload: MarketingTestSendRequest,
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """Send a safe test marketing email to an explicitly specified test address."""
+    _check_admin_permission(current_user)
+
+    target_email = payload.test_email.strip().lower()
+    if not target_email or "@" not in target_email:
+        raise HTTPException(status_code=400, detail="A valid test recipient email address is required")
+
+    from app.services.marketing_emails import (
+        render_welcome_template,
+        render_product_discovery_template,
+        render_weekly_roundup_template,
+        render_seller_tips_template,
+        render_category_discovery_template,
+        render_seasonal_campaign_template,
+        render_reengagement_template,
+        get_active_categories,
+        get_discovery_listings,
+        generate_tracking_token,
+        get_unsubscribe_url,
+    )
+    from app.services.email_service import email_service
+
+    cats = get_active_categories(db, limit=8)
+    listings = get_discovery_listings(db, limit=4) if payload.include_sample_listings else []
+
+    key = payload.template_key.lower().strip()
+    name = payload.recipient_name or "Admin Tester"
+
+    token = generate_tracking_token()
+    unsub_url = get_unsubscribe_url(token)
+
+    if key in ["welcome", "onboarding_welcome"]:
+        rendered = render_welcome_template(recipient_name=name, categories=cats, unsubscribe_url=unsub_url)
+    elif key in ["product_discovery"]:
+        rendered = render_product_discovery_template(recipient_name=name, listings=listings, categories=cats, unsubscribe_url=unsub_url)
+    elif key in ["weekly_roundup", "weekly_digest", "retention_weekly_digest"]:
+        rendered = render_weekly_roundup_template(recipient_name=name, listings=listings, categories=cats, unsubscribe_url=unsub_url)
+    elif key in ["seller_tips", "seller_growth_tips"]:
+        rendered = render_seller_tips_template(recipient_name=name, unsubscribe_url=unsub_url)
+    elif key in ["category_discovery", "retention_category_interest"]:
+        rendered = render_category_discovery_template(recipient_name=name, categories=cats, unsubscribe_url=unsub_url)
+    elif key in ["seasonal_campaign"]:
+        rendered = render_seasonal_campaign_template(
+            recipient_name=name,
+            subject_line=payload.subject,
+            headline=payload.headline,
+            body_text=payload.body_text,
+            hero_image_url=payload.hero_image_url,
+            discount_badge=payload.discount_badge,
+            campaign_dates=payload.campaign_dates,
+            listings=listings,
+            cta_text=payload.cta_text or "Explore campaign deals",
+            cta_url=payload.cta_url,
+            unsubscribe_url=unsub_url,
+        )
+    elif key in ["reengagement", "retention_reengagement", "promotional_reengagement"]:
+        rendered = render_reengagement_template(recipient_name=name, listings=listings, categories=cats, unsubscribe_url=unsub_url)
+    else:
+        raise HTTPException(status_code=400, detail=f"Unknown template key '{key}'")
+
+    test_subject = f"[TEST] {payload.subject or rendered['subject']}"
+
+    # Send using email_service with preferred_provider="brevo"
+    success = email_service._send_and_log(
+        email=target_email,
+        subject=test_subject,
+        html_body=rendered["html"],
+        email_type=f"test_marketing_{key}",
+        user_id=current_user.id,
+        campaign_id=f"test_{key}",
+        metadata={"is_test": True, "template_key": key, "list_unsubscribe_url": unsub_url},
+        preferred_provider="brevo",
+    )
+
+    return {
+        "status": "success" if success else "failed",
+        "recipient": target_email,
+        "template_key": key,
+        "subject": test_subject,
+        "message": f"Test email sent to {target_email}" if success else "Provider send failed (check logs)",
+    }
+

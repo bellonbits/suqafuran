@@ -269,6 +269,21 @@ def dispatch_growth_email_task(
                 featured_items=context["featured_items"],
                 user_id=user_id
             )
+        elif email_type == "seasonal_campaign":
+            email_service.send_seasonal_campaign_email(
+                email,
+                name=context["name"],
+                subject_line=context.get("subject_line"),
+                headline=context.get("headline"),
+                body_text=context.get("body_text"),
+                hero_image_url=context.get("hero_image_url"),
+                discount_badge=context.get("discount_badge"),
+                campaign_dates=context.get("campaign_dates"),
+                listings=context.get("listings"),
+                cta_text=context.get("cta_text", "Explore campaign deals"),
+                cta_url=context.get("cta_url"),
+                user_id=user_id
+            )
         elif email_type == "abandoned_action":
             email_service.send_abandoned_action_email(
                 email,
