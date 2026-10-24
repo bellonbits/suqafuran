@@ -26,9 +26,9 @@ COLOR_ACCENT_BG = "#E0F7FF"     # Very soft brand tint
 COLOR_PRICE = "#0095D4"         # Vibrant price color
 
 BRAND_NAME = "Suqafuran"
-LOGO_URL = "https://suqafuran.com/logo.png"
+LOGO_URL = "https://suqafuran.com/icon1.png"
 BRAND_LOGO_URL = LOGO_URL
-LOGO_FALLBACK_URL = "https://suqafuran.com/icon1.png"
+LOGO_FALLBACK_URL = "https://suqafuran.com/logo.png"
 
 PHYSICAL_ADDRESS = "Suqafuran Limited, Muthaiga Business Center, Pangani, Nairobi, Kenya"
 SUPPORT_EMAIL = "support@suqafuran.com"

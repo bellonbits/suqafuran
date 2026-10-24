@@ -59,7 +59,7 @@ def _base_email_template(title: str, preheader: str, body_html: str) -> str:
           <!-- Header with logo -->
           <tr>
             <td align="center" style="background-color:#0369a1;padding:28px 32px;">
-              <img src="https://suqafuran.com/logo.png"
+              <img src="https://suqafuran.com/icon1.png"
                    alt="Suqafuran"
                    width="140"
                    style="display:block;max-width:140px;height:auto;" />

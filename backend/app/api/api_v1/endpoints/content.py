@@ -338,8 +338,8 @@ def unsubscribe_email(
 </head>
 <body>
   <div class="card">
-    <img src="https://suqafuran.com/logo.png" alt="Suqafuran" class="logo" />
-    <div class="icon">✅</div>
+    <img src="https://suqafuran.com/icon1.png" alt="Suqafuran" class="logo" />
+    <div class="icon" style="color: #10B981; font-size: 28px; line-height: 1;">&#10003;</div>
     <h1>You've Been Unsubscribed</h1>
     <p>
       <strong>{email_display}</strong> will no longer receive marketing, promotional, or weekly digest emails from Suqafuran.
