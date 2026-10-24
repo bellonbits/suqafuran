@@ -39,13 +39,60 @@ def create_review(
     review_in: ReviewCreate,
 ) -> Any:
     """
-    Create a new review (for a seller's product).
-    Note: In a real scenario, only customers can create reviews.
-    This endpoint is for demonstration purposes.
+    Create a new verified review for a seller's listing.
+    Only buyers who had a real in-app conversation or completed deal on that listing can leave a review.
     """
+    from app.models.listing import Listing
+    from app.models.message import Message
+    from app.models.meeting_deal import Deal
+
+    listing = db.get(Listing, review_in.product_id)
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+
+    if listing.owner_id == current_user.id:
+        raise HTTPException(status_code=400, detail="You cannot review your own listing")
+
+    # Verify that the buyer had in-app conversation or deal on this ad
+    has_chatted = db.exec(
+        select(Message).where(
+            Message.listing_id == listing.id,
+            ((Message.sender_id == current_user.id) & (Message.receiver_id == listing.owner_id)) |
+            ((Message.receiver_id == current_user.id) & (Message.sender_id == listing.owner_id))
+        )
+    ).first()
+
+    has_deal = db.exec(
+        select(Deal).where(
+            Deal.listing_id == listing.id,
+            Deal.buyer_id == current_user.id,
+            Deal.seller_id == listing.owner_id
+        )
+    ).first()
+
+    if not has_chatted and not has_deal and not current_user.is_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="Verified review restriction: You can only review sellers after chatting about this item."
+        )
+
+    # Check for duplicate review from this user on this listing
+    existing_review = db.exec(
+        select(Review).where(
+            Review.product_id == listing.id,
+            Review.seller_id == listing.owner_id,
+            Review.customer_name == (current_user.full_name or "Buyer")
+        )
+    ).first()
+    if existing_review:
+        raise HTTPException(status_code=400, detail="You have already submitted a review for this listing.")
+
     review = Review(
-        **review_in.model_dump(),
-        seller_id=current_user.id,
+        product_id=listing.id,
+        seller_id=listing.owner_id,
+        customer_name=current_user.full_name or "Buyer",
+        rating=review_in.rating,
+        comment=review_in.comment,
     )
     db.add(review)
     db.commit()

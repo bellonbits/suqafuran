@@ -41,10 +41,15 @@ def send_message(
     # 2. Content Moderation
     is_flagged, reason = moderation_service.analyze_message(db, current_user, message_in.content)
     if is_flagged:
-        raise HTTPException(
-            status_code=403,
-            detail=f"Message blocked due to suspicious content: {reason}. To maintain safety, avoid sharing phone numbers or external links."
-        )
+        if reason == "phone_number_sharing_restricted":
+            detail = "Message blocked: Phone numbers cannot be shared in chat. Keep all conversations in-app to protect against scams."
+        elif reason == "off_platform_link_restricted":
+            detail = "Message blocked: External links and WhatsApp redirects are prohibited. Please continue your discussion inside the app."
+        elif reason == "advance_payment_prohibited":
+            detail = "Message blocked: Requesting advance deposits or delivery fees upfront is prohibited. Inspect items in person before paying."
+        else:
+            detail = f"Message blocked due to security policy ({reason}). To maintain safety, avoid sharing external contact details."
+        raise HTTPException(status_code=403, detail=detail)
 
     msg = crud_message.create(db, obj_in=message_in.model_dump(), sender_id=current_user.id)
 

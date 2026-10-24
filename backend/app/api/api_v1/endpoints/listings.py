@@ -682,7 +682,14 @@ def read_listings(
     # *write* was correct in memory but lost `owner` on serialization, then every cache
     # *hit* served it back as null. ListingRead declares `owner` as a real field, so
     # encoding it (for cache storage) round-trips correctly.
-    return [ListingRead.model_validate(l) for l in listings]
+    reads = []
+    for l in listings:
+        lr = ListingRead.model_validate(l)
+        if lr.owner:
+            lr.owner.phone = None
+            lr.owner.email = None
+        reads.append(lr)
+    return reads
 
 
 @router.post("/", response_model=Listing)
@@ -1247,6 +1254,8 @@ def read_listing(
     # Query for owner's active business storefront and attach it
     listing_data = ListingRead.model_validate(listing)
     if listing_data.owner:
+        listing_data.owner.phone = None
+        listing_data.owner.email = None
         from app.models.business import Business
         from sqlmodel import select
         business = db.exec(select(Business).where(Business.owner_id == listing.owner_id, Business.is_active == True)).first()

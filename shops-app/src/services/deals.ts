@@ -13,6 +13,12 @@ export interface Deal {
   created_at: string;
 }
 
+export interface ChatBuyer {
+  id: number;
+  full_name: string;
+  avatar_url?: string | null;
+}
+
 export const dealsService = {
   async markPurchased(listingId: number): Promise<Deal> {
     const { data } = await api.post('/deals/mark-purchased', { listing_id: listingId });
@@ -31,6 +37,21 @@ export const dealsService = {
 
   async getDeal(listingId: number, buyerId: number): Promise<Deal | null> {
     const { data } = await api.get('/deals/', { params: { listing_id: listingId, buyer_id: buyerId } });
+    return data;
+  },
+
+  async getListingChatBuyers(listingId: number): Promise<ChatBuyer[]> {
+    const { data } = await api.get(`/deals/listing/${listingId}/chat-buyers`);
+    return data;
+  },
+
+  async sellerMarkSold(listingId: number, buyerId: number): Promise<Deal> {
+    const { data } = await api.post('/deals/seller-mark-sold', { listing_id: listingId, buyer_id: buyerId });
+    return data;
+  },
+
+  async buyerConfirm(dealId: number): Promise<Deal> {
+    const { data } = await api.post(`/deals/${dealId}/buyer-confirm`);
     return data;
   },
 };

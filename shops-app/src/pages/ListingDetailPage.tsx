@@ -5,27 +5,24 @@ import Link from 'next/link';
 import { useParams, useLocation } from 'react-router-dom';
 import { useRouter } from 'next/navigation';
 import {
-    MapPin, ShieldCheck, Phone, Heart, Share2, MessageSquare, ArrowLeft, Eye, Star, X,
-    AlertTriangle, Minus, Plus, ShoppingCart, Store, CheckCircle2, Check,
+    MapPin, ShieldCheck, Heart, Share2, MessageSquare, ArrowLeft, Eye, Star, X,
+    AlertTriangle, Store, CheckCircle2, Check, Tag,
 } from 'lucide-react';
 import api, { optimizeCloudinaryUrl } from '@/services/api';
 import { listingsService, makeShopSlug } from '@/services/listings';
 import { feedbackService, averageRating } from '@/services/feedback';
 import { analyticsService } from '@/services/analytics';
+import { offersService } from '@/services/offers';
 import { useTrackItemView } from '@/hooks/useViewTracking';
 import { useFavoritesStore } from '@/store/useFavorites';
 import { useAuthStore } from '@/store/useAuth';
 import { useAuthModal } from '@/store/useAuthModal';
 import { useCurrencyStore } from '@/store/useCurrency';
-import { useCart } from '@/store/useCart';
 import { formatConvertedPrice } from '@/lib/currency';
 import { useLocalizedField } from '@/lib/i18n';
 import { ProductCard } from '@/components/features/ProductCard';
-import { checkoutReceiptService } from '@/services/checkoutReceipt';
-import { messageService } from '@/services/messageService';
 import { trackEvent } from '@/lib/analytics';
 import type { Listing, Feedback } from '@/types';
-
 
 type DetailTab = 'description' | 'specs' | 'seller';
 
@@ -80,27 +77,27 @@ export default function ProductDetailPage() {
     const [reviewRating, setReviewRating] = useState(5);
     const [reviewComment, setReviewComment] = useState('');
     const [submittingReview, setSubmittingReview] = useState(false);
+    const [reviewError, setReviewError] = useState('');
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportReason, setReportReason] = useState('');
     const [reportDescription, setReportDescription] = useState('');
 
     const [activeTab, setActiveTab] = useState<DetailTab>('description');
-    const [quantity, setQuantity] = useState(1);
-    const [addedToCart, setAddedToCart] = useState(false);
     const [linkCopied, setLinkCopied] = useState(false);
-    const [showOrderModal, setShowOrderModal] = useState(false);
-    const [orderLocation, setOrderLocation] = useState('');
-    const [orderNotes, setOrderNotes] = useState('');
-    const [submittingOrder, setSubmittingOrder] = useState(false);
-    const [orderPlaced, setOrderPlaced] = useState(false);
-    const [orderError, setOrderError] = useState('');
+
+    // Make offer state
+    const [showOfferModal, setShowOfferModal] = useState(false);
+    const [offerAmount, setOfferAmount] = useState('');
+    const [offerMessage, setOfferMessage] = useState('');
+    const [submittingOffer, setSubmittingOffer] = useState(false);
+    const [offerSuccess, setOfferSuccess] = useState(false);
+    const [offerError, setOfferError] = useState('');
 
     const { isAuthenticated } = useAuthStore();
     const openAuthModal = useAuthModal((s) => s.open);
     const isFavorite = useFavoritesStore((s) => listing ? s.isFavorite(listing.id) : false);
     const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
     const displayCurrency = useCurrencyStore((s) => s.currency);
-    const addCartItem = useCart((s) => s.addItem);
     const field = useLocalizedField();
 
     useTrackItemView(listing?.id || 0);
@@ -122,15 +119,9 @@ export default function ProductDetailPage() {
         setRelatedListings([]);
         setCategoryName('');
 
-        // Navigating here from a related-listing card while already on a
-        // detail page (same route, component doesn't remount) -- apply its
-        // preloaded data immediately too, same as the lazy useState above
-        // does for the very first mount.
         const preloaded = getPreload();
         if (preloaded) {
             setListing(preloaded);
-            setQuantity(1);
-            setAddedToCart(false);
             setActiveTab('description');
             setActiveImage(preloaded.images?.[0] || FALLBACK_IMAGE);
             setIsLoading(false);
@@ -153,12 +144,7 @@ export default function ProductDetailPage() {
                 return;
             }
 
-            // Render the page now that the one thing it actually needs is
-            // in hand -- reviews, related listings and the category label
-            // are all supplementary and shouldn't hold up the product itself.
             setListing(data);
-            setQuantity(1);
-            setAddedToCart(false);
             setActiveTab('description');
             setActiveImage(data.images && data.images.length > 0 ? data.images[0] : FALLBACK_IMAGE);
             setIsLoading(false);
@@ -171,10 +157,6 @@ export default function ProductDetailPage() {
                 setCategoryName(cat?.name_en || '');
             }).catch(() => {});
 
-            // Related listings -- same category first, since an unscoped
-            // fetch isn't actually "related" to anything. Backfill with
-            // other active listings if the category alone doesn't have
-            // enough to reach a full row/two of results.
             listingsService.getListings({ category_id: data.category_id, limit: 16 }).then(async (sameCategory) => {
                 let related = sameCategory.filter((r) => r.id !== data.id);
                 if (related.length < 10) {
@@ -188,13 +170,10 @@ export default function ProductDetailPage() {
         loadListingDetails();
 
         return () => {
-            document.title = "Suqafuran - Africa's Marketplace";
+            document.title = "Suqafuran - Marketplace";
         };
     }, [id]);
 
-    // Product structured data (schema.org) for search-engine rich results --
-    // kept as a separate effect, keyed on `listing`, so it updates whether
-    // the page rendered from preload or from the real fetch.
     useEffect(() => {
         if (!listing || typeof document === 'undefined') return;
 
@@ -256,6 +235,7 @@ export default function ProductDetailPage() {
             return;
         }
         setSubmittingReview(true);
+        setReviewError('');
         try {
             await feedbackService.createFeedback({
                 target_user_id: listing.owner_id,
@@ -267,8 +247,9 @@ export default function ProductDetailPage() {
             setFeedback(refreshed);
             setReviewComment('');
             setReviewRating(5);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to submit review', err);
+            setReviewError(err?.response?.data?.detail || 'Reviews are only available to buyers who have contacted the seller or completed a deal.');
         } finally {
             setSubmittingReview(false);
         }
@@ -289,10 +270,39 @@ export default function ProductDetailPage() {
             setShowReportModal(false);
             setReportReason('');
             setReportDescription('');
-            alert('Thank you for your report!');
+            alert('Thank you for your report.');
         } catch (err: any) {
             console.error('Failed to submit report', err);
             alert(err?.response?.data?.detail || 'Failed to submit report. Please try again.');
+        }
+    };
+
+    const handleOfferSubmit = async () => {
+        if (!listing) return;
+        if (!isAuthenticated) {
+            openAuthModal('signin');
+            return;
+        }
+        const numericAmount = parseFloat(offerAmount);
+        if (isNaN(numericAmount) || numericAmount <= 0) {
+            setOfferError('Please enter a valid offer amount');
+            return;
+        }
+        setSubmittingOffer(true);
+        setOfferError('');
+        try {
+            await offersService.createOffer(listing.id, numericAmount, offerMessage.trim() || undefined);
+            setOfferSuccess(true);
+            trackEvent('Offer Submitted', {
+                listing_id: listing.id,
+                amount: numericAmount,
+                original_price: listing.price,
+            });
+        } catch (err: any) {
+            console.error('Failed to submit offer', err);
+            setOfferError(err?.response?.data?.detail || 'Failed to submit offer. Please try again.');
+        } finally {
+            setSubmittingOffer(false);
         }
     };
 
@@ -302,25 +312,6 @@ export default function ProductDetailPage() {
         const count = feedback.filter((f) => Math.round(f.rating) === star).length;
         return { star, count, pct: feedback.length > 0 ? Math.round((count / feedback.length) * 100) : 0 };
     });
-
-    const handleAddToCart = () => {
-        if (!listing) return;
-        addCartItem({
-            id: String(listing.id),
-            title: field(listing.title_en, listing.title_so) || listing.title_en,
-            price: listing?.price ?? 0,
-            quantity,
-            image: activeImage,
-            owner_id: listing.owner_id,
-        });
-        trackEvent('Add to Cart', {
-            listing_id: listing.id,
-            price: listing.price,
-            quantity,
-            cart_size: useCart.getState().items.length,
-        });
-        setAddedToCart(true);
-    };
 
     const galleryTouchStartX = useRef<number | null>(null);
     const galleryTouchDeltaX = useRef(0);
@@ -351,20 +342,13 @@ export default function ProductDetailPage() {
     };
 
     const shareTitle = listing ? (field(listing.title_en, listing.title_so) || listing.title_en) : '';
-    // Never use window.location.href/origin for share links -- inside the
-    // native app the WebView's origin is capacitor://localhost (or
-    // http://localhost), not the real site. Always build from the real
-    // domain plus the current path so shared links actually work for
-    // recipients and can be crawled for a preview.
     const shareUrl = typeof window !== 'undefined' ? `https://suqafuran.com${window.location.pathname}${window.location.search}` : '';
 
     const handleNativeShare = async () => {
         if (navigator.share) {
             try {
                 await navigator.share({ title: shareTitle, url: shareUrl });
-            } catch (err) {
-                // User dismissed the share sheet -- not an error worth logging.
-            }
+            } catch (err) {}
             return;
         }
         try {
@@ -384,45 +368,6 @@ export default function ProductDetailPage() {
     const shareToWhatsApp = () => {
         const url = `https://wa.me/?text=${encodeURIComponent(`${shareTitle} ${shareUrl}`)}`;
         window.open(url, '_blank', 'noopener,noreferrer');
-    };
-
-    const handleOrderSubmit = async () => {
-        if (!listing) return;
-        if (!isAuthenticated) {
-            openAuthModal('signin');
-            return;
-        }
-        setSubmittingOrder(true);
-        setOrderError('');
-        try {
-            const itemTitle = field(listing.title_en, listing.title_so) || listing.title_en;
-            await checkoutReceiptService.createReceipt(
-                listing.owner_id,
-                [{ listing_id: listing.id, title: itemTitle, price: listing.price ?? 0, quantity }],
-                (listing.price ?? 0) * quantity,
-            );
-
-            // Relay the meetup/delivery details to the seller via chat --
-            // the receipt itself has no location/notes fields (this
-            // marketplace is chat-first, not a delivery/logistics system).
-            const messageLines = [
-                `I'd like to buy: ${quantity} x ${itemTitle}.`,
-                orderLocation.trim() ? `Delivery/meetup location: ${orderLocation.trim()}` : null,
-                orderNotes.trim() ? `Notes: ${orderNotes.trim()}` : null,
-            ].filter(Boolean);
-            messageService.sendMessage({
-                receiver_id: listing.owner_id,
-                listing_id: listing.id,
-                content: messageLines.join('\n'),
-            }).catch((err) => console.error('Order placed, but failed to message seller', err));
-
-            setOrderPlaced(true);
-        } catch (err) {
-            console.error('Failed to place order', err);
-            setOrderError('Could not place your order right now. Please try again, or message the seller directly.');
-        } finally {
-            setSubmittingOrder(false);
-        }
     };
 
     if (isLoading) {
@@ -482,7 +427,6 @@ export default function ProductDetailPage() {
                             <img
                                 src={optimizeCloudinaryUrl(activeImage, { width: 900 }) || activeImage}
                                 alt={field(listing.title_en, listing.title_so)}
-                                // This is the listing page's LCP element.
                                 loading="eager"
                                 fetchPriority="high"
                                 decoding="async"
@@ -496,7 +440,6 @@ export default function ProductDetailPage() {
                         </div>
                         {listing.images && listing.images.length > 1 && (
                             <>
-                                {/* Mobile: swipe + small pagination dots instead of a thumbnail strip */}
                                 <div className="flex md:hidden justify-center gap-1.5">
                                     {listing.images.slice(0, 8).map((img, idx) => (
                                         <button
@@ -507,7 +450,6 @@ export default function ProductDetailPage() {
                                         />
                                     ))}
                                 </div>
-                                {/* Desktop: thumbnail strip */}
                                 <div className="hidden md:flex gap-2 overflow-x-auto pb-1">
                                     {listing.images.slice(0, 6).map((img, idx) => (
                                         <button
@@ -523,7 +465,7 @@ export default function ProductDetailPage() {
                         )}
                     </div>
 
-                    {/* Right: Info + purchase panel */}
+                    {/* Right: Info + Action panel */}
                     <div className="md:col-span-3 space-y-5">
                         <div>
                             {categoryName && (
@@ -578,30 +520,6 @@ export default function ProductDetailPage() {
                             )}
                         </div>
 
-                        {/* Quantity */}
-                        {!isSold && (
-                            <div>
-                                <div className="text-xs font-bold text-gray-700 dark:text-neutral-200 mb-2 uppercase tracking-wide">Quantity</div>
-                                <div className="inline-flex items-center gap-3 border border-gray-200 dark:border-neutral-800 rounded-full px-1 py-1">
-                                    <button
-                                        onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                                        className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors"
-                                        aria-label="Decrease quantity"
-                                    >
-                                        <Minus className="h-3.5 w-3.5" />
-                                    </button>
-                                    <span className="w-6 text-center text-sm font-bold text-gray-900 dark:text-white">{quantity}</span>
-                                    <button
-                                        onClick={() => setQuantity((q) => Math.min(99, q + 1))}
-                                        className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors"
-                                        aria-label="Increase quantity"
-                                    >
-                                        <Plus className="h-3.5 w-3.5" />
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
                         {/* Secondary links */}
                         <div className="flex items-center gap-4 text-sm">
                             {listing.owner && (
@@ -614,33 +532,61 @@ export default function ProductDetailPage() {
                                 className={`flex items-center gap-1.5 font-semibold ${isFavorite ? 'text-red-500' : 'text-gray-700 dark:text-neutral-200 hover:text-red-500'}`}
                             >
                                 <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
-                                {isFavorite ? 'Wishlisted' : 'Add to Wishlist'}
+                                {isFavorite ? 'Saved' : 'Save Item'}
                             </button>
                         </div>
 
                         {/* Primary CTAs (desktop) */}
                         {!isSold && (
-                            <div className="hidden md:flex gap-3">
-                                <button
-                                    onClick={handleAddToCart}
-                                    className="flex-1 flex items-center justify-center gap-2 rounded-full border-2 border-orange-500 text-orange-600 dark:text-orange-400 font-black py-3 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors"
-                                >
-                                    <ShoppingCart className="h-4 w-4" />
-                                    {addedToCart ? 'Added!' : 'Add to Cart'}
-                                </button>
-                                <button
-                                    onClick={() => { setOrderPlaced(false); setOrderError(''); setShowOrderModal(true); }}
-                                    className="flex-1 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-black py-3 transition-colors"
-                                >
-                                    Buy Now
-                                </button>
+                            <div className="space-y-3">
+                                <div className="hidden md:flex gap-3">
+                                    <Link
+                                        href={`/messages?userId=${listing.owner_id}&productId=${listing.id}`}
+                                        onClick={() => analyticsService.trackClick({
+                                            event_type: 'chat',
+                                            listing_id: listing.id,
+                                            shop_id: listing.owner_id,
+                                            device_type: analyticsService.getDeviceType(),
+                                        }).catch(() => {})}
+                                        className="flex-1 flex items-center justify-center gap-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-black py-3.5 text-base transition-colors shadow-md shadow-orange-500/20"
+                                    >
+                                        <MessageSquare className="h-5 w-5" />
+                                        Chat with Seller
+                                    </Link>
+                                    <button
+                                        onClick={() => {
+                                            setOfferSuccess(false);
+                                            setOfferError('');
+                                            setOfferAmount(String(listing.price || ''));
+                                            setShowOfferModal(true);
+                                        }}
+                                        className="flex-1 flex items-center justify-center gap-2 rounded-full border-2 border-orange-500 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 font-black py-3.5 text-base transition-colors"
+                                    >
+                                        <Tag className="h-5 w-5" />
+                                        Make Offer
+                                    </button>
+                                </div>
                             </div>
                         )}
+
+                        {/* Direct Deal Safety Card */}
+                        <div className="bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-800/40 rounded-2xl p-4 space-y-2">
+                            <div className="flex items-center gap-2 text-amber-800 dark:text-amber-400 font-bold text-xs uppercase tracking-wider">
+                                <ShieldCheck className="h-4 w-4" />
+                                Direct Peer-to-Peer Deal Safety
+                            </div>
+                            <ul className="text-xs text-amber-900/90 dark:text-amber-200/80 space-y-1 list-disc list-inside">
+                                <li>Meet in person in a safe, public place.</li>
+                                <li>Inspect the item thoroughly before paying.</li>
+                                <li>Pay the seller directly via Cash or direct M-Pesa.</li>
+                                <li>Never send advance deposits or transport fees before seeing the item.</li>
+                            </ul>
+                        </div>
 
                         {/* Trust badges */}
                         <div className="flex items-center gap-4 flex-wrap text-xs font-semibold text-gray-600 dark:text-neutral-300">
                             <span className="flex items-center gap-1">
-                                <Check className="h-3.5 w-3.5 text-green-600" /> Secure purchase
+                                <Check className="h-3.5 w-3.5 text-green-600" /> Direct in-person deal
                             </span>
                             {listing.owner?.is_verified && (
                                 <span className="flex items-center gap-1">
@@ -648,23 +594,9 @@ export default function ProductDetailPage() {
                                 </span>
                             )}
                             <span className="flex items-center gap-1">
-                                <Check className="h-3.5 w-3.5 text-green-600" /> Buyer protection
+                                <Check className="h-3.5 w-3.5 text-green-600" /> In-app communication logged
                             </span>
                         </div>
-
-                        <Link
-                            href={`/messages?userId=${listing.owner_id}&productId=${listing.id}`}
-                            onClick={() => analyticsService.trackClick({
-                                event_type: 'chat',
-                                listing_id: listing.id,
-                                shop_id: listing.owner_id,
-                                device_type: analyticsService.getDeviceType(),
-                            }).catch(() => {})}
-                            className="flex items-center justify-center gap-2 w-full rounded-full bg-gray-900 dark:bg-neutral-900 text-white font-bold py-2.5 text-sm hover:bg-gray-800 dark:hover:bg-neutral-800 transition-colors"
-                        >
-                            <MessageSquare className="h-4 w-4" />
-                            Contact Seller
-                        </Link>
 
                         {/* Location chip */}
                         <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-neutral-300">
@@ -761,25 +693,17 @@ export default function ProductDetailPage() {
                                         {listing.owner.is_verified && <ShieldCheck className="h-4 w-4 text-green-600 dark:text-green-400" />}
                                     </div>
                                     <div className="text-xs text-gray-500 dark:text-neutral-300">
-                                        {ratingAvg !== null ? `${ratingAvg.toFixed(1)}★ rated seller` : 'New seller'}
+                                        {ratingAvg !== null ? `${ratingAvg.toFixed(1)} rated seller` : 'New seller'}
                                     </div>
                                 </div>
                             </div>
                             <div className="flex gap-2">
-                                {listing.owner.phone && (
-                                    <a
-                                        href={`tel:${listing.owner.phone}`}
-                                        onClick={() => analyticsService.trackClick({
-                                            event_type: 'call',
-                                            listing_id: listing.id,
-                                            shop_id: listing.owner_id,
-                                            device_type: analyticsService.getDeviceType(),
-                                        }).catch(() => {})}
-                                        className="flex items-center gap-1.5 bg-gray-100 dark:bg-neutral-900 hover:bg-gray-200 dark:hover:bg-neutral-800 border border-gray-200 dark:border-neutral-800 rounded-full px-4 py-2 text-xs font-bold text-gray-700 dark:text-neutral-200 transition-all"
-                                    >
-                                        <Phone className="h-3.5 w-3.5" /> Call
-                                    </a>
-                                )}
+                                <Link
+                                    href={`/messages?userId=${listing.owner_id}&productId=${listing.id}`}
+                                    className="flex items-center gap-1.5 bg-gray-100 dark:bg-neutral-900 hover:bg-gray-200 dark:hover:bg-neutral-800 border border-gray-200 dark:border-neutral-800 rounded-full px-4 py-2 text-xs font-bold text-gray-700 dark:text-neutral-200 transition-all"
+                                >
+                                    <MessageSquare className="h-3.5 w-3.5 text-orange-500" /> Chat
+                                </Link>
                                 <Link href={`/shop/${sellerSlug}`} className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 rounded-full px-4 py-2 text-xs font-bold text-white transition-all">
                                     <Store className="h-3.5 w-3.5" /> View Shop
                                 </Link>
@@ -841,6 +765,9 @@ export default function ProductDetailPage() {
                     {/* Write a review */}
                     <div className="mt-8 pt-6 border-t border-gray-100 dark:border-neutral-800">
                         <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3">Write a review</h3>
+                        <p className="text-xs text-gray-500 dark:text-neutral-400 mb-3">
+                            Verified reviews are available to buyers who have chatted with the seller or completed an in-person deal.
+                        </p>
                         <div className="flex items-center gap-1 mb-3">
                             {Array.from({ length: 5 }).map((_, i) => (
                                 <button key={i} onClick={() => setReviewRating(i + 1)} aria-label={`Rate ${i + 1} stars`}>
@@ -853,8 +780,11 @@ export default function ProductDetailPage() {
                             onChange={(e) => setReviewComment(e.target.value)}
                             placeholder="Share your experience with this item or seller..."
                             rows={3}
-                            className="w-full rounded-xl border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white px-4 py-3 text-sm focus:outline-none focus:border-orange-500 resize-none mb-3"
+                            className="w-full rounded-xl border border-gray-200 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white px-4 py-3 text-sm focus:outline-none focus:border-orange-500 resize-none mb-2"
                         />
+                        {reviewError && (
+                            <p className="text-xs text-red-500 mb-2">{reviewError}</p>
+                        )}
                         <button
                             onClick={handleSubmitReview}
                             disabled={submittingReview}
@@ -887,34 +817,46 @@ export default function ProductDetailPage() {
                         </div>
                     </div>
                     <button
-                        onClick={handleAddToCart}
-                        className="flex-1 flex items-center justify-center gap-2 rounded-full border-2 border-orange-500 text-orange-600 dark:text-orange-400 font-black py-2.5 text-sm"
+                        onClick={() => {
+                            setOfferSuccess(false);
+                            setOfferError('');
+                            setOfferAmount(String(listing.price || ''));
+                            setShowOfferModal(true);
+                        }}
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-full border-2 border-orange-500 text-orange-600 dark:text-orange-400 font-black py-2.5 text-xs"
                     >
-                        <ShoppingCart className="h-4 w-4" />
-                        {addedToCart ? 'Added!' : 'Add to Cart'}
+                        <Tag className="h-4 w-4" />
+                        Make Offer
                     </button>
-                    <button
-                        onClick={() => { setOrderPlaced(false); setOrderError(''); setShowOrderModal(true); }}
-                        className="flex-1 rounded-full bg-orange-500 text-white font-black py-2.5 text-sm"
+                    <Link
+                        href={`/messages?userId=${listing.owner_id}&productId=${listing.id}`}
+                        onClick={() => analyticsService.trackClick({
+                            event_type: 'chat',
+                            listing_id: listing.id,
+                            shop_id: listing.owner_id,
+                            device_type: analyticsService.getDeviceType(),
+                        }).catch(() => {})}
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-full bg-orange-500 text-white font-black py-2.5 text-xs"
                     >
-                        Buy Now
-                    </button>
+                        <MessageSquare className="h-4 w-4" />
+                        Chat with Seller
+                    </Link>
                 </div>
             )}
 
-            {/* Buy Now / Order Modal */}
-            {showOrderModal && (
+            {/* Make Offer Modal */}
+            {showOfferModal && (
                 <div className="fixed inset-0 z-50 bg-black/50 flex items-end md:items-center justify-center">
                     <div className="bg-white dark:bg-neutral-950 rounded-t-2xl md:rounded-2xl w-full md:max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-                        {orderPlaced ? (
+                        {offerSuccess ? (
                             <div className="text-center py-6 space-y-3">
                                 <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
-                                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Order request sent!</h2>
+                                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Offer sent to seller</h2>
                                 <p className="text-sm text-gray-500 dark:text-neutral-300">
-                                    We've recorded your order and sent the seller a message with your delivery details. They'll reach out to confirm.
+                                    Your offer has been submitted. The seller will receive a notification and can respond directly in chat.
                                 </p>
                                 <button
-                                    onClick={() => setShowOrderModal(false)}
+                                    onClick={() => setShowOfferModal(false)}
                                     className="mt-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm px-6 py-2.5 transition-colors"
                                 >
                                     Done
@@ -922,49 +864,64 @@ export default function ProductDetailPage() {
                             </div>
                         ) : (
                             <>
-                                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Confirm your order</h2>
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Make an Offer</h2>
+                                    <button
+                                        onClick={() => setShowOfferModal(false)}
+                                        className="text-gray-400 hover:text-gray-600 dark:hover:text-white"
+                                    >
+                                        <X className="h-5 w-5" />
+                                    </button>
+                                </div>
                                 <div className="flex items-center justify-between bg-gray-50 dark:bg-neutral-900 rounded-xl p-3">
-                                    <span className="text-sm font-semibold text-gray-700 dark:text-neutral-200">{quantity} × {field(listing.title_en, listing.title_so)}</span>
+                                    <span className="text-sm font-semibold text-gray-700 dark:text-neutral-200">
+                                        {field(listing.title_en, listing.title_so)}
+                                    </span>
                                     <span className="text-sm font-black text-gray-900 dark:text-white">
-                                        {formatConvertedPrice((listing.price ?? 0) * quantity, listing.currency || 'USD', displayCurrency)}
+                                        Listed: {formatConvertedPrice(listing.price ?? 0, listing.currency || 'USD', displayCurrency)}
                                     </span>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-200 mb-2">Delivery / meetup location</label>
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-200 mb-2">
+                                        Your Offer Amount ({listing.currency || 'KES'})
+                                    </label>
                                     <input
-                                        type="text"
-                                        value={orderLocation}
-                                        onChange={(e) => setOrderLocation(e.target.value)}
-                                        placeholder="e.g. Nairobi, Eastleigh Market"
-                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:border-orange-500"
+                                        type="number"
+                                        value={offerAmount}
+                                        onChange={(e) => setOfferAmount(e.target.value)}
+                                        placeholder="Enter amount"
+                                        min="1"
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:border-orange-500 font-bold text-base"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-200 mb-2">Notes (optional)</label>
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-200 mb-2">
+                                        Message to seller (optional)
+                                    </label>
                                     <textarea
-                                        value={orderNotes}
-                                        onChange={(e) => setOrderNotes(e.target.value)}
-                                        placeholder="Anything the seller should know..."
+                                        value={offerMessage}
+                                        onChange={(e) => setOfferMessage(e.target.value)}
+                                        placeholder="Add a polite note to explain your offer..."
                                         rows={3}
-                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:border-orange-500 resize-none"
+                                        className="w-full px-4 py-2 rounded-xl border border-gray-300 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:border-orange-500 resize-none text-sm"
                                     />
                                 </div>
-                                {orderError && (
-                                    <p className="text-sm text-red-600 dark:text-red-400 font-semibold">{orderError}</p>
+                                {offerError && (
+                                    <p className="text-sm text-red-600 dark:text-red-400 font-semibold">{offerError}</p>
                                 )}
                                 <div className="flex gap-3 pt-2">
                                     <button
-                                        onClick={() => setShowOrderModal(false)}
-                                        className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-800 text-gray-700 dark:text-neutral-200 font-semibold hover:bg-gray-50 dark:hover:bg-neutral-900 transition-all"
+                                        onClick={() => setShowOfferModal(false)}
+                                        className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 dark:border-neutral-800 text-gray-700 dark:text-neutral-200 font-semibold hover:bg-gray-50 dark:hover:bg-neutral-900 transition-all text-sm"
                                     >
                                         Cancel
                                     </button>
                                     <button
-                                        onClick={handleOrderSubmit}
-                                        disabled={!orderLocation.trim() || submittingOrder}
-                                        className="flex-1 px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white font-semibold transition-all"
+                                        onClick={handleOfferSubmit}
+                                        disabled={!offerAmount || submittingOffer}
+                                        className="flex-1 px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white font-bold transition-all text-sm"
                                     >
-                                        {submittingOrder ? 'Placing...' : 'Place Order'}
+                                        {submittingOffer ? 'Submitting...' : 'Send Offer'}
                                     </button>
                                 </div>
                             </>
@@ -981,7 +938,7 @@ export default function ProductDetailPage() {
 
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-200 mb-2">
-                                What's the problem?
+                                What is the problem?
                             </label>
                             <select
                                 value={reportReason}

@@ -128,8 +128,17 @@ async def websocket_chat_endpoint(
                 listing_id = data.get("listing_id")
 
                 if other_user_id and content:
-                    # Message already saved to DB via HTTP endpoint
-                    # This just broadcasts to the WebSocket subscriber
+                    from app.services.moderation_service import moderation_service
+                    is_flagged, reason = moderation_service.analyze_message(db, current_user, content)
+                    if is_flagged:
+                        await websocket.send_json({
+                            "event_type": "moderation_blocked",
+                            "reason": reason,
+                            "message": "Message blocked: Please keep all conversations in-app and avoid sharing phone numbers or advance payment requests.",
+                        })
+                        continue
+
+                    # Message already saved to DB via HTTP endpoint or direct WS
                     channel = f"chat_{min(user_id, other_user_id)}_{max(user_id, other_user_id)}"
 
                     await manager.broadcast_to_channel(
