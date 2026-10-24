@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     # JWT AUTH
     SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 180 # 6 months
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days (configurable via .env)
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
     # OAUTH
@@ -152,7 +152,7 @@ class Settings(BaseSettings):
     # FILE UPLOAD
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB (images)
     MAX_VIDEO_SIZE: int = 100 * 1024 * 1024  # 100MB (videos)
-    ALLOWED_EXTENSIONS: Any = ["jpg", "jpeg", "png", "webp", "svg", "pdf", "gif"]
+    ALLOWED_EXTENSIONS: Any = ["jpg", "jpeg", "png", "webp", "gif"]
     ALLOWED_VIDEO_EXTENSIONS: Any = ["mp4", "webm", "mov", "avi", "mkv"]
     UPLOAD_DIR: str = "./uploads"
 

@@ -58,7 +58,7 @@ async def login_access_token(
         httponly=True,
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         samesite="lax",
-        secure=False,
+        secure=settings.ENVIRONMENT == "production",
     )
 
     # Publish signin event to Kafka (non-blocking)

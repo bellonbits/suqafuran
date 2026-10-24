@@ -53,9 +53,13 @@ if [ -z "${DATABASE_URL:-}" ] && [ -n "${POSTGRES_SERVER:-}" ]; then
     DATABASE_URL="postgresql://${PG_USER}:${PG_PASS}@${POSTGRES_SERVER}:${PG_PORT}/${PG_DB}?sslmode=require"
 fi
 
-# Ensure backup directories exist
+# Restrictive umask: backups contain database credentials and customer records
+umask 077
+
+# Ensure backup directories exist with restricted permissions
 mkdir -p "${BACKUP_DIR}/database"
 mkdir -p "${BACKUP_DIR}/uploads"
+chmod 700 "${BACKUP_DIR}" "${BACKUP_DIR}/database" "${BACKUP_DIR}/uploads" 2>/dev/null || true
 
 echo "[$(date)] Starting Suqafuran automated backup..."
 echo "[$(date)] Project Directory: ${PROJECT_DIR}"
