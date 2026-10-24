@@ -14,7 +14,6 @@ services:
       - certbot_data:/var/www/certbot
     depends_on:
       - backend
-      - frontend
     networks:
       - suqafuran-network
     restart: unless-stopped
@@ -213,7 +212,12 @@ services:
       OTEL_METRICS_EXPORTER: otlp
       OTEL_LOGS_EXPORTER: otlp
     ports:
-      - "8000:8000"
+      # Nginx proxies to backend internally over suqafuran-network (http://backend:8000).
+      # Exposing 8000 on 0.0.0.0 allows bypassing Nginx TLS, rate limiting, and the
+      # restricted /metrics endpoint, plus exposes uvicorn's --forwarded-allow-ips='*'
+      # to header spoofing from the public internet. Bound to localhost only for
+      # host-level health checks or SSH tunnels.
+      - "127.0.0.1:8000:8000"
     depends_on:
       redis:
         condition: service_healthy
@@ -346,23 +350,6 @@ services:
       - suqafuran-network
     restart: unless-stopped
 
-  # Frontend (Next.js)
-  frontend:
-    build:
-      context: ./new-frontend
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://backend:8000/api/v1}
-        NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:-AIzaSyAk6rrT_DxxSanx0pwKjLruI-XhgN_zsko}
-        NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY}
-    container_name: suqafuran-frontend
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-    networks:
-      - suqafuran-network
-    restart: unless-stopped
 
   # Kafka UI
   kafka-ui:
