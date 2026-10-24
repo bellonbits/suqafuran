@@ -120,16 +120,23 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
 
     const reverseGeocodeWithNominatim = async (latitude: number, longitude: number) => {
         try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 4000);
             const response = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+                {
+                    headers: { 'Accept-Language': 'en', 'User-Agent': 'SuqafuranApp/1.0' },
+                    signal: controller.signal,
+                }
             );
+            clearTimeout(timer);
             const data = await response.json();
             if (data && data.address) {
                 const { city, town, village, county, state, country_code } = data.address;
                 const displayName = city || town || village || data.name || 'Unknown Location';
                 const region = county || state || '';
                 const fullName = region ? `${displayName}, ${region}` : displayName;
-                return { displayName: fullName, country: country_code };
+                return { displayName: fullName, country: country_code?.toUpperCase() };
             }
         } catch (err) {
             console.error('Nominatim geocoding failed:', err);
@@ -137,85 +144,189 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
         return null;
     };
 
-    const handleUseCurrentLocation = () => {
+    const fetchLocationFromIP = async (): Promise<{ displayName: string; lat: number; lng: number; country: string } | null> => {
+        // 1. Try ipwho.is (fast, reliable, provides lat/lng and location)
+        try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 3500);
+            const res = await fetch('https://ipwho.is/', { signal: controller.signal });
+            clearTimeout(timer);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.success && data.latitude && data.longitude) {
+                    const cityName = data.city || data.region || 'Nairobi';
+                    const country = (data.country_code || 'KE').toUpperCase();
+                    const region = data.region && data.region !== cityName ? data.region : (data.country || 'Kenya');
+                    return {
+                        displayName: `${cityName}, ${region}`,
+                        lat: Number(data.latitude),
+                        lng: Number(data.longitude),
+                        country,
+                    };
+                }
+            }
+        } catch {
+            // fallback
+        }
+
+        // 2. Fallback to ipapi.co
+        try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 3500);
+            const res = await fetch('https://ipapi.co/json/', { signal: controller.signal });
+            clearTimeout(timer);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && !data.error && data.latitude && data.longitude) {
+                    const cityName = data.city || data.region || 'Nairobi';
+                    const country = (data.country_code || 'KE').toUpperCase();
+                    const region = data.region && data.region !== cityName ? data.region : (data.country_name || 'Kenya');
+                    return {
+                        displayName: `${cityName}, ${region}`,
+                        lat: Number(data.latitude),
+                        lng: Number(data.longitude),
+                        country,
+                    };
+                }
+            }
+        } catch {
+            // fallback
+        }
+
+        return null;
+    };
+
+    const resolveAndSetLocation = async (latitude: number, longitude: number) => {
+        // 1. Try Google Maps Geocoder if ready
+        if (geocoder.current) {
+            try {
+                const gResult = await new Promise<{ displayName: string; country?: string } | null>((resolve) => {
+                    geocoder.current?.geocode({ location: { lat: latitude, lng: longitude } }, (results, status) => {
+                        if (status === google.maps.GeocoderStatus.OK && results?.[0]) {
+                            const result = results[0];
+                            const locality = result.address_components.find((c) => c.types.includes('locality'))?.long_name;
+                            const region = result.address_components.find((c) => c.types.includes('administrative_area_level_1'))?.long_name;
+                            const country = result.address_components.find((c) => c.types.includes('country'))?.short_name;
+                            const displayName = locality && region ? `${locality}, ${region}` : result.formatted_address;
+                            resolve({ displayName, country });
+                        } else {
+                            resolve(null);
+                        }
+                    });
+                });
+                if (gResult) {
+                    setLocation(gResult.displayName, latitude, longitude, gResult.country || 'KE');
+                    setDetecting(false);
+                    onClose();
+                    return;
+                }
+            } catch (err) {
+                console.warn('Google reverse geocode error:', err);
+            }
+        }
+
+        // 2. Try Nominatim reverse geocode
+        const nominatimResult = await reverseGeocodeWithNominatim(latitude, longitude);
+        if (nominatimResult) {
+            setLocation(nominatimResult.displayName, latitude, longitude, nominatimResult.country || 'KE');
+            setDetecting(false);
+            onClose();
+            return;
+        }
+
+        // 3. Fallback: match nearest Kenyan city or format coords so valid GPS is NEVER discarded
+        let nearestCity = DEFAULT_KENYA_CITIES[0];
+        let minDistance = Infinity;
+        for (const c of DEFAULT_KENYA_CITIES) {
+            const d = Math.hypot(c.lat - latitude, c.lng - longitude);
+            if (d < minDistance) {
+                minDistance = d;
+                nearestCity = c;
+            }
+        }
+        const displayName = minDistance < 0.5
+            ? `${nearestCity.name} Area`
+            : `GPS Location (${latitude.toFixed(3)}, ${longitude.toFixed(3)})`;
+
+        setLocation(displayName, latitude, longitude, 'KE');
+        setDetecting(false);
+        onClose();
+    };
+
+    const handleUseCurrentLocation = (forceIpFallback = false) => {
         setPermissionAsked(true);
+        setError('');
+
+        if (forceIpFallback) {
+            setDetecting(true);
+            fetchLocationFromIP().then((ipLoc) => {
+                setDetecting(false);
+                if (ipLoc) {
+                    setLocation(ipLoc.displayName, ipLoc.lat, ipLoc.lng, ipLoc.country);
+                    onClose();
+                } else {
+                    setError('Could not detect network location. Please pick a city below.');
+                }
+            });
+            return;
+        }
+
         if (!navigator.geolocation) {
-            setError('Geolocation is not supported by your browser.');
+            setDetecting(true);
+            fetchLocationFromIP().then((ipLoc) => {
+                setDetecting(false);
+                if (ipLoc) {
+                    setLocation(ipLoc.displayName, ipLoc.lat, ipLoc.lng, ipLoc.country);
+                    onClose();
+                } else {
+                    setError('Geolocation is not supported by your browser. Please search or pick a city below.');
+                }
+            });
             return;
         }
 
         setDetecting(true);
-        setError('');
-        navigator.geolocation.getCurrentPosition(
-            async (position) => {
-                const { latitude, longitude } = position.coords;
 
-                // Try Google Maps first
-                if (geocoder.current) {
-                    try {
-                        geocoder.current.geocode(
-                            { location: { lat: latitude, lng: longitude } },
-                            async (results, status) => {
-                                if (status === google.maps.GeocoderStatus.OK && results?.[0]) {
-                                    const result = results[0];
-                                    const locality = result.address_components.find((c) => c.types.includes('locality'))?.long_name;
-                                    const region = result.address_components.find((c) => c.types.includes('administrative_area_level_1'))?.long_name;
-                                    const country = result.address_components.find((c) => c.types.includes('country'))?.short_name;
-                                    const displayName = locality && region ? `${locality}, ${region}` : result.formatted_address;
-                                    setDetecting(false);
-                                    setLocation(displayName, latitude, longitude, country);
-                                    onClose();
-                                } else {
-                                    // Fallback to Nominatim
-                                    const nominatimResult = await reverseGeocodeWithNominatim(latitude, longitude);
-                                    setDetecting(false);
-                                    if (nominatimResult) {
-                                        setLocation(nominatimResult.displayName, latitude, longitude, nominatimResult.country);
-                                        onClose();
-                                    } else {
-                                        setError('Could not determine your address from coordinates.');
-                                    }
-                                }
-                            }
-                        );
-                    } catch (err) {
-                        // Fallback to Nominatim
-                        const nominatimResult = await reverseGeocodeWithNominatim(latitude, longitude);
-                        setDetecting(false);
-                        if (nominatimResult) {
-                            setLocation(nominatimResult.displayName, latitude, longitude, nominatimResult.country);
-                            onClose();
-                        } else {
-                            setError('Could not determine your address from coordinates.');
-                        }
-                    }
-                } else {
-                    // No geocoder, use Nominatim
-                    const nominatimResult = await reverseGeocodeWithNominatim(latitude, longitude);
-                    setDetecting(false);
-                    if (nominatimResult) {
-                        setLocation(nominatimResult.displayName, latitude, longitude, nominatimResult.country);
-                        onClose();
-                    } else {
-                        setError('Could not determine your address from coordinates.');
-                    }
-                }
+        // Attempt 1: High Accuracy GPS (Satellite hardware sensor)
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                resolveAndSetLocation(position.coords.latitude, position.coords.longitude);
             },
             (geoError) => {
-                setDetecting(false);
-                let errorMsg = '';
-                if (geoError.code === geoError.PERMISSION_DENIED) {
-                    errorMsg = 'Please enable location access in your browser/app settings and try again.';
-                } else if (geoError.code === geoError.POSITION_UNAVAILABLE) {
-                    errorMsg = 'Location service is unavailable. Please search for your location instead.';
-                } else if (geoError.code === geoError.TIMEOUT) {
-                    errorMsg = 'Location detection timed out. Please try again or search manually.';
+                // If high accuracy GPS timed out or was temporarily unavailable (e.g. indoors/simulator),
+                // attempt 2: standard accuracy with short cache
+                if (geoError.code !== geoError.PERMISSION_DENIED) {
+                    navigator.geolocation.getCurrentPosition(
+                        (fallbackPosition) => {
+                            resolveAndSetLocation(fallbackPosition.coords.latitude, fallbackPosition.coords.longitude);
+                        },
+                        async () => {
+                            // GPS failed: automatically attempt IP Geolocation fallback
+                            const ipLoc = await fetchLocationFromIP();
+                            setDetecting(false);
+                            if (ipLoc) {
+                                setLocation(ipLoc.displayName, ipLoc.lat, ipLoc.lng, ipLoc.country);
+                                onClose();
+                            } else {
+                                setError('GPS signal unavailable. Please select your city below or search manually.');
+                            }
+                        },
+                        { enableHighAccuracy: false, timeout: 6000, maximumAge: 60000 }
+                    );
                 } else {
-                    errorMsg = 'Unable to detect your location. Please search manually.';
+                    // PERMISSION_DENIED: Attempt seamless IP fallback so user isn't blocked
+                    fetchLocationFromIP().then((ipLoc) => {
+                        setDetecting(false);
+                        if (ipLoc) {
+                            setLocation(ipLoc.displayName, ipLoc.lat, ipLoc.lng, ipLoc.country);
+                            onClose();
+                        } else {
+                            setError('Please enable location access in your device/browser settings, or choose a city below.');
+                        }
+                    });
                 }
-                setError(errorMsg);
             },
-            { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
     };
 
@@ -279,17 +390,33 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({ isOpen
 
                 <div className="px-5 pb-3 space-y-2">
                     <button
-                        onClick={handleUseCurrentLocation}
+                        onClick={() => handleUseCurrentLocation(false)}
                         disabled={detecting}
                         className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-primary/10 text-primary font-bold text-sm hover:bg-primary/15 transition-all disabled:opacity-50 cursor-pointer"
                     >
                         {detecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Navigation className="h-4 w-4" />}
-                        {detecting ? 'Detecting Location...' : 'Use Current Location'}
+                        {detecting ? 'Acquiring GPS / Location...' : 'Use GPS Location'}
                     </button>
                     {error && (
-                        <div className="space-y-2">
-                            <p className="text-xs font-semibold text-red-500">{error}</p>
-                            <p className="text-xs text-gray-500">💡 On iOS Simulator: Go to Simulator → Features → Location → Select a preset</p>
+                        <div className="p-3 bg-red-50 dark:bg-red-950/30 rounded-2xl border border-red-200 dark:border-red-900/40 space-y-2">
+                            <p className="text-xs font-semibold text-red-600 dark:text-red-400">{error}</p>
+                            <div className="flex flex-wrap items-center gap-2 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => handleUseCurrentLocation(true)}
+                                    className="px-3 py-1.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-xl text-xs font-bold text-gray-700 dark:text-neutral-200 hover:bg-gray-50 cursor-pointer shadow-sm transition-all"
+                                >
+                                    🌐 Use Network (IP) Location
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleSelectDefaultCity(DEFAULT_KENYA_CITIES[0])}
+                                    className="px-3 py-1.5 bg-primary/10 rounded-xl text-xs font-bold text-primary hover:bg-primary/20 cursor-pointer transition-all"
+                                >
+                                    📍 Use Nairobi (Default)
+                                </button>
+                            </div>
+                            <p className="text-[11px] text-gray-500 dark:text-neutral-400">💡 On iOS Simulator: Simulator menu → Features → Location → Custom Location or preset</p>
                         </div>
                     )}
                 </div>

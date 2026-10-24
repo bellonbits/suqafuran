@@ -91,7 +91,8 @@ export default function CheckoutPage() {
             address: city || 'Nairobi, Kenya',
           });
           setLocationLoading(false);
-        }
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
       );
     }
   }, [city]);

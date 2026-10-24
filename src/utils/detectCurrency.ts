@@ -20,23 +20,49 @@ export interface GeoDetectionResult {
 }
 
 export async function detectGeoFromIP(): Promise<GeoDetectionResult> {
+    // 1. Try ipwho.is (fast, reliable, no harsh rate limits)
     try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 4000);
+        const timer = setTimeout(() => controller.abort(), 3500);
+
+        const res = await fetch('https://ipwho.is/', { signal: controller.signal });
+        clearTimeout(timer);
+
+        if (res.ok) {
+            const data = await res.json();
+            if (data && data.success) {
+                const countryCode: string = (data.country_code ?? '').toUpperCase();
+                const city: string | null = data.city ?? null;
+                const currency = COUNTRY_TO_CURRENCY[countryCode] ?? 'USD';
+                return { currency, countryCode: countryCode || null, city };
+            }
+        }
+    } catch {
+        // Fallback to secondary provider
+    }
+
+    // 2. Fallback to ipapi.co
+    try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3500);
 
         const res = await fetch('https://ipapi.co/json/', { signal: controller.signal });
         clearTimeout(timer);
 
-        if (!res.ok) return { currency: 'USD', countryCode: null, city: null };
-
-        const data = await res.json();
-        const countryCode: string = (data.country_code ?? '').toUpperCase();
-        const city: string | null = data.city ?? null;
-        const currency = COUNTRY_TO_CURRENCY[countryCode] ?? 'USD';
-        return { currency, countryCode: countryCode || null, city };
+        if (res.ok) {
+            const data = await res.json();
+            if (!data.error) {
+                const countryCode: string = (data.country_code ?? '').toUpperCase();
+                const city: string | null = data.city ?? null;
+                const currency = COUNTRY_TO_CURRENCY[countryCode] ?? 'USD';
+                return { currency, countryCode: countryCode || null, city };
+            }
+        }
     } catch {
-        return { currency: 'USD', countryCode: null, city: null };
+        // All IP detections failed
     }
+
+    return { currency: 'USD', countryCode: null, city: null };
 }
 
 // Back-compat: existing callers that only want the currency.

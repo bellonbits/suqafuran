@@ -150,45 +150,170 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         setSelectedRegion(null);
     };
 
-    const handleGetCurrentLocation = () => {
-        if (!navigator.geolocation) {
-            alert('Geolocation is not supported by your browser');
+    const reverseGeocodeWithNominatim = async (latitude: number, longitude: number) => {
+        try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 4000);
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+                {
+                    headers: { 'Accept-Language': 'en', 'User-Agent': 'SuqafuranApp/1.0' },
+                    signal: controller.signal,
+                }
+            );
+            clearTimeout(timer);
+            const data = await response.json();
+            if (data && data.address) {
+                const { city, town, village, county, state } = data.address;
+                const displayName = city || town || village || data.name || 'Unknown Location';
+                const region = county || state || '';
+                return region ? `${displayName}, ${region}` : displayName;
+            }
+        } catch {
+            // fallback
+        }
+        return null;
+    };
+
+    const fetchLocationFromIP = async (): Promise<string | null> => {
+        try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 3500);
+            const res = await fetch('https://ipwho.is/', { signal: controller.signal });
+            clearTimeout(timer);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.success) {
+                    const cityName = data.city || data.region || 'Nairobi';
+                    const region = data.region && data.region !== cityName ? data.region : (data.country || 'Kenya');
+                    return `${cityName}, ${region}`;
+                }
+            }
+        } catch {
+            // fallback
+        }
+        try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 3500);
+            const res = await fetch('https://ipapi.co/json/', { signal: controller.signal });
+            clearTimeout(timer);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && !data.error) {
+                    const cityName = data.city || data.region || 'Nairobi';
+                    const region = data.region && data.region !== cityName ? data.region : (data.country_name || 'Kenya');
+                    return `${cityName}, ${region}`;
+                }
+            }
+        } catch {
+            // fallback
+        }
+        return null;
+    };
+
+    const resolveAndSelectLocation = async (latitude: number, longitude: number) => {
+        // 1. Try Google Maps Geocoder if ready
+        if (!geocoder.current) {
+            try {
+                await loadGoogleMapsScript();
+                if (window.google?.maps?.Geocoder) {
+                    geocoder.current = new window.google.maps.Geocoder();
+                }
+            } catch {
+                // ignore
+            }
+        }
+
+        if (geocoder.current) {
+            try {
+                const gResult = await new Promise<string | null>((resolve) => {
+                    geocoder.current.geocode(
+                        { location: { lat: latitude, lng: longitude } },
+                        (results: any[], status: string) => {
+                            if (status === 'OK' && results?.[0]) {
+                                const result = results[0];
+                                const city = result.address_components.find((c: any) => c.types.includes('locality'))?.long_name;
+                                const region = result.address_components.find((c: any) => c.types.includes('administrative_area_level_1'))?.long_name;
+                                resolve(city && region ? `${city}, ${region}` : result.formatted_address);
+                            } else {
+                                resolve(null);
+                            }
+                        }
+                    );
+                });
+                if (gResult) {
+                    setDetecting(false);
+                    onSelect(gResult);
+                    onClose();
+                    return;
+                }
+            } catch {
+                // ignore
+            }
+        }
+
+        // 2. Try Nominatim
+        const nominatimResult = await reverseGeocodeWithNominatim(latitude, longitude);
+        if (nominatimResult) {
+            setDetecting(false);
+            onSelect(nominatimResult);
+            onClose();
             return;
         }
 
+        // 3. Fallback: formatted coords
+        setDetecting(false);
+        onSelect(`GPS Location (${latitude.toFixed(3)}, ${longitude.toFixed(3)})`);
+        onClose();
+    };
+
+    const handleGetCurrentLocation = () => {
         setDetecting(true);
-        navigator.geolocation.getCurrentPosition(
-            async (position) => {
-                const { latitude, longitude } = position.coords;
 
-                if (!geocoder.current) {
-                    await loadGoogleMapsScript();
-                    geocoder.current = new window.google.maps.Geocoder();
+        if (!navigator.geolocation) {
+            fetchLocationFromIP().then((ipLoc) => {
+                setDetecting(false);
+                if (ipLoc) {
+                    onSelect(ipLoc);
+                    onClose();
+                } else {
+                    onSelect('Nairobi, Kenya');
+                    onClose();
                 }
+            });
+            return;
+        }
 
-                geocoder.current.geocode(
-                    { location: { lat: latitude, lng: longitude } },
-                    (results: any[], status: string) => {
-                        setDetecting(false);
-                        if (status === 'OK' && results[0]) {
-                            const result = results[0];
-                            const city = result.address_components.find((c: any) => c.types.includes('locality'))?.long_name;
-                            const region = result.address_components.find((c: any) => c.types.includes('administrative_area_level_1'))?.long_name;
-
-                            const displayName = city && region ? `${city}, ${region}` : result.formatted_address;
-                            onSelect(displayName);
-                            onClose();
-                        } else {
-                            alert('Could not determine your location');
-                        }
-                    }
-                );
+        // 1. High accuracy GPS (Satellite hardware sensor)
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                resolveAndSelectLocation(position.coords.latitude, position.coords.longitude);
             },
             (error) => {
-                setDetecting(false);
-                alert(`Error getting location: ${error.message}`);
+                // If high accuracy failed (e.g. timeout indoors/simulator), try standard accuracy
+                if (error.code !== error.PERMISSION_DENIED) {
+                    navigator.geolocation.getCurrentPosition(
+                        (fallbackPosition) => {
+                            resolveAndSelectLocation(fallbackPosition.coords.latitude, fallbackPosition.coords.longitude);
+                        },
+                        async () => {
+                            const ipLoc = await fetchLocationFromIP();
+                            setDetecting(false);
+                            onSelect(ipLoc || 'Nairobi, Kenya');
+                            onClose();
+                        },
+                        { enableHighAccuracy: false, timeout: 6000, maximumAge: 60000 }
+                    );
+                } else {
+                    // PERMISSION_DENIED: use IP location gracefully so user is not blocked
+                    fetchLocationFromIP().then((ipLoc) => {
+                        setDetecting(false);
+                        onSelect(ipLoc || 'Nairobi, Kenya');
+                        onClose();
+                    });
+                }
             },
-            { enableHighAccuracy: true, timeout: 10000 }
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
     };
 
@@ -261,7 +386,7 @@ export const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                                 className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-primary-50 text-primary-600 font-bold text-sm hover:bg-primary-100 transition-all active:scale-98 disabled:opacity-50"
                             >
                                 <Navigation className={`w-4 h-4 ${detecting ? 'animate-pulse' : ''}`} />
-                                {detecting ? 'Detecting Location...' : 'Use Current Location'}
+                                {detecting ? 'Acquiring GPS / Location...' : 'Use GPS Location'}
                             </button>
                         </div>
 

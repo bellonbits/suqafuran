@@ -346,24 +346,44 @@ export default function ShopPage() {
       return;
     }
 
+    const applyCoords = (lat: number, lng: number) => {
+      setShopData((prev) => ({
+        ...prev,
+        latitude: lat,
+        longitude: lng,
+      }));
+      if (mapInstance.current) {
+        mapInstance.current.setCenter({ lat, lng });
+        markerRef.current?.setPosition({ lat, lng });
+      }
+    };
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        setShopData({
-          ...shopData,
-          latitude: lat,
-          longitude: lng,
-        });
-        if (mapInstance.current) {
-          mapInstance.current.setCenter({ lat, lng });
-          markerRef.current?.setPosition({ lat, lng });
-        }
+        applyCoords(position.coords.latitude, position.coords.longitude);
       },
       (error) => {
-        console.error('Error getting location:', error);
-        alert('Unable to get your current location. Please allow location access.');
-      }
+        if (error.code !== error.PERMISSION_DENIED) {
+          navigator.geolocation.getCurrentPosition(
+            (fallbackPos) => applyCoords(fallbackPos.coords.latitude, fallbackPos.coords.longitude),
+            () => {
+              // Try IP fallback
+              fetch('https://ipwho.is/').then((r) => r.json()).then((d) => {
+                if (d?.latitude && d?.longitude) applyCoords(Number(d.latitude), Number(d.longitude));
+                else alert('Unable to acquire GPS fix. Please click the map to set your shop location.');
+              }).catch(() => alert('Unable to acquire GPS fix. Please click the map to set your shop location.'));
+            },
+            { enableHighAccuracy: false, timeout: 6000, maximumAge: 60000 }
+          );
+        } else {
+          // IP fallback
+          fetch('https://ipwho.is/').then((r) => r.json()).then((d) => {
+            if (d?.latitude && d?.longitude) applyCoords(Number(d.latitude), Number(d.longitude));
+            else alert('Unable to get your current location. Please allow location access or click the map.');
+          }).catch(() => alert('Unable to get your current location. Please allow location access or click the map.'));
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   };
 

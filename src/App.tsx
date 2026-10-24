@@ -327,7 +327,7 @@ const App: React.FC = () => {
         }
       },
       () => { /* user denied — do nothing */ },
-      { timeout: 6000, maximumAge: 5 * 60_000 } // accept 5-min cached GPS fix — faster on Android
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
     );
   }, []);
 
