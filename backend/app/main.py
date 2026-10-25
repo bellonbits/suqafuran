@@ -100,7 +100,8 @@ async def logging_middleware(request: Request, call_next):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(self), microphone=(), geolocation=(self)"
     response.headers["Content-Security-Policy"] = (
-        "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; "
+        "default-src 'self' https: ws: wss: data: blob: 'unsafe-inline' 'unsafe-eval'; "
+        "connect-src 'self' https: ws: wss: data: blob:; "
         "frame-ancestors 'self';"
     )
 
