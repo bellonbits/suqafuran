@@ -25,6 +25,7 @@ class ConnectionManager:
     def __init__(self):
         self.active_connections: Dict[str, List[WebSocket]] = {}  # business_id -> websockets
         self.user_connections: Dict[int, List[WebSocket]] = {}  # user_id -> websockets (personal channel)
+        self.user_sse_queues: Dict[int, List[asyncio.Queue]] = {}  # user_id -> SSE subscriber queues
         self.loop: Optional[asyncio.AbstractEventLoop] = None
 
     def set_event_loop(self, loop: asyncio.AbstractEventLoop):
@@ -76,12 +77,33 @@ class ConnectionManager:
                 del self.user_connections[user_id]
         logger.info(f"WebSocket disconnected for user {user_id}")
 
+    # --- Server-Sent Events (SSE) support for 100% reliable HTTPS streaming ---
+    def register_user_sse(self, user_id: int, queue: asyncio.Queue):
+        self.user_sse_queues.setdefault(user_id, []).append(queue)
+        logger.info(f"SSE client registered for user {user_id}. Active SSE: {len(self.user_sse_queues[user_id])}")
+
+    def unregister_user_sse(self, user_id: int, queue: asyncio.Queue):
+        if user_id in self.user_sse_queues:
+            if queue in self.user_sse_queues[user_id]:
+                self.user_sse_queues[user_id].remove(queue)
+            if not self.user_sse_queues[user_id]:
+                del self.user_sse_queues[user_id]
+        logger.info(f"SSE client unregistered for user {user_id}")
+
     async def broadcast_to_user(self, user_id: int, message: dict):
+        # 1. Forward to active WebSocket connections
         for connection in self.user_connections.get(user_id, []):
             try:
                 await connection.send_json(message)
             except Exception as e:
                 logger.error(f"Error sending socket message to user {user_id}: {e}")
+
+        # 2. Forward to active SSE queues
+        for queue in self.user_sse_queues.get(user_id, []):
+            try:
+                queue.put_nowait(message)
+            except Exception as e:
+                logger.error(f"Error queuing SSE message for user {user_id}: {e}")
 
     def broadcast_to_user_from_thread(self, user_id: int, message: dict):
         if self.loop and self.loop.is_running():

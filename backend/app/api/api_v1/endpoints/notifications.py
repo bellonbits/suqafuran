@@ -1,7 +1,9 @@
 import asyncio
+import json
 import logging
 from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import StreamingResponse
 from jose import jwt
 from sqlmodel import Session
 from app.api import deps
@@ -138,4 +140,61 @@ async def notifications_websocket(websocket: WebSocket):
     except Exception as e:
         logger.error(f"[WebSocket] Error for user {user_id}: {e}")
         ws_manager.disconnect_user(user_id, websocket)
+
+
+@router.get("/sse")
+async def notifications_sse(
+    request: Request,
+    token: str = Query(..., description="JWT authentication token"),
+):
+    """
+    Server-Sent Events (SSE) streaming endpoint for real-time notifications.
+    Operates over standard HTTPS and avoids browser WebSocket blocks, proxy buffering,
+    or extension CSP interference. Automatically reconnects via standard EventSource.
+    """
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing authentication token")
+    try:
+        decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=[security.ALGORITHM])
+        sub = decoded.get("sub")
+        if not sub:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+        user_id = int(sub)
+    except Exception as e:
+        logger.warning(f"[SSE] Token validation failed: {e}")
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    queue: asyncio.Queue = asyncio.Queue()
+    ws_manager.register_user_sse(user_id, queue)
+    if ws_manager.loop is None:
+        ws_manager.set_event_loop(asyncio.get_event_loop())
+
+    async def event_generator():
+        try:
+            init_payload = json.dumps({"status": "connected", "user_id": user_id, "type": "connection"})
+            yield f"event: connection\ndata: {init_payload}\n\n"
+
+            while True:
+                if await request.is_disconnected():
+                    break
+                try:
+                    message = await asyncio.wait_for(queue.get(), timeout=15.0)
+                    yield f"event: notification\ndata: {json.dumps(message)}\n\n"
+                except asyncio.TimeoutError:
+                    yield ": keepalive\n\n"
+        except Exception as e:
+            logger.debug(f"[SSE] User {user_id} stream disconnected: {e}")
+        finally:
+            ws_manager.unregister_user_sse(user_id, queue)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
 
