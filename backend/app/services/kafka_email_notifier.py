@@ -88,7 +88,7 @@ class KafkaEmailNotifier:
         self.running = True
         self.thread = threading.Thread(target=self._consume_loop, daemon=True)
         self.thread.start()
-        logger.info(f"✉️  Kafka Email Notifier started → {ADMIN_EMAIL}")
+        logger.info(f"Kafka Email Notifier started -> {ADMIN_EMAIL}")
 
     def stop(self):
         """Stop the email notifier."""
@@ -97,7 +97,7 @@ class KafkaEmailNotifier:
             self.consumer.close()
         if self.thread:
             self.thread.join(timeout=5)
-        logger.info("✉️  Kafka Email Notifier stopped")
+        logger.info("Kafka Email Notifier stopped")
 
     def _consume_loop(self):
         """Main consumer loop - runs in background thread."""
@@ -112,7 +112,7 @@ class KafkaEmailNotifier:
 
             self.consumer = Consumer(config)
             self.consumer.subscribe(self.monitoring_topics)
-            logger.info(f"📧 Subscribed to monitoring topics for email notifications")
+            logger.info("Subscribed to monitoring topics for email notifications")
 
             while self.running:
                 msg = self.consumer.poll(timeout=1.0)
@@ -164,7 +164,7 @@ class KafkaEmailNotifier:
                 html_content=body_html,
             )
 
-            logger.info(f"📧 Email sent for {event_type} (user_id: {user_id})")
+            logger.info(f"Email sent for {event_type} (user_id: {user_id})")
 
         except Exception as e:
             logger.error(f"Failed to send email for event: {e}")
@@ -210,13 +210,16 @@ class KafkaEmailNotifier:
         elif 'signin' in event_type:
             display_name = payload.get('full_name') or payload.get('email', 'Unknown')
             subject = f"User Login - {display_name}"
+            device_str = payload.get('device') or 'Standard Web Browser'
+            location_str = payload.get('location') or 'Unknown Location'
+            ip_str = payload.get('ip') or 'N/A'
             body_html = f"""
             <html>
             <body style="font-family: Arial, sans-serif; color: #333;">
                 <h2 style="color: #2196F3;">{ICON_LOCK}User Login</h2>
-                <table style="width: 100%; border-collapse: collapse;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
                     <tr style="background-color: #f2f2f2;">
-                        <td style="padding: 10px; border: 1px solid #ddd;"><b>Name</b></td>
+                        <td style="padding: 10px; border: 1px solid #ddd; width: 35%;"><b>Name</b></td>
                         <td style="padding: 10px; border: 1px solid #ddd;">{payload.get('full_name') or 'N/A'}</td>
                     </tr>
                     <tr>
@@ -232,6 +235,18 @@ class KafkaEmailNotifier:
                         <td style="padding: 10px; border: 1px solid #ddd;">{payload.get('auth_method', 'N/A').upper()}</td>
                     </tr>
                     <tr style="background-color: #f2f2f2;">
+                        <td style="padding: 10px; border: 1px solid #ddd;"><b>Device & Browser</b></td>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: 600;">{device_str}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd;"><b>Location</b></td>
+                        <td style="padding: 10px; border: 1px solid #ddd; font-weight: 600;">{location_str}</td>
+                    </tr>
+                    <tr style="background-color: #f2f2f2;">
+                        <td style="padding: 10px; border: 1px solid #ddd;"><b>IP Address</b></td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{ip_str}</td>
+                    </tr>
+                    <tr>
                         <td style="padding: 10px; border: 1px solid #ddd;"><b>Timestamp</b></td>
                         <td style="padding: 10px; border: 1px solid #ddd;">{ts}</td>
                     </tr>

@@ -16,7 +16,13 @@ from app.services.africastalking_service import africastalking_service
 from app.services.kafka_producer import publish_signup_event, publish_signin_event
 from app.services.marketing_service import marketing_service
 from app.models.marketing import EmailEventType
-from app.utils.security_alerts import notify_if_new_device, link_signup_device
+from app.utils.security_alerts import (
+    notify_if_new_device,
+    link_signup_device,
+    parse_user_agent_device,
+    resolve_client_location,
+    get_real_client_ip,
+)
 from pydantic import BaseModel
 from app.core.metrics import USER_REGISTRATIONS_TOTAL, SUCCESSFUL_LOGINS_TOTAL
 
@@ -197,18 +203,25 @@ async def verify_otp(
 
         notify_if_new_device(db, user, request, background_tasks)
 
+        dev_label = parse_user_agent_device(request.headers.get("user-agent"), request.headers.get("X-Device-Fingerprint"))
+        client_ip = get_real_client_ip(request)
+        loc_label = resolve_client_location(request, ip=client_ip, user=user, fingerprint_b64=request.headers.get("X-Device-Fingerprint"))
+
         # Publish signin event to Kafka (non-blocking)
-        logger.info(f"🔔 Attempting to publish signin event for user {user.id} ({user.email})")
+        logger.info(f"Publishing signin event for user {user.id} ({user.email})")
         try:
             result = await publish_signin_event(
                 user_id=user.id,
                 email=user.email,
                 auth_method="email_otp",
                 full_name=user.full_name,
+                device=dev_label,
+                location=loc_label,
+                ip=client_ip,
             )
-            logger.info(f"✅ Signin event published: {result}")
+            logger.info(f"Signin event published: {result}")
         except Exception as e:
-            logger.error(f"❌ Failed to publish signin event: {e}", exc_info=True)
+            logger.error(f"Failed to publish signin event: {e}", exc_info=True)
 
         # Track business metric
         SUCCESSFUL_LOGINS_TOTAL.inc()
@@ -374,6 +387,10 @@ async def verify_phone_otp(
 
         notify_if_new_device(db, user, request, background_tasks)
 
+        dev_label = parse_user_agent_device(request.headers.get("user-agent"), request.headers.get("X-Device-Fingerprint"))
+        client_ip = get_real_client_ip(request)
+        loc_label = resolve_client_location(request, ip=client_ip, user=user, fingerprint_b64=request.headers.get("X-Device-Fingerprint"))
+
         # Publish signin event to Kafka (non-blocking)
         try:
             await publish_signin_event(
@@ -381,6 +398,9 @@ async def verify_phone_otp(
                 email=user.email,
                 auth_method="phone_otp",
                 full_name=user.full_name,
+                device=dev_label,
+                location=loc_label,
+                ip=client_ip,
             )
         except Exception as e:
             logger.warning(f"Failed to publish signin event: {e}")

@@ -216,6 +216,7 @@ def dispatch_growth_email_task(
                 ip=context["ip"],
                 device=context["device"],
                 timestamp=context["timestamp"],
+                location=context.get("location", "Unknown Location"),
                 user_id=user_id
             )
         elif email_type == "scam_warning":

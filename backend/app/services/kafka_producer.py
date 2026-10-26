@@ -265,6 +265,9 @@ async def publish_signin_event(
     email: str,
     auth_method: str = "email_otp",
     full_name: Optional[str] = None,
+    device: Optional[str] = None,
+    location: Optional[str] = None,
+    ip: Optional[str] = None,
     **kwargs
 ):
     """Publish user signin event to monitoring topic."""
@@ -276,6 +279,9 @@ async def publish_signin_event(
             "email": email,
             "auth_method": auth_method,
             "full_name": full_name,
+            "device": device or "Standard Web Browser",
+            "location": location or "Unknown Location",
+            "ip": ip or "N/A",
         },
         partition_key=str(user_id),
         user_id=str(user_id),

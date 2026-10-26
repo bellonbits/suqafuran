@@ -9,7 +9,12 @@ from app.core import security
 from app.core.config import settings
 from app.crud import crud_user
 from app.services.kafka_producer import publish_signin_event
-from app.utils.security_alerts import notify_if_new_device
+from app.utils.security_alerts import (
+    notify_if_new_device,
+    parse_user_agent_device,
+    resolve_client_location,
+    get_real_client_ip,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -61,18 +66,25 @@ async def login_access_token(
         secure=settings.ENVIRONMENT == "production",
     )
 
+    dev_label = parse_user_agent_device(request.headers.get("user-agent"), request.headers.get("X-Device-Fingerprint"))
+    client_ip = get_real_client_ip(request)
+    loc_label = resolve_client_location(request, ip=client_ip, user=user, fingerprint_b64=request.headers.get("X-Device-Fingerprint"))
+
     # Publish signin event to Kafka (non-blocking)
-    logger.info(f"🔔 Attempting to publish signin event for user {user.id} ({user.email})")
+    logger.info(f"Publishing signin event for user {user.id} ({user.email})")
     try:
         result = await publish_signin_event(
             user_id=user.id,
             email=user.email,
             auth_method="password",
             full_name=user.full_name,
+            device=dev_label,
+            location=loc_label,
+            ip=client_ip,
         )
-        logger.info(f"✅ Signin event published: {result}")
+        logger.info(f"Signin event published: {result}")
     except Exception as e:
-        logger.error(f"❌ Failed to publish signin event: {e}", exc_info=True)
+        logger.error(f"Failed to publish signin event: {e}", exc_info=True)
 
     return {
         "access_token": access_token,

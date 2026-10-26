@@ -840,19 +840,24 @@ class EmailService:
         ip: str,
         device: str,
         timestamp: str,
+        location: str = "Unknown Location",
         user_id: Optional[int] = None
     ) -> bool:
         content = f"""
         <div style="background: #fef2f2; border-radius: 12px; padding: 16px; border: 1px solid #fecaca; margin-bottom: 24px; color: #b91c1c; font-size: 14px; font-weight: 700;">
-          ⚠️ Warning: Suspicious Login Detected
+          Security Alert: Suspicious Login Detected
         </div>
+        <p style="font-size:14px; color:#475569; line-height:1.6; margin-bottom:16px;">
+          Hello {name}, our security monitoring flagged an unusual sign-in attempt on your Suqafuran account.
+        </p>
         <table style="width:100%; border-collapse:collapse; font-size:14px; color:#475569; margin-bottom:24px;">
-          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px 0;">IP Address</td><td style="padding:8px 0; text-align:right; font-weight:800;">{ip}</td></tr>
-          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px 0;">Device/Browser</td><td style="padding:8px 0; text-align:right; font-weight:800;">{device}</td></tr>
-          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px 0;">Timestamp</td><td style="padding:8px 0; text-align:right; font-weight:800;">{timestamp}</td></tr>
+          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0; font-weight:700;">Device & Browser</td><td style="padding:10px 0; text-align:right; font-weight:800; color:#0f172a;">{device}</td></tr>
+          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0; font-weight:700;">Location</td><td style="padding:10px 0; text-align:right; font-weight:800; color:#0f172a;">{location}</td></tr>
+          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0; font-weight:700;">IP Address</td><td style="padding:10px 0; text-align:right; font-weight:800; color:#0f172a;">{ip}</td></tr>
+          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0; font-weight:700;">Timestamp</td><td style="padding:10px 0; text-align:right; font-weight:800; color:#0f172a;">{timestamp}</td></tr>
         </table>
         <p style="font-size:13px; color:#64748b; line-height:1.6;">
-          If this wasn't you, please reset your password immediately and verify your login history to secure your account assets.
+          If this was not you, please reset your password immediately and review your active login sessions to secure your account.
         </p>
         <div style="text-align: center; margin-top:24px;">
           <a href="{settings.FRONTEND_URL}/reset-password" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
@@ -865,12 +870,12 @@ class EmailService:
             subtitle="We blocked or flagged an unusual login attempt on your account.",
             content=content
         )
-        return self._send_and_log(email, "⚠️ Security Alert: Unusual login attempt", html_body, "safety_suspicious_login", user_id)
+        return self._send_and_log(email, "Security Alert: Unusual login attempt", html_body, "safety_suspicious_login", user_id)
 
     def send_scam_warning_alert(self, email: str, name: str, reason: str, user_id: Optional[int] = None) -> bool:
         content = f"""
         <div style="background: #fffbeb; border-radius: 12px; padding: 24px; border: 1px solid #fef3c7; color: #b45309; margin-bottom: 24px;">
-          <h4 style="margin:0 0 12px 0; font-weight:800; font-size:16px;">⚠️ Marketplace Safety Warning</h4>
+          <h4 style="margin:0 0 12px 0; font-weight:800; font-size:16px;">Marketplace Safety Warning</h4>
           <p style="margin:0; font-size:14px; line-height:1.6;">{reason}</p>
         </div>
         <div style="background:#f8fafc; padding:20px; border-radius:12px; font-size:13px; color:#475569;">
@@ -1211,7 +1216,7 @@ class EmailService:
     ) -> bool:
         content = f"""
         <div style="background: #fef2f2; border-radius: 12px; padding: 16px; border: 1px solid #fecaca; color: #b91c1c; font-size: 14px; font-weight: 700; margin-bottom: 20px;">
-          ⚠️ Notice: Your password was changed
+          Security Notice: Your password was changed
         </div>
         <p style="font-size: 14px; color: #475569; line-height: 1.6;">
           Hello {name},<br><br>
@@ -1219,7 +1224,7 @@ class EmailService:
         </p>
         <div style="background: #f8fafc; padding: 16px; border-radius: 12px; margin: 24px 0; font-size: 13px; color: #64748b;">
           <strong>If this was you:</strong> You can safely ignore this warning notice.<br><br>
-          <strong>If this wasn't you:</strong> Contact platform safety moderators immediately.
+          <strong>If this was not you:</strong> Contact platform safety moderators immediately.
         </div>
         <div style="text-align: center;">
           <a href="{settings.FRONTEND_URL}/support" style="display: inline-block; background: #dc2626; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
@@ -1232,7 +1237,7 @@ class EmailService:
             subtitle="Security configurations updated on your profile.",
             content=content
         )
-        return self._send_and_log(email, "⚠️ Security Notice: Password changed on Suqafuran", html_body, "safety_password_change", user_id)
+        return self._send_and_log(email, "Security Notice: Password changed on Suqafuran", html_body, "safety_password_change", user_id)
 
     def send_new_device_login_alert(
         self,
@@ -1245,27 +1250,33 @@ class EmailService:
         user_id: Optional[int] = None
     ) -> bool:
         content = f"""
-        <div style="background: #fffbeb; border-radius: 12px; padding: 16px; border: 1px solid #fef3c7; color: #b45309; font-size: 14px; font-weight: 700; margin-bottom: 20px;">
-          ⚠️ Unrecognized login attempt detected
+        <div style="background: #eff6ff; border-radius: 12px; padding: 16px; border: 1px solid #dbeafe; color: #1e40af; font-size: 14px; font-weight: 700; margin-bottom: 20px;">
+          Security Alert: New Sign-In Detected
         </div>
+        <p style="font-size:14px; color:#475569; line-height:1.6; margin-bottom:16px;">
+          Hello {name}, your Suqafuran account was just accessed from a new device or location. Please review the sign-in details below:
+        </p>
         <table style="width:100%; border-collapse:collapse; font-size:13px; color:#475569; margin:16px 0;">
-          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px 0; font-weight:700;">Device Model</td><td style="padding:8px 0; text-align:right;">{device}</td></tr>
-          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px 0; font-weight:700;">Approximated Location</td><td style="padding:8px 0; text-align:right;">{location}</td></tr>
-          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px 0; font-weight:700;">IP Address</td><td style="padding:8px 0; text-align:right;">{ip}</td></tr>
-          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px 0; font-weight:700;">Time Recorded</td><td style="padding:8px 0; text-align:right;">{timestamp}</td></tr>
+          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0; font-weight:700;">Device & Browser</td><td style="padding:10px 0; text-align:right; font-weight:600; color:#0f172a;">{device}</td></tr>
+          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0; font-weight:700;">Location</td><td style="padding:10px 0; text-align:right; font-weight:600; color:#0f172a;">{location}</td></tr>
+          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0; font-weight:700;">IP Address</td><td style="padding:10px 0; text-align:right; font-weight:600; color:#0f172a;">{ip}</td></tr>
+          <tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:10px 0; font-weight:700;">Time Recorded</td><td style="padding:10px 0; text-align:right; font-weight:600; color:#0f172a;">{timestamp}</td></tr>
         </table>
+        <p style="font-size:13px; color:#64748b; line-height:1.6; margin-top:16px;">
+          If this was you, you can safely disregard this notification. If you did not sign in or do not recognize this activity, please reset your password immediately.
+        </p>
         <div style="text-align: center; margin-top:24px;">
-          <a href="{settings.FRONTEND_URL}/security-logs" style="display: inline-block; background: #b45309; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
-            Review Login Activity
+          <a href="{settings.FRONTEND_URL}/reset-password" style="display: inline-block; background: #0f172a; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: 13px;">
+            Secure My Account
           </a>
         </div>
         """
         html_body = self._get_base_template(
-            title="Unrecognized Login Detected",
-            subtitle="We flagged an unusual sign-in fingerprint on your profile.",
+            title="New Sign-In Detected",
+            subtitle="Security notification for your Suqafuran account.",
             content=content
         )
-        return self._send_and_log(email, "⚠️ Security Alert: Login on new device detected", html_body, "safety_new_device", user_id)
+        return self._send_and_log(email, "Security Alert: Login on new device detected", html_body, "safety_new_device", user_id)
 
     def send_profile_updated_email(
         self,
@@ -1278,7 +1289,7 @@ class EmailService:
         fields_list = " and ".join(changed_fields) if len(changed_fields) <= 2 else ", ".join(changed_fields[:-1]) + f", and {changed_fields[-1]}"
         content = f"""
         <div style="background: #fffbeb; border-radius: 12px; padding: 16px; border: 1px solid #fef3c7; color: #b45309; font-size: 14px; font-weight: 700; margin-bottom: 20px;">
-          ⚠️ Notice: Your account details were updated
+          Notice: Your account details were updated
         </div>
         <p style="font-size: 14px; color: #475569; line-height: 1.6;">
           Hello {name},<br><br>
@@ -1286,7 +1297,7 @@ class EmailService:
         </p>
         <div style="background: #f8fafc; padding: 16px; border-radius: 12px; margin: 24px 0; font-size: 13px; color: #64748b;">
           <strong>If this was you:</strong> You can safely ignore this notice.<br><br>
-          <strong>If this wasn't you:</strong> Contact platform safety moderators immediately.
+          <strong>If this was not you:</strong> Contact platform safety moderators immediately.
         </div>
         <div style="text-align: center;">
           <a href="{settings.FRONTEND_URL}/support" style="display: inline-block; background: #b45309; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 13px;">
@@ -1299,7 +1310,7 @@ class EmailService:
             subtitle="Security configurations updated on your profile.",
             content=content
         )
-        return self._send_and_log(email, "⚠️ Security Notice: Account details changed on Suqafuran", html_body, "safety_profile_updated", user_id)
+        return self._send_and_log(email, "Security Notice: Account details changed on Suqafuran", html_body, "safety_profile_updated", user_id)
 
     def send_account_deleted_email(self, email: str, name: str, user_id: Optional[int] = None) -> bool:
         content = f"""
@@ -1327,7 +1338,7 @@ class EmailService:
         reason_html = f'<p style="margin-top:12px; font-size:13px; color:#64748b;"><strong>Reason:</strong> {reason}</p>' if reason else ""
         content = f"""
         <div style="background: #fef2f2; border-radius: 12px; padding: 16px; border: 1px solid #fecaca; color: #b91c1c; font-size: 14px; font-weight: 700; margin-bottom: 20px;">
-          ⚠️ Your account has been temporarily locked
+          Account Notice: Your account has been temporarily locked
         </div>
         <p style="font-size: 14px; color: #475569; line-height: 1.6;">
           Hello {name},<br><br>
@@ -1345,7 +1356,7 @@ class EmailService:
             subtitle="Your account access has been restricted pending review.",
             content=content
         )
-        return self._send_and_log(email, "⚠️ Your Suqafuran account has been temporarily locked", html_body, "safety_account_locked", user_id)
+        return self._send_and_log(email, "Account Notice: Your Suqafuran account has been temporarily locked", html_body, "safety_account_locked", user_id)
 
     def send_new_follower_email(self, email: str, name: str, follower_name: str, follower_profile_url: str, user_id: Optional[int] = None) -> bool:
         content = f"""
@@ -1710,14 +1721,14 @@ class EmailService:
     ) -> bool:
         content = f"""
         <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px; margin-bottom: 20px; color: #b91c1c; font-weight: bold; font-size: 14px;">
-          ⚠️ Listing Hidden Due to Guideline Violation
+          Listing Hidden Due to Guideline Violation
         </div>
         <p style="font-size: 14px; color: #475569; line-height: 1.6;">
           Hello {name},<br><br>
           Our platform catalog filters or moderator team flag indicators identified structural issues with your active ad <strong>{listing_title}</strong>:
         </p>
         <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 13px; color: #475569; margin: 16px 0;">
-          🚫 <strong>Reason for Violation:</strong> {violation_reason}
+          <strong>Reason for Violation:</strong> {violation_reason}
         </div>
         <p style="font-size: 13px; color: #64748b;">
           Please edit your listing configuration details to align with the marketplace guidelines.
@@ -1733,7 +1744,7 @@ class EmailService:
             subtitle="Your listing has been hidden temporarily until guidelines are resolved.",
             content=content
         )
-        return self._send_and_log(email, f"⚠️ Marketplace Notice: Guideline action taken on '{listing_title}'", html_body, "admin_moderation_alert", user_id)
+        return self._send_and_log(email, f"Marketplace Notice: Guideline action taken on '{listing_title}'", html_body, "admin_moderation_alert", user_id)
 
     def analytics_summary_email(
         self,
