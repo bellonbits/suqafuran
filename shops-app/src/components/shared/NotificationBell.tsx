@@ -1,13 +1,37 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Bell, X } from 'lucide-react';
+import { Bell, X, CheckCheck } from 'lucide-react';
 import { useRealtimeStore } from '../../store/useRealtime';
+import { useAuthStore } from '../../store/useAuth';
+import { API_BASE_URL } from '../../services/api';
 
 export function NotificationBell() {
     const [isOpen, setIsOpen] = useState(false);
+    const [isClearing, setIsClearing] = useState(false);
     const { events } = useRealtimeStore();
     const unreadCount = events.length;
+
+    const handleClearAll = async () => {
+        setIsClearing(true);
+        try {
+            const token = useAuthStore.getState().token;
+            if (token) {
+                await fetch(`${API_BASE_URL}/notifications/read-all`, {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+            }
+            useRealtimeStore.getState().setEvents([]);
+        } catch (error) {
+            console.error('[Notifications] Failed to clear all:', error);
+        } finally {
+            setIsClearing(false);
+        }
+    };
 
     return (
         <div className="relative">
@@ -33,12 +57,25 @@ export function NotificationBell() {
                     <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-neutral-950 rounded-lg shadow-2xl border border-gray-200 dark:border-neutral-800 z-50 max-h-96 overflow-y-auto">
                         <div className="p-4 border-b border-gray-100 dark:border-neutral-800 flex justify-between items-center">
                             <h3 className="font-bold text-gray-900 dark:text-white">Notifications</h3>
-                            <button
-                                onClick={() => setIsOpen(false)}
-                                className="text-gray-400 hover:text-gray-600 dark:hover:text-neutral-200"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center gap-2">
+                                {events.length > 0 && (
+                                    <button
+                                        onClick={handleClearAll}
+                                        disabled={isClearing}
+                                        className="text-xs text-orange-600 dark:text-orange-400 hover:underline font-medium flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                                        title="Clear all notifications"
+                                    >
+                                        <CheckCheck className="w-3.5 h-3.5" />
+                                        {isClearing ? 'Clearing...' : 'Clear all'}
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => setIsOpen(false)}
+                                    className="text-gray-400 hover:text-gray-600 dark:hover:text-neutral-200 p-0.5"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
                         </div>
 
                         {events.length === 0 ? (

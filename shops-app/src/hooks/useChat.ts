@@ -109,20 +109,12 @@ export function useChat(token: string): UseChatReturn {
         }
       };
 
-      wsRef.current.onerror = (error) => {
-        console.error('[Chat WS] Error:', error);
+      wsRef.current.onerror = () => {
         setIsConnected(false);
       };
 
       wsRef.current.onclose = () => {
-        console.log('[Chat WS] Disconnected');
         setIsConnected(false);
-        // Try to reconnect after 3 seconds
-        setTimeout(() => {
-          if (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED) {
-            console.log('[Chat WS] Attempting to reconnect...');
-          }
-        }, 3000);
       };
 
       return () => {
@@ -133,29 +125,44 @@ export function useChat(token: string): UseChatReturn {
           clearTimeout(typingTimeoutRef.current);
         }
       };
-    } catch (error) {
-      console.error('[Chat WS] Connection error:', error);
+    } catch {
       setIsConnected(false);
     }
   }, [token, getWsUrl]);
 
   const sendMessage = useCallback(
-    (content: string, receiverId: number, listingId?: number) => {
-      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-        console.warn('[Chat WS] WebSocket not connected');
+    async (content: string, receiverId: number, listingId?: number) => {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.send(
+          JSON.stringify({
+            event_type: 'message',
+            other_user_id: receiverId,
+            content,
+            listing_id: listingId,
+          })
+        );
         return;
       }
 
-      wsRef.current.send(
-        JSON.stringify({
-          event_type: 'message',
-          other_user_id: receiverId,
-          content,
-          listing_id: listingId,
-        })
-      );
+      // HTTP fallback when WebSocket is unavailable or blocked by client extension
+      try {
+        await fetch(`${API_BASE_URL}/messages/`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            receiver_id: receiverId,
+            content,
+            listing_id: listingId,
+          }),
+        });
+      } catch (err) {
+        console.error('[Chat] Failed to send message:', err);
+      }
     },
-    []
+    [token]
   );
 
   const setTyping = useCallback((receiverId: number, isTyping: boolean) => {
