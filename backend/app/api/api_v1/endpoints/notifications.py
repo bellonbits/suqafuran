@@ -19,11 +19,24 @@ router = APIRouter()
 def get_my_notifications(
     db: Session = Depends(deps.get_db),
     current_user = Depends(deps.get_current_active_user),
+    unread_only: bool = Query(default=False),
 ) -> Any:
     """
-    Get all notifications for the current user.
+    Get notifications for the current user. Supports unread_only filtering.
     """
-    return crud_notification.get_user_notifications(db, user_id=current_user.id)
+    return crud_notification.get_user_notifications(db, user_id=current_user.id, unread_only=unread_only)
+
+@router.post("/clear-all")
+@router.delete("/clear-all")
+def clear_all_notifications(
+    db: Session = Depends(deps.get_db),
+    current_user = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Permanently delete all notifications for the current user.
+    """
+    deleted_count = crud_notification.clear_all(db, user_id=current_user.id)
+    return {"message": "Success", "deleted_count": deleted_count}
 
 @router.post("/{notification_id}/read")
 def mark_notification_read(
@@ -68,6 +81,7 @@ def delete_notification(
     if not success:
         raise HTTPException(status_code=404, detail="Notification not found")
     return {"message": "Success"}
+
 
 
 @router.websocket("/ws")

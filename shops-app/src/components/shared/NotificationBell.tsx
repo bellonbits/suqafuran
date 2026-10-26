@@ -9,6 +9,13 @@ import { API_BASE_URL } from '../../services/api';
 export function NotificationBell() {
     const [isOpen, setIsOpen] = useState(false);
     const [isClearing, setIsClearing] = useState(false);
+    const [hasPushPermission, setHasPushPermission] = useState<boolean>(() => {
+        if (typeof window !== 'undefined' && 'Notification' in window) {
+            return Notification.permission === 'granted';
+        }
+        return false;
+    });
+
     const { events } = useRealtimeStore();
     const unreadCount = events.length;
 
@@ -17,6 +24,15 @@ export function NotificationBell() {
         try {
             const token = useAuthStore.getState().token;
             if (token) {
+                // 1. Permanently delete from database so refresh never restores them
+                await fetch(`${API_BASE_URL}/notifications/clear-all`, {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                // 2. Mark all as read as compatibility fallback
                 await fetch(`${API_BASE_URL}/notifications/read-all`, {
                     method: 'POST',
                     headers: {
@@ -30,6 +46,17 @@ export function NotificationBell() {
             console.error('[Notifications] Failed to clear all:', error);
         } finally {
             setIsClearing(false);
+        }
+    };
+
+    const handleEnablePush = async () => {
+        if (typeof window !== 'undefined' && 'Notification' in window) {
+            try {
+                const res = await Notification.requestPermission();
+                setHasPushPermission(res === 'granted');
+            } catch {
+                // Ignore
+            }
         }
     };
 
@@ -77,6 +104,20 @@ export function NotificationBell() {
                                 </button>
                             </div>
                         </div>
+
+                        {!hasPushPermission && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default' && (
+                            <div className="p-3 bg-orange-50/80 dark:bg-orange-950/30 border-b border-orange-100 dark:border-orange-900/50 flex items-center justify-between text-xs">
+                                <span className="text-orange-900 dark:text-orange-200 font-medium text-[11px]">
+                                    Enable push notifications
+                                </span>
+                                <button
+                                    onClick={handleEnablePush}
+                                    className="px-2.5 py-1 bg-orange-600 text-white text-[11px] font-bold rounded hover:bg-orange-700 transition-colors"
+                                >
+                                    Enable
+                                </button>
+                            </div>
+                        )}
 
                         {events.length === 0 ? (
                             <div className="p-8 text-center">

@@ -14,10 +14,15 @@ class CRUDNotification:
         db.refresh(db_obj)
         return db_obj
 
-    def get_user_notifications(self, db: Session, *, user_id: int, limit: int = 20) -> List[Notification]:
+    def get_user_notifications(
+        self, db: Session, *, user_id: int, limit: int = 50, unread_only: bool = False
+    ) -> List[Notification]:
         statement = select(Notification).where(
             Notification.user_id == user_id
-        ).order_by(Notification.created_at.desc()).limit(limit)
+        )
+        if unread_only:
+            statement = statement.where(Notification.is_read == False)
+        statement = statement.order_by(Notification.created_at.desc()).limit(limit)
         return db.exec(statement).all()
 
     def mark_as_read(self, db: Session, *, notification_id: int, user_id: int) -> Optional[Notification]:
@@ -42,6 +47,20 @@ class CRUDNotification:
         db.commit()
         return len(notifications)
 
+    def clear_all(self, db: Session, *, user_id: int) -> int:
+        """
+        Permanently delete all notifications for a given user.
+        """
+        statement = select(Notification).where(
+            Notification.user_id == user_id
+        )
+        notifications = db.exec(statement).all()
+        count = len(notifications)
+        for notif in notifications:
+            db.delete(notif)
+        db.commit()
+        return count
+
     def remove(self, db: Session, *, notification_id: int, user_id: int) -> bool:
         db_obj = db.get(Notification, notification_id)
         if db_obj and db_obj.user_id == user_id:
@@ -51,4 +70,3 @@ class CRUDNotification:
         return False
 
 crud_notification = CRUDNotification()
-

@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useAuthStore } from '../../store/useAuth';
 import { useRealtimeStore } from '../../store/useRealtime';
 import { API_BASE_URL } from '../../services/api';
+import { playNotificationSound, requestPushPermission, showPushNotification } from '../../utils/notificationAudioAndPush';
 
 const FALLBACK_POLL_INTERVAL_MS = 30000;
 
@@ -13,7 +14,7 @@ function buildSseUrl(token: string): string {
 
 /**
  * Mounted once at the app root. Keeps a Server-Sent Events (SSE) connection
- * open for real-time notifications, unread counts, and toasts.
+ * open for real-time notifications, unread counts, push alerts, and audio chimes.
  *
  * Uses browser-native EventSource over standard HTTPS, which is immune to
  * WebSocket restrictions, corporate proxies, and browser extension interference.
@@ -39,9 +40,13 @@ export function RealtimeConnection() {
 
         let cancelled = false;
 
+        // Request browser push notification permission if not yet decided
+        requestPushPermission().catch(() => {});
+
         async function fetchNotifications() {
             try {
-                const res = await fetch(`${API_BASE_URL}/notifications/`, {
+                // Fetch only unread notifications so cleared ones never reappear
+                const res = await fetch(`${API_BASE_URL}/notifications/?unread_only=true`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                         Accept: 'application/json',
@@ -67,8 +72,19 @@ export function RealtimeConnection() {
                 const data = JSON.parse(raw);
                 if (data && (data.type || data.payload)) {
                     const eventPayload = (data.payload || data) as Record<string, unknown>;
+                    const eventType = data.type || 'notification';
+                    const title = (eventPayload.title as string) || (eventType.replace(/_/g, ' ').toUpperCase());
+                    const message = (eventPayload.message as string) || (eventPayload.content as string) || 'New notification on Suqafuran';
+
+                    // 1. Play audio chime tone
+                    playNotificationSound();
+
+                    // 2. Deliver native browser desktop/mobile push notification
+                    showPushNotification(title, message);
+
+                    // 3. Store in realtime state for notification bell and in-app toast
                     useRealtimeStore.getState().pushEvent({
-                        type: data.type || 'notification',
+                        type: eventType,
                         payload: eventPayload,
                         timestamp: data.timestamp || (eventPayload.created_at as string) || new Date().toISOString(),
                     });
@@ -78,7 +94,7 @@ export function RealtimeConnection() {
             }
         }
 
-        // 1. Initial notification fetch
+        // 1. Initial notification fetch (unread only)
         fetchNotifications();
 
         // 2. Background polling fallback every 30 seconds
@@ -94,7 +110,6 @@ export function RealtimeConnection() {
                 eventSourceRef.current = es;
 
                 es.onopen = () => {
-                    console.log('[SSE] Connected successfully');
                     useRealtimeStore.getState().setConnected(true);
                 };
 
