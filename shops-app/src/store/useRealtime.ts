@@ -12,6 +12,7 @@ interface RealtimeState {
     events: RealtimeEvent[];
     setConnected: (connected: boolean) => void;
     pushEvent: (event: RealtimeEvent) => void;
+    setEvents: (events: RealtimeEvent[]) => void;
 }
 
 /**
@@ -26,4 +27,5 @@ export const useRealtimeStore = create<RealtimeState>()((set) => ({
     events: [],
     setConnected: (connected) => set({ isConnected: connected }),
     pushEvent: (event) => set((s) => ({ lastEvent: event, events: [event, ...s.events].slice(0, 50) })),
+    setEvents: (events) => set({ events: events.slice(0, 50) }),
 }));
