@@ -6,6 +6,7 @@ import { useRealtimeStore } from '../../store/useRealtime';
 import { API_BASE_URL } from '../../services/api';
 
 const RECONNECT_DELAY_MS = 4000;
+const FALLBACK_POLL_INTERVAL_MS = 30000;
 
 function buildSocketUrl(token: string): string {
     try {
