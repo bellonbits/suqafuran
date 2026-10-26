@@ -62,10 +62,24 @@ function MessagesPageContent() {
     const [deal, setDeal] = useState<Deal | null>(null);
     const [dealActionLoading, setDealActionLoading] = useState(false);
 
-    // Initialize WebSocket connection
+    // Initialize WebSocket connection and presence tracking
     const { isConnected, sendMessage: wssSendMessage, setTyping, onMessage, subscribeToUser, userStatus } = useChat(token);
-    const isOtherUserOnline = userStatus?.id === selectedUserId && !!userStatus?.is_online;
+    const activeConv = conversations.find((c) => c.other_user_id === selectedUserId);
+    const isOtherUserOnline = (userStatus?.id === selectedUserId && userStatus?.is_online) || (activeConv?.is_online ?? false);
     const isOtherUserTyping = userStatus?.id === selectedUserId && !!userStatus?.is_typing;
+
+    // Sync presence updates into conversation list
+    useEffect(() => {
+        if (userStatus && userStatus.id) {
+            setConversations((prev) =>
+                prev.map((c) =>
+                    c.other_user_id === userStatus.id
+                        ? { ...c, is_online: userStatus.is_online }
+                        : c
+                )
+            );
+        }
+    }, [userStatus]);
 
     // Load conversations from API
     useEffect(() => {
@@ -293,15 +307,12 @@ function MessagesPageContent() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoading, sharedProduct]);
 
-    // Join the per-conversation channel so the server's broadcasts (new
-    // messages, typing, presence) actually reach this connection -- without
-    // this, subscribing never happens and nothing arrives in real time
-    // regardless of how the message handler below is wired.
+    // Subscribe to presence and updates for the active conversation partner
     useEffect(() => {
-        if (selectedUserId && isConnected) {
+        if (selectedUserId) {
             subscribeToUser(selectedUserId);
         }
-    }, [selectedUserId, isConnected, subscribeToUser]);
+    }, [selectedUserId, subscribeToUser]);
 
     // Handle incoming real-time messages. Re-registered whenever
     // selectedUserId changes so the closure always compares against the
@@ -448,17 +459,23 @@ function MessagesPageContent() {
                                     onClick={() => setSelectedUserId(conv.other_user_id)}
                                     className={`w-full p-4 flex gap-3 text-left transition-all ${selectedUserId === conv.other_user_id ? 'bg-white dark:bg-neutral-950' : 'hover:bg-white/50 dark:hover:bg-neutral-950/50'}`}
                                 >
-                                    {conv.other_user_avatar ? (
-                                        <img
-                                            src={conv.other_user_avatar}
-                                            alt={conv.other_user_name}
-                                            className="h-11 w-11 rounded-2xl object-cover shrink-0"
+                                    <div className="relative shrink-0">
+                                        {conv.other_user_avatar ? (
+                                            <img
+                                                src={conv.other_user_avatar}
+                                                alt={conv.other_user_name}
+                                                className="h-11 w-11 rounded-2xl object-cover"
+                                            />
+                                        ) : (
+                                            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-sm">
+                                                {(conv.other_user_name || 'U').charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
+                                        <span
+                                            className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-neutral-950 ${conv.is_online ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-neutral-600'}`}
+                                            title={conv.is_online ? 'Online' : 'Offline'}
                                         />
-                                    ) : (
-                                        <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center shrink-0 text-white font-black text-sm">
-                                            {(conv.other_user_name || 'U').charAt(0).toUpperCase()}
-                                        </div>
-                                    )}
+                                    </div>
                                     <div className="flex-1 flex flex-col justify-between py-0.5 min-w-0">
                                         <div className="flex justify-between items-start gap-2 min-w-0">
                                             <h4 className="text-xs font-black text-gray-900 dark:text-neutral-50 truncate">
@@ -497,29 +514,39 @@ function MessagesPageContent() {
                                     <button onClick={() => setSelectedUserId(null)} className="md:hidden -ml-1 mr-1 text-gray-400 hover:text-gray-700 dark:hover:text-neutral-100">
                                         <ArrowLeft className="h-5 w-5" />
                                     </button>
-                                    {selectedConversation.other_user_avatar ? (
-                                        <img
-                                            src={selectedConversation.other_user_avatar}
-                                            alt={selectedConversation.other_user_name}
-                                            className="h-10 w-10 rounded-2xl object-cover"
+                                    <div className="relative">
+                                        {selectedConversation.other_user_avatar ? (
+                                            <img
+                                                src={selectedConversation.other_user_avatar}
+                                                alt={selectedConversation.other_user_name}
+                                                className="h-10 w-10 rounded-2xl object-cover"
+                                            />
+                                        ) : (
+                                            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-xs">
+                                                {(selectedConversation.other_user_name || 'U').charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
+                                        <span
+                                            className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-neutral-950 ${isOtherUserOnline ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-neutral-600'}`}
                                         />
-                                    ) : (
-                                        <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-xs">
-                                            {(selectedConversation.other_user_name || 'U').charAt(0).toUpperCase()}
-                                        </div>
-                                    )}
+                                    </div>
                                     <div>
                                         <h3 className="text-xs font-black text-gray-900 dark:text-neutral-50">
                                             {selectedConversation.other_user_name || `User ${selectedConversation.other_user_id}`}
                                         </h3>
                                         <p className="text-[10px] text-gray-500 dark:text-neutral-300">
                                             {isOtherUserTyping ? (
-                                                <span className="flex items-center gap-1">
+                                                <span className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
                                                     <span>typing</span>
                                                     <Loader className="h-3 w-3 animate-spin" />
                                                 </span>
                                             ) : (
-                                                <span>{isOtherUserOnline ? '🟢 Online' : '⚪ Offline'}</span>
+                                                <span className="flex items-center gap-1.5 font-medium">
+                                                    <span className={`inline-block w-1.5 h-1.5 rounded-full ${isOtherUserOnline ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50' : 'bg-gray-400'}`} />
+                                                    <span className={isOtherUserOnline ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-gray-400 dark:text-neutral-500'}>
+                                                        {isOtherUserOnline ? 'Online' : 'Offline'}
+                                                    </span>
+                                                </span>
                                             )}
                                         </p>
                                     </div>

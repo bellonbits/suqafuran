@@ -27,11 +27,9 @@ export function useChat(token: string): UseChatReturn {
   const [userStatus, setUserStatus] = useState<ChatUser | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messageCallbackRef = useRef<((message: ChatMessage) => void) | null>(null);
+  const presencePollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const subscribedUserIdRef = useRef<number | null>(null);
 
-  // Always target the API host, not the frontend's own origin -- this used
-  // to derive from window.location, which pointed at the Vite dev server
-  // (no WS route there at all) instead of the actual backend. Mirrors
-  // RealtimeConnection.tsx's buildSocketUrl.
   const getWsUrl = useCallback(() => {
     const wsBase = API_BASE_URL.replace(/^https:/, 'wss:').replace(/^http:/, 'ws:');
     return `${wsBase}/ws/chat?token=${encodeURIComponent(token)}`;
@@ -42,27 +40,21 @@ export function useChat(token: string): UseChatReturn {
     if (!token) return;
 
     const wsUrl = getWsUrl();
-    console.log('[Chat WS] Connecting to:', wsUrl);
 
     try {
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {
-        console.log('[Chat WS] Connected');
         setIsConnected(true);
       };
 
       wsRef.current.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          console.log('[Chat WS] Received:', data);
 
-          if (data.event_type === 'connection_ack') {
-            console.log('[Chat WS] Connection acknowledged');
-          } else if (data.event_type === 'new_message') {
-            // Handle incoming message from other user
+          if (data.event_type === 'new_message') {
             const message: ChatMessage = {
-              id: Math.random(), // Placeholder ID until DB save
+              id: Math.random(),
               sender_id: data.sender_id,
               receiver_id: data.receiver_id,
               content: data.content,
@@ -70,7 +62,6 @@ export function useChat(token: string): UseChatReturn {
               timestamp: data.timestamp,
               created_at: data.timestamp,
             };
-            // Call the message callback if set
             if (messageCallbackRef.current) {
               messageCallbackRef.current(message);
             }
@@ -80,7 +71,7 @@ export function useChat(token: string): UseChatReturn {
               id: data.user_id,
               is_typing: true,
             } as ChatUser));
-            // Auto-clear typing after 2 seconds
+
             if (typingTimeoutRef.current) {
               clearTimeout(typingTimeoutRef.current);
             }
@@ -104,8 +95,8 @@ export function useChat(token: string): UseChatReturn {
               is_online: data.status === 'online',
             } as ChatUser));
           }
-        } catch (error) {
-          console.error('[Chat WS] Error parsing message:', error);
+        } catch {
+          // Ignore invalid frames
         }
       };
 
@@ -124,11 +115,39 @@ export function useChat(token: string): UseChatReturn {
         if (typingTimeoutRef.current) {
           clearTimeout(typingTimeoutRef.current);
         }
+        if (presencePollTimerRef.current) {
+          clearInterval(presencePollTimerRef.current);
+          presencePollTimerRef.current = null;
+        }
       };
     } catch {
       setIsConnected(false);
     }
   }, [token, getWsUrl]);
+
+  const checkPresence = useCallback(async (userId: number) => {
+    if (!token || !userId) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/messages/users/${userId}/presence`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUserStatus(prev => ({
+          id: userId,
+          name: prev?.id === userId ? prev.name : '',
+          avatar: prev?.id === userId ? prev.avatar : undefined,
+          is_online: Boolean(data.is_online),
+          is_typing: prev?.id === userId ? prev.is_typing : false,
+        }));
+      }
+    } catch {
+      // Ignore network errors
+    }
+  }, [token]);
 
   const sendMessage = useCallback(
     async (content: string, receiverId: number, listingId?: number) => {
@@ -144,7 +163,7 @@ export function useChat(token: string): UseChatReturn {
         return;
       }
 
-      // HTTP fallback when WebSocket is unavailable or blocked by client extension
+      // HTTP fallback when WebSocket is unavailable or blocked
       try {
         await fetch(`${API_BASE_URL}/messages/`, {
           method: 'POST',
@@ -179,18 +198,31 @@ export function useChat(token: string): UseChatReturn {
   }, []);
 
   const subscribeToUser = useCallback((userId: number) => {
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-      console.warn('[Chat WS] WebSocket not connected');
-      return;
-    }
+    subscribedUserIdRef.current = userId;
 
-    wsRef.current.send(
-      JSON.stringify({
-        event_type: 'subscribe',
-        other_user_id: userId,
-      })
-    );
-  }, []);
+    // 1. Immediate presence check via HTTP
+    checkPresence(userId);
+
+    // 2. Poll presence every 10 seconds to keep online status accurate
+    if (presencePollTimerRef.current) {
+      clearInterval(presencePollTimerRef.current);
+    }
+    presencePollTimerRef.current = setInterval(() => {
+      if (subscribedUserIdRef.current === userId) {
+        checkPresence(userId);
+      }
+    }, 10000);
+
+    // 3. If WebSocket is connected, also send subscribe frame
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(
+        JSON.stringify({
+          event_type: 'subscribe',
+          other_user_id: userId,
+        })
+      );
+    }
+  }, [checkPresence]);
 
   const onMessage = useCallback((callback: (message: ChatMessage) => void) => {
     messageCallbackRef.current = callback;

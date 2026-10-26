@@ -1153,7 +1153,7 @@ export default function AgentDashboardPage() {
                   <div>
                     <h4 className="font-extrabold text-sm leading-tight">{chatTarget.name}</h4>
                     <p className="text-[11px] text-sky-300">
-                      {targetTyping ? '✏️ typing…' : targetOnline ? '● Online' : '○ Offline'}
+                      {targetTyping ? 'typing...' : targetOnline ? 'Online' : 'Offline'}
                     </p>
                   </div>
                 </div>
