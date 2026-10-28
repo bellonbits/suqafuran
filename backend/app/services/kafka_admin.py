@@ -391,13 +391,18 @@ class KafkaAdminClient:
             self.admin_client.close()
 
 
-# Singleton instance
+import threading
+
+# Singleton instance with thread-safe lock
 _kafka_admin: Optional[KafkaAdminClient] = None
+_kafka_admin_lock = threading.Lock()
 
 
 def get_kafka_admin() -> KafkaAdminClient:
-    """Get or create the singleton Kafka admin client."""
+    """Get or create the singleton Kafka admin client (thread-safe)."""
     global _kafka_admin
     if _kafka_admin is None:
-        _kafka_admin = KafkaAdminClient()
+        with _kafka_admin_lock:
+            if _kafka_admin is None:
+                _kafka_admin = KafkaAdminClient()
     return _kafka_admin

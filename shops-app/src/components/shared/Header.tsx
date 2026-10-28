@@ -89,6 +89,34 @@ export const Header: React.FC = () => {
         }
     }, [isAuthenticated, user?.id]);
 
+    // Live sync unread message badge count
+    useEffect(() => {
+        if (!isAuthenticated || !user) {
+            setUnreadMessages(0);
+            return;
+        }
+
+        let isMounted = true;
+        const fetchUnreadCount = async () => {
+            try {
+                const res = await api.get('/messages/conversations');
+                if (Array.isArray(res.data) && isMounted) {
+                    const total = res.data.reduce((sum: number, c: any) => sum + (c.unread_count || 0), 0);
+                    setUnreadMessages(total);
+                }
+            } catch {
+                // Ignore transient network errors
+            }
+        };
+
+        fetchUnreadCount();
+        const interval = setInterval(fetchUnreadCount, 15000);
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+        };
+    }, [isAuthenticated, user?.id]);
+
     const toggleDarkMode = () => {
         const nextMode = !darkMode;
         setDarkMode(nextMode);

@@ -106,22 +106,41 @@ class CRUDMessage:
         results = db.exec(statement).all()
         
         conversations = {}
-        unread_counts: dict = {}
         for msg, user_obj in results:
             other_id = user_obj.id
             if other_id not in conversations:
+                iso_time = msg.created_at.isoformat() if msg.created_at else None
+                display_name = user_obj.full_name or f"User #{other_id}"
                 conversations[other_id] = {
                     "other_user_id": other_id,
-                    "other_user_name": user_obj.full_name,
+                    "other_user_name": display_name,
                     "other_user_avatar": user_obj.avatar_url,
                     "last_message": msg.content,
-                    "last_message_at": msg.created_at.isoformat() if msg.created_at else None,
+                    "last_message_at": iso_time,
+                    "last_message_time": iso_time,
                     "unread_count": 0,
                     "listing_id": msg.listing_id,
                 }
             # Count unread messages sent to the current user
             if msg.receiver_id == user_id and not msg.is_read:
                 conversations[other_id]["unread_count"] = conversations[other_id].get("unread_count", 0) + 1
+
+        # Enrich with listing details where available
+        listing_ids = [c["listing_id"] for c in conversations.values() if c.get("listing_id")]
+        if listing_ids:
+            try:
+                from app.models.listing import Listing
+                listings = db.exec(select(Listing).where(Listing.id.in_(listing_ids))).all()
+                listings_map = {l.id: l for l in listings}
+                for c in conversations.values():
+                    lid = c.get("listing_id")
+                    if lid in listings_map:
+                        l = listings_map[lid]
+                        c["listing_title"] = l.title_en or l.title_so
+                        c["listing_price"] = l.price
+                        c["listing_image"] = l.images[0] if (l.images and len(l.images) > 0) else None
+            except Exception:
+                pass
 
         return list(conversations.values())
 

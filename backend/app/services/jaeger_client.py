@@ -323,13 +323,18 @@ class JaegerClient:
         self.client.close()
 
 
-# Singleton instance
+import threading
+
+# Singleton instance with thread-safe lock
 _jaeger_client: Optional[JaegerClient] = None
+_jaeger_lock = threading.Lock()
 
 
 def get_jaeger_client() -> JaegerClient:
-    """Get or create singleton Jaeger client."""
+    """Get or create singleton Jaeger client (thread-safe)."""
     global _jaeger_client
     if _jaeger_client is None:
-        _jaeger_client = JaegerClient()
+        with _jaeger_lock:
+            if _jaeger_client is None:
+                _jaeger_client = JaegerClient()
     return _jaeger_client

@@ -1,12 +1,26 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Bell, X, CheckCheck } from 'lucide-react';
 import { useRealtimeStore } from '../../store/useRealtime';
 import { useAuthStore } from '../../store/useAuth';
 import { API_BASE_URL } from '../../services/api';
 
+function formatEventTime(isoString: string): string {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) return '';
+    const now = new Date();
+    const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000);
+    if (diffSec < 60) return 'Just now';
+    if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+    if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
 export function NotificationBell() {
+    const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const [isClearing, setIsClearing] = useState(false);
     const [hasPushPermission, setHasPushPermission] = useState<boolean>(() => {
@@ -60,6 +74,21 @@ export function NotificationBell() {
         }
     };
 
+    const handleNotificationClick = (event: any) => {
+        setIsOpen(false);
+        const payload = (event.payload || {}) as Record<string, any>;
+        const actionUrl = payload.action_url || payload.actionUrl;
+        if (actionUrl) {
+            router.push(actionUrl);
+        } else if (event.type === 'message' && payload.sender_id) {
+            router.push(`/messages?userId=${payload.sender_id}`);
+        } else if (payload.listing_id) {
+            router.push(`/listings/${payload.listing_id}`);
+        } else if (payload.order_id) {
+            router.push(`/orders`);
+        }
+    };
+
     return (
         <div className="relative">
             <button
@@ -69,7 +98,7 @@ export function NotificationBell() {
             >
                 <Bell className="w-5 h-5 text-gray-600 dark:text-neutral-300" />
                 {unreadCount > 0 && (
-                    <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
                         {Math.min(unreadCount, 9)}
                     </span>
                 )}
@@ -81,7 +110,7 @@ export function NotificationBell() {
                         className="fixed inset-0 z-40"
                         onClick={() => setIsOpen(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-neutral-950 rounded-lg shadow-2xl border border-gray-200 dark:border-neutral-800 z-50 max-h-96 overflow-y-auto">
+                    <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-neutral-950 rounded-2xl shadow-2xl border border-gray-200 dark:border-neutral-800 z-50 max-h-96 overflow-y-auto">
                         <div className="p-4 border-b border-gray-100 dark:border-neutral-800 flex justify-between items-center">
                             <h3 className="font-bold text-gray-900 dark:text-white">Notifications</h3>
                             <div className="flex items-center gap-2">
@@ -112,7 +141,7 @@ export function NotificationBell() {
                                 </span>
                                 <button
                                     onClick={handleEnablePush}
-                                    className="px-2.5 py-1 bg-orange-600 text-white text-[11px] font-bold rounded hover:bg-orange-700 transition-colors"
+                                    className="px-2.5 py-1 bg-orange-600 text-white text-[11px] font-bold rounded-lg hover:bg-orange-700 transition-colors"
                                 >
                                     Enable
                                 </button>
@@ -126,22 +155,28 @@ export function NotificationBell() {
                             </div>
                         ) : (
                             <div className="divide-y divide-gray-100 dark:divide-neutral-800">
-                                {events.slice(0, 10).map((event, idx) => (
-                                    <div
-                                        key={idx}
-                                        className="p-4 hover:bg-gray-50 dark:hover:bg-neutral-900/50 transition-colors cursor-pointer"
-                                    >
-                                        <p className="text-xs font-semibold text-gray-900 dark:text-white capitalize">
-                                            {event.type.replace(/_/g, ' ')}
-                                        </p>
-                                        <p className="text-xs text-gray-600 dark:text-neutral-300 mt-1 line-clamp-2">
-                                            {(event.payload as Record<string, unknown>).message || 'New notification'}
-                                        </p>
-                                        <p className="text-[10px] text-gray-400 dark:text-neutral-400 mt-2">
-                                            {new Date(event.timestamp).toLocaleDateString()}
-                                        </p>
-                                    </div>
-                                ))}
+                                {events.slice(0, 15).map((event, idx) => {
+                                    const payload = (event.payload || {}) as Record<string, any>;
+                                    const displayTitle = payload.title || event.type.replace(/_/g, ' ');
+                                    const displayMsg = payload.message || payload.content || 'New update received';
+                                    return (
+                                        <div
+                                            key={idx}
+                                            onClick={() => handleNotificationClick(event)}
+                                            className="p-4 hover:bg-gray-50 dark:hover:bg-neutral-900/50 transition-colors cursor-pointer"
+                                        >
+                                            <p className="text-xs font-bold text-gray-900 dark:text-white capitalize">
+                                                {displayTitle}
+                                            </p>
+                                            <p className="text-xs text-gray-600 dark:text-neutral-300 mt-1 line-clamp-2">
+                                                {displayMsg}
+                                            </p>
+                                            <p className="text-[10px] text-gray-400 dark:text-neutral-400 mt-2 font-medium">
+                                                {formatEventTime(event.timestamp)}
+                                            </p>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>

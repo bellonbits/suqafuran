@@ -35,7 +35,7 @@ export const SellerMessagesPage: React.FC = () => {
       qc.invalidateQueries({ queryKey: ['seller-thread', activeUser?.other_user_id] });
       qc.invalidateQueries({ queryKey: ['seller-conversations'] });
     },
-    onError: () => toast.error('Failed to send message'),
+    onError: (err: any) => toast.error(err?.response?.data?.detail || 'Failed to send message'),
   });
 
   useEffect(() => {
@@ -102,8 +102,8 @@ export const SellerMessagesPage: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-baseline mb-0.5">
                       <p className="text-xs font-bold text-slate-800 truncate">{c.other_user_name || 'Customer'}</p>
-                      {c.last_message_at && (
-                        <span className="text-[10px] text-slate-400">{new Date(c.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      {(c.last_message_at || (c as any).last_message_time) && (
+                        <span className="text-[10px] text-slate-400">{new Date(c.last_message_at || (c as any).last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                       )}
                     </div>
                     <p className="text-xs text-slate-500 truncate">{c.last_message || '—'}</p>

@@ -22,13 +22,27 @@ function buildOpeningMessage(productTitle: string): string {
     return `Hi! \u{1F44B} I just came across your listing for "${productTitle}" -- is it still available? I'd love to know a bit more.`;
 }
 
+function formatMessageDate(dateStr?: string | null): string {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '';
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    if (isToday) {
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
 interface Conversation {
     other_user_id: number;
     other_user_name?: string;
     other_user_avatar?: string;
     last_message?: string;
     last_message_time?: string;
+    last_message_at?: string;
     unread_count?: number;
+    is_online?: boolean;
 }
 
 function MessagesPageContent() {
@@ -54,6 +68,11 @@ function MessagesPageContent() {
     const [searchQuery, setSearchQuery] = useState('');
     const [isUserTyping, setIsUserTyping] = useState(false);
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
 
     // The real auth token -- this used to read localStorage.getItem('access_token'),
     // a key nothing in the app ever writes to, so the socket never connected.
@@ -378,38 +397,53 @@ function MessagesPageContent() {
             setIsSending(true);
             const isNewConversation = messages.length === 0;
 
-            // Send via HTTP first (to save to DB). Tagging every message in
-            // the thread with the same listing_id (not just the first) keeps
-            // them landing in the same conversation on the backend instead
-            // of fragmenting into a "with listing" / "without listing" pair.
+            // Send via HTTP (saves to DB and broadcasts across SSE/WS channels)
             const sendResponse = await api.post('/messages/', {
                 receiver_id: selectedUserId,
                 content: text,
                 ...(activeListingId ? { listing_id: Number(activeListingId) } : {}),
             });
 
+            const newMsg: ChatMessage = sendResponse?.data || {
+                id: Date.now(),
+                sender_id: currentUser?.id || 0,
+                receiver_id: selectedUserId,
+                content: text,
+                listing_id: activeListingId ? Number(activeListingId) : undefined,
+                timestamp: new Date().toISOString(),
+                created_at: new Date().toISOString(),
+            };
+
+            // Immediately update message thread
+            setMessages((prev) => {
+                const exists = prev.some((m) => m.id === newMsg.id);
+                return exists ? prev : [...prev, newMsg];
+            });
+
+            // Update conversation list preview
+            setConversations((prev) =>
+                prev.map((c) =>
+                    c.other_user_id === selectedUserId
+                        ? { ...c, last_message: text, last_message_time: new Date().toISOString() }
+                        : c
+                )
+            );
+
             trackEvent('Message Sent', { receiver_id: selectedUserId });
             if (isNewConversation) {
                 trackEvent('Conversation Started', { receiver_id: selectedUserId });
             }
 
-            // Then broadcast via WebSocket for instant delivery
+            // Also broadcast via WebSocket for peer socket clients
             if (isConnected) {
                 wssSendMessage(text, selectedUserId);
-            }
-
-            // Reload messages after sending
-            const response = await api.get(`/messages/${selectedUserId}`);
-            setMessages(response.data || []);
-
-            // Notify typing stopped
-            if (isConnected) {
                 setTyping(selectedUserId, false);
             }
         } catch (error) {
             console.error('Failed to send message:', error);
             setInputText(text);
-            alert('Failed to send message: ' + (error as any)?.message || 'Unknown error');
+            const detailMsg = (error as any)?.response?.data?.detail || (error as any)?.message || 'Failed to send message';
+            alert(detailMsg);
         } finally {
             setIsSending(false);
         }
@@ -481,9 +515,9 @@ function MessagesPageContent() {
                                             <h4 className="text-xs font-black text-gray-900 dark:text-neutral-50 truncate">
                                                 {conv.other_user_name || `User ${conv.other_user_id}`}
                                             </h4>
-                                            {conv.last_message_time && (
+                                            {(conv.last_message_time || conv.last_message_at) && (
                                                 <span className="text-[9px] text-gray-400 dark:text-neutral-400 font-bold shrink-0 whitespace-nowrap">
-                                                    {new Date(conv.last_message_time).toLocaleDateString()}
+                                                    {formatMessageDate(conv.last_message_time || conv.last_message_at)}
                                                 </span>
                                             )}
                                         </div>
@@ -658,7 +692,7 @@ function MessagesPageContent() {
                                                     <p className="text-xs font-semibold leading-relaxed break-words">{msg.content}</p>
                                                     <div className="flex items-center justify-end gap-1.5 pt-0.5">
                                                         <span className="text-[8px] opacity-75 font-semibold">
-                                                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            {new Date(msg.created_at || msg.timestamp || new Date()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -666,6 +700,7 @@ function MessagesPageContent() {
                                         );
                                     })
                                 )}
+                                <div ref={messagesEndRef} />
                             </div>
 
                             {/* Chat Input form */}

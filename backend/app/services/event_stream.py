@@ -111,15 +111,20 @@ class EventStreamManager:
         return [event.to_dict() for event in self.event_history[-limit:]]
 
 
-# Global event stream manager
+import threading
+
+# Global event stream manager with thread-safe lock
 _event_stream_manager: Optional[EventStreamManager] = None
+_event_stream_lock = threading.Lock()
 
 
 def get_event_stream_manager() -> EventStreamManager:
-    """Get or create singleton event stream manager."""
+    """Get or create singleton event stream manager (thread-safe)."""
     global _event_stream_manager
     if _event_stream_manager is None:
-        _event_stream_manager = EventStreamManager()
+        with _event_stream_lock:
+            if _event_stream_manager is None:
+                _event_stream_manager = EventStreamManager()
     return _event_stream_manager
 
 

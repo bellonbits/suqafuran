@@ -3,6 +3,7 @@ WebSocket Service - Real-time connection management and broadcasting
 """
 import json
 import logging
+import asyncio
 from typing import Dict, Set, Optional, List
 from datetime import datetime
 from fastapi import WebSocket
@@ -22,6 +23,43 @@ class ConnectionManager:
         self.subscriptions: Dict[str, Set[str]] = {}
         # Store online users: {user_id: last_seen}
         self.online_users: Dict[str, datetime] = {}
+        # Event loop reference for thread-safe broadcasting from sync endpoints
+        self.loop: Optional[asyncio.AbstractEventLoop] = None
+
+    def set_event_loop(self, loop: asyncio.AbstractEventLoop):
+        self.loop = loop
+
+    def broadcast_to_user_from_thread(self, user_id: str, message: dict):
+        """Thread-safe broadcast to user from synchronous route handlers."""
+        loop = self.loop
+        if not loop or not loop.is_running():
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                pass
+        if loop and loop.is_running():
+            asyncio.run_coroutine_threadsafe(
+                self.broadcast_to_user(str(user_id), message),
+                loop
+            )
+        else:
+            logger.warning("Event loop not available. Cannot broadcast message from thread.")
+
+    def broadcast_to_channel_from_thread(self, channel: str, message: dict, exclude_users: Optional[List[str]] = None):
+        """Thread-safe broadcast to channel from synchronous route handlers."""
+        loop = self.loop
+        if not loop or not loop.is_running():
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                pass
+        if loop and loop.is_running():
+            asyncio.run_coroutine_threadsafe(
+                self.broadcast_to_channel(channel, message, exclude_users),
+                loop
+            )
+        else:
+            logger.warning("Event loop not available. Cannot broadcast to channel from thread.")
 
     async def connect(
         self,

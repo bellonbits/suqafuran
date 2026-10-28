@@ -80,33 +80,70 @@ class CacheService:
         except Exception:
             return False  # On Redis error, allow processing (fail open)
 
+    def _sanitize_cache_kwargs(self, kwargs: dict) -> dict:
+        """Filter out framework and un-serializable objects (db, request, response, etc.)"""
+        ignored_keys = {"db", "session", "request", "response", "background_tasks", "current_user"}
+        ignored_types = ("Session", "Request", "Response", "BackgroundTasks", "UploadFile", "WebSocket")
+        clean = {}
+        for k, v in kwargs.items():
+            if k.lower() in ignored_keys:
+                continue
+            type_name = type(v).__name__
+            if type_name in ignored_types or type_name.endswith("Session") or type_name.endswith("Request"):
+                continue
+            clean[k] = v
+        return clean
+
     def cached(self, prefix: str, ttl: int = 60, should_cache=None):
         """Decorator that caches function return value in Redis.
+        Supports both synchronous functions and async coroutines.
 
         `should_cache`, if given, is called with the function's result before
         writing to Redis. Returning False skips the write, so a one-off bad
         result (e.g. a relationship that failed to eager-load) self-heals on
         the next request instead of getting served from cache for the full ttl.
         """
+        import inspect
+
         def decorator(func):
-            @wraps(func)
-            def wrapper(*args, **kwargs):
-                # Build cache key from kwargs (skip `db` session objects)
-                cache_kwargs = {k: v for k, v in kwargs.items() if k != "db"}
-                key_hash = hashlib.md5(
-                    json.dumps(cache_kwargs, sort_keys=True, default=str).encode()
-                ).hexdigest()
-                cache_key = f"cache:{prefix}:{key_hash}"
+            is_async = inspect.iscoroutinefunction(func)
 
-                cached_value = self.get(cache_key)
-                if cached_value is not None:
-                    return cached_value
+            if is_async:
+                @wraps(func)
+                async def async_wrapper(*args, **kwargs):
+                    cache_kwargs = self._sanitize_cache_kwargs(kwargs)
+                    key_hash = hashlib.md5(
+                        json.dumps(cache_kwargs, sort_keys=True, default=str).encode()
+                    ).hexdigest()
+                    cache_key = f"cache:{prefix}:{key_hash}"
 
-                result = func(*args, **kwargs)
-                if should_cache is None or should_cache(result):
-                    self.set(cache_key, result, ttl=ttl)
-                return result
-            return wrapper
+                    cached_value = self.get(cache_key)
+                    if cached_value is not None:
+                        return cached_value
+
+                    result = await func(*args, **kwargs)
+                    if should_cache is None or should_cache(result):
+                        self.set(cache_key, result, ttl=ttl)
+                    return result
+                return async_wrapper
+            else:
+                @wraps(func)
+                def sync_wrapper(*args, **kwargs):
+                    cache_kwargs = self._sanitize_cache_kwargs(kwargs)
+                    key_hash = hashlib.md5(
+                        json.dumps(cache_kwargs, sort_keys=True, default=str).encode()
+                    ).hexdigest()
+                    cache_key = f"cache:{prefix}:{key_hash}"
+
+                    cached_value = self.get(cache_key)
+                    if cached_value is not None:
+                        return cached_value
+
+                    result = func(*args, **kwargs)
+                    if should_cache is None or should_cache(result):
+                        self.set(cache_key, result, ttl=ttl)
+                    return result
+                return sync_wrapper
         return decorator
 
 

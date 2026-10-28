@@ -54,8 +54,16 @@ class SMSService:
         if len(message) > 1600:
             return {"status": "error", "message": "Message too long (max 1600 chars)"}
 
+        from app.core.circuit_breaker import circuit_breakers, CircuitBreakerOpenException
+        cb = circuit_breakers.get_or_create("africastalking", failure_threshold=5, recovery_timeout=60.0)
+
+        if not cb.is_available():
+            remaining = cb.time_until_retry()
+            logger.warning(f"Africa's Talking circuit is OPEN ({remaining:.1f}s cooldown). Fast-failing SMS to {to_number}")
+            return {"status": "circuit_open", "message": f"SMS provider circuit OPEN (retry in {remaining:.1f}s)"}
+
         try:
-            response = self.sms.send(message, [to_number], sender=self.sender_id)
+            response = cb.call(self.sms.send, message, [to_number], sender=self.sender_id)
 
             if response["SMSMessageData"]["Message"] == "Sent":
                 msg_id = response["SMSMessageData"]["Recipients"][0]["messageId"]
@@ -73,6 +81,8 @@ class SMSService:
                 logger.error(f"Failed to send SMS to {to_number}: {error_msg}")
                 return {"status": "error", "message": error_msg}
 
+        except CircuitBreakerOpenException as cbe:
+            return {"status": "circuit_open", "message": str(cbe)}
         except Exception as e:
             logger.error(f"Failed to send SMS to {to_number}: {e}")
             return {"status": "error", "message": str(e)}

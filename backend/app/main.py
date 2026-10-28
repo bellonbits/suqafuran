@@ -187,6 +187,11 @@ async def start_background_event_consumer():
     import subprocess
     from app.db.session import SessionLocal
     ws_manager.set_event_loop(asyncio.get_event_loop())
+    try:
+        from services.websocket_service import manager as chat_manager
+        chat_manager.set_event_loop(asyncio.get_event_loop())
+    except Exception as e:
+        logger.debug(f"Could not set chat_manager loop: {e}")
 
     # Initialize Kafka admin and auto-create default topics with retries
     logger.info("=" * 60)

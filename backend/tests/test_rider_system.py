@@ -3,7 +3,12 @@ Rider System Smoke Tests
 Tests for Sprints 1-4 Rider/Driver functionality
 """
 
-import pytest
+try:
+    import pytest
+except ImportError:
+    import unittest
+    raise unittest.SkipTest("pytest is not installed in the environment")
+
 from fastapi.testclient import TestClient
 from datetime import datetime, timedelta
 import json

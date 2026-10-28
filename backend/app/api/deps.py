@@ -153,3 +153,9 @@ def get_current_user_from_token(token: str, db: Session = Depends(get_db)) -> Op
 
     user = db.get(User, token_data)
     return user
+
+
+def get_listing_repository(db: Session = Depends(get_db)):
+    """FastAPI Dependency providing ListingRepositoryProtocol implementation."""
+    from app.repositories.listing_repository import SqlModelListingRepository
+    return SqlModelListingRepository(db)

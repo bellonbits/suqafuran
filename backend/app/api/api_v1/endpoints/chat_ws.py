@@ -122,7 +122,7 @@ async def websocket_chat_endpoint(
                     )
 
             elif event_type == "message":
-                # New message - broadcast to other user
+                # New message - persist to DB and broadcast to receiver across channels
                 other_user_id = data.get("other_user_id")
                 content = data.get("content")
                 listing_id = data.get("listing_id")
@@ -138,23 +138,87 @@ async def websocket_chat_endpoint(
                         })
                         continue
 
-                    # Message already saved to DB via HTTP endpoint or direct WS
-                    channel = f"chat_{min(user_id, other_user_id)}_{max(user_id, other_user_id)}"
+                    # 1. Persist to PostgreSQL database to guarantee durability
+                    try:
+                        msg_obj = crud_message.create(
+                            db,
+                            obj_in={"receiver_id": other_user_id, "content": content, "listing_id": listing_id},
+                            sender_id=user_id,
+                        )
+                        message_id = msg_obj.id
+                    except Exception as e:
+                        logger.error(f"Failed to persist WS message: {e}")
+                        message_id = None
 
+                    channel = f"chat_{min(user_id, other_user_id)}_{max(user_id, other_user_id)}"
+                    now_iso = datetime.utcnow().isoformat()
+                    sender_name = current_user.full_name or "Someone"
+                    preview = content[:80]
+
+                    # 2. Create in-app notification in DB
+                    try:
+                        from app.crud.crud_notification import crud_notification
+                        crud_notification.create(
+                            db,
+                            obj_in={
+                                "type": "message",
+                                "data": {
+                                    "message_id": message_id,
+                                    "sender_id": user_id,
+                                    "sender_name": sender_name,
+                                    "content": content,
+                                    "listing_id": listing_id,
+                                    "message": f"New message from {sender_name}: \"{preview}\"",
+                                    "action_url": f"/messages?userId={user_id}",
+                                }
+                            },
+                            user_id=other_user_id
+                        )
+                    except Exception as e:
+                        logger.warning(f"Failed to create WS in-app notification: {e}")
+
+                    # 3. Broadcast to SSE & Notification WS (powers Bell, Toast, Chime)
+                    try:
+                        from app.services.kafka_service import ws_manager as notif_ws_manager
+                        notif_event = {
+                            "type": "message",
+                            "payload": {
+                                "id": f"msg_{message_id}" if message_id else f"ws_{now_iso}",
+                                "type": "message",
+                                "title": f"New message from {sender_name}",
+                                "message": f"New message from {sender_name}: \"{preview}\"",
+                                "sender_id": user_id,
+                                "sender_name": sender_name,
+                                "listing_id": listing_id,
+                                "content": content,
+                                "created_at": now_iso,
+                                "action_url": f"/messages?userId={user_id}",
+                            },
+                            "timestamp": now_iso,
+                        }
+                        await notif_ws_manager.broadcast_to_user(other_user_id, notif_event)
+                    except Exception as e:
+                        logger.warning(f"Failed to broadcast WS notification: {e}")
+
+                    # 4. Broadcast to Chat Channel AND directly to user
+                    chat_msg = {
+                        "event_type": "new_message",
+                        "id": message_id,
+                        "sender_id": user_id,
+                        "receiver_id": other_user_id,
+                        "content": content,
+                        "listing_id": listing_id,
+                        "timestamp": now_iso,
+                        "created_at": now_iso,
+                    }
                     await manager.broadcast_to_channel(
                         channel,
-                        {
-                            "event_type": "new_message",
-                            "sender_id": user_id,
-                            "receiver_id": other_user_id,
-                            "content": content,
-                            "listing_id": listing_id,
-                            "timestamp": datetime.utcnow().isoformat(),
-                        },
-                        exclude_users=[str(user_id)],  # Receiver gets it via WebSocket
+                        chat_msg,
+                        exclude_users=[str(user_id)],
                     )
+                    await manager.broadcast_to_user(str(other_user_id), chat_msg)
 
-                    # Clear typing status
+                    # 5. Clear typing status
                     typing_status[(min(user_id, other_user_id), max(user_id, other_user_id))] = False
 
     except WebSocketDisconnect:

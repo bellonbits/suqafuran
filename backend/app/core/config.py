@@ -34,6 +34,11 @@ class Settings(BaseSettings):
     AFRICASTALKING_API_KEY: str = ""
     AFRICASTALKING_SENDER_ID: str = "SUQAFURAN"
 
+    # TWILIO (SMS and verification)
+    TWILIO_ACCOUNT_SID: Optional[str] = None
+    TWILIO_AUTH_TOKEN: Optional[str] = None
+    TWILIO_VERIFY_SERVICE_SID: Optional[str] = None
+
     # M-PESA DARAJA API (for STK push subscriptions)
     MPESA_CONSUMER_KEY: str = ""
     MPESA_CONSUMER_SECRET: str = ""
@@ -57,10 +62,10 @@ class Settings(BaseSettings):
     OTEL_EXPORTER_OTLP_ENDPOINT: Optional[str] = None # e.g., http://tempo:4317
     
     # DATABASE
-    POSTGRES_SERVER: str
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_DB: str
+    POSTGRES_SERVER: str = "localhost"
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_DB: str = "suqafuran"
     POSTGRES_PORT: str = "5432"
     DATABASE_URL: Optional[str] = None
 

@@ -1,4 +1,4 @@
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session
 from app.api import deps
@@ -159,18 +159,71 @@ def track_email_open(token: str, request: Request, db: Session = Depends(deps.ge
 
 
 @router.get("/email/track-click")
-def track_email_click(token: str, redirect_url: str, request: Request, db: Session = Depends(deps.get_db)) -> Any:
+def track_email_click(
+    token: str,
+    r: Optional[str] = None,
+    redirect_url: Optional[str] = None,
+    url: Optional[str] = None,
+    request: Request = None,
+    db: Session = Depends(deps.get_db)
+) -> Any:
     """
-    Tracks email clicks (CTR) and redirects user to secure target destination safely.
+    Tracks email clicks (CTR) and safely redirects user to target destination.
+    Accepts base64url-encoded `r` parameter (Cloudflare WAF-safe) or legacy `redirect_url`.
     """
+    import base64
+    from urllib.parse import urlparse
     from app.models.email_log import EmailLog
+    from app.core.config import settings
     from datetime import datetime
     from fastapi.responses import RedirectResponse
     import json
 
-    client_ip = request.client.host if request.client else "unknown"
-    user_agent = request.headers.get("user-agent", "unknown")
+    client_ip = request.client.host if request and request.client else "unknown"
+    user_agent = request.headers.get("user-agent", "unknown") if request else "unknown"
 
+    # 1. Resolve target destination safely
+    target_url = None
+    if r:
+        try:
+            padded = r + "=" * ((4 - len(r) % 4) % 4)
+            target_url = base64.urlsafe_b64decode(padded.encode()).decode("utf-8")
+        except Exception:
+            target_url = None
+
+    if not target_url and redirect_url:
+        # Check if redirect_url itself was passed base64 encoded or plaintext
+        if not (redirect_url.startswith("http://") or redirect_url.startswith("https://") or redirect_url.startswith("/")):
+            try:
+                padded = redirect_url + "=" * ((4 - len(redirect_url) % 4) % 4)
+                decoded = base64.urlsafe_b64decode(padded.encode()).decode("utf-8")
+                if decoded.startswith("http://") or decoded.startswith("https://") or decoded.startswith("/"):
+                    target_url = decoded
+            except Exception:
+                pass
+        if not target_url:
+            target_url = redirect_url
+
+    if not target_url and url:
+        target_url = url
+
+    if not target_url:
+        target_url = settings.FRONTEND_URL or "https://suqafuran.com"
+
+    # 2. Prevent Open Redirect vulnerabilities to untrusted third-party domains
+    allowed_domains = {"suqafuran.com", "app.suqafuran.com", "shops.suqafuran.com", "localhost"}
+    try:
+        parsed = urlparse(target_url)
+        if not parsed.netloc and target_url.startswith("/"):
+            target_url = f"{(settings.FRONTEND_URL or 'https://suqafuran.com').rstrip('/')}{target_url}"
+        elif parsed.netloc:
+            host = parsed.netloc.split(":")[0].lower()
+            if not any(host == d or host.endswith(f".{d}") for d in allowed_domains):
+                target_url = settings.FRONTEND_URL or "https://suqafuran.com"
+    except Exception:
+        target_url = settings.FRONTEND_URL or "https://suqafuran.com"
+
+    # 3. Update EmailLog CTR status
     log_entry = db.query(EmailLog).filter(EmailLog.tracking_token == token).first()
     if log_entry:
         meta = {}
@@ -187,7 +240,7 @@ def track_email_click(token: str, redirect_url: str, request: Request, db: Sessi
             "ip": client_ip,
             "user_agent": user_agent,
             "action": "click",
-            "redirect_url": redirect_url
+            "redirect_url": target_url
         })
         log_entry.metadata_json = json.dumps(meta)
 
@@ -196,13 +249,12 @@ def track_email_click(token: str, redirect_url: str, request: Request, db: Sessi
             if not log_entry.clicked_at:
                 log_entry.clicked_at = datetime.utcnow()
             if not log_entry.opened_at:
-                log_entry.opened_at = datetime.utcnow() # Safe assumption: opened before clicked
+                log_entry.opened_at = datetime.utcnow()
 
         db.add(log_entry)
         db.commit()
 
-    # Secure redirect to the absolute URL
-    return RedirectResponse(url=redirect_url)
+    return RedirectResponse(url=target_url)
 
 
 @router.get("/email/unsubscribe")

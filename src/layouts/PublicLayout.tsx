@@ -35,6 +35,9 @@ import { useAuthStore } from '../store/useAuthStore';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { CurrencySwitcher } from '../components/CurrencySwitcher';
 import { AISupportChat } from '../components/AISupportChat';
+import { useQuery } from '@tanstack/react-query';
+import { notificationService } from '../services/notificationService';
+import { messageService } from '../services/messageService';
 import { Capacitor } from '@capacitor/core';
 
 const isNative = Capacitor.isNativePlatform();
@@ -55,6 +58,23 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
 
     const isActive = (href: string) =>
         href === '/' ? path === '/' : path.startsWith(href);
+
+    const { data: notifications = [] } = useQuery({
+        queryKey: ['public-notifications-unread'],
+        queryFn: notificationService.getMyNotifications,
+        enabled: isAuthenticated,
+        refetchInterval: 15_000,
+    });
+
+    const { data: conversations = [] } = useQuery({
+        queryKey: ['public-conversations-unread'],
+        queryFn: messageService.getConversations,
+        enabled: isAuthenticated,
+        refetchInterval: 15_000,
+    });
+
+    const unreadNotifications = notifications.filter((n: any) => !n.is_read).length;
+    const unreadMessages = conversations.reduce((acc: number, c: any) => acc + (c.unread_count || 0), 0);
 
     return (
         <>
@@ -79,8 +99,13 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                     <div className="shrink-0">
                         <LanguageSwitcher compact light />
                     </div>
-                    <Link to="/notifications" className="relative p-2 shrink-0 text-primary-800">
+                    <Link to="/notifications" className="relative p-2 shrink-0 text-white hover:text-white/80" title={t('nav.alerts')}>
                         <Bell className="h-5 w-5" />
+                        {unreadNotifications > 0 && (
+                            <span className="absolute top-1 right-1 min-w-[16px] h-[16px] px-1 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white animate-pulse">
+                                {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                            </span>
+                        )}
                     </Link>
                     {isAuthenticated ? (
                         <Link to="/dashboard" className="shrink-0">
@@ -118,11 +143,21 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                             <Link to="/favorites" className="p-2 text-white/90 hover:text-white hover:bg-white/10 rounded-full transition-all" title={t('nav.saved')}>
                                 <Heart className="h-5 w-5" />
                             </Link>
-                            <Link to="/messages" className="p-2 text-white/90 hover:text-white hover:bg-white/10 rounded-full transition-all" title={t('nav.messages')}>
+                            <Link to="/messages" className="relative p-2 text-white/90 hover:text-white hover:bg-white/10 rounded-full transition-all" title={t('nav.messages')}>
                                 <MessageSquare className="h-5 w-5" />
+                                {unreadMessages > 0 && (
+                                    <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border border-primary-500 animate-pulse">
+                                        {unreadMessages > 9 ? '9+' : unreadMessages}
+                                    </span>
+                                )}
                             </Link>
-                            <Link to="/notifications" className="p-2 text-white/90 hover:text-white hover:bg-white/10 rounded-full transition-all" title={t('nav.alerts')}>
+                            <Link to="/notifications" className="relative p-2 text-white/90 hover:text-white hover:bg-white/10 rounded-full transition-all" title={t('nav.alerts')}>
                                 <Bell className="h-5 w-5" />
+                                {unreadNotifications > 0 && (
+                                    <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border border-primary-500 animate-pulse">
+                                        {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                                    </span>
+                                )}
                             </Link>
                             <Link to="/performance" className="p-2 text-white/90 hover:text-white hover:bg-white/10 rounded-full transition-all" title={t('nav.boost')}>
                                 <Zap className="h-5 w-5" />
@@ -222,11 +257,16 @@ const PublicLayout: React.FC<LayoutProps> = ({ children }) => {
                     <Link to="/messages"
                         className="flex-1 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform">
                         <div className={cn(
-                            'w-10 h-7 rounded-xl flex items-center justify-center transition-all duration-200',
+                            'w-10 h-7 rounded-xl flex items-center justify-center transition-all duration-200 relative',
                             isActive('/messages') ? 'bg-primary-100' : ''
                         )}>
                             <MessageSquare className={cn('h-5 w-5 transition-colors', isActive('/messages') ? 'text-primary-600' : 'text-gray-400')}
                                 strokeWidth={isActive('/messages') ? 2.5 : 1.8} />
+                            {unreadMessages > 0 && (
+                                <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white">
+                                    {unreadMessages > 9 ? '9+' : unreadMessages}
+                                </span>
+                            )}
                         </div>
                         <span className={cn('text-[10px] font-semibold', isActive('/messages') ? 'text-primary-600' : 'text-gray-400')}>
                             {t('nav.messages')}

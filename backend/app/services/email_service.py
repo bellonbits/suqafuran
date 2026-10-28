@@ -1,5 +1,6 @@
 import secrets
 import json
+import base64
 import redis
 from typing import Optional, List
 from app.core.config import settings
@@ -343,9 +344,10 @@ class EmailService:
         # Outbound link rewriting for high-fidelity CTR (Click-Through Rate) analytics
         def rewrite_link(match):
             url = match.group(1)
-            if "track-click" in url or "mailto:" in url or url.startswith("#"):
+            if "track-click" in url or "unsubscribe" in url or "mailto:" in url or "tel:" in url or url.startswith("#"):
                 return match.group(0)
-            tracked_url = f"{settings.BACKEND_URL}/api/v1/content/email/track-click?token={log_entry.tracking_token}&redirect_url={quote(url)}"
+            encoded_target = base64.urlsafe_b64encode(url.encode("utf-8")).decode("utf-8").rstrip("=")
+            tracked_url = f"{settings.BACKEND_URL}/api/v1/content/email/track-click?token={log_entry.tracking_token}&r={encoded_target}"
             return f'href="{tracked_url}"'
 
         html_body_tracked = re.sub(r'href=["\'](https?://[^"\']+)["\']', rewrite_link, html_body)
@@ -366,102 +368,15 @@ class EmailService:
         if not unsub_url and log_entry.tracking_token:
             unsub_url = f"{settings.BACKEND_URL}/api/v1/content/email/unsubscribe?token={log_entry.tracking_token}"
 
-        # Marketing/promotional sends prefer Brevo; everything else prefers
-        # Resend. Whichever isn't preferred still acts as a fallback below.
-        if preferred_provider == "brevo" and settings.BREVO_API_KEY:
-            try:
-                import requests
-
-                brevo_payload = {
-                    "sender": {"name": settings.BREVO_FROM_NAME, "email": settings.BREVO_FROM_EMAIL},
-                    "to": [{"email": email}],
-                    "subject": subject,
-                    "htmlContent": html_body_tracked,
-                }
-                if unsub_url:
-                    brevo_payload["headers"] = {
-                        "List-Unsubscribe": f"<{unsub_url}>, <mailto:support@suqafuran.com?subject=unsubscribe>",
-                        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-                    }
-
-                resp = requests.post(
-                    "https://api.brevo.com/v3/smtp/email",
-                    headers={
-                        "api-key": settings.BREVO_API_KEY,
-                        "Content-Type": "application/json",
-                        "Accept": "application/json",
-                    },
-                    json=brevo_payload,
-                    timeout=15,
-                )
-                resp.raise_for_status()
-                print(f"[Email] {email_type} sent via Brevo to {email}")
-                success = True
-                provider = "Brevo"
-            except Exception as e:
-                failed_reason = f"Brevo failed: {str(e)}"
-                print(f"[Email] Brevo failed ({e}), trying Resend fallback...")
-
-        # Primary Resend API Delivery (or fallback when Brevo failed/unconfigured)
-        if not success and settings.RESEND_API_KEY:
-            try:
-                import resend
-
-                resend.api_key = settings.RESEND_API_KEY
-
-                resend_payload = {
-                    "from": f"{settings.EMAIL_FROM_NAME} <{settings.EMAIL_FROM}>",
-                    "to": [email],
-                    "subject": subject,
-                    "html": html_body_tracked,
-                }
-                if unsub_url:
-                    resend_payload["headers"] = {
-                        "List-Unsubscribe": f"<{unsub_url}>, <mailto:support@suqafuran.com?subject=unsubscribe>",
-                        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-                    }
-
-                resend.Emails.send(resend_payload)
-                print(f"[Email] {email_type} sent via Resend to {email}")
-                success = True
-                provider = "Resend"
-            except Exception as e:
-                failed_reason = (failed_reason + " | " if failed_reason else "") + f"Resend failed: {str(e)}"
-                print(f"[Email] Resend failed ({e}), trying SMTP fallback...")
-
-        # Secondary: SMTP Fallback Delivery Chain
-        if not success and settings.SMTP_HOST and settings.SMTP_USER and settings.SMTP_PASSWORD:
-            try:
-                import smtplib
-                from email.mime.multipart import MIMEMultipart
-                from email.mime.text import MIMEText
-
-                msg = MIMEMultipart("alternative")
-                msg["Subject"] = subject
-                msg["From"] = f"{settings.EMAIL_FROM_NAME} <{settings.SMTP_USER}>"
-                msg["To"] = email
-                if unsub_url:
-                    msg["List-Unsubscribe"] = f"<{unsub_url}>, <mailto:support@suqafuran.com?subject=unsubscribe>"
-                    msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
-                msg.attach(MIMEText(html_body_tracked, "html"))
-
-                # Check for SSL vs TLS vs standard connection
-                if settings.SMTP_SSL:
-                    with smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT) as server:
-                        server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
-                        server.sendmail(settings.SMTP_USER, email, msg.as_string())
-                else:
-                    with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT) as server:
-                        if settings.SMTP_TLS:
-                            server.starttls()
-                        server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
-                        server.sendmail(settings.SMTP_USER, email, msg.as_string())
-                print(f"[Email] {email_type} sent via SMTP to {email}")
-                success = True
-                provider = "SMTP"
-            except Exception as e:
-                failed_reason = (failed_reason + " | " if failed_reason else "") + f"SMTP failed: {str(e)}"
-                print(f"[Email] SMTP failed: {e}")
+        # Strategy Pattern dispatch governed by Circuit Breakers
+        from app.services.email_strategies import email_dispatcher
+        success, provider, failed_reason = email_dispatcher.dispatch(
+            to_email=email,
+            subject=subject,
+            html_content=html_body_tracked,
+            preferred_provider=preferred_provider,
+            unsub_url=unsub_url
+        )
 
         # Local Dev Bypass fallback
         if not success:

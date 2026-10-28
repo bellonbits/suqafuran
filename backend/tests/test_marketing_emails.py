@@ -361,8 +361,11 @@ class TestMarketingConsentAndUnsubscribe(unittest.TestCase):
 class TestTransactionalEmailsIntegrity(unittest.TestCase):
     """Ensure transactional emails remain unaffected and isolated."""
 
+    @patch("app.core.config.settings.ENVIRONMENT", "development")
+    @patch("app.services.otp_log_service.otp_log.record")
+    @patch.object(email_service, "check_rate_limit", return_value=True)
     @patch("resend.Emails.send", return_value={"id": "resend_test_123"})
-    def test_verification_code_transactional_send(self, mock_resend):
+    def test_verification_code_transactional_send(self, mock_resend, mock_rate_limit, mock_otp_log):
         result = email_service.send_verification_code("user@example.com")
         self.assertTrue(result)
         mock_resend.assert_called_once()

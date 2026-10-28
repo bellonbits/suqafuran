@@ -5,9 +5,11 @@ from app.core.config import settings
 
 class TwilioService:
     def __init__(self):
-        if settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN:
-            self.client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-            self.service_sid = settings.TWILIO_VERIFY_SERVICE_SID
+        account_sid = getattr(settings, "TWILIO_ACCOUNT_SID", None)
+        auth_token = getattr(settings, "TWILIO_AUTH_TOKEN", None)
+        if account_sid and auth_token:
+            self.client = Client(account_sid, auth_token)
+            self.service_sid = getattr(settings, "TWILIO_VERIFY_SERVICE_SID", None)
         else:
             self.client = None
             self.service_sid = None

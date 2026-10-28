@@ -1,4 +1,6 @@
 import time
+import logging
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, SQLModel
@@ -11,6 +13,7 @@ from app.models.user import User
 from app.services.user_notification_service import user_notification_service
 from app.services.kafka_service import ws_manager as kafka_ws_manager
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # In-memory tracking of recent user activity timestamps (epoch seconds)
@@ -97,8 +100,72 @@ def send_message(
 
     sender_name = current_user.full_name or "Someone"
     preview = msg.content[:80]
+    now_iso = msg.created_at.isoformat() if msg.created_at else datetime.utcnow().isoformat()
 
-    # Queue notifications as background tasks to avoid blocking the response
+    # 1. Guaranteed in-app notification created in DB (never lost if Celery worker is down)
+    try:
+        from app.crud.crud_notification import crud_notification
+        crud_notification.create(
+            db,
+            obj_in={
+                "type": "message",
+                "data": {
+                    "message_id": msg.id,
+                    "sender_id": current_user.id,
+                    "sender_name": sender_name,
+                    "content": msg.content,
+                    "listing_id": msg.listing_id,
+                    "message": f"New message from {sender_name}: \"{preview}\"",
+                    "action_url": f"/messages?userId={current_user.id}",
+                }
+            },
+            user_id=message_in.receiver_id
+        )
+    except Exception as e:
+        logger.warning(f"Failed to create in-app notification: {e}")
+
+    # 2. Live Notification Broadcast via SSE & WebSocket (powers NotificationBell, Toast, Sound)
+    try:
+        notif_event = {
+            "type": "message",
+            "payload": {
+                "id": f"msg_{msg.id}",
+                "type": "message",
+                "title": f"New message from {sender_name}",
+                "message": f"New message from {sender_name}: \"{preview}\"",
+                "sender_id": current_user.id,
+                "sender_name": sender_name,
+                "listing_id": msg.listing_id,
+                "content": msg.content,
+                "created_at": now_iso,
+                "action_url": f"/messages?userId={current_user.id}",
+            },
+            "timestamp": now_iso,
+        }
+        kafka_ws_manager.broadcast_to_user_from_thread(message_in.receiver_id, notif_event)
+    except Exception as e:
+        logger.warning(f"Failed to broadcast live notification: {e}")
+
+    # 3. Live Chat WebSocket Broadcast (powers instant conversation updating & chat appending)
+    try:
+        from services.websocket_service import manager as chat_manager
+        channel = f"chat_{min(current_user.id, message_in.receiver_id)}_{max(current_user.id, message_in.receiver_id)}"
+        chat_event = {
+            "event_type": "new_message",
+            "id": msg.id,
+            "sender_id": current_user.id,
+            "receiver_id": message_in.receiver_id,
+            "content": msg.content,
+            "listing_id": msg.listing_id,
+            "timestamp": now_iso,
+            "created_at": now_iso,
+        }
+        chat_manager.broadcast_to_channel_from_thread(channel, chat_event, exclude_users=[str(current_user.id)])
+        chat_manager.broadcast_to_user_from_thread(str(message_in.receiver_id), chat_event)
+    except Exception as e:
+        logger.warning(f"Failed to broadcast live chat message: {e}")
+
+    # 4. Optional asynchronous external dispatches (Push, Email) via Celery if worker is running
     try:
         from app.tasks.notifications import send_message_notifications
         send_message_notifications.delay(

@@ -145,7 +145,7 @@ const ConversationList: React.FC<{
                                     <p className={cn('text-sm truncate', conv.unread_count > 0 ? 'font-bold text-gray-900' : 'font-medium text-gray-700')}>
                                         {conv.other_user_name || t('messages.unknownUser')}
                                     </p>
-                                    <span className="text-[10px] text-gray-400 shrink-0 ml-2">{formatTime(conv.last_message_at)}</span>
+                                    <span className="text-[10px] text-gray-400 shrink-0 ml-2">{formatTime(conv.last_message_at || (conv as any).last_message_time)}</span>
                                 </div>
                                 <p className={cn('text-xs truncate', conv.unread_count > 0 ? 'text-gray-600 font-medium' : 'text-gray-400')}>
                                     {conv.last_message || '…'}
@@ -198,6 +198,10 @@ const ChatView: React.FC<{
             qc.invalidateQueries({ queryKey: ['conversations'] });
             setText('');
             inputRef.current?.focus();
+        },
+        onError: (err: any) => {
+            const errorMsg = err?.response?.data?.detail || err?.message || 'Failed to send message';
+            alert(`Could not send message: ${errorMsg}`);
         },
     });
 

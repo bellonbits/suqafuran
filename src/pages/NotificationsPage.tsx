@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { notificationService } from '../services/notificationService';
 import type { Notification } from '../services/notificationService';
+import { useNavigate } from 'react-router-dom';
 import {
     Bell, MessageCircle, CheckCircle, Info, Loader2, Clock, TrendingDown, Trash2
 } from 'lucide-react';
@@ -13,6 +14,7 @@ import { formatDistanceToNow } from 'date-fns';
 
 const NotificationsPage: React.FC = () => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { data: notifications, isLoading } = useQuery<Notification[]>({
         queryKey: ['notifications'],
@@ -47,6 +49,24 @@ const NotificationsPage: React.FC = () => {
             case 'ad_posted': return <CheckCircle className="h-5 w-5 text-secondary-500" />;
             case 'price_drop': return <TrendingDown className="h-5 w-5 text-orange-500" />;
             default: return <Info className="h-5 w-5 text-primary-500" />;
+        }
+    };
+
+    const handleNotificationClick = (notif: Notification) => {
+        if (!notif.is_read) {
+            readMutation.mutate(notif.id);
+        }
+        const senderId = notif.data?.sender_id || notif.data?.other_user_id || notif.data?.user_id;
+        if (notif.data?.action_url) {
+            navigate(notif.data.action_url);
+        } else if (notif.type === 'message' || notif.type === 'chat') {
+            if (senderId) {
+                navigate(`/messages?userId=${senderId}`);
+            } else {
+                navigate('/messages');
+            }
+        } else if (notif.data?.listing_id) {
+            navigate(`/listing/${notif.data.listing_id}`);
         }
     };
 
@@ -86,16 +106,16 @@ const NotificationsPage: React.FC = () => {
                     notifications?.map((notif) => (
                         <div
                             key={notif.id}
-                            onClick={() => !notif.is_read && readMutation.mutate(notif.id)}
+                            onClick={() => handleNotificationClick(notif)}
                             className={cn(
-                                "p-5 rounded-2xl border transition-all cursor-pointer flex gap-4",
+                                "group p-5 rounded-2xl border transition-all cursor-pointer flex gap-4 hover:shadow-md",
                                 notif.is_read
-                                    ? "bg-white border-gray-50 opacity-75"
-                                    : "bg-white border-primary-100 shadow-sm ring-1 ring-primary-50"
+                                    ? "bg-white border-gray-100 opacity-80 hover:opacity-100"
+                                    : "bg-white border-primary-200 shadow-sm ring-1 ring-primary-100/50"
                             )}
                         >
                             <div className={cn(
-                                "w-12 h-12 rounded-full flex items-center justify-center shrink-0",
+                                "w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-transform group-hover:scale-105",
                                 notif.is_read ? "bg-gray-50" : "bg-primary-50"
                             )}>
                                 {getIcon(notif.type)}
@@ -122,7 +142,7 @@ const NotificationsPage: React.FC = () => {
                             </div>
 
                             {!notif.is_read && (
-                                <div className="w-2 h-2 bg-primary-300 rounded-full mt-2 shrink-0"></div>
+                                <div className="w-2.5 h-2.5 bg-primary-500 rounded-full mt-2 shrink-0 animate-pulse"></div>
                             )}
 
                             <button
@@ -130,7 +150,8 @@ const NotificationsPage: React.FC = () => {
                                     e.stopPropagation();
                                     deleteMutation.mutate(notif.id);
                                 }}
-                                className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 transition-all"
+                                className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                title="Delete notification"
                             >
                                 <Trash2 size={16} />
                             </button>
