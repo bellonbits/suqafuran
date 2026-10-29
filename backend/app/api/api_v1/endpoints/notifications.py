@@ -67,7 +67,7 @@ def mark_all_notifications_read(
     count = crud_notification.mark_all_as_read(db, user_id=current_user.id)
     return {"message": "Success", "updated_count": count}
 
-@router.delete("/{notification_id}")
+@router.delete("/{notification_id:int}")
 def delete_notification(
     *,
     db: Session = Depends(deps.get_db),
@@ -126,6 +126,10 @@ async def notifications_websocket(websocket: WebSocket):
     try:
         await ws_manager.connect_user(user_id, websocket)
         logger.info(f"[WebSocket] Accepted connection for user {user_id}")
+        await websocket.send_json({
+            "type": "connection",
+            "payload": {"status": "connected", "user_id": user_id}
+        })
     except Exception as e:
         logger.error(f"[WebSocket] Failed to accept connection for user {user_id}: {e}")
         return
@@ -135,13 +139,16 @@ async def notifications_websocket(websocket: WebSocket):
     try:
         logger.info(f"[WebSocket] User {user_id} connected, listening for messages...")
         while True:
-            # This channel is push-only from the server; we just keep the
-            # socket open and detect disconnects. Any inbound text (e.g. a
-            # client ping) is read and discarded.
             try:
-                await asyncio.wait_for(websocket.receive_text(), timeout=120)
+                # 45s timeout to stay well under Cloudflare's 100s idle timeout
+                data = await asyncio.wait_for(websocket.receive_text(), timeout=45)
+                try:
+                    msg = json.loads(data)
+                    if msg.get("type") == "ping":
+                        await websocket.send_json({"type": "pong"})
+                except Exception:
+                    pass
             except asyncio.TimeoutError:
-                # No message for 2 minutes, send a ping to keep alive
                 try:
                     await websocket.send_json({"type": "ping"})
                 except Exception:
