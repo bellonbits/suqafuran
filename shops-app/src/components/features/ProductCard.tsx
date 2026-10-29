@@ -25,9 +25,11 @@ interface ProductCardProps {
     categoryName?: string;
     /** 'vertical' (default) is the grid/carousel card: image on top. 'horizontal' is a list-row: fixed-size image on the left, details (including description) on the right. */
     layout?: 'vertical' | 'horizontal';
+    /** Whether this image is an LCP/above-the-fold image */
+    priority?: boolean;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, discountPercent, originalPrice, categoryName, layout = 'vertical' }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, discountPercent, originalPrice, categoryName, layout = 'vertical', priority = false }) => {
     const [isFeatured, setIsFeatured] = useState(false);
     const { isAuthenticated } = useAuthStore();
     const openAuthModal = useAuthModal((s) => s.open);
@@ -137,8 +139,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                         src={displayImage}
                         alt={listing.title_en}
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        loading="eager"
+                        loading={priority ? 'eager' : 'lazy'}
                         decoding="async"
+                        fetchPriority={priority ? 'high' : undefined}
                     />
                     {cornerBadges}
                 </div>
@@ -196,8 +199,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                     src={displayImage}
                     alt={listing.title_en}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    loading="eager"
+                    loading={priority ? 'eager' : 'lazy'}
                     decoding="async"
+                    fetchPriority={priority ? 'high' : undefined}
                 />
 
                 {cornerBadges}

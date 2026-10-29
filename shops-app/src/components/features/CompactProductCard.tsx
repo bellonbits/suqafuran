@@ -33,7 +33,7 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
                     <img
                         src={optimizeCloudinaryUrl(product.images[0], { width: 150 }) || product.images[0]}
                         alt={product.title_en}
-                        loading="eager"
+                        loading="lazy"
                         decoding="async"
                         className="w-full h-full object-cover"
                     />

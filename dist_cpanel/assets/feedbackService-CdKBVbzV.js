@@ -1,0 +1,1 @@
+import{i as a}from"./index-Bm3hRP4t.js";const n={getUserFeedback:async e=>(await a.get(`/feedback/user/${e}/feedback`)).data,submitFeedback:async e=>(await a.post("/feedback/feedback",e)).data,getListingFeedback:async e=>(await a.get(`/feedback/listing/${e}`)).data};export{n as f};

@@ -164,7 +164,7 @@ export function GlovoShopCard({ shop, index, hideRating }: GlovoShopCardProps) {
                     key={i}
                     src={optimizeCloudinaryUrl(src, { width: 250 }) || src}
                     alt=""
-                    loading="eager"
+                    loading="lazy"
                     decoding="async"
                     className="h-full aspect-square object-cover shrink-0"
                     draggable={false}
@@ -178,7 +178,7 @@ export function GlovoShopCard({ shop, index, hideRating }: GlovoShopCardProps) {
               <img
                 src={optimizeCloudinaryUrl(banner, { width: 500 }) || banner}
                 alt={shop.shop_name}
-                loading="eager"
+                loading="lazy"
                 decoding="async"
                 className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
                 onError={() => setImgError(true)}

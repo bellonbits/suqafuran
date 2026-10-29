@@ -1,0 +1,1 @@
+import{b as i}from"./index-Bm3hRP4t.js";function c(){const{i18n:s}=i(),e=s.language;return{getField:(n,t)=>{if(!n)return"";const r=`${t}_en`,u=`${t}_so`;return e==="so"?n[u]||n[r]||"":n[r]||""},currentLang:e}}export{c as u};

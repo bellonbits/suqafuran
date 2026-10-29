@@ -106,7 +106,7 @@ export const ShopCard: React.FC<ShopCardProps> = ({ shop, index = 0, hideRating 
               alt={shop.shop_name || shop.owner_name}
               onError={() => setImgError(true)}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-              loading="eager"
+              loading={index !== undefined && index < 2 ? 'eager' : 'lazy'}
               decoding="async"
             />
           ) : (
@@ -121,7 +121,7 @@ export const ShopCard: React.FC<ShopCardProps> = ({ shop, index = 0, hideRating 
           {/* ── Logo in bottom-left corner ────────────────────────── */}
           {logo && (
             <div className="absolute bottom-3 left-3 w-10 h-10 rounded-xl overflow-hidden border-2 border-white shadow-md">
-              <img src={logo} alt="" loading="eager" decoding="async" className="w-full h-full object-cover" />
+              <img src={logo} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
             </div>
           )}
 

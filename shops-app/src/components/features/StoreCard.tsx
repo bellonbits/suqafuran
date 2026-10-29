@@ -263,6 +263,8 @@ export const StoreCard: React.FC<StoreCardProps> = ({
           <img
             src={bannerImage}
             alt={name}
+            loading="lazy"
+            decoding="async"
             onError={() => setImageError(true)}
             className="w-full h-full object-cover"
           />
@@ -271,7 +273,7 @@ export const StoreCard: React.FC<StoreCardProps> = ({
             <span className="text-4xl">🏪</span>
           </div>
         )}
-
+        
         {/* Promotion Badge - Top Left */}
         {displayPromotion && (
           <div className="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 rounded text-xs font-bold whitespace-nowrap">

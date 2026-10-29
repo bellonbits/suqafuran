@@ -1,70 +1,79 @@
-# ══════════════════════════════════════════════════════════════════════════════
-#  Cache Strategy — Suqafuran
-#
-#  Rule of thumb:
-#    • Files with a content hash in the name  → cache forever (immutable)
-#    • Files without a hash (SW, manifest, HTML, JSON) → never cache
-# ══════════════════════════════════════════════════════════════════════════════
+# Suqafuran — SPA routing, Crawler OpenGraph previews, Security & Cache Control for cPanel/Apache
+# ====================================================================================================
 
-# ── 1. NEVER cache index.html ─────────────────────────────────────────────────
-<Files "index.html">
-  Header set Cache-Control "no-cache, no-store, must-revalidate"
-  Header set Pragma "no-cache"
-  Header set Expires "0"
-</Files>
-
-# ── 2. NEVER cache the service worker or workbox runtime ──────────────────────
-#    If sw.js is cached the browser won't detect new deploys for up to a year.
-<FilesMatch "^(sw\.js|workbox-[^.]+\.js)$">
-  Header set Cache-Control "no-cache, no-store, must-revalidate"
-  Header set Pragma "no-cache"
-  Header set Expires "0"
-  Header set Service-Worker-Allowed "/"
-</FilesMatch>
-
-# ── 3. NEVER cache the PWA manifest or JSON files ────────────────────────────
-<FilesMatch "\.(webmanifest|json)$">
-  Header set Cache-Control "no-cache, no-store, must-revalidate"
-  Header set Pragma "no-cache"
-  Header set Expires "0"
-</FilesMatch>
-
-# ── 4. Cache hashed Vite assets forever ──────────────────────────────────────
-#    Vite names every chunk/asset with a content hash (e.g. index-btZfkqnt.js)
-#    new hash = new filename = browsers always fetch fresh files after deploy.
-<FilesMatch "assets/.*\.[a-f0-9]{8,}\.(js|css|woff2?|ttf|eot|svg|png|jpg|jpeg|gif|ico|webp)$">
-  Header set Cache-Control "public, max-age=31536000, immutable"
-</FilesMatch>
-
-# ── 5. Short cache for unhashed static assets ─────────────────────────────────
-<FilesMatch "\.(woff2?|ttf|eot|otf|png|jpg|jpeg|gif|ico|webp)$">
-  Header set Cache-Control "public, max-age=86400, stale-while-revalidate=3600"
-</FilesMatch>
-
-# ── SPA Routing ───────────────────────────────────────────────────────────────
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
 
-  # Skip real files and directories
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
+  # 1. Serve real files or directories as-is
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
 
-  # Route everything else to index.html
-  RewriteRule ^ index.html [QSA,L]
+  # 2. Social-media link-preview crawlers & search-engine bots (WhatsApp, Facebook, Twitter, Telegram, etc.)
+  # Dynamically render meta tags and OpenGraph image for listing/shop preview cards
+  RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|TelegramBot|Slackbot|Discordbot|Pinterest|redditbot|SkypeUriPreview|vkShare|Applebot|Googlebot|AdsBot-Google|Bingbot|DuckDuckBot|YandexBot) [NC]
+  RewriteRule ^listing/([0-9]+)/?$ listing-share.php?id=$1 [L,QSA]
+
+  RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|TelegramBot|Slackbot|Discordbot|Pinterest|redditbot|SkypeUriPreview|vkShare|Applebot|Googlebot|AdsBot-Google|Bingbot|DuckDuckBot|YandexBot) [NC]
+  RewriteRule ^shop/([a-zA-Z0-9-]+)/?$ shop-share.php?slug=$1 [L,QSA]
+
+  # 3. Everything else routes to index.html for Single Page Application client-side routing
+  RewriteRule ^ index.html [L]
 </IfModule>
 
-# ── Gzip compression ─────────────────────────────────────────────────────────
+# GZIP / Deflate Compression
 <IfModule mod_deflate.c>
-  AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript
-  AddOutputFilterByType DEFLATE application/javascript application/json
-  AddOutputFilterByType DEFLATE application/manifest+json
-  AddOutputFilterByType DEFLATE font/woff2 image/svg+xml
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript
+  AddOutputFilterByType DEFLATE application/javascript application/x-javascript application/json application/xml
+  AddOutputFilterByType DEFLATE application/manifest+json application/vnd.ms-fontobject
+  AddOutputFilterByType DEFLATE font/ttf font/otf font/woff font/woff2 image/svg+xml
 </IfModule>
 
-# ── Security headers ─────────────────────────────────────────────────────────
+# Caching and Headers
 <IfModule mod_headers.c>
-  Header set X-Content-Type-Options "nosniff"
-  Header set X-Frame-Options "SAMEORIGIN"
-  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  # Security Headers
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set X-XSS-Protection "1; mode=block"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+
+  # 1. NEVER cache index.html — ensures immediate updates upon deployment
+  <FilesMatch "^(index\.html)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+
+  # 2. NEVER cache service worker or manifest
+  <FilesMatch "^(sw\.js|workbox-[^.]+\.js|manifest\.webmanifest)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+    Header set Service-Worker-Allowed "/"
+  </FilesMatch>
+
+  # 3. Hashed assets (Vite chunk files) — cache permanently and immutably
+  <FilesMatch "\.[a-f0-9]{8,}\.(js|css|woff2?|ttf|eot|svg|png|jpg|jpeg|gif|ico|webp)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  # 4. Static images and icons
+  <FilesMatch "\.(png|jpg|jpeg|gif|ico|svg|webp)$">
+    Header set Cache-Control "public, max-age=604800, stale-while-revalidate=86400"
+  </FilesMatch>
+</IfModule>
+
+# Fallback cache expires
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType application/javascript "access plus 1 month"
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType image/png "access plus 1 week"
+  ExpiresByType image/jpeg "access plus 1 week"
+  ExpiresByType image/svg+xml "access plus 1 week"
+  ExpiresByType font/woff2 "access plus 1 year"
 </IfModule>

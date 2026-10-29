@@ -80,7 +80,7 @@ if ($notFound) {
 }
 
 function og_escape($value) {
-    return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
 }
 ?>
 <!doctype html>

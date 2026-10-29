@@ -457,7 +457,7 @@ export default function ProductDetailPage() {
                                             onClick={() => setActiveImage(img)}
                                             className={`h-16 w-16 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${activeImage === img ? 'border-orange-500' : 'border-gray-200 dark:border-neutral-800'}`}
                                         >
-                                            <img src={optimizeCloudinaryUrl(img, { width: 100 }) || img} alt="" loading="eager" decoding="async" className="h-full w-full object-cover" />
+                                            <img src={optimizeCloudinaryUrl(img, { width: 100 }) || img} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                                         </button>
                                     ))}
                                 </div>

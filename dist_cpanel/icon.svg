@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <!-- Soft card shadow -->
+    <filter id="cardShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="rgba(0,0,0,0.18)"/>
+    </filter>
+    <!-- Blue-to-navy gradient for the S -->
+    <linearGradient id="sGrad" x1="0.3" y1="0" x2="0.7" y2="1">
+      <stop offset="0%"   stop-color="#58BDEE"/>
+      <stop offset="100%" stop-color="#1B3D91"/>
+    </linearGradient>
+  </defs>
+
+  <!-- White rounded-square card -->
+  <rect x="5" y="5" width="90" height="90" rx="22" ry="22"
+        fill="#F4F6F9" filter="url(#cardShadow)"/>
+
+  <!-- Bold S with gradient -->
+  <text
+    x="50" y="80"
+    font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial Black, sans-serif"
+    font-size="66"
+    font-weight="900"
+    text-anchor="middle"
+    fill="url(#sGrad)"
+  >S</text>
+
+  <!-- Amazon-style smile arrow above the S -->
+  <path
+    d="M 29 34 Q 49 49 68 30"
+    stroke="#3CA3D8"
+    stroke-width="3.2"
+    stroke-linecap="round"
+    fill="none"
+  />
+  <!-- Arrowhead at right end -->
+  <path
+    d="M 63 25.5 L 69.5 30 L 63 34.5"
+    stroke="#3CA3D8"
+    stroke-width="2.8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+</svg>

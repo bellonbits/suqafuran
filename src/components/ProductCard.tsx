@@ -31,6 +31,7 @@ interface ProductCardProps {
     isNegotiable?: boolean;
     hasBulkPrice?: boolean;
     className?: string;
+    priority?: boolean;
 }
 
 const ProductCard = React.memo(function ProductCard({
@@ -51,6 +52,7 @@ const ProductCard = React.memo(function ProductCard({
     isNegotiable = false,
     hasBulkPrice = false,
     className,
+    priority = false,
 }: ProductCardProps) {
     const { currency: targetCurrency } = useCurrencyStore();
     const { t, i18n } = useTranslation();
@@ -132,8 +134,9 @@ const ProductCard = React.memo(function ProductCard({
                         width="400"
                         height="225"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
+                        loading={priority ? 'eager' : 'lazy'}
                         decoding="async"
+                        fetchPriority={priority ? 'high' : undefined}
                         onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
                 )}

@@ -1128,7 +1128,7 @@ export default function ShopDetailPage() {
                                             return filtered;
                                         })()
 
-                                            .map((product) => {
+                                            .map((product, pIdx) => {
                                             const { hasPromo, originalPrice, promoText } = getMockProductInfo(product);
 
                                             return (
@@ -1143,7 +1143,7 @@ export default function ShopDetailPage() {
                                                             <img
                                                                 src={optimizeCloudinaryUrl(product.images[0], { width: 500 }) || product.images[0]}
                                                                 alt={product.title_en}
-                                                                loading="eager"
+                                                                loading={pIdx < 4 ? 'eager' : 'lazy'}
                                                                 decoding="async"
                                                                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-103"
                                                             />
@@ -1503,7 +1503,7 @@ export default function ShopDetailPage() {
                                                 key={i}
                                                 src={optimizeCloudinaryUrl(src, { width: 900 }) || src}
                                                 alt={`${selectedProduct.title_en} ${i + 1}`}
-                                                loading="eager"
+                                                loading={i === 0 ? 'eager' : 'lazy'}
                                                 decoding="async"
                                                 className="h-full w-full object-contain p-4 shrink-0 snap-center"
                                                 draggable={false}
