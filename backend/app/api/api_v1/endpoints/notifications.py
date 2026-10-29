@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status
 from fastapi.responses import StreamingResponse
 from jose import jwt
 from sqlmodel import Session
@@ -95,8 +95,7 @@ async def notifications_websocket(websocket: WebSocket):
     Once connected, the server pushes any event addressed to this user_id
     (e.g. an order status change from a seller) with no polling required.
     """
-    print(f"[WebSocket] 🔌 ENDPOINT HIT from {websocket.client}")
-    logger.info(f"[WebSocket] 🔌 Connection attempt from {websocket.client}")
+    logger.info(f"[WebSocket] Connection attempt from {websocket.client}")
     token = websocket.query_params.get("token")
     user_id = None
 
@@ -106,21 +105,26 @@ async def notifications_websocket(websocket: WebSocket):
             sub = decoded.get("sub")
             # Handle both string and int user IDs
             user_id = int(sub) if sub else None
-            logger.info(f"[WebSocket] SUCCESS Token decoded successfully for user {user_id}")
+            logger.info(f"[WebSocket] Token validated successfully for user {user_id}")
+        except jwt.ExpiredSignatureError:
+            logger.warning("[WebSocket] Token validation failed: token has expired")
+            user_id = None
+        except jwt.JWTError as e:
+            logger.warning(f"[WebSocket] Token validation failed: {str(e)}")
+            user_id = None
         except Exception as e:
-            logger.error(f"[WebSocket] ERROR Token decode failed: {str(e)}, token: {token[:20] if token else 'None'}...")
+            logger.error(f"[WebSocket] Unexpected auth verification error: {str(e)}")
             user_id = None
     else:
-        logger.warning(f"[WebSocket] ⚠️ No token provided in query params")
+        logger.warning("[WebSocket] No token provided in query params")
 
     if not user_id:
         try:
             await websocket.accept()
             await websocket.send_json({"error": "Unauthorized: invalid or missing token"})
-            await websocket.close(code=4401, reason="Invalid token")
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Invalid token")
         except Exception as e:
-            logger.warning(f"[WebSocket] Error rejecting auth: {e}")
-        logger.warning(f"[WebSocket] Auth rejected - no token or user_id")
+            logger.warning(f"[WebSocket] Error rejecting unauthorized socket: {e}")
         return
 
     try:
@@ -131,8 +135,9 @@ async def notifications_websocket(websocket: WebSocket):
             "payload": {"status": "connected", "user_id": user_id}
         })
     except Exception as e:
-        logger.error(f"[WebSocket] Failed to accept connection for user {user_id}: {e}")
+        logger.error(f"[WebSocket] Failed to register connection for user {user_id}: {e}")
         return
+
     if ws_manager.loop is None:
         ws_manager.set_event_loop(asyncio.get_event_loop())
 
@@ -157,9 +162,9 @@ async def notifications_websocket(websocket: WebSocket):
                 break
     except WebSocketDisconnect:
         logger.info(f"[WebSocket] User {user_id} disconnected normally")
-        ws_manager.disconnect_user(user_id, websocket)
     except Exception as e:
         logger.error(f"[WebSocket] Error for user {user_id}: {e}")
+    finally:
         ws_manager.disconnect_user(user_id, websocket)
 
 
