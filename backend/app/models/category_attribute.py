@@ -25,5 +25,6 @@ class CategoryAttributeUpdate(SQLModel):
     sort_order: Optional[int] = None
 
 
-class CategoryAttributeRead(CategoryAttribute):
-    pass
+class CategoryAttributeRead(CategoryAttributeBase):
+    id: int
+    created_at: datetime

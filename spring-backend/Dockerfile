@@ -22,8 +22,8 @@ WORKDIR /app
 
 RUN addgroup -S suqafuran && adduser -S suqafuran -G suqafuran
 
-COPY --from=builder /build/build/libs/spring-backend-*.jar app.jar
-RUN chown -R suqafuran:suqafuran /app
+COPY --from=builder /build/build/libs/*.jar /app/app.jar
+RUN chown -R suqafuran:suqafuran /app && chmod 755 /app && chmod 644 /app/app.jar
 
 USER suqafuran
 
@@ -31,5 +31,5 @@ EXPOSE 8080
 
 ENV JAVA_OPTS="-XX:+UseG1GC -XX:MaxRAMPercentage=75.0 -Xms256m -Xmx512m -Djava.security.egd=file:/dev/./urandom"
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
 
