@@ -303,22 +303,41 @@ class SubscriptionService:
     def can_add_products(
         self, seller_id: int, session: Session
     ) -> bool:
-        """Check if seller can add more products based on plan."""
+        """Check if seller can add more products based on plan, consulting Spring Boot entitlements."""
+        from app.models import Listing
 
+        active_listings = session.exec(
+            select(Listing).where(
+                Listing.owner_id == seller_id,
+                Listing.status == "active",
+                Listing.is_sold == False
+            )
+        ).all()
+        current_count = len(active_listings)
+
+        # 1. Attempt Spring Boot internal entitlements check
+        spring_url = getattr(settings, "SPRING_BOOT_URL", "http://spring-backend:8080")
+        internal_key = getattr(settings, "INTERNAL_SERVICE_KEY", "suqafuran-internal-secure-key-2026")
+        try:
+            resp = httpx.get(
+                f"{spring_url}/internal/v1/entitlements/sellers/{seller_id}?currentActiveListings={current_count}",
+                headers={"X-Internal-Service-Key": internal_key},
+                timeout=1.5
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                limits = data.get("limits", {})
+                if "canCreateListing" in limits:
+                    return bool(limits["canCreateListing"])
+        except Exception as e:
+            logger.debug(f"Spring Boot entitlements check fallback: {e}")
+
+        # 2. Resilient local fallback
         features = self.get_seller_features(seller_id, session)
         if not features or features.max_products is None:
             return True  # Unlimited
 
-        # Count current products
-        from app.models import Listing
-
-        count = session.exec(
-            select(Listing).where(Listing.owner_id == seller_id).where(
-                Listing.is_active == True
-            )
-        ).all()
-
-        return len(count) < features.max_products
+        return current_count < features.max_products
 
     def handle_mpesa_callback(
         self, body: Dict[str, Any], session: Session

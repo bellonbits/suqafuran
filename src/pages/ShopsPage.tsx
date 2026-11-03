@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { PublicLayout } from '../layouts/PublicLayout';
-import { sellerService, Seller } from '../services/sellerService';
+import { sellerService, type Seller } from '../services/sellerService';
 import { businessService } from '../services/businessService';
 import { getImageUrl } from '../utils/imageUtils';
 import { useScrollPosition } from '../hooks/useScrollPosition';

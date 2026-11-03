@@ -26,6 +26,20 @@ class MarketingAutomationService:
     EMAIL_TEMPLATES = {
         EmailEventType.SIGNUP: {
             "subject": "Welcome to Suqafuran! Start buying and selling today.",
+            "subjects": [
+                "Welcome to Suqafuran! Start buying and selling today.",
+                "You're in! Welcome to East Africa's trusted marketplace",
+                "Welcome aboard, {{ first_name }}! Here's how to get started",
+                "Start trading on Suqafuran — your account is ready",
+                "Welcome to the Suqafuran community!",
+                "Discover great local deals — welcome to Suqafuran",
+                "Ready to buy or sell? Your Suqafuran journey begins now",
+                "Welcome! Connect with verified buyers and sellers today",
+                "Your Suqafuran account is set up and ready to go",
+                "Glad to have you with us! Start discovering deals on Suqafuran",
+                "Welcome! Find what you need or list your first item today",
+                "Welcome to Suqafuran — buy, sell, and connect safely",
+            ],
             "template": """
             <h1>Welcome to Suqafuran!</h1>
             <p>Hi {{ first_name }},</p>
@@ -41,6 +55,18 @@ class MarketingAutomationService:
         
         EmailEventType.SHOP_CREATED: {
             "subject": "🎉 Your shop is now live!",
+            "subjects": [
+                "🎉 Your shop is now live on Suqafuran!",
+                "Congratulations! Your storefront is ready for business",
+                "Your shop is open — start adding products today",
+                "Great milestone! {{ shop_name }} is officially open",
+                "Buyers are ready: your shop is now active on Suqafuran",
+                "Your new shop is live! Here's how to get your first customer",
+                "Welcome to commerce on Suqafuran — {{ shop_name }} is live",
+                "Storefront activated! Put your products in front of thousands",
+                "Your shop is officially up! Start sharing your shop link",
+                "Time to sell! {{ shop_name }} is open for orders",
+            ],
             "template": """
             <h1>Your shop is live!</h1>
             <p>Hi {{ first_name }},</p>
@@ -57,6 +83,18 @@ class MarketingAutomationService:
         
         EmailEventType.LISTING_APPROVED: {
             "subject": "✅ Your product is now visible to thousands of buyers!",
+            "subjects": [
+                "✅ Your product is now visible to thousands of buyers!",
+                "Good news: your listing is approved and active!",
+                "Your listing is live on Suqafuran — get ready for inquiries",
+                "Approved! Buyers can now find {{ listing_title }}",
+                "Your item is live! Share it to start receiving messages",
+                "Success! {{ listing_title }} is now active on the marketplace",
+                "Your listing is approved! Here's how to boost inquiries",
+                "Listing live: buyers are browsing items like yours right now",
+                "Your item is published and ready for interested buyers",
+                "Great news! {{ listing_title }} passed moderation and is live",
+            ],
             "template": """
             <h1>Your listing is approved!</h1>
             <p>Hi {{ first_name }},</p>
@@ -72,6 +110,18 @@ class MarketingAutomationService:
         
         EmailEventType.LISTING_REJECTED: {
             "subject": "Your listing needs changes before it can go live",
+            "subjects": [
+                "Your listing needs changes before it can go live",
+                "Action required: update your listing to get it approved",
+                "Listing update needed: help us get your item live",
+                "Quick fix required for your listing on Suqafuran",
+                "Your listing needs a minor adjustment before publication",
+                "Important information regarding your recent listing",
+                "Help us approve your item: review required changes",
+                "Update required: see feedback on your recent listing",
+                "Your listing wasn't approved — here's how to fix it",
+                "Resubmit your listing: minor changes needed to go live",
+            ],
             "template": """
             <h1>Your listing wasn't approved</h1>
             <p>Hi {{ first_name }},</p>
@@ -84,6 +134,18 @@ class MarketingAutomationService:
 
         EmailEventType.LISTING_VIEWS_MILESTONE: {
             "subject": "🎉 Your listing hit {{ views }} views!",
+            "subjects": [
+                "🎉 Your listing hit {{ views }} views!",
+                "Your product is getting noticed: {{ views }} views reached!",
+                "Great momentum! {{ views }} buyers have checked out your item",
+                "High interest: {{ listing_title }} reached {{ views }} views",
+                "Buyers are watching: your listing passed {{ views }} views",
+                "Your listing is trending with {{ views }} views!",
+                "Milestone reached: {{ views }} people viewed your listing",
+                "Congratulations! Your product is gaining serious attention",
+                "{{ views }} views and counting — consider featuring for more leads",
+                "Popular item! {{ listing_title }} is attracting lots of eyes",
+            ],
             "template": """
             <h1>Congratulations!</h1>
             <p>Your listing <strong>{{ listing_title }}</strong> just reached {{ views }} views!</p>
@@ -93,6 +155,18 @@ class MarketingAutomationService:
         
         EmailEventType.PRICE_DROPPED: {
             "subject": "Good news! The item you saved is now cheaper.",
+            "subjects": [
+                "Good news! The item you saved is now cheaper.",
+                "Price drop alert: an item on your wishlist just dropped!",
+                "Save now: {{ listing_title }} is now available for less",
+                "Great news: price reduced on an item you liked",
+                "Price reduction alert! Don't miss this deal",
+                "The seller lowered the price on {{ listing_title }}",
+                "It's cheaper today! Check out this price reduction",
+                "Price drop notification: grab it before someone else does",
+                "Special update: cheaper price on your saved listing",
+                "Good timing: price just cut on {{ listing_title }}",
+            ],
             "template": """
             <h1>Price drop alert!</h1>
             <p>Hi {{ buyer_name }},</p>
@@ -105,6 +179,18 @@ class MarketingAutomationService:
         
         EmailEventType.ABANDONED_LISTING: {
             "subject": "Your product draft is waiting.",
+            "subjects": [
+                "Your product draft is waiting.",
+                "Almost there! Finish posting your listing on Suqafuran",
+                "Don't leave buyers waiting — complete your draft today",
+                "You're one step away from publishing your item",
+                "Pick up where you left off: complete your listing",
+                "Takes just 60 seconds to finish posting your listing",
+                "Your draft is saved — publish it today to reach buyers",
+                "Ready to sell? Complete and publish your listing now",
+                "Buyers are searching — finish posting your draft item",
+                "Finish your listing today and start getting offers",
+            ],
             "template": """
             <h1>Complete your listing</h1>
             <p>Hi {{ first_name }},</p>
@@ -115,6 +201,18 @@ class MarketingAutomationService:
         
         EmailEventType.INACTIVE_SELLER: {
             "subject": "Buyers are searching for products like yours.",
+            "subjects": [
+                "Buyers are searching for products like yours.",
+                "It's been a while — check your listings on Suqafuran",
+                "Buyers are active in your area! Give your shop a refresh",
+                "Keep the momentum going: update your items on Suqafuran",
+                "Your shop has visitors — update your stock today",
+                "Reconnect with buyers: restock or refresh your listings",
+                "Demand is high: see what buyers are looking for in your category",
+                "Give your listings a boost — return to Suqafuran today",
+                "Are your items still available? Update your shop status",
+                "Come back to active sales: refresh your Suqafuran shop",
+            ],
             "template": """
             <h1>Buyers are looking!</h1>
             <p>Hi {{ first_name }},</p>
@@ -131,6 +229,18 @@ class MarketingAutomationService:
         
         EmailEventType.SAVED_SEARCH_MATCH: {
             "subject": "New {{ search_query }} have just been listed.",
+            "subjects": [
+                "New {{ search_query }} have just been listed.",
+                "Alert: fresh listings match your search for {{ search_query }}",
+                "We found new matches for your {{ search_query }} alert",
+                "Just in: new items matching {{ search_query }}",
+                "Fresh search matches: new {{ search_query }} posted today",
+                "Check these out: new results for {{ search_query }}",
+                "Search update: fresh listings matching what you want",
+                "New products matching {{ search_query }} are now live",
+                "Your alert found new items: browse {{ search_query }} now",
+                "Don't miss these: newly listed {{ search_query }} near you",
+            ],
             "template": """
             <h1>{{ search_query }} alert!</h1>
             <p>Hi {{ first_name }},</p>
@@ -146,6 +256,18 @@ class MarketingAutomationService:
         
         EmailEventType.WEEKLY_DIGEST: {
             "subject": "This week on Suqafuran - {{ views }} new products",
+            "subjects": [
+                "This week on Suqafuran - {{ views }} new products",
+                "Your weekly marketplace update and top picks",
+                "See what's trending on Suqafuran this week",
+                "Top deals and new shops: your weekly digest",
+                "Marketplace roundup: the best of this week",
+                "What's moving fast on Suqafuran: your weekly recap",
+                "Discover the week's most popular items near you",
+                "Your weekend digest: fresh deals across categories",
+                "The week in review: hot products on Suqafuran",
+                "Catch up on this week's top additions and trends",
+            ],
             "template": """
             <h1>This Week on Suqafuran</h1>
             <p>🔥 {{ new_products_count }} new products</p>
@@ -162,6 +284,18 @@ class MarketingAutomationService:
         
         EmailEventType.BIRTHDAY: {
             "subject": "Happy Birthday from Suqafuran! 🎉",
+            "subjects": [
+                "Happy Birthday from Suqafuran! 🎉",
+                "Wishing you a wonderful birthday, {{ first_name }}! 🎂",
+                "A special birthday treat from the Suqafuran team 🎁",
+                "Celebrate your birthday with a special Suqafuran perk!",
+                "Happy Birthday! Enjoy your exclusive marketplace gift 🎈",
+                "It's your special day! Here's a gift from Suqafuran",
+                "Warm birthday wishes and bonus perks inside! 🥳",
+                "Cheers to another great year, {{ first_name }}! 🎉",
+                "Your birthday surprise from Suqafuran is ready",
+                "Happy Birthday! Claim your special celebration perks today",
+            ],
             "template": """
             <h1>Happy Birthday {{ first_name }}!</h1>
             <p>We have a special gift for you:</p>
@@ -209,8 +343,19 @@ class MarketingAutomationService:
             logger.warning(f"No template for event type: {event_type}")
             return
         
-        # Render template
-        subject_template = Template(template_data["subject"])
+        # Render template with rotating headline (10-15 variants)
+        variants = template_data.get("subjects") or [template_data.get("subject", "Suqafuran Notification")]
+        try:
+            prior_sends = session.exec(
+                select(func.count(EmailCampaign.id))
+                .where(EmailCampaign.user_id == user_id, EmailCampaign.event_type == event_type)
+            ).one() or 0
+        except Exception:
+            prior_sends = 0
+        variant_idx = (user_id + prior_sends) % len(variants)
+        selected_subject_raw = variants[variant_idx]
+
+        subject_template = Template(selected_subject_raw)
         body_template = Template(template_data["template"])
 
         subject = subject_template.render(**context)

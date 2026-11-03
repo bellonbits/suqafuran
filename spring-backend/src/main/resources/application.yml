@@ -1,0 +1,58 @@
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+
+spring:
+  application:
+    name: suqafuran-business-service
+  datasource:
+    url: ${DATABASE_JDBC_URL:${DATABASE_URL:jdbc:postgresql://localhost:5432/suqafuran}}
+    username: ${POSTGRES_USER:suqafuran}
+    password: ${POSTGRES_PASSWORD:suqafuran}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: SuqafuranSpringHikariPool
+      maximum-pool-size: ${DB_POOL_SIZE:5}
+      minimum-idle: 2
+      idle-timeout: 300000
+      max-lifetime: 600000
+      connection-timeout: 20000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+        show_sql: false
+  flyway:
+    enabled: ${FLYWAY_ENABLED:true}
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations: classpath:db/migration
+  data:
+    redis:
+      url: ${REDIS_URL:redis://localhost:6379/0}
+
+app:
+  security:
+    jwt-secret: ${SECRET_KEY:change-me-in-production}
+    internal-service-key: ${INTERNAL_SERVICE_KEY:suqafuran-internal-secure-key-2026}
+  mpesa:
+    base-url: ${MPESA_BASE_URL:https://sandbox.safaricom.co.ke}
+    consumer-key: ${MPESA_CONSUMER_KEY:}
+    consumer-secret: ${MPESA_CONSUMER_SECRET:}
+    business-shortcode: ${MPESA_BUSINESS_SHORTCODE:174379}
+    passkey: ${MPESA_PASSKEY:bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919}
+    callback-url: ${MPESA_CALLBACK_URL:https://app.suqafuran.com/api/v1/billing/webhook/mpesa}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+

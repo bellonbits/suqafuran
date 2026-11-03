@@ -65,54 +65,35 @@ class ConnectionManager:
 
     # --- Personal (per-user) channel — supports multiple tabs/devices per user ---
     async def connect_user(self, user_id: int, websocket: WebSocket):
-        await websocket.accept()
-        self.user_connections.setdefault(user_id, []).append(websocket)
-        logger.info(f"WebSocket connected for user {user_id}. Active: {len(self.user_connections[user_id])}")
+        from app.services.realtime_broadcaster import broadcaster
+        await broadcaster.connect_user(user_id, websocket)
+        self.user_connections[user_id] = broadcaster.user_websockets.get(user_id, [])
 
     def disconnect_user(self, user_id: int, websocket: WebSocket):
-        if user_id in self.user_connections:
-            if websocket in self.user_connections[user_id]:
-                self.user_connections[user_id].remove(websocket)
-            if not self.user_connections[user_id]:
-                del self.user_connections[user_id]
-        logger.info(f"WebSocket disconnected for user {user_id}")
+        from app.services.realtime_broadcaster import broadcaster
+        broadcaster.disconnect_user(user_id, websocket)
+        if user_id in self.user_connections and not broadcaster.user_websockets.get(user_id):
+            del self.user_connections[user_id]
 
     # --- Server-Sent Events (SSE) support for 100% reliable HTTPS streaming ---
     def register_user_sse(self, user_id: int, queue: asyncio.Queue):
-        self.user_sse_queues.setdefault(user_id, []).append(queue)
-        logger.info(f"SSE client registered for user {user_id}. Active SSE: {len(self.user_sse_queues[user_id])}")
+        from app.services.realtime_broadcaster import broadcaster
+        broadcaster.register_user_sse(user_id, queue)
+        self.user_sse_queues[user_id] = broadcaster.user_sse_queues.get(user_id, [])
 
     def unregister_user_sse(self, user_id: int, queue: asyncio.Queue):
-        if user_id in self.user_sse_queues:
-            if queue in self.user_sse_queues[user_id]:
-                self.user_sse_queues[user_id].remove(queue)
-            if not self.user_sse_queues[user_id]:
-                del self.user_sse_queues[user_id]
-        logger.info(f"SSE client unregistered for user {user_id}")
+        from app.services.realtime_broadcaster import broadcaster
+        broadcaster.unregister_user_sse(user_id, queue)
+        if user_id in self.user_sse_queues and not broadcaster.user_sse_queues.get(user_id):
+            del self.user_sse_queues[user_id]
 
     async def broadcast_to_user(self, user_id: int, message: dict):
-        # 1. Forward to active WebSocket connections
-        for connection in self.user_connections.get(user_id, []):
-            try:
-                await connection.send_json(message)
-            except Exception as e:
-                logger.error(f"Error sending socket message to user {user_id}: {e}")
-
-        # 2. Forward to active SSE queues
-        for queue in self.user_sse_queues.get(user_id, []):
-            try:
-                queue.put_nowait(message)
-            except Exception as e:
-                logger.error(f"Error queuing SSE message for user {user_id}: {e}")
+        from app.services.realtime_broadcaster import broadcaster
+        await broadcaster.broadcast_to_user(user_id, message)
 
     def broadcast_to_user_from_thread(self, user_id: int, message: dict):
-        if self.loop and self.loop.is_running():
-            asyncio.run_coroutine_threadsafe(
-                self.broadcast_to_user(user_id, message),
-                self.loop
-            )
-        else:
-            logger.warning("Event loop is not running. Cannot broadcast user WebSocket message from consumer thread.")
+        from app.services.realtime_broadcaster import broadcaster
+        broadcaster.broadcast_to_user_from_thread(user_id, message)
 
 
 ws_manager = ConnectionManager()

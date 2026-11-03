@@ -316,3 +316,19 @@ class AlertEvent(SQLModel, table=True):
     # Metadata
     message: str
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+
+class ZeroResultSearch(SQLModel, table=True):
+    """Track search queries that return zero results to identify unmet marketplace demand."""
+
+    __tablename__ = "zero_result_search"
+
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    query: str = Field(index=True)
+    category_id: Optional[int] = Field(default=None, index=True)
+    subcategory_id: Optional[int] = Field(default=None, index=True)
+    location: Optional[str] = Field(default=None, index=True)
+    user_id: Optional[int] = Field(default=None, foreign_key="user.id", index=True)
+    ip_address: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+

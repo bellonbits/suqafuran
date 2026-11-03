@@ -1,6 +1,6 @@
 from typing import Any, List, Optional
 import logging
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, BackgroundTasks, Header, Form
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, BackgroundTasks, Header, Form, Query
 from sqlmodel import Session, select, func
 from pydantic import BaseModel
 from app.api import deps
@@ -715,12 +715,19 @@ async def create_listing(
         effective_owner_id = owner_id
     owner_for_checks = db.get(User, effective_owner_id) if effective_owner_id != current_user.id else current_user
 
-    # Verify the owner has at least tier2 trust level (ID/business verification) to create listings
+    # Verify the owner has verified contact (phone or tier1) or is marked verified
     from app.models.user import UserVerifiedLevel
-    if not owner_for_checks.has_verification_level(UserVerifiedLevel.tier2):
+    is_verified_seller = (
+        owner_for_checks.is_verified or
+        owner_for_checks.has_verification_level(UserVerifiedLevel.phone) or
+        owner_for_checks.has_verification_level(UserVerifiedLevel.tier1) or
+        owner_for_checks.has_verification_level(UserVerifiedLevel.tier2) or
+        bool(owner_for_checks.phone and len(owner_for_checks.phone.strip()) >= 8)
+    )
+    if not is_verified_seller:
         raise HTTPException(
             status_code=403,
-            detail="Account verification required to sell. Please verify your identity or business details to create listings."
+            detail="Phone verification required to post products. Please verify your phone number to get started."
         )
 
     # Check product limit based on subscription plan
@@ -794,8 +801,33 @@ async def create_listing(
         listing_in.category_id = owner_for_checks.primary_category_id
 
     listing = crud_listing.create_listing(db, listing_in=listing_in, owner_id=effective_owner_id)
-    listing.status = "pending"  # Draft status - not visible yet
-    listing.moderation_status = "pending"  # Waiting for admin review
+
+    # 3-Tier AI-Assisted Moderation Decision Pipeline
+    from app.services.moderation_pipeline import evaluate_listing_moderation, ModerationDecisionTier
+    tier, risk_score, mod_flags, summary = evaluate_listing_moderation(
+        listing_in.model_dump(),
+        owner_for_checks,
+        db
+    )
+    listing.fraud_risk_score = risk_score
+    combined_flags = list(set((flags or []) + mod_flags))
+    listing.fraud_flags = combined_flags
+
+    if tier == ModerationDecisionTier.LOW_RISK:
+        listing.status = "active"
+        listing.moderation_status = "approved"
+        listing.approval_status = "approved"
+    elif tier == ModerationDecisionTier.MEDIUM_RISK:
+        listing.status = "pending"
+        listing.moderation_status = "pending"
+        listing.approval_status = "pending"
+    else:
+        # HIGH_RISK: Quarantined on hold for human investigation
+        listing.status = "closed"
+        listing.moderation_status = "rejected"
+        listing.approval_status = "rejected"
+        listing.rejection_reason = summary
+
     db.add(listing)
     db.commit()
     db.refresh(listing)
@@ -1536,6 +1568,58 @@ def merge_duplicate_shops(
         db.rollback()
         print(f"Error merging shops: {str(e)}")
         return {"error": str(e)}
+
+
+@router.get("/admin/moderation/queue")
+def get_moderation_queue(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    tier: Optional[str] = Query(None, description="Filter by risk tier: low, medium, high"),
+) -> Any:
+    """
+    (Admin / Moderator) Returns listings pending human moderation or placed on hold,
+    ordered by fraud risk score descending (highest risk first).
+    """
+    query = (
+        select(Listing, User.full_name, User.email, User.verified_level)
+        .join(User, Listing.owner_id == User.id)
+        .where(Listing.moderation_status.in_(["pending", "rejected"]))
+    )
+
+    if tier == "high":
+        query = query.where(Listing.fraud_risk_score >= 70)
+    elif tier == "medium":
+        query = query.where(Listing.fraud_risk_score >= 25, Listing.fraud_risk_score < 70)
+    elif tier == "low":
+        query = query.where(Listing.fraud_risk_score < 25)
+
+    query = query.order_by(Listing.fraud_risk_score.desc(), Listing.created_at.asc()).offset(skip).limit(limit)
+    rows = db.exec(query).all()
+
+    return [
+        {
+            "id": l.id,
+            "title": l.title_en or l.title_so,
+            "price": l.price,
+            "category_id": l.category_id,
+            "fraud_risk_score": l.fraud_risk_score,
+            "fraud_flags": l.fraud_flags or [],
+            "moderation_status": l.moderation_status,
+            "approval_status": l.approval_status,
+            "rejection_reason": l.rejection_reason,
+            "created_at": l.created_at.isoformat() if l.created_at else None,
+            "owner": {
+                "id": l.owner_id,
+                "name": full_name or "Unknown",
+                "email": email,
+                "verified_level": verified_level.value if hasattr(verified_level, "value") else str(verified_level),
+            }
+        }
+        for l, full_name, email, verified_level in rows
+    ]
 
 
 # ============== APPROVAL ENDPOINTS ==============

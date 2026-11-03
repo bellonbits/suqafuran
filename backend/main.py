@@ -35,13 +35,27 @@ except Exception:
 async def lifespan(app: FastAPI):
     """Manage app lifecycle - startup and shutdown"""
     # Startup
-    if HAS_APP_MODULE and init_background_tasks:
+    broadcaster = None
+    if HAS_APP_MODULE:
+        if init_background_tasks:
+            try:
+                init_background_tasks()
+            except Exception as e:
+                print(f"Warning: Failed to initialize background tasks: {str(e)}")
         try:
-            init_background_tasks()
+            from app.services.realtime_broadcaster import broadcaster
+            import asyncio
+            broadcaster.set_event_loop(asyncio.get_running_loop())
+            await broadcaster.start_subscriber()
         except Exception as e:
-            print(f"Warning: Failed to initialize background tasks: {str(e)}")
+            print(f"Warning: Failed to start realtime broadcaster: {str(e)}")
     yield
-    # Shutdown (if needed)
+    # Shutdown
+    if broadcaster:
+        try:
+            await broadcaster.stop_subscriber()
+        except Exception:
+            pass
 
 # Initialize FastAPI app
 app = FastAPI(

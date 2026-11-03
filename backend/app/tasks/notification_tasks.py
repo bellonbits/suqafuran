@@ -175,3 +175,29 @@ def send_push_notification_task(
             extra={"user_id": user_id, "correlation_id": correlation_id}
         )
         raise self.retry(exc=exc, countdown=2 ** self.request.retries)
+
+
+# ============== PERSONALIZED MARKETING SMS RECOMMENDATIONS ==============
+
+@shared_task(
+    name="app.tasks.notification_tasks.dispatch_weekly_sms_recommendations",
+    bind=True,
+    max_retries=1,
+    queue="notifications",
+)
+def dispatch_weekly_sms_recommendations(self, batch_limit: int = 150):
+    """
+    Scheduled task that runs 2-3 times per week.
+    Dispatches personalized product recommendation SMS messages to users
+    based on their search queries, saved searches, and browsing history.
+    """
+    from sqlmodel import Session
+    from app.db.session import engine
+    from app.services.marketing_sms_service import marketing_sms_service
+
+    logger.info("[Marketing SMS Task] Starting scheduled recommendation dispatch...")
+    with Session(engine) as db:
+        res = marketing_sms_service.process_recommendation_batch(db, batch_limit=batch_limit)
+        logger.info(f"[Marketing SMS Task] Completed: {res}")
+        return res
+

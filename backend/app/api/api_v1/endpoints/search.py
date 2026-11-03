@@ -1,13 +1,17 @@
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, Query
-from sqlmodel import Session, select, func
+from fastapi import APIRouter, Depends, Query, Request
+from sqlmodel import Session, select, func, or_
 from sqlalchemy.orm import selectinload
 from datetime import datetime
+import logging
 from app.api import deps
 from app.models.listing import Listing
 from app.models.listing_attribute import ListingAttribute
 from app.models.attribute import Attribute
 from app.models.subscription import FeaturedSelling
+from app.models.analytics import ZeroResultSearch
+
+logger = logging.getLogger("search")
 
 router = APIRouter()
 
@@ -16,6 +20,7 @@ router = APIRouter()
 def search_listings(
     *,
     db: Session = Depends(deps.get_db),
+    request: Request,
     q: Optional[str] = Query(None, description="Search query"),
     category_id: Optional[int] = Query(None),
     subcategory_id: Optional[int] = Query(None),
@@ -102,6 +107,60 @@ def search_listings(
     ).offset(skip).limit(limit)
 
     listings = db.exec(statement).all()
+
+    # If direct text match returns no results, attempt semantic synonym expansion
+    if len(listings) == 0 and q and q.strip():
+        try:
+            from app.services.search_intelligence import parse_natural_language_search
+            parsed = parse_natural_language_search(q)
+            synonyms_to_try = [parsed["clean_keywords"]] + parsed.get("synonyms", [])
+            synonyms_to_try = [s for s in synonyms_to_try if s and len(s) > 1 and s != q.lower()]
+
+            if synonyms_to_try:
+                fallback_stmt = select(Listing).where(Listing.status == "active")
+                filters = []
+                for term in synonyms_to_try[:4]:
+                    filters.append(Listing.title_en.ilike(f"%{term}%"))
+                    filters.append(Listing.title_so.ilike(f"%{term}%"))
+                fallback_stmt = fallback_stmt.where(or_(*filters))
+
+                if parsed.get("detected_location"):
+                    fallback_stmt = fallback_stmt.where(Listing.location.ilike(f"%{parsed['detected_location']}%"))
+                if min_price is None and parsed.get("min_price"):
+                    fallback_stmt = fallback_stmt.where(Listing.price >= parsed["min_price"])
+                if max_price is None and parsed.get("max_price"):
+                    fallback_stmt = fallback_stmt.where(Listing.price <= parsed["max_price"])
+                if category_id:
+                    fallback_stmt = fallback_stmt.where(Listing.category_id == category_id)
+                if subcategory_id:
+                    fallback_stmt = fallback_stmt.where(Listing.subcategory_id == subcategory_id)
+
+                fallback_listings = db.exec(
+                    fallback_stmt.order_by(Listing.boost_level.desc(), Listing.created_at.desc()).offset(skip).limit(limit)
+                ).all()
+
+                if fallback_listings:
+                    listings = fallback_listings
+        except Exception as e:
+            logger.debug(f"Semantic search expansion failed: {e}")
+
+    # Track zero-result searches to identify unmet marketplace demand (only if still zero)
+    if len(listings) == 0 and q and q.strip():
+        try:
+            client_ip = request.client.host if request.client else None
+            user_location = request.headers.get("x-user-location")
+            zero_record = ZeroResultSearch(
+                query=q.strip()[:200],
+                category_id=category_id,
+                subcategory_id=subcategory_id,
+                location=user_location,
+                ip_address=client_ip,
+            )
+            db.add(zero_record)
+            db.commit()
+        except Exception as e:
+            logger.debug(f"Failed to record zero-result search: {e}")
+            db.rollback()
 
     # Get all featured product IDs for this result set
     featured_listing_ids = set()
@@ -213,3 +272,78 @@ def get_attribute_filters(
         )
 
     return {"category_id": category_id, "filters": filters}
+
+
+@router.get("/search/zero-results")
+def get_zero_result_searches(
+    *,
+    db: Session = Depends(deps.get_db),
+    limit: int = Query(50, ge=1, le=200),
+    days: int = Query(30, ge=1, le=365),
+) -> Any:
+    """
+    (Admin / Intelligence) Retrieve top zero-result queries to identify unmet marketplace demand.
+    """
+    from datetime import timedelta
+    since = datetime.utcnow() - timedelta(days=days)
+
+    statement = (
+        select(
+            ZeroResultSearch.query,
+            func.count(ZeroResultSearch.id).label("count"),
+            func.max(ZeroResultSearch.created_at).label("last_searched_at"),
+            func.max(ZeroResultSearch.category_id).label("sample_category_id")
+        )
+        .where(ZeroResultSearch.created_at >= since)
+        .group_by(ZeroResultSearch.query)
+        .order_by(func.count(ZeroResultSearch.id).desc())
+        .limit(limit)
+    )
+
+    rows = db.exec(statement).all()
+    return [
+        {
+            "query": r[0],
+            "count": r[1],
+            "last_searched_at": r[2].isoformat() if r[2] else None,
+            "category_id": r[3],
+        }
+        for r in rows
+    ]
+
+
+@router.get("/search/suggestions")
+def get_search_suggestions(
+    *,
+    db: Session = Depends(deps.get_db),
+    q: str = Query(..., min_length=2, max_length=100),
+    limit: int = Query(8, ge=1, le=20),
+) -> List[str]:
+    """
+    Fast prefix / keyword search suggestions based on active marketplace listings.
+    """
+    pattern = f"%{q.strip()}%"
+    statement = (
+        select(Listing.title_en)
+        .where(Listing.status == "active")
+        .where(Listing.title_en.ilike(pattern))
+        .distinct()
+        .limit(limit)
+    )
+    results = db.exec(statement).all()
+    return [t for t in results if t]
+
+
+@router.post("/search/intelligent-parse")
+def parse_intelligent_query(
+    body: dict,
+) -> Any:
+    """
+    Parse a natural language query into structured filter entities (keywords, location,
+    price bounds, condition, category hints, and multilingual synonyms).
+    """
+    from app.services.search_intelligence import parse_natural_language_search
+    query = body.get("query", "")
+    return parse_natural_language_search(query)
+
+

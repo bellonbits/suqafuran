@@ -229,6 +229,31 @@ services:
       - suqafuran-network
     restart: unless-stopped
 
+  # Spring Boot Modular Monolith (Billing, Subscriptions, Entitlements, Promotions, Messaging)
+  spring-backend:
+    build:
+      context: ./spring-backend
+      dockerfile: Dockerfile
+    container_name: suqafuran-spring-backend
+    environment:
+      SERVER_PORT: "8080"
+      DATABASE_JDBC_URL: ${DATABASE_JDBC_URL:-jdbc:postgresql://${POSTGRES_SERVER:-127.0.0.1}:5432/${POSTGRES_DB:-suqafuran}?sslmode=require}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_POOL_SIZE: "5"
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-suqafuran-internal-secure-key-2026}
+      JAVA_OPTS: "-Xms256m -Xmx512m -XX:+UseG1GC"
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - suqafuran-network
+    restart: unless-stopped
+
   # Celery Worker
   celery-worker:
     build:

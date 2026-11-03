@@ -6,6 +6,7 @@ from sqlmodel import Field, SQLModel
 class ReviewBase(SQLModel):
     product_id: int = Field(foreign_key="listing.id", index=True)
     seller_id: int = Field(foreign_key="user.id", index=True)
+    buyer_id: Optional[int] = Field(default=None, foreign_key="user.id", index=True)
     customer_name: str
     rating: int = Field(ge=1, le=5)  # 1-5 rating
     comment: str
@@ -15,6 +16,9 @@ class Review(ReviewBase, table=True, tablename="review"):
     id: Optional[int] = Field(default=None, primary_key=True)
     response: Optional[str] = None
     responded_at: Optional[datetime] = None
+    moderation_status: str = Field(default="approved", index=True)  # approved, pending, hidden, rejected
+    is_reported: bool = Field(default=False, index=True)
+    report_reason: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 

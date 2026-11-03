@@ -82,9 +82,9 @@ docker-compose ps
 
 # Specific service
 ./docker.sh logs backend
-./docker.sh logs frontend
-./docker.sh logs postgres
+./docker.sh logs spring-backend
 ./docker.sh logs redis
+./docker.sh logs nginx
 ```
 
 ### Access Containers
@@ -92,11 +92,8 @@ docker-compose ps
 # Backend shell
 ./docker.sh shell backend
 
-# Frontend shell
-./docker.sh shell frontend
-
-# PostgreSQL
-./docker.sh shell postgres
+# Spring Backend shell
+./docker.sh shell spring-backend
 
 # Redis
 ./docker.sh shell redis
@@ -190,9 +187,8 @@ docker stats
 
 ```
 suqafuran/
-├── docker-compose.yml          # Service orchestration
-├── Dockerfile.backend          # Backend container image
-├── Dockerfile.frontend         # Frontend container image
+├── docker-compose.yml          # Backend infrastructure & microservices
+├── Dockerfile.backend          # FastAPI container image
 ├── .dockerignore               # Files to ignore in images
 ├── .env.docker                 # Example environment file
 ├── docker.sh                   # Helper script
@@ -203,20 +199,23 @@ suqafuran/
 │   ├── app/
 │   └── requirements.txt
 │
-└── new-frontend/               # Next.js app
-    ├── src/
-    └── package.json
+└── dist_cpanel.zip             # Production frontend zip (deployed to cPanel)
 ```
 
 ## What's Running Inside Docker
 
+Docker is dedicated exclusively to backend microservices and databases:
+
 | Container | Image | Purpose |
 |-----------|-------|---------|
-| suqafuran-postgres | postgres:16-alpine | Database (5432) |
 | suqafuran-redis | redis:7-alpine | Cache & OTP (6379) |
 | suqafuran-backend | Custom | FastAPI API (8000) |
-| suqafuran-frontend | Custom | Next.js App (3000) |
-| suqafuran-celery | Custom | Background tasks |
+| suqafuran-spring | Custom | Spring Boot Core Service |
+| suqafuran-celery | Custom | Background task worker |
+| suqafuran-nginx | Custom | Reverse proxy & API gateway |
+| suqafuran-kafka | confluentinc | Event stream & queues |
+
+> **Note:** The frontend application is built for static hosting on cPanel Apache (`public_html/`) and is not run inside Docker.
 
 ## Testing the Setup
 

@@ -188,6 +188,12 @@ async def start_background_event_consumer():
     from app.db.session import SessionLocal
     ws_manager.set_event_loop(asyncio.get_event_loop())
     try:
+        from app.services.realtime_broadcaster import broadcaster
+        broadcaster.set_event_loop(asyncio.get_event_loop())
+        await broadcaster.start_subscriber()
+    except Exception as e:
+        logger.debug(f"Could not start realtime broadcaster: {e}")
+    try:
         from services.websocket_service import manager as chat_manager
         chat_manager.set_event_loop(asyncio.get_event_loop())
     except Exception as e:

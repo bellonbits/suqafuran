@@ -110,6 +110,7 @@ const BusinessDashboard = lazyNamed(() => import('./pages/business/BusinessDashb
 const SellerDashboardLayout = lazyNamed(() => import('./layouts/SellerDashboardLayout'), 'SellerDashboardLayout');
 const SellerDashboardHome = lazyNamed(() => import('./pages/seller/SellerDashboardHome'), 'SellerDashboardHome');
 const SellerProductsPage = lazyNamed(() => import('./pages/seller/SellerProductsPage'), 'SellerProductsPage');
+const SimpleProductUploadPage = lazyNamed(() => import('./pages/seller/SimpleProductUploadPage'), 'SimpleProductUploadPage');
 const SellerOrdersPage = lazyNamed(() => import('./pages/seller/SellerOrdersPage'), 'SellerOrdersPage');
 const SellerDeliveryPage = lazyNamed(() => import('./pages/seller/SellerDeliveryPage'), 'SellerDeliveryPage');
 const SellerInventoryPage = lazyNamed(() => import('./pages/seller/SellerInventoryPage'), 'SellerInventoryPage');
@@ -370,7 +371,7 @@ const App: React.FC = () => {
             {/* Protected Routes */}
             <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
               <Route path="/dashboard" element={<OverviewDashboard />} />
-              <Route path="/sell" element={<ListingFormPage />} />
+              <Route path="/sell" element={<SimpleProductUploadPage />} />
               <Route path="/sell/:listingId" element={<ListingFormPage />} />
               <Route path="/listings/:listingId" element={<ListingDetailPage />} />
               <Route path="/my-ads" element={<MyAdsPage />} />
@@ -399,6 +400,7 @@ const App: React.FC = () => {
             <Route path="/seller-dashboard" element={<ProtectedRoute><SellerDashboardLayout /></ProtectedRoute>}>
               <Route index element={<SellerDashboardHome />} />
               <Route path="products" element={<SellerProductsPage />} />
+              <Route path="products/new" element={<SimpleProductUploadPage />} />
               <Route path="orders" element={<SellerOrdersPage />} />
               <Route path="delivery" element={<SellerDeliveryPage />} />
               <Route path="inventory" element={<SellerInventoryPage />} />
@@ -443,10 +445,13 @@ const App: React.FC = () => {
               <Route path="verifications" element={<AdminVerificationsPage />} />
               <Route path="marketing" element={<AdminMarketingPage />} />
               <Route path="reports" element={<AdminReportsPage />} />
+              <Route path="analytics" element={<AdminReportsPage />} />
               <Route path="fraud-moderation" element={<FraudModerationPage />} />
               <Route path="unusual-accounts" element={<UnusualAccountsPage />} />
               <Route path="users" element={<AdminUsersPage />} />
+              <Route path="sellers" element={<AdminUsersPage />} />
               <Route path="support" element={<AdminSupportPage />} />
+              <Route path="notifications" element={<AdminMarketingPage />} />
               <Route path="editor" element={<WebEditorPage />} />
             </Route>
 

@@ -32,6 +32,19 @@ class PriceRecommendationRequest(BaseModel):
     condition: Optional[str] = "Used"
     currency: Optional[str] = "KES"
 
+class ListingSuggestRequest(BaseModel):
+    raw_text: str
+    location: Optional[str] = None
+    currency: Optional[str] = "KES"
+
+class FullModerationAssessmentRequest(BaseModel):
+    title: str
+    description: Optional[str] = ""
+    price: Optional[float] = 0.0
+    category_id: Optional[int] = None
+    images: Optional[List[str]] = []
+    currency: Optional[str] = "KES"
+
 class PredictCategoryRequest(BaseModel):
     title: str
     description: Optional[str] = ""
@@ -91,23 +104,78 @@ def parse_search(body: ParseSearchRequest):
 
 
 @router.post("/listings/price-recommendation")
-def price_recommendation(body: PriceRecommendationRequest):
-    """Return a suggested price range for a listing."""
-    listing_data = {
-        "title_en": body.title,
-        "category": body.category_id,
-        "condition": body.condition,
-        "currency": body.currency,
-    }
-    result = ai_service.get_price_recommendation(listing_data)
-    return result
+def price_recommendation(
+    body: PriceRecommendationRequest,
+    db: Session = Depends(deps.get_db),
+):
+    """Return a suggested price range for a listing backed by real marketplace data."""
+    from app.services.listing_assistant import recommend_price
+    return recommend_price(
+        db=db,
+        title=body.title,
+        category_id=body.category_id,
+        condition=body.condition,
+        currency=body.currency or "KES",
+    )
 
 
 @router.post("/listings/predict-category")
-def predict_category(body: PredictCategoryRequest):
-    """Predict the best category for a listing."""
-    result = ai_service.predict_category(body.title, body.description)
-    return result
+def predict_category(
+    body: PredictCategoryRequest,
+    db: Session = Depends(deps.get_db),
+):
+    """Predict the best category for a listing resolving to verified database categories."""
+    from app.services.listing_assistant import predict_category as predict_cat
+    return predict_cat(
+        db=db,
+        title=body.title,
+        description=body.description or "",
+    )
+
+
+@router.post("/listings/ai/suggest")
+def suggest_listing_ai(
+    body: ListingSuggestRequest,
+    db: Session = Depends(deps.get_db),
+):
+    """
+    10-second listing creator: predicts category, computes market price bounds,
+    and formats professional listing titles and descriptions.
+    """
+    from app.services.listing_assistant import suggest_listing_metadata
+    return suggest_listing_metadata(
+        db=db,
+        raw_text=body.raw_text,
+        location=body.location,
+        currency=body.currency or "KES",
+    )
+
+
+@router.post("/moderation/assess")
+def assess_moderation(
+    body: FullModerationAssessmentRequest,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+):
+    """
+    Comprehensive multi-signal fraud, underpricing, velocity, and prohibited items evaluation.
+    Logs an audited FraudEvent when elevated risk is detected.
+    """
+    from app.services.fraud_detector import assess_listing_risk
+    listing_data = {
+        "title_en": body.title,
+        "description_en": body.description,
+        "price": body.price,
+        "category_id": body.category_id,
+        "images": body.images or [],
+        "currency": body.currency or "KES",
+    }
+    return assess_listing_risk(
+        db=db,
+        listing_data=listing_data,
+        seller=current_user,
+        persist_fraud_event=True,
+    )
 
 
 @router.post("/chat/suggestions")

@@ -11,7 +11,7 @@ Any user who:
 
 from typing import Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, File, UploadFile
-from sqlmodel import Session
+from sqlmodel import Session, select, func
 from sqlalchemy import text
 from app.api import deps
 from app.models.user import User
@@ -148,6 +148,9 @@ def get_current_seller(
         Listing.moderation_status == "approved"
     ).scalar() or 0
 
+    from app.services.seller_performance_service import calculate_seller_performance
+    perf = calculate_seller_performance(current_user.id, db)
+
     return {
         "id": current_user.id,
         "user_id": current_user.id,
@@ -167,9 +170,122 @@ def get_current_seller(
         "trust_score": getattr(current_user, "trust_score", 0) or 0,
         "trust_level": getattr(current_user, "trust_level", "NEW") or "NEW",
         "location": getattr(current_user, "location", None),
-        "response_time": getattr(current_user, "response_time", "Typically responds in a few hours") or "Typically responds in a few hours",
+        "response_time": perf["response_time"],
+        "response_rate": perf["response_rate"],
+        "median_response_time_minutes": perf["median_response_time_minutes"],
+        "average_rating": perf["average_rating"],
+        "reviews_count": perf["reviews_count"],
+        "badges": perf["badges"],
         "created_at": str(getattr(current_user, "created_at", "")),
         "listings_count": listings_count,
+    }
+
+
+@router.get("/me/dashboard")
+def get_seller_dashboard_overview(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Simplified, non-technical seller dashboard overview backed by real metrics.
+    """
+    from app.models.listing import Listing
+    from app.models.message import Message
+
+    # 1. Product counts by simple status
+    active_count = db.exec(
+        select(func.count(Listing.id))
+        .where(Listing.owner_id == current_user.id)
+        .where(Listing.status == "active")
+        .where(Listing.moderation_status == "approved")
+        .where(Listing.is_sold == False)
+    ).one() or 0
+
+    under_review_count = db.exec(
+        select(func.count(Listing.id))
+        .where(Listing.owner_id == current_user.id)
+        .where(Listing.moderation_status == "pending")
+    ).one() or 0
+
+    needs_changes_count = db.exec(
+        select(func.count(Listing.id))
+        .where(Listing.owner_id == current_user.id)
+        .where(Listing.moderation_status == "rejected")
+    ).one() or 0
+
+    sold_count = db.exec(
+        select(func.count(Listing.id))
+        .where(Listing.owner_id == current_user.id)
+        .where(Listing.is_sold == True)
+    ).one() or 0
+
+    # 2. Total views across seller's listings
+    total_views = db.exec(
+        select(func.sum(Listing.views))
+        .where(Listing.owner_id == current_user.id)
+    ).one() or 0
+
+    # 3. Unread messages for seller
+    unread_messages = db.exec(
+        select(func.count(Message.id))
+        .where(Message.receiver_id == current_user.id)
+        .where(Message.is_read == False)
+    ).one() or 0
+
+    # 4. Recent buyer inquiries (last 5)
+    recent_messages = db.exec(
+        select(Message)
+        .where(Message.receiver_id == current_user.id)
+        .order_by(Message.created_at.desc())
+        .limit(5)
+    ).all()
+
+    inquiries = []
+    for msg in recent_messages:
+        sender = db.get(User, msg.sender_id)
+        inquiries.append({
+            "id": msg.id,
+            "sender_id": msg.sender_id,
+            "sender_name": sender.full_name if sender else "Buyer",
+            "content": msg.content[:80] if msg.content else "Inquiry about your product",
+            "listing_id": msg.listing_id,
+            "is_read": msg.is_read,
+            "created_at": msg.created_at.isoformat() if msg.created_at else None,
+        })
+
+    # 5. Products needing attention (rejected / needs changes, or pending)
+    needing_attention = db.exec(
+        select(Listing)
+        .where(Listing.owner_id == current_user.id)
+        .where(Listing.moderation_status.in_(["rejected", "pending"]))
+        .order_by(Listing.updated_at.desc())
+        .limit(4)
+    ).all()
+
+    attention_items = []
+    for l in needing_attention:
+        status_label = "Under review" if l.moderation_status == "pending" else "Needs changes"
+        attention_items.append({
+            "id": l.id,
+            "title": l.title_en or l.title_so,
+            "price": l.price,
+            "currency": l.currency or "KES",
+            "status_label": status_label,
+            "rejection_reason": l.rejection_reason if l.moderation_status == "rejected" else None,
+            "image": l.images[0] if l.images else None,
+        })
+
+    return {
+        "seller_name": current_user.full_name,
+        "shop_name": getattr(current_user, "business_name", None) or current_user.full_name,
+        "active_products": active_count,
+        "under_review_products": under_review_count,
+        "needs_changes_products": needs_changes_count,
+        "sold_products": sold_count,
+        "total_views": total_views,
+        "unread_messages": unread_messages,
+        "recent_inquiries": inquiries,
+        "products_needing_attention": attention_items,
     }
 
 
@@ -258,6 +374,9 @@ def get_seller(
         if not row:
             raise HTTPException(status_code=404, detail="Seller not found")
 
+        from app.services.seller_performance_service import calculate_seller_performance
+        perf = calculate_seller_performance(seller_id, db)
+
         return {
             "id": row[0],
             "full_name": row[1],
@@ -276,7 +395,12 @@ def get_seller(
             "trust_score": row[14] or 0,
             "trust_level": row[15] or "NEW",
             "location": row[16],
-            "response_time": row[17] or "Typically responds in a few hours",
+            "response_time": perf["response_time"],
+            "response_rate": perf["response_rate"],
+            "median_response_time_minutes": perf["median_response_time_minutes"],
+            "average_rating": perf["average_rating"],
+            "reviews_count": perf["reviews_count"],
+            "badges": perf["badges"],
             "created_at": str(row[18]),
             "listings_count": int(row[19]),
         }

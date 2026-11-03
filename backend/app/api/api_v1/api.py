@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.api_v1.endpoints import marketing, auth, users, listings, admin, favorites, notifications, dashboard, verifications, wallet, boosts, interactions, meetings, deals, trust_ops, promotions, login, mobile_money, audit, kh, messages, translate, feedback, follows, content, ai, marketing, support, verification_check, seo, businesses, addresses, payments, sellers, diagnostics, analytics, analytics_tracking, bulk_products, delivery_zones, reviews, campaigns, seller_profile, seller_settings, conversations, reports, subcategories, attributes, category_attributes, search, offers, price_alerts, saved_searches, notification_preferences, chat_ws, subscriptions, featured_advertising, discount_codes, analytics_sellers, notifications_ws, advertising, admin_advertising, advertising_public, admin_email_analytics, admin_system_messaging, tracking, email_templates, customer_segments, lifecycle_analytics, checkout_receipts
+from app.api.api_v1.endpoints import marketing, auth, users, listings, admin, favorites, notifications, dashboard, verifications, wallet, boosts, interactions, meetings, deals, trust_ops, promotions, login, mobile_money, audit, kh, messages, translate, feedback, follows, content, ai, support, verification_check, seo, businesses, addresses, payments, sellers, diagnostics, analytics, analytics_tracking, bulk_products, delivery_zones, reviews, campaigns, seller_profile, seller_settings, conversations, reports, subcategories, attributes, category_attributes, search, offers, price_alerts, saved_searches, notification_preferences, chat_ws, subscriptions, featured_advertising, discount_codes, analytics_sellers, advertising, admin_advertising, advertising_public, admin_email_analytics, admin_system_messaging, tracking, email_templates, customer_segments, lifecycle_analytics, checkout_receipts, recommendations
 from app.api.api_v1.admin import monitoring_router
 
 # Import Phase 4 routers from root routers directory
@@ -92,6 +92,7 @@ api_router.include_router(reports.router, prefix="/reports", tags=["reports"])
 api_router.include_router(subcategories.router, prefix="/subcategories", tags=["subcategories"])
 api_router.include_router(attributes.router, prefix="/attributes", tags=["attributes"])
 api_router.include_router(category_attributes.router, prefix="/category-attributes", tags=["category-attributes"])
+api_router.include_router(recommendations.router, prefix="/recommendations", tags=["recommendations"])
 api_router.include_router(search.router, tags=["search"])
 
 # Discount Codes / Marketing Codes

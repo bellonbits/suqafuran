@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
+@import "./styles/globals.css";
 
 /* Safe area insets for Capacitor (Android/iOS notch & status bar) */
 /* Do NOT pad html/body — the sticky header handles safe-area-inset-top itself */

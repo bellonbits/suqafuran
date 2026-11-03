@@ -65,7 +65,6 @@ status() {
     print_header "Service Status"
     docker-compose ps
     echo ""
-    echo -e "${GREEN}Frontend:${NC}  http://localhost:3000"
     echo -e "${GREEN}Backend:${NC}   http://localhost:8000"
     echo -e "${GREEN}API Docs:${NC}  http://localhost:8000/docs"
 }
@@ -83,7 +82,7 @@ shell() {
     SERVICE=$1
     if [ -z "$SERVICE" ]; then
         echo "Usage: $0 shell <service>"
-        echo "Services: backend, frontend, postgres, redis"
+        echo "Services: backend, spring-backend, redis, nginx, kafka"
         exit 1
     fi
     docker-compose exec "$SERVICE" sh

@@ -111,5 +111,10 @@ celery_app.conf.update(
             "task": "app.tasks.retention_tasks.send_anniversary_coupons",
             "schedule": crontab(hour=9, minute=0),
         },
+        # Personalized marketing SMS recommendations — 3 times a week (Tue, Thu, Sat at 08:00 UTC / 11:00 AM local)
+        "send-personalized-sms-recommendations": {
+            "task": "app.tasks.notification_tasks.dispatch_weekly_sms_recommendations",
+            "schedule": crontab(day_of_week="tue,thu,sat", hour=8, minute=0),
+        },
     },
 )

@@ -126,7 +126,8 @@ def select_campaigns_for_user(db: Session, user: User) -> List[SelectedCampaign]
         if not content:
             continue  # nothing worth sending right now, try the next candidate
 
-        variant_index = _prior_send_count(db, user.id, definition.campaign_type) % len(definition.subject_variants)
+        # Rotate across subject variants using both prior send count and user offset
+        variant_index = (user.id + _prior_send_count(db, user.id, definition.campaign_type)) % len(definition.subject_variants)
         subject = definition.subject_variants[variant_index]
 
         selected.append(SelectedCampaign(

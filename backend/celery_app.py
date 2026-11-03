@@ -3,6 +3,7 @@ Celery configuration for async task processing
 Handles email, SMS, and push notifications asynchronously
 """
 from celery import Celery
+from celery.schedules import crontab
 from kombu import Queue
 from config import settings
 import logging
@@ -90,5 +91,12 @@ celery_app.conf.beat_schedule = {
         'schedule': 86400.0,  # Every 24 hours (at 9 AM UTC)
         'options': {'queue': 'marketing', 'routing_key': 'marketing.special'},
         'kwargs': {}
+    },
+    # Personalized marketing SMS recommendations — 3 times a week (Tue, Thu, Sat at 08:00 UTC)
+    'send-personalized-sms-recommendations': {
+        'task': 'app.tasks.notification_tasks.dispatch_weekly_sms_recommendations',
+        'schedule': crontab(day_of_week='tue,thu,sat', hour=8, minute=0),
+        'options': {'queue': 'notifications', 'routing_key': 'notification.send'},
+        'kwargs': {'batch_limit': 150}
     },
 }

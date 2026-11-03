@@ -58,6 +58,10 @@ class Settings(BaseSettings):
     # ENVIRONMENT
     ENVIRONMENT: str = "development"  # development, staging, production
     
+    # SPRING BOOT BUSINESS SERVICE
+    SPRING_BOOT_URL: str = "http://spring-backend:8080"
+    INTERNAL_SERVICE_KEY: str = "suqafuran-internal-secure-key-2026"
+    
     # OBSERVABILITY
     OTEL_EXPORTER_OTLP_ENDPOINT: Optional[str] = None # e.g., http://tempo:4317
     

@@ -80,8 +80,7 @@ def create_review(
     existing_review = db.exec(
         select(Review).where(
             Review.product_id == listing.id,
-            Review.seller_id == listing.owner_id,
-            Review.customer_name == (current_user.full_name or "Buyer")
+            (Review.buyer_id == current_user.id) | (Review.customer_name == (current_user.full_name or "Buyer"))
         )
     ).first()
     if existing_review:
@@ -90,9 +89,11 @@ def create_review(
     review = Review(
         product_id=listing.id,
         seller_id=listing.owner_id,
+        buyer_id=current_user.id,
         customer_name=current_user.full_name or "Buyer",
         rating=review_in.rating,
         comment=review_in.comment,
+        moderation_status="approved",
     )
     db.add(review)
     db.commit()
@@ -125,3 +126,54 @@ def add_seller_response(
     db.commit()
     db.refresh(review)
     return review
+
+
+@router.post("/{review_id}/report")
+def report_review(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    review_id: int,
+    payload: dict,
+) -> Any:
+    """
+    Report an abusive, fraudulent, or defamatory review.
+    """
+    review = db.get(Review, review_id)
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+
+    reason = payload.get("reason", "Inappropriate content")
+    review.is_reported = True
+    review.report_reason = reason[:300]
+    db.add(review)
+    db.commit()
+    return {"message": "Review reported for moderation review", "review_id": review_id}
+
+
+@router.patch("/{review_id}/moderate")
+def moderate_review(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+    review_id: int,
+    payload: dict,
+) -> Any:
+    """
+    (Admin) Approve, hide, or reject a reported review.
+    """
+    review = db.get(Review, review_id)
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+
+    new_status = payload.get("status", "approved")
+    if new_status not in ["approved", "hidden", "rejected"]:
+        raise HTTPException(status_code=400, detail="Invalid moderation status")
+
+    review.moderation_status = new_status
+    if new_status == "approved":
+        review.is_reported = False
+    db.add(review)
+    db.commit()
+    db.refresh(review)
+    return {"message": f"Review moderation status set to {new_status}", "review": review}

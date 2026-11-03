@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: suqafuran-business-service-test
+  datasource:
+    url: jdbc:h2:mem:suqafuran_test;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  flyway:
+    enabled: false
+  data:
+    redis:
+      repositories:
+        enabled: false
+
+app:
+  security:
+    jwt-secret: super-secret-key-for-unit-testing-32-bytes-long!
+    internal-service-key: test-internal-service-key-2026
+  mpesa:
+    base-url: https://sandbox.safaricom.co.ke
+    consumer-key: test-key
+    consumer-secret: test-secret
+    business-shortcode: "174379"
+    passkey: bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919
+    callback-url: https://app.suqafuran.com/api/v1/billing/webhook/mpesa
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
