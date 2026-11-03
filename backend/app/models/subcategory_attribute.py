@@ -25,5 +25,6 @@ class SubcategoryAttributeUpdate(SQLModel):
     sort_order: Optional[int] = None
 
 
-class SubcategoryAttributeRead(SubcategoryAttribute):
-    pass
+class SubcategoryAttributeRead(SubcategoryAttributeBase):
+    id: int
+    created_at: datetime
