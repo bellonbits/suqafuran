@@ -246,7 +246,7 @@ services:
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY:-suqafuran-internal-secure-key-2026}
       JAVA_OPTS: "-Xms256m -Xmx512m -XX:+UseG1GC"
     ports:
-      - "127.0.0.1:8080:8080"
+      - "${SPRING_HOST_PORT:-127.0.0.1:8085}:8080"
     depends_on:
       redis:
         condition: service_healthy

@@ -11,6 +11,7 @@ import {
 import { useAuthStore } from '@/store/useAuth';
 import api from '@/services/api';
 import { dealsService, type ChatBuyer } from '@/services/deals';
+import { StatusBadge } from '@/components/dashboard';
 
 export default function ProductsPage() {
   const navigate = useNavigate();
@@ -284,21 +285,10 @@ export default function ProductsPage() {
                         </td>
 
                         <td className="py-4 px-5">
-                          {isSold ? (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 dark:bg-neutral-800 dark:text-neutral-300">
-                              <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-                              Sold
-                            </span>
-                          ) : (
-                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${
-                              p.status === 'active'
-                                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-100'
-                                : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-100'
-                            }`}>
-                              <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                              {p.status === 'active' ? 'Published' : 'Pending'}
-                            </span>
-                          )}
+                          <StatusBadge
+                            status={isSold ? 'closed' : p.status === 'active' ? 'active' : 'pending'}
+                            label={isSold ? 'Sold' : p.status === 'active' ? 'Published' : 'Pending'}
+                          />
                         </td>
 
                         <td className="py-4 px-5 text-right">
@@ -354,17 +344,11 @@ export default function ProductsPage() {
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-slate-50 dark:border-neutral-800">
-                      {isSold ? (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
-                          Sold
-                        </span>
-                      ) : (
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                          p.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
-                        }`}>
-                          • {p.status === 'active' ? 'Published' : 'Pending'}
-                        </span>
-                      )}
+                      <StatusBadge
+                        status={isSold ? 'closed' : p.status === 'active' ? 'active' : 'pending'}
+                        label={isSold ? 'Sold' : p.status === 'active' ? 'Published' : 'Pending'}
+                        size="sm"
+                      />
                       <div className="flex items-center gap-2">
                         {!isSold && (
                           <button

@@ -24,5 +24,7 @@ class ListingAttributeUpdate(SQLModel):
     value: Optional[str] = None
 
 
-class ListingAttributeRead(ListingAttribute):
-    pass
+class ListingAttributeRead(ListingAttributeBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime

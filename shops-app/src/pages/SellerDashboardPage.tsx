@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuth';
 import api from '@/services/api';
+import { BoardStatCard, StatusBadge } from '@/components/dashboard';
 
 interface OrderItem {
   id: string | number;
@@ -234,63 +235,44 @@ export default function SellerDashboard() {
         </div>
       </div>
 
-      {/* ── Stat Summary Grid (Real Data in Kenya Currency) ── */}
+      {/* ── Stat Summary Grid (BoardUI) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Orders Card */}
-        <div className="bg-white dark:bg-neutral-950 rounded-3xl p-5 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Orders</p>
-          <div className="flex items-baseline justify-between mt-2">
-            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-              {stats.total_orders.toLocaleString()}
-            </h2>
-            <span className="inline-flex items-center text-xs font-extrabold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/40 px-2 py-0.5 rounded-full">
-              Live
-            </span>
-          </div>
-          <p className="text-[11px] text-slate-400 mt-2 font-medium">All store orders</p>
-        </div>
-
-        {/* New Orders Card */}
-        <div className="bg-white dark:bg-neutral-950 rounded-3xl p-5 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Pending Orders</p>
-          <div className="flex items-baseline justify-between mt-2">
-            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-              {stats.new_orders.toLocaleString()}
-            </h2>
-            <span className="inline-flex items-center text-xs font-extrabold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full">
-              Pending
-            </span>
-          </div>
-          <p className="text-[11px] text-slate-400 mt-2 font-medium">Awaiting fulfillment</p>
-        </div>
-
-        {/* Completed Orders Card */}
-        <div className="bg-white dark:bg-neutral-950 rounded-3xl p-5 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Completed Orders</p>
-          <div className="flex items-baseline justify-between mt-2">
-            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-              {stats.completed_orders.toLocaleString()}
-            </h2>
-            <span className="inline-flex items-center text-xs font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full">
-              Done
-            </span>
-          </div>
-          <p className="text-[11px] text-slate-400 mt-2 font-medium">Successfully delivered</p>
-        </div>
-
-        {/* Revenue Card (Kenya Currency Ksh) */}
-        <div className="bg-white dark:bg-neutral-950 rounded-3xl p-5 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Revenue</p>
-          <div className="flex items-baseline justify-between mt-2">
-            <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-              Ksh {stats.total_revenue.toLocaleString()}
-            </h2>
-            <span className="inline-flex items-center text-xs font-extrabold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/40 px-2 py-0.5 rounded-full">
-              KSh
-            </span>
-          </div>
-          <p className="text-[11px] text-slate-400 mt-2 font-medium">Kenya Shillings</p>
-        </div>
+        <BoardStatCard
+          label="Total Orders"
+          value={stats.total_orders.toLocaleString()}
+          caption="All store orders"
+          icon={ShoppingBag}
+          delta="Live"
+          deltaTone="neutral"
+          onClick={() => navigate('/seller-dashboard/orders')}
+        />
+        <BoardStatCard
+          label="Pending Orders"
+          value={stats.new_orders.toLocaleString()}
+          caption="Awaiting fulfillment"
+          icon={Clock}
+          delta="Pending"
+          deltaTone={stats.new_orders > 0 ? "negative" : "neutral"}
+          onClick={() => setStatusFilter('Pending')}
+        />
+        <BoardStatCard
+          label="Completed Orders"
+          value={stats.completed_orders.toLocaleString()}
+          caption="Successfully delivered"
+          icon={CheckCircle2}
+          delta="Done"
+          deltaTone="positive"
+          onClick={() => setStatusFilter('Completed')}
+        />
+        <BoardStatCard
+          label="Total Revenue"
+          value={`Ksh ${stats.total_revenue.toLocaleString()}`}
+          caption="Kenya Shillings"
+          icon={DollarSign}
+          delta="KSh"
+          deltaTone="positive"
+          onClick={() => navigate('/seller-dashboard/analytics')}
+        />
       </div>
 
       {/* ── Filter Toolbar ── */}
@@ -515,10 +497,15 @@ export default function SellerDashboard() {
 
                       {/* Status Badge */}
                       <td className="py-4 px-5">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${getStatusBadgeClass(order.status)}`}>
-                          <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                          {order.status}
-                        </span>
+                        <StatusBadge
+                          status={
+                            order.status === 'Completed' ? 'active' :
+                            order.status === 'Accepted' ? 'verified' :
+                            order.status === 'Pending' ? 'pending' :
+                            'rejected'
+                          }
+                          label={order.status}
+                        />
                       </td>
 
                       {/* Actions */}
@@ -552,9 +539,16 @@ export default function SellerDashboard() {
                         <p className="text-[10px] text-slate-400">{order.product_category}</p>
                       </div>
                     </div>
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${getStatusBadgeClass(order.status)}`}>
-                      • {order.status}
-                    </span>
+                    <StatusBadge
+                      status={
+                        order.status === 'Completed' ? 'active' :
+                        order.status === 'Accepted' ? 'verified' :
+                        order.status === 'Pending' ? 'pending' :
+                        'rejected'
+                      }
+                      label={order.status}
+                      size="sm"
+                    />
                   </div>
 
                   {/* Customer Name always shown on mobile */}
