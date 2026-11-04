@@ -237,9 +237,13 @@ services:
     container_name: suqafuran-spring-backend
     environment:
       SERVER_PORT: "8080"
-      DATABASE_JDBC_URL: ${DATABASE_JDBC_URL:-jdbc:postgresql://${POSTGRES_SERVER:-127.0.0.1}:5432/${POSTGRES_DB:-suqafuran}?sslmode=require}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-doadmin}:${POSTGRES_PASSWORD:-AVNS_n3l_adWBnU_ieYWiXYS}@${POSTGRES_SERVER:-suqafuran-do-user-31464052-0.f.db.ondigitalocean.com}:${POSTGRES_PORT:-25060}/${POSTGRES_DB:-defaultdb}?sslmode=require}
+      DATABASE_JDBC_URL: ${DATABASE_JDBC_URL:-jdbc:postgresql://${POSTGRES_SERVER:-suqafuran-do-user-31464052-0.f.db.ondigitalocean.com}:${POSTGRES_PORT:-25060}/${POSTGRES_DB:-defaultdb}?sslmode=require}
+      POSTGRES_USER: ${POSTGRES_USER:-doadmin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-AVNS_n3l_adWBnU_ieYWiXYS}
+      POSTGRES_SERVER: ${POSTGRES_SERVER:-suqafuran-do-user-31464052-0.f.db.ondigitalocean.com}
+      POSTGRES_PORT: ${POSTGRES_PORT:-25060}
+      POSTGRES_DB: ${POSTGRES_DB:-defaultdb}
       DB_POOL_SIZE: "5"
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
