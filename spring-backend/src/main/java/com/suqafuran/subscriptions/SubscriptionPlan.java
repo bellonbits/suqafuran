@@ -10,7 +10,7 @@ public class SubscriptionPlan {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Column(name = "plan_code", nullable = false, unique = true, length = 50)
     private String planCode;
@@ -53,7 +53,8 @@ public class SubscriptionPlan {
         this.isActive = true;
     }
 
-    public Long getId() { return id; }
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
     public String getPlanCode() { return planCode; }
     public void setPlanCode(String planCode) { this.planCode = planCode; }
     public String getName() { return name; }
