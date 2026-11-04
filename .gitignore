@@ -12,6 +12,8 @@ build
 dist
 out
 *.zip
+*.aab
+*.apk
 
 # Local env files
 .env
