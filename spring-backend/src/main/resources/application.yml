@@ -23,6 +23,7 @@ spring:
       ddl-auto: validate
     properties:
       hibernate:
+        default_schema: ${SPRING_DB_SCHEMA:business}
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: false
         show_sql: false
@@ -31,6 +32,9 @@ spring:
     baseline-on-migrate: true
     baseline-version: 0
     locations: classpath:db/migration
+    default-schema: ${SPRING_DB_SCHEMA:business}
+    schemas: ${SPRING_DB_SCHEMA:business}
+    create-schemas: true
   data:
     redis:
       url: ${REDIS_URL:redis://localhost:6379/0}

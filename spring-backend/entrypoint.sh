@@ -30,6 +30,17 @@ fi
 export POSTGRES_USER="${POSTGRES_USER:-doadmin}"
 export POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-AVNS_n3l_adWBnU_ieYWiXYS}"
 
+# Ensure search_path / currentSchema is set to business to isolate Spring Boot tables from public schema
+if ! echo "$DATABASE_JDBC_URL" | grep -q "currentSchema="; then
+    if echo "$DATABASE_JDBC_URL" | grep -q "\?"; then
+        DATABASE_JDBC_URL="${DATABASE_JDBC_URL}&currentSchema=business"
+    else
+        DATABASE_JDBC_URL="${DATABASE_JDBC_URL}?currentSchema=business"
+    fi
+    export DATABASE_JDBC_URL
+fi
+
 echo "Starting Suqafuran Business Service with JDBC URL: ${DATABASE_JDBC_URL}"
 
 exec java $JAVA_OPTS -jar /app/app.jar "$@"
+

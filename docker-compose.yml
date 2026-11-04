@@ -238,7 +238,8 @@ services:
     environment:
       SERVER_PORT: "8080"
       DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-doadmin}:${POSTGRES_PASSWORD:-AVNS_n3l_adWBnU_ieYWiXYS}@${POSTGRES_SERVER:-suqafuran-do-user-31464052-0.f.db.ondigitalocean.com}:${POSTGRES_PORT:-25060}/${POSTGRES_DB:-defaultdb}?sslmode=require}
-      DATABASE_JDBC_URL: ${DATABASE_JDBC_URL:-jdbc:postgresql://${POSTGRES_SERVER:-suqafuran-do-user-31464052-0.f.db.ondigitalocean.com}:${POSTGRES_PORT:-25060}/${POSTGRES_DB:-defaultdb}?sslmode=require}
+      DATABASE_JDBC_URL: ${DATABASE_JDBC_URL:-jdbc:postgresql://${POSTGRES_SERVER:-suqafuran-do-user-31464052-0.f.db.ondigitalocean.com}:${POSTGRES_PORT:-25060}/${POSTGRES_DB:-defaultdb}?sslmode=require&currentSchema=business}
+      SPRING_DB_SCHEMA: ${SPRING_DB_SCHEMA:-business}
       POSTGRES_USER: ${POSTGRES_USER:-doadmin}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-AVNS_n3l_adWBnU_ieYWiXYS}
       POSTGRES_SERVER: ${POSTGRES_SERVER:-suqafuran-do-user-31464052-0.f.db.ondigitalocean.com}
