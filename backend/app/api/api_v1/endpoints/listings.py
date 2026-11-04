@@ -1783,7 +1783,7 @@ async def reject_listing(
             payload={
                 "listing_id": str(listing.id),
                 "owner_id": str(listing.owner_id),
-                "rejection_reason": reason,
+                "rejection_reason": rejection_req.reason,
                 "rejected_by": current_user.full_name or f"Admin {current_user.id}",
             },
             seller_id=str(listing.owner_id),
@@ -1798,7 +1798,7 @@ async def reject_listing(
             data={
                 "listing_id": str(listing.id),
                 "title": listing.title_en,
-                "rejection_reason": reason,
+                "rejection_reason": rejection_req.reason,
                 "support_contact": "support@suqafuran.com",
             },
         )

@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Optional
 from sqlmodel import SQLModel, Field, Column, Enum as SQLEnum
 import enum
+import sqlalchemy as sa
 
 
 class EmailEventType(str, enum.Enum):
@@ -78,7 +79,16 @@ class EmailCampaign(SQLModel, table=True):
     
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
-    event_type: EmailEventType = Field(sa_column=SQLEnum(EmailEventType))
+    event_type: EmailEventType = Field(
+        sa_column=Column(
+            sa.Enum(
+                EmailEventType,
+                values_callable=lambda x: [e.value for e in x],
+                name="email_event_type",
+            ),
+            nullable=False,
+        )
+    )
     subject: str
     template_name: str
     sent_at: datetime = Field(default_factory=datetime.utcnow)

@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 from sqlmodel import Session, select
+from sqlalchemy import func
 from jinja2 import Template
 
 from app.models.marketing import (
@@ -351,6 +352,7 @@ class MarketingAutomationService:
                 .where(EmailCampaign.user_id == user_id, EmailCampaign.event_type == event_type)
             ).one() or 0
         except Exception:
+            session.rollback()
             prior_sends = 0
         variant_idx = (user_id + prior_sends) % len(variants)
         selected_subject_raw = variants[variant_idx]
@@ -407,6 +409,10 @@ class MarketingAutomationService:
             logger.info(f"Sent {event_type} email to user {user_id} (campaign {campaign.id})")
 
         except Exception as e:
+            try:
+                session.rollback()
+            except Exception:
+                pass
             logger.error(f"Failed to send email: {e}")
     
     def _add_email_tracking(self, html_body: str, campaign_id: int) -> str:
