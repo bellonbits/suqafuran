@@ -54,13 +54,13 @@ export function useChat(token: string): UseChatReturn {
 
           if (data.event_type === 'new_message') {
             const message: ChatMessage = {
-              id: Math.random(),
+              id: data.id || Date.now(),
               sender_id: data.sender_id,
               receiver_id: data.receiver_id,
               content: data.content,
               listing_id: data.listing_id,
-              timestamp: data.timestamp,
-              created_at: data.timestamp,
+              timestamp: data.timestamp || new Date().toISOString(),
+              created_at: data.timestamp || new Date().toISOString(),
             };
             if (messageCallbackRef.current) {
               messageCallbackRef.current(message);

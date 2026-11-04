@@ -34,26 +34,7 @@ def send_message_notifications(
         db = SessionLocal()
 
         try:
-            # 1. In-app notification
-            try:
-                crud_notification.create(
-                    db,
-                    obj_in={
-                        "type": "message",
-                        "data": {
-                            "message_id": message_id,
-                            "sender_id": sender_id,
-                            "sender_name": sender_name,
-                            "content": content,
-                            "listing_id": listing_id,
-                            "message": f"New message from {sender_name}: \"{preview}\""
-                        }
-                    },
-                    user_id=receiver_id
-                )
-            except Exception as e:
-                logger.warning(f"Failed to create in-app notification: {e}")
-
+            # 1. In-app notification is already created synchronously by the messaging endpoint.
             # 2. Push notification
             try:
                 send_push_to_user(

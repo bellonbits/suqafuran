@@ -160,8 +160,16 @@ def send_message(
             "timestamp": now_iso,
             "created_at": now_iso,
         }
+        channel_subscribers = set()
+        for connection_id, subscriptions in chat_manager.subscriptions.items():
+            if channel in subscriptions:
+                uid = chat_manager.connection_users.get(connection_id)
+                if uid:
+                    channel_subscribers.add(uid)
+
         chat_manager.broadcast_to_channel_from_thread(channel, chat_event, exclude_users=[str(current_user.id)])
-        chat_manager.broadcast_to_user_from_thread(str(message_in.receiver_id), chat_event)
+        if str(message_in.receiver_id) not in channel_subscribers:
+            chat_manager.broadcast_to_user_from_thread(str(message_in.receiver_id), chat_event)
     except Exception as e:
         logger.warning(f"Failed to broadcast live chat message: {e}")
 

@@ -339,7 +339,15 @@ function MessagesPageContent() {
     useEffect(() => {
         onMessage((message) => {
             if (selectedUserId && (message.sender_id === selectedUserId || message.receiver_id === selectedUserId)) {
-                setMessages((prev) => [...prev, message]);
+                setMessages((prev) => {
+                    const exists = prev.some((m) =>
+                        (m.id && message.id && m.id === message.id) ||
+                        (m.sender_id === message.sender_id &&
+                         m.content === message.content &&
+                         Math.abs(new Date(m.timestamp || m.created_at || '').getTime() - new Date(message.timestamp || message.created_at || '').getTime()) < 3000)
+                    );
+                    return exists ? prev : [...prev, message];
+                });
             }
             setConversations((prev) => prev.map((c) =>
                 c.other_user_id === message.sender_id
@@ -434,9 +442,8 @@ function MessagesPageContent() {
                 trackEvent('Conversation Started', { receiver_id: selectedUserId });
             }
 
-            // Also broadcast via WebSocket for peer socket clients
+            // Clear typing state after sending
             if (isConnected) {
-                wssSendMessage(text, selectedUserId);
                 setTyping(selectedUserId, false);
             }
         } catch (error) {

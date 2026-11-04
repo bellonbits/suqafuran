@@ -211,12 +211,20 @@ async def websocket_chat_endpoint(
                         "timestamp": now_iso,
                         "created_at": now_iso,
                     }
+                    channel_subscribers = set()
+                    for connection_id, subscriptions in manager.subscriptions.items():
+                        if channel in subscriptions:
+                            uid = manager.connection_users.get(connection_id)
+                            if uid:
+                                channel_subscribers.add(uid)
+
                     await manager.broadcast_to_channel(
                         channel,
                         chat_msg,
                         exclude_users=[str(user_id)],
                     )
-                    await manager.broadcast_to_user(str(other_user_id), chat_msg)
+                    if str(other_user_id) not in channel_subscribers:
+                        await manager.broadcast_to_user(str(other_user_id), chat_msg)
 
                     # 5. Clear typing status
                     typing_status[(min(user_id, other_user_id), max(user_id, other_user_id))] = False
