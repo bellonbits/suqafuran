@@ -21,7 +21,23 @@ def get_seller_profile(
     profile = db.exec(statement).first()
 
     if not profile:
-        raise HTTPException(status_code=404, detail="Seller profile not found")
+        profile = SellerProfile(
+            seller_id=current_user.id,
+            shop_name=getattr(current_user, "business_name", None) or getattr(current_user, "full_name", None) or "My Shop",
+            phone=getattr(current_user, "phone_number", None) or getattr(current_user, "phone", None) or "",
+            email=current_user.email or "",
+            location=getattr(current_user, "location", None) or "Mogadishu, Somalia",
+            description="",
+        )
+        try:
+            db.add(profile)
+            db.commit()
+            db.refresh(profile)
+        except Exception:
+            db.rollback()
+            profile = db.exec(statement).first()
+            if not profile:
+                raise HTTPException(status_code=404, detail="Seller profile not found")
 
     return profile
 

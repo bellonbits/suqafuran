@@ -57,7 +57,8 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    user = db.get(User, token_data)
+    user_id = int(token_data) if str(token_data).isdigit() else token_data
+    user = db.get(User, user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -90,7 +91,8 @@ def get_current_user_optional(
     except (jwt.JWTError, ValidationError):
         return None
     
-    user = db.get(User, token_data)
+    user_id = int(token_data) if str(token_data).isdigit() else token_data
+    user = db.get(User, user_id)
     if user:
         structlog.contextvars.bind_contextvars(
             user_id=user.id,
@@ -151,7 +153,8 @@ def get_current_user_from_token(token: str, db: Session = Depends(get_db)) -> Op
     except (jwt.JWTError, ValidationError):
         return None
 
-    user = db.get(User, token_data)
+    user_id = int(token_data) if str(token_data).isdigit() else token_data
+    user = db.get(User, user_id)
     return user
 
 

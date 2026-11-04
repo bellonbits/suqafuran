@@ -34,5 +34,7 @@ class SellerProfileUpdate(SQLModel):
     location: Optional[str] = None
 
 
-class SellerProfileRead(SellerProfile):
-    pass
+class SellerProfileRead(SellerProfileBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
