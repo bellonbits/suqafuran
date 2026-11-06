@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { 
   Sparkles, Search, MessageSquare, ShoppingCart, Store, MapPin, 
-  ShieldCheck, ArrowRight, X, Loader2, CheckCircle2, ChevronRight, Tag
+  ShieldCheck, ArrowRight, X, Loader2, CheckCircle2, ChevronRight, Tag, ExternalLink
 } from 'lucide-react';
 import { searchService, type AiShopperResult, type AiShopperProduct } from '@/services/searchService';
 import { messageService } from '@/services/messageService';
@@ -145,13 +145,27 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
-            aria-label="Close"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                onClose();
+                navigate(`/ai-shopper${prompt ? `?q=${encodeURIComponent(prompt)}` : ''}`);
+              }}
+              className="px-2.5 py-1 rounded-xl bg-white/80 dark:bg-neutral-800 text-[#0078E8] dark:text-sky-300 text-xs font-bold flex items-center gap-1 shadow-xs hover:bg-white transition-all cursor-pointer border border-sky-100 dark:border-neutral-700"
+              title="Open full AI shopping workspace"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Full Workspace</span>
+            </button>
+
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Search Input Box */}

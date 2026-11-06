@@ -84,8 +84,8 @@ export const UniversalSearchBar: React.FC<UniversalSearchBarProps> = ({
 
   const handleOpenAiShopper = (customQuery?: string) => {
     setIsOpen(false);
-    setQuery(customQuery || query);
-    setIsAiModalOpen(true);
+    const q = (customQuery !== undefined ? customQuery : query).trim();
+    navigate(`/ai-shopper${q ? `?q=${encodeURIComponent(q)}` : ''}`);
   };
 
   const hasProducts = results && results.products.length > 0;

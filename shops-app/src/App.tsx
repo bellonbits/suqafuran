@@ -15,6 +15,7 @@ const ShopDetailPage = lazy(() => import('./pages/ShopDetailPage'))
 const CategoryPage = lazy(() => import('./pages/CategoryPage'))
 const SearchPage = lazy(() => import('./pages/SearchPage'))
 const ListingDetailPage = lazy(() => import('./pages/ListingDetailPage'))
+const AiShopperPage = lazy(() => import('./pages/AiShopperPage'))
 const CartPage = lazy(() => import('./pages/CartPage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const SignupPage = lazy(() => import('./pages/SignupPage'))
@@ -195,6 +196,8 @@ export default function App() {
       <Route element={<AppLayout><ShopDetailPage /></AppLayout>} path="/shop" />
       <Route element={<AppLayout><ShopDetailPage /></AppLayout>} path="/shop/:slug" />
       <Route element={<AppLayout><SearchPage /></AppLayout>} path="/search" />
+      <Route element={<AppLayout><AiShopperPage /></AppLayout>} path="/ai-shopper" />
+      <Route element={<AppLayout><AiShopperPage /></AppLayout>} path="/ai" />
       <Route element={<AppLayout><ListingDetailPage /></AppLayout>} path="/listing/:id" />
       <Route element={<AppLayout><CartPage /></AppLayout>} path="/cart" />
       <Route element={<AppLayout><CartPage /></AppLayout>} path="/checkout" />
