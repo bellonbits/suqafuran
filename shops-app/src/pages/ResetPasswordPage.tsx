@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ArrowLeft, Mail, Lock, Loader2 } from 'lucide-react';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { authService } from '@/services/auth';
 
 type Step = 'email' | 'code' | 'password' | 'success';
@@ -99,15 +99,15 @@ export default function ResetPasswordPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-neutral-950 dark:to-black flex items-center justify-center p-4">
-            <div className="w-full max-w-xl">
+        <div className="min-h-[calc(100dvh-4rem)] sm:min-h-[calc(100vh-8rem)] flex flex-col justify-start sm:justify-center sm:items-center px-4 sm:px-6 py-6 sm:py-12 bg-white sm:bg-gradient-to-br sm:from-slate-50 sm:to-slate-100 dark:bg-black sm:dark:from-neutral-950 sm:dark:to-black">
+            <div className="w-full max-w-lg mx-auto">
                 {/* Header */}
-                <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-primary dark:text-sky-400 hover:text-primary-dark mb-8">
+                <Link to="/" className="inline-flex items-center gap-2 text-sm font-bold text-primary dark:text-sky-400 hover:text-primary-dark mb-4 sm:mb-6">
                     <ArrowLeft className="h-4 w-4" />
                     Back to home
                 </Link>
 
-                <div className="bg-white dark:bg-neutral-950 rounded-3xl border border-gray-100 dark:border-neutral-800 shadow-2xl p-10 space-y-7">
+                <div className="bg-transparent sm:bg-white sm:dark:bg-neutral-950 rounded-none sm:rounded-3xl border-0 sm:border sm:border-gray-100 sm:dark:border-neutral-800 shadow-none sm:shadow-xl p-0 sm:p-8 md:p-10 space-y-6">
                     {step !== 'success' && (
                         <>
                             <div>
@@ -280,15 +280,15 @@ export default function ResetPasswordPage() {
                                 </p>
                             </div>
 
-                            <Link href="/" className="btn-premium w-full bg-primary text-white py-3.5 text-base shadow-lg shadow-primary/20 hover:bg-primary-dark">
+                            <Link to="/login" className="btn-premium w-full bg-[#18181b] hover:bg-black text-white py-3.5 text-sm font-bold rounded-2xl flex items-center justify-center shadow-md transition-all">
                                 Sign In Now
                             </Link>
                         </div>
                     )}
 
                     {step !== 'success' && (
-                        <p className="text-[10px] text-gray-400 dark:text-neutral-400 text-center">
-                            <Link href="/" className="text-primary dark:text-sky-400 hover:underline font-bold">
+                        <p className="text-xs text-gray-500 dark:text-neutral-400 text-center font-medium">
+                            <Link to="/login" className="text-sky-600 dark:text-sky-400 hover:underline font-bold">
                                 Back to sign in
                             </Link>
                         </p>

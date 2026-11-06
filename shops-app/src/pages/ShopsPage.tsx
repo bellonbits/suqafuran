@@ -293,7 +293,7 @@ function ShopsPageContent() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-black pb-20">
+    <div className="min-h-screen bg-gray-50 dark:bg-black">
       {/* ── Hero Banner Carousel ───────────────────────────────────────── */}
       <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 pt-4 md:pt-6">
         {/* Same 3-card strip as the homepage: banners first, topped up with

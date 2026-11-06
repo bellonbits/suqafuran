@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, ShieldCheck, Star, Plus } from 'lucide-react';
+import { Heart, ShieldCheck, Star, Plus, ShoppingCart, Check } from 'lucide-react';
 import { useFavoritesStore } from '../../store/useFavorites';
 import { useAuthStore } from '../../store/useAuth';
 import { useAuthModal } from '../../store/useAuthModal';
 import { useCurrencyStore } from '../../store/useCurrency';
+import { useCart } from '../../store/useCart';
+import { trackEvent } from '@/lib/analytics';
 import { formatConvertedPrice } from '../../lib/currency';
 import { useLocalizedField } from '../../lib/i18n';
 import { FeaturedBadge } from '../ads/FeaturedBadge';
@@ -31,12 +33,51 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, discountPercent, originalPrice, categoryName, layout = 'vertical', priority = false }) => {
     const [isFeatured, setIsFeatured] = useState(false);
+    const [justAddedToCart, setJustAddedToCart] = useState(false);
+    const addItem = useCart((s) => s.addItem);
+    const inCart = useCart((s) => s.items.some((i) => i.id === String(listing.id)));
+
     const { isAuthenticated } = useAuthStore();
     const openAuthModal = useAuthModal((s) => s.open);
     const isFavorite = useFavoritesStore((s) => s.isFavorite(listing.id));
     const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
     const displayCurrency = useCurrencyStore((s) => s.currency);
     const field = useLocalizedField();
+
+    const title = field(listing.title_en, listing.title_so) || listing.title_en;
+
+    const handleAddToCart = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        addItem({
+            id: String(listing.id),
+            title: title || listing.title_en || 'Product',
+            price: Number(listing.price || 0),
+            image: displayImage,
+            quantity: 1,
+            owner_id: listing.owner_id || listing.owner?.id,
+            seller_id: String(listing.owner_id || listing.owner?.id || ''),
+            owner: listing.owner ? {
+                full_name: listing.owner.full_name,
+                phone: listing.owner.phone,
+                email: listing.owner.email,
+                avatar_url: listing.owner.avatar_url,
+            } : undefined
+        });
+
+        trackEvent('Add to Cart', {
+            listing_id: listing.id,
+            title: title || listing.title_en,
+            price: listing.price,
+            currency: listing.currency || 'KES',
+            owner_id: listing.owner_id || listing.owner?.id,
+            source: 'feature_product_card',
+        });
+
+        setJustAddedToCart(true);
+        setTimeout(() => setJustAddedToCart(false), 1500);
+    };
 
     // Check if listing is featured
     useEffect(() => {
@@ -170,7 +211,23 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                     <div className="flex items-end justify-between gap-4 mt-2">
                         {priceBlock}
 
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                                type="button"
+                                onClick={handleAddToCart}
+                                aria-label={justAddedToCart || inCart ? "In cart" : "Add to cart"}
+                                className={`h-10 w-10 rounded-full flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-sm ${
+                                    justAddedToCart || inCart
+                                        ? 'bg-emerald-600 text-white'
+                                        : 'bg-white border border-gray-200 text-gray-700 hover:bg-orange-500 hover:text-white dark:bg-neutral-900 dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-orange-500'
+                                }`}
+                            >
+                                {justAddedToCart || inCart ? (
+                                    <Check className="h-4 w-4" />
+                                ) : (
+                                    <ShoppingCart className="h-4 w-4" />
+                                )}
+                            </button>
                             <button
                                 onClick={handleToggleFavorite}
                                 aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
@@ -206,10 +263,28 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
 
                 {cornerBadges}
 
+                {/* Cart Button (bottom-right of image) */}
+                <button
+                    type="button"
+                    onClick={handleAddToCart}
+                    aria-label={justAddedToCart || inCart ? "In cart" : "Add to cart"}
+                    className={`absolute bottom-2 right-2 h-9 w-9 rounded-full shadow-md flex items-center justify-center active:scale-95 transition-all cursor-pointer z-10 backdrop-blur-sm ${
+                        justAddedToCart || inCart
+                            ? 'bg-emerald-600 text-white ring-2 ring-white dark:ring-neutral-900'
+                            : 'bg-white/95 border border-gray-200/80 text-gray-800 hover:bg-orange-500 hover:text-white dark:bg-neutral-900/95 dark:border-neutral-700/80 dark:text-neutral-100 dark:hover:bg-orange-500'
+                    }`}
+                >
+                    {justAddedToCart || inCart ? (
+                        <Check className="h-4 w-4" />
+                    ) : (
+                        <ShoppingCart className="h-4 w-4" />
+                    )}
+                </button>
+
                 <button
                     onClick={handleToggleFavorite}
                     aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                    className="absolute top-2 right-2 h-10 w-10 rounded-full bg-white/90 border border-gray-200 shadow-md flex items-center justify-center hover:bg-white active:scale-95 transition-all dark:bg-neutral-900/90 dark:border-neutral-800 cursor-pointer z-10"
+                    className="absolute top-2 right-2 h-9 w-9 rounded-full bg-white/90 border border-gray-200 shadow-md flex items-center justify-center hover:bg-white active:scale-95 transition-all dark:bg-neutral-900/90 dark:border-neutral-800 cursor-pointer z-10"
                 >
                     <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-700 dark:text-neutral-100'}`} />
                 </button>

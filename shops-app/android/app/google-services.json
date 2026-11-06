@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "905674325498",
+    "project_id": "campusmart-a4159",
+    "storage_bucket": "campusmart-a4159.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:905674325498:android:d9e67e4ce3196c235db843",
+        "android_client_info": {
+          "package_name": "com.suqafuran.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "905674325498-1rb3rpmrnk170q8rumthbd7ougnksf1e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACeHUCnVNZIcm1y6Lv6wzEzf-Cqfhq74Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "905674325498-1rb3rpmrnk170q8rumthbd7ougnksf1e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

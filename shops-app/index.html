@@ -11,6 +11,15 @@
     <title>Suqafuran - Africa's Marketplace</title>
     <meta name="description" content="Buy and sell locally on Suqafuran -- browse thousands of products from local sellers and shops, or list your own." />
 
+    <!-- Google Tag Manager (GTM / Google Analytics) -->
+    <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-PGPLCDG6"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    </script>
+    <!-- End Google Tag Manager -->
+
     <!-- Nearly every image on this site is served from Cloudinary --
          warming up the connection (DNS + TLS) before the first image
          request actually fires shaves real time off image load. -->
@@ -52,6 +61,10 @@
 
   </head>
   <body class="antialiased bg-[#F8FAFC] text-[#0F172A] dark:bg-[#0B132B] dark:text-[#F8FAFC] overflow-x-hidden">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PGPLCDG6"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
 

@@ -193,7 +193,7 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
   max,
   value,
   onChange,
-  currencySymbol = '$',
+  currencySymbol = 'KSh',
   step = 1,
 }) => {
   const span = Math.max(max - min, 1);
@@ -254,7 +254,7 @@ export const PriceRangeFilter: React.FC<PriceRangeFilterProps> = ({
         />
       </div>
       <p className="mt-2 text-sm font-medium text-gray-700 dark:text-neutral-200 tabular-nums">
-        {currencySymbol}{lo.toLocaleString()} – {currencySymbol}{hi.toLocaleString()}{hi >= max ? '+' : ''}
+        {currencySymbol} {lo.toLocaleString()} – {currencySymbol} {hi.toLocaleString()}{hi >= max ? '+' : ''}
       </p>
     </div>
   );
@@ -381,14 +381,14 @@ export const MobileFilterSheet: React.FC<MobileFilterSheetProps> = ({ open, onCl
     {open && (
       <>
         <motion.div
-          className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-[80] bg-slate-900/60 backdrop-blur-sm lg:hidden"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
         />
         <motion.aside
-          className="fixed left-0 top-0 bottom-0 z-[61] w-full max-w-sm bg-gray-50 dark:bg-black shadow-2xl flex flex-col lg:hidden"
+          className="fixed left-0 top-0 bottom-0 z-[90] w-full max-w-sm bg-gray-50 dark:bg-black shadow-2xl flex flex-col lg:hidden"
           style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
           initial={{ x: '-100%' }}
           animate={{ x: 0, transition: { type: 'spring', stiffness: 280, damping: 28 } }}
@@ -403,8 +403,8 @@ export const MobileFilterSheet: React.FC<MobileFilterSheetProps> = ({ open, onCl
             </SfButton>
           </div>
           <div className="flex-1 overflow-y-auto overscroll-contain px-3 pb-3">{children}</div>
-          <div className="p-4 border-t border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-950" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 1rem)' }}>
-            <SfButton onClick={onClose} className="w-full !rounded-xl !bg-orange-500 hover:!bg-orange-600 !text-white !font-semibold">
+          <div className="p-4 border-t border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 shrink-0" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.25rem)' }}>
+            <SfButton onClick={onClose} className="w-full !rounded-2xl !h-12 !bg-orange-500 hover:!bg-orange-600 !text-white !font-bold">
               {resultCount !== undefined ? `Show ${resultCount.toLocaleString()} results` : 'Show results'}
             </SfButton>
           </div>

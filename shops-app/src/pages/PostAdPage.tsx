@@ -27,20 +27,14 @@ export default function PostAdPage() {
     }
 
     return (
-        <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-            {/* No title here -- SellerLayout's mobile top bar already shows
-            "Add Product" for this route, so a second heading right below it
-            was pure duplication. The back button is still needed: it's the
-            only quick way back without opening the drawer menu. */}
-            <div className="mb-6 md:hidden">
-                <button
-                    onClick={() => navigate(-1)}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-lg"
-                    aria-label="Go back"
-                >
-                    <ArrowLeft className="w-5 h-5" />
-                </button>
-            </div>
+        <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6 sm:py-8">
+            <button
+                onClick={() => navigate(-1)}
+                className="w-10 h-10 rounded-full border border-slate-200 dark:border-neutral-800 flex items-center justify-center text-slate-700 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-900 transition-colors mb-4 shadow-xs"
+                aria-label="Back"
+            >
+                <ArrowLeft size={18} />
+            </button>
             <ListingWizard />
         </div>
     );

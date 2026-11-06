@@ -6,7 +6,7 @@ import { useParams, useLocation } from 'react-router-dom';
 import { useRouter } from 'next/navigation';
 import {
     MapPin, ShieldCheck, Heart, Share2, MessageSquare, ArrowLeft, Eye, Star, X,
-    AlertTriangle, Store, CheckCircle2, Check, Tag,
+    AlertTriangle, Store, CheckCircle2, Check, Tag, ShoppingCart,
 } from 'lucide-react';
 import api, { optimizeCloudinaryUrl } from '@/services/api';
 import { listingsService, makeShopSlug } from '@/services/listings';
@@ -15,6 +15,7 @@ import { analyticsService } from '@/services/analytics';
 import { offersService } from '@/services/offers';
 import { useTrackItemView } from '@/hooks/useViewTracking';
 import { useFavoritesStore } from '@/store/useFavorites';
+import { useCart } from '@/store/useCart';
 import { useAuthStore } from '@/store/useAuth';
 import { useAuthModal } from '@/store/useAuthModal';
 import { useCurrencyStore } from '@/store/useCurrency';
@@ -95,6 +96,29 @@ export default function ProductDetailPage() {
 
     const { isAuthenticated } = useAuthStore();
     const openAuthModal = useAuthModal((s) => s.open);
+    const addItemToCart = useCart((s) => s.addItem);
+    const [addedToCart, setAddedToCart] = useState(false);
+
+    const handleAddToCart = () => {
+        if (!listing) return;
+        addItemToCart({
+            id: String(listing.id),
+            title: field(listing.title_en, listing.title_so) || listing.title_en || 'Product',
+            price: listing.price ?? 0,
+            image: listing.images?.[0] || FALLBACK_IMAGE,
+            quantity: 1,
+            owner_id: listing.owner_id,
+            owner: listing.owner ? {
+                full_name: listing.owner.full_name || 'Seller',
+                phone: (listing.owner as any).phone || '',
+                avatar_url: (listing.owner as any).avatar_url,
+            } : undefined,
+        });
+        setAddedToCart(true);
+        trackEvent('Added to Cart', { listing_id: listing.id, price: listing.price });
+        setTimeout(() => setAddedToCart(false), 2500);
+    };
+
     const isFavorite = useFavoritesStore((s) => listing ? s.isFavorite(listing.id) : false);
     const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
     const displayCurrency = useCurrencyStore((s) => s.currency);
@@ -262,15 +286,26 @@ export default function ProductDetailPage() {
             return;
         }
         try {
-            await api.post('/listings/report', {
-                listing_id: listing.id,
-                reason: reportReason,
-                description: reportDescription.trim() || undefined,
-            });
+            const sellerId = listing.user_id || (listing as any).owner_id || (listing as any).seller_id;
+            try {
+                await api.post('/trust-ops/reports', {
+                    listing_id: listing.id,
+                    reported_user_id: sellerId || null,
+                    reason: `Product Report: ${reportReason}`,
+                    description: reportDescription.trim() || `Reported product "${listing.title}"`,
+                    risk_score: reportReason.includes('fraud') || reportReason.includes('deposit') || reportReason.includes('phishing') ? 85 : 50,
+                });
+            } catch {
+                await api.post('/listings/report', {
+                    listing_id: listing.id,
+                    reason: reportReason,
+                    description: reportDescription.trim() || undefined,
+                });
+            }
             setShowReportModal(false);
             setReportReason('');
             setReportDescription('');
-            alert('Thank you for your report.');
+            alert('Thank you for your report. Our Trust & Safety moderation team will review this listing shortly.');
         } catch (err: any) {
             console.error('Failed to submit report', err);
             alert(err?.response?.data?.detail || 'Failed to submit report. Please try again.');
@@ -503,12 +538,12 @@ export default function ProductDetailPage() {
                         {/* Price */}
                         <div className="flex items-baseline gap-2 flex-wrap">
                             <span className="text-3xl font-black text-gray-900 dark:text-white">
-                                {formatConvertedPrice(listing?.price ?? 0, listing.currency || 'USD', displayCurrency)}
+                                {formatConvertedPrice(listing?.price ?? 0, listing.currency || 'KES', displayCurrency)}
                             </span>
                             {hasDiscount && (
                                 <>
                                     <span className="text-sm text-gray-400 dark:text-neutral-400 line-through">
-                                        {formatConvertedPrice(listing.compare_at_price as number, listing.currency || 'USD', displayCurrency)}
+                                        {formatConvertedPrice(listing.compare_at_price as number, listing.currency || 'KES', displayCurrency)}
                                     </span>
                                     <span className="text-xs font-bold text-white bg-red-500 px-2 py-1 rounded-full">
                                         {discountPct}% OFF
@@ -540,6 +575,17 @@ export default function ProductDetailPage() {
                         {!isSold && (
                             <div className="space-y-3">
                                 <div className="hidden md:flex gap-3">
+                                    <button
+                                        onClick={handleAddToCart}
+                                        className={`flex-1 flex items-center justify-center gap-2 rounded-full border-2 font-black py-3.5 text-base transition-all ${
+                                            addedToCart
+                                                ? 'bg-emerald-600 border-emerald-600 text-white'
+                                                : 'border-slate-900 dark:border-white text-slate-900 dark:text-white hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-black'
+                                        }`}
+                                    >
+                                        <ShoppingCart className="h-5 w-5" />
+                                        {addedToCart ? 'Added to Cart ✓' : 'Add to Cart'}
+                                    </button>
                                     <Link
                                         href={`/messages?userId=${listing.owner_id}&productId=${listing.id}`}
                                         onClick={() => analyticsService.trackClick({
@@ -560,7 +606,7 @@ export default function ProductDetailPage() {
                                             setOfferAmount(String(listing.price || ''));
                                             setShowOfferModal(true);
                                         }}
-                                        className="flex-1 flex items-center justify-center gap-2 rounded-full border-2 border-orange-500 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 font-black py-3.5 text-base transition-colors"
+                                        className="px-5 flex items-center justify-center gap-2 rounded-full border-2 border-orange-500 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 font-black py-3.5 text-base transition-colors"
                                     >
                                         <Tag className="h-5 w-5" />
                                         Make Offer
@@ -813,9 +859,21 @@ export default function ProductDetailPage() {
                 <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-neutral-950 border-t border-gray-200 dark:border-neutral-800 p-3 flex items-center gap-2">
                     <div className="flex-shrink-0 pr-1">
                         <div className="text-sm font-black text-gray-900 dark:text-white whitespace-nowrap">
-                            {formatConvertedPrice(listing?.price ?? 0, listing.currency || 'USD', displayCurrency)}
+                            {formatConvertedPrice(listing?.price ?? 0, listing.currency || 'KES', displayCurrency)}
                         </div>
                     </div>
+                    <button
+                        onClick={handleAddToCart}
+                        aria-label={addedToCart ? 'Added to Cart' : 'Add to Cart'}
+                        className={`px-3 py-2.5 rounded-full border-2 flex items-center justify-center font-bold text-xs transition-all ${
+                            addedToCart
+                                ? 'bg-emerald-600 border-emerald-600 text-white'
+                                : 'border-gray-900 dark:border-white text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-900'
+                        }`}
+                    >
+                        <ShoppingCart className="h-4 w-4 mr-1" />
+                        <span>{addedToCart ? 'Added' : 'Cart'}</span>
+                    </button>
                     <button
                         onClick={() => {
                             setOfferSuccess(false);
@@ -878,7 +936,7 @@ export default function ProductDetailPage() {
                                         {field(listing.title_en, listing.title_so)}
                                     </span>
                                     <span className="text-sm font-black text-gray-900 dark:text-white">
-                                        Listed: {formatConvertedPrice(listing.price ?? 0, listing.currency || 'USD', displayCurrency)}
+                                        Listed: {formatConvertedPrice(listing.price ?? 0, listing.currency || 'KES', displayCurrency)}
                                     </span>
                                 </div>
                                 <div>
@@ -943,15 +1001,17 @@ export default function ProductDetailPage() {
                             <select
                                 value={reportReason}
                                 onChange={(e) => setReportReason(e.target.value)}
-                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:border-orange-500"
+                                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white focus:outline-none focus:border-orange-500 text-sm font-semibold"
                             >
                                 <option value="">Select a reason...</option>
-                                <option value="incorrect_info">Incorrect product information</option>
-                                <option value="not_available">Product not available</option>
-                                <option value="duplicate">Duplicate listing</option>
-                                <option value="fraud">Suspected fraud</option>
-                                <option value="offensive">Offensive content</option>
-                                <option value="other">Other</option>
+                                <option value="Demanding advance deposit or transport fee before delivery">Demanding advance deposit / transport fee</option>
+                                <option value="Asking for M-Pesa PIN, OTP, or password">Asking for M-Pesa PIN, OTP, or password</option>
+                                <option value="Suspected fraud or scam product">Suspected fraud or scam</option>
+                                <option value="Fake product, counterfeit item, or unavailable listing">Fake product or counterfeit item</option>
+                                <option value="Incorrect product information or misleading price">Incorrect information or misleading price</option>
+                                <option value="Duplicate or spam listing">Duplicate or spam listing</option>
+                                <option value="Offensive or prohibited item">Offensive or prohibited item</option>
+                                <option value="Other policy violation">Other policy violation</option>
                             </select>
                         </div>
 

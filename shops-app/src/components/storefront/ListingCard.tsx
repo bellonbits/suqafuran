@@ -23,12 +23,14 @@ import {
   SfBadge,
 } from '@storefront-ui/react';
 import type { Variants } from 'framer-motion';
-import { ShieldCheck, MapPin } from 'lucide-react';
+import { ShieldCheck, MapPin, ShoppingCart, Check } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useFavoritesStore } from '@/store/useFavorites';
 import { useAuthStore } from '@/store/useAuth';
 import { useAuthModal } from '@/store/useAuthModal';
 import { useCurrencyStore } from '@/store/useCurrency';
+import { useCart } from '@/store/useCart';
+import { trackEvent } from '@/lib/analytics';
 import { formatConvertedPrice } from '@/lib/currency';
 import { useLocalizedField } from '@/lib/i18n';
 import { FeaturedBadge } from '@/components/ads/FeaturedBadge';
@@ -114,6 +116,43 @@ export const ListingCard: React.FC<ListingCardProps> = ({
     optimizeCloudinaryUrl(rawImage, { width: 500, quality: 'auto', fetch_format: 'auto' }) || rawImage;
 
   const title = field(listing.title_en, listing.title_so) || listing.title_en;
+
+  const [justAddedToCart, setJustAddedToCart] = useState(false);
+  const addItem = useCart((s) => s.addItem);
+  const inCart = useCart((s) => s.items.some((i) => i.id === String(listing.id)));
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    addItem({
+      id: String(listing.id),
+      title: title || listing.title_en || 'Product',
+      price: Number(listing.price || 0),
+      image: displayImage,
+      quantity: 1,
+      owner_id: listing.owner_id || listing.owner?.id,
+      seller_id: String(listing.owner_id || listing.owner?.id || ''),
+      owner: listing.owner ? {
+        full_name: listing.owner.full_name,
+        phone: listing.owner.phone,
+        email: listing.owner.email,
+        avatar_url: listing.owner.avatar_url,
+      } : undefined
+    });
+
+    trackEvent('Add to Cart', {
+      listing_id: listing.id,
+      title: title || listing.title_en,
+      price: listing.price,
+      currency: listing.currency || 'KES',
+      owner_id: listing.owner_id || listing.owner?.id,
+      source: 'listing_card',
+    });
+
+    setJustAddedToCart(true);
+    setTimeout(() => setJustAddedToCart(false), 1500);
+  };
 
   const handleToggleFavorite = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -211,7 +250,24 @@ export const ListingCard: React.FC<ListingCardProps> = ({
             </div>
             <div className="flex items-center justify-between mt-2">
               {PriceBlock}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  aria-label={justAddedToCart || inCart ? "In cart" : "Add to cart"}
+                  className={clsx(
+                    'rounded-full w-9 h-9 p-0 flex items-center justify-center transition-all duration-200 cursor-pointer shadow-xs',
+                    justAddedToCart || inCart
+                      ? 'bg-emerald-600 text-white'
+                      : 'border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-gray-700 dark:text-neutral-200 hover:bg-orange-500 hover:text-white dark:hover:bg-orange-500'
+                  )}
+                >
+                  {justAddedToCart || inCart ? (
+                    <Check className="w-4 h-4" />
+                  ) : (
+                    <ShoppingCart className="w-4 h-4" />
+                  )}
+                </button>
                 <SfButton
                   size="sm"
                   variant="tertiary"
@@ -289,7 +345,8 @@ export const ListingCard: React.FC<ListingCardProps> = ({
 
           {/* ── Favourite button (top right) ───────────────────────── */}
           <motion.div
-            animate={isFavorite ? 'liked' : 'unliked'}
+           
+           animate={isFavorite ? 'liked' : 'unliked'}
             variants={heartVariants}
             className="absolute top-2 right-2 z-10"
           >
@@ -312,6 +369,27 @@ export const ListingCard: React.FC<ListingCardProps> = ({
               )}
             </SfButton>
           </motion.div>
+
+          {/* ── Cart button (bottom right of image) ────────────────── */}
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            type="button"
+            onClick={handleAddToCart}
+            aria-label={justAddedToCart || inCart ? "In cart" : "Add to cart"}
+            className={clsx(
+              "absolute bottom-2 right-2 z-10 w-9 h-9 rounded-full flex items-center justify-center shadow-md transition-all duration-200 cursor-pointer backdrop-blur-sm",
+              justAddedToCart || inCart
+                ? "bg-emerald-600 text-white shadow-emerald-500/30 ring-2 ring-white dark:ring-neutral-900"
+                : "bg-white/95 dark:bg-neutral-900/95 text-slate-800 dark:text-neutral-100 hover:bg-orange-500 hover:text-white dark:hover:bg-orange-500 border border-gray-200/60 dark:border-neutral-700/60"
+            )}
+          >
+            {justAddedToCart || inCart ? (
+              <Check className="w-4 h-4" />
+            ) : (
+              <ShoppingCart className="w-4 h-4" />
+            )}
+          </motion.button>
         </div>
 
         {/* ── Text content ────────────────────────────────────────────── */}

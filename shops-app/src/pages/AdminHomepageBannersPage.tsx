@@ -40,18 +40,24 @@ function toDatetimeLocal(iso?: string): string {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-const emptyForm = {
-    seller_id: '',
+const emptyForm = () => ({
+    seller_id: '1',
     title: '',
     subtitle: '',
     image_url: '',
     mobile_image_url: '',
     button_text: 'Shop Now',
     button_link: '',
-    priority: 50,
-    start_date: '',
-    end_date: '',
-};
+    priority: 80,
+    start_date: toDatetimeLocal(new Date().toISOString()),
+    end_date: toDatetimeLocal(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()),
+});
+
+const PROMO_TEMPLATES = [
+    { title: 'Super Deals & Discounts', subtitle: 'Exclusive discounts up to 50% off today', button_text: 'Shop Deals', button_link: '/search?discount=true' },
+    { title: 'Flash Deals Eastleigh', subtitle: 'Limited-time best prices on verified products', button_text: 'Explore Deals', button_link: '/shops' },
+    { title: 'Fashion & Beauty Fest', subtitle: 'Trending styles & essentials delivered to you', button_text: 'Shop Collection', button_link: '/fashion' },
+];
 
 export default function AdminHomepageBannersPage() {
     const [banners, setBanners] = useState<HomepageBannerDetail[]>([]);
@@ -61,12 +67,24 @@ export default function AdminHomepageBannersPage() {
 
     const [modalOpen, setModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
-    const [form, setForm] = useState(emptyForm);
+    const [form, setForm] = useState(emptyForm());
     const [ctaType, setCtaType] = useState(CTA_PRESETS[0].label);
     const [uploadingDesktop, setUploadingDesktop] = useState(false);
     const [uploadingMobile, setUploadingMobile] = useState(false);
     const [saving, setSaving] = useState(false);
     const [formError, setFormError] = useState('');
+
+    const syncCustomBannersToLocalStorage = async () => {
+        try {
+            const active = await advertisingService.getActiveBanners();
+            if (Array.isArray(active)) {
+                localStorage.setItem('suqafuran_custom_banners', JSON.stringify(active));
+                window.dispatchEvent(new Event('suqafuran_banners_updated'));
+            }
+        } catch (e) {
+            console.error('Failed to sync active banners', e);
+        }
+    };
 
     const navItems = ADMIN_NAV_ITEMS.map(item => ({
         ...item,
@@ -83,6 +101,7 @@ export default function AdminHomepageBannersPage() {
             setLoading(true);
             const data = await advertisingService.listBanners();
             setBanners(data);
+            await syncCustomBannersToLocalStorage();
         } catch (err) {
             console.error('Failed to load banners:', err);
             setError('Failed to load banners');
@@ -103,7 +122,7 @@ export default function AdminHomepageBannersPage() {
 
     const openCreateModal = () => {
         setEditingId(null);
-        setForm(emptyForm);
+        setForm(emptyForm());
         setCtaType(CTA_PRESETS[0].label);
         setFormError('');
         setModalOpen(true);
@@ -145,8 +164,9 @@ export default function AdminHomepageBannersPage() {
     const handleSave = async () => {
         setFormError('');
 
-        if (!form.seller_id || !form.title || !form.image_url || !form.button_link || !form.start_date || !form.end_date) {
-            setFormError('Please fill in shop, title, desktop image, CTA link, and both dates.');
+        const effectiveSellerId = form.seller_id || (shops.length > 0 ? String(shops[0].id) : '1');
+        if (!effectiveSellerId || !form.title || !form.image_url || !form.button_link || !form.start_date || !form.end_date) {
+            setFormError('Please fill in title, desktop image, CTA link, and both dates.');
             return;
         }
 
@@ -166,7 +186,7 @@ export default function AdminHomepageBannersPage() {
                 });
             } else {
                 const payload: CreateBannerPayload = {
-                    seller_id: Number(form.seller_id),
+                    seller_id: Number(effectiveSellerId),
                     title: form.title,
                     subtitle: form.subtitle || null,
                     image_url: form.image_url,
@@ -181,6 +201,7 @@ export default function AdminHomepageBannersPage() {
             }
             setModalOpen(false);
             await loadBanners();
+            await syncCustomBannersToLocalStorage();
         } catch (err: any) {
             setFormError(err?.response?.data?.detail || 'Failed to save banner');
         } finally {
@@ -192,6 +213,7 @@ export default function AdminHomepageBannersPage() {
         try {
             await advertisingService.publishBanner(banner.id);
             await loadBanners();
+            await syncCustomBannersToLocalStorage();
         } catch (err: any) {
             alert(err?.response?.data?.detail || 'Failed to publish banner');
         }
@@ -201,6 +223,7 @@ export default function AdminHomepageBannersPage() {
         try {
             await advertisingService.pauseBanner(banner.id);
             await loadBanners();
+            await syncCustomBannersToLocalStorage();
         } catch (err: any) {
             alert(err?.response?.data?.detail || 'Failed to pause banner');
         }
@@ -211,6 +234,7 @@ export default function AdminHomepageBannersPage() {
         try {
             await advertisingService.deleteBanner(banner.id);
             await loadBanners();
+            await syncCustomBannersToLocalStorage();
         } catch (err: any) {
             alert(err?.response?.data?.detail || 'Failed to delete banner');
         }
@@ -239,18 +263,28 @@ export default function AdminHomepageBannersPage() {
     return (
         <DashboardLayout title="Homepage Banners" navItems={navItems} userRole="admin">
         <div className="p-6 max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                 <div>
-                    <h1 className="text-2xl font-black text-slate-900 dark:text-white">Homepage Banners</h1>
-                    <p className="text-sm text-slate-400 mt-1">Manage the promotional carousel shown at the top of the homepage.</p>
+                    <h1 className="text-2xl font-black text-slate-900 dark:text-white">Homepage Banners & Posters</h1>
+                    <p className="text-sm text-slate-400 mt-1">Manage custom promotional deal posters shown in the homepage hero carousel.</p>
                 </div>
-                <button
-                    onClick={openCreateModal}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2"
-                >
-                    <Plus className="w-5 h-5" />
-                    New Banner
-                </button>
+                <div className="flex items-center gap-2">
+                    <a
+                        href="/"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="bg-slate-100 hover:bg-slate-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 font-semibold px-4 py-2.5 rounded-lg text-sm inline-flex items-center gap-1.5 transition-colors"
+                    >
+                        View Live on Homepage ↗
+                    </a>
+                    <button
+                        onClick={openCreateModal}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 text-sm shadow-sm"
+                    >
+                        <Plus className="w-5 h-5" />
+                        New Deal Poster
+                    </button>
+                </div>
             </div>
 
             {error && (
@@ -394,15 +428,43 @@ export default function AdminHomepageBannersPage() {
                             <div className="bg-red-50 text-red-600 text-xs font-bold p-3 rounded-lg">{formError}</div>
                         )}
 
+                        {!editingId && (
+                            <div className="bg-blue-50/60 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 p-3 rounded-xl">
+                                <p className="text-[11px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400 mb-2">
+                                    Quick Deal Templates:
+                                </p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {PROMO_TEMPLATES.map((tmpl) => (
+                                        <button
+                                            key={tmpl.title}
+                                            type="button"
+                                            onClick={() => setForm((f) => ({
+                                                ...f,
+                                                title: tmpl.title,
+                                                subtitle: tmpl.subtitle,
+                                                button_text: tmpl.button_text,
+                                                button_link: tmpl.button_link,
+                                            }))}
+                                            className="text-xs bg-white dark:bg-neutral-800 border border-blue-200 dark:border-neutral-700 hover:border-blue-400 text-slate-800 dark:text-neutral-200 px-2.5 py-1 rounded-lg transition-colors text-left"
+                                        >
+                                            {tmpl.title}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         <div>
-                            <label className="text-xs font-bold text-slate-600 dark:text-neutral-200 block mb-1">Shop</label>
+                            <label className="text-xs font-bold text-slate-600 dark:text-neutral-200 block mb-1">
+                                Shop / Promotion Sponsor
+                            </label>
                             <select
                                 value={form.seller_id}
                                 onChange={(e) => setForm((f) => ({ ...f, seller_id: e.target.value }))}
                                 disabled={!!editingId}
                                 className="w-full rounded-xl border border-slate-200 dark:border-neutral-800 px-3 py-2.5 text-sm disabled:bg-slate-50 dark:bg-neutral-900/40 disabled:text-slate-400"
                             >
-                                <option value="">Select a shop...</option>
+                                <option value="1">✨ Suqafuran Official / Platform Deals</option>
                                 {shops.map((shop) => (
                                     <option key={shop.id} value={shop.id}>
                                         {shop.business_name} ({shop.full_name})

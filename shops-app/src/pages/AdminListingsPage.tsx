@@ -1072,7 +1072,7 @@ const ListingsManagementPage = () => {
                     className="w-full px-3.5 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 text-sm font-bold"
                   >
                     <option value="KSh">KSh - Kenyan Shilling</option>
-                    <option value="USD">USD ($)</option>
+                    <option value="USD">USD</option>
                     <option value="EUR">EUR (€)</option>
                     <option value="GBP">GBP (£)</option>
                     <option value="SOS">SOS</option>

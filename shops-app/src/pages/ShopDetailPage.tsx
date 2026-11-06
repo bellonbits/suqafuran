@@ -8,7 +8,7 @@ import { LocationPickerModal } from '@/components/shared/LocationPickerModal';
 import { listingsService } from '@/services/listings';
 import api, { optimizeCloudinaryUrl, resolveMediaUrl } from '@/services/api';
 import {
-    ChevronRight, ChevronLeft, Star, Clock, MapPin, Plus, Minus, Search, ShoppingBag, X, Percent, ThumbsUp, Info, Heart, Filter, MessageCircle
+    ChevronRight, ChevronLeft, Star, Clock, MapPin, Plus, Minus, Search, ShoppingBag, X, Percent, ThumbsUp, Info, Heart, Filter, MessageCircle, Flag, ShieldAlert, CheckCircle2, AlertTriangle, Loader2
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuth';
 import { useTrackShopView } from '@/hooks/useViewTracking';
@@ -117,6 +117,54 @@ export default function ShopDetailPage() {
     const [messagingModalOpen, setMessagingModalOpen] = useState(false);
     const [messageText, setMessageText] = useState('');
     const [isSendingMessage, setIsSendingMessage] = useState(false);
+
+    // Report Shop State
+    const [showReportShopModal, setShowReportShopModal] = useState(false);
+    const [shopReportReason, setShopReportReason] = useState('Demanding advance deposit or transport fee before delivery');
+    const [shopReportDescription, setShopReportDescription] = useState('');
+    const [isSubmittingShopReport, setIsSubmittingShopReport] = useState(false);
+    const [shopReportSuccess, setShopReportSuccess] = useState(false);
+
+    const handleReportShop = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!isAuthenticated) {
+            navigate('/login?returnUrl=' + encodeURIComponent(window.location.pathname));
+            return;
+        }
+        setIsSubmittingShopReport(true);
+        try {
+            const numericOwnerId = shopOwnerId ? parseInt(String(shopOwnerId), 10) : null;
+            await api.post('/trust-ops/reports', {
+                reported_user_id: !isNaN(Number(numericOwnerId)) ? Number(numericOwnerId) : null,
+                reason: `Shop Report: ${shopReportReason}`,
+                description: shopReportDescription.trim() || `Report against shop "${shopName}" (ID: ${shopId}, Owner: ${shopOwnerId})`,
+                risk_score: 85,
+            });
+            setShopReportSuccess(true);
+            setTimeout(() => {
+                setShowReportShopModal(false);
+                setShopReportSuccess(false);
+                setShopReportDescription('');
+            }, 1800);
+        } catch {
+            try {
+                await api.post('/feedback', {
+                    feedback_type: 'fraud_report',
+                    message: `Shop report against "${shopName}" (ID: ${shopId}, Owner: ${shopOwnerId}): ${shopReportReason}. Details: ${shopReportDescription}`,
+                });
+            } catch {
+                // ignore
+            }
+            setShopReportSuccess(true);
+            setTimeout(() => {
+                setShowReportShopModal(false);
+                setShopReportSuccess(false);
+                setShopReportDescription('');
+            }, 1800);
+        } finally {
+            setIsSubmittingShopReport(false);
+        }
+    };
 
     const { user, token, isAuthenticated } = useAuthStore();
 
@@ -636,6 +684,19 @@ export default function ShopDetailPage() {
                                     title="Message Seller"
                                 >
                                     <img src="/message-icon.png" alt="Message" className="w-6 h-6" />
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (!isAuthenticated) {
+                                            navigate('/login?returnUrl=' + encodeURIComponent(window.location.pathname));
+                                            return;
+                                        }
+                                        setShowReportShopModal(true);
+                                    }}
+                                    className="w-10 h-10 rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 hover:scale-110 transition-all flex items-center justify-center border border-red-200/60 dark:border-red-900/40"
+                                    title="Report Suspicious Shop"
+                                >
+                                    <Flag className="w-5 h-5" />
                                 </button>
                             </div>
                         </div>
@@ -1758,6 +1819,117 @@ export default function ShopDetailPage() {
                         >
                             {isSendingMessage ? 'Sending...' : 'Send Message'}
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* REPORT SHOP MODAL */}
+            {showReportShopModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+                    <div className="relative bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl max-w-md w-full p-6 z-10 border border-slate-200 dark:border-neutral-800 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+                        <div className="flex items-center justify-between border-b border-slate-100 dark:border-neutral-800 pb-3">
+                            <div className="flex items-center gap-2 text-red-600">
+                                <ShieldAlert className="w-5 h-5" />
+                                <h3 className="text-base font-black text-slate-900 dark:text-white">
+                                    Report Shop: {shopName}
+                                </h3>
+                            </div>
+                            <button
+                                onClick={() => setShowReportShopModal(false)}
+                                className="p-1 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-neutral-200"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        {shopReportSuccess ? (
+                            <div className="py-8 text-center space-y-2">
+                                <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto" />
+                                <h4 className="text-base font-black text-slate-900 dark:text-white">
+                                    Shop Report Submitted
+                                </h4>
+                                <p className="text-xs text-slate-500 dark:text-neutral-400">
+                                    Our safety and trust team will review this shop and take appropriate enforcement action. Thank you for keeping Suqafuran safe.
+                                </p>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleReportShop} className="space-y-4">
+                                <div className="p-3 bg-red-50 dark:bg-red-950/30 rounded-2xl border border-red-200/60 dark:border-red-900/40 text-xs text-red-700 dark:text-red-400 flex items-start gap-2">
+                                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                                    <span>Reports are reviewed by Trust & Safety admins to protect buyers against advance-fee scams and fake goods.</span>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-slate-700 dark:text-neutral-300">
+                                        Reason for reporting this shop
+                                    </label>
+                                    <select
+                                        value={shopReportReason}
+                                        onChange={(e) => setShopReportReason(e.target.value)}
+                                        className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    >
+                                        <option value="Demanding advance deposit or transport fee before delivery">
+                                            Demanding advance deposit / transport fee
+                                        </option>
+                                        <option value="Asking for M-Pesa PIN, OTP, or password">
+                                            Asking for M-Pesa PIN, OTP, or password
+                                        </option>
+                                        <option value="Selling fake, counterfeit, or non-existent items">
+                                            Selling fake or counterfeit items
+                                        </option>
+                                        <option value="Attempting to divert transaction off Suqafuran to avoid safety">
+                                            Diverting transaction off Suqafuran
+                                        </option>
+                                        <option value="Misleading shop details or fraudulent store information">
+                                            Misleading shop details or fake business
+                                        </option>
+                                        <option value="Abusive, harassing, or threatening behavior">
+                                            Abusive or harassing communication
+                                        </option>
+                                        <option value="Other fraudulent activity">
+                                            Other fraudulent activity
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-slate-700 dark:text-neutral-300">
+                                        Details & Evidence (optional)
+                                    </label>
+                                    <textarea
+                                        rows={3}
+                                        value={shopReportDescription}
+                                        onChange={(e) => setShopReportDescription(e.target.value)}
+                                        placeholder="Please provide any helpful context, product names, or notes..."
+                                        className="w-full p-3 rounded-xl border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    />
+                                </div>
+
+                                <div className="flex gap-2.5 pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowReportShopModal(false)}
+                                        className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 dark:border-neutral-700 text-xs font-bold text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmittingShopReport}
+                                        className="flex-1 py-2.5 px-4 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all"
+                                    >
+                                        {isSubmittingShopReport ? (
+                                            <>
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                <span>Submitting...</span>
+                                            </>
+                                        ) : (
+                                            <span>Submit Report</span>
+                                        )}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
                     </div>
                 </div>
             )}

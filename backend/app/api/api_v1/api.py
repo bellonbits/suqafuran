@@ -61,6 +61,7 @@ api_router.include_router(checkout_receipts.router, prefix="/checkout-receipts",
 api_router.include_router(meetings.router, prefix="/meetings", tags=["meetings"])
 api_router.include_router(deals.router, prefix="/deals", tags=["deals"])
 api_router.include_router(trust_ops.router, prefix="/trust_ops", tags=["trust"])
+api_router.include_router(trust_ops.router, prefix="/trust-ops", tags=["trust"])
 api_router.include_router(promotions.router, prefix="/promotions", tags=["promotions"])
 api_router.include_router(mobile_money.router, prefix="/mobile-money", tags=["mobile-money"])
 api_router.include_router(audit.router, prefix="/audit", tags=["audit"])

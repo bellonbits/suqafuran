@@ -47,7 +47,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <RealtimeConnection />
       <NotificationToast />
       <OfflineBanner />
-      <div className="sm:pb-0 pb-20">
+      <div className="min-h-screen flex flex-col">
         {children}
       </div>
       <BottomNav />

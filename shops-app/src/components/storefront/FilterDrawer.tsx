@@ -102,7 +102,7 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
         <>
           {/* ── Backdrop ─────────────────────────────────────────────── */}
           <motion.div
-            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 z-[80] bg-slate-900/60 backdrop-blur-sm"
             variants={backdropVariants}
             initial="hidden"
             animate="visible"
@@ -112,7 +112,7 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
 
           {/* ── Drawer panel ─────────────────────────────────────────── */}
           <motion.aside
-            className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-sm bg-white dark:bg-neutral-950 shadow-2xl flex flex-col"
+            className="fixed right-0 top-0 bottom-0 z-[90] w-full max-w-sm bg-white dark:bg-neutral-950 shadow-2xl flex flex-col justify-between border-l border-gray-100 dark:border-neutral-800"
             variants={drawerVariants}
             initial="hidden"
             animate="visible"
@@ -263,8 +263,13 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
               </motion.section>
             </div>
 
-            {/* ── Footer ─────────────────────────────────────────────── */}
-            <div className="px-5 py-4 border-t border-gray-100 dark:border-neutral-800 flex gap-3">
+            {/* ── Footer: Visible, elevated, and safe-area clear ────────── */}
+            <div
+              style={{
+                paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.25rem)',
+              }}
+              className="px-5 pt-4 pb-6 border-t border-gray-100 dark:border-neutral-800 flex gap-3 bg-white dark:bg-neutral-950 shrink-0 shadow-lg"
+            >
               <SfButton
                 variant="secondary"
                 size="lg"
@@ -278,7 +283,7 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
                     verifiedOnly: false,
                   })
                 }
-                className="flex-1 !rounded-2xl !border-gray-200 dark:!border-neutral-700 !font-bold !text-gray-700 dark:!text-neutral-300"
+                className="flex-1 !rounded-2xl !h-12 !border-gray-200 dark:!border-neutral-700 !font-bold !text-gray-700 dark:!text-neutral-300 active:!scale-98 transition-all"
               >
                 Clear All
               </SfButton>
@@ -290,7 +295,7 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
                 <SfButton
                   size="lg"
                   onClick={() => { onApply(); onClose(); }}
-                  className="w-full !rounded-2xl !bg-sky-500 hover:!bg-sky-600 !text-white !font-black !border-transparent !shadow-[0_4px_20px_rgba(14,165,233,0.4)]"
+                  className="w-full !rounded-2xl !h-12 !bg-sky-500 hover:!bg-sky-600 !text-white !font-black !border-transparent !shadow-[0_4px_20px_rgba(14,165,233,0.35)] active:!scale-98 transition-all"
                 >
                   {totalResults !== undefined
                     ? `Show ${totalResults.toLocaleString()} Results`

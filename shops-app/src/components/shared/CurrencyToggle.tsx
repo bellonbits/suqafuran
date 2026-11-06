@@ -5,7 +5,7 @@ import { ChevronDown } from 'lucide-react';
 import { useCurrencyStore, type Currency } from '../../store/useCurrency';
 import { CURRENCY_INFO } from '../../lib/currency';
 
-const CURRENCIES: Currency[] = ['USD', 'KES', 'UGX', 'TZS', 'ETB', 'RWF', 'SOS'];
+const CURRENCIES: Currency[] = ['KES', 'USD', 'UGX', 'TZS', 'ETB', 'RWF', 'SOS'];
 
 export const CurrencyToggle: React.FC<{ className?: string }> = ({ className = '' }) => {
     const { currency, setCurrency, setAutoDetected } = useCurrencyStore();

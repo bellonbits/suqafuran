@@ -67,6 +67,16 @@ function pickDiverseBySeller(items: Listing[], count: number): Listing[] {
     return result;
 }
 
+const FALLBACK_CATEGORIES: HomeCategory[] = [
+    { id: 1, slug: 'fashion', name: 'Fashion' },
+    { id: 2, slug: 'health-beauty', name: 'Health & Beauty' },
+    { id: 3, slug: 'household-items', name: 'Household Items' },
+    { id: 4, slug: 'food-groceries', name: 'Food & Groceries' },
+    { id: 5, slug: 'electronics', name: 'Electronics' },
+    { id: 6, slug: 'vehicles', name: 'Cars & Vehicles' },
+    { id: 7, slug: 'leisure-sports', name: 'Leisure & Sports' },
+];
+
 const DEFAULT_FILTERS: FilterState = {
     condition: [],
     priceMin: '',
@@ -113,20 +123,25 @@ export default function HomePage() {
     // Real listing volume, not shop count -- this drives the nav, hero slides,
     // tiles and which categories get their own product carousel below.
     const topCategories = useMemo(
-        () => [...categories]
-            .filter((c) => (c.active_listing_count ?? 0) > 0)
-            .sort((a, b) => (b.active_listing_count ?? 0) - (a.active_listing_count ?? 0)),
+        () => {
+            const withCount = categories.filter((c) => (c.active_listing_count ?? 0) > 0);
+            const source = withCount.length > 0 ? withCount : categories;
+            return [...source].sort((a, b) => (b.active_listing_count ?? 0) - (a.active_listing_count ?? 0));
+        },
         [categories]
     );
 
     const homeCategories: HomeCategory[] = useMemo(
-        () => topCategories.map((c) => ({
-            id: c.id,
-            slug: c.slug,
-            name: field(c.name_en, c.name_so) || c.name_en,
-            image_url: c.image_url,
-            active_listing_count: c.active_listing_count,
-        })),
+        () => {
+            if (topCategories.length === 0) return FALLBACK_CATEGORIES;
+            return topCategories.map((c) => ({
+                id: c.id,
+                slug: c.slug,
+                name: field(c.name_en, c.name_so) || c.name_en || c.slug,
+                image_url: c.image_url,
+                active_listing_count: c.active_listing_count,
+            }));
+        },
         [topCategories, field]
     );
 
@@ -203,16 +218,8 @@ export default function HomePage() {
         [shops]
     );
 
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
-            </div>
-        );
-    }
-
     return (
-        <div className="min-h-screen bg-white dark:bg-black pb-20">
+        <div className="min-h-screen bg-white dark:bg-black">
             {/* ── Filter drawer (SFUI + Framer) — mobile ────────────────── */}
             <FilterDrawer
                 isOpen={filterOpen}
@@ -232,19 +239,19 @@ export default function HomePage() {
 
             <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8">
                 {/* ── Hero search bar (SFUI SfInput) — mobile only ────────── */}
-                <div className="pt-4 sm:hidden">
+                <div className="pt-3 sm:hidden">
                     <div className="flex items-center gap-2">
                         <div className="flex-1">
                             <SuqafuranSearchBar
                                 size="md"
-                                placeholder={t('Search listings in Kenya…')}
+                                placeholder={t('Search products, shops, services…')}
                             />
                         </div>
                         <SfButton
                             variant="tertiary"
                             onClick={() => setFilterOpen(true)}
                             square
-                            className="!rounded-full !w-12 !h-12 !ring-1 !ring-gray-200 dark:!ring-neutral-700 !bg-white dark:!bg-neutral-900 !text-gray-700 dark:!text-neutral-200 shrink-0"
+                            className="!rounded-2xl !w-12 !h-12 !ring-1 !ring-slate-200/80 dark:!ring-neutral-800 !bg-white dark:!bg-neutral-900 !text-slate-700 dark:!text-neutral-200 shrink-0 shadow-xs active:scale-95 transition-transform"
                             aria-label="Open filters"
                         >
                             <SfIconTune size="sm" />
@@ -260,7 +267,7 @@ export default function HomePage() {
                 {/* ── Category icons (mobile — the hero's category list is desktop only) ── */}
                 <section className="mt-4 md:hidden -mx-4">
                     <div className="w-full overflow-x-auto overscroll-x-contain hide-scrollbar">
-                        <div className="flex flex-row flex-nowrap items-start gap-2 pb-2 min-w-max px-4">
+                        <div className="flex flex-row flex-nowrap items-start gap-3.5 pb-2 min-w-max px-4">
                             {homeCategories.map((cat) => (
                                 <Link
                                     key={cat.id}
@@ -268,11 +275,10 @@ export default function HomePage() {
                                     {...categoryPrefetchProps(cat.slug)}
                                     className="flex flex-col items-center shrink-0 cursor-pointer group"
                                 >
-                                    <div className="relative w-11 h-11 flex items-center justify-center">
-                                        <img src="/icons/fork.png" alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
-                                        <img src={getCategoryStickerIcon(cat.slug)} alt={cat.name} className="relative z-10 w-7 h-7 object-contain" />
+                                    <div className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-neutral-900 border border-slate-200/70 dark:border-neutral-800 shadow-xs flex items-center justify-center p-2.5 transition-all duration-200 group-hover:scale-105 group-hover:shadow-sm group-hover:border-orange-200 group-active:scale-95">
+                                        <img src={getCategoryStickerIcon(cat.slug)} alt={cat.name} className="w-8 h-8 object-contain drop-shadow-xs" />
                                     </div>
-                                    <span title={cat.name} className="text-[11px] font-bold mt-1.5 tracking-tight text-center w-16 leading-tight line-clamp-2 [overflow-wrap:anywhere] text-gray-700 dark:text-neutral-200">
+                                    <span title={cat.name} className="text-[11px] font-semibold mt-1.5 tracking-tight text-center w-[68px] leading-tight line-clamp-1 truncate text-slate-700 dark:text-neutral-200 group-hover:text-orange-600 transition-colors">
                                         {shortCategoryName(cat.name)}
                                     </span>
                                 </Link>

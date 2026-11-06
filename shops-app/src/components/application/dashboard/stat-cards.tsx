@@ -70,7 +70,7 @@ const DEFAULT_FOOTER_STATS: Stat[] = [
   {
     icon: RiCoinsFill,
     label: "Total revenue",
-    value: "$152,313.92",
+    value: "KSh 152,313",
     delta: "16%",
     deltaColor: "lime",
     tone: "blue",
@@ -97,7 +97,7 @@ const DEFAULT_FOOTER_STATS: Stat[] = [
   {
     icon: RiRefund2Fill,
     label: "Refunds",
-    value: "$4,209.44",
+    value: "KSh 4,209",
     delta: "2.4%",
     deltaColor: "rose",
     tone: "pink",

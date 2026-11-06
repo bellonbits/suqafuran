@@ -28,13 +28,21 @@ function getMixpanel(): MixpanelLike | null {
 
 export function identifyUser(user: { id: number | string; full_name?: string; email?: string; phone?: string }) {
   const mp = getMixpanel();
-  if (!mp) return;
-  mp.identify(String(user.id));
-  mp.people.set({
-    $name: user.full_name,
-    $email: user.email,
-    phone: user.phone,
-  });
+  if (mp) {
+    mp.identify(String(user.id));
+    mp.people.set({
+      $name: user.full_name,
+      $email: user.email,
+      phone: user.phone,
+    });
+  }
+  if (typeof window !== 'undefined' && (window as any).dataLayer) {
+    (window as any).dataLayer.push({
+      event: 'user_identified',
+      user_id: user.id,
+      user_name: user.full_name,
+    });
+  }
 }
 
 export function resetAnalytics() {
@@ -43,6 +51,12 @@ export function resetAnalytics() {
 
 export function trackEvent(event: string, props?: Record<string, unknown>) {
   getMixpanel()?.track(event, props);
+  if (typeof window !== 'undefined' && (window as any).dataLayer) {
+    (window as any).dataLayer.push({
+      event,
+      ...props,
+    });
+  }
 }
 
 /**

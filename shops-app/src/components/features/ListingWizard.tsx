@@ -589,24 +589,24 @@ export const ListingWizard: React.FC = () => {
         return (
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Shop *</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-2">Shop *</label>
               <select
                 value={formData.shop_id || ''}
                 onChange={(e) => updateFormData({ shop_id: parseInt(e.target.value) })}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                className="w-full px-4 py-3.5 border border-slate-200/90 dark:border-neutral-800 rounded-2xl bg-slate-50/70 dark:bg-neutral-900 text-slate-900 dark:text-white font-medium text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-xs"
               >
                 <option value="">Select a shop</option>
                 <option value="1">My Shop</option>
               </select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Main Category *</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-2">Main Category *</label>
                 <select
                   value={formData.category_id || ''}
                   onChange={(e) => updateFormData({ category_id: parseInt(e.target.value), subcategory_id: undefined })}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                  className="w-full px-4 py-3.5 border border-slate-200/90 dark:border-neutral-800 rounded-2xl bg-slate-50/70 dark:bg-neutral-900 text-slate-900 dark:text-white font-medium text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-xs"
                 >
                   <option value="">Select category</option>
                   {(allCategories.length > 0 ? allCategories : CATEGORIES).map((cat: any) => (
@@ -618,12 +618,12 @@ export const ListingWizard: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Subcategory *</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-2">Subcategory *</label>
                 <select
                   value={formData.subcategory_id || ''}
                   onChange={(e) => updateFormData({ subcategory_id: parseInt(e.target.value), subsubcategory_id: undefined })}
                   disabled={!formData.category_id}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all disabled:opacity-50"
+                  className="w-full px-4 py-3.5 border border-slate-200/90 dark:border-neutral-800 rounded-2xl bg-slate-50/70 dark:bg-neutral-900 text-slate-900 dark:text-white font-medium text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-xs disabled:opacity-50"
                 >
                   <option value="">Select subcategory</option>
                   {categorySubcategories.map((subcat: any) => (
@@ -635,12 +635,12 @@ export const ListingWizard: React.FC = () => {
               </div>
 
               {subcategorySubsubcategories.length > 0 && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Sub-Subcategory</label>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-2">Sub-Subcategory</label>
                   <select
                     value={formData.subsubcategory_id || ''}
                     onChange={(e) => updateFormData({ subsubcategory_id: e.target.value ? parseInt(e.target.value) : undefined })}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                    className="w-full px-4 py-3.5 border border-slate-200/90 dark:border-neutral-800 rounded-2xl bg-slate-50/70 dark:bg-neutral-900 text-slate-900 dark:text-white font-medium text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-xs"
                   >
                     <option value="">Select sub-subcategory (optional)</option>
                     {subcategorySubsubcategories.map((subsubcat: any) => (
@@ -654,7 +654,7 @@ export const ListingWizard: React.FC = () => {
             </div>
 
             <div className="relative">
-              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Location *</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-2">Location *</label>
               <input
                 ref={locationInputRef}
                 type="text"
@@ -662,15 +662,15 @@ export const ListingWizard: React.FC = () => {
                 onChange={(e) => handleLocationChange(e.target.value)}
                 onFocus={() => formData.location && setShowLocationSuggestions(true)}
                 placeholder="e.g., Eastleigh, Nairobi"
-                className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                className="w-full px-4 py-3.5 border border-slate-200/90 dark:border-neutral-800 rounded-2xl bg-slate-50/70 dark:bg-neutral-900 text-slate-900 dark:text-white placeholder-slate-400 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-xs"
               />
               {showLocationSuggestions && locationSuggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-2xl shadow-xl z-10 max-h-48 overflow-y-auto p-1.5">
                   {locationSuggestions.map((location) => (
                     <button
                       key={location}
                       onClick={() => selectLocation(location)}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors text-gray-900 dark:text-white text-sm"
+                      className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors text-slate-900 dark:text-white text-sm rounded-xl font-medium"
                     >
                       {location}
                     </button>
@@ -685,32 +685,32 @@ export const ListingWizard: React.FC = () => {
         return (
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Product Title *</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-2">Product Title *</label>
               <input
                 type="text"
                 value={formData.title}
                 onChange={(e) => updateFormData({ title: e.target.value })}
                 placeholder="e.g., Cerave Moisturizing Cream"
                 maxLength={100}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                className="w-full px-4 py-3.5 border border-slate-200/90 dark:border-neutral-800 rounded-2xl bg-slate-50/70 dark:bg-neutral-900 text-slate-900 dark:text-white placeholder-slate-400 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-xs"
               />
-              <p className="text-xs text-gray-500 mt-1">{formData.title.length}/100</p>
+              <p className="text-xs text-slate-400 mt-1.5 font-medium">{formData.title.length}/100</p>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Description *</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-2">Description *</label>
               <textarea
                 value={formData.description}
                 onChange={(e) => updateFormData({ description: e.target.value })}
                 placeholder="Describe your product. Be specific about condition, features, and why you're selling."
                 rows={5}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all resize-none"
+                className="w-full px-4 py-3.5 border border-slate-200/90 dark:border-neutral-800 rounded-2xl bg-slate-50/70 dark:bg-neutral-900 text-slate-900 dark:text-white placeholder-slate-400 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all resize-none shadow-xs"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Brand</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-2">Brand</label>
                 {!isCustomBrand ? (
                   <select
                     value={formData.brand || ''}
@@ -724,7 +724,7 @@ export const ListingWizard: React.FC = () => {
                       }
                     }}
                     disabled={categoryBrands.length === 0}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all disabled:opacity-50"
+                    className="w-full px-4 py-3.5 border border-slate-200/90 dark:border-neutral-800 rounded-2xl bg-slate-50/70 dark:bg-neutral-900 text-slate-900 dark:text-white font-medium text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all disabled:opacity-50 shadow-xs"
                   >
                     <option value="">
                       {categoryBrands.length === 0
@@ -745,7 +745,7 @@ export const ListingWizard: React.FC = () => {
                       value={formData.brand || ''}
                       onChange={(e) => updateFormData({ brand: e.target.value })}
                       placeholder="Enter your brand"
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                      className="w-full px-4 py-3.5 border border-slate-200/90 dark:border-neutral-800 rounded-2xl bg-slate-50/70 dark:bg-neutral-900 text-slate-900 dark:text-white placeholder-slate-400 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-xs"
                     />
                     <button
                       type="button"
@@ -753,7 +753,7 @@ export const ListingWizard: React.FC = () => {
                         setIsCustomBrand(false);
                         updateFormData({ brand: '' });
                       }}
-                      className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                      className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-semibold"
                     >
                       Back to list
                     </button>
@@ -762,11 +762,11 @@ export const ListingWizard: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Condition *</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-2">Condition *</label>
                 <select
                   value={formData.condition}
                   onChange={(e) => updateFormData({ condition: e.target.value as any })}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                  className="w-full px-4 py-3.5 border border-slate-200/90 dark:border-neutral-800 rounded-2xl bg-slate-50/70 dark:bg-neutral-900 text-slate-900 dark:text-white font-medium text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-xs"
                 >
                   <option value="new">New</option>
                   <option value="like_new">Like New</option>
@@ -777,15 +777,15 @@ export const ListingWizard: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Tags</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-2">Tags</label>
               <input
                 type="text"
                 value={formData.tags?.join(', ') || ''}
                 onChange={(e) => updateFormData({ tags: e.target.value.split(',').map((t) => t.trim()).filter(Boolean) })}
                 placeholder="e.g., organic, moisturizer, skincare"
-                className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                className="w-full px-4 py-3.5 border border-slate-200/90 dark:border-neutral-800 rounded-2xl bg-slate-50/70 dark:bg-neutral-900 text-slate-900 dark:text-white placeholder-slate-400 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-xs"
               />
-              <p className="text-xs text-gray-500 mt-1">Separate with commas</p>
+              <p className="text-xs text-slate-400 mt-1.5 font-medium">Separate with commas</p>
             </div>
           </div>
         );
@@ -794,16 +794,16 @@ export const ListingWizard: React.FC = () => {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Images & Videos</h3>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4">Images & Videos</h3>
               <ListingStep3Images data={formData} onUpdate={updateFormData} onError={setError} />
             </div>
 
-            <div className="border-t border-gray-200 dark:border-neutral-800 pt-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Pricing</h3>
+            <div className="border-t border-slate-100 dark:border-neutral-800 pt-6">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4">Pricing</h3>
 
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Price (KES) *</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-2">Price (KES) *</label>
                   <input
                     type="number"
                     value={formData.price || ''}
@@ -811,16 +811,16 @@ export const ListingWizard: React.FC = () => {
                     placeholder="5000"
                     step="1"
                     min="0"
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                    className="w-full px-4 py-3.5 border border-slate-200/90 dark:border-neutral-800 rounded-2xl bg-slate-50/70 dark:bg-neutral-900 text-slate-900 dark:text-white placeholder-slate-400 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Price Type *</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-2">Price Type *</label>
                   <select
                     value={formData.price_type}
                     onChange={(e) => updateFormData({ price_type: e.target.value as any })}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                    className="w-full px-4 py-3.5 border border-slate-200/90 dark:border-neutral-800 rounded-2xl bg-slate-50/70 dark:bg-neutral-900 text-slate-900 dark:text-white font-medium text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-xs"
                   >
                     <option value="fixed">Fixed Price</option>
                     <option value="negotiable">Negotiable</option>
@@ -830,7 +830,7 @@ export const ListingWizard: React.FC = () => {
               </div>
 
               <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-2">
                   Original Price (optional)
                 </label>
                 <input
@@ -840,36 +840,36 @@ export const ListingWizard: React.FC = () => {
                   placeholder="e.g. 7000 -- shows as a discount if higher than your price"
                   step="1"
                   min="0"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                  className="w-full px-4 py-3.5 border border-slate-200/90 dark:border-neutral-800 rounded-2xl bg-slate-50/70 dark:bg-neutral-900 text-slate-900 dark:text-white placeholder-slate-400 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-xs"
                 />
                 {typeof formData.compare_at_price === 'number' && formData.compare_at_price > 0 && formData.compare_at_price <= formData.price && (
-                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1.5 font-medium">
                     This should be higher than your price to show as a discount -- it won't be shown otherwise.
                   </p>
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">Stock Quantity</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-2">Stock Quantity</label>
                   <input
                     type="number"
                     value={formData.stock_quantity || 1}
                     onChange={(e) => updateFormData({ stock_quantity: parseInt(e.target.value) || 1 })}
                     placeholder="1"
                     min="1"
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                    className="w-full px-4 py-3.5 border border-slate-200/90 dark:border-neutral-800 rounded-2xl bg-slate-50/70 dark:bg-neutral-900 text-slate-900 dark:text-white placeholder-slate-400 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">SKU</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-neutral-300 mb-2">SKU</label>
                   <input
                     type="text"
                     value={formData.sku || ''}
                     onChange={(e) => updateFormData({ sku: e.target.value })}
                     placeholder="Optional product SKU"
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                    className="w-full px-4 py-3.5 border border-slate-200/90 dark:border-neutral-800 rounded-2xl bg-slate-50/70 dark:bg-neutral-900 text-slate-900 dark:text-white placeholder-slate-400 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-xs"
                   />
                 </div>
               </div>
@@ -895,51 +895,60 @@ export const ListingWizard: React.FC = () => {
     <div className="bg-white dark:bg-black">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-6 md:mb-12">
-          <div className="flex items-center justify-between mb-4 md:mb-8">
+        <div className="mb-6 md:mb-8 bg-slate-50/70 dark:bg-neutral-900/50 border border-slate-100 dark:border-neutral-800/70 p-4 sm:p-6 rounded-3xl shadow-xs">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
             <div>
-              <p className="text-gray-600 dark:text-neutral-300 text-sm">Post a Listing</p>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-orange-600 bg-orange-50 dark:bg-orange-950/40 px-2.5 py-1 rounded-full">
+                Listing Wizard
+              </span>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-600 dark:text-neutral-300">Step {currentStep} of {STEPS.length}</p>
+              <p className="text-xs font-semibold text-slate-500 dark:text-neutral-400">Step {currentStep} of {STEPS.length}</p>
             </div>
           </div>
 
-          {/* Step Indicator -- brand orange for current/completed steps,
-          matching the accent color used for every other primary action in
-          the app (was plain black/gray, inconsistent with the rest of the
-          UI). */}
-          <div className="flex items-center justify-between gap-2">
-            {STEPS.map((step, idx) => (
-              <div key={step.id} className="flex items-center flex-1">
-                <div className="relative z-10">
-                  <div
-                    className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
-                      idx + 1 <= currentStep
-                        ? 'bg-orange-600 text-white'
-                        : 'bg-gray-200 dark:bg-neutral-800 text-gray-600 dark:text-neutral-200'
-                    }`}
-                  >
-                    {step.number}
+          {/* Step Indicator */}
+          <div className="flex items-center justify-between gap-1 sm:gap-2">
+            {STEPS.map((step, idx) => {
+              const isCurrent = idx + 1 === currentStep;
+              const isPast = idx + 1 < currentStep;
+              return (
+                <div key={step.id} className="flex items-center flex-1">
+                  <div className="relative z-10 mx-auto flex flex-col items-center">
+                    <div
+                      className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm transition-all ${
+                        isCurrent
+                          ? 'bg-orange-600 text-white shadow-md shadow-orange-600/30 ring-4 ring-orange-100 dark:ring-orange-950/50 scale-105'
+                          : isPast
+                          ? 'bg-orange-600 text-white'
+                          : 'bg-slate-200/80 dark:bg-neutral-800 text-slate-500 dark:text-neutral-400'
+                      }`}
+                    >
+                      {step.number}
+                    </div>
+                    <p
+                      className={`text-[10px] sm:text-xs font-semibold mt-1.5 text-center truncate max-w-[70px] sm:max-w-none ${
+                        isCurrent
+                          ? 'text-orange-600 dark:text-orange-400'
+                          : isPast
+                          ? 'text-slate-900 dark:text-white'
+                          : 'text-slate-400 dark:text-neutral-500'
+                      }`}
+                    >
+                      {step.title}
+                    </p>
                   </div>
-                  <p
-                    className={`text-xs font-semibold mt-2 text-center whitespace-nowrap ${
-                      idx + 1 <= currentStep ? 'text-gray-900 dark:text-white' : 'text-gray-400'
-                    }`}
-                  >
-                    {step.title}
-                  </p>
-                </div>
 
-                {idx < STEPS.length - 1 && (
-                  <div
-                    className={`flex-1 h-0.5 mx-1 transition-all ${
-                      idx + 1 < currentStep ? 'bg-orange-600' : 'bg-gray-200 dark:bg-neutral-800'
-                    }`}
-                  />
-                )}
-              </div>
-            ))}
+                  {idx < STEPS.length - 1 && (
+                    <div
+                      className={`flex-1 h-0.5 mx-1 transition-all ${
+                        idx + 1 < currentStep ? 'bg-orange-600' : 'bg-slate-200 dark:bg-neutral-800'
+                      }`}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -948,7 +957,7 @@ export const ListingWizard: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-200 px-4 py-3 rounded-lg text-sm"
+            className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-200 px-4 py-3 rounded-2xl text-sm font-medium"
           >
             {error}
           </motion.div>
@@ -957,16 +966,16 @@ export const ListingWizard: React.FC = () => {
         {/* Step Content */}
         <motion.div
           key={currentStep}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
-          className="bg-white dark:bg-neutral-950 rounded-lg mb-8"
+          className="bg-white dark:bg-neutral-950 rounded-2xl mb-8"
         >
-          <div className="mb-4 md:mb-8">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <div className="mb-6 md:mb-8">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-1.5">
               {STEPS[currentStep - 1]?.title}
             </h2>
-            <p className="text-gray-600 dark:text-neutral-300 text-sm">
+            <p className="text-slate-500 dark:text-neutral-400 text-sm">
               {currentStep === 1 && 'Select your shop, category, and location'}
               {currentStep === 2 && 'Tell buyers about your product'}
               {currentStep === 3 && 'Add photos/videos and set your price'}
@@ -978,21 +987,21 @@ export const ListingWizard: React.FC = () => {
         </motion.div>
 
         {/* Navigation */}
-        <div className="flex justify-between items-center gap-4">
+        <div className="flex justify-between items-center gap-3 pt-6 border-t border-slate-100 dark:border-neutral-800">
           <button
             onClick={handlePrevious}
             disabled={currentStep === 1}
-            className="flex items-center gap-2 px-6 py-3 text-gray-700 dark:text-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed hover:text-gray-900 dark:hover:text-white transition-colors"
+            className="flex items-center gap-1.5 px-5 sm:px-7 py-3 text-sm font-semibold text-slate-700 dark:text-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed hover:text-slate-900 dark:hover:text-white transition-colors rounded-full border border-slate-200/80 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-900 active:scale-95"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={18} />
             Back
           </button>
 
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3">
             {currentStep === 4 && (
               <button
                 onClick={handleSaveDraft}
-                className="px-8 py-3 border border-gray-300 dark:border-neutral-700 text-gray-900 dark:text-white rounded-full font-semibold hover:bg-gray-50 dark:hover:bg-neutral-900 transition-all"
+                className="px-6 sm:px-8 py-3 border border-slate-300 dark:border-neutral-700 text-slate-900 dark:text-white rounded-full text-sm font-bold hover:bg-slate-50 dark:hover:bg-neutral-900 transition-all active:scale-95"
               >
                 Save Draft
               </button>
@@ -1002,18 +1011,18 @@ export const ListingWizard: React.FC = () => {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="flex items-center gap-2 px-8 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-full font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="flex items-center gap-1.5 px-7 sm:px-9 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-full text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-orange-600/25 active:scale-95"
               >
                 {loading ? 'Publishing...' : 'Publish Listing'}
-                <ChevronRight size={20} />
+                <ChevronRight size={18} />
               </button>
             ) : (
               <button
                 onClick={handleNext}
-                className="flex items-center gap-2 px-8 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-full font-semibold transition-all"
+                className="flex items-center gap-1.5 px-7 sm:px-9 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-full text-sm font-bold transition-all shadow-lg shadow-orange-600/25 active:scale-95"
               >
                 Next
-                <ChevronRight size={20} />
+                <ChevronRight size={18} />
               </button>
             )}
           </div>

@@ -3,11 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, Sun, Moon, MapPin, Plus, Bell, User, Menu, X, LogOut, Store, Heart, LayoutDashboard, Shield, MessageSquare, Settings, ChevronRight, CircleUser } from 'lucide-react';
+import { Search, Sun, Moon, MapPin, Plus, Bell, User, Menu, X, LogOut, Store, Heart, LayoutDashboard, Shield, MessageSquare, Settings, ChevronRight, CircleUser, Home, ShoppingBag, ShoppingCart, Sparkles, Package, LayoutGrid, Bookmark, HelpCircle, ShieldCheck, FileText } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuth';
 import { useAuthModal } from '../../store/useAuthModal';
 import { useLocationStore } from '../../store/useLocation';
 import { useFavoritesStore } from '../../store/useFavorites';
+import { useRealtimeStore } from '../../store/useRealtime';
+import { useMobileMenuStore } from '../../store/useMobileMenu';
+import { useCart } from '../../store/useCart';
 import { useT } from '../../lib/i18n';
 import { LocationPickerModal } from './LocationPickerModal';
 import NotificationCenter from '../NotificationCenter';
@@ -20,6 +23,9 @@ export const Header: React.FC = () => {
     const openAuthModal = useAuthModal((s) => s.open);
     const { city } = useLocationStore();
     const favoritesCount = useFavoritesStore((s) => s.ids?.size ?? 0);
+    const cartCount = useCart((s) => s.items.reduce((sum, i) => sum + (i.quantity || 1), 0));
+    const unreadNotificationsCount = useRealtimeStore((s) => s.events?.length ?? 0);
+    const { isOpen: isMobileMenuOpen, setOpen: setIsMobileMenuOpen } = useMobileMenuStore();
     const t = useT();
     const [searchQuery, setSearchQuery] = useState('');
     // Always default to light theme unless explicitly saved as dark
@@ -29,12 +35,23 @@ export const Header: React.FC = () => {
             : false
     );
     const [scrolled, setScrolled] = useState(false);
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
     const [unreadMessages, setUnreadMessages] = useState(0);
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
     const [isVerifiedSeller, setIsVerifiedSeller] = useState(false);
     const [userRole, setUserRole] = useState<'admin' | 'agent' | 'seller' | null>(null);
+
+    // Prevent background scrolling when mobile menu drawer is open
+    useEffect(() => {
+        if (isMobileMenuOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isMobileMenuOpen]);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -196,10 +213,8 @@ export const Header: React.FC = () => {
                             )}
                         </button>
 
-                        {/* Notifications Bell */}
-                        <div className="hidden lg:block">
-                            <NotificationBell />
-                        </div>
+                        {/* Notifications Bell - Visible on All Screens */}
+                        <NotificationBell />
 
                         {/* Messages - Icon Only */}
                         <button
@@ -225,6 +240,21 @@ export const Header: React.FC = () => {
                             {favoritesCount > 0 && (
                                 <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold bg-orange-600 text-white rounded-full">
                                     {favoritesCount}
+                                </span>
+                            )}
+                        </button>
+
+                        {/* Cart / Checkout */}
+                        <button
+                            onClick={() => router.push('/checkout')}
+                            className="w-9 h-9 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors relative flex items-center justify-center"
+                            title="Cart & Multi-Seller Checkout"
+                            aria-label="Shopping Cart"
+                        >
+                            <ShoppingCart className="w-5 h-5 text-gray-600 dark:text-neutral-300" />
+                            {cartCount > 0 && (
+                                <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-5 h-5 px-1 text-[10px] font-black bg-[#0078E8] text-white rounded-full shadow-xs">
+                                    {cartCount > 99 ? '99+' : cartCount}
                                 </span>
                             )}
                         </button>
@@ -410,118 +440,261 @@ export const Header: React.FC = () => {
                 onClose={() => setIsLocationModalOpen(false)}
             />
 
-            {/* Mobile Menu */}
+            {/* Modern Mobile Slide-over Drawer */}
             {isMobileMenuOpen && (
                 <>
+                    {/* Backdrop (z-[80] strictly overlays all page elements and bottom nav) */}
                     <div
-                        className="md:hidden fixed inset-x-0 bottom-0 z-40 bg-black/40"
-                        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 3rem)' }}
+                        className="sm:hidden fixed inset-0 z-[80] bg-slate-900/60 backdrop-blur-sm transition-opacity"
                         onClick={() => setIsMobileMenuOpen(false)}
                     />
+
+                    {/* Drawer Content (z-[90] ensures zero overlap from bottom nav) */}
                     <div
-                        className="md:hidden fixed inset-x-0 z-40 bg-white dark:bg-neutral-950 border-b border-gray-100 dark:border-neutral-800 px-4 py-3 space-y-2 max-h-[75vh] overflow-y-auto shadow-lg"
-                        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 3rem)' }}
+                        style={{
+                            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)',
+                            paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.5rem)'
+                        }}
+                        className="sm:hidden fixed top-0 right-0 bottom-0 z-[90] w-[86%] max-w-sm bg-white dark:bg-neutral-950 shadow-2xl flex flex-col justify-between border-l border-gray-100 dark:border-neutral-800 animate-in slide-in-from-right duration-200"
                     >
-                    {/* Language, location, and search already live in the
-                        header/home page, so the menu only holds what doesn't:
-                        theme, account pages and sign-in. */}
-                    <div className="flex items-center justify-between h-12 px-3">
-                        <span className="text-sm font-semibold text-gray-700 dark:text-neutral-200">{t('Appearance')}</span>
-                        <div
-                            className="inline-flex items-center rounded-full p-1 bg-slate-100 dark:bg-neutral-900 border border-gray-200/80 dark:border-neutral-800"
-                            role="radiogroup"
-                            aria-label={t('Appearance')}
-                        >
-                            {[
-                                { dark: false, label: t('Light'), Icon: Sun },
-                                { dark: true, label: t('Dark'), Icon: Moon },
-                            ].map(({ dark, label, Icon }) => {
-                                const active = darkMode === dark;
-                                return (
-                                    <button
-                                        key={label}
-                                        type="button"
-                                        role="radio"
-                                        aria-checked={active}
-                                        onClick={() => { if (!active) toggleDarkMode(); }}
-                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                                            active
-                                                ? 'bg-white text-gray-950 shadow-sm dark:bg-neutral-800 dark:text-white'
-                                                : 'text-gray-500 hover:text-gray-800 dark:text-neutral-400 dark:hover:text-neutral-200'
-                                        }`}
-                                    >
-                                        <Icon className="w-3.5 h-3.5" />
-                                        {label}
-                                    </button>
-                                );
-                            })}
+                        {/* Drawer Header */}
+                        <div className="px-4 pb-3 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between shrink-0">
+                            <div className="flex items-center">
+                                <img src="/icon1.png" alt="Suqafuran" className="h-7 w-auto object-contain" />
+                            </div>
+                            <button
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="w-8 h-8 rounded-full bg-gray-100 dark:bg-neutral-900 flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+                                aria-label="Close menu"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
                         </div>
-                    </div>
 
-                    <div className="border-t border-gray-100 dark:border-neutral-800" />
+                        {/* Scrollable Navigation Body */}
+                        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 overscroll-contain">
+                            {/* User Profile Card / Guest Banner */}
+                            {isAuthenticated && user ? (
+                                <div className="p-3 rounded-2xl bg-gradient-to-r from-orange-500/10 to-amber-500/10 border border-orange-500/20 flex items-center gap-3">
+                                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white text-sm font-black shrink-0 overflow-hidden shadow-sm">
+                                        {resolveMediaUrl((user as any).avatar_url) ? (
+                                            <img src={resolveMediaUrl((user as any).avatar_url)!} alt={user.full_name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            user.full_name?.charAt(0).toUpperCase()
+                                        )}
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-black text-gray-900 dark:text-white truncate">{user.full_name}</p>
+                                        <p className="text-xs text-gray-500 dark:text-neutral-400 truncate">{(user as any).phone || user.email}</p>
+                                        {userRole && (
+                                            <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500 text-white uppercase tracking-wider">
+                                                {userRole}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800">
+                                    <p className="text-xs font-black text-gray-900 dark:text-white">Welcome to Suqafuran</p>
+                                    <p className="text-[11px] text-gray-500 dark:text-neutral-400 mt-0.5">Explore deals, chat with sellers, and post items.</p>
+                                </div>
+                            )}
 
-                    {isAuthenticated && user && (
-                        <div className="flex items-center gap-3 px-3 py-2">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-400 to-orange-600 flex items-center justify-center text-white text-sm font-bold shrink-0 overflow-hidden">
-                                {resolveMediaUrl((user as any).avatar_url) ? (
-                                    <img src={resolveMediaUrl((user as any).avatar_url)!} alt={user.full_name} className="w-full h-full object-cover" />
-                                ) : (
-                                    user.full_name?.charAt(0).toUpperCase()
+                            {/* Section: Marketplace & Shopping */}
+                            <div className="space-y-1">
+                                <p className="px-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-neutral-400">
+                                    Marketplace
+                                </p>
+                                <button
+                                    onClick={() => { router.push('/shops'); setIsMobileMenuOpen(false); }}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors text-xs font-bold"
+                                >
+                                    <Store className="w-4 h-4 text-gray-500" />
+                                    <span className="flex-1 text-left">Explore Shops</span>
+                                </button>
+                                <button
+                                    onClick={() => { router.push('/search'); setIsMobileMenuOpen(false); }}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors text-xs font-bold"
+                                >
+                                    <LayoutGrid className="w-4 h-4 text-gray-500" />
+                                    <span className="flex-1 text-left">Browse Categories</span>
+                                </button>
+                                <button
+                                    onClick={() => { router.push('/orders'); setIsMobileMenuOpen(false); }}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors text-xs font-bold"
+                                >
+                                    <Package className="w-4 h-4 text-gray-500" />
+                                    <span className="flex-1 text-left">My Orders</span>
+                                </button>
+                                <button
+                                    onClick={() => { router.push('/saved-searches'); setIsMobileMenuOpen(false); }}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors text-xs font-bold"
+                                >
+                                    <Bookmark className="w-4 h-4 text-gray-500" />
+                                    <span className="flex-1 text-left">Saved Searches</span>
+                                </button>
+                            </div>
+
+                            {/* Section: Account & Management */}
+                            <div className="space-y-1 pt-2 border-t border-gray-100 dark:border-neutral-800">
+                                <p className="px-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-neutral-400">
+                                    Account
+                                </p>
+                                <button
+                                    onClick={() => { router.push('/account'); setIsMobileMenuOpen(false); }}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors text-xs font-semibold"
+                                >
+                                    <CircleUser className="w-4 h-4 text-gray-500 dark:text-neutral-400 shrink-0" />
+                                    <span className="flex-1 text-left">{t('Profile & Verification')}</span>
+                                    <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
+                                </button>
+                                <button
+                                    onClick={() => { router.push('/settings/notifications'); setIsMobileMenuOpen(false); }}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors text-xs font-semibold"
+                                >
+                                    <Bell className="w-4 h-4 text-gray-500 dark:text-neutral-400 shrink-0" />
+                                    <span className="flex-1 text-left">{t('Notifications')}</span>
+                                    {unreadNotificationsCount > 0 && (
+                                        <span className="px-1.5 py-0.5 text-[9px] font-black bg-orange-500 text-white rounded-full">
+                                            {unreadNotificationsCount}
+                                        </span>
+                                    )}
+                                    <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
+                                </button>
+                                <button
+                                    onClick={() => { router.push('/settings'); setIsMobileMenuOpen(false); }}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors text-xs font-semibold"
+                                >
+                                    <Settings className="w-4 h-4 text-gray-500 dark:text-neutral-400 shrink-0" />
+                                    <span className="flex-1 text-left">{t('Settings')}</span>
+                                    <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
+                                </button>
+                                <button
+                                    onClick={() => { router.push('/seller-dashboard'); setIsMobileMenuOpen(false); }}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors text-xs font-semibold"
+                                >
+                                    <Store className="w-4 h-4 text-gray-500 dark:text-neutral-400 shrink-0" />
+                                    <span className="flex-1 text-left">{t('Seller Hub')}</span>
+                                    <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
+                                </button>
+                                {isAuthenticated && (userRole === 'admin' || userRole === 'agent') && (
+                                    <button
+                                        onClick={() => { router.push('/agent-dashboard'); setIsMobileMenuOpen(false); }}
+                                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors text-xs font-semibold"
+                                    >
+                                        <LayoutDashboard className="w-4 h-4 text-gray-500 dark:text-neutral-400 shrink-0" />
+                                        <span className="flex-1 text-left">{t('Agent Dashboard')}</span>
+                                        <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
+                                    </button>
+                                )}
+                                {isAuthenticated && userRole === 'admin' && (
+                                    <button
+                                        onClick={() => { router.push('/admin-dashboard'); setIsMobileMenuOpen(false); }}
+                                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors text-xs font-semibold"
+                                    >
+                                        <Shield className="w-4 h-4 text-gray-500 dark:text-neutral-400 shrink-0" />
+                                        <span className="flex-1 text-left">{t('Admin Dashboard')}</span>
+                                        <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
+                                    </button>
                                 )}
                             </div>
-                            <div className="min-w-0">
-                                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{user.full_name}</p>
-                                <p className="text-xs text-gray-500 dark:text-neutral-400 truncate">{(user as any).phone || user.email}</p>
+
+                            {/* Section: Support & Safety */}
+                            <div className="space-y-1 pt-2 border-t border-gray-100 dark:border-neutral-800">
+                                <p className="px-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-neutral-400">
+                                    Support & Trust
+                                </p>
+                                <button
+                                    onClick={() => { router.push('/help-center'); setIsMobileMenuOpen(false); }}
+                                    className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors text-xs font-medium"
+                                >
+                                    <HelpCircle className="w-4 h-4 text-gray-500 dark:text-neutral-400 shrink-0" />
+                                    <span className="flex-1 text-left">Help Center</span>
+                                </button>
+                                <button
+                                    onClick={() => { router.push('/safe-trading-tips'); setIsMobileMenuOpen(false); }}
+                                    className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors text-xs font-medium"
+                                >
+                                    <ShieldCheck className="w-4 h-4 text-gray-500 dark:text-neutral-400 shrink-0" />
+                                    <span className="flex-1 text-left">Safe Trading Tips</span>
+                                </button>
+                                <button
+                                    onClick={() => { router.push('/terms-of-use'); setIsMobileMenuOpen(false); }}
+                                    className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors text-xs font-medium"
+                                >
+                                    <FileText className="w-4 h-4 text-gray-500 dark:text-neutral-400 shrink-0" />
+                                    <span className="flex-1 text-left">Terms of Use</span>
+                                </button>
                             </div>
                         </div>
-                    )}
 
-                    <nav className="space-y-1">
-                        {[
-                            { href: '/account', label: t('Profile'), Icon: CircleUser, show: true },
-                            { href: '/settings', label: t('Settings'), Icon: Settings, show: true },
-                            { href: '/seller-dashboard', label: t('Seller Dashboard'), Icon: Store, show: isAuthenticated && isVerifiedSeller },
-                            { href: '/agent-dashboard', label: t('Agent Dashboard'), Icon: LayoutDashboard, show: isAuthenticated && (userRole === 'admin' || userRole === 'agent') },
-                            { href: '/admin-dashboard', label: t('Admin Dashboard'), Icon: Shield, show: isAuthenticated && userRole === 'admin' },
-                        ].filter((item) => item.show).map(({ href, label, Icon }) => (
-                            <button
-                                key={href}
-                                onClick={() => { router.push(href); setIsMobileMenuOpen(false); }}
-                                className="w-full h-12 flex items-center gap-3 px-3 rounded-xl text-gray-800 dark:text-neutral-100 hover:bg-gray-50 dark:hover:bg-neutral-900 transition-colors"
-                            >
-                                <Icon className="w-5 h-5 text-gray-500 dark:text-neutral-400 shrink-0" />
-                                <span className="flex-1 text-left text-sm font-medium">{label}</span>
-                                <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
-                            </button>
-                        ))}
-                    </nav>
-
-                    <div className="border-t border-gray-100 dark:border-neutral-800" />
-
-                    {isAuthenticated ? (
-                        <button
-                            onClick={() => { logout(); setIsMobileMenuOpen(false); }}
-                            className="w-full h-12 flex items-center gap-3 px-3 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        {/* Drawer Footer: Appearance & Auth (Strictly elevated, visible, and comfortable safe-area padding) */}
+                        <div
+                            style={{
+                                paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.25rem)'
+                            }}
+                            className="p-4 border-t border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-950 space-y-3 shrink-0"
                         >
-                            <LogOut className="w-5 h-5 shrink-0" />
-                            <span className="text-sm font-semibold">{t('Sign Out')}</span>
-                        </button>
-                    ) : (
-                        <div className="grid grid-cols-2 gap-3">
-                            <button
-                                onClick={() => { openAuthModal('signin'); setIsMobileMenuOpen(false); }}
-                                className="h-11 text-sm font-semibold bg-sky-400 text-white rounded-xl hover:bg-sky-500 transition-colors"
-                            >
-                                {t('Sign In')}
-                            </button>
-                            <button
-                                onClick={() => { openAuthModal('signup'); setIsMobileMenuOpen(false); }}
-                                className="h-11 text-sm font-semibold bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors"
-                            >
-                                {t('Sign Up')}
-                            </button>
+                            {/* Appearance Theme Toggle */}
+                            <div className="flex items-center justify-between pb-1">
+                                <span className="text-xs font-bold text-gray-700 dark:text-neutral-300">{t('Appearance')}</span>
+                                <div
+                                    className="inline-flex items-center rounded-full p-1 bg-slate-100 dark:bg-neutral-900 border border-gray-200/80 dark:border-neutral-800 shadow-xs"
+                                    role="radiogroup"
+                                    aria-label={t('Appearance')}
+                                >
+                                    {[
+                                        { dark: false, label: t('Light'), Icon: Sun },
+                                        { dark: true, label: t('Dark'), Icon: Moon },
+                                    ].map(({ dark, label, Icon }) => {
+                                        const active = darkMode === dark;
+                                        return (
+                                            <button
+                                                key={label}
+                                                type="button"
+                                                role="radio"
+                                                aria-checked={active}
+                                                onClick={() => { if (!active) toggleDarkMode(); }}
+                                                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                                                    active
+                                                        ? 'bg-orange-500 text-white shadow-sm'
+                                                        : 'text-gray-500 hover:text-gray-800 dark:text-neutral-400'
+                                                }`}
+                                            >
+                                                <Icon className="w-3.5 h-3.5" />
+                                                {label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Auth Buttons: Fixed, fully visible, non-clipped */}
+                            {isAuthenticated ? (
+                                <button
+                                    onClick={() => { logout(); setIsMobileMenuOpen(false); }}
+                                    className="w-full h-11 flex items-center justify-center gap-2 rounded-2xl text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/40 transition-colors font-bold text-xs"
+                                >
+                                    <LogOut className="w-4 h-4 shrink-0" />
+                                    <span>{t('Sign Out')}</span>
+                                </button>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-2.5 pt-1">
+                                    <button
+                                        onClick={() => { openAuthModal('signin'); setIsMobileMenuOpen(false); }}
+                                        className="h-11 text-xs font-bold bg-sky-500 hover:bg-sky-600 active:scale-98 text-white rounded-2xl shadow-sm transition-all flex items-center justify-center"
+                                    >
+                                        {t('Sign In')}
+                                    </button>
+                                    <button
+                                        onClick={() => { openAuthModal('signup'); setIsMobileMenuOpen(false); }}
+                                        className="h-11 text-xs font-bold bg-orange-600 hover:bg-orange-700 active:scale-98 text-white rounded-2xl shadow-sm transition-all flex items-center justify-center"
+                                    >
+                                        {t('Sign Up')}
+                                    </button>
+                                </div>
+                            )}
                         </div>
-                    )}
                     </div>
                 </>
             )}

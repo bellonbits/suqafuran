@@ -1,1 +1,0 @@
-import{i as a}from"./index-Bm3hRP4t.js";const r={async getMyFavorites(){return(await a.get("/favorites/")).data},async addFavorite(e){return(await a.post(`/favorites/${e}`)).data},async removeFavorite(e){return(await a.delete(`/favorites/${e}`)).data}};export{r as f};

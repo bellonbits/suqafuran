@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { MessageCircle, X, Send, Phone, User, Loader2, Minimize2, Maximize2, Heart, Store, ShoppingBag } from 'lucide-react';
 import { aiService } from '@/services/aiService';
 import { supportService } from '@/services/supportService';
@@ -21,10 +21,16 @@ interface Message {
 export const AISupportChat: React.FC = () => {
     const { id: listingId } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { pathname } = useLocation();
     const { isAuthenticated } = useAuthStore();
     const [isOpen, setIsOpen] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
-    const [isVisible, setIsVisible] = useState(true);
+    const [isVisible, setIsVisible] = useState<boolean>(() => {
+        if (typeof window !== 'undefined') {
+            return sessionStorage.getItem('suqafuran_dismiss_ai_chat') !== 'true';
+        }
+        return true;
+    });
     const [messages, setMessages] = useState<Message[]>([
         {
             role: 'assistant',
@@ -189,13 +195,31 @@ export const AISupportChat: React.FC = () => {
         return parts.length > 0 ? parts : content;
     };
 
-    if (!isVisible) return null;
+    const handleDismiss = () => {
+        setIsVisible(false);
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem('suqafuran_dismiss_ai_chat', 'true');
+        }
+    };
+
+    // Suppress intrusive floating support bubble on pages where users are
+    // already chatting, posting ads, or entering auth/reset codes
+    const isSuppressedRoute =
+        pathname.startsWith('/messages') ||
+        pathname.startsWith('/seller-dashboard/messages') ||
+        pathname.includes('/post-ad') ||
+        pathname.includes('/products/add') ||
+        pathname.startsWith('/reset-password') ||
+        pathname.startsWith('/login') ||
+        pathname.startsWith('/signup');
+
+    if (isSuppressedRoute || !isVisible) return null;
 
     if (!isOpen) {
         return (
-            <div className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50">
+            <div className="hidden md:block fixed md:bottom-6 md:right-6 z-50">
                 <button
-                    onClick={() => setIsVisible(false)}
+                    onClick={handleDismiss}
                     className="absolute -top-1 -right-1 z-10 w-5 h-5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-md rounded-full flex items-center justify-center text-gray-500 hover:text-red-500 transition-colors"
                     aria-label="Remove support chat"
                 >

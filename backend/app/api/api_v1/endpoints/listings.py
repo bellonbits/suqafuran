@@ -2203,6 +2203,23 @@ def report_listing(
         status="pending"
     )
     db.add(report)
+    
+    # Also record into centralized trust_ops Report table for admin fraud moderation
+    try:
+        from app.models.trust import Report as TrustReport
+        trust_rep = TrustReport(
+            reporter_id=current_user.id,
+            reported_user_id=listing.owner_id,
+            listing_id=listing_id,
+            reason=f"Product Report: {reason}",
+            description=description,
+            risk_score=85 if "fraud" in str(reason).lower() else 50,
+            status="pending",
+        )
+        db.add(trust_rep)
+    except Exception as err:
+        print(f"Error mirroring to TrustReport: {err}")
+
     db.commit()
     db.refresh(report)
 

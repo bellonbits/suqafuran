@@ -3,15 +3,20 @@ import Link from 'next/link';
 
 export const Footer: React.FC = () => {
     return (
-        <footer className="border-t border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-950 pb-16 md:pb-0">
-            <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-                <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
+        <footer 
+            style={{
+                paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 4.5rem)'
+            }}
+            className="border-t border-gray-100 bg-white dark:border-neutral-800 dark:bg-neutral-950 md:!pb-6"
+        >
+            <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+                <div className="grid grid-cols-2 gap-6 sm:gap-8 md:grid-cols-5">
                     {/* Brand Section */}
-                    <div className="col-span-2 md:col-span-1 space-y-4">
+                    <div className="col-span-2 md:col-span-1 space-y-3">
                         <Link href="/" className="inline-block hover:opacity-90 transition-opacity">
-                            <img src="/icon1.png" alt="Suqafuran Logo" className="h-8 w-auto object-contain" />
+                            <img src="/icon1.png" alt="Suqafuran Logo" className="h-7 w-auto object-contain" />
                         </Link>
-                        <p className="text-xs text-gray-500 dark:text-neutral-300 leading-relaxed pt-1">
+                        <p className="text-xs text-gray-500 dark:text-neutral-400 leading-relaxed">
                             Africa's trusted online marketplace. Buy, sell, chat, and transact securely directly with local buyers and sellers.
                         </p>
                     </div>
@@ -21,7 +26,7 @@ export const Footer: React.FC = () => {
                         <h3 className="text-xs font-bold text-gray-400 dark:text-neutral-400 uppercase tracking-wider">
                             Resources
                         </h3>
-                        <ul className="mt-4 space-y-2">
+                        <ul className="mt-3 space-y-2">
                             <li>
                                 <Link href="/search" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-neutral-200 dark:hover:text-sky-400">
                                     Browse Ads
@@ -45,7 +50,7 @@ export const Footer: React.FC = () => {
                         <h3 className="text-xs font-bold text-gray-400 dark:text-neutral-400 uppercase tracking-wider">
                             Support
                         </h3>
-                        <ul className="mt-4 space-y-2">
+                        <ul className="mt-3 space-y-2">
                             <li>
                                 <Link href="/help-center" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-neutral-200 dark:hover:text-sky-400">
                                     Help Center
@@ -74,10 +79,10 @@ export const Footer: React.FC = () => {
                         <h3 className="text-xs font-bold text-gray-400 dark:text-neutral-400 uppercase tracking-wider">
                             Marketplace
                         </h3>
-                        <ul className="mt-4 space-y-2">
+                        <ul className="mt-3 space-y-2">
                             <li>
-                                <Link href="/offers" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-neutral-200 dark:hover:text-sky-400">
-                                    My Offers
+                                <Link href="/orders" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-neutral-200 dark:hover:text-sky-400">
+                                    My Orders
                                 </Link>
                             </li>
                             <li>
@@ -103,7 +108,7 @@ export const Footer: React.FC = () => {
                         <h3 className="text-xs font-bold text-gray-400 dark:text-neutral-400 uppercase tracking-wider">
                             Regions
                         </h3>
-                        <ul className="mt-4 space-y-2">
+                        <ul className="mt-3 space-y-2">
                             <li className="text-xs text-gray-500 dark:text-neutral-300 font-medium">Somalia</li>
                             <li className="text-xs text-gray-500 dark:text-neutral-300 font-medium">Kenya</li>
                             <li className="text-xs text-gray-500 dark:text-neutral-300 font-medium">Ethiopia</li>
@@ -112,7 +117,7 @@ export const Footer: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="mt-12 border-t border-gray-200 dark:border-neutral-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="mt-6 border-t border-gray-100 dark:border-neutral-800 pt-4 flex flex-col sm:flex-row justify-between items-center gap-2">
                     <p className="text-xs text-gray-400 dark:text-neutral-400 font-medium">
                         &copy; {new Date().getFullYear()} Suqafuran Ltd. All rights reserved.
                     </p>

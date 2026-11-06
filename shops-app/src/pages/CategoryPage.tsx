@@ -170,7 +170,7 @@ export default function CategoryPage() {
     const clearFilters = () => { setSubcategoryId(null); setCondition(null); setVerifiedOnly(false); };
 
     return (
-        <div className="bg-white dark:bg-neutral-950 min-h-screen pb-20">
+        <div className="bg-white dark:bg-neutral-950 min-h-screen">
             <div className="max-w-[1440px] mx-auto pt-5 md:pt-6 px-4 sm:px-6 lg:px-8">
 
                 {/* ── Breadcrumb + title ─────────────────────────────────── */}

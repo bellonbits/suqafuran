@@ -37,9 +37,9 @@ const SORT_OPTIONS: FilterOption[] = [
     { value: 'popular', label: 'Popular' },
 ];
 
-// Rounds the slider ceiling up to a friendly number (e.g. 1,370 → 1,500).
+// Rounds the slider ceiling up to a friendly Kenyan Shilling amount (e.g. 13,700 → 15,000).
 function niceCeil(n: number): number {
-    if (n <= 10) return 10;
+    if (n <= 500) return 10000;
     const mag = 10 ** Math.floor(Math.log10(n));
     const step = mag / 2;
     return Math.ceil(n / step) * step;
@@ -218,12 +218,13 @@ function SearchPageContent() {
 
     const filters = (
         <FilterPanel activeCount={activeCount} onClear={clearAll}>
-            <FilterSection title="Price Range">
+            <FilterSection title="Price Range (KSh)">
                 <PriceRangeFilter
                     min={0}
                     max={priceCeiling}
                     value={[priceMin, priceMax]}
-                    step={priceCeiling > 1000 ? 10 : 1}
+                    step={priceCeiling > 1000 ? 50 : 1}
+                    currencySymbol="KSh"
                     onChange={([lo, hi]) => update({
                         price_min: lo > 0 ? String(lo) : null,
                         price_max: hi < priceCeiling ? String(hi) : null,
@@ -267,7 +268,7 @@ function SearchPageContent() {
         : selectedCategory ? categoryNameById[selectedCategory.id] : 'All Products';
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-black pb-20">
+        <div className="min-h-screen bg-gray-50 dark:bg-black">
             <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 pt-6 md:pt-8">
                 <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight mb-6 truncate">{title}</h1>
 

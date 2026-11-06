@@ -132,7 +132,7 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black text-slate-800 dark:text-neutral-50 font-sans antialiased flex flex-col md:flex-row p-3 md:p-5 gap-5 overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-black text-slate-800 dark:text-neutral-50 font-sans antialiased flex flex-col md:flex-row p-0 md:p-5 gap-0 md:gap-5 overflow-x-hidden">
 
       {/* ── Desktop Floating Sidebar (SadaxCart style) ── */}
       <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-neutral-950 rounded-3xl p-4 border border-slate-100 dark:border-neutral-800 shadow-[0_4px_24px_rgba(0,0,0,0.03)] flex-shrink-0 relative z-30 transition-colors">
@@ -337,14 +337,28 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
       </aside>
 
       {/* ── Mobile Top Bar (Phone Responsive Header) ── */}
-      <header className="md:hidden flex items-center justify-between bg-white dark:bg-neutral-950 px-4 py-3 rounded-2xl border border-slate-100 dark:border-neutral-800 shadow-sm sticky top-0 z-40">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setMobileMenuOpen(true)}
-            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-neutral-900 text-slate-600 dark:text-neutral-200 transition-colors"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
+      <header
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.5rem)' }}
+        className="md:hidden flex items-center justify-between bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md px-4 py-2.5 border-b border-slate-100 dark:border-neutral-800 shadow-sm sticky top-0 z-40"
+      >
+        <div className="flex items-center gap-2">
+          {pathname !== '/seller-dashboard' ? (
+            <button
+              onClick={() => navigate(-1)}
+              className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-neutral-900 text-slate-600 dark:text-neutral-200 transition-colors"
+              aria-label="Back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          ) : (
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-neutral-900 text-slate-600 dark:text-neutral-200 transition-colors"
+              aria-label="Open menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-xl bg-sky-500 flex items-center justify-center text-white font-extrabold text-xs">
               <Store className="w-4 h-4" />
@@ -353,10 +367,20 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          {pathname !== '/seller-dashboard' && (
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-neutral-900 text-slate-600 dark:text-neutral-200 transition-colors"
+              aria-label="Menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
           <button
             onClick={toggleDarkMode}
-            className="p-2 rounded-xl bg-slate-50 dark:bg-neutral-900 text-slate-500 dark:text-neutral-300"
+            className="p-1.5 rounded-xl bg-slate-50 dark:bg-neutral-900 text-slate-500 dark:text-neutral-300"
+            aria-label="Toggle dark mode"
           >
             {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-500" />}
           </button>
@@ -527,30 +551,32 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
       </div>
 
       {/* ── Mobile Fixed Bottom Navigation Bar (Ultra Phone Responsive) ── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-lg border-t border-slate-200/80 dark:border-neutral-800 px-4 py-2 flex items-center justify-around shadow-[0_-4px_20px_rgba(0,0,0,0.05)] pb-safe">
-        {[
-          { label: 'Home', icon: Home, href: '/seller-dashboard' },
-          { label: 'Products', icon: Package, href: '/seller-dashboard/products' },
-          { label: 'Orders', icon: ShoppingBag, href: '/seller-dashboard/orders' },
-          { label: 'Inbox', icon: MessageSquare, href: '/seller-dashboard/messages' },
-          { label: 'Settings', icon: Settings, href: '/seller-dashboard/settings' },
-        ].map((tab, idx) => {
-          const Icon = tab.icon;
-          const isActive = pathname === tab.href;
-          return (
-            <Link
-              key={idx}
-              to={tab.href}
-              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all ${
-                isActive ? 'text-sky-600 dark:text-teal-400 font-extrabold scale-105' : 'text-slate-400 font-medium'
-              }`}
-            >
-              <Icon className={`w-5 h-5 ${isActive ? 'text-sky-500' : ''}`} />
-              <span className="text-[10px]">{tab.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
+      {pathname !== '/seller-dashboard/products/add' && (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-lg border-t border-slate-200/80 dark:border-neutral-800 px-4 py-2 flex items-center justify-around shadow-[0_-4px_20px_rgba(0,0,0,0.05)] pb-safe">
+          {[
+            { label: 'Home', icon: Home, href: '/seller-dashboard' },
+            { label: 'Products', icon: Package, href: '/seller-dashboard/products' },
+            { label: 'Orders', icon: ShoppingBag, href: '/seller-dashboard/orders' },
+            { label: 'Inbox', icon: MessageSquare, href: '/seller-dashboard/messages' },
+            { label: 'Settings', icon: Settings, href: '/seller-dashboard/settings' },
+          ].map((tab, idx) => {
+            const Icon = tab.icon;
+            const isActive = pathname === tab.href;
+            return (
+              <Link
+                key={idx}
+                to={tab.href}
+                className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all ${
+                  isActive ? 'text-sky-600 dark:text-teal-400 font-extrabold scale-105' : 'text-slate-400 font-medium'
+                }`}
+              >
+                <Icon className={`w-5 h-5 ${isActive ? 'text-sky-500' : ''}`} />
+                <span className="text-[10px]">{tab.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      )}
 
       <AuthModal />
     </div>

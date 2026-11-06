@@ -9,12 +9,13 @@ import { AuthModal } from './components/shared/AuthModal'
 import { AISupportChat } from './components/shared/AISupportChat'
 import ProtectedRoute from './components/ProtectedRoute'
 import { SellerLayout } from './components/SellerLayout'
-const HomePage = lazy(() => import('./pages/HomePage'))
+import HomePage from './pages/HomePage'
 const ShopsPage = lazy(() => import('./pages/ShopsPage'))
 const ShopDetailPage = lazy(() => import('./pages/ShopDetailPage'))
 const CategoryPage = lazy(() => import('./pages/CategoryPage'))
 const SearchPage = lazy(() => import('./pages/SearchPage'))
 const ListingDetailPage = lazy(() => import('./pages/ListingDetailPage'))
+const CartPage = lazy(() => import('./pages/CartPage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const SignupPage = lazy(() => import('./pages/SignupPage'))
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
@@ -113,13 +114,12 @@ const AdminDashboardPagePlaceholder = () => (
 // import above is now code-split (was previously one ~2MB bundle covering
 // every storefront and admin page at once), so this fires on first visit
 // to each route and essentially never again once the chunk is cached.
-const RouteLoadingFallback = () => (
-  <div className="flex items-center justify-center min-h-[50vh]">
-    <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
-  </div>
-)
+const RouteLoadingFallback = () => null
 
 function AppLayout({ children }: { children: React.ReactNode }) {
+  const { pathname } = useLocation()
+  const isChatRoute = pathname.startsWith('/messages') || pathname.startsWith('/seller-dashboard/messages')
+
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-black">
       <Header />
@@ -131,7 +131,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
           <main className="flex-1">
             {children}
           </main>
-          <Footer />
+          {!isChatRoute && <Footer />}
         </div>
       </div>
       <AuthModal />
@@ -196,8 +196,8 @@ export default function App() {
       <Route element={<AppLayout><ShopDetailPage /></AppLayout>} path="/shop/:slug" />
       <Route element={<AppLayout><SearchPage /></AppLayout>} path="/search" />
       <Route element={<AppLayout><ListingDetailPage /></AppLayout>} path="/listing/:id" />
-      <Route element={<Navigate to="/favorites" replace />} path="/checkout" />
-      <Route element={<Navigate to="/favorites" replace />} path="/cart" />
+      <Route element={<AppLayout><CartPage /></AppLayout>} path="/cart" />
+      <Route element={<AppLayout><CartPage /></AppLayout>} path="/checkout" />
 
       {/* Support & Legal Pages */}
       <Route element={<AppLayout><HelpCenterPage /></AppLayout>} path="/help-center" />
@@ -276,6 +276,9 @@ export default function App() {
 
       {/* Admin Dashboard Features */}
       <Route element={<ProtectedRoute requiredRole="admin"><AdminHomepageBannersPage /></ProtectedRoute>} path="/admin-dashboard/marketing/banners" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminHomepageBannersPage /></ProtectedRoute>} path="/admin-banners" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminHomepageBannersPage /></ProtectedRoute>} path="/admin-homepage-banners" />
+      <Route element={<ProtectedRoute requiredRole="admin"><AdminHomepageBannersPage /></ProtectedRoute>} path="/admin/banners" />
       <Route element={<AdminBulkProductsPage />} path="/admin-dashboard/bulk-products" />
       <Route element={<AdminCustomerSegmentsPage />} path="/admin-dashboard/customer-segments" />
       <Route element={<AdminEmailAnalyticsPage />} path="/admin-dashboard/email-analytics" />

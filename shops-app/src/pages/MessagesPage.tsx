@@ -1,17 +1,29 @@
 "use client";
 
-import React, { useEffect, useState, Suspense, useRef } from 'react';
+import React, { useEffect, useState, Suspense, useRef, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Send, Search, AlertCircle, ShoppingBag, ArrowLeft, MessageSquare, Loader, CheckCircle2, HelpCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  Send, Search, AlertCircle, ShoppingBag, ArrowLeft, MessageSquare, Loader, 
+  CheckCircle2, HelpCircle, Smile, Paperclip, MoreVertical, SlidersHorizontal, 
+  CheckCheck, Users, Headphones, Store, Mic, MicOff, Image as ImageIcon, 
+  ShieldAlert, AlertTriangle, Trash2, X, Maximize2, ShieldCheck, ChevronRight
+} from 'lucide-react';
 import api, { optimizeCloudinaryUrl } from '@/services/api';
 import { listingsService } from '@/services/listings';
 import { dealsService, type Deal } from '@/services/deals';
+import { imageService } from '@/services/imageService';
 import { useChat } from '@/hooks/useChat';
 import { useAuthStore } from '@/store/useAuth';
 import { useCurrencyStore } from '@/store/useCurrency';
 import { formatConvertedPrice } from '@/lib/currency';
 import { useLocalizedField } from '@/lib/i18n';
 import { trackEvent, trackCharge } from '@/lib/analytics';
+import { detectFraudRisk } from '@/components/chat/ChatFraudGuard';
+import { OrderReceiptBubble } from '@/components/chat/OrderReceiptBubble';
+import { VoiceNotePlayer } from '@/components/chat/VoiceNotePlayer';
+import { EmojiPickerPopover } from '@/components/chat/EmojiPickerPopover';
+import { ReportFraudModal } from '@/components/chat/ReportFraudModal';
 import type { ChatMessage, Listing } from '@/types';
 
 // A plain "hello" opener gets ignored; naming the actual product and asking
@@ -46,9 +58,10 @@ interface Conversation {
 }
 
 function MessagesPageContent() {
+    const navigate = useNavigate();
     const searchParams = useSearchParams();
-    const targetUserId = searchParams.get('userId');
-    const sharedProductId = searchParams.get('productId');
+    const targetUserId = searchParams.get('userId') || searchParams.get('user');
+    const sharedProductId = searchParams.get('productId') || searchParams.get('listing_id');
     const field = useLocalizedField();
     const currency = useCurrencyStore((s) => s.currency);
 
@@ -56,6 +69,27 @@ function MessagesPageContent() {
     const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputText, setInputText] = useState('');
+
+    // Feature States: Emojis, Reporting, Media, Voice
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [lightboxImageUrl, setLightboxImageUrl] = useState<string | null>(null);
+
+    // Image Upload states
+    const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+    const [selectedImagePreview, setSelectedImagePreview] = useState<string | null>(null);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    // Voice Recording states
+    const [isRecordingVoice, setIsRecordingVoice] = useState(false);
+    const [recordingDuration, setRecordingDuration] = useState(0);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const mediaStreamRef = useRef<MediaStream | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
+    const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const isCancelledVoiceRef = useRef<boolean>(false);
+
     // The listing this thread is about -- seeded from ?productId= when
     // arriving via a "Contact Seller" tap, or recovered from the loaded
     // thread's own messages when reopening a conversation later, so the
@@ -66,12 +100,16 @@ function MessagesPageContent() {
     const [isLoading, setIsLoading] = useState(false);
     const [isSending, setIsSending] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
     const [isUserTyping, setIsUserTyping] = useState(false);
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
+    const messagesContainerRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
     }, [messages]);
 
     // The real auth token -- this used to read localStorage.getItem('access_token'),
@@ -384,31 +422,24 @@ function MessagesPageContent() {
         }
     };
 
-    // Filter conversations by search query
-    const filteredConversations = conversations.filter(conv =>
-        (conv.other_user_name || '').toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // Filter conversations by search query and active tab
+    const filteredConversations = conversations.filter(conv => {
+        const matchesSearch = (conv.other_user_name || '').toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesTab = activeTab === 'all' || ((conv.unread_count ?? 0) > 0);
+        return matchesSearch && matchesTab;
+    });
 
-    const handleSendMessage = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!inputText.trim() || !selectedUserId) return;
-
-        const text = inputText.trim();
-        setInputText('');
-        setIsUserTyping(false);
-
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
-        }
+    // Core message sender (supports text, [IMAGE]:..., [VOICE|...]:...)
+    const sendChatMessage = async (contentToSend: string) => {
+        if (!contentToSend.trim() || !selectedUserId) return;
 
         try {
             setIsSending(true);
             const isNewConversation = messages.length === 0;
 
-            // Send via HTTP (saves to DB and broadcasts across SSE/WS channels)
             const sendResponse = await api.post('/messages/', {
                 receiver_id: selectedUserId,
-                content: text,
+                content: contentToSend,
                 ...(activeListingId ? { listing_id: Number(activeListingId) } : {}),
             });
 
@@ -416,23 +447,27 @@ function MessagesPageContent() {
                 id: Date.now(),
                 sender_id: currentUser?.id || 0,
                 receiver_id: selectedUserId,
-                content: text,
+                content: contentToSend,
                 listing_id: activeListingId ? Number(activeListingId) : undefined,
                 timestamp: new Date().toISOString(),
                 created_at: new Date().toISOString(),
             };
 
-            // Immediately update message thread
             setMessages((prev) => {
                 const exists = prev.some((m) => m.id === newMsg.id);
                 return exists ? prev : [...prev, newMsg];
             });
 
-            // Update conversation list preview
+            const previewText = contentToSend.startsWith('[IMAGE]')
+                ? '📷 Photo'
+                : contentToSend.startsWith('[VOICE')
+                ? '🎤 Voice message'
+                : contentToSend;
+
             setConversations((prev) =>
                 prev.map((c) =>
                     c.other_user_id === selectedUserId
-                        ? { ...c, last_message: text, last_message_time: new Date().toISOString() }
+                        ? { ...c, last_message: previewText, last_message_time: new Date().toISOString() }
                         : c
                 )
             );
@@ -442,13 +477,11 @@ function MessagesPageContent() {
                 trackEvent('Conversation Started', { receiver_id: selectedUserId });
             }
 
-            // Clear typing state after sending
             if (isConnected) {
                 setTyping(selectedUserId, false);
             }
         } catch (error) {
             console.error('Failed to send message:', error);
-            setInputText(text);
             const detailMsg = (error as any)?.response?.data?.detail || (error as any)?.message || 'Failed to send message';
             alert(detailMsg);
         } finally {
@@ -456,28 +489,239 @@ function MessagesPageContent() {
         }
     };
 
+    // Pre-send fraud risk detection as user types
+    const currentInputFraudAlert = useMemo(() => {
+        return detectFraudRisk(inputText);
+    }, [inputText]);
+
+    // Handle form submit (text and/or pending image)
+    const handleSendMessage = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (isSending || !selectedUserId) return;
+
+        // 1. If an image is selected, upload and send it
+        if (selectedImageFile) {
+            try {
+                setIsUploadingImage(true);
+                const uploadRes = await imageService.uploadImage(selectedImageFile);
+                const caption = inputText.trim();
+                const imageMessage = `[IMAGE]:${uploadRes.url}${caption ? `\n${caption}` : ''}`;
+                cancelImagePreview();
+                setInputText('');
+                await sendChatMessage(imageMessage);
+            } catch (err: any) {
+                console.error('Image upload failed:', err);
+                alert(err?.response?.data?.detail || 'Failed to upload image. Please try again.');
+            } finally {
+                setIsUploadingImage(false);
+            }
+            return;
+        }
+
+        // 2. Normal text message
+        const text = inputText.trim();
+        if (!text) return;
+        setInputText('');
+        setIsUserTyping(false);
+        setShowEmojiPicker(false);
+
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
+
+        await sendChatMessage(text);
+    };
+
+    // Image attachment handlers
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file (PNG, JPG, WEBP).');
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            alert('Image must be under 10MB.');
+            return;
+        }
+        setSelectedImageFile(file);
+        setSelectedImagePreview(URL.createObjectURL(file));
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
+    const cancelImagePreview = () => {
+        if (selectedImagePreview) {
+            URL.revokeObjectURL(selectedImagePreview);
+        }
+        setSelectedImageFile(null);
+        setSelectedImagePreview(null);
+    };
+
+    // Voice recording handlers
+    const startVoiceRecording = async () => {
+        try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('Audio recording is not supported on this device/browser.');
+                return;
+            }
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaStreamRef.current = stream;
+
+            const mimeType = MediaRecorder.isTypeSupported('audio/webm') 
+                ? 'audio/webm' 
+                : MediaRecorder.isTypeSupported('audio/mp4') 
+                ? 'audio/mp4' 
+                : '';
+            const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+            mediaRecorderRef.current = recorder;
+            audioChunksRef.current = [];
+            isCancelledVoiceRef.current = false;
+
+            recorder.ondataavailable = (e) => {
+                if (e.data && e.data.size > 0) {
+                    audioChunksRef.current.push(e.data);
+                }
+            };
+
+            recorder.onstop = async () => {
+                if (mediaStreamRef.current) {
+                    mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+                }
+                if (recordingTimerRef.current) {
+                    clearInterval(recordingTimerRef.current);
+                }
+
+                if (isCancelledVoiceRef.current || audioChunksRef.current.length === 0) {
+                    setIsRecordingVoice(false);
+                    setRecordingDuration(0);
+                    return;
+                }
+
+                const audioBlob = new Blob(audioChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+                const reader = new FileReader();
+                reader.readAsDataURL(audioBlob);
+                reader.onloadend = async () => {
+                    const base64Audio = reader.result as string;
+                    const sec = recordingDuration || 1;
+                    const m = Math.floor(sec / 60);
+                    const s = Math.floor(sec % 60);
+                    const timeLabel = `${m}:${s < 10 ? '0' : ''}${s}`;
+                    await sendChatMessage(`[VOICE|${timeLabel}]:${base64Audio}`);
+                    setIsRecordingVoice(false);
+                    setRecordingDuration(0);
+                };
+            };
+
+            recorder.start(100);
+            setIsRecordingVoice(true);
+            setRecordingDuration(0);
+            recordingTimerRef.current = setInterval(() => {
+                setRecordingDuration((prev) => prev + 1);
+            }, 1000);
+        } catch (err: any) {
+            console.error('Failed to start audio recording:', err);
+            alert('Microphone permission denied or unavailable. Please enable microphone permissions in your browser settings.');
+        }
+    };
+
+    const stopAndSendVoiceRecording = () => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+            isCancelledVoiceRef.current = false;
+            mediaRecorderRef.current.stop();
+        }
+    };
+
+    const cancelVoiceRecording = () => {
+        isCancelledVoiceRef.current = true;
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+            mediaRecorderRef.current.stop();
+        }
+        setIsRecordingVoice(false);
+        setRecordingDuration(0);
+    };
+
     const selectedConversation = conversations.find(c => c.other_user_id === selectedUserId);
 
+    const handleOpenSellerShop = (e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        const shopTarget = sharedProduct?.shop_id || sharedProduct?.owner_id || selectedConversation?.other_user_id;
+        if (shopTarget) {
+            navigate(`/shop/${shopTarget}`);
+        }
+    };
+
     return (
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 h-[calc(100vh-8rem)]">
-            <div className="h-full rounded-[32px] overflow-hidden bg-white border border-gray-100 shadow-2xl dark:bg-neutral-950 dark:border-neutral-800 flex">
+        <div className="w-full h-[calc(100dvh-3rem-env(safe-area-inset-top,0px)-5rem)] md:h-[calc(100vh-8rem)] md:max-w-7xl md:mx-auto md:px-6 md:py-6 p-0">
+            <div className="h-full rounded-none md:rounded-[32px] overflow-hidden bg-white border-0 md:border md:border-gray-100 md:shadow-2xl dark:bg-neutral-950 dark:border-neutral-800 flex">
 
                 {/* Conversations Left Panel */}
-                <aside className={`${selectedUserId ? 'hidden md:flex' : 'flex'} w-full md:w-80 shrink-0 border-r border-gray-100 dark:border-neutral-800 flex-col h-full bg-slate-50/50 dark:bg-black/20`}>
-                    <div className="p-4 space-y-3">
+                <aside className={`${selectedUserId ? 'hidden md:flex' : 'flex'} w-full md:w-80 lg:w-[360px] shrink-0 border-r border-gray-100 dark:border-neutral-800 flex-col h-full bg-slate-50/40 dark:bg-black/20 overflow-hidden`}>
+                    {/* Panel Header */}
+                    <div className="p-4 space-y-3.5 border-b border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-950">
                         <div className="flex items-center justify-between">
-                            <h2 className="text-base font-black text-gray-900 dark:text-neutral-50">Messages</h2>
-                            <div className={`h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} title={isConnected ? 'Connected' : 'Disconnected'} />
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => window.history.back()}
+                                    className="p-1.5 -ml-1 rounded-full text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors"
+                                    aria-label="Back"
+                                >
+                                    <ArrowLeft className="w-4 h-4" />
+                                </button>
+                                <h2 className="text-lg font-black text-gray-900 dark:text-neutral-50 tracking-tight">
+                                    Messages
+                                </h2>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-slate-100 dark:bg-neutral-900 border border-slate-200/60 dark:border-neutral-800">
+                                <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                                <span className="text-[10px] font-bold text-gray-600 dark:text-neutral-300">
+                                    {isConnected ? 'Online' : 'Offline'}
+                                </span>
+                            </div>
                         </div>
+
+                        {/* Segmented Filter Tabs */}
+                        <div className="flex p-1 rounded-2xl bg-slate-100 dark:bg-neutral-900 border border-slate-200/70 dark:border-neutral-800">
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab('all')}
+                                className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                                    activeTab === 'all'
+                                        ? 'bg-white dark:bg-neutral-800 text-gray-900 dark:text-white shadow-sm'
+                                        : 'text-gray-500 dark:text-neutral-400 hover:text-gray-800'
+                                }`}
+                            >
+                                <Users className="w-3.5 h-3.5" />
+                                <span>All Chats</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab('unread')}
+                                className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                                    activeTab === 'unread'
+                                        ? 'bg-white dark:bg-neutral-800 text-gray-900 dark:text-white shadow-sm'
+                                        : 'text-gray-500 dark:text-neutral-400 hover:text-gray-800'
+                                }`}
+                            >
+                                <span>Unread</span>
+                                {conversations.some((c) => (c.unread_count ?? 0) > 0) && (
+                                    <span className="w-2 h-2 rounded-full bg-orange-600" />
+                                )}
+                            </button>
+                        </div>
+
+                        {/* Search Input Bar */}
                         <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                             <input
                                 type="text"
                                 placeholder="Search conversations..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full rounded-2xl border border-gray-200 bg-white px-9 py-2 text-xs font-semibold outline-none focus:border-[#00a082] dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-50"
+                                className="w-full rounded-2xl border border-slate-200 dark:border-neutral-800 bg-slate-50/70 dark:bg-neutral-900/80 pl-10 pr-9 py-2.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white dark:focus:bg-neutral-950 text-gray-900 dark:text-white transition-all placeholder:text-gray-400"
                             />
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                <SlidersHorizontal className="w-3.5 h-3.5" />
+                            </div>
                         </div>
                     </div>
 
@@ -486,10 +730,13 @@ function MessagesPageContent() {
                             Loading conversations...
                         </div>
                     ) : filteredConversations.length === 0 ? (
-                        <div className="flex-1 flex items-center justify-center text-center p-4">
+                        <div className="flex-1 flex items-center justify-center text-center p-6">
                             <div className="space-y-2">
-                                <MessageSquare className="h-8 w-8 text-gray-300 dark:text-neutral-200 mx-auto" />
-                                <p className="text-xs text-gray-400 dark:text-neutral-400">No conversations yet</p>
+                                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-neutral-900 flex items-center justify-center mx-auto text-gray-400">
+                                    <MessageSquare className="h-6 w-6" />
+                                </div>
+                                <p className="text-xs font-bold text-gray-800 dark:text-neutral-200">No conversations found</p>
+                                <p className="text-[11px] text-gray-400 dark:text-neutral-400">Reach out to a seller to start chatting.</p>
                             </div>
                         </div>
                     ) : (
@@ -498,17 +745,21 @@ function MessagesPageContent() {
                                 <button
                                     key={conv.other_user_id}
                                     onClick={() => setSelectedUserId(conv.other_user_id)}
-                                    className={`w-full p-4 flex gap-3 text-left transition-all ${selectedUserId === conv.other_user_id ? 'bg-white dark:bg-neutral-950' : 'hover:bg-white/50 dark:hover:bg-neutral-950/50'}`}
+                                    className={`w-full p-3.5 flex gap-3 text-left transition-all ${
+                                        selectedUserId === conv.other_user_id
+                                            ? 'bg-sky-50/60 dark:bg-sky-950/20'
+                                            : 'hover:bg-white/80 dark:hover:bg-neutral-900/50'
+                                    }`}
                                 >
                                     <div className="relative shrink-0">
                                         {conv.other_user_avatar ? (
                                             <img
                                                 src={conv.other_user_avatar}
                                                 alt={conv.other_user_name}
-                                                className="h-11 w-11 rounded-2xl object-cover"
+                                                className="h-12 w-12 rounded-2xl object-cover border border-slate-200 dark:border-neutral-800 shadow-sm"
                                             />
                                         ) : (
-                                            <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-sm">
+                                            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-sm shadow-sm">
                                                 {(conv.other_user_name || 'U').charAt(0).toUpperCase()}
                                             </div>
                                         )}
@@ -523,19 +774,21 @@ function MessagesPageContent() {
                                                 {conv.other_user_name || `User ${conv.other_user_id}`}
                                             </h4>
                                             {(conv.last_message_time || conv.last_message_at) && (
-                                                <span className="text-[9px] text-gray-400 dark:text-neutral-400 font-bold shrink-0 whitespace-nowrap">
+                                                <span className="text-[10px] text-gray-400 dark:text-neutral-400 font-bold shrink-0 whitespace-nowrap">
                                                     {formatMessageDate(conv.last_message_time || conv.last_message_at)}
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="flex justify-between items-center gap-2 min-w-0">
-                                            <p className="text-[11px] text-gray-400 dark:text-neutral-400 truncate font-semibold">
-                                                {conv.last_message || 'No messages yet'}
+                                        <div className="flex justify-between items-center gap-2 min-w-0 mt-1">
+                                            <p className="text-[11px] text-gray-500 dark:text-neutral-400 truncate font-medium">
+                                                {conv.last_message || 'Start the conversation'}
                                             </p>
-                                            {(conv.unread_count ?? 0) > 0 && (
-                                                <span className="h-4 min-w-4 px-1 rounded-full bg-[#00a082] text-white text-[9px] font-black flex items-center justify-center shrink-0">
+                                            {(conv.unread_count ?? 0) > 0 ? (
+                                                <span className="h-4 min-w-4 px-1.5 rounded-full bg-sky-500 text-white text-[9px] font-black flex items-center justify-center shrink-0">
                                                     {conv.unread_count}
                                                 </span>
+                                            ) : (
+                                                <CheckCheck className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                                             )}
                                         </div>
                                     </div>
@@ -546,52 +799,101 @@ function MessagesPageContent() {
                 </aside>
 
                 {/* Conversation Right Panel */}
-                <div className={`${selectedUserId ? 'flex' : 'hidden md:flex'} flex-1 flex-col h-full bg-white dark:bg-neutral-950`}>
+                <div className={`${selectedUserId ? 'flex' : 'hidden md:flex'} flex-1 flex-col h-full min-w-0 bg-white dark:bg-neutral-950 overflow-hidden`}>
                     {selectedUserId && selectedConversation ? (
                         <>
                             {/* Chat Header */}
-                            <div className="p-4 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
+                            <div className="p-3.5 sm:p-4 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between bg-white dark:bg-neutral-950">
                                 <div className="flex items-center gap-3">
-                                    <button onClick={() => setSelectedUserId(null)} className="md:hidden -ml-1 mr-1 text-gray-400 hover:text-gray-700 dark:hover:text-neutral-100">
+                                    <button
+                                        onClick={() => setSelectedUserId(null)}
+                                        className="md:hidden -ml-1 p-1 rounded-full text-gray-500 hover:text-gray-900 dark:hover:text-neutral-100 hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors"
+                                        aria-label="Back to conversations"
+                                    >
                                         <ArrowLeft className="h-5 w-5" />
                                     </button>
-                                    <div className="relative">
-                                        {selectedConversation.other_user_avatar ? (
-                                            <img
-                                                src={selectedConversation.other_user_avatar}
-                                                alt={selectedConversation.other_user_name}
-                                                className="h-10 w-10 rounded-2xl object-cover"
-                                            />
-                                        ) : (
-                                            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-xs">
-                                                {(selectedConversation.other_user_name || 'U').charAt(0).toUpperCase()}
-                                            </div>
-                                        )}
-                                        <span
-                                            className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-neutral-950 ${isOtherUserOnline ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-neutral-600'}`}
-                                        />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-xs font-black text-gray-900 dark:text-neutral-50">
-                                            {selectedConversation.other_user_name || `User ${selectedConversation.other_user_id}`}
-                                        </h3>
-                                        <p className="text-[10px] text-gray-500 dark:text-neutral-300">
-                                            {isOtherUserTyping ? (
-                                                <span className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
-                                                    <span>typing</span>
-                                                    <Loader className="h-3 w-3 animate-spin" />
-                                                </span>
+                                    {/* Clickable seller avatar and shop profile header */}
+                                    <button
+                                        type="button"
+                                        onClick={handleOpenSellerShop}
+                                        className="flex items-center gap-3 text-left group cursor-pointer focus:outline-none"
+                                        title="View Seller Shop Profile"
+                                    >
+                                        <div className="relative shrink-0">
+                                            {selectedConversation.other_user_avatar ? (
+                                                <img
+                                                    src={selectedConversation.other_user_avatar}
+                                                    alt={selectedConversation.other_user_name}
+                                                    className="h-10 w-10 rounded-2xl object-cover border border-slate-200 dark:border-neutral-800 shadow-sm group-hover:scale-105 group-hover:ring-2 group-hover:ring-orange-500/40 transition-all"
+                                                />
                                             ) : (
-                                                <span className="flex items-center gap-1.5 font-medium">
-                                                    <span className={`inline-block w-1.5 h-1.5 rounded-full ${isOtherUserOnline ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50' : 'bg-gray-400'}`} />
-                                                    <span className={isOtherUserOnline ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-gray-400 dark:text-neutral-500'}>
-                                                        {isOtherUserOnline ? 'Online' : 'Offline'}
-                                                    </span>
-                                                </span>
+                                                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-xs shadow-sm group-hover:scale-105 group-hover:ring-2 group-hover:ring-orange-500/40 transition-all">
+                                                    {(selectedConversation.other_user_name || 'U').charAt(0).toUpperCase()}
+                                                </div>
                                             )}
-                                        </p>
-                                    </div>
+                                            <span
+                                                className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-neutral-950 ${isOtherUserOnline ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-neutral-600'}`}
+                                            />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <h3 className="text-xs sm:text-sm font-black text-gray-900 dark:text-neutral-50 truncate flex items-center gap-1.5 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                                                <span>{selectedConversation.other_user_name || `User ${selectedConversation.other_user_id}`}</span>
+                                                <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-orange-600 bg-orange-50 dark:bg-orange-950/40 px-1.5 py-0.5 rounded-md">
+                                                    <Store className="w-2.5 h-2.5" />
+                                                    Shop
+                                                </span>
+                                            </h3>
+                                            <p className="text-[10px] text-gray-500 dark:text-neutral-300">
+                                                {isOtherUserTyping ? (
+                                                    <span className="flex items-center gap-1 text-orange-600 dark:text-orange-400 font-bold">
+                                                        <span>typing</span>
+                                                        <Loader className="h-3 w-3 animate-spin" />
+                                                    </span>
+                                                ) : (
+                                                    <span className="flex items-center gap-1 font-semibold">
+                                                        <span className={`inline-block w-1.5 h-1.5 rounded-full ${isOtherUserOnline ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+                                                        <span className={isOtherUserOnline ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-gray-400 dark:text-neutral-500'}>
+                                                            {isOtherUserOnline ? 'Online' : 'Offline'}
+                                                        </span>
+                                                    </span>
+                                                )}
+                                            </p>
+                                        </div>
+                                    </button>
                                 </div>
+
+                                <div className="flex items-center gap-1.5">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowReportModal(true)}
+                                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors text-xs font-bold"
+                                        title="Report fraud or suspicious activity"
+                                    >
+                                        <ShieldAlert className="w-3.5 h-3.5" />
+                                        <span className="hidden sm:inline">Report</span>
+                                    </button>
+                                    <button
+                                        onClick={handleOpenSellerShop}
+                                        className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors text-xs font-bold shadow-xs active:scale-95"
+                                        title="Visit Seller Shop"
+                                    >
+                                        <Store className="w-3.5 h-3.5" />
+                                        <span className="hidden sm:inline">Visit Shop</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Fraud Shield Advisory Bar */}
+                            <div className="px-4 py-1.5 bg-amber-50/70 dark:bg-amber-950/20 border-b border-amber-200/50 dark:border-amber-900/20 flex items-center justify-between text-[11px] text-amber-900 dark:text-amber-200">
+                                <div className="flex items-center gap-1.5 truncate">
+                                    <ShieldCheck className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                    <span className="font-medium truncate">
+                                        <strong>Fraud Shield Active:</strong> Inspect items before paying. Never send advance deposits or share M-Pesa PIN.
+                                    </span>
+                                </div>
+                                <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider shrink-0 ml-2">
+                                    Protected
+                                </span>
                             </div>
 
                             {/* Pinned product context -- whenever this thread is
@@ -683,24 +985,136 @@ function MessagesPageContent() {
                             )}
 
                             {/* Chat History View */}
-                            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/40 dark:bg-black/10">
+                            <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-3 bg-slate-50/40 dark:bg-black/10">
+                                {/* Date Divider */}
+                                <div className="flex justify-center py-1">
+                                    <span className="px-3 py-1 rounded-full bg-white dark:bg-neutral-900 border border-slate-200/60 dark:border-neutral-800 text-[10px] font-bold text-gray-400 shadow-sm">
+                                        Today
+                                    </span>
+                                </div>
+
                                 {isLoading ? (
                                     <div className="text-center py-8 text-xs text-gray-400">Loading messages...</div>
                                 ) : messages.length === 0 ? (
-                                    <div className="text-center py-8 text-xs text-gray-400">No messages yet. Start the conversation!</div>
+                                    <div className="text-center py-8 text-xs text-gray-400 font-medium">No messages yet. Say hello to start the chat!</div>
                                 ) : (
                                     messages.map((msg) => {
+                                        const isMe = msg.sender_id !== selectedUserId;
+                                        const isOrderInquiry = 
+                                            msg.content.toLowerCase().includes('order inquiry') || 
+                                            msg.content.includes("I'd like to buy:") || 
+                                            msg.content.includes('#ORD-') || 
+                                            msg.content.startsWith('🛍️') ||
+                                            msg.content.startsWith('📦');
+                                        const isImage = msg.content.startsWith('[IMAGE]:') || msg.content.includes('[IMAGE]:');
+                                        const isVoice = msg.content.startsWith('[VOICE');
+                                        const fraudAlert = !isMe ? detectFraudRisk(msg.content) : { isSuspicious: false };
+
+                                        let imageUrl = '';
+                                        let imageCaption = '';
+                                        if (isImage) {
+                                            const parts = msg.content.replace(/^\[IMAGE\]:\s*/, '').split('\n');
+                                            imageUrl = parts[0]?.trim() || '';
+                                            imageCaption = parts.slice(1).join('\n').trim();
+                                        }
+
+                                        let voiceUrl = '';
+                                        let voiceDuration = '0:05';
+                                        if (isVoice) {
+                                            const match = msg.content.match(/^\[VOICE(?:\|([^\]]+))?\]:(.*)$/s);
+                                            if (match) {
+                                                voiceDuration = match[1] || '0:05';
+                                                voiceUrl = match[2]?.trim() || '';
+                                            }
+                                        }
+
                                         return (
                                             <div
                                                 key={msg.id}
-                                                className={`flex ${msg.sender_id === selectedUserId ? 'justify-start' : 'justify-end'}`}
+                                                className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}
                                             >
-                                                <div className={`max-w-[70%] rounded-2xl p-4 space-y-2 shadow-sm ${msg.sender_id === selectedUserId ? 'bg-white border border-gray-100 text-gray-800 dark:bg-neutral-900 dark:border-neutral-800 dark:text-neutral-50 rounded-bl-none' : 'bg-[#00a082] text-white rounded-br-none'}`}>
-                                                    <p className="text-xs font-semibold leading-relaxed break-words">{msg.content}</p>
-                                                    <div className="flex items-center justify-end gap-1.5 pt-0.5">
-                                                        <span className="text-[8px] opacity-75 font-semibold">
+                                                {!isMe && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleOpenSellerShop}
+                                                        className="shrink-0 mb-1 hover:scale-110 active:scale-95 transition-transform"
+                                                        title="View Seller Shop"
+                                                    >
+                                                        {selectedConversation.other_user_avatar ? (
+                                                            <img
+                                                                src={selectedConversation.other_user_avatar}
+                                                                alt=""
+                                                                className="w-7 h-7 rounded-xl object-cover border border-slate-200 dark:border-neutral-800 shadow-xs"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-bold text-[10px] shadow-xs">
+                                                                {(selectedConversation.other_user_name || 'U').charAt(0).toUpperCase()}
+                                                            </div>
+                                                        )}
+                                                    </button>
+                                                )}
+                                                <div className={`max-w-[88%] sm:max-w-[70%] space-y-1`}>
+                                                    {isOrderInquiry ? (
+                                                        <OrderReceiptBubble content={msg.content} isMe={isMe} listingId={msg.listing_id} />
+                                                    ) : isImage && imageUrl ? (
+                                                        <div className={`rounded-2xl p-2 shadow-sm border overflow-hidden ${
+                                                            isMe 
+                                                                ? 'bg-[#0284c7] border-sky-600 rounded-br-sm text-white' 
+                                                                : 'bg-white dark:bg-neutral-900 border-slate-200/80 dark:border-neutral-800 text-gray-800 dark:text-neutral-100 rounded-bl-sm'
+                                                        }`}>
+                                                            <div 
+                                                                onClick={() => setLightboxImageUrl(imageUrl)}
+                                                                className="relative group cursor-pointer overflow-hidden rounded-xl max-w-xs"
+                                                            >
+                                                                <img 
+                                                                    src={imageUrl} 
+                                                                    alt="Shared photo" 
+                                                                    className="w-full max-h-64 object-cover rounded-xl transition-transform duration-200 hover:scale-102" 
+                                                                />
+                                                                <div className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <Maximize2 className="w-3.5 h-3.5" />
+                                                                </div>
+                                                            </div>
+                                                            {imageCaption && (
+                                                                <p className="p-1.5 text-xs font-semibold leading-relaxed whitespace-pre-wrap break-words">
+                                                                    {imageCaption}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    ) : isVoice && voiceUrl ? (
+                                                        <div className={`rounded-2xl shadow-sm border overflow-hidden ${
+                                                            isMe 
+                                                                ? 'bg-[#0284c7] border-sky-600 rounded-br-sm' 
+                                                                : 'bg-white dark:bg-neutral-900 border-slate-200/80 dark:border-neutral-800 rounded-bl-sm'
+                                                        }`}>
+                                                            <VoiceNotePlayer src={voiceUrl} durationLabel={voiceDuration} isMe={isMe} />
+                                                        </div>
+                                                    ) : (
+                                                        <div className={`rounded-2xl p-3.5 text-xs sm:text-sm font-semibold leading-relaxed whitespace-pre-wrap break-words shadow-sm select-text ${
+                                                            isMe
+                                                                ? 'bg-[#0284c7] text-white rounded-br-sm'
+                                                                : 'bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 text-gray-800 dark:text-neutral-100 rounded-bl-sm'
+                                                        }`}>
+                                                            {msg.content}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Fraud Risk Alert Pill if scam patterns detected */}
+                                                    {fraudAlert.isSuspicious && (
+                                                        <div className="p-2.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-[11px] text-amber-900 dark:text-amber-200 flex items-start gap-2 shadow-xs">
+                                                            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                                                            <div>
+                                                                <strong className="font-bold block text-amber-900 dark:text-amber-200">{fraudAlert.title}</strong>
+                                                                <span className="leading-tight">{fraudAlert.warning}</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    <div className={`flex items-center gap-1 px-1 text-[9px] text-gray-400 font-semibold ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                                        <span>
                                                             {new Date(msg.created_at || msg.timestamp || new Date()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                         </span>
+                                                        {isMe && <CheckCheck className="w-3 h-3 text-sky-500" />}
                                                     </div>
                                                 </div>
                                             </div>
@@ -710,24 +1124,151 @@ function MessagesPageContent() {
                                 <div ref={messagesEndRef} />
                             </div>
 
-                            {/* Chat Input form */}
-                            <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-100 dark:border-neutral-800 flex gap-2">
-                                <input
-                                    type="text"
-                                    placeholder="Type a message..."
-                                    value={inputText}
-                                    onChange={handleInputChange}
-                                    disabled={isSending}
-                                    className="w-full rounded-2xl border border-gray-200 dark:border-neutral-800 bg-slate-50 dark:bg-black px-4 py-2.5 text-xs font-semibold outline-none focus:border-[#00a082] focus:bg-white dark:text-neutral-50 disabled:opacity-50"
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={isSending || !inputText.trim()}
-                                    className="p-2.5 bg-[#00a082] text-white rounded-2xl shadow hover:bg-[#008f73] cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    <Send className="h-4.5 w-4.5" />
-                                </button>
-                            </form>
+                            {/* Chat Input form area */}
+                            <div className="relative p-3 sm:p-4 border-t border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-950">
+                                {/* Emoji Picker Popover */}
+                                {showEmojiPicker && (
+                                    <EmojiPickerPopover 
+                                        onSelect={(emoji) => setInputText((prev) => prev + emoji)}
+                                        onClose={() => setShowEmojiPicker(false)}
+                                    />
+                                )}
+
+                                {/* Real-time Pre-send Fraud Alert Pill */}
+                                {currentInputFraudAlert.isSuspicious && (
+                                    <div className="mb-2 p-2 px-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-[11px] text-amber-900 dark:text-amber-200 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-1">
+                                        <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                                        <span className="truncate">
+                                            <strong>{currentInputFraudAlert.title}:</strong> {currentInputFraudAlert.warning}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {/* Image preview before sending */}
+                                {selectedImagePreview && (
+                                    <div className="mb-2 p-2 rounded-2xl bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 flex items-center justify-between gap-3 max-w-sm">
+                                        <div className="flex items-center gap-2.5 truncate">
+                                            <img src={selectedImagePreview} alt="Preview" className="w-10 h-10 rounded-xl object-cover border" />
+                                            <span className="text-xs font-semibold text-gray-700 dark:text-neutral-300 truncate">
+                                                {selectedImageFile?.name || 'Photo selected'}
+                                            </span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={cancelImagePreview}
+                                            className="p-1 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-neutral-200"
+                                            aria-label="Remove image"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Voice Recording Active Bar */}
+                                {isRecordingVoice ? (
+                                    <div className="flex items-center justify-between gap-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/40 rounded-full px-4 py-2 animate-in fade-in">
+                                        <div className="flex items-center gap-2.5">
+                                            <span className="w-3 h-3 rounded-full bg-red-500 animate-ping" />
+                                            <span className="text-xs font-bold text-red-600 dark:text-red-400">
+                                                Recording voice note... {Math.floor(recordingDuration / 60)}:{recordingDuration % 60 < 10 ? '0' : ''}{recordingDuration % 60}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={cancelVoiceRecording}
+                                                className="p-1.5 text-gray-500 hover:text-red-600 transition-colors"
+                                                title="Cancel recording"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={stopAndSendVoiceRecording}
+                                                className="px-3.5 py-1.5 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-black shadow flex items-center gap-1.5 active:scale-95 transition-transform"
+                                            >
+                                                <Send className="w-3.5 h-3.5" />
+                                                Send Voice
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    /* Normal Chat Input Form */
+                                    <form onSubmit={handleSendMessage} className="flex items-center gap-1.5 bg-slate-50 dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 rounded-full px-3 py-1.5 focus-within:ring-2 focus-within:ring-sky-500 transition-all">
+                                        {/* Hidden File Input for images */}
+                                        <input 
+                                            ref={fileInputRef} 
+                                            type="file" 
+                                            accept="image/*" 
+                                            className="hidden" 
+                                            onChange={handleImageSelect} 
+                                        />
+
+                                        {/* Emoji Button */}
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowEmojiPicker((prev) => !prev)}
+                                            className={`p-1.5 transition-colors rounded-full ${
+                                                showEmojiPicker 
+                                                    ? 'text-orange-500 bg-orange-50 dark:bg-orange-950/30' 
+                                                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-neutral-200'
+                                            }`}
+                                            aria-label="Add emoji"
+                                        >
+                                            <Smile className="w-4 h-4" />
+                                        </button>
+
+                                        {/* Attach Image Button */}
+                                        <button
+                                            type="button"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            disabled={isUploadingImage}
+                                            className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-neutral-200 transition-colors"
+                                            aria-label="Attach photo"
+                                            title="Attach photo"
+                                        >
+                                            <ImageIcon className="w-4 h-4" />
+                                        </button>
+
+                                        {/* Text Input */}
+                                        <input
+                                            type="text"
+                                            placeholder={selectedImagePreview ? "Add a caption (optional)..." : "Type message..."}
+                                            value={inputText}
+                                            onChange={handleInputChange}
+                                            disabled={isSending || isUploadingImage}
+                                            className="flex-1 bg-transparent px-2 py-1 text-xs sm:text-sm font-semibold outline-none text-gray-900 dark:text-neutral-50 placeholder:text-gray-400 disabled:opacity-50"
+                                        />
+
+                                        {/* Voice Record Button (when input is empty and no image selected) */}
+                                        {!inputText.trim() && !selectedImageFile ? (
+                                            <button
+                                                type="button"
+                                                onClick={startVoiceRecording}
+                                                className="w-8 h-8 rounded-full bg-slate-200/80 dark:bg-neutral-800 hover:bg-[#0284c7] hover:text-white text-gray-600 dark:text-neutral-300 flex items-center justify-center shrink-0 transition-all active:scale-95 shadow-xs"
+                                                aria-label="Record voice message"
+                                                title="Record voice message"
+                                            >
+                                                <Mic className="w-4 h-4" />
+                                            </button>
+                                        ) : (
+                                            /* Send Button */
+                                            <button
+                                                type="submit"
+                                                disabled={isSending || isUploadingImage}
+                                                className="w-8 h-8 rounded-full bg-[#0284c7] hover:bg-[#0369a1] text-white flex items-center justify-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed shadow transition-transform active:scale-95"
+                                                aria-label="Send message"
+                                            >
+                                                {isUploadingImage || isSending ? (
+                                                    <Loader className="w-3.5 h-3.5 animate-spin" />
+                                                ) : (
+                                                    <Send className="w-3.5 h-3.5" />
+                                                )}
+                                            </button>
+                                        )}
+                                    </form>
+                                )}
+                            </div>
                         </>
                     ) : (
                         /* Empty state */
@@ -745,6 +1286,40 @@ function MessagesPageContent() {
                     )}
                 </div>
             </div>
+
+            {/* Image Full-screen Lightbox */}
+            {lightboxImageUrl && (
+                <div 
+                    onClick={() => setLightboxImageUrl(null)}
+                    className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
+                >
+                    <div className="relative max-w-3xl max-h-[90vh]">
+                        <button
+                            type="button"
+                            onClick={() => setLightboxImageUrl(null)}
+                            className="absolute -top-10 right-0 p-2 text-white hover:text-gray-300"
+                            aria-label="Close image preview"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                        <img 
+                            src={lightboxImageUrl} 
+                            alt="Full-size preview" 
+                            className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl" 
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* Report Fraud Modal */}
+            {showReportModal && selectedUserId && (
+                <ReportFraudModal
+                    reportedUserId={selectedUserId}
+                    reportedUserName={selectedConversation?.other_user_name}
+                    listingId={sharedProduct?.id || (activeListingId ? Number(activeListingId) : undefined)}
+                    onClose={() => setShowReportModal(false)}
+                />
+            )}
         </div>
     );
 }

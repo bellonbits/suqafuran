@@ -10,15 +10,16 @@ class ModerationService:
     PHONE_PATTERNS = [
         (r"(?:\+?254|0)[17]\d(?:[\s.-]?\d){7}", "kenyan_phone_number"),
         (r"zero\s*(?:seven|one)\s*(?:\d|\w)+", "obfuscated_phone_number"),
-        (r"(?:\d[\s.-]?){9,13}", "generic_phone_digits"),
+        (r"(?<![a-zA-Z0-9_\-/.])(?:\d[\s.-]?){9,13}(?![a-zA-Z0-9_\-/.])", "generic_phone_digits"),
     ]
 
     OFF_PLATFORM_PATTERNS = [
         (r"wa\.me/\S+|chat\.whatsapp\.com/\S+", "whatsapp_link"),
         (r"t\.me/\S+|telegram\.me/\S+", "telegram_link"),
-        (r"whatsapp", "whatsapp_mention"),
-        (r"telegram", "telegram_mention"),
-        (r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", "external_link"),
+        (r"\bwhatsapp\b", "whatsapp_mention"),
+        (r"\btelegram\b", "telegram_mention"),
+        # Prohibit external off-platform links, but exempt legitimate image/media CDN links and in-app routes
+        (r"(?<!res\.)(?<!cloudinary\.com/)(?<!suqafuran\.com/)https?://(?!(?:[^\s/]*cloudinary\.com|[^\s/]*suqafuran\.com))\S+", "external_link"),
     ]
 
     ADVANCE_PAY_PATTERNS = [
@@ -31,12 +32,40 @@ class ModerationService:
 
     SCAM_PATTERNS = ADVANCE_PAY_PATTERNS + OFF_PLATFORM_PATTERNS
 
+    def sanitize_content_for_analysis(self, content: str) -> str:
+        """
+        Strips in-app media attachments (image URLs, voice note URLs, Cloudinary links)
+        and legitimate platform order identifiers before running text moderation,
+        preventing false-positive phone number or link triggers from image hashes/timestamps.
+        """
+        text = content
+
+        # Strip [IMAGE]: <url> prefix and URL
+        text = re.sub(r'\[IMAGE\]:\s*https?://\S+', '', text, flags=re.IGNORECASE)
+        # Strip [VOICE...]: <url> prefix and URL
+        text = re.sub(r'\[VOICE(?:\|[^\]]+)?\]:\s*https?://\S+', '', text, flags=re.IGNORECASE)
+
+        # Strip Cloudinary & S3 & CDN media URLs
+        text = re.sub(r'https?://[^\s/]*cloudinary\.com/\S+', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'https?://[^\s/]*suqafuran\.com/\S+', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'https?://\S+\.(?:png|jpe?g|webp|gif|mp3|wav|m4a|ogg|aac)(?:\?\S*)?', '', text, flags=re.IGNORECASE)
+
+        # Strip order numbers and timestamps like ORD-585840 or long unix epoch timestamps > 10 digits
+        text = re.sub(r'#?ORD-\d+', '', text, flags=re.IGNORECASE)
+
+        return text.strip()
+
     def analyze_message(self, db: Session, sender: User, content: str) -> Tuple[bool, str]:
         """
         Analyzes a message for off-platform leak and scam patterns.
         Returns (is_flagged, moderation_reason)
         """
-        content_lower = content.lower()
+        # If it's a media attachment (image or voice note) without text, allow immediately
+        sanitized_text = self.sanitize_content_for_analysis(content)
+        if not sanitized_text:
+            return False, ""
+
+        content_lower = sanitized_text.lower()
 
         # 1. Check for phone number sharing attempts
         for pattern, reason in self.PHONE_PATTERNS:
