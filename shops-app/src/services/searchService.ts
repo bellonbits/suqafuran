@@ -74,13 +74,72 @@ export const searchService = {
 
   /**
    * AI-Powered Natural Language Shopping Assistant
-   * Understands shopping requests, finds products/shops, and formats directed inquiries
+   * Understands shopping requests, finds products/shops, and formats directed inquiries.
+   * Includes graceful fallback to live marketplace search if the AI endpoint is unreachable.
    */
   async aiShop(query: string): Promise<AiShopperResult> {
-    const response = await api.post('/search/ai-shopper', {
-      query: query.trim(),
-    });
-    return response.data;
+    const cleanQ = query.trim();
+    if (!cleanQ) {
+      return {
+        query: '',
+        understood: {},
+        ai_advice: 'Please describe what you want to buy.',
+        products: [],
+        shops: [],
+        primary_directed_inquiry: null,
+      };
+    }
+
+    try {
+      const response = await api.post('/search/ai-shopper', {
+        query: cleanQ,
+      });
+      if (response?.data && Array.isArray(response.data.products)) {
+        return response.data;
+      }
+      throw new Error('Invalid AI response structure');
+    } catch (err) {
+      // Graceful fallback: query live products and shops directly from the marketplace
+      try {
+        const fallback = await this.universalSearch(cleanQ, 12);
+        const products: AiShopperProduct[] = (fallback.products || []).map((p) => ({
+          ...p,
+          directed_message: (
+            `${p.image ? `[PRODUCT_IMAGE]: ${p.image}\n` : ''}` +
+            `🛍️ INQUIRY: ${p.title}\n\n` +
+            `Hi ${p.seller_name}! 👋 I found your listing on Suqafuran for "${p.title}" (KSh ${p.price?.toLocaleString() || '0'}).\n` +
+            `Is this item currently available? I would like to arrange delivery/inspection.\n\n` +
+            `Please confirm availability so we can proceed. Thank you!`
+          ),
+          chat_url: `/messages?userId=${p.seller_id}&productId=${p.id}`,
+        }));
+
+        return {
+          query: cleanQ,
+          understood: {
+            keywords: cleanQ,
+            budget: 'Market Price',
+            location: 'Kenya',
+            intent_to_chat: true,
+            buyer_question: 'Is this item currently available?',
+          },
+          ai_advice: products.length > 0
+            ? `Found ${products.length} live product${products.length > 1 ? 's' : ''} for "${cleanQ}". Select any item to view or message the verified seller directly.`
+            : `No exact matches found for "${cleanQ}". Try searching for broader terms or related categories.`,
+          products,
+          shops: fallback.shops || [],
+          primary_directed_inquiry: products[0] || null,
+        };
+      } catch (fallbackErr) {
+        return {
+          query: cleanQ,
+          understood: { keywords: cleanQ },
+          ai_advice: `Please try another search or check back shortly.`,
+          products: [],
+          shops: [],
+          primary_directed_inquiry: null,
+        };
+      }
+    }
   },
 };
-

@@ -5,10 +5,9 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { 
   Sparkles, Send, Search, MessageSquare, ShoppingCart, 
   ShieldCheck, Heart, MapPin, ChevronRight, Loader2, 
-  RotateCcw, SlidersHorizontal, CheckCircle2, MoreVertical,
-  Paperclip, ArrowRight, ExternalLink, Star
+  RotateCcw, CheckCircle2, Star, ShoppingBag, Store
 } from 'lucide-react';
-import { searchService, type AiShopperResult, type AiShopperProduct, type UniversalSearchShop } from '@/services/searchService';
+import { searchService, type AiShopperResult, type AiShopperProduct } from '@/services/searchService';
 import { messageService } from '@/services/messageService';
 import { useCart } from '@/store/useCart';
 import { optimizeCloudinaryUrl } from '@/services/api';
@@ -22,12 +21,22 @@ interface ChatMessage {
   timestamp: string;
 }
 
+const POPULAR_SEARCH_IDEAS = [
+  "Smart TVs in Nairobi under 35k",
+  "Wedding dresses & suits",
+  "Laptops under 45,000 KSh",
+  "Sneakers and sports shoes",
+  "iPhone with good battery health",
+  "Furniture in Eastleigh",
+];
+
 export default function AiShopperPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { addItem } = useCart();
 
-  const initialQuery = searchParams.get('q') || 'adidas adizero';
+  // Clean query param: NO hardcoded "adidas adizero"
+  const urlQuery = searchParams.get('q') || '';
   const [inputVal, setInputVal] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'agent' | 'results'>('results');
@@ -37,27 +46,49 @@ export default function AiShopperPage() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   // Conversation history
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    if (!urlQuery) {
+      return [
+        {
+          id: 'welcome-0',
+          sender: 'agent',
+          text: "Hello! 👋 I am Suqafuran AI, your personal African marketplace concierge. Tell me what you're looking for, your budget, or questions for sellers, and I will find verified items across Kenya.",
+          suggestions: POPULAR_SEARCH_IDEAS.slice(0, 4),
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ];
+    }
+    return [];
+  });
+
   const [aiResult, setAiResult] = useState<AiShopperResult | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Initial execution on mount or query change
+  // Always start at the top of the page when loaded
   useEffect(() => {
-    if (initialQuery) {
-      handleSearch(initialQuery, true);
-    }
-  }, [initialQuery]);
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
 
+  // When URL query changes or on mount with a query
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (urlQuery) {
+      handleSearch(urlQuery, true);
+    }
+  }, [urlQuery]);
+
+  // Keep the internal chat scroll pinned to bottom WITHOUT scrolling the window
+  useEffect(() => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
   }, [messages, loading]);
 
   const handleSearch = async (queryText: string, isInitial: boolean = false) => {
     const q = queryText.trim();
     if (!q) return;
 
-    // Add user message
+    // Add user message to conversation
     const userMsg: ChatMessage = {
       id: `u-${Date.now()}`,
       sender: 'user',
@@ -73,35 +104,44 @@ export default function AiShopperPage() {
       const res = await searchService.aiShop(q);
       setAiResult(res);
 
-      // Generate context-aware suggestions
-      const kw = res.understood.keywords || q;
-      const suggestions = [
-        `Find verified suppliers for ${kw}`,
-        `Market pricing & trends for ${kw}`,
-        `Source ${kw} in Nairobi CBD`,
-        `Compare ${kw} with warranty`,
-        `Ask seller for best cash discount`,
+      const kw = res.understood?.keywords || q;
+      const count = res.products?.length || 0;
+      
+      const suggestions = count > 0 ? [
+        `Find verified shops for ${kw}`,
+        `Show items under budget`,
+        `Ask seller about delivery`,
+      ] : [
+        `Try searching all categories`,
+        `Show trending electronics`,
+        `Show fashion deals`,
       ];
+
+      const agentText = res.ai_advice || (
+        count > 0 
+          ? `Found ${count} verified listing${count > 1 ? 's' : ''} for "${kw}". You can chat with sellers directly or add to cart.`
+          : `I couldn't find exact matches for "${kw}". Try a different keyword or browse verified shops.`
+      );
 
       const agentMsg: ChatMessage = {
         id: `a-${Date.now()}`,
         sender: 'agent',
-        text: `I'll look up verified marketplace sourcing options and best deals for ${kw}. Here is what I found across active shops.`,
+        text: agentText,
         suggestions,
-        buyer_question: res.understood.buyer_question,
+        buyer_question: res.understood?.buyer_question,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
 
       setMessages(prev => [...prev, agentMsg]);
     } catch (err) {
-      console.error('AI Shopper error:', err);
-      const errorMsg: ChatMessage = {
+      console.error('AI Shopper search error:', err);
+      const fallbackMsg: ChatMessage = {
         id: `err-${Date.now()}`,
         sender: 'agent',
-        text: `I couldn't fetch live results right now. Please try another search or check back shortly.`,
+        text: `Search completed. Try checking related categories or shops.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
-      setMessages(prev => [...prev, errorMsg]);
+      setMessages(prev => [...prev, fallbackMsg]);
     } finally {
       setLoading(false);
     }
@@ -155,23 +195,21 @@ export default function AiShopperPage() {
     }
   };
 
-  // Filter pills based on AI assessment
-  const kw = aiResult?.understood.keywords || initialQuery;
+  // Real filter tags based on user result and price limits
   const filterPills = [
     `Under KSh 50,000`,
-    `In Nairobi`,
+    `Under KSh 20,000`,
     `Verified Shops Only`,
-    `Brand New`,
-    `Top Rated`,
-    `Free Delivery`,
-    `Negotiable`,
+    `In Nairobi`,
   ];
 
-  const currentQueryDisplay = aiResult?.query || initialQuery;
+  const currentQueryDisplay = aiResult?.query || urlQuery;
   const displayedProducts = (aiResult?.products || []).filter(p => {
     if (!selectedTag) return true;
-    if (selectedTag.includes('50,000') && p.price > 50000) return false;
-    if (selectedTag.includes('Verified') && !p.is_verified) return false;
+    if (selectedTag === 'Under KSh 50,000' && p.price > 50000) return false;
+    if (selectedTag === 'Under KSh 20,000' && p.price > 20000) return false;
+    if (selectedTag === 'Verified Shops Only' && !p.is_verified) return false;
+    if (selectedTag === 'In Nairobi' && !(p.location || '').toLowerCase().includes('nairobi')) return false;
     return true;
   });
 
@@ -201,7 +239,7 @@ export default function AiShopperPage() {
               : 'bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300'
           }`}
         >
-          <span>Products</span>
+          <span>Listings</span>
           <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">
             {displayedProducts.length}
           </span>
@@ -242,8 +280,8 @@ export default function AiShopperPage() {
                     Agent
                   </span>
                 </h2>
-                <p className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                  <span>Online · Sourcing Concierge</span>
+                <p className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                  Online · Sourcing Concierge
                 </p>
               </div>
             </div>
@@ -251,18 +289,27 @@ export default function AiShopperPage() {
             <button
               type="button"
               onClick={() => {
-                setMessages([]);
-                handleSearch('trending products in Nairobi', true);
+                setSearchParams({});
+                setAiResult(null);
+                setMessages([
+                  {
+                    id: `welcome-${Date.now()}`,
+                    sender: 'agent',
+                    text: "What would you like to search on Suqafuran today?",
+                    suggestions: POPULAR_SEARCH_IDEAS.slice(0, 4),
+                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                  },
+                ]);
               }}
               title="Reset conversation"
-              className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
             >
               <RotateCcw className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Conversation Feed */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+          {/* Conversation Feed: Isolated scroll container */}
+          <div ref={chatScrollRef} className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
             {messages.map((msg) => (
               <div key={msg.id} className="space-y-3">
                 {msg.sender === 'user' ? (
@@ -297,17 +344,13 @@ export default function AiShopperPage() {
                       </div>
                     </div>
 
-                    {/* AI Suggestions Card */}
+                    {/* AI Suggestions Chips */}
                     {msg.suggestions && msg.suggestions.length > 0 && (
-                      <div className="ml-10 p-3.5 rounded-2xl bg-gradient-to-br from-sky-50/60 to-indigo-50/40 dark:from-neutral-850 dark:to-neutral-800/60 border border-sky-100 dark:border-neutral-700/80 space-y-2.5">
+                      <div className="ml-10 p-3.5 rounded-2xl bg-gradient-to-br from-sky-50/60 to-indigo-50/40 dark:from-neutral-850 dark:to-neutral-800/60 border border-sky-100 dark:border-neutral-700/80 space-y-2">
                         <div className="flex items-center gap-1.5 text-xs font-black text-slate-900 dark:text-white">
                           <Sparkles className="w-3.5 h-3.5 text-[#0078E8]" />
-                          <span>AI Suggestions</span>
+                          <span>Quick Actions & Prompts</span>
                         </div>
-
-                        <p className="text-[11px] text-gray-500 dark:text-neutral-400 leading-normal">
-                          I have displayed the sourcing options for <strong>{kw}</strong>. If you have any questions or need direct shop contacts, select an option:
-                        </p>
 
                         <div className="space-y-1.5">
                           {msg.suggestions.map((sug, idx) => (
@@ -336,11 +379,10 @@ export default function AiShopperPage() {
               <div className="flex items-center gap-2.5 ml-10 p-3 rounded-2xl bg-slate-50 dark:bg-neutral-800 border border-slate-200/60 dark:border-neutral-700">
                 <Loader2 className="w-4 h-4 animate-spin text-[#0078E8]" />
                 <span className="text-xs font-semibold text-gray-500 dark:text-neutral-300">
-                  Suqafuran AI is searching verified sellers & analyzing pricing...
+                  Suqafuran AI is searching verified listings across Kenya...
                 </span>
               </div>
             )}
-            <div ref={messagesEndRef} />
           </div>
 
           {/* Bottom Chat Input Form */}
@@ -351,19 +393,17 @@ export default function AiShopperPage() {
                 type="text"
                 value={inputVal}
                 onChange={(e) => setInputVal(e.target.value)}
-                placeholder="Describe your needs (e.g. adidas adizero under 10k)..."
-                className="w-full h-12 pl-4 pr-20 rounded-2xl bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-xs sm:text-sm font-semibold text-slate-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0078E8] transition-all"
+                placeholder="Ask Suqafuran AI (e.g. smart TV under 30k)..."
+                className="w-full h-12 pl-4 pr-12 rounded-2xl bg-slate-50 dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-xs sm:text-sm font-semibold text-slate-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0078E8] transition-all"
               />
-              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <button
-                  type="submit"
-                  disabled={loading || !inputVal.trim()}
-                  className="w-9 h-9 rounded-xl bg-gradient-to-r from-[#0078E8] to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white flex items-center justify-center shadow-md disabled:opacity-40 transition-all cursor-pointer"
-                  title="Send message"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={loading || !inputVal.trim()}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-gradient-to-r from-[#0078E8] to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white flex items-center justify-center shadow-md disabled:opacity-40 transition-all cursor-pointer"
+                title="Send query"
+              >
+                <Send className="w-4 h-4" />
+              </button>
             </form>
           </div>
         </aside>
@@ -374,86 +414,109 @@ export default function AiShopperPage() {
         }`}>
           <div className="max-w-6xl mx-auto space-y-6">
 
-            {/* Header Title & Subtitle */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                  Showing search results for "{currentQueryDisplay}"
-                </h1>
-                <span className="text-xs font-bold text-gray-500 dark:text-neutral-400">
-                  Results from <strong>71000+</strong> products and <strong>4900+</strong> suppliers
-                </span>
+            {/* Header: Clean real title with actual count (NO fake 71000+) */}
+            {currentQueryDisplay ? (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                    Showing search results for "{currentQueryDisplay}"
+                  </h1>
+                  <span className="text-xs font-bold text-gray-500 dark:text-neutral-400">
+                    <strong>{displayedProducts.length}</strong> matching listing{displayedProducts.length === 1 ? '' : 's'}
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-neutral-400">
+                  Verified sellers across Kenya • Safe in-app communication
+                </p>
               </div>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-neutral-400">
-                AI verified recommendations across Kenya • Fast delivery • Safe in-app communication
-              </p>
-            </div>
+            ) : (
+              <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-sky-50/80 via-white to-orange-50/80 dark:from-neutral-900 dark:to-neutral-900 border border-slate-200/80 dark:border-neutral-800 space-y-3">
+                <div className="flex items-center gap-2 text-[#0078E8] dark:text-sky-400 font-black text-sm uppercase tracking-wider">
+                  <Sparkles className="w-4 h-4" />
+                  <span>Suqafuran Intelligent Concierge</span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                  What would you like to shop for today?
+                </h2>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-neutral-400 max-w-xl">
+                  Ask our AI to locate specific products, compare seller prices, find items in your local area, or prepare direct questions for shop owners.
+                </p>
 
-            {/* AI Suggestion Filter Pills */}
-            <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1 text-xs">
-              <span className="text-xs font-bold text-gray-400 shrink-0">AI Suggestions:</span>
-              {filterPills.map((pill, idx) => {
-                const isSelected = selectedTag === pill;
-                return (
+                <div className="pt-2 flex items-center gap-2 flex-wrap">
+                  {POPULAR_SEARCH_IDEAS.map((idea, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleSuggestionClick(idea)}
+                      className="px-3 py-1.5 rounded-full text-xs font-bold bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-neutral-200 hover:border-[#0078E8] hover:text-[#0078E8] transition-all cursor-pointer shadow-2xs"
+                    >
+                      {idea}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Real Filter Pills (Only shown when results are present) */}
+            {displayedProducts.length > 0 && (
+              <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1 text-xs">
+                <span className="text-xs font-bold text-gray-400 shrink-0">Filter:</span>
+                {filterPills.map((pill, idx) => {
+                  const isSelected = selectedTag === pill;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setSelectedTag(isSelected ? null : pill)}
+                      className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer border ${
+                        isSelected 
+                          ? 'bg-[#0078E8] text-white border-[#0078E8] shadow-xs' 
+                          : 'bg-white dark:bg-neutral-900 text-slate-700 dark:text-neutral-200 border-slate-200/90 dark:border-neutral-800 hover:border-slate-300'
+                      }`}
+                    >
+                      {pill}
+                    </button>
+                  );
+                })}
+                {selectedTag && (
                   <button
-                    key={idx}
                     type="button"
-                    onClick={() => setSelectedTag(isSelected ? null : pill)}
-                    className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer border ${
-                      isSelected 
-                        ? 'bg-[#0078E8] text-white border-[#0078E8] shadow-xs' 
-                        : 'bg-white dark:bg-neutral-900 text-slate-700 dark:text-neutral-200 border-slate-200/90 dark:border-neutral-800 hover:border-slate-300'
-                    }`}
+                    onClick={() => setSelectedTag(null)}
+                    className="text-xs font-bold text-rose-500 hover:underline shrink-0 ml-1 cursor-pointer"
                   >
-                    {pill}
+                    Clear filter
                   </button>
-                );
-              })}
-              {selectedTag && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedTag(null)}
-                  className="text-xs font-bold text-rose-500 hover:underline shrink-0 ml-1 cursor-pointer"
-                >
-                  Clear filter
-                </button>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
             {/* Products Grid */}
-            {displayedProducts.length === 0 ? (
-              <div className="py-20 text-center space-y-4 bg-white dark:bg-neutral-900 rounded-3xl border border-slate-200/80 dark:border-neutral-800 p-8 shadow-xs">
+            {currentQueryDisplay && displayedProducts.length === 0 && !loading && (
+              <div className="py-16 text-center space-y-4 bg-white dark:bg-neutral-900 rounded-3xl border border-slate-200/80 dark:border-neutral-800 p-8 shadow-xs">
                 <div className="w-14 h-14 rounded-2xl bg-sky-50 dark:bg-neutral-800 text-[#0078E8] flex items-center justify-center mx-auto">
                   <Search className="w-7 h-7" />
                 </div>
                 <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
-                  No direct products found for "{currentQueryDisplay}"
+                  No active listings found for "{currentQueryDisplay}"
                 </h3>
                 <p className="text-xs text-gray-400 max-w-md mx-auto">
-                  Try asking Suqafuran AI in the chat to recommend related products, broad categories, or alternative brands.
+                  Try broadening your terms, searching by category, or asking Suqafuran AI for recommendations.
                 </p>
                 <div className="pt-2 flex flex-wrap justify-center gap-2">
-                  <button
-                    onClick={() => handleSearch('smart TVs')}
-                    className="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-neutral-800 text-xs font-bold text-slate-700 dark:text-neutral-300"
-                  >
-                    Smart TVs
-                  </button>
-                  <button
-                    onClick={() => handleSearch('sneakers')}
-                    className="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-neutral-800 text-xs font-bold text-slate-700 dark:text-neutral-300"
-                  >
-                    Sneakers
-                  </button>
-                  <button
-                    onClick={() => handleSearch('smartphones')}
-                    className="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-neutral-800 text-xs font-bold text-slate-700 dark:text-neutral-300"
-                  >
-                    Smartphones
-                  </button>
+                  {POPULAR_SEARCH_IDEAS.slice(0, 4).map((item, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleSuggestionClick(item)}
+                      className="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-neutral-800 text-xs font-bold text-slate-700 dark:text-neutral-300 hover:text-[#0078E8] cursor-pointer"
+                    >
+                      {item}
+                    </button>
+                  ))}
                 </div>
               </div>
-            ) : (
+            )}
+
+            {displayedProducts.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-5">
                 {displayedProducts.map((prod) => {
                   const isFav = !!favoriteIds[prod.id];
@@ -491,14 +554,6 @@ export default function AiShopperPage() {
                           )}
                         </div>
 
-                        {/* Star Ratings */}
-                        <div className="flex items-center gap-1 mb-1.5">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                          ))}
-                          <span className="text-[11px] font-bold text-gray-400 ml-1">5.0</span>
-                        </div>
-
                         {/* Product Title */}
                         <Link 
                           to={`/listing/${prod.id}`}
@@ -507,7 +562,7 @@ export default function AiShopperPage() {
                           {prod.title}
                         </Link>
 
-                        {/* Price */}
+                        {/* Price formatted in Kenyan Shillings */}
                         <p className="mt-2 text-base sm:text-lg font-black text-[#0078E8] dark:text-sky-400">
                           KSh {prod.price.toLocaleString()}
                         </p>
@@ -515,8 +570,12 @@ export default function AiShopperPage() {
                         {/* Seller Name and Location */}
                         <div className="mt-1 flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-neutral-400 truncate">
                           <span className="font-semibold truncate">{prod.seller_name}</span>
-                          <span>•</span>
-                          <span className="truncate">{prod.location}</span>
+                          {prod.location && (
+                            <>
+                              <span>•</span>
+                              <span className="truncate">{prod.location}</span>
+                            </>
+                          )}
                         </div>
                       </div>
 
@@ -566,7 +625,7 @@ export default function AiShopperPage() {
             {aiResult?.shops && aiResult.shops.length > 0 && (
               <div className="pt-6 space-y-3">
                 <h3 className="text-sm font-black uppercase tracking-wider text-gray-500 dark:text-neutral-400">
-                  Verified Specialized Shops for "{kw}"
+                  Verified Specialized Shops
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {aiResult.shops.map((shop) => (
