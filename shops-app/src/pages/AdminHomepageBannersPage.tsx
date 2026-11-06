@@ -498,7 +498,9 @@ export default function AdminHomepageBannersPage() {
 
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="text-xs font-bold text-slate-600 dark:text-neutral-200 block mb-1">Desktop Image (21:9)</label>
+                                <label className="text-xs font-bold text-slate-600 dark:text-neutral-200 block mb-1">
+                                    Hero Poster Image (Full Background)
+                                </label>
                                 <input
                                     type="file"
                                     accept="image/*"
@@ -511,7 +513,9 @@ export default function AdminHomepageBannersPage() {
                                 )}
                             </div>
                             <div>
-                                <label className="text-xs font-bold text-slate-600 dark:text-neutral-200 block mb-1">Mobile Image (optional)</label>
+                                <label className="text-xs font-bold text-slate-600 dark:text-neutral-200 block mb-1">
+                                    Mobile Poster Image (Optional)
+                                </label>
                                 <input
                                     type="file"
                                     accept="image/*"
