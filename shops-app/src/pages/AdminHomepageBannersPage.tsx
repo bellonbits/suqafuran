@@ -501,6 +501,9 @@ export default function AdminHomepageBannersPage() {
                                 <label className="text-xs font-bold text-slate-600 dark:text-neutral-200 block mb-1">
                                     Hero Poster Image (Full Background)
                                 </label>
+                                <p className="text-[11px] text-slate-400 mb-1.5">
+                                    Recommended: <strong>1600 × 900 px (16:9)</strong>. Keep text & logos within inner 80% safe zone.
+                                </p>
                                 <input
                                     type="file"
                                     accept="image/*"
@@ -516,6 +519,9 @@ export default function AdminHomepageBannersPage() {
                                 <label className="text-xs font-bold text-slate-600 dark:text-neutral-200 block mb-1">
                                     Mobile Poster Image (Optional)
                                 </label>
+                                <p className="text-[11px] text-slate-400 mb-1.5">
+                                    Recommended: <strong>800 × 450 px</strong> (or 800 × 500 px).
+                                </p>
                                 <input
                                     type="file"
                                     accept="image/*"
