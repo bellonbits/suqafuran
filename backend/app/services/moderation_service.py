@@ -8,7 +8,7 @@ from app.services.security_service import security_service
 class ModerationService:
     # Patterns to detect off-platform communication and common scam attempts
     PHONE_PATTERNS = [
-        (r"(?:\+?254|0)[17]\d(?:[\s.-]?\d){7}", "kenyan_phone_number"),
+        (r"(?<![a-zA-Z0-9_\-/.])(?:\+?254|0)[17]\d(?:[\s.-]?\d){7}(?![a-zA-Z0-9_\-/.])", "kenyan_phone_number"),
         (r"zero\s*(?:seven|one)\s*(?:\d|\w)+", "obfuscated_phone_number"),
         (r"(?<![a-zA-Z0-9_\-/.])(?:\d[\s.-]?){9,13}(?![a-zA-Z0-9_\-/.])", "generic_phone_digits"),
     ]
@@ -40,18 +40,27 @@ class ModerationService:
         """
         text = content
 
-        # Strip [IMAGE]: <url> prefix and URL
-        text = re.sub(r'\[IMAGE\]:\s*https?://\S+', '', text, flags=re.IGNORECASE)
-        # Strip [VOICE...]: <url> prefix and URL
-        text = re.sub(r'\[VOICE(?:\|[^\]]+)?\]:\s*https?://\S+', '', text, flags=re.IGNORECASE)
+        # 1. Strip [IMAGE]: <any URL or path up to newline>
+        text = re.sub(r'\[IMAGE\]:\s*[^\n\r]+', '', text, flags=re.IGNORECASE)
+        # 2. Strip [PRODUCT_IMAGE]: <any URL or path up to newline>
+        text = re.sub(r'\[PRODUCT_IMAGE\]:\s*[^\n\r]+', '', text, flags=re.IGNORECASE)
+        # 3. Strip [VOICE...]: <any URL or path up to newline>
+        text = re.sub(r'\[VOICE(?:\|[^\]]+)?\]:\s*[^\n\r]+', '', text, flags=re.IGNORECASE)
 
-        # Strip Cloudinary & S3 & CDN media URLs
+        # 4. Strip any standalone image or media URLs (Cloudinary, Suqafuran API, S3, CDN, relative /api/v1/...)
         text = re.sub(r'https?://[^\s/]*cloudinary\.com/\S+', '', text, flags=re.IGNORECASE)
         text = re.sub(r'https?://[^\s/]*suqafuran\.com/\S+', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'(?:https?://\S+)?/api/v1/listings/images/\S+', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'/api/v1/\S+', '', text, flags=re.IGNORECASE)
         text = re.sub(r'https?://\S+\.(?:png|jpe?g|webp|gif|mp3|wav|m4a|ogg|aac)(?:\?\S*)?', '', text, flags=re.IGNORECASE)
 
-        # Strip order numbers and timestamps like ORD-585840 or long unix epoch timestamps > 10 digits
-        text = re.sub(r'#?ORD-\d+', '', text, flags=re.IGNORECASE)
+        # 5. Strip order numbers and timestamps like ORD-585840 or long unix epoch timestamps
+        text = re.sub(r'#?ORD-[\w-]+', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'\bORD-[\w-]+\b', '', text, flags=re.IGNORECASE)
+
+        # 6. Strip UUIDs and hex hashes so hex numbers don't trigger phone patterns
+        text = re.sub(r'\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'\b[0-9a-f]{16,64}\b', '', text, flags=re.IGNORECASE)
 
         return text.strip()
 
