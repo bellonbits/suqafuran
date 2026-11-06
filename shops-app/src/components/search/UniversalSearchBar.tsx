@@ -7,7 +7,6 @@ import {
   MapPin, ChevronRight, Loader2, Tag
 } from 'lucide-react';
 import { searchService, type UniversalSearchResult } from '@/services/searchService';
-import { AiShopperModal } from './AiShopperModal';
 import { optimizeCloudinaryUrl } from '@/services/api';
 
 interface UniversalSearchBarProps {
@@ -32,7 +31,6 @@ export const UniversalSearchBar: React.FC<UniversalSearchBarProps> = ({
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<UniversalSearchResult | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'products' | 'shops'>('all');
-  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
   // Debounced Universal Search as user types
   useEffect(() => {
@@ -354,13 +352,6 @@ export const UniversalSearchBar: React.FC<UniversalSearchBarProps> = ({
           </div>
         )}
       </div>
-
-      {/* AI Shopper Assistant Modal */}
-      <AiShopperModal
-        isOpen={isAiModalOpen}
-        onClose={() => setIsAiModalOpen(false)}
-        initialQuery={query}
-      />
     </>
   );
 };

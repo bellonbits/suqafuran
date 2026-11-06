@@ -107,14 +107,15 @@ export default function AiShopperPage() {
       const kw = res.understood?.keywords || q;
       const count = res.products?.length || 0;
       
-      const suggestions = count > 0 ? [
+      const suggestions = (count > 0 && !res.is_fallback) ? [
         `Find verified shops for ${kw}`,
         `Show items under budget`,
         `Ask seller about delivery`,
       ] : [
-        `Try searching all categories`,
-        `Show trending electronics`,
-        `Show fashion deals`,
+        `Smart TVs in Nairobi`,
+        `Sneakers & Sports Shoes`,
+        `Phones & Laptops`,
+        `Verified Fashion Deals`,
       ];
 
       const agentText = res.ai_advice || (
@@ -419,14 +420,18 @@ export default function AiShopperPage() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                    Showing search results for "{currentQueryDisplay}"
+                    {aiResult?.is_fallback 
+                      ? `Recommended listings for "${currentQueryDisplay}"`
+                      : `Showing search results for "${currentQueryDisplay}"`}
                   </h1>
                   <span className="text-xs font-bold text-gray-500 dark:text-neutral-400">
-                    <strong>{displayedProducts.length}</strong> matching listing{displayedProducts.length === 1 ? '' : 's'}
+                    <strong>{displayedProducts.length}</strong> {aiResult?.is_fallback ? 'recommended' : 'matching'} listing{displayedProducts.length === 1 ? '' : 's'}
                   </span>
                 </div>
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-neutral-400">
-                  Verified sellers across Kenya • Safe in-app communication
+                  {aiResult?.is_fallback
+                    ? 'No direct match found • Showing verified active listings from trusted Kenyan sellers'
+                    : 'Verified sellers across Kenya • Safe in-app communication'}
                 </p>
               </div>
             ) : (
