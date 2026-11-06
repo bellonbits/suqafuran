@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { 
   Sparkles, Search, MessageSquare, ShoppingCart, Store, MapPin, 
@@ -32,6 +33,7 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
   const navigate = useNavigate();
   const { addItem } = useCart();
 
+  const [mounted, setMounted] = useState(false);
   const [prompt, setPrompt] = useState(initialQuery);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AiShopperResult | null>(null);
@@ -40,14 +42,25 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
     if (isOpen) {
+      document.body.style.overflow = 'hidden';
       if (initialQuery) {
         setPrompt(initialQuery);
         handleExecute(initialQuery);
       } else {
         setTimeout(() => inputRef.current?.focus(), 150);
       }
+    } else {
+      document.body.style.overflow = '';
     }
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [isOpen, initialQuery]);
 
   const handleExecute = async (queryToRun: string) => {
@@ -83,19 +96,17 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
   const handleDirectChat = async (product: AiShopperProduct) => {
     setSendingChatId(product.id);
     try {
-      // 1. Send the directed message directly so it creates the chat thread with the white receipt card
+      // Send the directed message directly so it creates the chat thread with the white receipt card
       await messageService.sendMessage({
         receiver_id: product.seller_id,
         content: product.directed_message,
         listing_id: product.id,
       });
 
-      // 2. Navigate straight to the conversation
       onClose();
       navigate(`/messages?userId=${product.seller_id}&productId=${product.id}`);
     } catch (err: any) {
       console.error('Failed to send direct chat inquiry:', err);
-      // Fallback: navigate with query params so user can send manually
       onClose();
       navigate(`/messages?userId=${product.seller_id}&productId=${product.id}`);
     } finally {
@@ -103,19 +114,23 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200">
+  const modalContent = (
+    <div 
+      className="fixed inset-0 z-[99999] overflow-y-auto bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200"
+      onClick={onClose}
+      style={{ minHeight: '100vh' }}
+    >
       <div 
-        className="w-full max-w-2xl bg-white dark:bg-neutral-900 border border-slate-200/90 dark:border-neutral-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-all"
+        className="relative w-full max-w-2xl bg-white dark:bg-neutral-900 border border-slate-200/90 dark:border-neutral-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col my-auto max-h-[88vh] transition-all"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Top Bar */}
-        <div className="px-5 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between bg-gradient-to-r from-sky-50/60 via-indigo-50/40 to-pink-50/60 dark:from-neutral-900 dark:to-neutral-900">
+        <div className="px-5 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between bg-gradient-to-r from-sky-50/70 via-indigo-50/50 to-pink-50/60 dark:from-neutral-900 dark:to-neutral-900 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-pink-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
-              <Sparkles className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-pink-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/25">
+              <Sparkles className="w-5 h-5 text-amber-200" />
             </div>
             <div>
               <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center gap-1.5">
@@ -125,7 +140,7 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
                 </span>
               </h3>
               <p className="text-xs text-gray-500 dark:text-neutral-400">
-                Type what you want to buy, your budget, and what to ask sellers
+                Type what you want to buy, budget, and custom questions for sellers
               </p>
             </div>
           </div>
@@ -140,7 +155,7 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
         </div>
 
         {/* Search Input Box */}
-        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-neutral-800 space-y-3">
+        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-neutral-800 space-y-3 shrink-0 bg-white dark:bg-neutral-900">
           <form 
             onSubmit={(e) => {
               e.preventDefault();
@@ -162,13 +177,13 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
             <button
               type="submit"
               disabled={loading || !prompt.trim()}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-4 h-9 rounded-xl bg-gradient-to-r from-[#0078E8] to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white text-xs font-black flex items-center gap-1.5 shadow-sm disabled:opacity-50 transition-all"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-4 h-9 rounded-xl bg-gradient-to-r from-[#0078E8] to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white text-xs font-black flex items-center gap-1.5 shadow-sm disabled:opacity-50 transition-all cursor-pointer"
             >
               {loading ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
                 <>
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                   <span>Ask AI</span>
                 </>
               )}
@@ -186,7 +201,7 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
                   setPrompt(p);
                   handleExecute(p);
                 }}
-                className="shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-300 transition-colors"
+                className="shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer"
               >
                 {p}
               </button>
@@ -199,10 +214,10 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
           {loading ? (
             <div className="py-12 flex flex-col items-center justify-center gap-3 text-center">
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-400 via-indigo-500 to-pink-500 flex items-center justify-center text-white animate-pulse">
-                <Sparkles className="w-6 h-6 animate-spin" />
+                <Sparkles className="w-6 h-6 animate-spin text-amber-200" />
               </div>
               <p className="text-sm font-bold text-slate-800 dark:text-neutral-200">
-                AI Shopper is searching products & sellers...
+                AI Shopper is searching products & verified sellers...
               </p>
               <p className="text-xs text-gray-400 max-w-sm">
                 Analyzing keywords, budget limits, location, and pre-formatting seller inquiries.
@@ -258,7 +273,7 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
                       onClose();
                       navigate(`/search?q=${encodeURIComponent(result.understood.keywords || prompt)}`);
                     }}
-                    className="text-xs font-bold text-[#0078E8] hover:underline flex items-center gap-0.5"
+                    className="text-xs font-bold text-[#0078E8] hover:underline flex items-center gap-0.5 cursor-pointer"
                   >
                     <span>View all in search</span>
                     <ChevronRight className="w-3 h-3" />
@@ -304,7 +319,7 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
                             type="button"
                             onClick={() => handleDirectChat(prod)}
                             disabled={sendingChatId === prod.id}
-                            className="px-2.5 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/40 dark:hover:bg-sky-900/50 text-[#0078E8] dark:text-sky-300 text-[11px] font-black flex items-center justify-center gap-1 transition-colors"
+                            className="px-2.5 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/40 dark:hover:bg-sky-900/50 text-[#0078E8] dark:text-sky-300 text-[11px] font-black flex items-center justify-center gap-1 transition-colors cursor-pointer"
                           >
                             {sendingChatId === prod.id ? (
                               <Loader2 className="w-3 h-3 animate-spin" />
@@ -319,7 +334,7 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
                           <button
                             type="button"
                             onClick={() => handleAddToCart(prod)}
-                            className="px-2.5 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/40 dark:hover:bg-orange-900/50 text-orange-700 dark:text-orange-300 text-[11px] font-black flex items-center justify-center gap-1 transition-colors"
+                            className="px-2.5 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/40 dark:hover:bg-orange-900/50 text-orange-700 dark:text-orange-300 text-[11px] font-black flex items-center justify-center gap-1 transition-colors cursor-pointer"
                           >
                             {addedCartIds[prod.id] ? (
                               <>
@@ -391,7 +406,7 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
           ) : (
             <div className="py-10 text-center space-y-3">
               <div className="w-12 h-12 rounded-2xl bg-sky-50 dark:bg-neutral-850 text-[#0078E8] flex items-center justify-center mx-auto">
-                <Sparkles className="w-6 h-6" />
+                <Sparkles className="w-6 h-6 text-[#0078E8]" />
               </div>
               <h4 className="text-sm font-bold text-slate-800 dark:text-neutral-200">
                 Your Personal Marketplace Concierge
@@ -405,5 +420,6 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
       </div>
     </div>
   );
-};
 
+  return createPortal(modalContent, document.body);
+};
