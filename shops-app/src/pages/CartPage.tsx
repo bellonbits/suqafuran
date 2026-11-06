@@ -112,8 +112,9 @@ export default function CartPage() {
         .join('\n');
 
       const orderNumber = `ORD-${Date.now().toString().slice(-6)}`;
+      const firstItemImage = group.items[0]?.image || '';
       const orderMessage = `🛍️ NEW ORDER INQUIRY #${orderNumber}
-
+${firstItemImage ? `[PRODUCT_IMAGE]: ${firstItemImage}\n` : ''}
 Hello ${group.sellerName},
 I would like to purchase the following item(s) from your shop on Suqafuran:
 

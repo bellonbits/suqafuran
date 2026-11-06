@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useMemo } from 'react';
-import { ShoppingBag, MapPin, User, ShieldCheck, CheckCircle2, ChevronRight, Store } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { ShoppingBag, MapPin, User, ShieldCheck, ChevronRight, CheckCheck, Package, ExternalLink, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { listingsService } from '@/services/listings';
+import { optimizeCloudinaryUrl } from '@/services/api';
 
 interface OrderItemParsed {
   index: number;
@@ -14,37 +16,53 @@ interface OrderItemParsed {
 interface OrderReceiptBubbleProps {
   content: string;
   isMe: boolean;
-  listingId?: number;
+  listingId?: number | string;
 }
 
 export const OrderReceiptBubble: React.FC<OrderReceiptBubbleProps> = ({ content, isMe, listingId }) => {
-  const parsed = useMemo(() => {
-    // Extract Order Number
-    const orderMatch = content.match(/#(ORD-[\w-]+)/i) || content.match(/(ORD-[\w-]+)/i);
-    const orderNumber = orderMatch ? orderMatch[1] : 'ORDER';
+  const [fetchedImage, setFetchedImage] = useState<string | null>(null);
+  const [fetchedTitle, setFetchedTitle] = useState<string | null>(null);
 
-    // Extract Total
-    const totalMatch = content.match(/(?:💰\s*)?Total:\s*(?:KSh|Ksh|KES)?\s*([\d,]+)/i);
+  const parsed = useMemo(() => {
+    // 1. Extract embedded product image tag [PRODUCT_IMAGE]: url or [IMAGE]: url
+    const imgMatch = content.match(/\[PRODUCT_IMAGE\]:\s*([^\n\r]+)/i) || content.match(/\[IMAGE\]:\s*([^\n\r]+)/i);
+    const rawImage = imgMatch ? imgMatch[1].trim() : '';
+
+    // 2. Clean content to remove system tags for display
+    const cleanContent = content
+      .replace(/\[PRODUCT_IMAGE\]:\s*[^\n\r]+/gi, '')
+      .replace(/\[IMAGE\]:\s*[^\n\r]+/gi, '')
+      .trim();
+
+    // 3. Extract Order Number
+    const orderMatch = cleanContent.match(/#(ORD-[\w-]+)/i) || cleanContent.match(/(ORD-[\w-]+)/i);
+    const orderNumber = orderMatch ? orderMatch[1] : '';
+
+    // 4. Extract Total
+    const totalMatch = cleanContent.match(/(?:💰\s*)?Total:\s*(?:KSh|Ksh|KES)?\s*([\d,]+)/i);
     const total = totalMatch ? totalMatch[1] : '';
 
-    // Extract Location
-    const locMatch = content.match(/(?:📍\s*)?(?:Delivery\/Meetup\s+)?Location:\s*([^\n\r-]+?)(?:\s+Buyer:|\s+Note:|\s*---|\s*$)/i);
+    // 5. Extract Location
+    const locMatch = cleanContent.match(/(?:📍\s*)?(?:Delivery\/Meetup\s+)?Location:\s*([^\n\r-]+?)(?:\s+Buyer:|\s+Note:|\s*---|\s*$)/i);
     const location = locMatch ? locMatch[1].trim() : '';
 
-    // Extract Buyer
-    const buyerMatch = content.match(/Buyer:\s*([^\n\r-]+?)(?:\s+Please|\s*---|\s*$)/i);
+    // 6. Extract Buyer
+    const buyerMatch = cleanContent.match(/Buyer:\s*([^\n\r-]+?)(?:\s+Please|\s*---|\s*$)/i);
     const buyer = buyerMatch ? buyerMatch[1].trim() : '';
 
-    // Extract Note
-    const noteMatch = content.match(/(?:📝\s*)?Note:\s*([^\n\r-]+?)(?:\s+Buyer:|\s*---|\s*$)/i);
+    // 7. Extract Note
+    const noteMatch = cleanContent.match(/(?:📝\s*)?Note:\s*([^\n\r-]+?)(?:\s+Buyer:|\s*---|\s*$)/i);
     const note = noteMatch ? noteMatch[1].trim() : '';
 
-    // Extract Items
-    // Matches patterns like "1. suitcase set (x1) — KSh 22,500" or "1. item (x2) - KSh 500"
+    // 8. Extract Listing Inquiry Title if present
+    const inquiryTitleMatch = cleanContent.match(/🛍️\s*INQUIRY:\s*([^\n\r]+)/i) || cleanContent.match(/listing for "([^"]+)"/i);
+    const inquiryTitle = inquiryTitleMatch ? inquiryTitleMatch[1].trim() : '';
+
+    // 9. Extract Items list (Cart multi-item inquiry)
     const items: OrderItemParsed[] = [];
     const itemRegex = /(\d+)\.\s*([^(—–\n\r]+?)(?:\s*\([xX]?(\d+)\))?\s*[—–-]+\s*(?:KSh|Ksh|KES)?\s*([\d,]+)/gi;
     let match;
-    while ((match = itemRegex.exec(content)) !== null) {
+    while ((match = itemRegex.exec(cleanContent)) !== null) {
       items.push({
         index: parseInt(match[1], 10),
         title: match[2].trim(),
@@ -53,158 +71,184 @@ export const OrderReceiptBubble: React.FC<OrderReceiptBubbleProps> = ({ content,
       });
     }
 
+    // 10. Extract friendly message body
+    let displayMessage = '';
+    if (items.length > 0) {
+      displayMessage = `I would like to purchase the following item${items.length > 1 ? 's' : ''} from your shop:`;
+    } else if (cleanContent.includes('Hi! 👋') || cleanContent.includes('available?')) {
+      displayMessage = `Hi! I just came across your listing — is this item still available?`;
+    } else {
+      displayMessage = cleanContent
+        .replace(/🛍️\s*(?:NEW ORDER INQUIRY|INQUIRY)[^\n\r]*/gi, '')
+        .replace(/----------------------------------------[\s\S]*?----------------------------------------/gi, '')
+        .trim();
+    }
+
     return {
+      productImage: rawImage,
       orderNumber,
       total,
       location,
       buyer,
       note,
+      inquiryTitle,
       items,
+      displayMessage,
     };
   }, [content]);
 
+  // Load listing image and title in background if not already embedded
+  useEffect(() => {
+    if (parsed.productImage) return;
+    if (!listingId) return;
+
+    listingsService.getListing(listingId)
+      .then((l) => {
+        if (l?.images?.[0]) setFetchedImage(l.images[0]);
+        if (l?.title) setFetchedTitle(l.title);
+      })
+      .catch(() => {});
+  }, [listingId, parsed.productImage]);
+
+  const activeImage = parsed.productImage || fetchedImage;
+  const primaryTitle = parsed.inquiryTitle || fetchedTitle || (parsed.items.length > 0 ? parsed.items[0].title : 'Featured Product');
+
   return (
-    <div className={`w-full max-w-md rounded-3xl overflow-hidden shadow-lg border transition-all ${
-      isMe 
-        ? 'bg-gradient-to-br from-sky-900 to-[#0284c7] border-sky-500/40 text-white' 
-        : 'bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800 text-slate-900 dark:text-neutral-50'
-    }`}>
-      {/* Receipt Top Header */}
-      <div className={`px-4 sm:px-5 py-3 border-b flex items-center justify-between ${
-        isMe 
-          ? 'bg-sky-950/40 border-sky-400/20' 
-          : 'bg-slate-50 dark:bg-neutral-850 border-slate-100 dark:border-neutral-800'
-      }`}>
-        <div className="flex items-center gap-2">
-          <div className={`w-7 h-7 rounded-xl flex items-center justify-center ${
-            isMe ? 'bg-sky-500 text-white' : 'bg-orange-500 text-white shadow-xs'
+    <div className="w-full max-w-[420px] sm:max-w-[460px] bg-white dark:bg-neutral-900 border border-slate-200/90 dark:border-neutral-800 rounded-3xl p-4 sm:p-5 shadow-[0_12px_40px_-10px_rgba(0,0,0,0.07)] text-slate-900 dark:text-neutral-50 transition-all select-text space-y-3">
+      {/* Top Header Row */}
+      <div className="flex items-center justify-between pb-1">
+        <div className="flex items-center gap-1.5">
+          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
+            isMe 
+              ? 'bg-sky-50 dark:bg-sky-950/40 text-[#0078E8] dark:text-sky-300 border border-sky-100 dark:border-sky-800/40' 
+              : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800/40'
           }`}>
-            <ShoppingBag className="w-4 h-4" />
-          </div>
-          <div>
-            <h4 className="text-xs font-black tracking-tight flex items-center gap-1.5">
-              <span>Marketplace Order Inquiry</span>
-            </h4>
-            <p className={`text-[10px] font-bold ${isMe ? 'text-sky-200' : 'text-gray-400 dark:text-neutral-400'}`}>
+            {isMe ? (
+              <>
+                <CheckCheck className="w-3 h-3 text-[#0078E8]" />
+                Sent Inquiry
+              </>
+            ) : (
+              <>
+                <Package className="w-3 h-3 text-emerald-600" />
+                Order Inquiry
+              </>
+            )}
+          </span>
+
+          {parsed.orderNumber && (
+            <span className="text-[10px] font-mono font-bold text-gray-400 dark:text-neutral-400">
               #{parsed.orderNumber}
-            </p>
-          </div>
+            </span>
+          )}
         </div>
 
-        <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
-          isMe 
-            ? 'bg-sky-400/20 text-sky-200 border border-sky-400/30' 
-            : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40'
-        }`}>
+        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-400">
           Direct Deal
         </span>
       </div>
 
-      {/* Body: Items List */}
-      <div className="p-4 sm:p-5 space-y-4">
-        {/* Item Rows */}
-        <div className="space-y-2">
-          <p className={`text-[11px] font-bold uppercase tracking-wider ${isMe ? 'text-sky-200' : 'text-gray-400 dark:text-neutral-400'}`}>
-            Requested Items ({parsed.items.length || 1})
-          </p>
+      {/* Main Content Area: Halo Image on Left + Inner Rounded Message Box on Right */}
+      <div className="flex items-start gap-3 sm:gap-3.5">
+        {/* Glowing Halo Product Image (Matches Screenshot Design) */}
+        <div className="shrink-0 relative group">
+          <div className="p-[3px] rounded-2xl bg-gradient-to-tr from-sky-400 via-indigo-400 to-pink-400 shadow-[0_0_20px_rgba(168,85,247,0.35)] transition-transform duration-200 group-hover:scale-105">
+            <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-[13px] overflow-hidden bg-white dark:bg-neutral-950 flex items-center justify-center">
+              {activeImage ? (
+                <img
+                  src={optimizeCloudinaryUrl(activeImage, { width: 140 }) || activeImage}
+                  alt={primaryTitle}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white">
+                  <ShoppingBag className="w-6 h-6" />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
-          <div className="space-y-2">
-            {parsed.items.length > 0 ? (
-              parsed.items.map((it, i) => (
-                <div 
-                  key={i} 
-                  className={`p-2.5 rounded-2xl flex items-center justify-between gap-3 border ${
-                    isMe 
-                      ? 'bg-sky-950/30 border-sky-500/20' 
-                      : 'bg-slate-50 dark:bg-neutral-950 border-slate-100 dark:border-neutral-800'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-black shrink-0 ${
-                      isMe ? 'bg-sky-400/30 text-white' : 'bg-slate-200 dark:bg-neutral-800 text-gray-700 dark:text-neutral-300'
-                    }`}>
-                      {it.quantity}x
-                    </span>
-                    <span className="text-xs font-bold truncate">
-                      {it.title}
-                    </span>
-                  </div>
+        {/* Inner Message Box (Matches the soft gray rounded container from reference image) */}
+        <div className="flex-1 min-w-0 bg-slate-50 dark:bg-neutral-800/60 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-neutral-800 space-y-2">
+          <div>
+            <p className="text-xs text-slate-600 dark:text-neutral-300 leading-snug">
+              Hi, I'm interested in:
+            </p>
+            <p className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate mt-0.5">
+              {primaryTitle}
+            </p>
+          </div>
 
-                  <span className="text-xs font-black shrink-0">
+          {/* If multi-item order inquiry */}
+          {parsed.items.length > 0 && (
+            <div className="space-y-1 pt-1 border-t border-slate-200/60 dark:border-neutral-700/60">
+              {parsed.items.map((it, idx) => (
+                <div key={idx} className="flex items-center justify-between text-[11px] font-semibold text-slate-700 dark:text-neutral-200">
+                  <span className="truncate pr-2">
+                    <span className="font-extrabold text-[#0078E8]">{it.quantity}x</span> {it.title}
+                  </span>
+                  <span className="font-bold text-slate-900 dark:text-white shrink-0">
                     KSh {it.price}
                   </span>
                 </div>
-              ))
-            ) : (
-              <div className="text-xs font-medium py-1">
-                Order details listed below.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Total Highlight */}
-        {parsed.total && (
-          <div className={`p-3 rounded-2xl flex items-center justify-between border ${
-            isMe 
-              ? 'bg-sky-400/10 border-sky-400/30 text-white' 
-              : 'bg-emerald-50/70 dark:bg-emerald-950/20 border-emerald-200/60 dark:border-emerald-800/30 text-emerald-900 dark:text-emerald-200'
-          }`}>
-            <span className="text-xs font-bold uppercase tracking-wider">Order Total</span>
-            <span className={`text-base font-black ${isMe ? 'text-white' : 'text-emerald-600 dark:text-emerald-400'}`}>
-              KSh {parsed.total}
-            </span>
-          </div>
-        )}
-
-        {/* Location & Details Info */}
-        <div className={`space-y-1.5 text-xs pt-1 border-t ${
-          isMe ? 'border-sky-400/20 text-sky-100' : 'border-slate-100 dark:border-neutral-800 text-gray-600 dark:text-neutral-300'
-        }`}>
-          {parsed.location && (
-            <div className="flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-              <span className="font-semibold truncate">Meetup / Delivery: <strong>{parsed.location}</strong></span>
+              ))}
             </div>
           )}
-          {parsed.buyer && (
-            <div className="flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-              <span className="font-semibold truncate">Buyer: <strong>{parsed.buyer}</strong></span>
-            </div>
-          )}
+
+          {/* Buyer Note if present */}
           {parsed.note && (
-            <div className="text-[11px] italic pt-1 text-amber-300 dark:text-amber-400">
+            <p className="text-[11px] italic text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 rounded-xl px-2.5 py-1">
               Note: "{parsed.note}"
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Secondary Bottom Box (Matches "You can contact me here" in reference screenshot) */}
+      <div className="bg-slate-50/90 dark:bg-neutral-800/60 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-neutral-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="space-y-0.5 min-w-0">
+          {parsed.total ? (
+            <div className="text-xs font-bold text-slate-700 dark:text-neutral-300">
+              Total: <span className="text-sm font-black text-[#0078E8] dark:text-sky-400">KSh {parsed.total}</span>
+            </div>
+          ) : (
+            <div className="text-xs font-bold text-slate-700 dark:text-neutral-300">
+              Direct Peer-to-Peer Inquiry
+            </div>
+          )}
+
+          {parsed.location && (
+            <div className="flex items-center gap-1 text-[11px] text-gray-500 dark:text-neutral-400 truncate">
+              <MapPin className="w-3 h-3 text-orange-500 shrink-0" />
+              <span>Meetup: <strong>{parsed.location}</strong></span>
             </div>
           )}
         </div>
 
-        {/* Safety Note */}
-        <div className={`p-2.5 rounded-xl flex items-start gap-2 text-[10px] leading-relaxed ${
-          isMe 
-            ? 'bg-sky-950/40 text-sky-200/90' 
-            : 'bg-amber-50/80 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300 border border-amber-200/50 dark:border-amber-900/30'
-        }`}>
-          <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-500" />
-          <span>Agree on payment & delivery in chat. Always inspect products before making payment.</span>
-        </div>
-
-        {listingId && (
+        {listingId ? (
           <Link
             to={`/listing/${listingId}`}
-            className={`w-full py-2 rounded-xl text-center text-xs font-bold flex items-center justify-center gap-1 transition-colors ${
-              isMe 
-                ? 'bg-sky-500 hover:bg-sky-400 text-white' 
-                : 'bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-gray-800 dark:text-neutral-100'
-            }`}
+            className="inline-flex items-center gap-1 text-xs font-bold text-slate-900 dark:text-white hover:text-[#0078E8] dark:hover:text-sky-400 transition-colors shrink-0"
           >
-            <span>View Related Listing</span>
-            <ChevronRight className="w-3.5 h-3.5" />
+            <span>View details <strong className="underline underline-offset-2">here</strong></span>
+            <ExternalLink className="w-3.5 h-3.5 ml-0.5 text-[#0078E8]" />
           </Link>
+        ) : (
+          <span className="text-xs font-bold text-slate-800 dark:text-neutral-200">
+            Confirm deal in chat
+          </span>
         )}
+      </div>
+
+      {/* Micro Safety Footer */}
+      <div className="flex items-center justify-between px-1 text-[9px] text-gray-400 dark:text-neutral-500">
+        <span className="flex items-center gap-1 font-medium">
+          <ShieldCheck className="w-3 h-3 text-emerald-500" />
+          Inspect products before payment
+        </span>
+        <span className="font-semibold">Suqafuran Deals</span>
       </div>
     </div>
   );
 };
-

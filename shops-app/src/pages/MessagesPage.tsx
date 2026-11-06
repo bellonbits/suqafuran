@@ -30,8 +30,9 @@ import type { ChatMessage, Listing } from '@/types';
 // something concrete (availability) is what actually earns a reply -- this
 // is the one thing every "contact seller" tap has in common, so it's the
 // one line worth writing well instead of leaving to a generic placeholder.
-function buildOpeningMessage(productTitle: string): string {
-    return `Hi! \u{1F44B} I just came across your listing for "${productTitle}" -- is it still available? I'd love to know a bit more.`;
+function buildOpeningMessage(productTitle: string, imageUrl?: string): string {
+    const imgPrefix = imageUrl ? `[PRODUCT_IMAGE]: ${imageUrl}\n` : '';
+    return `${imgPrefix}🛍️ INQUIRY: ${productTitle}\n\nHi! \u{1F44B} I just came across your listing for "${productTitle}" -- is it still available? I'd love to know a bit more.`;
 }
 
 function formatMessageDate(dateStr?: string | null): string {
@@ -359,7 +360,8 @@ function MessagesPageContent() {
     // if the buyer hasn't already started typing their own.
     useEffect(() => {
         if (!isLoading && messages.length === 0 && sharedProduct && !inputText) {
-            setInputText(buildOpeningMessage(field(sharedProduct.title_en, sharedProduct.title_so) || sharedProduct.title_en));
+            const firstImg = sharedProduct.images?.[0] || '';
+            setInputText(buildOpeningMessage(field(sharedProduct.title_en, sharedProduct.title_so) || sharedProduct.title_en, firstImg));
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoading, sharedProduct]);
@@ -458,7 +460,9 @@ function MessagesPageContent() {
                 return exists ? prev : [...prev, newMsg];
             });
 
-            const previewText = contentToSend.startsWith('[IMAGE]')
+            const previewText = contentToSend.includes('[PRODUCT_IMAGE]') || contentToSend.includes('🛍️')
+                ? '🛍️ Product Inquiry'
+                : contentToSend.startsWith('[IMAGE]')
                 ? '📷 Photo'
                 : contentToSend.startsWith('[VOICE')
                 ? '🎤 Voice message'
@@ -781,7 +785,13 @@ function MessagesPageContent() {
                                         </div>
                                         <div className="flex justify-between items-center gap-2 min-w-0 mt-1">
                                             <p className="text-[11px] text-gray-500 dark:text-neutral-400 truncate font-medium">
-                                                {conv.last_message || 'Start the conversation'}
+                                                {conv.last_message?.includes('[PRODUCT_IMAGE]') || conv.last_message?.includes('🛍️')
+                                                    ? '🛍️ Product Inquiry'
+                                                    : conv.last_message?.startsWith('[IMAGE]')
+                                                    ? '📷 Photo'
+                                                    : conv.last_message?.startsWith('[VOICE')
+                                                    ? '🎤 Voice message'
+                                                    : conv.last_message || 'Start the conversation'}
                                             </p>
                                             {(conv.unread_count ?? 0) > 0 ? (
                                                 <span className="h-4 min-w-4 px-1.5 rounded-full bg-sky-500 text-white text-[9px] font-black flex items-center justify-center shrink-0">
@@ -1001,12 +1011,14 @@ function MessagesPageContent() {
                                     messages.map((msg) => {
                                         const isMe = msg.sender_id !== selectedUserId;
                                         const isOrderInquiry = 
+                                            msg.content.includes('[PRODUCT_IMAGE]:') ||
                                             msg.content.toLowerCase().includes('order inquiry') || 
+                                            msg.content.toLowerCase().includes('inquiry:') || 
                                             msg.content.includes("I'd like to buy:") || 
                                             msg.content.includes('#ORD-') || 
-                                            msg.content.startsWith('🛍️') ||
+                                            msg.content.includes('🛍️') ||
                                             msg.content.startsWith('📦');
-                                        const isImage = msg.content.startsWith('[IMAGE]:') || msg.content.includes('[IMAGE]:');
+                                        const isImage = !isOrderInquiry && (msg.content.startsWith('[IMAGE]:') || msg.content.includes('[IMAGE]:'));
                                         const isVoice = msg.content.startsWith('[VOICE');
                                         const fraudAlert = !isMe ? detectFraudRisk(msg.content) : { isSuspicious: false };
 
