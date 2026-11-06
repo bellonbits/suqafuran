@@ -5,7 +5,8 @@ from sqlalchemy.orm import selectinload
 from datetime import datetime
 import logging
 from app.api import deps
-from app.models.listing import Listing
+from app.models.listing import Listing, Category
+from app.models.user import User
 from app.models.listing_attribute import ListingAttribute
 from app.models.attribute import Attribute
 from app.models.subscription import FeaturedSelling
@@ -345,5 +346,301 @@ def parse_intelligent_query(
     from app.services.search_intelligence import parse_natural_language_search
     query = body.get("query", "")
     return parse_natural_language_search(query)
+
+
+@router.get("/search/universal")
+def search_universal(
+    *,
+    db: Session = Depends(deps.get_db),
+    q: str = Query(..., min_length=1, max_length=100),
+    limit: int = Query(6, ge=1, le=20),
+) -> Any:
+    """
+    Universal marketplace search: simultaneously finds matching Products,
+    Verified Shops & Sellers, and Categories for instant search dropdowns.
+    """
+    clean_q = q.strip()
+    pattern = f"%{clean_q}%"
+
+    # 1. Matching Products (Active listings)
+    product_stmt = (
+        select(Listing)
+        .where(Listing.status == "active")
+        .where(
+            (Listing.title_en.ilike(pattern))
+            | (Listing.title_so.ilike(pattern))
+            | (Listing.description_en.ilike(pattern))
+        )
+        .order_by(Listing.boost_level.desc(), Listing.created_at.desc())
+        .limit(limit)
+    )
+    listings = db.exec(product_stmt).all()
+
+    # Collect seller IDs
+    seller_ids = {l.user_id for l in listings if l.user_id}
+    sellers_map = {}
+    if seller_ids:
+        sellers = db.exec(select(User).where(User.id.in_(seller_ids))).all()
+        sellers_map = {s.id: s for s in sellers}
+
+    products = []
+    for l in listings:
+        seller = sellers_map.get(l.user_id)
+        seller_name = (seller.business_name or seller.full_name) if seller else "Seller"
+        products.append({
+            "id": l.id,
+            "title": l.title_en or l.title_so or "Product",
+            "price": l.price,
+            "currency": l.currency or "KES",
+            "location": l.location or "Kenya",
+            "image": l.images[0] if l.images else None,
+            "seller_id": l.user_id,
+            "seller_name": seller_name,
+            "is_verified": seller.is_verified if seller else False,
+            "category_id": l.category_id,
+        })
+
+    # 2. Matching Shops & Verified Sellers
+    shop_stmt = (
+        select(User)
+        .where(User.is_suspended == False)
+        .where(
+            (User.business_name.ilike(pattern))
+            | (User.full_name.ilike(pattern))
+        )
+        .order_by(User.is_featured.desc(), User.is_verified.desc())
+        .limit(4)
+    )
+    shop_users = db.exec(shop_stmt).all()
+
+    shops = []
+    for s in shop_users:
+        shop_title = s.business_name or s.full_name or f"Shop #{s.id}"
+        slug = "".join(c for c in shop_title.lower() if c.isalnum()) or f"shop{s.id}"
+        shops.append({
+            "id": s.id,
+            "name": shop_title,
+            "slug": slug,
+            "avatar_url": s.avatar_url or s.logo_url,
+            "location": s.location or s.market or "Nairobi",
+            "is_verified": s.is_verified,
+            "is_featured": s.is_featured,
+        })
+
+    # 3. Matching Categories
+    category_stmt = (
+        select(Category)
+        .where(
+            (Category.name_en.ilike(pattern))
+            | (Category.name_so.ilike(pattern))
+        )
+        .limit(3)
+    )
+    cats = db.exec(category_stmt).all()
+    categories = [
+        {
+            "id": c.id,
+            "name": c.name_en or c.name_so,
+            "slug": c.slug,
+            "icon": getattr(c, "icon", None),
+        }
+        for c in cats
+    ]
+
+    return {
+        "query": clean_q,
+        "products": products,
+        "shops": shops,
+        "categories": categories,
+    }
+
+
+@router.post("/search/ai-shopper")
+def ai_shopper(
+    *,
+    db: Session = Depends(deps.get_db),
+    body: dict,
+) -> Any:
+    """
+    AI-Powered Natural Language Shopper:
+    Understands complex shopping intent, budget constraints, location, and questions.
+    Returns recommended products and pre-formats direct inquiries ready to send in chat.
+    """
+    from app.services.search_intelligence import parse_natural_language_search
+    query = body.get("query", "").strip()
+    if not query:
+        return {
+            "understood": {},
+            "ai_advice": "Please type what you would like to shop for.",
+            "products": [],
+            "shops": [],
+            "primary_directed_inquiry": None,
+        }
+
+    parsed = parse_natural_language_search(query)
+    clean_keywords = parsed.get("clean_keywords") or query
+    min_price = parsed.get("min_price")
+    max_price = parsed.get("max_price")
+    detected_location = parsed.get("detected_location")
+    inferred_category = parsed.get("inferred_category")
+
+    # Detect if user is asking to chat, message, check availability, or inquire
+    raw_lower = query.lower()
+    chat_intent_triggers = [
+        "chat", "message", "ask", "tell", "inquire", "contact", "reach",
+        "deliver", "delivery", "available", "dm", "ship", "warranty", "negotiate", "can they", "do they"
+    ]
+    has_chat_intent = any(trigger in raw_lower for trigger in chat_intent_triggers)
+
+    # Extract user's specific inquiry question if phrased
+    buyer_question = ""
+    if "deliver" in raw_lower:
+        buyer_question = f"Do you offer delivery to my location ({detected_location or 'Nairobi'})?"
+    elif "warranty" in raw_lower:
+        buyer_question = "Does this product come with a warranty or return guarantee?"
+    elif "available" in raw_lower:
+        buyer_question = "Is this item currently available in stock for inspection?"
+    elif has_chat_intent:
+        buyer_question = f"I'd love to ask more about this item. Please confirm availability."
+    else:
+        buyer_question = "Is this item available? I would like to arrange delivery/inspection."
+
+    # Build DB query for matching listings
+    stmt = select(Listing).where(Listing.status == "active")
+
+    # Text filter with keywords & multilingual synonyms
+    keywords_to_try = [clean_keywords]
+    if parsed.get("synonyms"):
+        keywords_to_try.extend(parsed["synonyms"][:3])
+
+    text_filters = []
+    for kw in keywords_to_try:
+        if kw and len(kw) > 1:
+            text_filters.append(Listing.title_en.ilike(f"%{kw}%"))
+            text_filters.append(Listing.title_so.ilike(f"%{kw}%"))
+            text_filters.append(Listing.description_en.ilike(f"%{kw}%"))
+
+    if text_filters:
+        stmt = stmt.where(or_(*text_filters))
+
+    if min_price is not None:
+        stmt = stmt.where(Listing.price >= min_price)
+    if max_price is not None:
+        stmt = stmt.where(Listing.price <= max_price)
+    if detected_location:
+        stmt = stmt.where(Listing.location.ilike(f"%{detected_location}%"))
+
+    # Order by boost & recency
+    stmt = stmt.order_by(Listing.boost_level.desc(), Listing.created_at.desc()).limit(8)
+    listings = db.exec(stmt).all()
+
+    # Fallback: If no results with strict location/price, search without price/location cap
+    if not listings and (min_price or max_price or detected_location):
+        fallback_stmt = select(Listing).where(Listing.status == "active")
+        if text_filters:
+            fallback_stmt = fallback_stmt.where(or_(*text_filters))
+        listings = db.exec(fallback_stmt.order_by(Listing.boost_level.desc()).limit(8)).all()
+
+    # Gather sellers
+    seller_ids = {l.user_id for l in listings if l.user_id}
+    sellers_map = {}
+    if seller_ids:
+        sellers = db.exec(select(User).where(User.id.in_(seller_ids))).all()
+        sellers_map = {s.id: s for s in sellers}
+
+    products = []
+    primary_directed_inquiry = None
+
+    for idx, l in enumerate(listings):
+        seller = sellers_map.get(l.user_id)
+        seller_name = (seller.business_name or seller.full_name) if seller else "Seller"
+        first_img = l.images[0] if l.images else ""
+        price_val = int(l.price) if l.price else 0
+
+        # Pre-format professional directed chat message
+        directed_msg = (
+            f"{f'[PRODUCT_IMAGE]: {first_img}' if first_img else ''}\n"
+            f"🛍️ INQUIRY: {l.title_en or l.title_so or 'Product'}\n\n"
+            f"Hi {seller_name}! 👋 I found your listing on Suqafuran for \"{l.title_en or l.title_so}\" (KSh {price_val:,}).\n"
+            f"{buyer_question}\n\n"
+            f"Please confirm availability so we can proceed. Thank you!"
+        ).strip()
+
+        prod_data = {
+            "id": l.id,
+            "title": l.title_en or l.title_so or "Product",
+            "price": price_val,
+            "currency": l.currency or "KES",
+            "location": l.location or "Kenya",
+            "image": first_img,
+            "seller_id": l.user_id,
+            "seller_name": seller_name,
+            "is_verified": seller.is_verified if seller else False,
+            "category_id": l.category_id,
+            "directed_message": directed_msg,
+            "chat_url": f"/messages?userId={l.user_id}&productId={l.id}",
+        }
+        products.append(prod_data)
+
+        if idx == 0:
+            primary_directed_inquiry = prod_data
+
+    # Find matching shops in this niche
+    shop_stmt = (
+        select(User)
+        .where(User.is_suspended == False)
+        .where(
+            (User.business_name.ilike(f"%{clean_keywords}%"))
+            | (User.shop_description.ilike(f"%{clean_keywords}%"))
+        )
+        .limit(3)
+    )
+    matching_shops = []
+    for s in db.exec(shop_stmt).all():
+        shop_title = s.business_name or s.full_name or f"Shop #{s.id}"
+        slug = "".join(c for c in shop_title.lower() if c.isalnum()) or f"shop{s.id}"
+        matching_shops.append({
+            "id": s.id,
+            "name": shop_title,
+            "slug": slug,
+            "avatar_url": s.avatar_url or s.logo_url,
+            "location": s.location or s.market or "Nairobi",
+            "is_verified": s.is_verified,
+        })
+
+    # AI Advice Summary
+    budget_label = ""
+    if max_price:
+        budget_label = f" under KSh {int(max_price):,}"
+    if detected_location:
+        loc_label = f" in {detected_location}"
+    else:
+        loc_label = ""
+
+    if products:
+        ai_advice = (
+            f"Found {len(products)} matching option{'s' if len(products) > 1 else ''} for \"{clean_keywords}\"{budget_label}{loc_label}. "
+            f"Select any product below to view details or start a directed chat with the verified shop directly."
+        )
+    else:
+        ai_advice = (
+            f"We couldn't find exact matches for \"{clean_keywords}\"{budget_label}. "
+            f"Try broadening your search term or asking our AI shopper for related categories."
+        )
+
+    return {
+        "query": query,
+        "understood": {
+            "keywords": clean_keywords,
+            "budget": f"Under KSh {int(max_price):,}" if max_price else "Any price",
+            "location": detected_location or "All Kenya",
+            "intent_to_chat": has_chat_intent,
+            "buyer_question": buyer_question,
+        },
+        "ai_advice": ai_advice,
+        "products": products,
+        "shops": matching_shops,
+        "primary_directed_inquiry": primary_directed_inquiry,
+    }
 
 

@@ -16,6 +16,7 @@ import { LocationPickerModal } from './LocationPickerModal';
 import NotificationCenter from '../NotificationCenter';
 import { NotificationBell } from './NotificationBell';
 import api, { resolveMediaUrl } from '../../services/api';
+import { UniversalSearchBar } from '../search/UniversalSearchBar';
 
 export const Header: React.FC = () => {
     const router = useRouter();
@@ -180,22 +181,12 @@ export const Header: React.FC = () => {
                         </button>
                     </div>
 
-                    {/* Center: Search Bar - Dominant Element */}
-                    <form
-                        onSubmit={handleSearchSubmit}
-                        className="hidden md:flex items-center flex-1 mx-8 max-w-2xl"
-                    >
-                        <div className="relative w-full">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 shrink-0" />
-                            <input
-                                type="text"
-                                placeholder="Search products, shops, services..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full h-12 pl-12 pr-4 rounded-full bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-white text-sm font-medium placeholder:text-gray-500 dark:placeholder:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                            />
-                        </div>
-                    </form>
+                    {/* Center: Search Bar - Dominant Element with Universal Search & AI Shopper */}
+                    <div className="hidden md:flex items-center flex-1 mx-4 lg:mx-8 max-w-2xl">
+                        <UniversalSearchBar
+                            placeholder="Search products, shops, services..."
+                        />
+                    </div>
 
                     {/* Right: Action Buttons */}
                     <div className="flex items-center gap-1 sm:gap-4 shrink-0">

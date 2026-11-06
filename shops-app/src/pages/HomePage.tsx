@@ -22,6 +22,7 @@ import {
 } from '@/components/storefront';
 import type { FilterState } from '@/components/storefront';
 import { CategoryNavBar, HomeHero, CategoryTiles, TopSelling, SellPoster, ShopsPoster } from '@/components/home/HomeSections';
+import { UniversalSearchBar } from '@/components/search/UniversalSearchBar';
 import type { HomeCategory, TopSellingTab } from '@/components/home/HomeSections';
 import { categoryPrefetchProps } from '@/lib/prefetch';
 import { shortCategoryName } from '@/lib/categoryName';
@@ -242,8 +243,7 @@ export default function HomePage() {
                 <div className="pt-3 sm:hidden">
                     <div className="flex items-center gap-2">
                         <div className="flex-1">
-                            <SuqafuranSearchBar
-                                size="md"
+                            <UniversalSearchBar
                                 placeholder={t('Search products, shops, services…')}
                             />
                         </div>
