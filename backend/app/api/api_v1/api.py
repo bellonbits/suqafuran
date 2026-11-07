@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.api_v1.endpoints import marketing, auth, users, listings, admin, favorites, notifications, dashboard, verifications, wallet, boosts, interactions, meetings, deals, trust_ops, promotions, login, mobile_money, audit, kh, messages, translate, feedback, follows, content, ai, support, verification_check, seo, businesses, addresses, payments, sellers, diagnostics, analytics, analytics_tracking, bulk_products, delivery_zones, reviews, campaigns, seller_profile, seller_settings, conversations, reports, subcategories, attributes, category_attributes, search, offers, price_alerts, saved_searches, notification_preferences, chat_ws, subscriptions, featured_advertising, discount_codes, analytics_sellers, advertising, admin_advertising, advertising_public, admin_email_analytics, admin_system_messaging, tracking, email_templates, customer_segments, lifecycle_analytics, checkout_receipts, recommendations
+from app.api.api_v1.endpoints import marketing, auth, users, listings, admin, favorites, notifications, dashboard, verifications, wallet, boosts, interactions, meetings, deals, trust_ops, promotions, login, mobile_money, audit, kh, messages, translate, feedback, follows, content, ai, support, verification_check, seo, businesses, addresses, payments, sellers, diagnostics, analytics, analytics_tracking, bulk_products, delivery_zones, reviews, campaigns, seller_profile, seller_settings, conversations, reports, subcategories, attributes, category_attributes, search, offers, price_alerts, saved_searches, notification_preferences, chat_ws, subscriptions, featured_advertising, discount_codes, analytics_sellers, advertising, admin_advertising, advertising_public, admin_email_analytics, admin_system_messaging, tracking, email_templates, customer_segments, lifecycle_analytics, checkout_receipts, recommendations, ai_shopper
 from app.api.api_v1.admin import monitoring_router
 
 # Import Phase 4 routers from root routers directory
@@ -134,4 +134,7 @@ api_router.include_router(offers.router, prefix="/offers", tags=["offers"])
 api_router.include_router(price_alerts.router, prefix="/price-alerts", tags=["price-alerts"])
 api_router.include_router(saved_searches.router, prefix="/saved-searches", tags=["saved-searches"])
 api_router.include_router(notification_preferences.router, prefix="/notification-preferences", tags=["notification-preferences"])
+
+# Intelligent AI Shopper Platform
+api_router.include_router(ai_shopper.router, prefix="/ai-shopper", tags=["ai-shopper"])
 

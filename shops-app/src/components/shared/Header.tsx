@@ -497,6 +497,14 @@ export const Header: React.FC = () => {
                                     Marketplace
                                 </p>
                                 <button
+                                    onClick={() => { router.push('/ai-shopper'); setIsMobileMenuOpen(false); }}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-800 dark:text-neutral-100 hover:bg-[#00BFFF]/10 transition-colors text-xs font-bold"
+                                >
+                                    <Sparkles className="w-4 h-4 text-[#00BFFF]" />
+                                    <span className="flex-1 text-left text-[#00BFFF]">AI Shopper</span>
+                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-[#00BFFF]/10 text-[#00BFFF]">AI</span>
+                                </button>
+                                <button
                                     onClick={() => { router.push('/shops'); setIsMobileMenuOpen(false); }}
                                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors text-xs font-bold"
                                 >

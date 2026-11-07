@@ -127,15 +127,15 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Top Bar */}
-        <div className="px-5 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between bg-gradient-to-r from-sky-50/70 via-indigo-50/50 to-pink-50/60 dark:from-neutral-900 dark:to-neutral-900 shrink-0">
+        <div className="px-5 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between bg-slate-50 dark:bg-neutral-900 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-pink-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/25">
-              <Sparkles className="w-5 h-5 text-amber-200" />
+            <div className="w-9 h-9 rounded-2xl bg-[#00BFFF] flex items-center justify-center text-white shadow-xs">
+              <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
               <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center gap-1.5">
                 <span>Suqafuran AI Shopper</span>
-                <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-sky-500/10 text-[#0078E8] dark:text-sky-400">
+                <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#00BFFF]/10 text-[#00BFFF]">
                   Intelligent
                 </span>
               </h3>
@@ -191,13 +191,13 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
             <button
               type="submit"
               disabled={loading || !prompt.trim()}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-4 h-9 rounded-xl bg-gradient-to-r from-[#0078E8] to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white text-xs font-black flex items-center gap-1.5 shadow-sm disabled:opacity-50 transition-all cursor-pointer"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-4 h-9 rounded-xl bg-[#00BFFF] hover:bg-[#02CCFE] text-white text-xs font-black flex items-center gap-1.5 shadow-xs disabled:opacity-50 transition-all cursor-pointer"
             >
               {loading ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
                 <>
-                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  <Sparkles className="w-3.5 h-3.5 text-white" />
                   <span>Ask AI</span>
                 </>
               )}
@@ -227,8 +227,8 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
           {loading ? (
             <div className="py-12 flex flex-col items-center justify-center gap-3 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-400 via-indigo-500 to-pink-500 flex items-center justify-center text-white animate-pulse">
-                <Sparkles className="w-6 h-6 animate-spin text-amber-200" />
+              <div className="w-12 h-12 rounded-2xl bg-[#00BFFF] flex items-center justify-center text-white">
+                <Sparkles className="w-6 h-6 animate-spin text-white" />
               </div>
               <p className="text-sm font-bold text-slate-800 dark:text-neutral-200">
                 AI Shopper is searching products & verified sellers...
@@ -240,7 +240,7 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
           ) : result ? (
             <div className="space-y-5">
               {/* AI Understanding Summary Card */}
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-sky-50/80 via-slate-50 to-indigo-50/50 dark:from-neutral-850 dark:to-neutral-900 border border-sky-100/80 dark:border-neutral-800 space-y-2.5">
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-neutral-850 border border-slate-200 dark:border-neutral-800 space-y-2.5">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-1.5 text-xs font-black text-slate-900 dark:text-white">
                     <Sparkles className="w-4 h-4 text-[#0078E8]" />

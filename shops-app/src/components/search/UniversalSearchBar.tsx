@@ -133,11 +133,11 @@ export const UniversalSearchBar: React.FC<UniversalSearchBarProps> = ({
             <button
               type="button"
               onClick={() => handleOpenAiShopper()}
-              className="h-7 sm:h-8 px-2 sm:px-2.5 rounded-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-[10px] sm:text-xs font-black flex items-center gap-1 shadow-xs transition-transform active:scale-95"
-              title="Open AI Shopping Assistant"
+              className="h-7 sm:h-8 px-2.5 sm:px-3 rounded-full bg-[#00BFFF] hover:bg-[#02CCFE] text-white text-[10px] sm:text-xs font-extrabold flex items-center gap-1 shadow-xs transition-transform active:scale-95"
+              title="Open Suqafuran AI Shopper"
             >
-              <Sparkles className="w-3 h-3 text-amber-300 animate-pulse" />
-              <span className="hidden sm:inline">Ask AI</span>
+              <Sparkles className="w-3 h-3 text-white" />
+              <span className="hidden sm:inline">AI Shopper</span>
             </button>
           </div>
         </form>
@@ -189,10 +189,10 @@ export const UniversalSearchBar: React.FC<UniversalSearchBarProps> = ({
             {/* AI Shopper Banner Prompt */}
             <div 
               onClick={() => handleOpenAiShopper()}
-              className="mx-3 mt-3 p-3 rounded-2xl bg-gradient-to-r from-sky-50 via-indigo-50/60 to-purple-50 dark:from-neutral-800 dark:to-neutral-850 border border-sky-100 dark:border-neutral-700 flex items-center justify-between cursor-pointer group hover:border-sky-300 transition-all"
+              className="mx-3 mt-3 p-3 rounded-2xl bg-[#00BFFF]/10 dark:bg-neutral-800 border border-[#00BFFF]/30 dark:border-neutral-700 flex items-center justify-between cursor-pointer group hover:border-[#00BFFF] transition-all"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center shrink-0">
+                <div className="w-7 h-7 rounded-xl bg-[#00BFFF] text-white flex items-center justify-center shrink-0">
                   <Sparkles className="w-3.5 h-3.5" />
                 </div>
                 <div className="min-w-0">
@@ -204,7 +204,7 @@ export const UniversalSearchBar: React.FC<UniversalSearchBarProps> = ({
                   </p>
                 </div>
               </div>
-              <ChevronRight className="w-4 h-4 text-[#0078E8] group-hover:translate-x-0.5 transition-transform shrink-0" />
+              <ChevronRight className="w-4 h-4 text-[#00BFFF] group-hover:translate-x-0.5 transition-transform shrink-0" />
             </div>
 
             {/* Content Results */}
