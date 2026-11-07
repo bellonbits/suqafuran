@@ -19,8 +19,12 @@ export const AIResponse: React.FC<AIResponseProps> = ({
   return (
     <div className={`flex items-start gap-2.5 max-w-full ${className}`}>
       {/* Suqafuran AI Avatar */}
-      <div className="w-8 h-8 rounded-full bg-[#00BFFF] flex items-center justify-center text-white shrink-0 mt-0.5 shadow-xs">
-        <Sparkles className="w-4 h-4" />
+      <div className="w-8 h-8 rounded-full bg-white dark:bg-neutral-800 border border-[#00BFFF]/30 flex items-center justify-center overflow-hidden shrink-0 mt-0.5 shadow-xs p-0.5">
+        <img
+          src="/ai-shopper-icon.png"
+          alt="Suqafuran AI"
+          className="w-full h-full object-contain"
+        />
       </div>
 
       <div className="flex-1 space-y-2.5">

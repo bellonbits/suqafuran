@@ -245,8 +245,12 @@ export default function AiShopperPage() {
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[#00BFFF] flex items-center justify-center text-white shadow-xs">
-              <Sparkles className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-xl bg-white dark:bg-neutral-800 border border-[#00BFFF]/30 flex items-center justify-center overflow-hidden shadow-xs p-0.5">
+              <img
+                src="/ai-shopper-icon.png"
+                alt="Suqafuran AI Shopper"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <h1 className="text-base font-extrabold text-slate-900 dark:text-white leading-tight">

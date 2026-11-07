@@ -133,10 +133,14 @@ export const UniversalSearchBar: React.FC<UniversalSearchBarProps> = ({
             <button
               type="button"
               onClick={() => handleOpenAiShopper()}
-              className="h-7 sm:h-8 px-2.5 sm:px-3 rounded-full bg-[#00BFFF] hover:bg-[#02CCFE] text-white text-[10px] sm:text-xs font-extrabold flex items-center gap-1 shadow-xs transition-transform active:scale-95"
+              className="h-7 sm:h-8 px-2 sm:px-2.5 rounded-full bg-[#00BFFF] hover:bg-[#02CCFE] text-white text-[10px] sm:text-xs font-extrabold flex items-center gap-1.5 shadow-xs transition-transform active:scale-95"
               title="Open Suqafuran AI Shopper"
             >
-              <Sparkles className="w-3 h-3 text-white" />
+              <img
+                src="/ai-shopper-icon.png"
+                alt=""
+                className="w-4 h-4 object-contain shrink-0 rounded-full"
+              />
               <span className="hidden sm:inline">AI Shopper</span>
             </button>
           </div>
@@ -192,8 +196,12 @@ export const UniversalSearchBar: React.FC<UniversalSearchBarProps> = ({
               className="mx-3 mt-3 p-3 rounded-2xl bg-[#00BFFF]/10 dark:bg-neutral-800 border border-[#00BFFF]/30 dark:border-neutral-700 flex items-center justify-between cursor-pointer group hover:border-[#00BFFF] transition-all"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-7 h-7 rounded-xl bg-[#00BFFF] text-white flex items-center justify-center shrink-0">
-                  <Sparkles className="w-3.5 h-3.5" />
+                <div className="w-8 h-8 rounded-xl bg-white dark:bg-neutral-800 border border-[#00BFFF]/30 flex items-center justify-center overflow-hidden shrink-0 p-0.5 shadow-xs">
+                  <img
+                    src="/ai-shopper-icon.png"
+                    alt="AI Shopper"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs font-black text-slate-900 dark:text-white truncate">

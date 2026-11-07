@@ -44,8 +44,12 @@ export const AIShopperChat: React.FC<AIShopperChatProps> = ({
       {/* Chat Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-900/50 shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-full bg-[#00BFFF] flex items-center justify-center text-white shadow-xs">
-            <Sparkles className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-full bg-white dark:bg-neutral-800 border border-[#00BFFF]/30 flex items-center justify-center overflow-hidden shadow-xs shrink-0 p-0.5">
+            <img
+              src="/ai-shopper-icon.png"
+              alt="Suqafuran AI"
+              className="w-full h-full object-contain"
+            />
           </div>
           <div>
             <div className="flex items-center gap-1.5">

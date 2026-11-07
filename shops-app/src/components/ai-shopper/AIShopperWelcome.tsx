@@ -19,9 +19,18 @@ export const AIShopperWelcome: React.FC<AIShopperWelcomeProps> = ({
       transition={{ duration: 0.3 }}
       className={`w-full max-w-2xl mx-auto flex flex-col items-center justify-center text-center py-10 px-4 ${className}`}
     >
-      {/* Suqafuran AI Icon Badge */}
-      <div className="w-16 h-16 rounded-2xl bg-[#00BFFF]/10 border border-[#00BFFF]/30 flex items-center justify-center mb-6 shadow-sm">
-        <Sparkles className="w-8 h-8 text-[#00BFFF]" />
+      {/* Suqafuran AI Shopper Icon Illustration */}
+      <div className="relative mb-6">
+        <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-white dark:bg-neutral-900 border-2 border-[#00BFFF]/30 shadow-lg flex items-center justify-center p-2 overflow-hidden hover:scale-105 transition-transform duration-300">
+          <img
+            src="/ai-shopper-icon.png"
+            alt="Suqafuran AI Shopper"
+            className="w-full h-full object-contain"
+          />
+        </div>
+        <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#00BFFF] border-2 border-white dark:border-neutral-900 flex items-center justify-center text-white shadow-xs">
+          <Sparkles className="w-3.5 h-3.5" />
+        </div>
       </div>
 
       {/* Main Title & Subtitle */}
