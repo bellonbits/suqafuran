@@ -149,14 +149,31 @@ class Settings(BaseSettings):
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Any) -> List[str]:
+        origins = []
         if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",")]
+            origins = [i.strip() for i in v.split(",") if i.strip()]
         elif isinstance(v, list):
-            return v
+            origins = list(v)
         elif isinstance(v, str) and v.startswith("["):
             import json
-            return json.loads(v)
-        return v
+            origins = json.loads(v)
+        
+        # Mandatory production and standard origins that must never be omitted
+        mandatory = [
+            "https://suqafuran.com",
+            "https://www.suqafuran.com",
+            "https://app.suqafuran.com",
+            "http://suqafuran.com",
+            "http://www.suqafuran.com",
+            "http://localhost:5173",
+            "http://localhost:3000",
+            "capacitor://localhost",
+            "capacitor://app",
+        ]
+        for item in mandatory:
+            if item not in origins:
+                origins.append(item)
+        return origins
 
     # FILE UPLOAD
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB (images)

@@ -15,7 +15,11 @@ KNOWN_BRANDS = [
 ]
 
 
-def parse_shopping_request(query: str, existing_context: Optional[Dict[str, Any]] = None) -> ExtractedQueryParams:
+def parse_shopping_request(
+    query: str,
+    existing_context: Optional[Any] = None,
+    existing_params: Optional[Any] = None,
+) -> ExtractedQueryParams:
     """
     Extracts structured marketplace shopping parameters from natural language.
     Preserves and updates conversational session context.
@@ -153,15 +157,25 @@ def parse_shopping_request(query: str, existing_context: Optional[Dict[str, Any]
         clean_keywords = re.sub(r"\b(notebooks?|macbooks?)\b", "laptop", clean_keywords).strip()
 
     # Context preservation: If user gives partial follow-up, inherit from existing context
-    if existing_context:
-        if not detected_location and existing_context.get("location"):
-            detected_location = existing_context["location"]
-        if max_price is None and existing_context.get("max_price"):
-            max_price = existing_context["max_price"]
-        if not inferred_category_slug and existing_context.get("category_slug"):
-            inferred_category_slug = existing_context["category_slug"]
-        if not detected_brand and existing_context.get("brand"):
-            detected_brand = existing_context["brand"]
+    ctx = existing_params or existing_context
+    if ctx:
+        if hasattr(ctx, "model_dump"):
+            ctx_dict = ctx.model_dump()
+        elif hasattr(ctx, "dict"):
+            ctx_dict = ctx.dict()
+        elif isinstance(ctx, dict):
+            ctx_dict = ctx
+        else:
+            ctx_dict = {}
+
+        if not detected_location and ctx_dict.get("location"):
+            detected_location = ctx_dict["location"]
+        if max_price is None and ctx_dict.get("max_price"):
+            max_price = ctx_dict["max_price"]
+        if not inferred_category_slug and ctx_dict.get("category_slug"):
+            inferred_category_slug = ctx_dict["category_slug"]
+        if not detected_brand and ctx_dict.get("brand"):
+            detected_brand = ctx_dict["brand"]
 
     return ExtractedQueryParams(
         category_slug=inferred_category_slug,

@@ -2,6 +2,8 @@ export * from './AIShopperWelcome';
 export * from './SuggestedPrompts';
 export * from './AIShopperChat';
 export * from './AIResponse';
+export * from './AIProductCarousel';
+export * from './AIProductDetailModal';
 export * from './ProductRecommendationCard';
 export * from './ProductResultsGrid';
 export * from './ProductComparisonTable';
@@ -11,4 +13,3 @@ export * from './AIShopperInput';
 export * from './TypingIndicator';
 export * from './ShoppingLoadingState';
 export * from './ConversationHistory';
-

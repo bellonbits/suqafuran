@@ -1,54 +1,84 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
-import { SuggestedPrompts } from './SuggestedPrompts';
+import { Gift, Smartphone, Footprints, Laptop, Home, ShoppingBag, Sparkles } from 'lucide-react';
+import { AIShopperInput } from './AIShopperInput';
 
 interface AIShopperWelcomeProps {
   onSelectPrompt: (promptText: string) => void;
+  onSendMessage: (query: string) => void;
+  onPhotoUpload?: (file: File) => void;
+  loading?: boolean;
   className?: string;
 }
 
+const QUICK_CHIPS = [
+  { icon: Gift, label: "Best gift ideas", query: "Best birthday gift ideas under 5000 KSh" },
+  { icon: Smartphone, label: "Phones under 25k", query: "Find a smartphone under 25000 KSh" },
+  { icon: Footprints, label: "Trending Shoes", query: "Show me trending sneakers and shoes" },
+  { icon: Laptop, label: "Laptops for work", query: "Recommend laptops for work and programming" },
+  { icon: Home, label: "Home & living", query: "Affordable home and living items" },
+];
+
 export const AIShopperWelcome: React.FC<AIShopperWelcomeProps> = ({
   onSelectPrompt,
+  onSendMessage,
+  onPhotoUpload,
+  loading = false,
   className = "",
 }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className={`w-full max-w-2xl mx-auto flex flex-col items-center justify-center text-center py-10 px-4 ${className}`}
+      className={`w-full max-w-xl mx-auto flex flex-col items-center justify-center text-center px-4 py-8 sm:py-16 ${className}`}
     >
-      {/* Suqafuran AI Shopper Icon Illustration */}
+      {/* Brand Icon illustration */}
       <div className="relative mb-6">
-        <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-white dark:bg-neutral-900 border-2 border-[#00BFFF]/30 shadow-lg flex items-center justify-center p-2 overflow-hidden hover:scale-105 transition-transform duration-300">
+        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm flex items-center justify-center p-2 overflow-hidden hover:scale-105 transition-transform duration-300">
           <img
             src="/ai-shopper-icon.png"
             alt="Suqafuran AI Shopper"
             className="w-full h-full object-contain"
           />
         </div>
-        <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#00BFFF] border-2 border-white dark:border-neutral-900 flex items-center justify-center text-white shadow-xs">
-          <Sparkles className="w-3.5 h-3.5" />
-        </div>
       </div>
 
-      {/* Main Title & Subtitle */}
+      {/* Main Title & Subtitle exactly matching mock */}
       <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-        Welcome to Suqafuran AI Shopper
+        Need anything?
       </h1>
-      <p className="mt-3 text-base sm:text-lg text-slate-600 dark:text-slate-400 font-normal max-w-lg leading-relaxed">
-        Tell me what you're looking for. I'll help you discover products, compare options, and find the right sellers.
+      <p className="mt-3 text-sm sm:text-base text-slate-500 dark:text-neutral-400 font-normal max-w-md leading-relaxed">
+        Our smart AI assistant helps you find exactly what you need—faster and easier than ever.
       </p>
 
-      {/* Suggested Prompts List */}
+      {/* Main Pill Search Input */}
       <div className="w-full mt-8">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-neutral-500 mb-3">
-          Suggested Requests
-        </p>
-        <SuggestedPrompts onSelectPrompt={onSelectPrompt} />
+        <AIShopperInput
+          onSendMessage={onSendMessage}
+          onPhotoUpload={onPhotoUpload}
+          disabled={loading}
+          placeholder="Ask Anything..."
+        />
+      </div>
+
+      {/* Quick Suggestion Chips */}
+      <div className="w-full mt-6 flex flex-wrap items-center justify-center gap-2">
+        {QUICK_CHIPS.map((chip, idx) => {
+          const Icon = chip.icon;
+          return (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => onSelectPrompt(chip.query)}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 hover:border-[#00BFFF] hover:text-[#00BFFF] dark:hover:border-[#00BFFF] text-xs font-semibold text-slate-700 dark:text-neutral-200 shadow-xs transition-all cursor-pointer active:scale-95"
+            >
+              <Icon className="w-3.5 h-3.5 text-slate-400 dark:text-neutral-500" />
+              <span>{chip.label}</span>
+            </button>
+          );
+        })}
       </div>
     </motion.div>
   );
 };
-

@@ -133,8 +133,8 @@ if not _is_prod:
         r"(https?|capacitor)://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2[0-9]|3[01])\.\d+\.\d+)(:\d+)?"
     )
 else:
-    # In production, restrict regex strictly to mobile Capacitor apps
-    cors_kwargs["allow_origin_regex"] = r"capacitor://(localhost|app)"
+    # In production, permit suqafuran domains and mobile Capacitor apps
+    cors_kwargs["allow_origin_regex"] = r"^(https?://([a-zA-Z0-9-]+\.)*suqafuran\.com|capacitor://(localhost|app))$"
 
 app.add_middleware(CORSMiddleware, **cors_kwargs)
 
