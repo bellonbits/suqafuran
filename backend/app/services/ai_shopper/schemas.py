@@ -114,28 +114,46 @@ class AIShopperCompareRequest(BaseModel):
 
 class AIShopperChatResponse(BaseModel):
     conversation_id: str
-    intent: str
-    understood: ExtractedQueryParams
+    intent: str = "general"
+    understood: Optional[ExtractedQueryParams] = None
+    extracted_params: Optional[ExtractedQueryParams] = None
     message: str
     products: List[ShopperProductItem] = Field(default_factory=list)
     comparison: Optional[ProductComparisonResult] = None
     sellers: List[ShopperSellerItem] = Field(default_factory=list)
     suggestions: List[str] = Field(default_factory=list)
+    suggested_followups: List[str] = Field(default_factory=list)
     filters_applied: Dict[str, Any] = Field(default_factory=dict)
     is_fallback: bool = False
 
 
 class AIShopperSearchResponse(BaseModel):
     query: str
-    total_found: int
-    products: List[ShopperProductItem]
+    total_found: int = 0
+    total_matches: int = 0
+    extracted_params: Optional[ExtractedQueryParams] = None
+    products: List[ShopperProductItem] = Field(default_factory=list)
     sellers: List[ShopperSellerItem] = Field(default_factory=list)
     suggestions: List[str] = Field(default_factory=list)
     is_fallback: bool = False
+
+
+class ShopperCompareResponse(BaseModel):
+    comparison: Optional[ProductComparisonResult] = None
 
 
 class AIShopperSuggestionsResponse(BaseModel):
     popular_prompts: List[str]
     category_suggestions: List[Dict[str, str]]
     budget_presets: List[Dict[str, Any]]
+
+
+# Clean aliases across the ai_shopper service and API endpoints
+ShopperChatRequest = AIShopperChatRequest
+ShopperSearchRequest = AIShopperSearchRequest
+ShopperCompareRequest = AIShopperCompareRequest
+ShopperChatResponse = AIShopperChatResponse
+ShopperSearchResponse = AIShopperSearchResponse
+ComparisonResult = ProductComparisonResult
+IntentType = ShoppingIntentType
 

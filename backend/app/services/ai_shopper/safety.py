@@ -1,5 +1,4 @@
 import re
-from typing import str
 
 # Patterns to prevent prompt injection and system prompt extraction
 INJECTION_PATTERNS = [
@@ -28,6 +27,10 @@ def sanitize_user_input(text: str) -> str:
     # Strip null bytes or control characters
     clean = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]", "", clean)
     return clean
+
+
+# Alias
+sanitize_input = sanitize_user_input
 
 
 def is_potential_injection(text: str) -> bool:

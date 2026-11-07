@@ -1,6 +1,5 @@
 import re
-from typing import str
-from app.services.ai_shopper.schemas import ShoppingIntentType
+from app.services.ai_shopper.schemas import ShoppingIntentType, IntentType
 
 
 def classify_shopping_intent(query: str, history_len: int = 0) -> str:
@@ -35,4 +34,8 @@ def classify_shopping_intent(query: str, history_len: int = 0) -> str:
         return ShoppingIntentType.SEARCH
 
     return ShoppingIntentType.GENERAL
+
+
+# Aliases
+classify_intent = classify_shopping_intent
 

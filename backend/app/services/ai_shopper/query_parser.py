@@ -177,3 +177,7 @@ def parse_shopping_request(query: str, existing_context: Optional[Dict[str, Any]
         is_compare_query=is_compare_query,
     )
 
+
+# Alias
+parse_shopping_query = parse_shopping_request
+
