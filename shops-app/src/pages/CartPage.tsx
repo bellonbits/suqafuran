@@ -311,7 +311,7 @@ Please confirm availability so we can arrange delivery and payment. Thank you!`;
                   className="bg-white dark:bg-neutral-950 rounded-3xl border border-gray-100 dark:border-neutral-800 shadow-sm overflow-hidden"
                 >
                   {/* Seller Header */}
-                  <div className="px-4 sm:px-5 py-3 sm:py-3.5 bg-slate-50/80 dark:bg-neutral-900/60 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between gap-2.5">
+                  <div className="px-4 sm:px-5 py-3 sm:py-3.5 bg-slate-50/80 dark:bg-neutral-900/60 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       <div className="w-8 h-8 rounded-xl bg-orange-100 dark:bg-orange-950/40 text-orange-600 flex items-center justify-center font-black text-xs shrink-0">
                         {group.sellerAvatar ? (
@@ -320,16 +320,14 @@ Please confirm availability so we can arrange delivery and payment. Thank you!`;
                           <Store className="w-4 h-4" />
                         )}
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white truncate max-w-[130px] xs:max-w-[170px] sm:max-w-none">
-                            {group.sellerName}
-                          </span>
-                          <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap">
-                            <ShieldCheck className="w-3 h-3 shrink-0" />
-                            <span>Verified</span>
-                          </span>
-                        </div>
+                      <div className="min-w-0 flex-1 flex items-center gap-2">
+                        <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white truncate">
+                          {group.sellerName}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">
+                          <ShieldCheck className="w-3 h-3 shrink-0" />
+                          <span>Verified Shop</span>
+                        </span>
                       </div>
                     </div>
 

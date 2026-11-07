@@ -309,7 +309,7 @@ export function HomepageBannerRotation({
           src={imgUrl}
           alt={banner.title}
           loading={primary ? 'eager' : 'lazy'}
-          fetchPriority={primary ? 'high' : 'auto'}
+          fetchpriority={primary ? 'high' : undefined}
           className={`w-full h-full object-cover object-center transition-all duration-300 group-hover:scale-[1.02] ${
             !pair && isTransitioning
               ? direction === 'next'

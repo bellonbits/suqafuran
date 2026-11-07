@@ -356,7 +356,7 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
       onMouseLeave={() => setHovered(false)}
       onFocus={() => setFocused(true)}
       onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setFocused(false); }}
-      className="relative w-full aspect-[3/2] sm:aspect-auto sm:h-[350px] md:h-[400px] lg:h-auto lg:min-h-[420px] lg:self-stretch overflow-hidden rounded-2xl border border-gray-100 dark:border-neutral-800 bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0078E8] shadow-sm select-none"
+      className="relative w-full aspect-[3/2] sm:aspect-auto sm:h-[350px] md:h-[400px] lg:h-auto lg:min-h-[420px] lg:self-stretch overflow-hidden rounded-2xl border border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0078E8] shadow-sm select-none"
     >
       <AnimatePresence initial={false} custom={direction} mode="wait">
         <motion.div
@@ -395,9 +395,9 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
               prev();
             }}
             aria-label="Previous slide"
-            className="absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md text-white flex items-center justify-center border border-white/20 shadow-lg transition-transform active:scale-95 cursor-pointer"
+            className="hidden sm:flex absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/90 hover:bg-white text-gray-900 dark:bg-neutral-900/90 dark:hover:bg-neutral-900 dark:text-white items-center justify-center border border-gray-200/80 dark:border-neutral-700 shadow-md transition-all active:scale-95 cursor-pointer"
           >
-            <SfIconChevronLeft size="sm" className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            <SfIconChevronLeft size="sm" className="w-4 h-4 sm:w-5 sm:h-5 text-gray-800 dark:text-white" />
           </button>
 
           {/* Next Arrow Button */}
@@ -409,14 +409,14 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
               next();
             }}
             aria-label="Next slide"
-            className="absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md text-white flex items-center justify-center border border-white/20 shadow-lg transition-transform active:scale-95 cursor-pointer"
+            className="hidden sm:flex absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/90 hover:bg-white text-gray-900 dark:bg-neutral-900/90 dark:hover:bg-neutral-900 dark:text-white items-center justify-center border border-gray-200/80 dark:border-neutral-700 shadow-md transition-all active:scale-95 cursor-pointer"
           >
-            <SfIconChevronRight size="sm" className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            <SfIconChevronRight size="sm" className="w-4 h-4 sm:w-5 sm:h-5 text-gray-800 dark:text-white" />
           </button>
 
           {/* Pagination Indicators Pill */}
           <div className="absolute inset-x-0 bottom-2.5 sm:bottom-4 z-20 flex items-center justify-center pointer-events-none">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/45 backdrop-blur-md border border-white/15 pointer-events-auto shadow-md">
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white/85 dark:bg-neutral-900/85 backdrop-blur-md border border-gray-200/70 dark:border-neutral-700 pointer-events-auto shadow-sm">
               {slides.map((s, i) => {
                 const active = i === safeIndex;
                 return (
@@ -436,7 +436,7 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
                     <span
                       className={clsx(
                         'block h-1.5 sm:h-2 rounded-full transition-all duration-300',
-                        active ? 'w-6 sm:w-7 bg-white shadow-sm' : 'w-1.5 sm:w-2 bg-white/40 group-hover:bg-white/70'
+                        active ? 'w-6 sm:w-7 bg-[#0078E8] shadow-xs' : 'w-1.5 sm:w-2 bg-gray-300 dark:bg-neutral-600 group-hover:bg-gray-400'
                       )}
                     />
                   </button>

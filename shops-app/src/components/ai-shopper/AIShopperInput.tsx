@@ -71,7 +71,7 @@ export const AIShopperInput: React.FC<AIShopperInputProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className={`relative w-full rounded-2xl sm:rounded-full bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 focus-within:border-[#00BFFF] dark:focus-within:border-[#00BFFF] shadow-md flex items-center px-2.5 sm:px-4 py-1 sm:py-1.5 gap-1.5 sm:gap-2 transition-all min-w-0 ${className}`}
+      className={`relative w-full rounded-2xl sm:rounded-full bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 focus-within:border-[#00BFFF] dark:focus-within:border-[#00BFFF] shadow-md flex items-center px-2.5 sm:px-4 py-1 sm:py-1.5 gap-1.5 sm:gap-2 transition-all min-w-0 overflow-hidden box-border ${className}`}
     >
       <input
         ref={fileInputRef}
@@ -98,7 +98,7 @@ export const AIShopperInput: React.FC<AIShopperInputProps> = ({
         onChange={(e) => setText(e.target.value)}
         disabled={disabled}
         placeholder={placeholder}
-        className="flex-1 min-w-0 w-full h-9 sm:h-12 bg-transparent text-[16px] sm:text-base font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none"
+        className="flex-1 min-w-0 h-9 sm:h-12 bg-transparent text-[16px] sm:text-base font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none"
       />
 
       {/* Voice Mic Button */}
@@ -115,15 +115,17 @@ export const AIShopperInput: React.FC<AIShopperInputProps> = ({
         {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
       </button>
 
-      {/* Send Button */}
-      <button
-        type="submit"
-        disabled={disabled || !text.trim()}
-        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#00BFFF] hover:bg-[#02CCFE] text-white flex items-center justify-center shadow-sm disabled:opacity-40 transition-all cursor-pointer shrink-0"
-        title="Send"
-      >
-        <Send className="w-4 h-4" />
-      </button>
+      {/* Send Button - Only active / highlighted when there is text */}
+      {text.trim() && (
+        <button
+          type="submit"
+          disabled={disabled}
+          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#00BFFF] hover:bg-[#02CCFE] active:scale-95 text-white flex items-center justify-center shadow-xs transition-all cursor-pointer shrink-0 animate-in fade-in zoom-in-95 duration-150"
+          title="Send"
+        >
+          <Send className="w-4 h-4" />
+        </button>
+      )}
     </form>
   );
 };
