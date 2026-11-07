@@ -35,3 +35,4 @@ def classify_shopping_intent(query: str, history_len: int = 0) -> str:
         return ShoppingIntentType.SEARCH
 
     return ShoppingIntentType.GENERAL
+

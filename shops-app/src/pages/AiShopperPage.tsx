@@ -66,10 +66,15 @@ export default function AiShopperPage() {
   // Mobile active tab ('results' or 'chat')
   const [mobileTab, setMobileTab] = useState<'results' | 'chat'>('results');
 
-  // Trigger search on mount if url query is present
+  // Query processing guards to prevent duplicate executions / double texting
+  const lastProcessedQueryRef = useRef<string>('');
+  const isQueryRunningRef = useRef<boolean>(false);
+
+  // Trigger search on mount if url query is present and not yet processed
   useEffect(() => {
-    if (urlQuery.trim()) {
-      handleUserQuery(urlQuery.trim(), true);
+    const q = urlQuery.trim();
+    if (q && q !== lastProcessedQueryRef.current) {
+      handleUserQuery(q, true);
     }
   }, [urlQuery]);
 
@@ -78,19 +83,32 @@ export default function AiShopperPage() {
     const cleanQ = queryText.trim();
     if (!cleanQ) return;
 
+    // Prevent duplicate concurrent requests or re-execution of identical query while active
+    if (isQueryRunningRef.current) return;
+    if (cleanQ === lastProcessedQueryRef.current && messages.length > 0) return;
+
+    isQueryRunningRef.current = true;
+    lastProcessedQueryRef.current = cleanQ;
     setCurrentQuery(cleanQ);
-    if (!isFromUrl) {
-      setSearchParams({ q: cleanQ });
+
+    if (!isFromUrl && searchParams.get('q') !== cleanQ) {
+      setSearchParams({ q: cleanQ }, { replace: true });
     }
 
-    // Add user message to chat
+    // Add user message to chat with deduplication guard
     const userMsg: ChatMsg = {
-      id: `u-${Date.now()}`,
+      id: `u-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       sender: 'user',
       text: cleanQ,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
-    setMessages((prev) => [...prev, userMsg]);
+    setMessages((prev) => {
+      const last = prev[prev.length - 1];
+      if (last && last.sender === 'user' && last.text === cleanQ) {
+        return prev;
+      }
+      return [...prev, userMsg];
+    });
     setLoading(true);
 
     try {
@@ -108,16 +126,22 @@ export default function AiShopperPage() {
         setShowCompareModal(true);
       }
 
-      // Add agent reply to chat
+      // Add agent reply to chat with deduplication guard
       const agentMsg: ChatMsg = {
-        id: `a-${Date.now()}`,
+        id: `a-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         sender: 'agent',
         text: response.message,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         followups: response.suggested_followups || [],
         products: response.products || [],
       };
-      setMessages((prev) => [...prev, agentMsg]);
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last && last.sender === 'agent' && last.text === response.message) {
+          return prev;
+        }
+        return [...prev, agentMsg];
+      });
     } catch (err) {
       console.error("AI Shopper Chat error:", err);
       // Fallback response
@@ -130,6 +154,7 @@ export default function AiShopperPage() {
       setMessages((prev) => [...prev, fallbackMsg]);
     } finally {
       setLoading(false);
+      isQueryRunningRef.current = false;
     }
   };
 
@@ -140,7 +165,9 @@ export default function AiShopperPage() {
 
   // Reset Session
   const handleResetSession = () => {
-    setSearchParams({});
+    lastProcessedQueryRef.current = '';
+    isQueryRunningRef.current = false;
+    setSearchParams({}, { replace: true });
     setCurrentQuery("");
     setMessages([]);
     setProducts([]);

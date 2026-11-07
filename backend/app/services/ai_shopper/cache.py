@@ -40,3 +40,4 @@ def delete_cached_session(session_id: str) -> None:
     """Removes a session."""
     if session_id in _LOCAL_SESSION_STORE:
         _LOCAL_SESSION_STORE.pop(session_id, None)
+

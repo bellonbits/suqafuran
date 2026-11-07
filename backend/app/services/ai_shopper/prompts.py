@@ -57,3 +57,4 @@ FEATURED SHOPS / SELLERS:
 INSTRUCTIONS:
 Write a helpful, concise shopping response (2-4 sentences) summarizing the best options for the user based strictly on the available listings above. Mention 1 or 2 standout items by name and price, and invite the user to inspect details or ask any follow-up question.
 """
+

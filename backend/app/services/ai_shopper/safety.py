@@ -35,3 +35,4 @@ def is_potential_injection(text: str) -> bool:
     if not text:
         return False
     return bool(COMPILED_INJECTION_RE.search(text))
+

@@ -47,3 +47,4 @@ def generate_llm_response(
     except Exception as e:
         logger.warning(f"Groq LLM call failed in ai_shopper: {e}")
         return None
+

@@ -85,12 +85,20 @@ function parseClientQuery(raw: string) {
   }
 
   let kw = clean
-    .replace(/^(?:find|search|show|show me|look for|looking for|i need|i want|please find|recommend|get me|where can i find|tell me about|try searching|explore)\s+/i, '')
+    .replace(/^(?:find|search|show|show me|look for|looking for|i need|i want|please find|recommend|get me|where can i find|tell me about|try searching|explore|help me choose|choose)\s+/i, '')
     .replace(/(?:under|below|less than|up to|within|<=?)\s*(?:ksh|kes)?\s*\d+(?:,\d+)*(?:\.\d+)?\s*(k|m)?/i, '')
+    .replace(/\b(?:within|on)\s+(?:a\s+|my\s+)?budget\b/gi, '')
     .replace(/\b(?:in|around|near|at)\s+[a-z]+/i, '')
-    .replace(/\b(?:all categories|all category|all products|categories|trending|deals|category)\b/gi, '')
+    .replace(/\b(?:all categories|all category|all products|categories|trending|deals|category|popular products|popular)\b/gi, '')
+    .replace(/^(?:a|an|the)\s+/i, '')
     .replace(/\s+/g, ' ')
     .trim();
+
+  // Normalize common queries to marketplace root keywords
+  if (/smartphones?|phones?|mobiles?/i.test(kw)) kw = 'phone';
+  else if (/laptops?|notebooks?|macbooks?/i.test(kw)) kw = 'laptop';
+  else if (/fashions?|clothes?|clothing|dresses?/i.test(kw)) kw = 'fashion';
+  else if (/appliances?|home appliances?/i.test(kw)) kw = 'appliance';
 
   return { clean, keywords: kw, maxPrice, location };
 }

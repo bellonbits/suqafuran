@@ -133,3 +133,4 @@ def compare_marketplace_products(
         overall_verdict=overall_verdict,
         best_value_product_id=min_price_item.id,
     )
+

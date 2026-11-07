@@ -14,3 +14,4 @@ def discover_sellers(
     (e.g., 'electronics shops in Nairobi', 'fashion sellers').
     """
     return retrieve_marketplace_sellers(db=db, keyword_or_location=query_or_location, limit=limit)
+

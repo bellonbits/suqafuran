@@ -66,3 +66,4 @@ def rank_and_explain_recommendations(
 
     scored.sort(key=lambda x: x[0], reverse=True)
     return [p for _, p in scored]
+

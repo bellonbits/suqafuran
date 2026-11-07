@@ -133,14 +133,24 @@ def parse_shopping_request(query: str, existing_context: Optional[Dict[str, Any]
         specs["screen_size"] = f"{inch_match.group(1)}\""
 
     # 8. Clean keywords for full-text search
+    working_clean = re.sub(r"\b(?:within|on)\s+(?:a\s+|my\s+)?budget\b", " ", working)
+    working_clean = re.sub(r"\b(?:help\s+me\s+choose|popular\s+products|fashion\s+deals|all\s+categories)\b", " ", working_clean)
+    
     strip_tokens = [
         "find", "me", "show", "i", "need", "looking", "for", "a", "an", "the",
         "good", "best", "recommend", "cheap", "affordable", "please", "can",
-        "you", "get", "where", "buy", "tell", "about", "compare", "versus", "vs", "which", "is", "better"
+        "you", "get", "where", "buy", "tell", "about", "compare", "versus", "vs", "which", "is", "better",
+        "within", "budget", "choose", "popular", "products", "deals"
     ]
-    words = working.split()
+    words = working_clean.split()
     clean_words = [w for w in words if w not in strip_tokens and len(w) > 1]
     clean_keywords = " ".join(clean_words).strip()
+
+    # Map semantic categories to root marketplace search keywords
+    if re.search(r"\b(smartphones?|mobiles?)\b", clean_keywords):
+        clean_keywords = re.sub(r"\b(smartphones?|mobiles?)\b", "phone", clean_keywords).strip()
+    elif re.search(r"\b(notebooks?|macbooks?)\b", clean_keywords):
+        clean_keywords = re.sub(r"\b(notebooks?|macbooks?)\b", "laptop", clean_keywords).strip()
 
     # Context preservation: If user gives partial follow-up, inherit from existing context
     if existing_context:
@@ -166,3 +176,4 @@ def parse_shopping_request(query: str, existing_context: Optional[Dict[str, Any]
         is_budget_query=is_budget_query,
         is_compare_query=is_compare_query,
     )
+

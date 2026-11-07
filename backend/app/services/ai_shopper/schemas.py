@@ -138,3 +138,4 @@ class AIShopperSuggestionsResponse(BaseModel):
     popular_prompts: List[str]
     category_suggestions: List[Dict[str, str]]
     budget_presets: List[Dict[str, Any]]
+

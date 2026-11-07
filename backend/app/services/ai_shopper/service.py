@@ -106,3 +106,4 @@ class AIShopperService:
 
 
 ai_shopper_service = AIShopperService()
+
