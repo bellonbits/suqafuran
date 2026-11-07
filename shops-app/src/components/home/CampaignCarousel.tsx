@@ -167,8 +167,12 @@ const SWIPE_PX = 50;
 export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({ categories }) => {
   const [customBanners, setCustomBanners] = useState<HomepageBanner[]>(() => {
     try {
-      const cached = localStorage.getItem('suqafuran_custom_banners');
-      return cached ? JSON.parse(cached) : [];
+      const cached = localStorage.getItem('suqafuran_hero_banners') || localStorage.getItem('suqafuran_custom_banners');
+      if (!cached) return [];
+      const parsed = JSON.parse(cached);
+      if (!Array.isArray(parsed)) return [];
+      const heroOnly = parsed.filter((b: HomepageBanner) => b.placement === 'hero' || b.placement === 'all');
+      return heroOnly.length > 0 ? heroOnly : (parsed.length > 0 ? [parsed[0]] : []);
     } catch {
       return [];
     }
@@ -176,21 +180,30 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
 
   useEffect(() => {
     let mounted = true;
-    advertisingService.getActiveBanners().then((banners) => {
-      if (mounted && Array.isArray(banners)) {
-        setCustomBanners(banners);
-        try {
-          localStorage.setItem('suqafuran_custom_banners', JSON.stringify(banners));
-        } catch {}
+
+    const fetchHeroBanners = async () => {
+      try {
+        const banners = await advertisingService.getActiveBanners();
+        if (mounted && Array.isArray(banners)) {
+          const heroBanners = banners.filter((b) => b.placement === 'hero' || b.placement === 'all');
+          const finalHero = heroBanners.length > 0 ? heroBanners : (banners.length > 0 ? [banners[0]] : []);
+          setCustomBanners(finalHero);
+          try {
+            localStorage.setItem('suqafuran_custom_banners', JSON.stringify(banners));
+            localStorage.setItem('suqafuran_hero_banners', JSON.stringify(finalHero));
+          } catch {}
+        }
+      } catch (err) {
+        console.error('Failed to load hero banners', err);
       }
-    }).catch(() => {});
+    };
+
+    fetchHeroBanners();
 
     const onUpdate = () => {
-      try {
-        const cached = localStorage.getItem('suqafuran_custom_banners');
-        if (cached) setCustomBanners(JSON.parse(cached));
-      } catch {}
+      fetchHeroBanners();
     };
+
     window.addEventListener('suqafuran_banners_updated', onUpdate);
     window.addEventListener('storage', onUpdate);
     return () => {
@@ -262,7 +275,7 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
 
   if (count === 0) {
     return (
-      <div className="relative w-full h-[200px] min-[380px]:h-[220px] sm:h-[350px] md:h-[400px] lg:h-[430px] rounded-2xl bg-slate-100 dark:bg-neutral-900 animate-pulse" />
+      <div className="relative w-full aspect-[3/2] sm:aspect-auto sm:h-[350px] md:h-[400px] lg:h-auto lg:min-h-[420px] rounded-2xl bg-slate-100 dark:bg-neutral-900 animate-pulse" />
     );
   }
 
@@ -288,7 +301,6 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
           alt={banner?.title || category.name || 'Suqafuran Promotion'}
           draggable={false}
           loading={safeIndex === 0 ? 'eager' : 'lazy'}
-          style={{ objectFit: 'cover', objectPosition: 'center' }}
           className="w-full h-full object-cover object-center select-none transition-transform duration-700 group-hover:scale-[1.01]"
         />
       </picture>
@@ -344,7 +356,7 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
       onMouseLeave={() => setHovered(false)}
       onFocus={() => setFocused(true)}
       onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setFocused(false); }}
-      className="relative w-full h-[200px] min-[380px]:h-[220px] sm:h-[350px] md:h-[400px] lg:h-auto lg:min-h-[420px] lg:self-stretch overflow-hidden rounded-2xl border border-gray-100 dark:border-neutral-800 bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0078E8] shadow-sm select-none"
+      className="relative w-full aspect-[3/2] sm:aspect-auto sm:h-[350px] md:h-[400px] lg:h-auto lg:min-h-[420px] lg:self-stretch overflow-hidden rounded-2xl border border-gray-100 dark:border-neutral-800 bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0078E8] shadow-sm select-none"
     >
       <AnimatePresence initial={false} custom={direction} mode="wait">
         <motion.div

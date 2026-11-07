@@ -71,7 +71,7 @@ export const AIShopperInput: React.FC<AIShopperInputProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className={`relative w-full rounded-2xl sm:rounded-full bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 focus-within:border-[#00BFFF] dark:focus-within:border-[#00BFFF] shadow-md flex items-center px-3 sm:px-4 py-1.5 gap-2 transition-all ${className}`}
+      className={`relative w-full rounded-2xl sm:rounded-full bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 focus-within:border-[#00BFFF] dark:focus-within:border-[#00BFFF] shadow-md flex items-center px-2.5 sm:px-4 py-1 sm:py-1.5 gap-1.5 sm:gap-2 transition-all min-w-0 ${className}`}
     >
       <input
         ref={fileInputRef}
@@ -85,7 +85,7 @@ export const AIShopperInput: React.FC<AIShopperInputProps> = ({
       <button
         type="button"
         onClick={() => fileInputRef.current?.click()}
-        className="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer shrink-0"
+        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer shrink-0"
         title="Upload photo / Visual search"
       >
         <Camera className="w-4 h-4" />
@@ -98,14 +98,14 @@ export const AIShopperInput: React.FC<AIShopperInputProps> = ({
         onChange={(e) => setText(e.target.value)}
         disabled={disabled}
         placeholder={placeholder}
-        className="flex-1 h-10 sm:h-12 bg-transparent text-sm sm:text-base font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none"
+        className="flex-1 min-w-0 w-full h-9 sm:h-12 bg-transparent text-[16px] sm:text-base font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none"
       />
 
       {/* Voice Mic Button */}
       <button
         type="button"
         onClick={toggleMic}
-        className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
+        className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
           isListening
             ? 'bg-rose-500 text-white animate-pulse'
             : 'text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-neutral-800'
@@ -119,7 +119,7 @@ export const AIShopperInput: React.FC<AIShopperInputProps> = ({
       <button
         type="submit"
         disabled={disabled || !text.trim()}
-        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#00BFFF] hover:bg-[#02CCFE] text-white flex items-center justify-center shadow-sm disabled:opacity-40 transition-all cursor-pointer shrink-0"
+        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#00BFFF] hover:bg-[#02CCFE] text-white flex items-center justify-center shadow-sm disabled:opacity-40 transition-all cursor-pointer shrink-0"
         title="Send"
       >
         <Send className="w-4 h-4" />

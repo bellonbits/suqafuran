@@ -24,6 +24,13 @@
   }
 }
 
+/* Prevent iOS Safari from zooming in on input focus by guaranteeing 16px minimum font size */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
 .no-scrollbar {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge */

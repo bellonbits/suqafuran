@@ -133,8 +133,8 @@ if not _is_prod:
         r"(https?|capacitor)://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2[0-9]|3[01])\.\d+\.\d+)(:\d+)?"
     )
 else:
-    # In production, permit suqafuran domains and mobile Capacitor apps
-    cors_kwargs["allow_origin_regex"] = r"^(https?://([a-zA-Z0-9-]+\.)*suqafuran\.com|capacitor://(localhost|app))$"
+    # In production, permit suqafuran domains, mobile Capacitor apps, and local dev origins
+    cors_kwargs["allow_origin_regex"] = r"^(https?://([a-zA-Z0-9-]+\.)*suqafuran\.com|capacitor://(localhost|app)|https?://(localhost|127\.0\.0\.1)(:\d+)?)$"
 
 app.add_middleware(CORSMiddleware, **cors_kwargs)
 
@@ -167,6 +167,12 @@ async def ensure_checkout_receipt_schema():
             conn.execute(text(
                 "ALTER TABLE interaction ADD COLUMN IF NOT EXISTS receipt_id INTEGER "
                 "REFERENCES checkout_receipt(id)"
+            ))
+            conn.execute(text(
+                "ALTER TABLE homepage_banner ADD COLUMN IF NOT EXISTS placement VARCHAR DEFAULT 'sponsored'"
+            ))
+            conn.execute(text(
+                "UPDATE homepage_banner SET placement = 'sponsored' WHERE placement IS NULL"
             ))
             conn.execute(text("ALTER TABLE interaction ALTER COLUMN listing_id DROP NOT NULL"))
         logger.info("checkout_receipt schema ready")

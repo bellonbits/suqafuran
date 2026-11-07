@@ -207,6 +207,8 @@ export const AISupportChat: React.FC = () => {
     const isSuppressedRoute =
         pathname.startsWith('/messages') ||
         pathname.startsWith('/seller-dashboard/messages') ||
+        pathname.startsWith('/ai-shopper') ||
+        pathname.startsWith('/ai') ||
         pathname.includes('/post-ad') ||
         pathname.includes('/products/add') ||
         pathname.startsWith('/reset-password') ||

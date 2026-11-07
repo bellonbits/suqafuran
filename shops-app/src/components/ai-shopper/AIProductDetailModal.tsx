@@ -66,7 +66,7 @@ export const AIProductDetailModal: React.FC<AIProductDetailModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs">
+      <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs">
         <motion.div
           initial={{ opacity: 0, y: '100%' }}
           animate={{ opacity: 1, y: 0 }}
@@ -282,7 +282,7 @@ export const AIProductDetailModal: React.FC<AIProductDetailModalProps> = ({
           </div>
 
           {/* ─── Bottom Action Bar matching Mockup 3 ───────────────── */}
-          <div className="sticky bottom-0 z-20 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md px-4 py-3 border-t border-slate-100 dark:border-neutral-800 flex items-center gap-3">
+          <div className="sticky bottom-0 z-20 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-slate-100 dark:border-neutral-800 flex items-center gap-3">
             <button
               type="button"
               onClick={handleAdd}
@@ -319,3 +319,4 @@ export const AIProductDetailModal: React.FC<AIProductDetailModalProps> = ({
     </AnimatePresence>
   );
 };
+

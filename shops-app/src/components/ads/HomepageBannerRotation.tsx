@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { advertisingService, HomepageBanner } from '@/services/advertising';
 import { useWindowSize } from '@/hooks/use-window-size';
 import { optimizeCloudinaryUrl } from '@/services/api';
+import { useT } from '@/lib/i18n';
 
 const AUTO_SLIDE_MS = 5000;
 const TRANSITION_MS = 400;
@@ -25,11 +26,22 @@ interface HomepageBannerRotationProps {
    * there aren't enough banners.
    */
   fillers?: ReactNode[];
+  /** Optional custom title override */
+  title?: ReactNode;
+  /** Show creative "Sponsored Ads" section title. Defaults to true */
+  showTitle?: boolean;
 }
 
 const MIN_CARDS = 3;
 
-export function HomepageBannerRotation({ pair = false, secondary, fillers = [] }: HomepageBannerRotationProps = {}) {
+export function HomepageBannerRotation({
+  pair = false,
+  secondary,
+  fillers = [],
+  title,
+  showTitle = true,
+}: HomepageBannerRotationProps = {}) {
+  const translate = useT();
   const navigate = useNavigate();
   const [banners, setBanners] = useState<HomepageBanner[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -39,18 +51,38 @@ export function HomepageBannerRotation({ pair = false, secondary, fillers = [] }
   const [impressionTracked, setImpressionTracked] = useState<Set<number>>(new Set());
   const { width } = useWindowSize();
 
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [activeCardIndex, setActiveCardIndex] = useState(0);
+
   const touchStartX = useRef<number | null>(null);
   const touchDeltaX = useRef(0);
   const stripRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchBanners();
+
+    const onUpdate = () => {
+      fetchBanners();
+    };
+    window.addEventListener('suqafuran_banners_updated', onUpdate);
+    window.addEventListener('storage', onUpdate);
+    return () => {
+      window.removeEventListener('suqafuran_banners_updated', onUpdate);
+      window.removeEventListener('storage', onUpdate);
+    };
   }, []);
 
   const fetchBanners = async () => {
     try {
       const data = await advertisingService.getActiveBanners();
-      setBanners(data);
+      // Show banners that are NOT hero-only (i.e. sponsored, all, or legacy unassigned)
+      let sponsored = data.filter((b) => b.placement !== 'hero');
+      if (sponsored.length === 0 && data.length > 0) {
+        // Fallback: if all banners happen to be hero, hero gets data[0], sponsored gets the rest
+        sponsored = data.length > 1 ? data.slice(1) : data;
+      }
+      setBanners(sponsored);
       setCurrentIndex(0);
     } catch (error) {
       console.error('Failed to fetch banners:', error);
@@ -153,6 +185,42 @@ export function HomepageBannerRotation({ pair = false, secondary, fillers = [] }
     return () => clearInterval(interval);
   }, [rotates, banners.length, currentIndex]);
 
+
+
+  const updateScrollState = () => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    const max = strip.scrollWidth - strip.clientWidth;
+    if (max <= 4) {
+      setCanScrollLeft(false);
+      setCanScrollRight(false);
+      return;
+    }
+    setCanScrollLeft(strip.scrollLeft > 6);
+    setCanScrollRight(strip.scrollLeft < max - 6);
+
+    const first = strip.firstElementChild as HTMLElement | null;
+    if (first) {
+      const step = first.offsetWidth + parseFloat(getComputedStyle(strip).columnGap || '16');
+      if (step > 0) {
+        const idx = Math.min(
+          Math.max(0, Math.round(strip.scrollLeft / step)),
+          banners.length + (secondary ? 1 : 0) + fillers.length - 1
+        );
+        setActiveCardIndex(idx);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(updateScrollState, 100);
+    window.addEventListener('resize', updateScrollState);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', updateScrollState);
+    };
+  }, [banners.length, pair]);
+
   if (loading || (banners.length === 0 && !(pair && secondary))) return null;
 
   const imageFor = (banner: HomepageBanner) =>
@@ -195,57 +263,176 @@ export function HomepageBannerRotation({ pair = false, secondary, fillers = [] }
     touchDeltaX.current = 0;
   };
 
-  // Offer-card look: 16:9 with a 16px radius. The full-width rotator is
-  // capped at a fixed height from md up so it doesn't dominate the page.
-  const frame = pair ? 'aspect-video' : 'aspect-video md:aspect-auto md:h-[260px] lg:h-[300px]';
+  // Offer-card look: 3:2 ratio matching creative assets (1200x800) with a 16px radius.
+  const frame = pair ? 'aspect-[3/2]' : 'aspect-[3/2] md:aspect-auto md:h-[260px] lg:h-[300px]';
   const radius = 'rounded-2xl';
 
-  const poster = (banner: HomepageBanner, primary: boolean) => (
-    // The uploaded creative is the whole message (title, offer, and CTA are
-    // already part of the designed graphic), so the entire image is just a
-    // clickable link with no extra overlay.
-    <button
-      onClick={() => openBanner(banner)}
-      className={`block w-full ${frame}`}
-      aria-label={banner.title}
-    >
-      <img
-        key={banner.id}
-        src={optimizeCloudinaryUrl(imageFor(banner), { width: pair ? 800 : 1920 }) || imageFor(banner)}
-        alt={banner.title}
-        loading={primary ? 'eager' : 'lazy'}
-        fetchPriority={primary ? 'high' : 'auto'}
-        className={`w-full h-full object-cover transition-all ease-out ${
-          !pair && isTransitioning
-            ? direction === 'next'
-              ? 'opacity-0 -translate-x-6'
-              : 'opacity-0 translate-x-6'
-            : 'opacity-100 translate-x-0'
-        }`}
-        style={{ transitionDuration: `${TRANSITION_MS}ms` }}
-      />
-    </button>
-  );
+
+
+  const scrollToCard = (index: number) => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    const first = strip.firstElementChild as HTMLElement | null;
+    if (!first) return;
+    const step = first.offsetWidth + parseFloat(getComputedStyle(strip).columnGap || '16');
+    strip.scrollTo({ left: index * step, behavior: 'smooth' });
+  };
+
+  const handleStripPrev = () => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    const first = strip.firstElementChild as HTMLElement | null;
+    if (!first) return;
+    const step = first.offsetWidth + parseFloat(getComputedStyle(strip).columnGap || '16');
+    strip.scrollBy({ left: -step, behavior: 'smooth' });
+  };
+
+  const handleStripNext = () => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    const first = strip.firstElementChild as HTMLElement | null;
+    if (!first) return;
+    const step = first.offsetWidth + parseFloat(getComputedStyle(strip).columnGap || '16');
+    strip.scrollBy({ left: step, behavior: 'smooth' });
+  };
+
+  const poster = (banner: HomepageBanner, primary: boolean) => {
+    const imgUrl = optimizeCloudinaryUrl(imageFor(banner), { width: pair ? 1000 : 1920 }) || imageFor(banner);
+    return (
+      <button
+        onClick={() => openBanner(banner)}
+        className={`relative block w-full h-full ${frame} overflow-hidden group`}
+        aria-label={banner.title}
+      >
+        <img
+          key={banner.id}
+          src={imgUrl}
+          alt={banner.title}
+          loading={primary ? 'eager' : 'lazy'}
+          fetchPriority={primary ? 'high' : 'auto'}
+          className={`w-full h-full object-cover object-center transition-all duration-300 group-hover:scale-[1.02] ${
+            !pair && isTransitioning
+              ? direction === 'next'
+                ? 'opacity-0 -translate-x-6'
+                : 'opacity-0 translate-x-6'
+              : 'opacity-100 translate-x-0'
+          }`}
+          style={{ transitionDuration: `${TRANSITION_MS}ms` }}
+        />
+      </button>
+    );
+  };
 
   if (pair) {
-    const card = 'shrink-0 snap-start w-[82%] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]';
+    const fillerCount = Math.max(0, MIN_CARDS - banners.length - (secondary ? 1 : 0));
+    const activeFillers = fillers.slice(0, fillerCount);
+    const totalCount = banners.length + (secondary ? 1 : 0) + activeFillers.length;
+
+    // Ensure cards fit the container cleanly:
+    // 1 card: 100% width
+    // 2 cards: 50% width each on tablet and desktop (fills container without gaps or awkward cuts)
+    // 3+ cards: 100% mobile, 50% tablet, 33.333% desktop
+    const card =
+      totalCount === 1
+        ? 'shrink-0 snap-start w-full'
+        : totalCount === 2
+        ? 'shrink-0 snap-start w-full sm:w-[calc((100%-1rem)/2)]'
+        : 'shrink-0 snap-start w-full sm:w-[calc((100%-1rem)/2)] md:w-[calc((100%-2rem)/3)]';
+
     return (
-      // py-3/-my-3 leaves room for the card shadow inside the scroll container
-      <div ref={stripRef} className="flex gap-4 overflow-x-auto overscroll-x-contain snap-x snap-mandatory hide-scrollbar py-3 -my-3">
-        {banners.map((banner, i) => (
+      <section className="w-full">
+        {/* Creative "Sponsored Ads" Section Title */}
+        {showTitle && (
+          title ? (
+            <div className="mb-3">{title}</div>
+          ) : (
+            <div className="flex items-center justify-between mb-3.5 px-0.5">
+              <div className="flex items-center gap-2.5">
+                <div className="flex items-center justify-center w-7 h-7 rounded-xl bg-gradient-to-br from-orange-500 via-amber-500 to-[#0078E8] text-white shadow-sm shadow-orange-500/20">
+                  <Sparkles className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <div className="flex items-baseline gap-2">
+                    <h2 className="text-base sm:text-lg md:text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+                      <span className="italic font-extrabold text-gray-900 dark:text-white">{translate('Sponsored Ads')}</span>
+                    </h2>
+                    <span className="hidden sm:inline-block text-xs italic text-gray-500 dark:text-neutral-400">
+                      — {translate('Featured Deals & Top Seller Spotlights')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold italic text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/40 border border-orange-200/80 dark:border-orange-800/50 px-2.5 py-0.5 rounded-full shadow-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+                  {translate('Featured')}
+                </span>
+              </div>
+            </div>
+          )
+        )}
+
+        <div className="relative group/strip">
+          {/* Navigation arrows (desktop/tablet) */}
+          {totalCount > 1 && canScrollLeft && (
+            <button
+              onClick={handleStripPrev}
+              className="hidden sm:flex absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 items-center justify-center rounded-full bg-white/90 hover:bg-white text-gray-900 shadow-md border border-gray-100 hover:scale-105 transition-all"
+              aria-label="Previous cards"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          )}
+          {totalCount > 1 && canScrollRight && (
+            <button
+              onClick={handleStripNext}
+              className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 items-center justify-center rounded-full bg-white/90 hover:bg-white text-gray-900 shadow-md border border-gray-100 hover:scale-105 transition-all"
+              aria-label="Next cards"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Horizontal card strip: fits full width on phones, 2 cards on tablet, 3 on desktop */}
           <div
-            key={banner.id}
-            data-banner-id={banner.id}
-            className={`${card} relative bg-gray-900 overflow-hidden ${radius} shadow-[0_4px_12px_rgba(0,0,0,0.08)]`}
+            ref={stripRef}
+            onScroll={updateScrollState}
+            className="flex gap-4 overflow-x-auto overscroll-x-contain snap-x snap-mandatory hide-scrollbar py-3 -my-3"
           >
-            {poster(banner, i === 0)}
+            {banners.map((banner, i) => (
+              <div
+                key={banner.id}
+                data-banner-id={banner.id}
+                className={`${card} relative bg-gray-900 overflow-hidden ${radius} shadow-[0_4px_12px_rgba(0,0,0,0.08)]`}
+              >
+                {poster(banner, i === 0)}
+              </div>
+            ))}
+            {secondary && <div className={card}>{secondary}</div>}
+            {activeFillers.map((filler, i) => (
+              <div key={`filler-${i}`} className={card}>{filler}</div>
+            ))}
           </div>
-        ))}
-        {secondary && <div className={card}>{secondary}</div>}
-        {fillers
-          .slice(0, Math.max(0, MIN_CARDS - banners.length - (secondary ? 1 : 0)))
-          .map((filler, i) => <div key={`filler-${i}`} className={card}>{filler}</div>)}
-      </div>
+
+          {/* Mobile/Tablet dot indicators */}
+          {totalCount > 1 && (
+            <div className="flex justify-center items-center gap-1.5 mt-2.5 md:hidden">
+              {Array.from({ length: totalCount }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => scrollToCard(i)}
+                  className={`h-1.5 rounded-full transition-all ${
+                    i === activeCardIndex
+                      ? 'w-6 bg-[#0078E8]'
+                      : 'w-1.5 bg-gray-300 dark:bg-neutral-700 hover:bg-gray-400'
+                  }`}
+                  aria-label={`Go to banner ${i + 1}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
     );
   }
 

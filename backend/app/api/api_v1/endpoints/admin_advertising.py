@@ -36,6 +36,7 @@ def _banner_fields(banner: HomepageBanner) -> dict:
         "start_date": banner.start_date,
         "end_date": banner.end_date,
         "priority": banner.priority,
+        "placement": getattr(banner, "placement", "sponsored") or "sponsored",
         "status": banner.status,
         "created_at": banner.created_at,
         "updated_at": banner.updated_at,
@@ -57,6 +58,7 @@ class CreateBannerRequest(BaseModel):
     start_date: datetime
     end_date: datetime
     priority: int = 50
+    placement: str = "sponsored"  # "hero", "sponsored", or "all"
 
 
 class UpdateBannerRequest(BaseModel):
@@ -69,6 +71,7 @@ class UpdateBannerRequest(BaseModel):
     start_date: datetime | None = None
     end_date: datetime | None = None
     priority: int | None = None
+    placement: str | None = None
     status: str | None = None
 
 
@@ -84,6 +87,7 @@ class BannerResponse(BaseModel):
     start_date: datetime
     end_date: datetime
     priority: int
+    placement: str = "sponsored"
     status: str
     created_at: datetime
     updated_at: datetime
@@ -130,6 +134,7 @@ def create_homepage_banner(
         start_date=banner_in.start_date,
         end_date=banner_in.end_date,
         priority=banner_in.priority,
+        placement=banner_in.placement or "sponsored",
         status=BannerStatus.DRAFT,
         created_by_admin_id=current_user.id,
     )
@@ -236,10 +241,6 @@ def update_homepage_banner(
     banner = db.get(HomepageBanner, banner_id)
     if not banner:
         raise HTTPException(status_code=404, detail="Banner not found")
-
-    # Only allow updates to draft or scheduled banners
-    if banner.status == BannerStatus.ACTIVE:
-        raise HTTPException(status_code=400, detail="Cannot update active banners")
 
     update_data = banner_in.dict(exclude_unset=True)
     for field, value in update_data.items():

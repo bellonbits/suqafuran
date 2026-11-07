@@ -48,6 +48,7 @@ export interface HomepageBanner {
   end_date: string;
   priority: number;
   status: string;
+  placement?: 'hero' | 'sponsored' | 'all';
   created_at: string;
   updated_at: string;
 }
@@ -71,6 +72,7 @@ export interface CreateBannerPayload {
   start_date: string;
   end_date: string;
   priority?: number;
+  placement?: 'hero' | 'sponsored' | 'all';
 }
 
 export interface UpdateBannerPayload {
@@ -83,16 +85,20 @@ export interface UpdateBannerPayload {
   start_date?: string;
   end_date?: string;
   priority?: number;
+  placement?: 'hero' | 'sponsored' | 'all';
   status?: string;
 }
 
 export const advertisingService = {
   /**
-   * Get active homepage banners for rotation
+   * Get active homepage banners for rotation.
+   * Can be filtered by placement ('hero' vs 'sponsored').
    */
-  async getActiveBanners(): Promise<HomepageBanner[]> {
+  async getActiveBanners(placement?: 'hero' | 'sponsored'): Promise<HomepageBanner[]> {
     try {
-      const response = await api.get('/advertising/active-banners');
+      const response = await api.get('/advertising/active-banners', {
+        params: placement ? { placement } : undefined,
+      });
       return response.data || [];
     } catch (error) {
       console.error('Failed to fetch homepage banners:', error);

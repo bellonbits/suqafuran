@@ -119,24 +119,24 @@ const RouteLoadingFallback = () => null
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation()
-  const isChatRoute = pathname.startsWith('/messages') || pathname.startsWith('/seller-dashboard/messages')
+  const isChatRoute = pathname.startsWith('/messages') || pathname.startsWith('/seller-dashboard/messages') || pathname.startsWith('/ai-shopper') || pathname.startsWith('/ai')
 
   return (
-    <div className="flex flex-col min-h-screen bg-white dark:bg-black">
+    <div className="flex flex-col min-h-screen bg-white dark:bg-black overflow-x-clip">
       <Header />
       <div style={{ height: 'calc(env(safe-area-inset-top, 0px) + 3rem)' }} className="shrink-0 w-full md:hidden" />
       <div className="shrink-0 w-full hidden md:block h-16" />
 
-      <div className="flex flex-1 min-w-0">
-        <div className="flex-1 flex flex-col min-w-0">
-          <main className="flex-1">
+      <div className="flex flex-1 min-w-0 w-full">
+        <div className="flex-1 flex flex-col min-w-0 w-full">
+          <main className="flex-1 min-w-0 flex flex-col w-full">
             {children}
           </main>
           {!isChatRoute && <Footer />}
         </div>
       </div>
       <AuthModal />
-      <AISupportChat />
+      {!isChatRoute && <AISupportChat />}
     </div>
   )
 }

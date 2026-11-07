@@ -42,7 +42,7 @@ export const SellerRecommendationCard: React.FC<SellerRecommendationCardProps> =
 
       <Link
         to={seller.shop_url}
-        className="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-neutral-800 hover:bg-[#00BFFF] hover:text-white text-xs font-bold text-slate-700 dark:text-neutral-200 transition-colors flex items-center gap-1 shrink-0"
+        className="px-3.5 py-1.5 rounded-full bg-slate-100 dark:bg-neutral-800 hover:bg-[#00BFFF] hover:text-white text-xs font-bold text-slate-700 dark:text-neutral-200 transition-colors flex items-center gap-1 shrink-0"
       >
         <span>Shop</span>
         <ChevronRight className="w-3.5 h-3.5" />

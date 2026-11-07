@@ -46,8 +46,12 @@ export const BottomNav: React.FC = () => {
         };
     }, [isAuthenticated, user?.id]);
 
-    // Do not show marketplace bottom nav on seller dashboard or admin panel
-    if (pathname?.startsWith('/seller-dashboard') || pathname?.startsWith('/admin')) {
+    // Do not show marketplace bottom nav on seller dashboard, admin panel, or listing detail pages (which have dedicated mobile action bars)
+    if (
+        pathname?.startsWith('/seller-dashboard') ||
+        pathname?.startsWith('/admin') ||
+        pathname?.startsWith('/listing/')
+    ) {
         return null;
     }
 
@@ -60,7 +64,7 @@ export const BottomNav: React.FC = () => {
 
     return (
         <nav 
-            className="fixed bottom-0 inset-x-0 z-50 md:hidden bg-white dark:bg-neutral-950 border-t border-gray-100 dark:border-neutral-800 pb-[env(safe-area-inset-bottom)]"
+            className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-white dark:bg-neutral-950 border-t border-gray-100 dark:border-neutral-800 pb-[env(safe-area-inset-bottom)]"
             style={{ boxShadow: '0 -4px 16px rgba(0,0,0,0.04)' }}
         >
             <div className="flex items-stretch h-[60px] px-1 justify-around">

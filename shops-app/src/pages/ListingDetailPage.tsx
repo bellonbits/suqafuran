@@ -439,7 +439,7 @@ export default function ProductDetailPage() {
     const discountPct = hasDiscount ? Math.round((1 - (listing.price ?? 0) / (listing.compare_at_price as number)) * 100) : 0;
 
     return (
-        <div className="pb-28 md:pb-0 bg-gray-50 dark:bg-black min-h-screen">
+        <div className="pb-36 md:pb-8 bg-gray-50 dark:bg-black min-h-screen">
             <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
                 {/* Header Navigation */}
                 <button
@@ -856,7 +856,7 @@ export default function ProductDetailPage() {
 
             {/* Sticky mobile action bar */}
             {!isSold && (
-                <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-neutral-950 border-t border-gray-200 dark:border-neutral-800 p-3 flex items-center gap-2">
+                <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border-t border-gray-200 dark:border-neutral-800 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center gap-2 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
                     <div className="flex-shrink-0 pr-1">
                         <div className="text-sm font-black text-gray-900 dark:text-white whitespace-nowrap">
                             {formatConvertedPrice(listing?.price ?? 0, listing.currency || 'KES', displayCurrency)}
@@ -881,7 +881,7 @@ export default function ProductDetailPage() {
                             setOfferAmount(String(listing.price || ''));
                             setShowOfferModal(true);
                         }}
-                        className="flex-1 flex items-center justify-center gap-1.5 rounded-full border-2 border-orange-500 text-orange-600 dark:text-orange-400 font-black py-2.5 text-xs"
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-full border-2 border-orange-500 text-orange-600 dark:text-orange-400 font-black py-2.5 text-xs active:scale-95 transition-transform"
                     >
                         <Tag className="h-4 w-4" />
                         Make Offer
@@ -894,7 +894,7 @@ export default function ProductDetailPage() {
                             shop_id: listing.owner_id,
                             device_type: analyticsService.getDeviceType(),
                         }).catch(() => {})}
-                        className="flex-1 flex items-center justify-center gap-1.5 rounded-full bg-orange-500 text-white font-black py-2.5 text-xs"
+                        className="flex-1 flex items-center justify-center gap-1.5 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-black py-2.5 text-xs active:scale-95 transition-transform"
                     >
                         <MessageSquare className="h-4 w-4" />
                         Chat with Seller
@@ -904,8 +904,8 @@ export default function ProductDetailPage() {
 
             {/* Make Offer Modal */}
             {showOfferModal && (
-                <div className="fixed inset-0 z-50 bg-black/50 flex items-end md:items-center justify-center">
-                    <div className="bg-white dark:bg-neutral-950 rounded-t-2xl md:rounded-2xl w-full md:max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-end md:items-center justify-center p-0 md:p-4 animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-neutral-950 rounded-t-3xl md:rounded-2xl w-full md:max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto pb-[max(1.75rem,env(safe-area-inset-bottom))] shadow-2xl">
                         {offerSuccess ? (
                             <div className="text-center py-6 space-y-3">
                                 <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
@@ -990,8 +990,8 @@ export default function ProductDetailPage() {
 
             {/* Report Listing Modal */}
             {showReportModal && (
-                <div className="fixed inset-0 z-50 bg-black/50 flex items-end md:items-center justify-center">
-                    <div className="bg-white dark:bg-neutral-950 rounded-t-2xl md:rounded-2xl w-full md:w-full md:max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-end md:items-center justify-center p-0 md:p-4 animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-neutral-950 rounded-t-3xl md:rounded-2xl w-full md:w-full md:max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto pb-[max(1.75rem,env(safe-area-inset-bottom))] shadow-2xl">
                         <h2 className="text-lg font-bold text-gray-900 dark:text-white">Report this product</h2>
 
                         <div>

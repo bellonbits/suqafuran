@@ -116,3 +116,4 @@ export const AIProductCarousel: React.FC<AIProductCarouselProps> = ({
     </div>
   );
 };
+

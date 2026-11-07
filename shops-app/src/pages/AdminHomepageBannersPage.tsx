@@ -49,6 +49,7 @@ const emptyForm = () => ({
     button_text: 'Shop Now',
     button_link: '',
     priority: 80,
+    placement: 'sponsored' as 'hero' | 'sponsored' | 'all',
     start_date: toDatetimeLocal(new Date().toISOString()),
     end_date: toDatetimeLocal(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()),
 });
@@ -79,6 +80,9 @@ export default function AdminHomepageBannersPage() {
             const active = await advertisingService.getActiveBanners();
             if (Array.isArray(active)) {
                 localStorage.setItem('suqafuran_custom_banners', JSON.stringify(active));
+                const heroOnly = active.filter((b) => b.placement === 'hero' || b.placement === 'all');
+                const finalHero = heroOnly.length > 0 ? heroOnly : (active.length > 0 ? [active[0]] : []);
+                localStorage.setItem('suqafuran_hero_banners', JSON.stringify(finalHero));
                 window.dispatchEvent(new Event('suqafuran_banners_updated'));
             }
         } catch (e) {
@@ -139,6 +143,7 @@ export default function AdminHomepageBannersPage() {
             button_text: banner.button_text,
             button_link: banner.button_link,
             priority: banner.priority,
+            placement: (banner.placement || 'sponsored') as 'hero' | 'sponsored' | 'all',
             start_date: toDatetimeLocal(banner.start_date),
             end_date: toDatetimeLocal(banner.end_date),
         });
@@ -181,6 +186,7 @@ export default function AdminHomepageBannersPage() {
                     button_text: form.button_text,
                     button_link: form.button_link,
                     priority: Number(form.priority),
+                    placement: form.placement || 'sponsored',
                     start_date: new Date(form.start_date).toISOString(),
                     end_date: new Date(form.end_date).toISOString(),
                 });
@@ -194,6 +200,7 @@ export default function AdminHomepageBannersPage() {
                     button_text: form.button_text,
                     button_link: form.button_link,
                     priority: Number(form.priority),
+                    placement: form.placement || 'sponsored',
                     start_date: new Date(form.start_date).toISOString(),
                     end_date: new Date(form.end_date).toISOString(),
                 };
@@ -299,6 +306,7 @@ export default function AdminHomepageBannersPage() {
                         <thead className="bg-slate-100 dark:bg-neutral-900 border-b">
                             <tr>
                                 <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">Banner</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">Placement</th>
                                 <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">Status</th>
                                 <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">Schedule</th>
                                 <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900 dark:text-white">Priority</th>
@@ -309,7 +317,7 @@ export default function AdminHomepageBannersPage() {
                         <tbody className="divide-y">
                             {banners.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-10 text-center text-slate-400">
+                                    <td colSpan={7} className="px-6 py-10 text-center text-slate-400">
                                         No banners yet — click "New Banner" to create one.
                                     </td>
                                 </tr>
@@ -330,6 +338,21 @@ export default function AdminHomepageBannersPage() {
                                                     <p className="text-xs text-slate-400">{banner.button_link}</p>
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {banner.placement === 'hero' ? (
+                                                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-200/60 inline-flex items-center gap-1">
+                                                    <span>🌟</span> Hero Ad
+                                                </span>
+                                            ) : banner.placement === 'all' ? (
+                                                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border border-indigo-200/60 inline-flex items-center gap-1">
+                                                    <span>🌐</span> Both
+                                                </span>
+                                            ) : (
+                                                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200/60 inline-flex items-center gap-1">
+                                                    <span>🏷️</span> Sponsored Ad
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${STATUS_STYLES[banner.status] || 'bg-slate-100 dark:bg-neutral-900 text-gray-700'}`}>
@@ -354,7 +377,7 @@ export default function AdminHomepageBannersPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex gap-1.5">
-                                                {banner.status !== 'active' && banner.status !== 'expired' && (
+                                                {banner.status !== 'expired' && (
                                                     <button
                                                         onClick={() => openEditModal(banner)}
                                                         className="p-2 text-orange-600 hover:bg-orange-50 rounded"
@@ -533,6 +556,22 @@ export default function AdminHomepageBannersPage() {
                                     <img src={form.mobile_image_url} alt="" className="mt-2 w-full h-20 object-cover rounded-lg" />
                                 )}
                             </div>
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-bold text-slate-600 dark:text-neutral-200 block mb-1">Ad Placement</label>
+                            <select
+                                value={form.placement || 'sponsored'}
+                                onChange={(e) => setForm((f) => ({ ...f, placement: e.target.value as any }))}
+                                className="w-full rounded-xl border border-slate-200 dark:border-neutral-800 px-3 py-2.5 text-sm mb-1 bg-white dark:bg-neutral-900"
+                            >
+                                <option value="sponsored">🏷️ Sponsored Ads (Homepage Cards)</option>
+                                <option value="hero">🌟 Main Hero Ad (Top Banner Carousel)</option>
+                                <option value="all">🌐 Both (Hero & Sponsored Cards)</option>
+                            </select>
+                            <p className="text-[11px] text-slate-400">
+                                Choose whether this ad appears in the Sponsored Deals card strip, as the primary Hero slide, or both.
+                            </p>
                         </div>
 
                         <div>

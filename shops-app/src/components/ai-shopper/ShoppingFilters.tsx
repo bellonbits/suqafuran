@@ -1,5 +1,5 @@
 import React from 'react';
-import { SlidersHorizontal, Check } from 'lucide-react';
+import { SlidersHorizontal, Check, X } from 'lucide-react';
 
 interface ShoppingFiltersProps {
   activeFilters: {
@@ -47,13 +47,21 @@ export const ShoppingFilters: React.FC<ShoppingFiltersProps> = ({
     onFilterChange(updated);
   };
 
+  const handleClearAll = () => {
+    onFilterChange({});
+  };
+
+  const hasActiveFilters = Object.values(activeFilters).some(v => v !== undefined && v !== false);
+
   return (
-    <div className={`flex items-center gap-2 overflow-x-auto hide-scrollbar py-1 ${className}`}>
-      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-neutral-400 shrink-0 mr-1">
-        <SlidersHorizontal className="w-3.5 h-3.5" />
-        <span>Filters:</span>
+    <div className={`w-full min-w-0 flex items-center gap-2 overflow-x-auto hide-scrollbar py-2 px-1 ${className}`}>
+      {/* Filters Label Pill */}
+      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-200/80 dark:bg-neutral-800 text-xs font-bold text-slate-700 dark:text-neutral-200 shrink-0 select-none">
+        <SlidersHorizontal className="w-3.5 h-3.5 text-[#00BFFF]" />
+        <span>Filters</span>
       </div>
 
+      {/* Filter Pill Buttons */}
       {FILTER_PILLS.map((pill, idx) => {
         let isActive = false;
         if (pill.type === 'maxPrice') isActive = activeFilters.maxPrice === pill.value;
@@ -66,18 +74,29 @@ export const ShoppingFilters: React.FC<ShoppingFiltersProps> = ({
             key={idx}
             type="button"
             onClick={() => handleToggle(pill.type, pill.value)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 border transition-all cursor-pointer flex items-center gap-1 ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-medium shrink-0 border transition-all cursor-pointer inline-flex items-center gap-1.5 select-none active:scale-95 ${
               isActive
-                ? 'bg-[#00BFFF] text-white border-[#00BFFF] shadow-xs'
-                : 'bg-white dark:bg-neutral-900 text-slate-700 dark:text-neutral-300 border-slate-200 dark:border-neutral-800 hover:border-[#00BFFF]'
+                ? 'bg-[#00BFFF] hover:bg-[#02CCFE] text-white border-[#00BFFF] font-bold shadow-xs'
+                : 'bg-slate-100 hover:bg-slate-200/80 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 border-slate-200/70 dark:border-neutral-700/70 hover:border-[#00BFFF]/50'
             }`}
           >
-            {isActive && <Check className="w-3 h-3 text-white" />}
+            {isActive && <Check className="w-3 h-3 text-white stroke-[2.5]" />}
             <span>{pill.label}</span>
           </button>
         );
       })}
+
+      {/* Clear Filters Reset Pill */}
+      {hasActiveFilters && (
+        <button
+          type="button"
+          onClick={handleClearAll}
+          className="px-3.5 py-1.5 rounded-full text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-900/80 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-all cursor-pointer flex items-center gap-1 shrink-0 ml-auto"
+        >
+          <X className="w-3 h-3 stroke-[2.5]" />
+          <span>Reset</span>
+        </button>
+      )}
     </div>
   );
 };
-

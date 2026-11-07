@@ -111,6 +111,7 @@ class HomepageBanner(SQLModel, table=True):
     start_date: datetime = Field(index=True)
     end_date: datetime = Field(index=True)
     priority: int = Field(default=50)  # 1-100, higher = shown first in rotation
+    placement: str = Field(default="sponsored", index=True)  # "hero", "sponsored", or "all"
 
     status: BannerStatus = Field(default=BannerStatus.DRAFT, index=True)
 

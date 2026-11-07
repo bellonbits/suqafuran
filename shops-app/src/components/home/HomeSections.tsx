@@ -336,7 +336,7 @@ const PosterCard: React.FC<{
 }> = ({ to, image, imagePosition, scrim, accent, title, subtitle, cta, ctaClass }) => (
   <Link
     to={to}
-    className="group relative block aspect-video overflow-hidden rounded-2xl bg-gray-200 shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+    className="group relative block aspect-[3/2] overflow-hidden rounded-2xl bg-gray-200 shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
   >
     <img
       src={image}

@@ -31,6 +31,7 @@ class BannerDisplayResponse(BaseModel):
     button_text: str
     button_link: str
     priority: int
+    placement: str = "sponsored"
 
 
 class FeaturedCheckResponse(BaseModel):
@@ -46,20 +47,36 @@ class FeaturedCheckResponse(BaseModel):
 @router.get("/active-banners", response_model=List[BannerDisplayResponse])
 def get_active_banners(
     db: Session = Depends(deps.get_db),
+    placement: str | None = None,
 ) -> Any:
     """
     Get active homepage banners for rotation (public endpoint).
+    Optionally filter by placement: 'hero', 'sponsored', or all.
     Returns banners sorted by priority.
     """
     now = datetime.utcnow()
 
+    conditions = [
+        HomepageBanner.status == BannerStatus.ACTIVE,
+        HomepageBanner.start_date <= now,
+        HomepageBanner.end_date > now,
+    ]
+
+    if placement:
+        if placement == "hero":
+            conditions.append(
+                (HomepageBanner.placement == "hero") | (HomepageBanner.placement == "all")
+            )
+        elif placement == "sponsored":
+            conditions.append(
+                (HomepageBanner.placement == "sponsored") | (HomepageBanner.placement == "all") | (HomepageBanner.placement.is_(None))
+            )
+        else:
+            conditions.append(HomepageBanner.placement == placement)
+
     query = (
         select(HomepageBanner)
-        .where(
-            HomepageBanner.status == BannerStatus.ACTIVE,
-            HomepageBanner.start_date <= now,
-            HomepageBanner.end_date > now,
-        )
+        .where(*conditions)
         .order_by(HomepageBanner.priority.desc())
     )
 
@@ -75,6 +92,7 @@ def get_active_banners(
             button_text=banner.button_text or "Shop Now",
             button_link=banner.button_link or "/shops",
             priority=banner.priority or 0,
+            placement=getattr(banner, "placement", "sponsored") or "sponsored",
         )
         for banner in banners
     ]

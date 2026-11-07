@@ -245,19 +245,19 @@ Please confirm availability so we can arrange delivery and payment. Thank you!`;
     <div className="min-h-[calc(100vh-8rem)] bg-slate-50/60 dark:bg-black py-6 sm:py-10">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Navigation & Header */}
-        <div className="flex items-center justify-between pb-6 border-b border-gray-200/80 dark:border-neutral-800">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between pb-5 border-b border-gray-200/80 dark:border-neutral-800 gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <button
               onClick={() => navigate(-1)}
-              className="p-2 rounded-full hover:bg-white dark:hover:bg-neutral-900 border border-transparent hover:border-gray-200 dark:hover:border-neutral-800 transition-colors"
+              className="p-2 rounded-full hover:bg-white dark:hover:bg-neutral-900 border border-transparent hover:border-gray-200 dark:hover:border-neutral-800 transition-colors shrink-0"
               aria-label="Go back"
             >
               <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-neutral-300" />
             </button>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white flex items-center gap-2.5">
-                <ShoppingCart className="w-7 h-7 text-[#0078E8]" />
-                Shopping Cart
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-3xl font-black text-gray-900 dark:text-white flex items-center gap-2 tracking-tight">
+                <ShoppingCart className="w-6 h-6 sm:w-7 sm:h-7 text-[#0078E8] shrink-0" />
+                <span className="truncate">Shopping Cart</span>
               </h1>
               <p className="text-xs sm:text-sm text-gray-500 dark:text-neutral-400 font-medium mt-0.5">
                 {totalCount} {totalCount === 1 ? 'item' : 'items'} in your cart
@@ -272,10 +272,10 @@ Please confirm availability so we can arrange delivery and payment. Thank you!`;
                   clearCart();
                 }
               }}
-              className="text-xs font-bold text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+              className="text-xs font-bold text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors shrink-0 whitespace-nowrap"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              Clear Cart
+              <span>Clear Cart</span>
             </button>
           )}
         </div>
@@ -311,28 +311,31 @@ Please confirm availability so we can arrange delivery and payment. Thank you!`;
                   className="bg-white dark:bg-neutral-950 rounded-3xl border border-gray-100 dark:border-neutral-800 shadow-sm overflow-hidden"
                 >
                   {/* Seller Header */}
-                  <div className="px-5 py-3.5 bg-slate-50/80 dark:bg-neutral-900/60 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-orange-100 dark:bg-orange-950/40 text-orange-600 flex items-center justify-center font-black text-xs">
+                  <div className="px-4 sm:px-5 py-3 sm:py-3.5 bg-slate-50/80 dark:bg-neutral-900/60 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <div className="w-8 h-8 rounded-xl bg-orange-100 dark:bg-orange-950/40 text-orange-600 flex items-center justify-center font-black text-xs shrink-0">
                         {group.sellerAvatar ? (
                           <img src={resolveMediaUrl(group.sellerAvatar)} alt="" className="w-full h-full object-cover rounded-xl" />
                         ) : (
                           <Store className="w-4 h-4" />
                         )}
                       </div>
-                      <div>
-                        <h2 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-                          {group.sellerName}
-                          <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 px-1.5 py-0.5 rounded-md">
-                            <ShieldCheck className="w-3 h-3" /> Verified Shop
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white truncate max-w-[130px] xs:max-w-[170px] sm:max-w-none">
+                            {group.sellerName}
                           </span>
-                        </h2>
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap">
+                            <ShieldCheck className="w-3 h-3 shrink-0" />
+                            <span>Verified</span>
+                          </span>
+                        </div>
                       </div>
                     </div>
 
                     <Link
                       to={`/shop/${group.sellerId}`}
-                      className="text-xs font-bold text-[#0078E8] hover:underline"
+                      className="text-xs font-bold text-[#0078E8] hover:underline shrink-0 whitespace-nowrap px-2 py-1 rounded-md hover:bg-blue-50 dark:hover:bg-blue-950/30"
                     >
                       Visit Shop
                     </Link>
@@ -345,11 +348,11 @@ Please confirm availability so we can arrange delivery and payment. Thank you!`;
                       const displayImg = resolveMediaUrl(itemImg);
 
                       return (
-                        <div key={item.id} className="p-3 sm:p-4 flex gap-3.5 sm:gap-4 items-center">
+                        <div key={item.id} className="p-3 sm:p-4 flex gap-3 sm:gap-4 items-center">
                           {/* Thumbnail */}
                           <Link
                             to={`/listing/${item.id}`}
-                            className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-slate-100 dark:bg-neutral-900 shrink-0 overflow-hidden border border-slate-200/70 dark:border-neutral-800 block"
+                            className="w-16 h-16 sm:w-24 sm:h-24 rounded-2xl bg-slate-100 dark:bg-neutral-900 shrink-0 overflow-hidden border border-slate-200/70 dark:border-neutral-800 block"
                           >
                             {displayImg ? (
                               <img
@@ -368,55 +371,55 @@ Please confirm availability so we can arrange delivery and payment. Thank you!`;
                           <div className="flex-1 min-w-0 space-y-1">
                             <Link
                               to={`/listing/${item.id}`}
-                              className="text-sm font-bold text-gray-900 dark:text-white hover:text-[#0078E8] line-clamp-2 transition-colors block"
+                              className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white hover:text-[#0078E8] line-clamp-1 sm:line-clamp-2 transition-colors block"
                             >
                               {item.title || item.title_en || 'Product Listing'}
                             </Link>
 
-                            <p className="text-sm font-extrabold text-[#0078E8]">
+                            <p className="text-xs sm:text-sm font-extrabold text-[#0078E8]">
                               KSh {(item.price || 0).toLocaleString()}
                             </p>
 
                             {/* Quantity & Remove Buttons */}
-                            <div className="flex items-center gap-3 pt-1">
+                            <div className="flex items-center gap-2 sm:gap-3 pt-1">
                               <div className="flex items-center border border-gray-200 dark:border-neutral-800 rounded-xl bg-slate-50 dark:bg-neutral-900 overflow-hidden">
                                 <button
                                   type="button"
                                   onClick={() => updateQuantity(item.id, (item.quantity || 1) - 1)}
-                                  className="w-7 h-7 flex items-center justify-center text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-800 active:scale-95 transition-all"
+                                  className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-800 active:scale-95 transition-all"
                                   aria-label="Decrease quantity"
                                 >
-                                  <Minus className="w-3.5 h-3.5" />
+                                  <Minus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                                 </button>
-                                <span className="w-8 text-center text-xs font-bold text-gray-900 dark:text-white">
+                                <span className="w-7 sm:w-8 text-center text-xs font-bold text-gray-900 dark:text-white">
                                   {item.quantity || 1}
                                 </span>
                                 <button
                                   type="button"
                                   onClick={() => updateQuantity(item.id, (item.quantity || 1) + 1)}
-                                  className="w-7 h-7 flex items-center justify-center text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-800 active:scale-95 transition-all"
+                                  className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-800 active:scale-95 transition-all"
                                   aria-label="Increase quantity"
                                 >
-                                  <Plus className="w-3.5 h-3.5" />
+                                  <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                                 </button>
                               </div>
 
                               <button
                                 type="button"
                                 onClick={() => removeItem(item.id)}
-                                className="text-gray-400 hover:text-red-500 p-1.5 transition-colors"
+                                className="text-gray-400 hover:text-red-500 p-1 transition-colors"
                                 title="Remove item"
                                 aria-label="Remove item"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                               </button>
                             </div>
                           </div>
 
                           {/* Line total */}
-                          <div className="text-right shrink-0">
-                            <span className="text-xs text-gray-400 block font-medium">Subtotal</span>
-                            <span className="text-sm font-black text-gray-900 dark:text-white">
+                          <div className="text-right shrink-0 pl-1">
+                            <span className="text-[11px] sm:text-xs text-gray-400 block font-medium">Subtotal</span>
+                            <span className="text-xs sm:text-sm font-black text-gray-900 dark:text-white whitespace-nowrap">
                               KSh {((item.price || 0) * (item.quantity || 1)).toLocaleString()}
                             </span>
                           </div>

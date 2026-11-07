@@ -68,10 +68,10 @@ export const AIResponse: React.FC<AIResponseProps> = ({
                 key={idx}
                 type="button"
                 onClick={() => onSelectFollowup?.(f)}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-white dark:bg-neutral-900 hover:bg-[#00BFFF]/10 hover:text-[#00BFFF] text-slate-700 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700 hover:border-[#00BFFF] transition-all cursor-pointer shadow-xs active:scale-95"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-white dark:bg-neutral-900 hover:bg-[#00BFFF]/10 hover:text-[#00BFFF] text-slate-700 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700 hover:border-[#00BFFF] transition-all cursor-pointer shadow-xs active:scale-95 text-left"
               >
                 <span>{f}</span>
-                <ArrowRight className="w-3 h-3 text-[#00BFFF]" />
+                <ArrowRight className="w-3 h-3 text-[#00BFFF] shrink-0" />
               </button>
             ))}
           </div>

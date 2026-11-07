@@ -57,6 +57,14 @@ export const BottomNavigation: React.FC = () => {
     return pathname === href || pathname.startsWith(href + '/');
   };
 
+  if (
+    pathname?.startsWith('/seller-dashboard') ||
+    pathname?.startsWith('/admin') ||
+    pathname?.startsWith('/listing/')
+  ) {
+    return null;
+  }
+
   return (
     <nav className="fixed bottom-0 inset-x-0 sm:hidden z-40 pb-[env(safe-area-inset-bottom,0px)] bg-white/90 dark:bg-neutral-950/90 backdrop-blur-xl border-t border-gray-200/70 dark:border-neutral-800/70 shadow-[0_-4px_25px_rgba(0,0,0,0.08)]">
       <div className="max-w-md mx-auto px-2 py-2">
