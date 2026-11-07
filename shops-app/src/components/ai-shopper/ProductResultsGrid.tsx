@@ -101,3 +101,4 @@ export const ProductResultsGrid: React.FC<ProductResultsGridProps> = ({
     </div>
   );
 };
+

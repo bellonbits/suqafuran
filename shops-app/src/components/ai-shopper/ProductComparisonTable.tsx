@@ -187,3 +187,4 @@ export const ProductComparisonTable: React.FC<ProductComparisonTableProps> = ({
     </div>
   );
 };
+

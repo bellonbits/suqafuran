@@ -118,3 +118,4 @@ export const AIShopperChat: React.FC<AIShopperChatProps> = ({
     </div>
   );
 };
+

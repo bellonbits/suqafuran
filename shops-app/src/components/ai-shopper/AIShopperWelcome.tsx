@@ -42,3 +42,4 @@ export const AIShopperWelcome: React.FC<AIShopperWelcomeProps> = ({
     </motion.div>
   );
 };
+

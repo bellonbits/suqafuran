@@ -127,3 +127,4 @@ export const AIShopperInput: React.FC<AIShopperInputProps> = ({
     </form>
   );
 };
+

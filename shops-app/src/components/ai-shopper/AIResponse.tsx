@@ -53,3 +53,4 @@ export const AIResponse: React.FC<AIResponseProps> = ({
     </div>
   );
 };
+

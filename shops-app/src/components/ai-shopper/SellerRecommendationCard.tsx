@@ -50,3 +50,4 @@ export const SellerRecommendationCard: React.FC<SellerRecommendationCardProps> =
     </div>
   );
 };
+

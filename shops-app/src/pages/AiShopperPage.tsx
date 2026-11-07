@@ -31,8 +31,8 @@ import { optimizeCloudinaryUrl } from '@/services/api';
 export default function AiShopperPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { addItem, getItemCount } = useCart();
-  const cartCount = getItemCount();
+  const { addItem, items } = useCart();
+  const cartCount = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
 
   // URL Query
   const urlQuery = searchParams.get('q') || '';

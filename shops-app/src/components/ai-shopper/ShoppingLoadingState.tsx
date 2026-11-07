@@ -20,3 +20,4 @@ export const ShoppingLoadingState: React.FC = () => {
     </div>
   );
 };
+

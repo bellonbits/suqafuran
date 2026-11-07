@@ -80,3 +80,4 @@ export const ShoppingFilters: React.FC<ShoppingFiltersProps> = ({
     </div>
   );
 };
+
