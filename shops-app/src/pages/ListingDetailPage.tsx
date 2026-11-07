@@ -856,7 +856,7 @@ export default function ProductDetailPage() {
 
             {/* Sticky mobile action bar */}
             {!isSold && (
-                <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border-t border-gray-200 dark:border-neutral-800 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center gap-2 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
+                <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border-t border-gray-200 dark:border-neutral-800 px-3 py-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center gap-2 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
                     <div className="flex-shrink-0 pr-1">
                         <div className="text-sm font-black text-gray-900 dark:text-white whitespace-nowrap">
                             {formatConvertedPrice(listing?.price ?? 0, listing.currency || 'KES', displayCurrency)}
@@ -865,14 +865,14 @@ export default function ProductDetailPage() {
                     <button
                         onClick={handleAddToCart}
                         aria-label={addedToCart ? 'Added to Cart' : 'Add to Cart'}
-                        className={`px-3 py-2.5 rounded-full border-2 flex items-center justify-center font-bold text-xs transition-all ${
+                        className={`h-10 px-3 rounded-full border-2 flex items-center justify-center font-bold text-xs shrink-0 transition-all ${
                             addedToCart
                                 ? 'bg-emerald-600 border-emerald-600 text-white'
                                 : 'border-gray-900 dark:border-white text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-900'
                         }`}
                     >
-                        <ShoppingCart className="h-4 w-4 mr-1" />
-                        <span>{addedToCart ? 'Added' : 'Cart'}</span>
+                        <ShoppingCart className="h-3.5 w-3.5 mr-1 shrink-0" />
+                        <span className="whitespace-nowrap">{addedToCart ? 'Added' : 'Cart'}</span>
                     </button>
                     <button
                         onClick={() => {
@@ -881,10 +881,10 @@ export default function ProductDetailPage() {
                             setOfferAmount(String(listing.price || ''));
                             setShowOfferModal(true);
                         }}
-                        className="flex-1 flex items-center justify-center gap-1.5 rounded-full border-2 border-orange-500 text-orange-600 dark:text-orange-400 font-black py-2.5 text-xs active:scale-95 transition-transform"
+                        className="flex-1 h-10 px-2.5 min-[360px]:px-3 min-w-0 flex items-center justify-center gap-1.5 rounded-full border-2 border-orange-500 text-orange-600 dark:text-orange-400 font-black text-[11px] min-[360px]:text-xs active:scale-95 transition-transform whitespace-nowrap shadow-xs"
                     >
-                        <Tag className="h-4 w-4" />
-                        Make Offer
+                        <Tag className="h-3.5 w-3.5 shrink-0" />
+                        <span>Make Offer</span>
                     </button>
                     <Link
                         href={`/messages?userId=${listing.owner_id}&productId=${listing.id}`}
@@ -894,10 +894,10 @@ export default function ProductDetailPage() {
                             shop_id: listing.owner_id,
                             device_type: analyticsService.getDeviceType(),
                         }).catch(() => {})}
-                        className="flex-1 flex items-center justify-center gap-1.5 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-black py-2.5 text-xs active:scale-95 transition-transform"
+                        className="flex-1 h-10 px-2.5 min-[360px]:px-3 min-w-0 flex items-center justify-center gap-1.5 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-black text-[11px] min-[360px]:text-xs active:scale-95 transition-transform whitespace-nowrap shadow-xs"
                     >
-                        <MessageSquare className="h-4 w-4" />
-                        Chat with Seller
+                        <MessageSquare className="h-3.5 w-3.5 shrink-0" />
+                        <span>Chat with Seller</span>
                     </Link>
                 </div>
             )}

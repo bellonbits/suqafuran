@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { ShoppingBag, MapPin, User, ShieldCheck, ChevronRight, CheckCheck, Package, ExternalLink, Sparkles } from 'lucide-react';
+import { ShoppingBag, MapPin, User, ShieldCheck, ChevronRight, CheckCheck, Package, ExternalLink, Sparkles, MessageSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { listingsService } from '@/services/listings';
 import { optimizeCloudinaryUrl } from '@/services/api';
@@ -71,17 +71,21 @@ export const OrderReceiptBubble: React.FC<OrderReceiptBubbleProps> = ({ content,
       });
     }
 
-    // 10. Extract friendly message body
+    // 10. Extract friendly message body (fully preserved)
     let displayMessage = '';
-    if (items.length > 0) {
+    const cleanWithoutHeaders = cleanContent
+      .replace(/🛍️\s*(?:NEW ORDER INQUIRY|INQUIRY)[^\n\r]*/gi, '')
+      .replace(/----------------------------------------[\s\S]*?----------------------------------------/gi, '')
+      .trim();
+
+    if (cleanWithoutHeaders) {
+      displayMessage = cleanWithoutHeaders;
+    } else if (items.length > 0) {
       displayMessage = `I would like to purchase the following item${items.length > 1 ? 's' : ''} from your shop:`;
-    } else if (cleanContent.includes('Hi! 👋') || cleanContent.includes('available?')) {
-      displayMessage = `Hi! I just came across your listing — is this item still available?`;
     } else {
-      displayMessage = cleanContent
-        .replace(/🛍️\s*(?:NEW ORDER INQUIRY|INQUIRY)[^\n\r]*/gi, '')
-        .replace(/----------------------------------------[\s\S]*?----------------------------------------/gi, '')
-        .trim();
+      displayMessage = inquiryTitle
+        ? `Hi! 👋 I just came across your listing for "${inquiryTitle}" — is it still available? I'd love to know a bit more.`
+        : `Hi! I'm interested in this product — is it still available?`;
     }
 
     return {
@@ -99,24 +103,24 @@ export const OrderReceiptBubble: React.FC<OrderReceiptBubbleProps> = ({ content,
 
   // Load listing image and title in background if not already embedded
   useEffect(() => {
-    if (parsed.productImage) return;
+    if (parsed.productImage && parsed.inquiryTitle) return;
     if (!listingId) return;
 
     listingsService.getListing(listingId)
       .then((l) => {
-        if (l?.images?.[0]) setFetchedImage(l.images[0]);
-        if (l?.title) setFetchedTitle(l.title);
+        if (!parsed.productImage && l?.images?.[0]) setFetchedImage(l.images[0]);
+        if (!parsed.inquiryTitle && l?.title) setFetchedTitle(l.title);
       })
       .catch(() => {});
-  }, [listingId, parsed.productImage]);
+  }, [listingId, parsed.productImage, parsed.inquiryTitle]);
 
   const activeImage = parsed.productImage || fetchedImage;
   const primaryTitle = parsed.inquiryTitle || fetchedTitle || (parsed.items.length > 0 ? parsed.items[0].title : 'Featured Product');
 
   return (
-    <div className="w-full max-w-[420px] sm:max-w-[460px] bg-white dark:bg-neutral-900 border border-slate-200/90 dark:border-neutral-800 rounded-3xl p-4 sm:p-5 shadow-[0_12px_40px_-10px_rgba(0,0,0,0.07)] text-slate-900 dark:text-neutral-50 transition-all select-text space-y-3">
+    <div className="w-full max-w-[420px] sm:max-w-[460px] bg-white dark:bg-neutral-900 border border-slate-200/90 dark:border-neutral-800 rounded-3xl p-4 sm:p-5 shadow-[0_12px_40px_-10px_rgba(0,0,0,0.07)] text-slate-900 dark:text-neutral-50 transition-all select-text space-y-3.5">
       {/* Top Header Row */}
-      <div className="flex items-center justify-between pb-1">
+      <div className="flex items-center justify-between pb-0.5">
         <div className="flex items-center gap-1.5">
           <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
             isMe 
@@ -148,106 +152,97 @@ export const OrderReceiptBubble: React.FC<OrderReceiptBubbleProps> = ({ content,
         </span>
       </div>
 
-      {/* Main Content Area: Halo Image on Left + Inner Rounded Message Box on Right */}
-      <div className="flex items-start gap-3 sm:gap-3.5">
-        {/* Glowing Halo Product Image (Matches Screenshot Design) */}
-        <div className="shrink-0 relative group">
-          <div className="p-[3px] rounded-2xl bg-gradient-to-tr from-sky-400 via-indigo-400 to-pink-400 shadow-[0_0_20px_rgba(168,85,247,0.35)] transition-transform duration-200 group-hover:scale-105">
-            <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-[13px] overflow-hidden bg-white dark:bg-neutral-950 flex items-center justify-center">
-              {activeImage ? (
-                <img
-                  src={optimizeCloudinaryUrl(activeImage, { width: 140 }) || activeImage}
-                  alt={primaryTitle}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white">
-                  <ShoppingBag className="w-6 h-6" />
-                </div>
-              )}
+      {/* Clean Product Card without tacky gradient halo */}
+      <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-slate-50/90 dark:bg-neutral-800/60 border border-slate-200/80 dark:border-neutral-700/70">
+        <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-xl overflow-hidden bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-700 shrink-0 shadow-xs flex items-center justify-center">
+          {activeImage ? (
+            <img
+              src={optimizeCloudinaryUrl(activeImage, { width: 180 }) || activeImage}
+              alt={primaryTitle}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-400">
+              <ShoppingBag className="w-6 h-6" />
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Inner Message Box (Matches the soft gray rounded container from reference image) */}
-        <div className="flex-1 min-w-0 bg-slate-50 dark:bg-neutral-800/60 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-neutral-800 space-y-2">
-          <div>
-            <p className="text-xs text-slate-600 dark:text-neutral-300 leading-snug">
-              Hi, I'm interested in:
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+            Product
+          </p>
+          <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white line-clamp-2 leading-snug mt-0.5">
+            {primaryTitle}
+          </h4>
+          {parsed.total ? (
+            <p className="text-xs font-black text-[#0078E8] dark:text-sky-400 mt-1">
+              KSh {parsed.total}
             </p>
-            <p className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate mt-0.5">
-              {primaryTitle}
-            </p>
-          </div>
-
-          {/* If multi-item order inquiry */}
-          {parsed.items.length > 0 && (
-            <div className="space-y-1 pt-1 border-t border-slate-200/60 dark:border-neutral-700/60">
-              {parsed.items.map((it, idx) => (
-                <div key={idx} className="flex items-center justify-between text-[11px] font-semibold text-slate-700 dark:text-neutral-200">
-                  <span className="truncate pr-2">
-                    <span className="font-extrabold text-[#0078E8]">{it.quantity}x</span> {it.title}
-                  </span>
-                  <span className="font-bold text-slate-900 dark:text-white shrink-0">
-                    KSh {it.price}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Buyer Note if present */}
-          {parsed.note && (
-            <p className="text-[11px] italic text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 rounded-xl px-2.5 py-1">
-              Note: "{parsed.note}"
-            </p>
-          )}
+          ) : listingId ? (
+            <Link
+              to={`/listing/${listingId}`}
+              className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0078E8] dark:text-sky-400 hover:underline mt-1"
+            >
+              <span>View listing</span>
+              <ExternalLink className="w-3 h-3" />
+            </Link>
+          ) : null}
         </div>
       </div>
 
-      {/* Secondary Bottom Box (Matches "You can contact me here" in reference screenshot) */}
-      <div className="bg-slate-50/90 dark:bg-neutral-800/60 rounded-2xl p-3 sm:p-3.5 border border-slate-100/90 dark:border-neutral-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <div className="space-y-0.5 min-w-0">
-          {parsed.total ? (
-            <div className="text-xs font-bold text-slate-700 dark:text-neutral-300">
-              Total: <span className="text-sm font-black text-[#0078E8] dark:text-sky-400">KSh {parsed.total}</span>
-            </div>
-          ) : (
-            <div className="text-xs font-bold text-slate-700 dark:text-neutral-300">
-              Direct Peer-to-Peer Inquiry
-            </div>
-          )}
-
-          {parsed.location && (
-            <div className="flex items-center gap-1 text-[11px] text-gray-500 dark:text-neutral-400 truncate">
-              <MapPin className="w-3 h-3 text-orange-500 shrink-0" />
-              <span>Meetup: <strong>{parsed.location}</strong></span>
-            </div>
-          )}
+      {/* Prominent, Creative & Fully Visible Message Bubble */}
+      <div className="bg-slate-50/80 dark:bg-neutral-800/50 rounded-2xl p-3 sm:p-3.5 border border-slate-100 dark:border-neutral-800 space-y-2">
+        <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-neutral-400">
+          <MessageSquare className="w-3.5 h-3.5 text-[#0078E8]" />
+          <span>Message:</span>
         </div>
+        <p className="text-xs sm:text-sm text-slate-800 dark:text-neutral-100 font-normal leading-relaxed break-words">
+          {parsed.displayMessage}
+        </p>
+
+        {/* Multi-item breakdown if Cart inquiry */}
+        {parsed.items.length > 0 && (
+          <div className="space-y-1.5 pt-2 mt-2 border-t border-slate-200/60 dark:border-neutral-700/60">
+            {parsed.items.map((it, idx) => (
+              <div key={idx} className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-neutral-200">
+                <span className="truncate pr-2">
+                  <span className="font-extrabold text-[#0078E8]">{it.quantity}x</span> {it.title}
+                </span>
+                <span className="font-bold text-slate-900 dark:text-white shrink-0">
+                  KSh {it.price}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Buyer Note if present */}
+        {parsed.note && (
+          <p className="text-[11px] italic text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 rounded-xl px-2.5 py-1.5 border border-amber-200/50 dark:border-amber-900/40">
+            Note: "{parsed.note}"
+          </p>
+        )}
+      </div>
+
+      {/* Secondary Bottom Info & Safety Footer */}
+      <div className="flex items-center justify-between pt-0.5 px-1 text-[10px] text-gray-500 dark:text-neutral-400">
+        <span className="flex items-center gap-1 font-medium">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+          Inspect products before payment
+        </span>
 
         {listingId ? (
           <Link
             to={`/listing/${listingId}`}
-            className="inline-flex items-center gap-1 text-xs font-bold text-slate-900 dark:text-white hover:text-[#0078E8] dark:hover:text-sky-400 transition-colors shrink-0"
+            className="inline-flex items-center gap-0.5 font-bold text-[#0078E8] dark:text-sky-400 hover:underline"
           >
-            <span>View details <strong className="underline underline-offset-2">here</strong></span>
-            <ExternalLink className="w-3.5 h-3.5 ml-0.5 text-[#0078E8]" />
+            <span>Details</span>
+            <ChevronRight className="w-3 h-3" />
           </Link>
         ) : (
-          <span className="text-xs font-bold text-slate-800 dark:text-neutral-200">
-            Confirm deal in chat
-          </span>
+          <span className="font-semibold text-gray-400 dark:text-neutral-500">Suqafuran Deals</span>
         )}
-      </div>
-
-      {/* Micro Safety Footer */}
-      <div className="flex items-center justify-between px-1 text-[9px] text-gray-400 dark:text-neutral-500">
-        <span className="flex items-center gap-1 font-medium">
-          <ShieldCheck className="w-3 h-3 text-emerald-500" />
-          Inspect products before payment
-        </span>
-        <span className="font-semibold">Suqafuran Deals</span>
       </div>
     </div>
   );
