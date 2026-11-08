@@ -22,16 +22,19 @@ interface OrderReceiptBubbleProps {
 export const OrderReceiptBubble: React.FC<OrderReceiptBubbleProps> = ({ content, isMe, listingId }) => {
   const [fetchedImage, setFetchedImage] = useState<string | null>(null);
   const [fetchedTitle, setFetchedTitle] = useState<string | null>(null);
+  const [fetchedPrice, setFetchedPrice] = useState<string | null>(null);
 
   const parsed = useMemo(() => {
     // 1. Extract embedded product image tag [PRODUCT_IMAGE]: url or [IMAGE]: url
     const imgMatch = content.match(/\[PRODUCT_IMAGE\]:\s*([^\n\r]+)/i) || content.match(/\[IMAGE\]:\s*([^\n\r]+)/i);
     const rawImage = imgMatch ? imgMatch[1].trim() : '';
 
-    // 2. Clean content to remove system tags for display
+    // 2. Clean content to remove system tags and accidental duplicate URLs for display
     const cleanContent = content
       .replace(/\[PRODUCT_IMAGE\]:\s*[^\n\r]+/gi, '')
       .replace(/\[IMAGE\]:\s*[^\n\r]+/gi, '')
+      .replace(/https?:\/\/[^\s]+suqafuran\.com\/listing\/\d+/gi, '')
+      .replace(/View details here/gi, '')
       .trim();
 
     // 3. Extract Order Number
@@ -101,21 +104,23 @@ export const OrderReceiptBubble: React.FC<OrderReceiptBubbleProps> = ({ content,
     };
   }, [content]);
 
-  // Load listing image and title in background if not already embedded
+  // Load listing image, title, and price in background if not already embedded
   useEffect(() => {
-    if (parsed.productImage && parsed.inquiryTitle) return;
+    if (parsed.productImage && parsed.inquiryTitle && (parsed.total || fetchedPrice)) return;
     if (!listingId) return;
 
     listingsService.getListing(listingId)
       .then((l) => {
         if (!parsed.productImage && l?.images?.[0]) setFetchedImage(l.images[0]);
         if (!parsed.inquiryTitle && l?.title) setFetchedTitle(l.title);
+        if (!parsed.total && l?.price) setFetchedPrice(Number(l.price).toLocaleString());
       })
       .catch(() => {});
-  }, [listingId, parsed.productImage, parsed.inquiryTitle]);
+  }, [listingId, parsed.productImage, parsed.inquiryTitle, parsed.total, fetchedPrice]);
 
   const activeImage = parsed.productImage || fetchedImage;
   const primaryTitle = parsed.inquiryTitle || fetchedTitle || (parsed.items.length > 0 ? parsed.items[0].title : 'Featured Product');
+  const displayTotal = parsed.total || fetchedPrice;
 
   return (
     <div className="w-full max-w-[420px] sm:max-w-[460px] bg-white dark:bg-neutral-900 border border-slate-200/90 dark:border-neutral-800 rounded-3xl p-4 sm:p-5 shadow-[0_12px_40px_-10px_rgba(0,0,0,0.07)] text-slate-900 dark:text-neutral-50 transition-all select-text space-y-3.5">
@@ -175,19 +180,22 @@ export const OrderReceiptBubble: React.FC<OrderReceiptBubbleProps> = ({ content,
           <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white line-clamp-2 leading-snug mt-0.5">
             {primaryTitle}
           </h4>
-          {parsed.total ? (
-            <p className="text-xs font-black text-[#0078E8] dark:text-sky-400 mt-1">
-              KSh {parsed.total}
-            </p>
-          ) : listingId ? (
-            <Link
-              to={`/listing/${listingId}`}
-              className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0078E8] dark:text-sky-400 hover:underline mt-1"
-            >
-              <span>View listing</span>
-              <ExternalLink className="w-3 h-3" />
-            </Link>
-          ) : null}
+          <div className="flex items-center justify-between gap-2 mt-1">
+            {displayTotal ? (
+              <p className="text-xs font-black text-[#0078E8] dark:text-sky-400">
+                KSh {displayTotal}
+              </p>
+            ) : <span />}
+            {listingId && (
+              <Link
+                to={`/listing/${listingId}`}
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0078E8] dark:text-sky-400 hover:text-[#005fb8] hover:underline"
+              >
+                <span>View Product</span>
+                <ExternalLink className="w-3 h-3" />
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 
@@ -231,18 +239,7 @@ export const OrderReceiptBubble: React.FC<OrderReceiptBubbleProps> = ({ content,
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
           Inspect products before payment
         </span>
-
-        {listingId ? (
-          <Link
-            to={`/listing/${listingId}`}
-            className="inline-flex items-center gap-0.5 font-bold text-[#0078E8] dark:text-sky-400 hover:underline"
-          >
-            <span>Details</span>
-            <ChevronRight className="w-3 h-3" />
-          </Link>
-        ) : (
-          <span className="font-semibold text-gray-400 dark:text-neutral-500">Suqafuran Deals</span>
-        )}
+        <span className="font-semibold text-gray-400 dark:text-neutral-500">Suqafuran Deals</span>
       </div>
     </div>
   );

@@ -30,9 +30,8 @@ import type { ChatMessage, Listing } from '@/types';
 // something concrete (availability) is what actually earns a reply -- this
 // is the one thing every "contact seller" tap has in common, so it's the
 // one line worth writing well instead of leaving to a generic placeholder.
-function buildOpeningMessage(productTitle: string, imageUrl?: string): string {
-    const imgPrefix = imageUrl ? `[PRODUCT_IMAGE]: ${imageUrl}\n` : '';
-    return `${imgPrefix}🛍️ INQUIRY: ${productTitle}\n\nHi! \u{1F44B} I just came across your listing for "${productTitle}" -- is it still available? I'd love to know a bit more.`;
+function buildOpeningMessage(productTitle: string): string {
+    return `Hi! \u{1F44B} I just came across your listing for "${productTitle}" -- is it still available?`;
 }
 
 function formatMessageDate(dateStr?: string | null): string {
@@ -69,6 +68,7 @@ function MessagesPageContent() {
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [hasLoadedMessages, setHasLoadedMessages] = useState(false);
     const [inputText, setInputText] = useState('');
 
     // Feature States: Emojis, Reporting, Media, Voice
@@ -317,11 +317,15 @@ function MessagesPageContent() {
 
     // Load messages when selected user changes
     useEffect(() => {
-        if (!selectedUserId) return;
+        if (!selectedUserId) {
+            setHasLoadedMessages(false);
+            return;
+        }
 
         const loadMessages = async () => {
             try {
                 setIsLoading(true);
+                setHasLoadedMessages(false);
                 const response = await api.get(`/messages/${selectedUserId}`);
                 const loaded: ChatMessage[] = response.data || [];
                 setMessages(loaded);
@@ -338,6 +342,7 @@ function MessagesPageContent() {
                 setMessages([]);
             } finally {
                 setIsLoading(false);
+                setHasLoadedMessages(true);
             }
         };
 
@@ -354,17 +359,27 @@ function MessagesPageContent() {
         });
     }, [selectedUserId]);
 
-    // Pre-fill a real opening line for a brand-new, product-initiated
+    // Pre-fill a real opening line ONLY for a brand-new, product-initiated
     // conversation -- once messages have actually loaded (so this never
-    // fires while a conversation with history is still loading) and only
-    // if the buyer hasn't already started typing their own.
+    // fires while a conversation with history is still loading or has existing messages).
     useEffect(() => {
-        if (!isLoading && messages.length === 0 && sharedProduct && !inputText) {
-            const firstImg = sharedProduct.images?.[0] || '';
-            setInputText(buildOpeningMessage(field(sharedProduct.title_en, sharedProduct.title_so) || sharedProduct.title_en, firstImg));
+        if (!hasLoadedMessages || isLoading) return;
+
+        // If there are ALREADY messages in this conversation, never leave or prefill an auto inquiry:
+        if (messages.length > 0) {
+            if (inputText.startsWith('Hi! \u{1F44B} I just came across') || inputText.includes('[PRODUCT_IMAGE]')) {
+                setInputText('');
+            }
+            return;
+        }
+
+        // Only pre-fill when genuinely 0 messages exist in this thread and user has not typed anything
+        if (messages.length === 0 && sharedProduct && !inputText.trim()) {
+            const productTitle = field(sharedProduct.title_en, sharedProduct.title_so) || sharedProduct.title_en || 'this item';
+            setInputText(buildOpeningMessage(productTitle));
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLoading, sharedProduct]);
+    }, [hasLoadedMessages, isLoading, messages.length, sharedProduct]);
 
     // Subscribe to presence and updates for the active conversation partner
     useEffect(() => {
@@ -533,7 +548,15 @@ function MessagesPageContent() {
             clearTimeout(typingTimeoutRef.current);
         }
 
-        await sendChatMessage(text);
+        // If this is the very first message initiated about a specific product,
+        // format it with 🛍️ INQUIRY: tag so it renders as the structured inquiry card
+        const isFirstProductInquiry = messages.length === 0 && Boolean(activeListingId && sharedProduct);
+        const productTitle = sharedProduct ? (field(sharedProduct.title_en, sharedProduct.title_so) || sharedProduct.title_en) : '';
+        const finalContent = isFirstProductInquiry && !text.includes('INQUIRY:')
+            ? `🛍️ INQUIRY: ${productTitle}\n\n${text}`
+            : text;
+
+        await sendChatMessage(finalContent);
     };
 
     // Image attachment handlers
