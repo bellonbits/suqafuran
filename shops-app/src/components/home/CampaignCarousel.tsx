@@ -172,7 +172,7 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
       const parsed = JSON.parse(cached);
       if (!Array.isArray(parsed)) return [];
       const heroOnly = parsed.filter((b: HomepageBanner) => b.placement === 'hero' || b.placement === 'all');
-      return heroOnly.length > 0 ? heroOnly : (parsed.length > 0 ? [parsed[0]] : []);
+      return heroOnly.length > 0 ? heroOnly : parsed;
     } catch {
       return [];
     }
@@ -186,7 +186,7 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
         const banners = await advertisingService.getActiveBanners();
         if (mounted && Array.isArray(banners)) {
           const heroBanners = banners.filter((b) => b.placement === 'hero' || b.placement === 'all');
-          const finalHero = heroBanners.length > 0 ? heroBanners : (banners.length > 0 ? [banners[0]] : []);
+          const finalHero = heroBanners.length > 0 ? heroBanners : banners;
           setCustomBanners(finalHero);
           try {
             localStorage.setItem('suqafuran_custom_banners', JSON.stringify(banners));

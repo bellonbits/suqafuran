@@ -49,7 +49,7 @@ const emptyForm = () => ({
     button_text: 'Shop Now',
     button_link: '',
     priority: 80,
-    placement: 'sponsored' as 'hero' | 'sponsored' | 'all',
+    placement: 'all' as 'hero' | 'sponsored' | 'all',
     start_date: toDatetimeLocal(new Date().toISOString()),
     end_date: toDatetimeLocal(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()),
 });
@@ -81,7 +81,7 @@ export default function AdminHomepageBannersPage() {
             if (Array.isArray(active)) {
                 localStorage.setItem('suqafuran_custom_banners', JSON.stringify(active));
                 const heroOnly = active.filter((b) => b.placement === 'hero' || b.placement === 'all');
-                const finalHero = heroOnly.length > 0 ? heroOnly : (active.length > 0 ? [active[0]] : []);
+                const finalHero = heroOnly.length > 0 ? heroOnly : active;
                 localStorage.setItem('suqafuran_hero_banners', JSON.stringify(finalHero));
                 window.dispatchEvent(new Event('suqafuran_banners_updated'));
             }
