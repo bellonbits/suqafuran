@@ -187,10 +187,10 @@ export const ProductRecommendationCard: React.FC<ProductRecommendationCardProps>
             <button
               type="button"
               onClick={handleCartClick}
-              className={`flex-1 min-w-0 h-8 px-2 sm:px-3 rounded-full text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 shadow-xs ${
+              className={`flex-1 min-w-0 h-8 px-2 sm:px-3 rounded-full text-xs font-black flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 shadow-xs ${
                 added
                   ? 'bg-emerald-600 text-white border border-emerald-600'
-                  : 'bg-[#00BFFF] hover:bg-[#02CCFE] text-white'
+                  : 'bg-[#00BFFF] hover:bg-[#00abeb] text-slate-950'
               }`}
               title="Add to cart"
             >

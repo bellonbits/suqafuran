@@ -856,23 +856,24 @@ export default function ProductDetailPage() {
 
             {/* Sticky mobile action bar */}
             {!isSold && (
-                <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border-t border-gray-200 dark:border-neutral-800 px-3 py-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center gap-2 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
-                    <div className="flex-shrink-0 pr-1">
-                        <div className="text-sm font-black text-gray-900 dark:text-white whitespace-nowrap">
+                <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-md border-t border-slate-200 dark:border-neutral-800 px-3 py-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center gap-2 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+                    <div className="flex-shrink-0 flex flex-col justify-center pr-1 max-w-[85px] min-[380px]:max-w-none">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 leading-none mb-0.5">Price</span>
+                        <div className="text-xs min-[360px]:text-sm font-black text-slate-900 dark:text-white whitespace-nowrap truncate">
                             {formatConvertedPrice(listing?.price ?? 0, listing.currency || 'KES', displayCurrency)}
                         </div>
                     </div>
                     <button
                         onClick={handleAddToCart}
                         aria-label={addedToCart ? 'Added to Cart' : 'Add to Cart'}
-                        className={`h-10 px-3 rounded-full border-2 flex items-center justify-center font-bold text-xs shrink-0 transition-all ${
+                        className={`h-11 px-2.5 min-[360px]:px-3 rounded-xl border flex items-center justify-center font-bold text-xs shrink-0 transition-all ${
                             addedToCart
-                                ? 'bg-emerald-600 border-emerald-600 text-white'
-                                : 'border-gray-900 dark:border-white text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-900'
+                                ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs'
+                                : 'border-slate-300 dark:border-neutral-700 text-slate-800 dark:text-white hover:bg-slate-100 dark:hover:bg-neutral-900'
                         }`}
                     >
-                        <ShoppingCart className="h-3.5 w-3.5 mr-1 shrink-0" />
-                        <span className="whitespace-nowrap">{addedToCart ? 'Added' : 'Cart'}</span>
+                        <ShoppingCart className="h-4 w-4 shrink-0" />
+                        <span className="ml-1 hidden min-[360px]:inline whitespace-nowrap">{addedToCart ? 'Added' : 'Cart'}</span>
                     </button>
                     <button
                         onClick={() => {
@@ -881,23 +882,23 @@ export default function ProductDetailPage() {
                             setOfferAmount(String(listing.price || ''));
                             setShowOfferModal(true);
                         }}
-                        className="flex-1 h-10 px-2.5 min-[360px]:px-3 min-w-0 flex items-center justify-center gap-1.5 rounded-full border-2 border-orange-500 text-orange-600 dark:text-orange-400 font-black text-[11px] min-[360px]:text-xs active:scale-95 transition-transform whitespace-nowrap shadow-xs"
+                        className="flex-1 h-11 px-2 min-[360px]:px-2.5 min-w-0 flex items-center justify-center gap-1.5 rounded-xl border-2 border-orange-500 text-orange-600 dark:text-orange-400 font-extrabold text-[11px] min-[360px]:text-xs active:scale-95 transition-transform whitespace-nowrap shadow-xs hover:bg-orange-50 dark:hover:bg-orange-950/20"
                     >
                         <Tag className="h-3.5 w-3.5 shrink-0" />
-                        <span>Make Offer</span>
+                        <span className="truncate">Make Offer</span>
                     </button>
                     <Link
-                        href={`/messages?userId=${listing.owner_id}&productId=${listing.id}`}
+                        to={`/messages?userId=${listing.owner_id}&productId=${listing.id}`}
                         onClick={() => analyticsService.trackClick({
                             event_type: 'chat',
                             listing_id: listing.id,
                             shop_id: listing.owner_id,
                             device_type: analyticsService.getDeviceType(),
                         }).catch(() => {})}
-                        className="flex-1 h-10 px-2.5 min-[360px]:px-3 min-w-0 flex items-center justify-center gap-1.5 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-black text-[11px] min-[360px]:text-xs active:scale-95 transition-transform whitespace-nowrap shadow-xs"
+                        className="flex-1 h-11 px-2.5 min-[360px]:px-3 min-w-0 flex items-center justify-center gap-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-[11px] min-[360px]:text-xs active:scale-95 transition-transform whitespace-nowrap shadow-xs shadow-orange-500/25"
                     >
                         <MessageSquare className="h-3.5 w-3.5 shrink-0" />
-                        <span>Chat with Seller</span>
+                        <span className="truncate">Chat with Seller</span>
                     </Link>
                 </div>
             )}

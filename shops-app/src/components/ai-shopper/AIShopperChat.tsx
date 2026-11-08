@@ -91,7 +91,7 @@ export const AIShopperChat: React.FC<AIShopperChatProps> = ({
           <div key={m.id}>
             {m.sender === 'user' ? (
               <div className="flex justify-end">
-                <div className="max-w-[85%] rounded-2xl rounded-tr-xs bg-[#00BFFF] text-white px-4 py-2.5 shadow-xs">
+                <div className="max-w-[85%] rounded-2xl rounded-tr-xs bg-[#0078E8] text-white px-4 py-2.5 shadow-xs">
                   <p className="text-sm font-medium leading-relaxed">{m.text}</p>
                   <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-sky-100">
                     <span>{m.timestamp}</span>

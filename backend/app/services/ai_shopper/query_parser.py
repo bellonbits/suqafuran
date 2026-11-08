@@ -115,9 +115,37 @@ def parse_shopping_request(
             detected_brand = b.capitalize()
             break
 
+    # 5.5 Occasion & Recipient extraction (e.g. birthday gift for girlfriend under 5000)
+    recipient_category_map = {
+        "girlfriend": "fashion",
+        "wife": "fashion",
+        "boyfriend": "electronics",
+        "husband": "electronics",
+        "mother": "household-items",
+        "mom": "household-items",
+        "father": "electronics",
+        "dad": "electronics",
+        "student": "electronics",
+        "kids": "fashion",
+    }
+    for rec, cat in recipient_category_map.items():
+        if re.search(rf"\b{rec}\b", working):
+            if not inferred_category_slug:
+                inferred_category_slug = cat
+            working = re.sub(rf"\b(for\s+)?(my\s+)?{rec}\b", " ", working)
+
+    # Clean occasion words so they don't break product keywords
+    working = re.sub(r"\b(birthday|anniversary|wedding|graduation|gift|zawadi|present)\b", " ", working)
+
+    # Cheaper / More affordable follow-up detection
+    is_cheaper = bool(re.search(r"\b(cheaper|more affordable|less expensive|lower price|chini)\b", working))
+
     # 6. Category inference
-    inferred_category_slug: Optional[str] = None
-    for cat_slug, hints in CATEGORY_HINTS.items():
+    if not inferred_category_slug:
+        for cat_slug, hints in CATEGORY_HINTS.items():
+            if any(re.search(rf"\b{re.escape(h)}\b", working) for h in hints):
+                inferred_category_slug = cat_slug
+                break
         if any(re.search(rf"\b{re.escape(h)}\b", working) for h in hints):
             inferred_category_slug = cat_slug
             break
@@ -171,11 +199,19 @@ def parse_shopping_request(
         if not detected_location and ctx_dict.get("location"):
             detected_location = ctx_dict["location"]
         if max_price is None and ctx_dict.get("max_price"):
-            max_price = ctx_dict["max_price"]
+            prev_max = float(ctx_dict["max_price"])
+            if is_cheaper:
+                max_price = round(prev_max * 0.75, -2) # Reduce budget by 25% for cheaper requests
+            else:
+                max_price = prev_max
+        elif is_cheaper and max_price is not None:
+            max_price = round(max_price * 0.75, -2)
         if not inferred_category_slug and ctx_dict.get("category_slug"):
             inferred_category_slug = ctx_dict["category_slug"]
         if not detected_brand and ctx_dict.get("brand"):
             detected_brand = ctx_dict["brand"]
+        if not clean_keywords and ctx_dict.get("clean_keywords"):
+            clean_keywords = ctx_dict["clean_keywords"]
 
     return ExtractedQueryParams(
         category_slug=inferred_category_slug,

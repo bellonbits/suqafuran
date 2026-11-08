@@ -82,13 +82,18 @@ export default function NotificationCenter() {
       <AnimatePresence>
         {isOpen && (
           <>
-            {/* Backdrop */}
+            {/* Backdrop with standard Part 2 glass effect: rgba(15, 23, 42, 0.35) and 8px blur */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
               className="fixed inset-0 z-30"
+              style={{
+                backgroundColor: 'rgba(15, 23, 42, 0.35)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+              }}
             />
 
             {/* Panel */}
@@ -96,7 +101,11 @@ export default function NotificationCenter() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="absolute top-20 right-0 z-40 w-96 bg-white dark:bg-neutral-950 rounded-xl shadow-2xl border border-gray-200 dark:border-neutral-800 overflow-hidden"
+              className="absolute top-20 right-0 z-40 w-96 bg-white dark:bg-[#0B132B] rounded-[24px] border border-[#E5E7EB] dark:border-[#1E293B] overflow-hidden"
+              style={{
+                boxShadow: '0 20px 60px rgba(15, 23, 42, 0.16)',
+                opacity: 1,
+              }}
             >
               {/* Header */}
               <div className="p-6 border-b border-gray-200 dark:border-neutral-800 flex items-center justify-between">

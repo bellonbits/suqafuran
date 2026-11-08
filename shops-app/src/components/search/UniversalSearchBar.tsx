@@ -133,7 +133,7 @@ export const UniversalSearchBar: React.FC<UniversalSearchBarProps> = ({
             <button
               type="button"
               onClick={() => handleOpenAiShopper()}
-              className="h-7 sm:h-8 px-2 sm:px-2.5 rounded-full bg-[#00BFFF] hover:bg-[#02CCFE] text-white text-[10px] sm:text-xs font-extrabold flex items-center gap-1.5 shadow-xs transition-transform active:scale-95"
+              className="h-7 sm:h-8 px-2.5 sm:px-3 rounded-full bg-[#00BFFF] hover:bg-[#00abeb] text-slate-950 text-[10px] sm:text-xs font-black flex items-center gap-1.5 shadow-xs transition-transform active:scale-95"
               title="Open Suqafuran AI Shopper"
             >
               <img

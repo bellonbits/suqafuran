@@ -273,12 +273,9 @@ export const searchService = {
         };
       });
 
-      // Filter by budget if specified and matches exist
+      // HARD CONSTRAINT: Budget specified by customer is strictly enforced
       if (parsed.maxPrice) {
-        const budgetFiltered = products.filter(p => p.price <= parsed.maxPrice!);
-        if (budgetFiltered.length > 0) {
-          products = budgetFiltered;
-        }
+        products = products.filter(p => p.price <= parsed.maxPrice!);
       }
 
       // Map shops

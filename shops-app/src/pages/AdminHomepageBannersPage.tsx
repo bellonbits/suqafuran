@@ -204,7 +204,18 @@ export default function AdminHomepageBannersPage() {
                     start_date: new Date(form.start_date).toISOString(),
                     end_date: new Date(form.end_date).toISOString(),
                 };
-                await advertisingService.createBanner(payload);
+                const created = await advertisingService.createBanner(payload);
+                // Automatically publish the banner if dates are active now
+                const now = new Date();
+                const startDate = new Date(form.start_date);
+                const endDate = new Date(form.end_date);
+                if (startDate <= now && endDate > now && created?.id) {
+                    try {
+                        await advertisingService.publishBanner(created.id);
+                    } catch (pubErr) {
+                        console.warn('Auto-publish banner non-critical notice:', pubErr);
+                    }
+                }
             }
             setModalOpen(false);
             await loadBanners();

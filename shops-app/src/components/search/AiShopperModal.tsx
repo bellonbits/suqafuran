@@ -195,13 +195,13 @@ export const AiShopperModal: React.FC<AiShopperModalProps> = ({
             <button
               type="submit"
               disabled={loading || !prompt.trim()}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-4 h-9 rounded-xl bg-[#00BFFF] hover:bg-[#02CCFE] text-white text-xs font-black flex items-center gap-1.5 shadow-xs disabled:opacity-50 transition-all cursor-pointer"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-4 h-9 rounded-xl bg-[#00BFFF] hover:bg-[#00abeb] text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-xs disabled:opacity-50 transition-all cursor-pointer"
             >
               {loading ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-950" />
               ) : (
                 <>
-                  <Sparkles className="w-3.5 h-3.5 text-white" />
+                  <Sparkles className="w-3.5 h-3.5 text-slate-950" />
                   <span>Ask AI</span>
                 </>
               )}

@@ -295,9 +295,9 @@ export const aiShopperService = {
         };
       });
 
+      // HARD CONSTRAINT: Budget specified by customer is strictly enforced
       if (parsed.maxPrice) {
-        const filtered = products.filter(p => p.price <= parsed.maxPrice!);
-        if (filtered.length > 0) products = filtered;
+        products = products.filter(p => p.price <= parsed.maxPrice!);
       }
 
       const sellers: ShopperSeller[] = rawShops.map((s: any) => {
@@ -314,13 +314,15 @@ export const aiShopperService = {
       });
 
       let advice = "";
-      if (isFallback) {
-        advice = `I couldn't find exact matches for "${cleanMsg}". Here are recommended verified listings currently available on Suqafuran.`;
+      if (parsed.maxPrice && products.length === 0) {
+        advice = `I couldn't find any listings on Suqafuran under KSh ${parsed.maxPrice.toLocaleString()} for "${cleanMsg}". Would you like to expand your budget or check related categories?`;
+      } else if (isFallback) {
+        advice = `I couldn't find exact matches for "${cleanMsg}". Here are verified listings on Suqafuran within your requirements.`;
       } else if (products.length > 0) {
         const top = products[0];
-        advice = `Found ${products.length} live product${products.length > 1 ? 's' : ''} on Suqafuran. Highly recommended is "${top.title}" (KSh ${top.price.toLocaleString()}) from ${top.seller_name}.`;
+        advice = `Found ${products.length} live product${products.length > 1 ? 's' : ''} on Suqafuran. A great choice is "${top.title}" (KSh ${top.price.toLocaleString()}) from ${top.seller_name}.`;
       } else {
-        advice = `Showing featured verified listings across Suqafuran. Ask me for specific brands or budget ranges!`;
+        advice = `I couldn't find matching items right now. Feel free to specify another product, brand, or budget!`;
       }
 
       return {

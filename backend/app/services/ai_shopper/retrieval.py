@@ -74,17 +74,25 @@ def retrieve_marketplace_listings(
     raw_listings = db.exec(stmt).all()
     is_fallback = False
 
-    # 6. Fallback if no exact matches: broaden search (remove price cap or strict location)
-    if not raw_listings and (params.max_price or params.location or text_clauses):
+    # 6. Fallback if no exact matches: broaden text search while strictly respecting HARD budget constraints
+    if not raw_listings and (text_clauses or params.location):
         fallback_stmt = (
             select(Listing)
             .where(Listing.status == "active")
             .where(Listing.is_sold == False)
         )
-        if text_clauses:
-            fallback_stmt = fallback_stmt.where(or_(*text_clauses))
-        elif params.category_id:
+        # HARD CONSTRAINT: Budget must NEVER be relaxed under any fallback
+        if params.min_price is not None:
+            fallback_stmt = fallback_stmt.where(Listing.price >= params.min_price)
+        if params.max_price is not None:
+            fallback_stmt = fallback_stmt.where(Listing.price <= params.max_price)
+
+        if params.category_id:
             fallback_stmt = fallback_stmt.where(Listing.category_id == params.category_id)
+        elif params.category_slug:
+            cat = db.exec(select(Category).where(Category.slug == params.category_slug)).first()
+            if cat:
+                fallback_stmt = fallback_stmt.where(Listing.category_id == cat.id)
 
         raw_listings = db.exec(
             fallback_stmt.order_by(desc(Listing.boost_level), desc(Listing.created_at)).limit(limit)
@@ -92,16 +100,25 @@ def retrieve_marketplace_listings(
         if raw_listings:
             is_fallback = True
 
-    # 7. Ultimate fallback: retrieve active featured marketplace listings
+    # 7. Ultimate fallback: retrieve active marketplace listings within HARD budget constraint
     if not raw_listings:
-        raw_listings = db.exec(
+        ultimate_stmt = (
             select(Listing)
             .where(Listing.status == "active")
             .where(Listing.is_sold == False)
-            .order_by(desc(Listing.boost_level), desc(Listing.created_at))
+        )
+        # HARD CONSTRAINT: If customer specified a maximum budget, never exceed it!
+        if params.min_price is not None:
+            ultimate_stmt = ultimate_stmt.where(Listing.price >= params.min_price)
+        if params.max_price is not None:
+            ultimate_stmt = ultimate_stmt.where(Listing.price <= params.max_price)
+
+        raw_listings = db.exec(
+            ultimate_stmt.order_by(desc(Listing.boost_level), desc(Listing.created_at))
             .limit(limit)
         ).all()
-        is_fallback = True
+        if raw_listings:
+            is_fallback = True
 
     # Map raw listings to ShopperProductItem with seller info
     seller_ids = {l.owner_id for l in raw_listings if l.owner_id}

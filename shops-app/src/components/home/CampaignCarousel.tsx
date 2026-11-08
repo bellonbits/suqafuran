@@ -153,9 +153,10 @@ export function buildCampaignSlides(
     };
   });
 
-  // When promotional banners are uploaded, they take over the hero carousel
+  // When promotional banners are available, prioritize them and complement with
+  // category slides so the hero is always an active, rotating carousel
   if (promoSlides.length > 0) {
-    return promoSlides;
+    return [...promoSlides, ...categorySlides];
   }
   return categorySlides;
 }

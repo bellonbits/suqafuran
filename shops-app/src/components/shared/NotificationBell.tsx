@@ -150,13 +150,26 @@ export function NotificationBell() {
 
             {isOpen && (
                 <>
+                    {/* Clean backdrop conforming to Part 2 specifications: rgba(15, 23, 42, 0.35) with 8px blur */}
                     <div
-                        className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px]"
+                        className="fixed inset-0 z-40 transition-opacity"
+                        style={{
+                            backgroundColor: 'rgba(15, 23, 42, 0.35)',
+                            backdropFilter: 'blur(8px)',
+                            WebkitBackdropFilter: 'blur(8px)',
+                        }}
                         onClick={() => setIsOpen(false)}
                     />
-                    <div className="fixed inset-x-3 top-14 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2.5 sm:w-88 sm:max-w-md bg-white dark:bg-neutral-950 rounded-3xl shadow-2xl border border-gray-100 dark:border-neutral-800 z-50 max-h-[75vh] sm:max-h-[460px] overflow-hidden flex flex-col sm:before:content-[''] sm:before:absolute sm:before:-top-2 sm:before:right-4 sm:before:w-3.5 sm:before:h-3.5 sm:before:bg-white sm:dark:before:bg-neutral-950 sm:before:border-t sm:before:border-l sm:before:border-gray-200 sm:dark:before:border-neutral-800 sm:before:rotate-45 sm:before:z-10">
+                    {/* Clean solid modal panel without pseudo-elements or nested blurry overlays */}
+                    <div 
+                        className="fixed inset-x-3 top-14 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2.5 sm:w-88 sm:max-w-md bg-white dark:bg-[#0B132B] rounded-[24px] border border-[#E5E7EB] dark:border-[#1E293B] z-50 max-h-[75vh] sm:max-h-[460px] overflow-hidden flex flex-col"
+                        style={{
+                            boxShadow: '0 20px 60px rgba(15, 23, 42, 0.16)',
+                            opacity: 1,
+                        }}
+                    >
                         {/* Header */}
-                        <div className="px-5 py-4 border-b border-gray-100 dark:border-neutral-800 flex justify-between items-center bg-white dark:bg-neutral-950 shrink-0">
+                        <div className="px-5 py-4 border-b border-[#E5E7EB] dark:border-[#1E293B] flex justify-between items-center bg-white dark:bg-[#0B132B] shrink-0">
                             <div className="flex items-center gap-2">
                                 <h3 className="text-sm font-black text-gray-900 dark:text-white">
                                     Notifications

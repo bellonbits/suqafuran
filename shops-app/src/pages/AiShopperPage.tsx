@@ -349,9 +349,9 @@ export default function AiShopperPage() {
                 {messages.map((m) => (
                   <div key={m.id}>
                     {m.sender === 'user' ? (
-                      /* User Bubble: Solid Suqafuran Cyan #00BFFF */
+                      /* User Bubble: High-contrast Ocean Blue #0078E8 meeting WCAG AA */
                       <div className="flex justify-end">
-                        <div className="max-w-[85%] rounded-2xl rounded-tr-xs bg-[#00BFFF] text-white px-4 py-2.5 shadow-xs">
+                        <div className="max-w-[85%] rounded-2xl rounded-tr-xs bg-[#0078E8] text-white px-4 py-2.5 shadow-xs">
                           <p className="text-sm font-medium leading-relaxed">{m.text}</p>
                           <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-sky-100">
                             <span>{m.timestamp}</span>
@@ -410,7 +410,7 @@ export default function AiShopperPage() {
                   <button
                     type="button"
                     onClick={() => setShowCompareModal(true)}
-                    className="px-4 py-2 rounded-full bg-[#00BFFF] hover:bg-[#02CCFE] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-[#00BFFF] hover:bg-[#00abeb] text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
                   >
                     <Scale className="w-4 h-4" />
                     <span>Compare ({comparingIds.length})</span>

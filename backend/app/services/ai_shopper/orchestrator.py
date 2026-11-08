@@ -109,10 +109,15 @@ def process_shopping_message(
                 f"Here is a side-by-side comparison for {prod_names}. "
                 f"{comparison.verdict}"
             )
+        elif params.max_price and not products:
+            llm_text = (
+                f"I couldn't find any listings matching \"{term}\"{budget_str}{loc_str} on Suqafuran right now. "
+                f"Would you like to expand your budget slightly or check similar categories?"
+            )
         elif is_fallback and products:
             llm_text = (
                 f"I couldn't find an exact listing matching \"{clean_query}\" right now. "
-                f"However, here are top recommended alternatives from verified sellers currently on Suqafuran."
+                f"However, here are verified alternatives within your requirements currently on Suqafuran."
             )
         elif products:
             top_p = products[0]

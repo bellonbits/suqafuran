@@ -120,7 +120,7 @@ export const AIShopperInput: React.FC<AIShopperInputProps> = ({
         <button
           type="submit"
           disabled={disabled}
-          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#00BFFF] hover:bg-[#02CCFE] active:scale-95 text-white flex items-center justify-center shadow-xs transition-all cursor-pointer shrink-0 animate-in fade-in zoom-in-95 duration-150"
+          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#00BFFF] hover:bg-[#00abeb] active:scale-95 text-slate-950 flex items-center justify-center shadow-xs transition-all cursor-pointer shrink-0 animate-in fade-in zoom-in-95 duration-150"
           title="Send"
         >
           <Send className="w-4 h-4" />
