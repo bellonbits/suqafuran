@@ -278,16 +278,16 @@ export const searchService = {
         products = products.filter(p => p.price <= parsed.maxPrice!);
       }
 
-      // Map shops
+      // Map actual verified shops
       const shops: UniversalSearchShop[] = rawShops.map((s: any) => {
-        const name = s.business_name || s.name || s.full_name || 'Shop';
+        const name = s.shop_name || s.business_name || s.name || s.owner_name || s.full_name || 'Verified Shop';
         const slug = s.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '');
         return {
           id: s.id,
           name,
           slug,
-          avatar_url: s.avatar_url || s.logo_url || null,
-          location: s.location || 'Nairobi',
+          avatar_url: s.logo_url || s.avatar_url || s.owner_avatar_url || null,
+          location: s.shop_address || s.market || s.location || 'Nairobi',
           is_verified: !!s.is_verified,
           is_featured: !!s.is_featured,
         };

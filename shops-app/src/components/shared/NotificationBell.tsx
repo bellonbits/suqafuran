@@ -162,39 +162,39 @@ export function NotificationBell() {
                     />
                     {/* Clean solid modal panel without pseudo-elements or nested blurry overlays */}
                     <div 
-                        className="fixed inset-x-3 top-14 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2.5 sm:w-88 sm:max-w-md bg-white dark:bg-[#0B132B] rounded-[24px] border border-[#E5E7EB] dark:border-[#1E293B] z-50 max-h-[75vh] sm:max-h-[460px] overflow-hidden flex flex-col"
+                        className="fixed inset-x-3 top-14 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2.5 sm:w-[420px] max-w-[calc(100vw-1.5rem)] bg-white dark:bg-[#0B132B] rounded-[24px] border border-[#E5E7EB] dark:border-[#1E293B] z-50 max-h-[80vh] sm:max-h-[520px] overflow-hidden flex flex-col"
                         style={{
                             boxShadow: '0 20px 60px rgba(15, 23, 42, 0.16)',
                             opacity: 1,
                         }}
                     >
                         {/* Header */}
-                        <div className="px-5 py-4 border-b border-[#E5E7EB] dark:border-[#1E293B] flex justify-between items-center bg-white dark:bg-[#0B132B] shrink-0">
-                            <div className="flex items-center gap-2">
-                                <h3 className="text-sm font-black text-gray-900 dark:text-white">
+                        <div className="px-5 py-3.5 border-b border-[#E5E7EB] dark:border-[#1E293B] flex justify-between items-center bg-white dark:bg-[#0B132B] shrink-0 gap-3">
+                            <div className="flex items-center gap-2 min-w-0">
+                                <h3 className="text-sm font-black text-gray-900 dark:text-white whitespace-nowrap">
                                     Notifications
                                 </h3>
                                 {unreadCount > 0 && (
-                                    <span className="text-xs font-bold text-gray-500 dark:text-neutral-400">
+                                    <span className="text-xs font-bold text-gray-500 dark:text-neutral-400 shrink-0">
                                         ({unreadCount})
                                     </span>
                                 )}
                             </div>
-                            <div className="flex items-center gap-2.5">
+                            <div className="flex items-center gap-2 shrink-0">
                                 {events.length > 0 && (
                                     <button
                                         onClick={handleClearAll}
                                         disabled={isClearing}
-                                        className="text-xs text-orange-600 dark:text-orange-400 hover:underline font-bold flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                                        className="text-xs text-orange-600 dark:text-orange-400 hover:underline font-bold flex items-center gap-1 cursor-pointer disabled:opacity-50 whitespace-nowrap px-1.5 py-0.5 rounded-md hover:bg-orange-50 dark:hover:bg-orange-950/30"
                                         title="Clear all notifications"
                                     >
-                                        <CheckCheck className="w-3.5 h-3.5" />
-                                        <span>{isClearing ? 'Clearing...' : 'Mark all'}</span>
+                                        <CheckCheck className="w-3.5 h-3.5 shrink-0" />
+                                        <span className="whitespace-nowrap">{isClearing ? 'Clearing...' : 'Mark all'}</span>
                                     </button>
                                 )}
                                 <button
                                     onClick={() => { setIsOpen(false); router.push('/settings/notifications'); }}
-                                    className="text-gray-400 hover:text-gray-700 dark:hover:text-neutral-200 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors"
+                                    className="text-gray-400 hover:text-gray-700 dark:hover:text-neutral-200 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors shrink-0"
                                     title="Notification settings"
                                     aria-label="Settings"
                                 >
@@ -202,7 +202,7 @@ export function NotificationBell() {
                                 </button>
                                 <button
                                     onClick={() => setIsOpen(false)}
-                                    className="text-gray-400 hover:text-gray-700 dark:hover:text-neutral-200 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors"
+                                    className="text-gray-400 hover:text-gray-700 dark:hover:text-neutral-200 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors shrink-0"
                                     aria-label="Close"
                                 >
                                     <X className="w-4 h-4" />

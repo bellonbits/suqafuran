@@ -67,7 +67,7 @@ function parseClientQuery(raw: string) {
   let maxPrice: number | null = null;
   let location: string | null = null;
 
-  const priceMatch = clean.match(/(?:under|below|less than|up to|within|<=?)\s*(?:ksh|kes)?\s*(\d+(?:,\d+)*(?:\.\d+)?)\s*(k|m)?/i);
+  const priceMatch = clean.match(/(?:under|below|less than|up to|within|chini ya|<=?)\s*(?:ksh|kes)?\s*(\d+(?:,\d+)*(?:\.\d+)?)\s*(k|m)?(?:\s*(?:ksh|kes))?/i);
   if (priceMatch) {
     let num = parseFloat(priceMatch[1].replace(/,/g, ''));
     if (priceMatch[2]?.toLowerCase() === 'k') num *= 1000;
@@ -84,15 +84,23 @@ function parseClientQuery(raw: string) {
     }
   }
 
+  const isGiftQuery = /\b(?:birthday|gift|gifts|present|presents|zawadi|ideas?)\b/i.test(clean);
+
   let kw = clean
     .replace(/^(?:find|search|show|show me|look for|looking for|i need|i want|please find|recommend|get me|where can i find|tell me about|try searching|explore|help me choose|choose)\s+/i, '')
-    .replace(/(?:under|below|less than|up to|within|<=?)\s*(?:ksh|kes)?\s*\d+(?:,\d+)*(?:\.\d+)?\s*(k|m)?/i, '')
+    .replace(/(?:under|below|less than|up to|within|chini ya|<=?)\s*(?:ksh|kes)?\s*\d+(?:,\d+)*(?:\.\d+)?\s*(k|m)?(?:\s*(?:ksh|kes))?/gi, '')
     .replace(/\b(?:within|on)\s+(?:a\s+|my\s+)?budget\b/gi, '')
     .replace(/\b(?:in|around|near|at)\s+[a-z]+/i, '')
     .replace(/\b(?:all categories|all category|all products|categories|trending|deals|category|popular products|popular)\b/gi, '')
-    .replace(/^(?:a|an|the)\s+/i, '')
+    .replace(/\b(?:best|ideas?|birthday|gift|gifts|presents?|zawadi|ksh|kes)\b/gi, '')
+    .replace(/^(?:a|an|the|for|my)\s+/i, '')
     .replace(/\s+/g, ' ')
     .trim();
+
+  // If user searched for gifts/ideas and no specific product was named, search popular gift categories
+  if (isGiftQuery && (!kw || kw.length < 2)) {
+    kw = 'fashion';
+  }
 
   // Normalize common queries to marketplace root keywords
   if (/smartphones?|phones?|mobiles?/i.test(kw)) kw = 'phone';
@@ -300,18 +308,50 @@ export const aiShopperService = {
         products = products.filter(p => p.price <= parsed.maxPrice!);
       }
 
-      const sellers: ShopperSeller[] = rawShops.map((s: any) => {
-        const name = s.business_name || s.name || s.full_name || 'Shop';
-        return {
-          id: s.id,
-          name,
-          slug: s.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, ''),
-          avatar_url: s.avatar_url || s.logo_url || null,
-          location: s.location || 'Nairobi',
-          is_verified: !!s.is_verified,
-          shop_url: `/shop/${s.slug || s.id}`,
-        };
-      });
+      // Build actual verified recommended shops from product sellers and marketplace shops
+      const shopMap = new Map<string, ShopperSeller>();
+
+      // 1. First add sellers from the actual products matching this search
+      for (const p of products) {
+        if (p.seller_name && p.seller_name !== 'Verified Seller' && p.seller_name !== 'Shop' && p.seller_name !== 'Verified Shop') {
+          const sId = p.seller_id;
+          const sName = p.seller_name;
+          if (!shopMap.has(String(sId))) {
+            const slug = sName.toLowerCase().replace(/[^a-z0-9]+/g, '');
+            shopMap.set(String(sId), {
+              id: sId,
+              name: sName,
+              slug: slug || `shop${sId}`,
+              avatar_url: null,
+              location: p.location || 'Nairobi',
+              is_verified: p.is_verified,
+              shop_url: `/shops/${slug || sId}`,
+            });
+          }
+        }
+      }
+
+      // 2. Complement with registered shops from /listings/shops
+      for (const s of rawShops) {
+        const sName = s.shop_name || s.business_name || s.name || s.owner_name || s.full_name;
+        if (sName && sName !== 'Shop' && sName !== 'Verified Shop') {
+          const sId = Number(s.id || s.user_id);
+          const slug = s.slug || sName.toLowerCase().replace(/[^a-z0-9]+/g, '');
+          if (!shopMap.has(String(sId))) {
+            shopMap.set(String(sId), {
+              id: sId,
+              name: sName,
+              slug: slug || `shop${sId}`,
+              avatar_url: s.logo_url || s.avatar_url || s.owner_avatar_url || null,
+              location: s.shop_address || s.market || s.location || 'Nairobi',
+              is_verified: !!s.is_verified,
+              shop_url: `/shops/${slug || sId}`,
+            });
+          }
+        }
+      }
+
+      const sellers: ShopperSeller[] = Array.from(shopMap.values()).slice(0, 4);
 
       let advice = "";
       if (parsed.maxPrice && products.length === 0) {

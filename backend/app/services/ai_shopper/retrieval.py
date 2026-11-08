@@ -206,10 +206,10 @@ def retrieve_marketplace_sellers(
                 id=s.id,
                 name=shop_title,
                 slug=slug,
-                avatar_url=s.avatar_url,
-                location="Nairobi",
+                avatar_url=s.avatar_url or getattr(s, "logo_url", None),
+                location=s.location or "Nairobi",
                 is_verified=bool(s.is_verified),
-                shop_url=f"/shop/{slug}",
+                shop_url=f"/shops/{slug}",
             )
         )
     return results
