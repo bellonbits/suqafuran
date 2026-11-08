@@ -159,19 +159,39 @@ export const OrderReceiptBubble: React.FC<OrderReceiptBubbleProps> = ({ content,
 
       {/* Clean Product Card without tacky gradient halo */}
       <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-slate-50/90 dark:bg-neutral-800/60 border border-slate-200/80 dark:border-neutral-700/70">
-        <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-xl overflow-hidden bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-700 shrink-0 shadow-xs flex items-center justify-center">
-          {activeImage ? (
-            <img
-              src={optimizeCloudinaryUrl(activeImage, { width: 180 }) || activeImage}
-              alt={primaryTitle}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-400">
-              <ShoppingBag className="w-6 h-6" />
-            </div>
-          )}
-        </div>
+        {listingId ? (
+          <Link
+            to={`/listing/${listingId}`}
+            className="w-16 h-16 sm:w-18 sm:h-18 rounded-xl overflow-hidden bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-700 shrink-0 shadow-xs flex items-center justify-center hover:opacity-90 transition-opacity"
+            title="View listing"
+          >
+            {activeImage ? (
+              <img
+                src={optimizeCloudinaryUrl(activeImage, { width: 180 }) || activeImage}
+                alt={primaryTitle}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-400">
+                <ShoppingBag className="w-6 h-6" />
+              </div>
+            )}
+          </Link>
+        ) : (
+          <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-xl overflow-hidden bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-700 shrink-0 shadow-xs flex items-center justify-center">
+            {activeImage ? (
+              <img
+                src={optimizeCloudinaryUrl(activeImage, { width: 180 }) || activeImage}
+                alt={primaryTitle}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-400">
+                <ShoppingBag className="w-6 h-6" />
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex-1 min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
@@ -222,6 +242,14 @@ export const OrderReceiptBubble: React.FC<OrderReceiptBubbleProps> = ({ content,
                 </span>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Delivery / Meetup Location if present */}
+        {parsed.location && (
+          <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-neutral-300 pt-1 border-t border-slate-200/60 dark:border-neutral-700/60">
+            <MapPin className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+            <span>Meetup / Delivery: <strong className="text-slate-900 dark:text-white">{parsed.location}</strong></span>
           </div>
         )}
 
