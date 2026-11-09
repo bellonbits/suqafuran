@@ -4,12 +4,17 @@ from datetime import datetime
 
 
 class ShoppingIntentType(str):
+    GREETING = "greeting"
+    CASUAL = "casual"
+    MARKETPLACE_INFO = "marketplace_info"
+    INSPIRATION = "inspiration"
     SEARCH = "search"
     COMPARE = "compare"
     BUDGET_QUERY = "budget_query"
     SELLER_DISCOVERY = "seller_discovery"
     PRODUCT_ALTERNATIVE = "product_alternative"
     CLARIFICATION = "clarification"
+    SUPPORT = "support"
     GENERAL = "general"
 
 

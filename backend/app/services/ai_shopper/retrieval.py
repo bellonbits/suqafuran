@@ -74,8 +74,9 @@ def retrieve_marketplace_listings(
     raw_listings = db.exec(stmt).all()
     is_fallback = False
 
-    # 6. Fallback if no exact matches: broaden text search while strictly respecting HARD budget constraints
-    if not raw_listings and (text_clauses or params.location):
+    # 6. Category-level alternative fallback if exact keywords yielded no results
+    # Strictly respect HARD budget constraints and never return unrelated random items across the marketplace
+    if not raw_listings and (params.category_id or params.category_slug):
         fallback_stmt = (
             select(Listing)
             .where(Listing.status == "active")
@@ -96,26 +97,6 @@ def retrieve_marketplace_listings(
 
         raw_listings = db.exec(
             fallback_stmt.order_by(desc(Listing.boost_level), desc(Listing.created_at)).limit(limit)
-        ).all()
-        if raw_listings:
-            is_fallback = True
-
-    # 7. Ultimate fallback: retrieve active marketplace listings within HARD budget constraint
-    if not raw_listings:
-        ultimate_stmt = (
-            select(Listing)
-            .where(Listing.status == "active")
-            .where(Listing.is_sold == False)
-        )
-        # HARD CONSTRAINT: If customer specified a maximum budget, never exceed it!
-        if params.min_price is not None:
-            ultimate_stmt = ultimate_stmt.where(Listing.price >= params.min_price)
-        if params.max_price is not None:
-            ultimate_stmt = ultimate_stmt.where(Listing.price <= params.max_price)
-
-        raw_listings = db.exec(
-            ultimate_stmt.order_by(desc(Listing.boost_level), desc(Listing.created_at))
-            .limit(limit)
         ).all()
         if raw_listings:
             is_fallback = True

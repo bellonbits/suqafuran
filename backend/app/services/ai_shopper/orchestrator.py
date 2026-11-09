@@ -62,7 +62,13 @@ def process_shopping_message(
     is_fallback: bool = False
 
     # 4. Action based on Intent
-    if intent == IntentType.COMPARE.value:
+    if intent in (ShoppingIntentType.GREETING, ShoppingIntentType.CASUAL, ShoppingIntentType.MARKETPLACE_INFO, ShoppingIntentType.SUPPORT):
+        # Conversational, informational, or support requests do NOT trigger random product searches
+        products = []
+        sellers = []
+        if intent == ShoppingIntentType.SELLER_DISCOVERY:
+            sellers = retrieve_marketplace_sellers(db, clean_query, limit=4)
+    elif intent == ShoppingIntentType.COMPARE:
         # Retrieve candidate products matching the query or previous params
         retrieved_prods, is_fallback = retrieve_marketplace_listings(db, params, limit=4)
         if len(retrieved_prods) >= 2:
@@ -70,13 +76,19 @@ def process_shopping_message(
             products = retrieved_prods[:3]
         else:
             products = retrieved_prods
-    elif intent == IntentType.SELLER_DISCOVERY.value:
+    elif intent == ShoppingIntentType.SELLER_DISCOVERY:
         sellers = retrieve_marketplace_sellers(db, clean_query, limit=5)
-        # Also retrieve a few products from these sellers or category
-        retrieved_prods, _ = retrieve_marketplace_listings(db, params, limit=6)
-        products = retrieved_prods
+        # Also retrieve matching products if category or keywords exist
+        if params.clean_keywords or params.category_slug:
+            retrieved_prods, _ = retrieve_marketplace_listings(db, params, limit=6)
+            products = retrieved_prods
+    elif intent == ShoppingIntentType.INSPIRATION:
+        # Ideas / Brainstorming: Retrieve only if an inferred category or keyword exists
+        if params.clean_keywords or params.category_slug or params.intended_use:
+            retrieved_prods, is_fallback = retrieve_marketplace_listings(db, params, limit=8)
+            products = rank_products(retrieved_prods, params)
     else:
-        # Standard search, budget query, or product alternative
+        # Standard search, budget query, clarification, or product alternative
         retrieved_prods, is_fallback = retrieve_marketplace_listings(db, params, limit=12)
         products = rank_products(retrieved_prods, params)
         if params.location:
@@ -103,7 +115,36 @@ def process_shopping_message(
         budget_str = f" under KSh {params.max_price:,.0f}" if params.max_price else ""
         loc_str = f" in {params.location}" if params.location else ""
 
-        if comparison and comparison.products:
+        if intent == ShoppingIntentType.GREETING:
+            llm_text = (
+                "Hello! Welcome to Suqafuran. I'm your personal shopping assistant. "
+                "Whether you're looking for great deals, need gift ideas, or want to explore verified local shops across Kenya, "
+                "I'm here to help. What can I find for you today?"
+            )
+        elif intent == ShoppingIntentType.CASUAL:
+            llm_text = (
+                "I'm doing great, thank you! It's always a pleasure to chat. "
+                "Feel free to look around or let me know if you have a specific item, budget, or occasion in mind — "
+                "I'm happy to help you discover the best options on Suqafuran."
+            )
+        elif intent == ShoppingIntentType.MARKETPLACE_INFO:
+            llm_text = (
+                "Suqafuran is Kenya's trusted digital marketplace connecting buyers with verified local sellers across "
+                "Nairobi, Mombasa, Kisumu, Nakuru, and all 47 counties. You can chat directly with shop owners, "
+                "inspect items in person before paying, and find great deals across fashion, electronics, home essentials, and more."
+            )
+        elif intent == ShoppingIntentType.SUPPORT:
+            llm_text = (
+                "For direct customer support or dispute resolution, our team is readily available via phone or WhatsApp at "
+                "+254 720 073322. You can also chat directly with verified sellers from any listing page. How else can I assist you?"
+            )
+        elif intent == ShoppingIntentType.INSPIRATION and not products:
+            llm_text = (
+                "I'd love to help you brainstorm some great ideas! "
+                "To help me tailor the best suggestions from our verified marketplace sellers, "
+                "what's the occasion, and do you have a preferred budget or style in mind?"
+            )
+        elif comparison and comparison.products:
             prod_names = " vs ".join([p.title for p in comparison.products[:2]])
             llm_text = (
                 f"Here is a side-by-side comparison for {prod_names}. "
@@ -133,7 +174,35 @@ def process_shopping_message(
 
     # 6. Generate Contextual Follow-up Suggestions
     suggested_followups: List[str] = []
-    if products:
+    if intent == ShoppingIntentType.GREETING:
+        suggested_followups = [
+            "Find smartphones under 25k",
+            "Trending fashion deals",
+            "Help me furnish my house",
+            "How does Suqafuran work?",
+        ]
+    elif intent == ShoppingIntentType.CASUAL:
+        suggested_followups = [
+            "What's trending today?",
+            "Gift ideas for a friend",
+            "Show me electronics deals",
+            "Browse verified shops",
+        ]
+    elif intent == ShoppingIntentType.MARKETPLACE_INFO:
+        suggested_followups = [
+            "How do I start selling?",
+            "What are the seller plans?",
+            "How does buyer safety work?",
+            "Browse product categories",
+        ]
+    elif intent == ShoppingIntentType.SUPPORT:
+        suggested_followups = [
+            "Chat on WhatsApp (+254 720 073322)",
+            "Call customer care",
+            "How to report a scam",
+            "Back to shopping",
+        ]
+    elif products:
         if not params.max_price:
             suggested_followups.append("Show options under my budget")
         if not params.condition:
@@ -144,9 +213,9 @@ def process_shopping_message(
     else:
         suggested_followups = [
             "Smart TVs under 35,000 KSh",
-            "Laptops for programming",
+            "Laptops for work and school",
             "Sneakers and sports shoes",
-            "Fashion deals in Nairobi",
+            "Kitchen essentials",
         ]
 
     # 7. Update Session

@@ -399,10 +399,14 @@ export default function AiShopperPage() {
               <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-neutral-800">
                 <div>
                   <h2 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                    Recommended Products for &quot;{currentQuery}&quot;
+                    {displayProducts.length > 0
+                      ? `Recommended Products for "${currentQuery}"`
+                      : 'Suqafuran Shopping Assistant'}
                   </h2>
                   <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-                    Showing {displayProducts.length} verified item{displayProducts.length !== 1 ? 's' : ''} across Kenya • Direct seller chat
+                    {displayProducts.length > 0
+                      ? `Showing ${displayProducts.length} verified item${displayProducts.length !== 1 ? 's' : ''} across Kenya • Direct seller chat`
+                      : 'Chat naturally, explore verified deals, and discover trusted sellers across Kenya'}
                   </p>
                 </div>
 
@@ -419,7 +423,7 @@ export default function AiShopperPage() {
               </div>
 
               {/* Fallback Notice Banner */}
-              {isFallback && (
+              {isFallback && displayProducts.length > 0 && (
                 <div className="flex items-center gap-2.5 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs">
                   <Info className="w-4 h-4 shrink-0 text-amber-500" />
                   <span>
@@ -428,11 +432,13 @@ export default function AiShopperPage() {
                 </div>
               )}
 
-              {/* Shopping Filter Pills */}
-              <ShoppingFilters
-                activeFilters={filters}
-                onFilterChange={setFilters}
-              />
+              {/* Shopping Filter Pills (only when products exist) */}
+              {displayProducts.length > 0 && (
+                <ShoppingFilters
+                  activeFilters={filters}
+                  onFilterChange={setFilters}
+                />
+              )}
 
               {/* Verified Seller Shops if available */}
               {sellers && sellers.length > 0 && (
@@ -466,14 +472,39 @@ export default function AiShopperPage() {
                   ))}
                 </div>
               ) : (
-                <div className="w-full rounded-2xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 p-8 text-center my-auto">
-                  <Sparkles className="w-10 h-10 text-[#00BFFF] mx-auto mb-3" />
-                  <h3 className="text-base font-bold text-slate-800 dark:text-white">
-                    No products match the selected filters
-                  </h3>
-                  <p className="mt-1 text-sm text-slate-500 dark:text-neutral-400 max-w-sm mx-auto">
-                    Clear your filter selection or ask Suqafuran AI in the chat to expand search criteria.
-                  </p>
+                <div className="w-full rounded-2xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 p-8 text-center my-auto space-y-4">
+                  <div className="w-14 h-14 rounded-2xl bg-[#00BFFF]/10 border border-[#00BFFF]/30 flex items-center justify-center mx-auto text-[#00BFFF]">
+                    <Sparkles className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-800 dark:text-white">
+                      {currentQuery && currentQuery.trim().length > 0
+                        ? `No exact products match "${currentQuery}"`
+                        : "Ask Suqafuran AI Shopper anything!"}
+                    </h3>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-neutral-400 max-w-md mx-auto leading-relaxed">
+                      {currentQuery && currentQuery.trim().length > 0
+                        ? "Try asking for a different brand, broadening your budget, or tell the AI what you're shopping for."
+                        : "Looking for phones, shoes, gifts, or household goods? Tell me your budget or what you need in the chat."}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap justify-center gap-2 pt-2">
+                    {[
+                      "Smartphones under 25k",
+                      "Cookware & Kitchen deals",
+                      "Sneakers & Men's shoes",
+                      "Gift ideas under 5000 KSh",
+                    ].map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        type="button"
+                        onClick={() => handleUserQuery(suggestion)}
+                        className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-slate-100 hover:bg-[#00BFFF]/15 hover:text-[#0078E8] dark:bg-neutral-800 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 transition-colors cursor-pointer border border-slate-200/60 dark:border-neutral-700/60"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
