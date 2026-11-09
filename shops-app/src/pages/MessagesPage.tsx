@@ -381,6 +381,13 @@ function MessagesPageContent() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hasLoadedMessages, isLoading, messages.length, sharedProduct]);
 
+    // Safety guard: ensure internal tags like [PRODUCT_IMAGE] are never shown in the human chat text input
+    useEffect(() => {
+        if (inputText.includes('[PRODUCT_IMAGE]')) {
+            setInputText((prev) => prev.replace(/\[PRODUCT_IMAGE\]:\s*[^\n\r]+/gi, '').trim());
+        }
+    }, [inputText]);
+
     // Subscribe to presence and updates for the active conversation partner
     useEffect(() => {
         if (selectedUserId) {

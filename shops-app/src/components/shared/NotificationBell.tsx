@@ -254,10 +254,17 @@ export function NotificationBell() {
                                                 .replace(/\[IMAGE\]:[^\s"']+/gi, '📷 Sent a photo')
                                                 .replace(/\[PRODUCT_IMAGE\]:[^\s"']+/gi, '🛍️ Product Inquiry')
                                                 .replace(/🛍️\s*INQUIRY:[^\n\r]+/gi, '🛍️ Product Inquiry')
-                                                .replace(/:\s*""$/, '')
-                                                .replace(/:\s*"📷 Sent a photo"$/, ': 📷 Sent a photo')
-                                                .replace(/:\s*"🛍️ Product Inquiry"$/, ': 🛍️ Product Inquiry')
+                                                .replace(/:\s*["'\s\r\n]*📷 Sent a photo["'\s\r\n]*/gi, ': 📷 Sent a photo')
+                                                .replace(/:\s*["'\s\r\n]*🛍️ Product Inquiry["'\s\r\n]*/gi, ': 🛍️ Product Inquiry')
+                                                .replace(/:\s*["'\s\r\n]*""?/gi, '')
+                                                .replace(/:\s*["']\s*$/, '')
                                                 .trim();
+                                            // If the message is just a photo or inquiry, simplify it cleanly
+                                            if (displayMsg.includes('📷 Sent a photo')) {
+                                                displayMsg = '📷 Sent a photo';
+                                            } else if (displayMsg.includes('🛍️ Product Inquiry')) {
+                                                displayMsg = '🛍️ Product inquiry';
+                                            }
                                         }
                                         const { icon: EventIcon, bgColor, badge, badgeColor, avatar } = getEventIconAndBadge(event);
 

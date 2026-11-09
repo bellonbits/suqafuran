@@ -22,6 +22,16 @@ import { SfIconChevronLeft, SfIconChevronRight } from '@storefront-ui/react';
 import { clsx } from 'clsx';
 import { advertisingService, HomepageBanner } from '@/services/advertising';
 
+const ORANGE = '#FF9600';
+
+/** The logo's orange smile, reused as the campaign's signature mark. */
+const Swoosh: React.FC<{ className?: string; strokeWidth?: number }> = ({ className, strokeWidth = 7 }) => (
+  <svg viewBox="0 0 200 40" fill="none" preserveAspectRatio="none" className={className} aria-hidden>
+    <path d="M4 10 C 50 42, 150 42, 196 8" stroke={ORANGE} strokeWidth={strokeWidth} strokeLinecap="round" />
+    <path d="M182 4 L196 8 L188 20" stroke={ORANGE} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 // ─── Campaign copy & art ─────────────────────────────────────────────────────
 interface Campaign {
   eyebrow: string;
@@ -116,6 +126,18 @@ export function buildCampaignSlides(
 ): Slide[] {
   // Map custom promotional banners to high-priority deal slides
   const promoSlides: Slide[] = customBanners.map((banner) => {
+    const rawTitle = (banner.title || 'Special Promotion').trim();
+    let h1 = rawTitle;
+    let h2 = '';
+    const words = rawTitle.split(/\s+/);
+    if (words.length > 1) {
+      const mid = Math.ceil(words.length / 2);
+      h1 = words.slice(0, mid).join(' ');
+      h2 = words.slice(mid).join(' ');
+    } else {
+      h2 = banner.subtitle ? 'Exclusive' : 'Deal';
+    }
+
     return {
       category: {
         id: -1000 - banner.id,
@@ -125,7 +147,7 @@ export function buildCampaignSlides(
       },
       campaign: {
         eyebrow: 'Special Promotion & Deals',
-        headline: [banner.title, banner.subtitle || 'Exclusive Deal'],
+        headline: [h1, h2],
         description: banner.subtitle || 'Discover exclusive promotional deals on Suqafuran',
         cta: banner.button_text || 'Shop Deals',
         image: banner.image_url,
@@ -153,11 +175,10 @@ export function buildCampaignSlides(
     };
   });
 
-  // When promotional banners are available, display only those banners so the hero
-  // reflects the exact campaigns configured by the administrator. Fallback to category
-  // slides only when no custom promotional banners exist.
+  // Include custom promotional banners FIRST, and ALSO category campaign slides,
+  // so the carousel shows all campaigns configured by the administrator and never gets stuck on 1 slide.
   if (promoSlides.length > 0) {
-    return promoSlides;
+    return [...promoSlides, ...categorySlides];
   }
   return categorySlides;
 }
@@ -293,27 +314,105 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
     const targetUrl = bannerLink || `/${category.slug}`;
     const isExternal = targetUrl.startsWith('http');
 
-    const posterImage = image ? (
-      <picture className="w-full h-full block">
-        {banner?.mobile_image_url && (
-          <source media="(max-width: 639px)" srcSet={banner.mobile_image_url} />
-        )}
-        <img
-          src={image}
-          alt={banner?.title || category.name || 'Suqafuran Promotion'}
-          draggable={false}
-          loading={safeIndex === 0 ? 'eager' : 'lazy'}
-          className="w-full h-full object-cover object-center select-none transition-transform duration-700 group-hover:scale-[1.01]"
-        />
-      </picture>
+    const innerContent = isCustomPromo ? (
+      /* ── Custom Promotional Flyer / Banner ── */
+      image ? (
+        <div className="relative w-full h-full">
+          <picture className="w-full h-full block">
+            {banner?.mobile_image_url && (
+              <source media="(max-width: 639px)" srcSet={banner.mobile_image_url} />
+            )}
+            <img
+              src={image}
+              alt={banner?.title || category.name || 'Suqafuran Promotion'}
+              draggable={false}
+              loading={safeIndex === 0 ? 'eager' : 'lazy'}
+              className="w-full h-full object-cover object-center select-none transition-transform duration-700 group-hover:scale-[1.01]"
+            />
+          </picture>
+
+          {/* Floating Action CTA Button & Label */}
+          <div className="absolute left-4 sm:left-8 bottom-3 sm:bottom-5 z-10 flex items-center gap-2 sm:gap-3 pointer-events-auto">
+            <span className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full bg-[#0078E8] hover:bg-[#0066c7] text-white font-extrabold text-xs sm:text-sm shadow-lg transition-transform active:scale-95">
+              <span>{banner?.button_text || 'Shop Now'}</span>
+              <SfIconChevronRight size="xs" className="w-3.5 h-3.5 text-white" />
+            </span>
+            {banner?.subtitle && (
+              <span className="hidden md:inline-block px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-semibold border border-white/20">
+                {banner.subtitle}
+              </span>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="w-full h-full bg-gradient-to-tr from-[#0078E8] via-indigo-600 to-[#FF9600] flex flex-col items-center justify-center text-white p-6 text-center">
+          <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight">
+            {banner?.title || category.name}
+          </h2>
+          <p className="text-sm sm:text-lg text-white/90 mt-2 max-w-lg">
+            {banner?.subtitle || 'Explore verified shops and best deals on Suqafuran'}
+          </p>
+          <span className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-[#0078E8] font-bold text-sm shadow-md">
+            <span>{banner?.button_text || 'Explore Deals'}</span>
+            <SfIconChevronRight size="xs" className="w-3.5 h-3.5" />
+          </span>
+        </div>
+      )
     ) : (
-      <div className="w-full h-full bg-gradient-to-tr from-[#0078E8] via-indigo-600 to-[#FF9600] flex flex-col items-center justify-center text-white p-6 text-center">
-        <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight">
-          {banner?.title || category.name}
-        </h2>
-        <p className="text-sm sm:text-lg text-white/90 mt-2 max-w-lg">
-          {banner?.subtitle || 'Explore verified shops and best deals on Suqafuran'}
-        </p>
+      /* ── Outlined Category Campaign Banner with Headline, Swoosh & Button ── */
+      <div className="relative w-full h-full grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] items-center px-4 sm:px-8 lg:px-12 py-4 bg-gradient-to-br from-white via-[#F5FAFF] to-[#E8F4FF] dark:from-neutral-950 dark:via-neutral-950 dark:to-[#06203d]">
+        {/* Soft background glow */}
+        <div aria-hidden className="pointer-events-none absolute -right-20 -top-20 w-[360px] h-[360px] rounded-full bg-[#00BFFF]/10 blur-2xl" />
+
+        {/* Left Column: Eyebrow, Outlined Headline, Description, CTA */}
+        <div className="relative z-10 flex flex-col justify-center pr-2">
+          <p className="flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-[0.16em] sm:tracking-[0.2em] text-[#0078E8] dark:text-[#4DB0FF]">
+            <span className="w-3.5 sm:w-6 h-[3px] rounded-full bg-[#FF9600] shrink-0" aria-hidden />
+            {campaign.eyebrow}
+          </p>
+
+          <h2 className="mt-1.5 sm:mt-3 font-black uppercase tracking-tight leading-[0.95] text-[clamp(17px,4.5vw,25px)] sm:text-[34px] lg:text-[40px] xl:text-[44px]">
+            <span className="block text-[#0A1F44] dark:text-white truncate">{campaign.headline[0]}</span>
+            <span className="relative inline-block text-[#0078E8] dark:text-[#4DB0FF] truncate max-w-full">
+              {campaign.headline[1]}
+              <Swoosh className="absolute left-0 -bottom-1.5 sm:-bottom-3.5 w-full h-2 sm:h-3.5" />
+            </span>
+          </h2>
+
+          <p className="hidden sm:block mt-3 sm:mt-4 text-xs sm:text-sm lg:text-base text-gray-600 dark:text-neutral-300 line-clamp-2 max-w-sm">
+            {campaign.description}
+          </p>
+
+          <div className="mt-3 sm:mt-5 flex items-center gap-3">
+            <span className="inline-flex items-center gap-1.5 sm:gap-2 h-8 sm:h-10 px-3.5 sm:px-5 rounded-full bg-[#0078E8] hover:bg-[#0066C7] text-white font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95">
+              <span>{campaign.cta}</span>
+              <SfIconChevronRight size="xs" className="w-3.5 h-3.5 text-white" />
+            </span>
+          </div>
+        </div>
+
+        {/* Right Column: Circular / Framed Image Visual */}
+        <div className="relative h-full flex items-center justify-center">
+          <div className="relative w-[110px] min-[380px]:w-[130px] aspect-square sm:w-[80%] max-w-[280px] lg:max-w-[320px]">
+            {/* Soft decorative offset ring */}
+            <div aria-hidden className="absolute inset-0 translate-x-2 translate-y-2 sm:translate-x-4 sm:translate-y-4 rounded-full bg-[#00BFFF]/20 dark:bg-[#00BFFF]/15" />
+            <div aria-hidden className="absolute -inset-1.5 sm:-inset-2 rounded-full border-2 border-dashed border-[#0078E8]/25" />
+            {image ? (
+              <img
+                src={image}
+                alt={category.name}
+                draggable={false}
+                className="relative z-10 w-full h-full rounded-full object-cover shadow-lg border-2 border-white dark:border-neutral-800"
+                style={{ objectPosition: campaign.focus ?? 'center' }}
+              />
+            ) : (
+              <div className="relative z-10 w-full h-full rounded-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-400">
+                <span className="text-xs font-bold">{category.name}</span>
+              </div>
+            )}
+            <Swoosh className="absolute -bottom-2 sm:-bottom-4 left-[8%] w-[84%] h-3 sm:h-7 pointer-events-none" strokeWidth={5} />
+          </div>
+        </div>
       </div>
     );
 
@@ -327,7 +426,7 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
           className="absolute inset-0 w-full h-full block cursor-pointer group"
           aria-label={banner?.title || category.name || 'Promotional Poster'}
         >
-          {posterImage}
+          {innerContent}
         </a>
       );
     }
@@ -339,7 +438,7 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
         className="absolute inset-0 w-full h-full block cursor-pointer group"
         aria-label={banner?.title || category.name || 'Promotional Poster'}
       >
-        {posterImage}
+        {innerContent}
       </Link>
     );
   };

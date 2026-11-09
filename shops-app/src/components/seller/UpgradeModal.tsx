@@ -311,7 +311,7 @@ export function UpgradeModal({ sellerId, isOpen, onClose }: UpgradeModalProps) {
         </div>
 
         {/* Pinned Sticky Footer - Always Visible! */}
-        <div className="px-5 sm:px-6 py-3.5 sm:py-4 border-t border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-950 flex items-center justify-between gap-3 shrink-0">
+        <div className="px-5 sm:px-6 py-3.5 sm:py-4 border-t border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 flex items-center justify-between gap-3 shrink-0">
           <div className="min-w-0 pr-2">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block leading-none">
               Selected Plan
@@ -327,13 +327,13 @@ export function UpgradeModal({ sellerId, isOpen, onClose }: UpgradeModalProps) {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <Button
-              variant="outline"
+            <button
+              type="button"
               onClick={onClose}
-              className="rounded-xl h-10 px-3.5 text-xs font-bold !bg-white hover:!bg-slate-100 !text-slate-800 dark:!bg-neutral-900 dark:hover:!bg-neutral-800 dark:!text-neutral-100 !border !border-slate-300 dark:!border-neutral-700 shadow-2xs transition-colors cursor-pointer"
+              className="rounded-xl h-10 px-4 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:text-neutral-100 border border-slate-300 dark:border-neutral-700 shadow-xs transition-colors cursor-pointer"
             >
               Cancel
-            </Button>
+            </button>
 
             {selectedPlan && selectedPlan.trial_days > 0 && !showPaymentForm ? (
               <>
@@ -354,13 +354,13 @@ export function UpgradeModal({ sellerId, isOpen, onClose }: UpgradeModalProps) {
               </>
             ) : showPaymentForm && selectedPlan ? (
               <>
-                <Button
-                  variant="outline"
+                <button
+                  type="button"
                   onClick={() => setShowPaymentForm(false)}
-                  className="rounded-xl h-10 px-3 text-xs font-bold !bg-white hover:!bg-slate-100 !text-slate-800 dark:!bg-neutral-900 dark:hover:!bg-neutral-800 dark:!text-neutral-100 !border !border-slate-300 dark:!border-neutral-700 shadow-2xs transition-colors cursor-pointer"
+                  className="rounded-xl h-10 px-4 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:text-neutral-100 border border-slate-300 dark:border-neutral-700 shadow-xs transition-colors cursor-pointer"
                 >
                   Back
-                </Button>
+                </button>
                 <Button
                   className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-10 px-4 text-xs font-bold shadow-xs cursor-pointer"
                   onClick={handleUpgrade}
