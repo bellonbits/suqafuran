@@ -116,6 +116,7 @@ def parse_shopping_request(
             break
 
     # 5.5 Occasion & Recipient extraction (e.g. birthday gift for girlfriend under 5000)
+    inferred_category_slug: Optional[str] = None
     recipient_category_map = {
         "girlfriend": "fashion",
         "wife": "fashion",

@@ -289,6 +289,143 @@ def get_seller_dashboard_overview(
     }
 
 
+class StaffInviteRequest(BaseModel):
+    email: str
+    role: str = "sales"
+
+
+@router.get("/me/staff")
+def get_my_staff(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """Get staff members for the current seller shop."""
+    from app.models.subscription_features import StaffAccount
+
+    staff_records = db.exec(
+        select(StaffAccount).where(StaffAccount.seller_id == current_user.id)
+    ).all()
+
+    result = []
+    for staff in staff_records:
+        user_record = db.get(User, staff.user_id)
+        email = user_record.email if user_record else "staff@suqafuran.com"
+        name = (user_record.full_name if user_record and user_record.full_name else email.split("@")[0])
+        result.append({
+            "id": staff.id,
+            "email": email,
+            "name": name,
+            "role": staff.role,
+            "last_active": staff.last_login.isoformat() if staff.last_login else None,
+            "invited_at": staff.created_at.isoformat() if staff.created_at else None,
+            "status": "active" if staff.is_active else "pending",
+        })
+    return result
+
+
+@router.post("/me/staff")
+def invite_staff(
+    invite_in: StaffInviteRequest,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """Invite or add a staff member for the current seller shop."""
+    from app.models.subscription_features import StaffAccount
+    from app.services.subscription_service import subscription_service
+    from app.core.security import get_password_hash
+    import secrets
+
+    # Check seller plan staff limit unless user is admin
+    is_admin = bool(getattr(current_user, "is_admin", False) or getattr(current_user, "role", "") == "admin")
+    if not is_admin:
+        features = subscription_service.get_seller_features(current_user.id, db)
+        has_staff = bool(features and features.has_staff_accounts)
+        max_staff = (features.max_staff if features and features.max_staff else 3)
+        if not has_staff:
+            raise HTTPException(status_code=403, detail="Staff accounts require a Business or Enterprise subscription plan.")
+
+        current_count = len(db.exec(select(StaffAccount).where(StaffAccount.seller_id == current_user.id)).all())
+        if current_count >= max_staff:
+            raise HTTPException(status_code=400, detail=f"You have reached your plan limit of {max_staff} staff members.")
+
+    email_clean = invite_in.email.strip().lower()
+    if not email_clean:
+        raise HTTPException(status_code=400, detail="A valid email is required.")
+
+    # Find or create user
+    target_user = db.exec(select(User).where(User.email == email_clean)).first()
+    if not target_user:
+        random_pwd = secrets.token_urlsafe(16)
+        target_user = User(
+            email=email_clean,
+            full_name=email_clean.split("@")[0].replace(".", " ").title(),
+            is_active=True,
+            is_verified=False,
+            hashed_password=get_password_hash(random_pwd),
+        )
+        db.add(target_user)
+        db.commit()
+        db.refresh(target_user)
+
+    # Check if already a staff member
+    existing_staff = db.exec(
+        select(StaffAccount).where(
+            StaffAccount.seller_id == current_user.id,
+            StaffAccount.user_id == target_user.id,
+        )
+    ).first()
+    if existing_staff:
+        raise HTTPException(status_code=400, detail="This user is already a staff member of your shop.")
+
+    new_staff = StaffAccount(
+        seller_id=current_user.id,
+        user_id=target_user.id,
+        role=invite_in.role,
+        permissions={
+            "manage_products": invite_in.role == "manager",
+            "manage_orders": invite_in.role == "manager",
+            "reply_messages": invite_in.role in ("manager", "sales"),
+            "update_inventory": invite_in.role in ("manager", "inventory"),
+        },
+        is_active=True,
+    )
+    db.add(new_staff)
+    db.commit()
+    db.refresh(new_staff)
+
+    return {
+        "id": new_staff.id,
+        "email": target_user.email,
+        "name": target_user.full_name or target_user.email.split("@")[0],
+        "role": new_staff.role,
+        "last_active": None,
+        "invited_at": new_staff.created_at.isoformat() if new_staff.created_at else None,
+        "status": "active",
+    }
+
+
+@router.delete("/me/staff/{staff_id}")
+def remove_staff(
+    staff_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """Remove a staff member from the current seller shop."""
+    from app.models.subscription_features import StaffAccount
+
+    staff = db.get(StaffAccount, staff_id)
+    if not staff:
+        raise HTTPException(status_code=404, detail="Staff account not found.")
+
+    is_admin = bool(getattr(current_user, "is_admin", False) or getattr(current_user, "role", "") == "admin")
+    if staff.seller_id != current_user.id and not is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized to remove this staff member.")
+
+    db.delete(staff)
+    db.commit()
+    return {"status": "success", "message": "Staff member removed successfully."}
+
+
 @router.get("/count")
 def count_sellers(
     db: Session = Depends(deps.get_db),
