@@ -130,3 +130,4 @@ SUQAFURAN MARKETPLACE FACTS & POLICIES:
   * Business (KSh 2,500/mo): Unlimited products, priority ranking, bulk import, staff accounts.
 - Customer Care Contact: Phone & WhatsApp: +254 720 073322.
 """
+
