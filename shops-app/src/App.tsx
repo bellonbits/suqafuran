@@ -8,6 +8,7 @@ import { Footer } from './components/shared/Footer'
 import { AuthModal } from './components/shared/AuthModal'
 import { AISupportChat } from './components/shared/AISupportChat'
 import { CookieConsentBanner } from './components/shared/CookieConsentBanner'
+import { MobileAppPrompt } from './components/shared/MobileAppPrompt'
 import ProtectedRoute from './components/ProtectedRoute'
 import { SellerLayout } from './components/SellerLayout'
 import HomePage from './pages/HomePage'
@@ -190,6 +191,7 @@ export default function App() {
     <>
     <ScrollToTop />
     <CookieConsentBanner />
+    <MobileAppPrompt />
     <Suspense fallback={<RouteLoadingFallback />}>
     <Routes>
       {/* Marketplace Pages */}

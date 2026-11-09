@@ -17,6 +17,7 @@ import NotificationCenter from '../NotificationCenter';
 import { NotificationBell } from './NotificationBell';
 import api, { resolveMediaUrl } from '../../services/api';
 import { UniversalSearchBar } from '../search/UniversalSearchBar';
+import { isCapacitorApp } from '../../lib/capacitor-utils';
 
 export const Header: React.FC = () => {
     const router = useRouter();
@@ -407,6 +408,17 @@ export const Header: React.FC = () => {
                         >
                             <Search className="w-5 h-5 text-gray-600 dark:text-neutral-300" />
                         </button>
+
+                        {/* Mobile Open App Button */}
+                        {!isCapacitorApp() && (
+                            <button
+                                onClick={() => window.dispatchEvent(new CustomEvent('suqafuran_open_app_prompt'))}
+                                className="sm:hidden px-2.5 py-1 text-[11px] font-black rounded-full bg-[#0078E8] hover:bg-[#0066c7] text-white transition-all active:scale-95 shadow-xs shrink-0 cursor-pointer"
+                                aria-label="Open App"
+                            >
+                                Open App
+                            </button>
+                        )}
 
                         {/* Mobile Menu */}
                         <button

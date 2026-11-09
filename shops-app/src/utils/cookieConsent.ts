@@ -132,3 +132,4 @@ export function subscribeToCookieConsent(
     window.removeEventListener('suqafuran_cookie_consent_changed', handler);
   };
 }
+

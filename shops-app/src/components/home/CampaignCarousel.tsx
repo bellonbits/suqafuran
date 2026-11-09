@@ -302,7 +302,14 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
     );
   }
 
-  const { category, image, isCustomPromo, banner, bannerLink } = currentSlide;
+  const { category, campaign, image, isCustomPromo, banner, bannerLink } = currentSlide;
+
+  const safeCampaign: Campaign = campaign || {
+    eyebrow: 'Verified Deals',
+    headline: [category?.name || 'Exclusive', 'Collection'],
+    description: 'Explore quality products and verified sellers on Suqafuran',
+    cta: 'Shop Now',
+  };
 
   const variants = {
     enter: (dir: number) => (reduceMotion ? { opacity: 0 } : { opacity: 0, x: dir * 50 }),
@@ -368,24 +375,24 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
         <div className="relative z-10 flex flex-col justify-center pr-2">
           <p className="flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-[0.16em] sm:tracking-[0.2em] text-[#0078E8] dark:text-[#4DB0FF]">
             <span className="w-3.5 sm:w-6 h-[3px] rounded-full bg-[#FF9600] shrink-0" aria-hidden />
-            {campaign.eyebrow}
+            {safeCampaign.eyebrow}
           </p>
 
           <h2 className="mt-1.5 sm:mt-3 font-black uppercase tracking-tight leading-[0.95] text-[clamp(17px,4.5vw,25px)] sm:text-[34px] lg:text-[40px] xl:text-[44px]">
-            <span className="block text-[#0A1F44] dark:text-white truncate">{campaign.headline[0]}</span>
+            <span className="block text-[#0A1F44] dark:text-white truncate">{safeCampaign.headline[0]}</span>
             <span className="relative inline-block text-[#0078E8] dark:text-[#4DB0FF] truncate max-w-full">
-              {campaign.headline[1]}
+              {safeCampaign.headline[1]}
               <Swoosh className="absolute left-0 -bottom-1.5 sm:-bottom-3.5 w-full h-2 sm:h-3.5" />
             </span>
           </h2>
 
           <p className="hidden sm:block mt-3 sm:mt-4 text-xs sm:text-sm lg:text-base text-gray-600 dark:text-neutral-300 line-clamp-2 max-w-sm">
-            {campaign.description}
+            {safeCampaign.description}
           </p>
 
           <div className="mt-3 sm:mt-5 flex items-center gap-3">
             <span className="inline-flex items-center gap-1.5 sm:gap-2 h-8 sm:h-10 px-3.5 sm:px-5 rounded-full bg-[#0078E8] hover:bg-[#0066C7] text-white font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95">
-              <span>{campaign.cta}</span>
+              <span>{safeCampaign.cta}</span>
               <SfIconChevronRight size="xs" className="w-3.5 h-3.5 text-white" />
             </span>
           </div>
@@ -403,7 +410,7 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
                 alt={category.name}
                 draggable={false}
                 className="relative z-10 w-full h-full rounded-full object-cover shadow-lg border-2 border-white dark:border-neutral-800"
-                style={{ objectPosition: campaign.focus ?? 'center' }}
+                style={{ objectPosition: safeCampaign.focus ?? 'center' }}
               />
             ) : (
               <div className="relative z-10 w-full h-full rounded-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-400">
