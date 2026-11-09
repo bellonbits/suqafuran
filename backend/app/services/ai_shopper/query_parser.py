@@ -146,9 +146,6 @@ def parse_shopping_request(
             if any(re.search(rf"\b{re.escape(h)}\b", working) for h in hints):
                 inferred_category_slug = cat_slug
                 break
-        if any(re.search(rf"\b{re.escape(h)}\b", working) for h in hints):
-            inferred_category_slug = cat_slug
-            break
 
     # 7. Specs extraction (e.g. 16GB RAM, 512GB SSD, 55 inch, Core i7)
     specs: Dict[str, Any] = {}
