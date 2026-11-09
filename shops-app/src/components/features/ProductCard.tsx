@@ -182,7 +182,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         loading={priority ? 'eager' : 'lazy'}
                         decoding="async"
-                        fetchPriority={priority ? 'high' : undefined}
+                        {...(priority ? ({ fetchpriority: 'high' } as any) : {})}
                     />
                     {cornerBadges}
                 </div>
@@ -258,7 +258,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ listing, showSeller, d
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     loading={priority ? 'eager' : 'lazy'}
                     decoding="async"
-                    fetchPriority={priority ? 'high' : undefined}
+                    {...(priority ? ({ fetchpriority: 'high' } as any) : {})}
                 />
 
                 {cornerBadges}

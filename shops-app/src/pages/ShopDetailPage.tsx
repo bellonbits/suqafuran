@@ -615,7 +615,7 @@ export default function ShopDetailPage() {
                                 alt={shopName}
                                 loading="eager"
                                 decoding="async"
-                                fetchPriority="high"
+                                {...({ fetchpriority: 'high' } as any)}
                                 className="w-full h-full object-cover"
                                 onError={() => setAvatarError(true)}
                             />

@@ -231,7 +231,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
               className="h-full w-full object-cover"
               loading={priority ? 'eager' : 'lazy'}
               decoding="async"
-              fetchPriority={priority ? 'high' : undefined}
+              {...(priority ? ({ fetchpriority: 'high' } as any) : {})}
               variants={imageVariants}
               initial="rest"
               animate={isHovered ? 'hover' : 'rest'}
@@ -322,7 +322,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
             className="h-full w-full object-cover"
             loading={priority ? 'eager' : 'lazy'}
             decoding="async"
-            fetchPriority={priority ? 'high' : undefined}
+            {...(priority ? ({ fetchpriority: 'high' } as any) : {})}
             variants={imageVariants}
             initial="rest"
             animate={isHovered ? 'hover' : 'rest'}

@@ -463,7 +463,7 @@ export default function ProductDetailPage() {
                                 src={optimizeCloudinaryUrl(activeImage, { width: 900 }) || activeImage}
                                 alt={field(listing.title_en, listing.title_so)}
                                 loading="eager"
-                                fetchPriority="high"
+                                {...({ fetchpriority: 'high' } as any)}
                                 decoding="async"
                                 className="h-full w-full object-cover"
                             />
