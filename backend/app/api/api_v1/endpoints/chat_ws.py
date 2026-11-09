@@ -153,7 +153,13 @@ async def websocket_chat_endpoint(
                     channel = f"chat_{min(user_id, other_user_id)}_{max(user_id, other_user_id)}"
                     now_iso = datetime.utcnow().isoformat()
                     sender_name = current_user.full_name or "Someone"
-                    preview = content[:80]
+                    clean_content = content or ""
+                    if "[IMAGE]:" in clean_content:
+                        preview = "📷 Sent a photo"
+                    elif "[PRODUCT_IMAGE]:" in clean_content or "🛍️ INQUIRY:" in clean_content:
+                        preview = "🛍️ Sent a product inquiry"
+                    else:
+                        preview = clean_content[:80]
 
                     # 2. Create in-app notification in DB
                     try:

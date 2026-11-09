@@ -34,9 +34,9 @@ const variantClasses: Record<ButtonVariant, string> = {
   secondary:
     'bg-secondary-100 hover:bg-secondary-200 active:bg-secondary-300 text-secondary-800 dark:bg-secondary-800 dark:hover:bg-secondary-700 dark:text-secondary-100 border-transparent',
   outline:
-    'border border-gray-300 dark:border-neutral-700 bg-transparent text-gray-800 dark:text-neutral-100 hover:bg-gray-50 dark:hover:bg-neutral-900 active:bg-gray-100 dark:active:bg-neutral-800',
+    '!border !border-gray-300 dark:!border-neutral-700 !bg-transparent !text-slate-800 dark:!text-neutral-100 hover:!bg-gray-100 dark:hover:!bg-neutral-800 active:!bg-gray-200',
   ghost:
-    'border-transparent bg-transparent text-gray-700 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-900 active:bg-gray-200',
+    '!border-transparent !bg-transparent !text-slate-700 dark:!text-neutral-200 hover:!bg-gray-100 dark:hover:!bg-neutral-800 active:!bg-gray-200',
   danger:
     'bg-rose-500 hover:bg-rose-600 active:bg-rose-700 text-white border-transparent shadow-sm',
 };
@@ -69,6 +69,7 @@ export const SuqafuranButton = React.forwardRef<
     return (
       <SfButton
         ref={ref}
+        variant={variant === 'outline' || variant === 'secondary' ? 'secondary' : variant === 'ghost' ? 'tertiary' : 'primary'}
         className={clsx(
           // Base
           'inline-flex items-center justify-center gap-2 font-semibold rounded-xl',

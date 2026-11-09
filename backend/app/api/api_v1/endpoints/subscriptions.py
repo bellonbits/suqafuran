@@ -322,9 +322,30 @@ async def get_seller_features(
 ):
     """Get feature access for a seller."""
 
-    # Verify ownership
-    if current_user.id != seller_id:
+    # Verify ownership or admin access
+    is_admin = bool(getattr(current_user, "is_admin", False) or getattr(current_user, "role", "") == "admin")
+    if current_user.id != seller_id and not is_admin:
         raise HTTPException(status_code=403, detail="Not authorized")
+
+    # Admins have full enterprise access to all seller features
+    if is_admin:
+        return {
+            "plan": "enterprise",
+            "plan_name": "enterprise",
+            "max_products": 999999,
+            "has_analytics": True,
+            "has_verified_badge": True,
+            "has_priority_ranking": True,
+            "has_custom_branding": True,
+            "has_bulk_import": True,
+            "has_marketing_codes": True,
+            "has_staff_accounts": True,
+            "has_priority_support": True,
+            "has_api_access": True,
+            "has_custom_domain": True,
+            "has_dedicated_support": True,
+            "max_staff": 999,
+        }
 
     features = subscription_service.get_seller_features(seller_id, session)
 

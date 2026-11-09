@@ -247,7 +247,18 @@ export function NotificationBell() {
                                     {events.slice(0, 15).map((event, idx) => {
                                         const payload = (event.payload || {}) as Record<string, any>;
                                         const displayTitle = payload.title || event.type.replace(/_/g, ' ');
-                                        const displayMsg = payload.message || payload.content || 'New update received';
+                                        const rawMsg = payload.message || payload.content || 'New update received';
+                                        let displayMsg = typeof rawMsg === 'string' ? rawMsg : String(rawMsg || '');
+                                        if (displayMsg) {
+                                            displayMsg = displayMsg
+                                                .replace(/\[IMAGE\]:[^\s"']+/gi, '📷 Sent a photo')
+                                                .replace(/\[PRODUCT_IMAGE\]:[^\s"']+/gi, '🛍️ Product Inquiry')
+                                                .replace(/🛍️\s*INQUIRY:[^\n\r]+/gi, '🛍️ Product Inquiry')
+                                                .replace(/:\s*""$/, '')
+                                                .replace(/:\s*"📷 Sent a photo"$/, ': 📷 Sent a photo')
+                                                .replace(/:\s*"🛍️ Product Inquiry"$/, ': 🛍️ Product Inquiry')
+                                                .trim();
+                                        }
                                         const { icon: EventIcon, bgColor, badge, badgeColor, avatar } = getEventIconAndBadge(event);
 
                                         return (

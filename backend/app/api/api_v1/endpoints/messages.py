@@ -99,7 +99,13 @@ def send_message(
     msg = crud_message.create(db, obj_in=message_in.model_dump(), sender_id=current_user.id)
 
     sender_name = current_user.full_name or "Someone"
-    preview = msg.content[:80]
+    clean_preview = msg.content or ""
+    if "[IMAGE]:" in clean_preview:
+        preview = "📷 Sent a photo"
+    elif "[PRODUCT_IMAGE]:" in clean_preview or "🛍️ INQUIRY:" in clean_preview:
+        preview = "🛍️ Sent a product inquiry"
+    else:
+        preview = clean_preview[:80]
     now_iso = msg.created_at.isoformat() if msg.created_at else datetime.utcnow().isoformat()
 
     # 1. Guaranteed in-app notification created in DB (never lost if Celery worker is down)

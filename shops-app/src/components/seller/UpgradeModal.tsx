@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import api from '@/services/api';
@@ -30,7 +31,12 @@ export function UpgradeModal({ sellerId, isOpen, onClose }: UpgradeModalProps) {
   const [loading, setLoading] = useState(false);
   const [plansLoading, setPlansLoading] = useState(true);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -136,15 +142,15 @@ export function UpgradeModal({ sellerId, isOpen, onClose }: UpgradeModalProps) {
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const price = billingFrequency === 'monthly'
     ? selectedPlan?.monthly_price
     : selectedPlan?.annual_price;
 
-  return (
+  const modalContent = (
     <div 
-      className="fixed inset-0 z-50 bg-slate-950/65 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[99999] bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div 
@@ -321,21 +327,25 @@ export function UpgradeModal({ sellerId, isOpen, onClose }: UpgradeModalProps) {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <Button variant="outline" onClick={onClose} className="rounded-xl h-10 px-3.5 text-xs font-bold">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="rounded-xl h-10 px-3.5 text-xs font-bold !bg-white hover:!bg-slate-100 !text-slate-800 dark:!bg-neutral-900 dark:hover:!bg-neutral-800 dark:!text-neutral-100 !border !border-slate-300 dark:!border-neutral-700 shadow-2xs transition-colors cursor-pointer"
+            >
               Cancel
             </Button>
 
             {selectedPlan && selectedPlan.trial_days > 0 && !showPaymentForm ? (
               <>
                 <Button
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-10 px-3.5 text-xs font-bold shadow-xs"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-10 px-3.5 text-xs font-bold shadow-xs cursor-pointer"
                   onClick={handleStartTrial}
                   disabled={loading}
                 >
                   {loading ? 'Starting...' : 'Start Free Trial'}
                 </Button>
                 <Button
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-10 px-3.5 text-xs font-bold shadow-xs"
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-10 px-3.5 text-xs font-bold shadow-xs cursor-pointer"
                   onClick={() => setShowPaymentForm(true)}
                   disabled={loading}
                 >
@@ -347,12 +357,12 @@ export function UpgradeModal({ sellerId, isOpen, onClose }: UpgradeModalProps) {
                 <Button
                   variant="outline"
                   onClick={() => setShowPaymentForm(false)}
-                  className="rounded-xl h-10 px-3 text-xs font-bold"
+                  className="rounded-xl h-10 px-3 text-xs font-bold !bg-white hover:!bg-slate-100 !text-slate-800 dark:!bg-neutral-900 dark:hover:!bg-neutral-800 dark:!text-neutral-100 !border !border-slate-300 dark:!border-neutral-700 shadow-2xs transition-colors cursor-pointer"
                 >
                   Back
                 </Button>
                 <Button
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-10 px-4 text-xs font-bold shadow-xs"
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-10 px-4 text-xs font-bold shadow-xs cursor-pointer"
                   onClick={handleUpgrade}
                   disabled={loading || !phoneNumber}
                 >
@@ -361,7 +371,7 @@ export function UpgradeModal({ sellerId, isOpen, onClose }: UpgradeModalProps) {
               </>
             ) : selectedPlan && selectedPlan.name !== 'free' ? (
               <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-10 px-4 text-xs font-bold shadow-xs"
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-10 px-4 text-xs font-bold shadow-xs cursor-pointer"
                 onClick={handleUpgrade}
                 disabled={loading || !phoneNumber}
               >
@@ -373,4 +383,6 @@ export function UpgradeModal({ sellerId, isOpen, onClose }: UpgradeModalProps) {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 }

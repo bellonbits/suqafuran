@@ -60,14 +60,23 @@ export function PlanGate({ requiredPlan, featureName, featureDescription, childr
   const [features, setFeatures] = useState<FeatureFlags | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const isAdmin = Boolean(user?.is_admin || user?.role === 'admin');
+
   useEffect(() => {
-    if (!user) return;
+    if (!user || isAdmin) {
+      setLoading(false);
+      return;
+    }
     api
       .get(`/subscriptions/sellers/${user.id}/features`)
       .then((res) => setFeatures(res.data))
       .catch(() => setFeatures(null))
       .finally(() => setLoading(false));
-  }, [user]);
+  }, [user, isAdmin]);
+
+  if (isAdmin) {
+    return <>{children}</>;
+  }
 
   if (loading) {
     return (
@@ -79,7 +88,7 @@ export function PlanGate({ requiredPlan, featureName, featureDescription, childr
 
   const currentPlanRank = PLAN_ORDER[features?.plan_name ?? 'free'] ?? 0;
   const requiredPlanRank = PLAN_ORDER[requiredPlan];
-  const hasAccess = currentPlanRank >= requiredPlanRank;
+  const hasAccess = isAdmin || currentPlanRank >= requiredPlanRank;
 
   if (hasAccess) return <>{children}</>;
 

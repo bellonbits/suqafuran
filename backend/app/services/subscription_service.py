@@ -291,6 +291,26 @@ class SubscriptionService:
         self, seller_id: int, session: Session
     ) -> Optional[SellerFeatureAccess]:
         """Get feature access for a seller."""
+        from app.models import User
+        user = session.get(User, seller_id)
+        if user and (getattr(user, "is_admin", False) or getattr(user, "role", "") == "admin"):
+            return SellerFeatureAccess(
+                seller_id=seller_id,
+                plan_name="enterprise",
+                max_products=999999,
+                has_analytics=True,
+                has_verified_badge=True,
+                has_priority_ranking=True,
+                has_custom_branding=True,
+                has_bulk_import=True,
+                has_marketing_codes=True,
+                has_staff_accounts=True,
+                has_priority_support=True,
+                has_api_access=True,
+                has_custom_domain=True,
+                has_dedicated_support=True,
+                max_staff=999,
+            )
 
         features = session.exec(
             select(SellerFeatureAccess).where(
@@ -304,7 +324,10 @@ class SubscriptionService:
         self, seller_id: int, session: Session
     ) -> bool:
         """Check if seller can add more products based on plan, consulting Spring Boot entitlements."""
-        from app.models import Listing
+        from app.models import User, Listing
+        user = session.get(User, seller_id)
+        if user and (getattr(user, "is_admin", False) or getattr(user, "role", "") == "admin"):
+            return True
 
         active_listings = session.exec(
             select(Listing).where(

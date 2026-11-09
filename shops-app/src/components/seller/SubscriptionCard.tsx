@@ -108,7 +108,12 @@ export function SubscriptionCard({ sellerId, onUpgradeClick }: SubscriptionCardP
                 : `Renews ${renewsAt}`}
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={onUpgradeClick}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onUpgradeClick}
+            className="!bg-slate-900 hover:!bg-slate-800 !text-white dark:!bg-white dark:hover:!bg-slate-100 dark:!text-slate-900 font-bold px-4 py-2 rounded-xl text-xs shadow-xs transition-colors cursor-pointer"
+          >
             Manage
           </Button>
         </div>

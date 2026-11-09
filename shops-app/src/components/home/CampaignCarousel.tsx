@@ -153,10 +153,11 @@ export function buildCampaignSlides(
     };
   });
 
-  // When promotional banners are available, prioritize them and complement with
-  // category slides so the hero is always an active, rotating carousel
+  // When promotional banners are available, display only those banners so the hero
+  // reflects the exact campaigns configured by the administrator. Fallback to category
+  // slides only when no custom promotional banners exist.
   if (promoSlides.length > 0) {
-    return [...promoSlides, ...categorySlides];
+    return promoSlides;
   }
   return categorySlides;
 }
