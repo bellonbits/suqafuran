@@ -45,8 +45,9 @@ class CreatePaymentResponse(BaseModel):
 
 class AdvertisementResponse(BaseModel):
     id: int
-    shop_id: int
-    listing_id: int | None
+    seller_id: int
+    shop_id: int | None = None
+    listing_id: int | None = None
     plan_id: int
     placement_type: str
     start_date: datetime
@@ -196,9 +197,12 @@ def get_seller_advertisements(
         if stats and stats.impressions > 0:
             ctr = (stats.clicks / stats.impressions) * 100
 
+        ad_dict = ad.dict() if hasattr(ad, "dict") else ad.model_dump()
+        plan_dict = (plan.dict() if hasattr(plan, "dict") else plan.model_dump()) if plan else None
         result.append(AdvertisementDetailResponse(
-            **ad.dict(),
-            plan=PlanResponse(**plan.dict()) if plan else None,
+            **ad_dict,
+            shop_id=ad.seller_id,
+            plan=PlanResponse(**plan_dict) if plan_dict else None,
             stats={
                 "impressions": stats.impressions if stats else 0,
                 "clicks": stats.clicks if stats else 0,
@@ -234,9 +238,12 @@ def get_advertisement(
     if stats and stats.impressions > 0:
         ctr = (stats.clicks / stats.impressions) * 100
 
+    ad_dict = ad.dict() if hasattr(ad, "dict") else ad.model_dump()
+    plan_dict = (plan.dict() if hasattr(plan, "dict") else plan.model_dump()) if plan else None
     return AdvertisementDetailResponse(
-        **ad.dict(),
-        plan=PlanResponse(**plan.dict()) if plan else None,
+        **ad_dict,
+        shop_id=ad.seller_id,
+        plan=PlanResponse(**plan_dict) if plan_dict else None,
         stats={
             "impressions": stats.impressions if stats else 0,
             "clicks": stats.clicks if stats else 0,

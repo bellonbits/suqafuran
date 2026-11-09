@@ -175,10 +175,11 @@ export function buildCampaignSlides(
     };
   });
 
-  // Include custom promotional banners FIRST, and ALSO category campaign slides,
-  // so the carousel shows all campaigns configured by the administrator and never gets stuck on 1 slide.
+  // When promotional banners are available, display ONLY those banners so the hero
+  // reflects the exact campaigns configured by the administrator. Fallback to category
+  // slides only when no custom promotional banners exist.
   if (promoSlides.length > 0) {
-    return [...promoSlides, ...categorySlides];
+    return promoSlides;
   }
   return categorySlides;
 }
@@ -195,7 +196,7 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
       const parsed = JSON.parse(cached);
       if (!Array.isArray(parsed)) return [];
       const heroOnly = parsed.filter((b: HomepageBanner) => b.placement === 'hero' || b.placement === 'all');
-      return heroOnly.length > 0 ? heroOnly : parsed;
+      return heroOnly;
     } catch {
       return [];
     }
@@ -206,14 +207,13 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
 
     const fetchHeroBanners = async () => {
       try {
-        const banners = await advertisingService.getActiveBanners();
+        const banners = await advertisingService.getActiveBanners('hero');
         if (mounted && Array.isArray(banners)) {
           const heroBanners = banners.filter((b) => b.placement === 'hero' || b.placement === 'all');
-          const finalHero = heroBanners.length > 0 ? heroBanners : banners;
-          setCustomBanners(finalHero);
+          setCustomBanners(heroBanners);
           try {
             localStorage.setItem('suqafuran_custom_banners', JSON.stringify(banners));
-            localStorage.setItem('suqafuran_hero_banners', JSON.stringify(finalHero));
+            localStorage.setItem('suqafuran_hero_banners', JSON.stringify(heroBanners));
           } catch {}
         }
       } catch (err) {
