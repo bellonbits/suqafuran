@@ -190,3 +190,4 @@ export const MobileAppPrompt: React.FC = () => {
     document.body
   );
 };
+
