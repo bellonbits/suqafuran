@@ -8,6 +8,8 @@ from app.services.ai_shopper.schemas import (
     ShopperProductItem,
     ShopperSellerItem,
     ComparisonResult,
+    ShoppingIntentType,
+    IntentType,
 )
 from app.services.ai_shopper.safety import sanitize_input
 from app.services.ai_shopper.intent_classifier import classify_intent, IntentType
