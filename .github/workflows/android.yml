@@ -1,0 +1,97 @@
+name: Android Build & Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Android APK & AAB
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: shops-app/package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install shops-app dependencies
+        working-directory: shops-app
+        run: npm ci
+
+      - name: Build web application
+        working-directory: shops-app
+        run: npm run build
+
+      - name: Sync Capacitor Android
+        working-directory: shops-app
+        run: npx cap sync android
+
+      - name: Setup Keystore & Signing Configuration
+        run: |
+          mkdir -p shops-app/android/app
+
+          # Restore keystore: from secret if defined, otherwise from existing repository keystore
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > shops-app/android/app/suqafuran.jks
+            echo "Restored suqafuran.jks from GitHub Secret ANDROID_KEYSTORE_BASE64."
+          elif [ -f "android/app/suqafuran.jks" ]; then
+            cp android/app/suqafuran.jks shops-app/android/app/suqafuran.jks
+            echo "Copied suqafuran.jks from repository android/app/suqafuran.jks."
+          fi
+
+          # Setup key.properties
+          if [ -f "android/key.properties" ]; then
+            cp android/key.properties shops-app/android/key.properties
+            echo "Copied key.properties from repository."
+          else
+            cat <<EOF > shops-app/android/key.properties
+          storePassword=${{ secrets.ANDROID_STORE_PASSWORD || '12345678' }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD || '12345678' }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS || 'suqafuran' }}
+          storeFile=../app/suqafuran.jks
+          EOF
+            echo "Generated key.properties from credentials."
+          fi
+
+          chmod +x shops-app/android/gradlew
+
+      - name: Build Signed Release APK
+        working-directory: shops-app/android
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Build Signed Release AAB (Google Play Store Bundle)
+        working-directory: shops-app/android
+        run: ./gradlew bundleRelease --no-daemon --stacktrace
+
+      - name: Upload Signed Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Suqafuran-v2.0.7-release.apk
+          path: shops-app/android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 14
+
+      - name: Upload Signed Release AAB (Google Play Store)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Suqafuran-v2.0.7-release.aab
+          path: shops-app/android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 14
+

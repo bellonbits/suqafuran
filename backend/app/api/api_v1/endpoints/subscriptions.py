@@ -66,8 +66,9 @@ async def get_seller_subscription(
 ):
     """Get current subscription for a seller."""
 
-    # Verify ownership
-    if current_user.id != seller_id:
+    # Verify ownership or admin access
+    is_admin = bool(getattr(current_user, "is_admin", False) or getattr(current_user, "role", "") == "admin")
+    if current_user.id != seller_id and not is_admin:
         raise HTTPException(status_code=403, detail="Not authorized")
 
     subscription = session.exec(
@@ -75,6 +76,21 @@ async def get_seller_subscription(
     ).first()
 
     if not subscription:
+        if is_admin:
+            return {
+                "id": 999999,
+                "plan_id": 1,
+                "plan_name": "Enterprise (Admin Access)",
+                "billing_frequency": "annual",
+                "status": "active",
+                "is_active": True,
+                "trial_active": False,
+                "trial_ends_at": None,
+                "current_period_start": None,
+                "current_period_end": None,
+                "renews_at": None,
+                "cancelled_at": None,
+            }
         return {
             "status": "no_subscription",
             "plan": "free",

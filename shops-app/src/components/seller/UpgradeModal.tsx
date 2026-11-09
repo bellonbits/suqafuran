@@ -150,15 +150,15 @@ export function UpgradeModal({ sellerId, isOpen, onClose }: UpgradeModalProps) {
 
   const modalContent = (
     <div 
-      className="fixed inset-0 z-[99999] bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[999999] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div 
-        className="w-full max-w-2xl max-h-[92vh] sm:max-h-[85vh] bg-white dark:bg-neutral-900 rounded-3xl border border-slate-200 dark:border-neutral-800 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        className="w-full max-w-2xl max-h-[88vh] bg-white dark:bg-neutral-900 rounded-3xl border border-slate-200 dark:border-neutral-800 shadow-2xl flex flex-col min-h-0 overflow-hidden animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Fixed Header */}
-        <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between shrink-0 bg-white dark:bg-neutral-900">
+        <div className="px-5 sm:px-6 py-4 sm:py-4.5 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between shrink-0 bg-white dark:bg-neutral-900">
           <div>
             <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">Upgrade Your Shop</h2>
             <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">Choose a plan to expand product capacity and boost seller ranking</p>
@@ -173,7 +173,7 @@ export function UpgradeModal({ sellerId, isOpen, onClose }: UpgradeModalProps) {
         </div>
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-4 sm:py-5 space-y-4 sm:space-y-5">
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 sm:px-6 py-4 sm:py-5 space-y-4 sm:space-y-5">
           {/* Plans Comparison */}
           {!plansLoading && (
             <div className="space-y-3">

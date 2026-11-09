@@ -333,7 +333,12 @@ export const aiShopperService = {
 
       // 2. Complement with registered shops from /listings/shops
       for (const s of rawShops) {
-        const sName = s.shop_name || s.business_name || s.name || s.owner_name || s.full_name;
+        let sName = s.shop_name || s.business_name || s.name || s.owner_name || s.full_name;
+        if (sName && typeof sName === 'string' && sName.trim().toLowerCase() === 'shop') {
+          sName = (s.owner_name && s.owner_name.toLowerCase() !== 'shop' ? s.owner_name : '') ||
+                  (s.full_name && s.full_name.toLowerCase() !== 'shop' ? s.full_name : '') ||
+                  `Shop #${s.id || s.user_id}`;
+        }
         if (sName && sName !== 'Shop' && sName !== 'Verified Shop') {
           const sId = Number(s.id || s.user_id);
           const slug = s.slug || sName.toLowerCase().replace(/[^a-z0-9]+/g, '');

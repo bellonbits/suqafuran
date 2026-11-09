@@ -2,6 +2,7 @@ from typing import List, Dict, Any, Optional, Tuple
 from sqlmodel import Session, select, or_, and_, desc
 from app.models.listing import Listing, Category
 from app.models.user import User
+from app.models.seller_profile import SellerProfile
 from app.services.ai_shopper.schemas import (
     ExtractedQueryParams,
     ShopperProductItem,
@@ -157,7 +158,7 @@ def retrieve_marketplace_sellers(
     limit: int = 4,
 ) -> List[ShopperSellerItem]:
     """
-    Discovers actual registered shops and verified sellers.
+    Discovers actual registered shops and verified sellers with their real business name.
     """
     clean = keyword_or_location.strip().lower()
     stmt = (
@@ -175,12 +176,36 @@ def retrieve_marketplace_sellers(
         )
 
     # Prioritize verified and high-tier sellers
-    stmt = stmt.order_by(desc(User.is_verified), desc(User.profile_views)).limit(limit)
+    stmt = stmt.order_by(desc(User.is_verified), desc(User.profile_views)).limit(limit * 2)
     sellers = db.exec(stmt).all()
 
     results: List[ShopperSellerItem] = []
+    seen_ids = set()
+
     for s in sellers:
-        shop_title = s.business_name or s.full_name or f"Shop #{s.id}"
+        if s.id in seen_ids:
+            continue
+        seen_ids.add(s.id)
+
+        # Resolve genuine shop name (never use mere generic 'Shop')
+        shop_title = None
+        if s.business_name and s.business_name.strip().lower() not in ("shop", "verified shop", "seller"):
+            shop_title = s.business_name.strip()
+        
+        if not shop_title:
+            try:
+                sp = db.exec(select(SellerProfile).where(SellerProfile.seller_id == s.id)).first()
+                if sp and sp.shop_name and sp.shop_name.strip().lower() not in ("shop", "verified shop", "seller"):
+                    shop_title = sp.shop_name.strip()
+            except Exception:
+                pass
+
+        if not shop_title and s.full_name and s.full_name.strip().lower() not in ("shop", "verified shop", "seller"):
+            shop_title = s.full_name.strip()
+
+        if not shop_title:
+            shop_title = f"{s.full_name or 'Shop'} #{s.id}"
+
         slug = "".join(c for c in shop_title.lower() if c.isalnum()) or f"shop{s.id}"
         results.append(
             ShopperSellerItem(
@@ -193,5 +218,8 @@ def retrieve_marketplace_sellers(
                 shop_url=f"/shops/{slug}",
             )
         )
+        if len(results) >= limit:
+            break
+
     return results
 

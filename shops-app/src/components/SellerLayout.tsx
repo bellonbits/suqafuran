@@ -95,6 +95,8 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
     setExpandedSection(prev => (prev === label ? null : label));
   };
 
+  const isAdmin = Boolean(user?.is_admin || user?.role === 'admin');
+
   // SadaxCart navigation structure
   const mainMenu: NavGroupItem[] = [
     { label: 'Home', icon: <Home className="w-4 h-4" />, href: '/seller-dashboard' },
@@ -125,8 +127,8 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
   ];
 
   const othersMenu: NavGroupItem[] = [
-    { label: 'Promotion', icon: <Megaphone className="w-4 h-4" />, href: '/seller-dashboard/featured-ads', badge: 'PRO' },
-    { label: 'Subscription', icon: <Zap className="w-4 h-4" />, href: '/seller-dashboard/subscription', badge: 'PRO' },
+    { label: 'Promotion', icon: <Megaphone className="w-4 h-4" />, href: '/seller-dashboard/featured-ads', badge: isAdmin ? 'ADMIN' : 'PRO' },
+    { label: 'Subscription', icon: <Zap className="w-4 h-4" />, href: '/seller-dashboard/subscription', badge: isAdmin ? 'ADMIN' : 'PRO' },
     { label: 'Settings', icon: <Settings className="w-4 h-4" />, href: '/seller-dashboard/settings' },
     { label: 'Help & Support', icon: <HelpCircle className="w-4 h-4" />, href: '/seller-dashboard/reports' },
   ];
@@ -288,27 +290,43 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
         {/* Bottom Section (Upgrade to Premium & Profile Widget) */}
         <div className="pt-4 border-t border-slate-100 dark:border-neutral-800/80 space-y-3 flex-shrink-0">
           
-          {/* Upgrade to Premium Card */}
-          <div className="bg-gradient-to-br from-sky-500 via-sky-600 to-indigo-600 p-4 rounded-3xl text-white shadow-lg shadow-sky-500/20 relative overflow-hidden group">
-            <div className="absolute -right-3 -bottom-3 w-16 h-16 rounded-full bg-white/10 blur-sm pointer-events-none group-hover:scale-125 transition-transform" />
-            <div className="flex items-center gap-2 mb-1.5">
-              <div className="w-6 h-6 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
-                <Sparkles className="w-3.5 h-3.5 text-white" />
+          {/* Upgrade to Premium or Admin Privileges Card */}
+          {isAdmin ? (
+            <div className="bg-gradient-to-br from-emerald-500 via-teal-600 to-sky-600 p-4 rounded-3xl text-white shadow-lg shadow-teal-500/20 relative overflow-hidden group">
+              <div className="absolute -right-3 -bottom-3 w-16 h-16 rounded-full bg-white/10 blur-sm pointer-events-none group-hover:scale-125 transition-transform" />
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className="w-6 h-6 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+                  <Sparkles className="w-3.5 h-3.5 text-white" />
+                </div>
+                <span className="text-[10px] font-extrabold tracking-wider uppercase bg-white/20 px-2 py-0.5 rounded-full">ADMIN ACCESS</span>
               </div>
-              <span className="text-[10px] font-extrabold tracking-wider uppercase bg-white/20 px-2 py-0.5 rounded-full">PRO SELLER</span>
+              <p className="text-xs font-black text-white leading-tight">All Services Unlocked</p>
+              <p className="text-[10px] text-teal-100 mt-1 leading-relaxed">
+                You have full administrator privileges across all seller services, promotions, staff accounts, and bulk management.
+              </p>
             </div>
-            <p className="text-xs font-black text-white leading-tight">Upgrade to Premium</p>
-            <p className="text-[10px] text-sky-100 mt-1 leading-relaxed">
-              Get unlimited product listings, verified seller badge & priority search ranking.
-            </p>
-            <button
-              onClick={() => navigate('/seller-dashboard/subscription')}
-              className="mt-3 w-full py-2 bg-white text-sky-600 hover:bg-sky-50 rounded-2xl text-xs font-extrabold shadow-sm transition-all active:scale-95 flex items-center justify-center gap-1"
-            >
-              <span>Upgrade Now</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
+          ) : (
+            <div className="bg-gradient-to-br from-sky-500 via-sky-600 to-indigo-600 p-4 rounded-3xl text-white shadow-lg shadow-sky-500/20 relative overflow-hidden group">
+              <div className="absolute -right-3 -bottom-3 w-16 h-16 rounded-full bg-white/10 blur-sm pointer-events-none group-hover:scale-125 transition-transform" />
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className="w-6 h-6 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+                  <Sparkles className="w-3.5 h-3.5 text-white" />
+                </div>
+                <span className="text-[10px] font-extrabold tracking-wider uppercase bg-white/20 px-2 py-0.5 rounded-full">PRO SELLER</span>
+              </div>
+              <p className="text-xs font-black text-white leading-tight">Upgrade to Premium</p>
+              <p className="text-[10px] text-sky-100 mt-1 leading-relaxed">
+                Get unlimited product listings, verified seller badge & priority search ranking.
+              </p>
+              <button
+                onClick={() => navigate('/seller-dashboard/subscription')}
+                className="mt-3 w-full py-2 bg-white text-sky-600 hover:bg-sky-50 rounded-2xl text-xs font-extrabold shadow-sm transition-all active:scale-95 flex items-center justify-center gap-1 cursor-pointer"
+              >
+                <span>Upgrade Now</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
 
           {/* Profile Widget */}
           <div className="flex items-center justify-between bg-slate-50 dark:bg-neutral-900/40 border border-slate-200/60 dark:border-neutral-800/50 rounded-2xl p-2.5 cursor-pointer hover:bg-slate-100 dark:hover:bg-neutral-900 transition-colors">

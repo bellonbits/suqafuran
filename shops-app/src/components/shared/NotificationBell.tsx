@@ -162,7 +162,7 @@ export function NotificationBell() {
                     />
                     {/* Clean solid modal panel without pseudo-elements or nested blurry overlays */}
                     <div 
-                        className="fixed inset-x-3 top-14 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2.5 sm:w-[420px] max-w-[calc(100vw-1.5rem)] bg-white dark:bg-[#0B132B] rounded-[24px] border border-[#E5E7EB] dark:border-[#1E293B] z-50 max-h-[80vh] sm:max-h-[520px] overflow-hidden flex flex-col"
+                        className="fixed inset-x-3 top-14 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2.5 w-[calc(100vw-1.5rem)] sm:w-[450px] max-w-[460px] bg-white dark:bg-[#0B132B] rounded-[24px] border border-[#E5E7EB] dark:border-[#1E293B] z-50 max-h-[80vh] sm:max-h-[520px] overflow-hidden flex flex-col shadow-2xl"
                         style={{
                             boxShadow: '0 20px 60px rgba(15, 23, 42, 0.16)',
                             opacity: 1,
@@ -185,7 +185,7 @@ export function NotificationBell() {
                                     <button
                                         onClick={handleClearAll}
                                         disabled={isClearing}
-                                        className="text-xs text-orange-600 dark:text-orange-400 hover:underline font-bold flex items-center gap-1 cursor-pointer disabled:opacity-50 whitespace-nowrap px-1.5 py-0.5 rounded-md hover:bg-orange-50 dark:hover:bg-orange-950/30"
+                                        className="text-xs text-orange-600 dark:text-orange-400 hover:underline font-bold flex items-center gap-1 cursor-pointer disabled:opacity-50 whitespace-nowrap px-2 py-1 rounded-md hover:bg-orange-50 dark:hover:bg-orange-950/30 shrink-0"
                                         title="Clear all notifications"
                                     >
                                         <CheckCheck className="w-3.5 h-3.5 shrink-0" />
@@ -246,24 +246,36 @@ export function NotificationBell() {
                                 <div className="divide-y divide-gray-100 dark:divide-neutral-800/60">
                                     {events.slice(0, 15).map((event, idx) => {
                                         const payload = (event.payload || {}) as Record<string, any>;
-                                        const displayTitle = payload.title || event.type.replace(/_/g, ' ');
-                                        const rawMsg = payload.message || payload.content || 'New update received';
+                                        const rawMsg = payload.message || payload.content || payload.text || 'New update received';
                                         let displayMsg = typeof rawMsg === 'string' ? rawMsg : String(rawMsg || '');
+
+                                        // Extract sender if present in payload or message prefix
+                                        let senderName = payload.sender_name || payload.sender || payload.from_user_name || null;
+                                        if (!senderName && typeof displayMsg === 'string') {
+                                            const match = displayMsg.match(/New message from ([^:]+):/i);
+                                            if (match) senderName = match[1].trim();
+                                        }
+
+                                        let displayTitle = payload.title || event.type.replace(/_/g, ' ');
+                                        if (displayTitle.toLowerCase() === 'message' || displayTitle.toLowerCase() === 'new message') {
+                                            displayTitle = senderName ? `New Message From ${senderName}` : 'New Message';
+                                        }
+
                                         if (displayMsg) {
-                                            displayMsg = displayMsg
-                                                .replace(/\[IMAGE\]:[^\s"']+/gi, '📷 Sent a photo')
-                                                .replace(/\[PRODUCT_IMAGE\]:[^\s"']+/gi, '🛍️ Product Inquiry')
-                                                .replace(/🛍️\s*INQUIRY:[^\n\r]+/gi, '🛍️ Product Inquiry')
-                                                .replace(/:\s*["'\s\r\n]*📷 Sent a photo["'\s\r\n]*/gi, ': 📷 Sent a photo')
-                                                .replace(/:\s*["'\s\r\n]*🛍️ Product Inquiry["'\s\r\n]*/gi, ': 🛍️ Product Inquiry')
-                                                .replace(/:\s*["'\s\r\n]*""?/gi, '')
-                                                .replace(/:\s*["']\s*$/, '')
-                                                .trim();
-                                            // If the message is just a photo or inquiry, simplify it cleanly
-                                            if (displayMsg.includes('📷 Sent a photo')) {
-                                                displayMsg = '📷 Sent a photo';
-                                            } else if (displayMsg.includes('🛍️ Product Inquiry')) {
-                                                displayMsg = '🛍️ Product inquiry';
+                                            // Check if message is a photo / cloudinary image URL
+                                            if (displayMsg.includes('[IMAGE]:') || displayMsg.includes('res.cloudinary.com') || /\[IMAGE\]/i.test(displayMsg)) {
+                                                displayMsg = senderName ? `📷 Photo from ${senderName}` : '📷 Sent a photo';
+                                            } else if (displayMsg.includes('[PRODUCT_IMAGE]:') || displayMsg.includes('🛍️ INQUIRY:')) {
+                                                displayMsg = senderName ? `🛍️ Product inquiry from ${senderName}` : '🛍️ Product inquiry';
+                                            } else {
+                                                displayMsg = displayMsg
+                                                    .replace(/\[IMAGE\]:[^\s"'\n\r]+/gi, '📷 Sent a photo')
+                                                    .replace(/\[PRODUCT_IMAGE\]:[^\s"'\n\r]+/gi, '🛍️ Product inquiry')
+                                                    .replace(/🛍️\s*INQUIRY:[^\n\r]+/gi, '🛍️ Product inquiry')
+                                                    .replace(/:\s*["'\s\r\n]*📷 Sent a photo["'\s\r\n]*/gi, ': 📷 Sent a photo')
+                                                    .replace(/:\s*["'\s\r\n]*""?/gi, '')
+                                                    .replace(/:\s*["']\s*$/, '')
+                                                    .trim();
                                             }
                                         }
                                         const { icon: EventIcon, bgColor, badge, badgeColor, avatar } = getEventIconAndBadge(event);

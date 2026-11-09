@@ -96,6 +96,36 @@ def process_shopping_message(
         if params.location:
             sellers = retrieve_marketplace_sellers(db, params.location, limit=3)
 
+    # Populate genuine recommended shops from the actual matched products and marketplace
+    if products and intent not in (ShoppingIntentType.GREETING, ShoppingIntentType.CASUAL, ShoppingIntentType.MARKETPLACE_INFO, ShoppingIntentType.SUPPORT):
+        seller_map: Dict[int, ShopperSellerItem] = {s.id: s for s in sellers}
+        for p in products:
+            if p.seller_id and p.seller_name and p.seller_id not in seller_map:
+                clean_name = p.seller_name.strip()
+                if clean_name.lower() in ("shop", "verified shop", "seller"):
+                    clean_name = f"Shop #{p.seller_id}"
+                slug = "".join(c for c in clean_name.lower() if c.isalnum()) or f"shop{p.seller_id}"
+                seller_map[p.seller_id] = ShopperSellerItem(
+                    id=p.seller_id,
+                    name=clean_name,
+                    slug=slug,
+                    avatar_url=None,
+                    location=p.location or "Nairobi",
+                    is_verified=bool(p.is_verified),
+                    shop_url=f"/shops/{slug}",
+                )
+                if len(seller_map) >= 4:
+                    break
+
+        if len(seller_map) < 4:
+            for extra_s in retrieve_marketplace_sellers(db, params.location or "", limit=4):
+                if extra_s.id not in seller_map:
+                    seller_map[extra_s.id] = extra_s
+                if len(seller_map) >= 4:
+                    break
+
+        sellers = list(seller_map.values())[:4]
+
     # 5. Generate Grounded AI Response
     prompt = build_shopper_context_prompt(
         user_query=clean_query,
