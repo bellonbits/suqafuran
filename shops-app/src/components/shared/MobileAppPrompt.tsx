@@ -100,13 +100,13 @@ export const MobileAppPrompt: React.FC = () => {
 
         {/* App Icon (Squircle shape with shadow) */}
         <div className="relative mb-3">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#0078E8] to-[#00BFFF] p-1 shadow-lg shadow-sky-500/20 flex items-center justify-center overflow-hidden">
+          <div className="w-20 h-20 rounded-2xl bg-white dark:bg-white p-2 shadow-lg shadow-sky-500/10 border border-slate-100 dark:border-neutral-200 flex items-center justify-center overflow-hidden">
             <img 
-              src="/icon1.png" 
+              src="/app-logo.png" 
               alt="Suqafuran App Icon" 
-              className="w-full h-full object-cover rounded-xl"
+              className="w-full h-full object-contain"
               onError={(e) => {
-                // Fallback to Google Play or App Store icon if /icon1.png fails
+                // Fallback to Google Play or App Store icon if /app-logo.png fails
                 (e.target as HTMLImageElement).src = platform === 'ios' ? '/app-store-icon.png' : '/google-play-icon.png';
               }}
             />

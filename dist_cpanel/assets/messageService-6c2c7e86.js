@@ -1,0 +1,1 @@
+import{i as s}from"./index-b0d432bb.js";const n={async getMessages(e){return(await s.get("/messages",{params:e})).data},async getMessage(e){return(await s.get(`/messages/${e}`)).data},async sendMessage(e){return(await s.post("/messages",e)).data},async deleteMessage(e){await s.delete(`/messages/${e}`)}};export{n as m};

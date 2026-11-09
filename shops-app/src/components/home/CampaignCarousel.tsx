@@ -21,6 +21,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { SfIconChevronLeft, SfIconChevronRight } from '@storefront-ui/react';
 import { clsx } from 'clsx';
 import { advertisingService, HomepageBanner } from '@/services/advertising';
+import { resolveMediaUrl, optimizeCloudinaryUrl } from '@/services/api';
 
 const ORANGE = '#FF9600';
 
@@ -106,18 +107,33 @@ interface Slide {
   category: CampaignCategory;
   campaign: Campaign;
   image?: string;
+  mobileImage?: string;
   isCustomPromo?: boolean;
   banner?: HomepageBanner;
   bannerLink?: string;
 }
 
-function optimiseRemote(url?: string): string | undefined {
-  if (!url) return url;
-  const marker = '/image/upload/';
-  if (url.includes('res.cloudinary.com') && url.includes(marker) && !url.includes('/c_fill')) {
-    return url.replace(marker, `${marker}c_fill,g_auto,w_1200,h_600,q_auto,f_auto/`);
+function getOptimizedBannerUrl(rawUrl?: string, width = 1200): string | undefined {
+  if (!rawUrl) return undefined;
+  const resolved = resolveMediaUrl(rawUrl) || rawUrl;
+  if (!resolved) return undefined;
+
+  if (resolved.includes('cloudinary.com')) {
+    const marker = '/image/upload/';
+    const index = resolved.indexOf(marker);
+    if (index !== -1) {
+      const prefix = resolved.substring(0, index + marker.length);
+      let rest = resolved.substring(index + marker.length);
+      // Strip any conflicting manual transformation before version segment if present
+      const versionMatch = rest.match(/v\d+\//);
+      if (versionMatch && versionMatch.index !== undefined && versionMatch.index > 0) {
+        rest = rest.substring(versionMatch.index);
+      }
+      return `${prefix}c_fill,g_auto,w_${width},q_auto,f_auto/${rest}`;
+    }
+    return optimizeCloudinaryUrl(resolved, { width, quality: 'auto', fetch_format: 'auto' }) || resolved;
   }
-  return url;
+  return resolved;
 }
 
 export function buildCampaignSlides(
@@ -138,6 +154,9 @@ export function buildCampaignSlides(
       h2 = banner.subtitle ? 'Exclusive' : 'Deal';
     }
 
+    const desktopImg = getOptimizedBannerUrl(banner.image_url, 1200);
+    const mobileImg = getOptimizedBannerUrl(banner.mobile_image_url || banner.image_url, 750);
+
     return {
       category: {
         id: -1000 - banner.id,
@@ -150,9 +169,10 @@ export function buildCampaignSlides(
         headline: [h1, h2],
         description: banner.subtitle || 'Discover exclusive promotional deals on Suqafuran',
         cta: banner.button_text || 'Shop Deals',
-        image: banner.image_url,
+        image: desktopImg,
       },
-      image: banner.image_url,
+      image: desktopImg,
+      mobileImage: mobileImg,
       isCustomPromo: true,
       banner,
       bannerLink: banner.button_link || '/shops',
@@ -167,10 +187,12 @@ export function buildCampaignSlides(
       name: campaign.headline.join(' '),
       active_listing_count: undefined,
     };
+    const catImage = campaign.image ?? getOptimizedBannerUrl(category.image_url, 800);
     return { 
       category, 
       campaign, 
-      image: campaign.image ?? optimiseRemote(category.image_url),
+      image: catImage,
+      mobileImage: catImage,
       isCustomPromo: false,
     };
   });
@@ -269,11 +291,20 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
     return () => document.removeEventListener('visibilitychange', onVis);
   }, []);
 
-  // Pre-load the next slide's image so transitions are instant
+  // Preload all banner images immediately on mount and on slide updates so transitions are instantaneous
   useEffect(() => {
-    const upcoming = slides[(index + 1) % Math.max(count, 1)]?.image;
-    if (upcoming) new Image().src = upcoming;
-  }, [index, count, slides]);
+    if (!slides || slides.length === 0) return;
+    slides.forEach((s) => {
+      if (s.image) {
+        const img = new Image();
+        img.src = s.image;
+      }
+      if (s.mobileImage && s.mobileImage !== s.image) {
+        const mImg = new Image();
+        mImg.src = s.mobileImage;
+      }
+    });
+  }, [slides]);
 
   const safeIndex = count > 0 ? index % count : 0;
   const currentSlide = slides[safeIndex];
@@ -302,7 +333,7 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
     );
   }
 
-  const { category, campaign, image, isCustomPromo, banner, bannerLink } = currentSlide;
+  const { category, campaign, image, mobileImage, isCustomPromo, banner, bannerLink } = currentSlide;
 
   const safeCampaign: Campaign = campaign || {
     eyebrow: 'Verified Deals',
@@ -322,34 +353,23 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
     const isExternal = targetUrl.startsWith('http');
 
     const innerContent = isCustomPromo ? (
-      /* ── Custom Promotional Flyer / Banner ── */
+      /* ── Custom Promotional Flyer / Banner (Clean graphic display without overlaid buttons) ── */
       image ? (
         <div className="relative w-full h-full">
           <picture className="w-full h-full block">
-            {banner?.mobile_image_url && (
-              <source media="(max-width: 639px)" srcSet={banner.mobile_image_url} />
+            {mobileImage && (
+              <source media="(max-width: 639px)" srcSet={mobileImage} />
             )}
             <img
               src={image}
               alt={banner?.title || category.name || 'Suqafuran Promotion'}
               draggable={false}
               loading={safeIndex === 0 ? 'eager' : 'lazy'}
+              decoding="async"
+              {...(safeIndex === 0 ? ({ fetchpriority: 'high' } as any) : {})}
               className="w-full h-full object-cover object-center select-none transition-transform duration-700 group-hover:scale-[1.01]"
             />
           </picture>
-
-          {/* Floating Action CTA Button & Label */}
-          <div className="absolute left-4 sm:left-8 bottom-3 sm:bottom-5 z-10 flex items-center gap-2 sm:gap-3 pointer-events-auto">
-            <span className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full bg-[#0078E8] hover:bg-[#0066c7] text-white font-extrabold text-xs sm:text-sm shadow-lg transition-transform active:scale-95">
-              <span>{banner?.button_text || 'Shop Now'}</span>
-              <SfIconChevronRight size="xs" className="w-3.5 h-3.5 text-white" />
-            </span>
-            {banner?.subtitle && (
-              <span className="hidden md:inline-block px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-semibold border border-white/20">
-                {banner.subtitle}
-              </span>
-            )}
-          </div>
         </div>
       ) : (
         <div className="w-full h-full bg-gradient-to-tr from-[#0078E8] via-indigo-600 to-[#FF9600] flex flex-col items-center justify-center text-white p-6 text-center">
@@ -359,10 +379,6 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
           <p className="text-sm sm:text-lg text-white/90 mt-2 max-w-lg">
             {banner?.subtitle || 'Explore verified shops and best deals on Suqafuran'}
           </p>
-          <span className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-[#0078E8] font-bold text-sm shadow-md">
-            <span>{banner?.button_text || 'Explore Deals'}</span>
-            <SfIconChevronRight size="xs" className="w-3.5 h-3.5" />
-          </span>
         </div>
       )
     ) : (
