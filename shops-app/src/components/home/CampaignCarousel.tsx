@@ -118,6 +118,11 @@ function getOptimizedBannerUrl(rawUrl?: string, width = 1200): string | undefine
   const resolved = resolveMediaUrl(rawUrl) || rawUrl;
   if (!resolved) return undefined;
 
+  // Never apply on-the-fly transformations to GIFs -- Cloudinary returns 400 Bad Request
+  if (/\.gif($|\?)/i.test(resolved)) {
+    return resolved;
+  }
+
   if (resolved.includes('cloudinary.com')) {
     const marker = '/image/upload/';
     const index = resolved.indexOf(marker);
@@ -367,6 +372,12 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
               loading={safeIndex === 0 ? 'eager' : 'lazy'}
               decoding="async"
               {...(safeIndex === 0 ? ({ fetchpriority: 'high' } as any) : {})}
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (banner?.image_url && target.src !== banner.image_url) {
+                  target.src = banner.image_url;
+                }
+              }}
               className="w-full h-full object-cover object-center select-none transition-transform duration-700 group-hover:scale-[1.01]"
             />
           </picture>

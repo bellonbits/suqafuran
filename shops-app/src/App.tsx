@@ -117,7 +117,11 @@ const AdminDashboardPagePlaceholder = () => (
 // import above is now code-split (was previously one ~2MB bundle covering
 // every storefront and admin page at once), so this fires on first visit
 // to each route and essentially never again once the chunk is cached.
-const RouteLoadingFallback = () => null
+const RouteLoadingFallback = () => (
+  <div className="min-h-[50vh] w-full flex items-center justify-center p-8">
+    <div className="w-8 h-8 rounded-full border-3 border-sky-500 border-t-transparent animate-spin" />
+  </div>
+)
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation()

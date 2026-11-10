@@ -1,3 +1,5 @@
+import { isCapacitorApp } from './capacitor-utils';
+
 /**
  * Cache buster utility
  * Clears old site caches on page load
@@ -37,10 +39,10 @@ export async function initCacheBuster() {
     // Skip this check for native Capacitor apps and localhost development
     const expectedHostnames = ['suqafuran.com', 'www.suqafuran.com', 'suqafuran.vercel.app'];
     const currentHostname = window.location.hostname;
-    const isNativeApp = window.location.protocol === 'capacitor:';
+    const isNative = isCapacitorApp() || window.location.protocol === 'capacitor:' || window.location.protocol === 'ionic:' || !window.location.host;
     const isLocalhost = currentHostname === 'localhost' || currentHostname === '127.0.0.1';
 
-    if (!isNativeApp && !isLocalhost && !expectedHostnames.includes(currentHostname)) {
+    if (!isNative && !isLocalhost && !expectedHostnames.includes(currentHostname)) {
       console.warn('⚠️ Wrong hostname detected:', currentHostname);
       window.location.href = `https://suqafuran.com${window.location.pathname}`;
     }

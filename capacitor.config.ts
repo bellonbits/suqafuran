@@ -3,7 +3,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.suqafuran.app',
   appName: 'Suqafuran',
-  webDir: 'new-frontend/out',
+  webDir: 'dist',
   // No server URL = load from bundled assets
   server: {
     androidScheme: 'https',

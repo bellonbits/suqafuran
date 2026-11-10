@@ -5,9 +5,20 @@ const config: CapacitorConfig = {
   appName: 'Suqafuran',
   webDir: 'dist',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'https',
+    iosScheme: 'https',
+  },
+  ios: {
+    contentInset: 'automatic',
   },
   plugins: {
+    SplashScreen: {
+      launchShowDuration: 0,
+      launchAutoHide: true,
+      backgroundColor: '#ffffff',
+      showSpinner: false,
+      fadeOutDuration: 0,
+    },
     // Capacitor's native HTTP bridge reroutes fetch/XHR through Android's
     // native networking. It's a common source of axios seeing a bare
     // "Network Error" (no response at all) for requests that work fine
