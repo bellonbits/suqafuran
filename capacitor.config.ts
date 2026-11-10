@@ -3,7 +3,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.suqafuran.app',
   appName: 'Suqafuran',
-  webDir: 'dist',
+  webDir: 'shops-app/dist',
   // No server URL = load from bundled assets
   server: {
     androidScheme: 'https',
@@ -12,7 +12,7 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: true,
     captureInput: true,
-    webContentsDebuggingEnabled: false,
+    webContentsDebuggingEnabled: true,
     backgroundColor: '#ffffff',
   },
   ios: {

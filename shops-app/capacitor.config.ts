@@ -8,6 +8,12 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
     iosScheme: 'https',
   },
+  android: {
+    allowMixedContent: true,
+    captureInput: true,
+    webContentsDebuggingEnabled: true,
+    backgroundColor: '#ffffff',
+  },
   ios: {
     contentInset: 'automatic',
   },

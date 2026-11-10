@@ -7,6 +7,8 @@ import { isCapacitorApp } from './capacitor-utils';
 
 export async function initCacheBuster() {
   if (typeof window === 'undefined') return;
+  // Never run cache-busting in native Capacitor apps (avoids wiping native state or interfering with webview)
+  if (isCapacitorApp()) return;
 
   try {
     // Clear all caches

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { initCacheBuster, addCacheBusterToRequests } from '@/lib/cache-buster';
+import { isCapacitorApp } from '@/lib/capacitor-utils';
 
 /**
  * Client component that runs cache-busting logic on page load
@@ -13,8 +14,8 @@ export function CacheBuster() {
     // Run cache buster on mount
     initCacheBuster();
 
-    // Skip fetch wrapper for native apps (Capacitor) as it can interfere with router
-    const isNativeApp = typeof window !== 'undefined' && window.location.protocol === 'capacitor:';
+    // Skip fetch wrapper for native apps (Capacitor) as it can interfere with router & asset loading
+    const isNativeApp = isCapacitorApp() || (typeof window !== 'undefined' && (window.location.protocol === 'capacitor:' || window.location.protocol === 'ionic:'));
     if (!isNativeApp) {
       addCacheBusterToRequests();
     }
