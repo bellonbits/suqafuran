@@ -38,6 +38,13 @@ def _get_app():
             cred = credentials.Certificate(json.loads(cred_json))
         else:
             default_paths = [
+                "/app/serviceAccountKey.json",
+                "/app/firebase-credentials.json",
+                "/app/backend/serviceAccountKey.json",
+                "serviceAccountKey.json",
+                "firebase-credentials.json",
+                os.path.join(os.path.dirname(__file__), "../../serviceAccountKey.json"),
+                os.path.join(os.path.dirname(__file__), "../../../serviceAccountKey.json"),
                 "/Users/mac/suqafuran/serviceAccountKey.json",
                 "/Users/mac/suqafuran/backend/serviceAccountKey.json",
             ]
