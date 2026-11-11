@@ -12,6 +12,36 @@ class CRUDNotification:
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
+
+        # Trigger background push notification if user has registered device
+        try:
+            from app.utils.push import send_push_to_user
+            import threading
+            title = obj_in.get("title") or obj_in.get("data", {}).get("title") or "New Notification"
+            body = obj_in.get("message") or obj_in.get("data", {}).get("message") or obj_in.get("data", {}).get("body") or "You have a new update on Suqafuran"
+
+            def _push_worker():
+                try:
+                    from app.db import SessionLocal
+                    with SessionLocal() as s:
+                        send_push_to_user(
+                            s,
+                            user_id=user_id,
+                            title=str(title),
+                            body=str(body),
+                            data={
+                                "type": str(obj_in.get("type", "notification")),
+                                "id": str(db_obj.id or ""),
+                                "path": str(obj_in.get("data", {}).get("action_url") or obj_in.get("data", {}).get("url") or "")
+                            }
+                        )
+                except Exception:
+                    pass
+
+            threading.Thread(target=_push_worker, daemon=True).start()
+        except Exception:
+            pass
+
         return db_obj
 
     def get_user_notifications(

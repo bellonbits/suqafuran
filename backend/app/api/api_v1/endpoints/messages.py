@@ -99,13 +99,15 @@ def send_message(
     msg = crud_message.create(db, obj_in=message_in.model_dump(), sender_id=current_user.id)
 
     sender_name = current_user.full_name or "Someone"
-    clean_preview = msg.content or ""
-    if "[IMAGE]:" in clean_preview:
+    clean_preview = (msg.content or "").strip()
+    if "[IMAGE]:" in clean_preview or "res.cloudinary.com" in clean_preview:
         preview = "📷 Sent a photo"
-    elif "[PRODUCT_IMAGE]:" in clean_preview or "🛍️ INQUIRY:" in clean_preview:
+    elif "[PRODUCT_IMAGE]:" in clean_preview or "🛍️ INQUIRY:" in clean_preview or "#ORD-" in clean_preview:
         preview = "🛍️ Sent a product inquiry"
+    elif "[VOICE" in clean_preview:
+        preview = "🎤 Sent a voice message"
     else:
-        preview = clean_preview[:80]
+        preview = clean_preview.replace("[PRODUCT_IMAGE]:", "").replace("[IMAGE]:", "").strip()[:80]
     now_iso = msg.created_at.isoformat() if msg.created_at else datetime.utcnow().isoformat()
 
     # 1. Guaranteed in-app notification created in DB (never lost if Celery worker is down)
@@ -121,7 +123,8 @@ def send_message(
                     "sender_name": sender_name,
                     "content": msg.content,
                     "listing_id": msg.listing_id,
-                    "message": f"New message from {sender_name}: \"{preview}\"",
+                    "title": f"New Message from {sender_name}",
+                    "message": preview,
                     "action_url": f"/messages?userId={current_user.id}",
                 }
             },
@@ -137,8 +140,8 @@ def send_message(
             "payload": {
                 "id": f"msg_{msg.id}",
                 "type": "message",
-                "title": f"New message from {sender_name}",
-                "message": f"New message from {sender_name}: \"{preview}\"",
+                "title": f"New Message from {sender_name}",
+                "message": preview,
                 "sender_id": current_user.id,
                 "sender_name": sender_name,
                 "listing_id": msg.listing_id,
@@ -179,7 +182,34 @@ def send_message(
     except Exception as e:
         logger.warning(f"Failed to broadcast live chat message: {e}")
 
-    # 4. Optional asynchronous external dispatches (Push, Email) via Celery if worker is running
+    # 4. Asynchronous external dispatches (Push, Email)
+    try:
+        from app.utils.push import send_push_to_user
+        from app.db import SessionLocal
+        import threading
+
+        def _direct_msg_push():
+            try:
+                with SessionLocal() as s:
+                    send_push_to_user(
+                        s,
+                        user_id=message_in.receiver_id,
+                        title=f"New Message from {sender_name}",
+                        body=preview,
+                        data={
+                            "type": "message",
+                            "sender_id": str(current_user.id),
+                            "listing_id": str(msg.listing_id or ""),
+                            "path": f"/messages?userId={current_user.id}"
+                        }
+                    )
+            except Exception as pe:
+                logger.warning(f"Direct push failed: {pe}")
+
+        threading.Thread(target=_direct_msg_push, daemon=True).start()
+    except Exception as e:
+        logger.warning(f"Failed to initiate push thread: {e}")
+
     try:
         from app.tasks.notifications import send_message_notifications
         send_message_notifications.delay(

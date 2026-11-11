@@ -25,12 +25,16 @@ export const OrderReceiptBubble: React.FC<OrderReceiptBubbleProps> = ({ content,
   const [fetchedPrice, setFetchedPrice] = useState<string | null>(null);
 
   const parsed = useMemo(() => {
-    // 1. Extract embedded product image tag [PRODUCT_IMAGE]: url or [IMAGE]: url
-    const imgMatch = content.match(/\[PRODUCT_IMAGE\]:\s*([^\n\r]+)/i) || content.match(/\[IMAGE\]:\s*([^\n\r]+)/i);
+    // 1. Extract embedded product image tag [PRODUCT_IMAGE]: url or [IMAGE]: url (with or without newline)
+    const imgMatch = content.match(/\[(?:PRODUCT_IMAGE|IMAGE)\]:?\s*(https?:\/\/[^\s"'<>]+)/i) ||
+                     content.match(/\[PRODUCT_IMAGE\]:\s*([^\n\r]+)/i) ||
+                     content.match(/\[IMAGE\]:\s*([^\n\r]+)/i);
     const rawImage = imgMatch ? imgMatch[1].trim() : '';
 
     // 2. Clean content to remove system tags and accidental duplicate URLs for display
     const cleanContent = content
+      .replace(/\[(?:PRODUCT_IMAGE|IMAGE)\]:?\s*https?:\/\/[^\s"'<>]+/gi, '')
+      .replace(/\[(?:PRODUCT_IMAGE|IMAGE)\]:?/gi, '')
       .replace(/\[PRODUCT_IMAGE\]:\s*[^\n\r]+/gi, '')
       .replace(/\[IMAGE\]:\s*[^\n\r]+/gi, '')
       .replace(/https?:\/\/[^\s]+suqafuran\.com\/listing\/\d+/gi, '')

@@ -24,8 +24,14 @@ function StatusDot({ active }: { active: boolean }) {
 
 const ShopsPage = () => {
   const router = useRouter();
-  const [shops, setShops] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [shops, setShops] = useState<any[]>(() => {
+    try {
+      const cached = localStorage.getItem('admin_shops_cache');
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return [];
+  });
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedShop, setExpandedShop] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<'name' | 'listings' | 'active'>('listings');
@@ -163,6 +169,7 @@ const ShopsPage = () => {
       });
 
       setShops(results);
+      try { localStorage.setItem('admin_shops_cache', JSON.stringify(results)); } catch {}
     } catch (error) {
       console.error('Error loading shops:', error);
       setShops([]);
@@ -233,19 +240,6 @@ const ShopsPage = () => {
       <ChevronDown className={`w-3 h-3 ${sortBy === col && sortDir === 'desc' ? 'text-sky-500' : 'text-gray-300'}`} />
     </span>
   );
-
-  if (loading) {
-    return (
-      <DashboardLayout title="Shops Management" navItems={adminNavItems} userRole="admin">
-        <div className="flex items-center justify-center h-64">
-          <div className="flex flex-col items-center gap-3">
-            <Loader className="w-8 h-8 animate-spin text-indigo-500" />
-            <p className="text-slate-400 text-sm">Loading shops…</p>
-          </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   return (
     <DashboardLayout title="Shops Management" navItems={adminNavItems} userRole="admin">

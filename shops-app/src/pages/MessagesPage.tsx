@@ -7,7 +7,8 @@ import {
   Send, Search, AlertCircle, ShoppingBag, ArrowLeft, MessageSquare, Loader, 
   CheckCircle2, HelpCircle, Smile, Paperclip, MoreVertical, SlidersHorizontal, 
   CheckCheck, Users, Headphones, Store, Mic, MicOff, Image as ImageIcon, 
-  ShieldAlert, AlertTriangle, Trash2, X, Maximize2, ShieldCheck, ChevronRight
+  ShieldAlert, AlertTriangle, Trash2, X, Maximize2, ShieldCheck, ChevronRight,
+  ChevronDown
 } from 'lucide-react';
 import api, { optimizeCloudinaryUrl } from '@/services/api';
 import { listingsService } from '@/services/listings';
@@ -57,6 +58,38 @@ interface Conversation {
     is_online?: boolean;
 }
 
+function parseMessageContent(raw: string): { imageUrl?: string; cleanText: string } {
+    if (!raw) return { cleanText: '' };
+
+    let imageUrl: string | undefined;
+
+    // 1. Match [PRODUCT_IMAGE]: or [IMAGE]: with optional newlines, then URL
+    const tagMatch = raw.match(/\[(?:PRODUCT_IMAGE|IMAGE)\]:?\s*(https?:\/\/[^\s"'<>]+)/i);
+    if (tagMatch) {
+        imageUrl = tagMatch[1].trim();
+    } else {
+        // 2. Match standalone Cloudinary or image URL
+        const urlMatch = raw.match(/(https?:\/\/[^\s"'<>]*(?:cloudinary\.com[^\s"'<>]*|\.(?:png|jpe?g|webp|gif)(?:\?[^\s"'<>]*)?))/i);
+        if (urlMatch) {
+            imageUrl = urlMatch[1].trim();
+        }
+    }
+
+    // 3. Remove [PRODUCT_IMAGE] tags and the image URL from visible text
+    let cleanText = raw
+        .replace(/\[(?:PRODUCT_IMAGE|IMAGE)\]:?\s*https?:\/\/[^\s"'<>]+/gi, '')
+        .replace(/\[(?:PRODUCT_IMAGE|IMAGE)\]:?/gi, '');
+
+    if (imageUrl) {
+        cleanText = cleanText.replace(imageUrl, '');
+    }
+
+    // Remove multiple blank lines leftover
+    cleanText = cleanText.replace(/\n{3,}/g, '\n\n').trim();
+
+    return { imageUrl, cleanText };
+}
+
 function MessagesPageContent() {
     const navigate = useNavigate();
     const searchParams = useSearchParams();
@@ -103,6 +136,8 @@ function MessagesPageContent() {
     const [searchQuery, setSearchQuery] = useState('');
     const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
     const [isUserTyping, setIsUserTyping] = useState(false);
+    const [showFraudShield, setShowFraudShield] = useState(true);
+    const [showScrollBottom, setShowScrollBottom] = useState(false);
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
     const messagesContainerRef = useRef<HTMLDivElement | null>(null);
@@ -112,6 +147,21 @@ function MessagesPageContent() {
             messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
         }
     }, [messages]);
+
+    const handleMessagesScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        const target = e.currentTarget;
+        const isNearBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 120;
+        setShowScrollBottom(!isNearBottom);
+    };
+
+    const scrollToBottom = (smooth = true) => {
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTo({
+                top: messagesContainerRef.current.scrollHeight,
+                behavior: smooth ? 'smooth' : 'auto'
+            });
+        }
+    };
 
     // The real auth token -- this used to read localStorage.getItem('access_token'),
     // a key nothing in the app ever writes to, so the socket never connected.
@@ -685,11 +735,11 @@ function MessagesPageContent() {
     };
 
     return (
-        <div className="w-full h-[calc(100dvh-3rem-env(safe-area-inset-top,0px)-5rem)] md:h-[calc(100vh-8rem)] md:max-w-7xl md:mx-auto md:px-6 md:py-6 p-0">
+        <div className="w-full h-[calc(100dvh-3.5rem-env(safe-area-inset-top,0px)-4.5rem)] md:h-[calc(100vh-8rem)] md:max-w-7xl md:mx-auto md:px-6 md:py-6 p-0">
             <div className="h-full rounded-none md:rounded-[32px] overflow-hidden bg-white border-0 md:border md:border-gray-100 md:shadow-2xl dark:bg-neutral-950 dark:border-neutral-800 flex">
 
                 {/* Conversations Left Panel */}
-                <aside className={`${selectedUserId ? 'hidden md:flex' : 'flex'} w-full md:w-80 lg:w-[360px] shrink-0 border-r border-gray-100 dark:border-neutral-800 flex-col h-full bg-slate-50/40 dark:bg-black/20 overflow-hidden`}>
+                <aside className={`${selectedUserId ? 'hidden md:flex' : 'flex'} w-full md:w-80 lg:w-[360px] shrink-0 border-r border-gray-100 dark:border-neutral-800 flex-col h-full min-h-0 bg-slate-50/40 dark:bg-black/20 overflow-hidden`}>
                     {/* Panel Header */}
                     <div className="p-4 space-y-3.5 border-b border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-950">
                         <div className="flex items-center justify-between">
@@ -774,7 +824,10 @@ function MessagesPageContent() {
                             </div>
                         </div>
                     ) : (
-                        <div className="flex-1 overflow-y-auto divide-y divide-gray-100 dark:divide-neutral-800/50">
+                        <div
+                            style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+                            className="flex-1 min-h-0 overflow-y-auto overscroll-contain divide-y divide-gray-100 dark:divide-neutral-800/50 pb-20 md:pb-4"
+                        >
                             {filteredConversations.map((conv) => (
                                 <button
                                     key={conv.other_user_id}
@@ -839,11 +892,11 @@ function MessagesPageContent() {
                 </aside>
 
                 {/* Conversation Right Panel */}
-                <div className={`${selectedUserId ? 'flex' : 'hidden md:flex'} flex-1 flex-col h-full min-w-0 bg-white dark:bg-neutral-950 overflow-hidden`}>
+                <div className={`${selectedUserId ? 'flex' : 'hidden md:flex'} flex-1 flex-col min-h-0 h-full min-w-0 bg-white dark:bg-neutral-950 overflow-hidden relative`}>
                     {selectedUserId && selectedConversation ? (
                         <>
                             {/* Chat Header */}
-                            <div className="p-3.5 sm:p-4 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between bg-white dark:bg-neutral-950">
+                            <div className="p-3 sm:p-3.5 border-b border-gray-100 dark:border-neutral-800 flex items-center justify-between bg-white dark:bg-neutral-950 shrink-0">
                                 <div className="flex items-center gap-3">
                                     <button
                                         onClick={() => setSelectedUserId(null)}
@@ -864,10 +917,10 @@ function MessagesPageContent() {
                                                 <img
                                                     src={selectedConversation.other_user_avatar}
                                                     alt={selectedConversation.other_user_name}
-                                                    className="h-10 w-10 rounded-2xl object-cover border border-slate-200 dark:border-neutral-800 shadow-sm group-hover:scale-105 group-hover:ring-2 group-hover:ring-orange-500/40 transition-all"
+                                                    className="h-9 w-9 sm:h-10 sm:w-10 rounded-2xl object-cover border border-slate-200 dark:border-neutral-800 shadow-sm group-hover:scale-105 group-hover:ring-2 group-hover:ring-orange-500/40 transition-all"
                                                 />
                                             ) : (
-                                                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-xs shadow-sm group-hover:scale-105 group-hover:ring-2 group-hover:ring-orange-500/40 transition-all">
+                                                <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-2xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-xs shadow-sm group-hover:scale-105 group-hover:ring-2 group-hover:ring-orange-500/40 transition-all">
                                                     {(selectedConversation.other_user_name || 'U').charAt(0).toUpperCase()}
                                                 </div>
                                             )}
@@ -923,45 +976,54 @@ function MessagesPageContent() {
                                 </div>
                             </div>
 
-                            {/* Fraud Shield Advisory Bar */}
-                            <div className="px-4 py-1.5 bg-amber-50/70 dark:bg-amber-950/20 border-b border-amber-200/50 dark:border-amber-900/20 flex items-center justify-between text-[11px] text-amber-900 dark:text-amber-200">
-                                <div className="flex items-center gap-1.5 truncate">
-                                    <ShieldCheck className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                                    <span className="font-medium truncate">
-                                        <strong>Fraud Shield Active:</strong> Inspect items before paying. Never send advance deposits or share M-Pesa PIN.
-                                    </span>
-                                </div>
-                                <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider shrink-0 ml-2">
-                                    Protected
-                                </span>
-                            </div>
-
-                            {/* Pinned product context -- whenever this thread is
-                                about a specific listing, keep it visible so
-                                neither side has to scroll up to remember what
-                                the conversation is actually about. */}
-                            {sharedProduct && (
-                                <a
-                                    href={`/listing/${sharedProduct.id}`}
-                                    className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-100 dark:border-neutral-800 bg-amber-50/60 dark:bg-amber-500/5 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors"
-                                >
-                                    <img
-                                        src={optimizeCloudinaryUrl(sharedProduct.images?.[0], { width: 80 }) || sharedProduct.images?.[0]}
-                                        alt={field(sharedProduct.title_en, sharedProduct.title_so) || sharedProduct.title_en}
-                                        className="h-11 w-11 rounded-xl object-cover shrink-0 bg-gray-100 dark:bg-neutral-800"
-                                    />
-                                    <div className="min-w-0 flex-1">
-                                        <p className="text-[9px] font-bold uppercase tracking-wide text-amber-700 dark:text-amber-400 flex items-center gap-1">
-                                            <ShoppingBag className="h-3 w-3" /> Chatting about
-                                        </p>
-                                        <p className="text-xs font-black text-gray-900 dark:text-neutral-50 truncate">
-                                            {field(sharedProduct.title_en, sharedProduct.title_so) || sharedProduct.title_en}
-                                        </p>
+                            {/* Dismissible Fraud Shield Advisory Bar */}
+                            {showFraudShield && (
+                                <div className="px-3.5 py-1.5 bg-amber-50/80 dark:bg-amber-950/30 border-b border-amber-200/50 dark:border-amber-900/30 flex items-center justify-between text-[11px] text-amber-900 dark:text-amber-200 shrink-0">
+                                    <div className="flex items-center gap-1.5 truncate">
+                                        <ShieldCheck className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                        <span className="font-medium truncate text-[10px] sm:text-[11px]">
+                                            <strong>Fraud Shield:</strong> Inspect items before paying. Never send deposits.
+                                        </span>
                                     </div>
-                                    <p className="text-xs font-black text-[#00a082] shrink-0">
-                                        {formatConvertedPrice(sharedProduct.price, sharedProduct.currency, currency)}
-                                    </p>
-                                </a>
+                                    <button
+                                        onClick={() => setShowFraudShield(false)}
+                                        className="p-1 text-amber-700/70 hover:text-amber-900 shrink-0 ml-1 rounded-md"
+                                        title="Dismiss advisory"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Compact Pinned Product Bar */}
+                            {sharedProduct && (
+                                <div className="border-b border-gray-100 dark:border-neutral-800 bg-amber-50/40 dark:bg-amber-500/5 shrink-0 transition-all">
+                                    <div className="flex items-center justify-between px-3.5 py-1.5 sm:py-2 gap-2">
+                                        <a
+                                            href={`/listing/${sharedProduct.id}`}
+                                            className="flex items-center gap-2.5 min-w-0 flex-1 hover:opacity-90"
+                                        >
+                                            <img
+                                                src={optimizeCloudinaryUrl(sharedProduct.images?.[0], { width: 80 }) || sharedProduct.images?.[0]}
+                                                alt={field(sharedProduct.title_en, sharedProduct.title_so) || sharedProduct.title_en}
+                                                className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl object-cover shrink-0 bg-gray-100 dark:bg-neutral-800 border border-slate-200/50"
+                                            />
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-[9px] font-bold uppercase tracking-wide text-amber-700 dark:text-amber-400 flex items-center gap-1">
+                                                    <ShoppingBag className="h-2.5 w-2.5" /> Chatting about
+                                                </p>
+                                                <p className="text-xs font-black text-gray-900 dark:text-neutral-50 truncate">
+                                                    {field(sharedProduct.title_en, sharedProduct.title_so) || sharedProduct.title_en}
+                                                </p>
+                                            </div>
+                                        </a>
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            <p className="text-xs font-black text-[#00a082]">
+                                                {formatConvertedPrice(sharedProduct.price, sharedProduct.currency, currency)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                             )}
 
                             {/* Purchase confirmation -- Suqafuran doesn't process payment,
@@ -1025,7 +1087,12 @@ function MessagesPageContent() {
                             )}
 
                             {/* Chat History View */}
-                            <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-3 bg-slate-50/40 dark:bg-black/10">
+                            <div
+                                ref={messagesContainerRef}
+                                onScroll={handleMessagesScroll}
+                                style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+                                className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-3.5 sm:p-6 space-y-3 bg-slate-50/40 dark:bg-black/10"
+                            >
                                 {/* Date Divider */}
                                 <div className="flex justify-center py-1">
                                     <span className="px-3 py-1 rounded-full bg-white dark:bg-neutral-900 border border-slate-200/60 dark:border-neutral-800 text-[10px] font-bold text-gray-400 shadow-sm">
@@ -1131,15 +1198,34 @@ function MessagesPageContent() {
                                                         }`}>
                                                             <VoiceNotePlayer src={voiceUrl} durationLabel={voiceDuration} isMe={isMe} />
                                                         </div>
-                                                    ) : (
-                                                        <div className={`rounded-2xl p-3.5 text-xs sm:text-sm font-semibold leading-relaxed whitespace-pre-wrap break-words shadow-sm select-text ${
-                                                            isMe
-                                                                ? 'bg-[#0284c7] text-white rounded-br-sm'
-                                                                : 'bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 text-gray-800 dark:text-neutral-100 rounded-bl-sm'
-                                                        }`}>
-                                                            {msg.content}
-                                                        </div>
-                                                    )}
+                                                    ) : (() => {
+                                                        const { imageUrl: fallbackImg, cleanText } = parseMessageContent(msg.content);
+                                                        return (
+                                                            <div className={`rounded-2xl p-3 sm:p-3.5 text-xs sm:text-sm font-semibold leading-relaxed whitespace-pre-wrap break-words shadow-sm select-text ${
+                                                                isMe
+                                                                    ? 'bg-[#0284c7] text-white rounded-br-sm'
+                                                                    : 'bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 text-gray-800 dark:text-neutral-100 rounded-bl-sm'
+                                                            }`}>
+                                                                {fallbackImg && (
+                                                                    <div 
+                                                                        onClick={() => setLightboxImageUrl(fallbackImg)}
+                                                                        className="mb-2.5 overflow-hidden rounded-xl border border-white/20 dark:border-neutral-700/60 bg-black/10 cursor-pointer group relative max-w-xs"
+                                                                    >
+                                                                        <img 
+                                                                            src={fallbackImg} 
+                                                                            alt="Attached image" 
+                                                                            className="w-full max-h-64 object-cover rounded-xl transition-transform duration-200 group-hover:scale-102"
+                                                                            loading="lazy" 
+                                                                        />
+                                                                        <div className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                            <Maximize2 className="w-3.5 h-3.5" />
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                                {cleanText || (fallbackImg ? '' : msg.content)}
+                                                            </div>
+                                                        );
+                                                    })()}
 
                                                     {/* Fraud Risk Alert Pill if scam patterns detected */}
                                                     {fraudAlert.isSuspicious && (
@@ -1165,6 +1251,19 @@ function MessagesPageContent() {
                                 )}
                                 <div ref={messagesEndRef} />
                             </div>
+
+                            {/* Floating Scroll to Latest Button */}
+                            {showScrollBottom && (
+                                <button
+                                    type="button"
+                                    onClick={() => scrollToBottom(true)}
+                                    className="absolute bottom-20 right-4 z-20 px-3 py-1.5 rounded-full bg-sky-500 hover:bg-sky-600 text-white text-[11px] font-bold shadow-lg shadow-sky-500/30 flex items-center gap-1.5 transition-all animate-bounce"
+                                    aria-label="Scroll to latest messages"
+                                >
+                                    <ChevronDown className="w-3.5 h-3.5" />
+                                    <span>Latest</span>
+                                </button>
+                            )}
 
                             {/* Chat Input form area */}
                             <div className="relative p-3 sm:p-4 border-t border-gray-100 dark:border-neutral-800 bg-white dark:bg-neutral-950">

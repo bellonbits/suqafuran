@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { useAuthStore } from '@/store/useAuth';
 import api from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
-import { TrendingUp, Zap, AlertCircle, CheckCircle, Mail } from 'lucide-react';
+import { TrendingUp, Zap, AlertCircle, CheckCircle, Mail, Loader2 } from 'lucide-react';
 
 interface AdvertisingPlan {
   id: number;
@@ -110,8 +110,14 @@ export default function FeaturedAdsPage() {
     }
   };
 
-  if (!user) return null;
-  if (loading) return <div className="p-6">Loading...</div>;
+  if (!user || loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-sky-500" />
+        <p className="text-sm font-semibold text-slate-400">Loading promotions...</p>
+      </div>
+    );
+  }
 
   const activeAds = myAds.filter(ad => ad.status === 'active');
 

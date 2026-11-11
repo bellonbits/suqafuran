@@ -1,11 +1,26 @@
-import { ReactNode, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { ReactNode } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuth';
 import type { User } from '@/types';
 
 interface ProtectedRouteProps {
   children: ReactNode;
   requiredRole?: 'seller' | 'admin' | 'agent';
+}
+
+function getStoredAuth(): { user: User | null; isAuthenticated: boolean } {
+  if (typeof window === 'undefined') return { user: null, isAuthenticated: false };
+  try {
+    const raw = localStorage.getItem('suqafuran-auth-redesign');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const state = parsed?.state;
+      if (state?.user && (state?.token || state?.isAuthenticated)) {
+        return { user: state.user, isAuthenticated: true };
+      }
+    }
+  } catch {}
+  return { user: null, isAuthenticated: false };
 }
 
 // The backend doesn't consistently populate is_admin/is_agent/is_seller on
@@ -33,43 +48,22 @@ function isAuthorized(user: User, requiredRole: 'seller' | 'admin' | 'agent'): b
 }
 
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const navigate = useNavigate();
-  const { user, isAuthenticated, isHydrated } = useAuthStore();
-  const [hasChecked, setHasChecked] = useState(false);
+  const store = useAuthStore();
+  const stored = getStoredAuth();
 
-  useEffect(() => {
-    // Wait for the persisted session to finish loading from storage before
-    // deciding to redirect — otherwise an already-logged-in user gets
-    // bounced because the store still holds its logged-out default state.
-    if (!isHydrated) return;
-    if (hasChecked) return;
+  const user = store.user || stored.user;
+  const isAuthenticated = store.isAuthenticated || stored.isAuthenticated;
 
-    if (!isAuthenticated || !user) {
-      setHasChecked(true);
-      navigate('/login', { replace: true });
-      return;
-    }
-
-    if (requiredRole && !isAuthorized(user, requiredRole)) {
-      setHasChecked(true);
-      navigate('/', { replace: true });
-      return;
-    }
-
-    setHasChecked(true);
-  }, [isHydrated, isAuthenticated, user, requiredRole, navigate, hasChecked]);
-
-  if (!isHydrated || !hasChecked) {
-    return null;
-  }
-
+  // Not logged in -> redirect immediately
   if (!isAuthenticated || !user) {
-    return null;
+    return <Navigate to="/login" replace />;
   }
 
+  // Insufficient permissions -> redirect to home
   if (requiredRole && !isAuthorized(user, requiredRole)) {
-    return null;
+    return <Navigate to="/" replace />;
   }
 
+  // Load immediately as opened with no loading screen
   return <>{children}</>;
 }

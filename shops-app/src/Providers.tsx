@@ -7,6 +7,7 @@ import { RealtimeConnection } from './components/shared/RealtimeConnection';
 import { NotificationToast } from './components/shared/NotificationToast';
 import { OfflineBanner } from './components/OfflineBanner';
 import { BottomNav } from './components/shared/BottomNav';
+import { pushNotificationsService } from './services/push-notifications';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
@@ -39,6 +40,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       // retention/LTV/cohort reports never see the same person twice.
       const user = useAuthStore.getState().user;
       if (user) identifyUser(user);
+      pushNotificationsService.registerDeviceToken();
     }
   }, [isHydrated, isAuthenticated]);
 

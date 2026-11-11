@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   UserPlus, Trash2, Shield, Package, MessageSquare,
-  ShoppingBag, Crown, Users, Loader, Mail, X, AlertCircle, CheckCircle2
+  ShoppingBag, Crown, Users, Loader2, Mail, X, AlertCircle, CheckCircle2,
+  Check, User, Store, ShieldCheck, FileUp
 } from 'lucide-react';
 import api from '@/services/api';
 import { useAuthStore } from '@/store/useAuth';
-import { PlanGate } from '@/components/seller/PlanGate';
 
 type StaffRole = 'manager' | 'sales' | 'inventory';
 
@@ -21,28 +22,23 @@ interface StaffMember {
   status: 'active' | 'pending';
 }
 
-interface FeatureInfo {
-  max_staff: number;
-  plan_name: string;
-}
-
-const ROLE_CONFIG: Record<StaffRole, { label: string; icon: React.ComponentType<{ className?: string }>; color: string; perms: string[] }> = {
+const ROLE_CONFIG: Record<StaffRole, { label: string; icon: any; color: string; perms: string[] }> = {
   manager: {
     label: 'Manager',
     icon: Shield,
-    color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400',
+    color: 'bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300',
     perms: ['Manage products & orders', 'Reply to messages', 'Update stock'],
   },
   sales: {
     label: 'Salesperson',
     icon: MessageSquare,
-    color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400',
+    color: 'bg-sky-100 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300',
     perms: ['Reply to messages', 'View orders', 'View products'],
   },
   inventory: {
     label: 'Inventory',
     icon: Package,
-    color: 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400',
+    color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300',
     perms: ['Update stock only', 'View products'],
   },
 };
@@ -87,64 +83,72 @@ function InviteModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-neutral-950 rounded-2xl w-full max-w-md shadow-2xl">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-neutral-800">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="bg-white dark:bg-neutral-900 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md p-6 space-y-4 border border-slate-100 dark:border-neutral-800 shadow-2xl">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-neutral-800">
           <div>
-            <h2 className="text-lg font-black text-gray-900 dark:text-white">Invite Staff Member</h2>
-            <p className="text-sm text-gray-500 dark:text-neutral-300 mt-0.5">{currentCount} / {maxStaff} staff used</p>
+            <h2 className="text-base font-extrabold text-slate-900 dark:text-white">Invite Team Member</h2>
+            <p className="text-xs text-slate-400 mt-0.5">{currentCount} of {maxStaff} staff slots used</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-lg">
-            <X className="w-5 h-5 text-gray-400" />
+          <button onClick={onClose} className="p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white">
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="p-6 space-y-5">
+        <div className="space-y-4 text-xs">
           {!canInvite && (
-            <div className="flex items-center gap-2 text-amber-600 text-sm bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30 rounded-xl px-4 py-3">
+            <div className="flex items-center gap-2 text-amber-600 bg-amber-50 dark:bg-amber-950/40 p-3 rounded-2xl">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              You've reached your staff limit. Upgrade to add more.
+              <span>You have reached your staff limit. Upgrade plan to add more.</span>
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-200 mb-1.5">
-              Email Address <span className="text-red-500">*</span>
+            <label className="block font-bold text-slate-700 dark:text-neutral-300 mb-1.5">
+              Staff Email Address <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="staff@example.com"
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-neutral-800 rounded-xl bg-white dark:bg-neutral-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                placeholder="colleague@example.com"
+                className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-800 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500/20"
               />
             </div>
           </div>
 
+          <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-sky-50 dark:bg-sky-950/30 border border-sky-200/80 dark:border-sky-900/40 text-sky-800 dark:text-sky-300 text-[11px] leading-relaxed">
+            <Mail className="w-4 h-4 shrink-0 text-sky-600 mt-0.5" />
+            <span>An official invitation email will be sent to their address with a link to accept and join your shop team.</span>
+          </div>
+
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-neutral-200 mb-2">Role</label>
+            <label className="block font-bold text-slate-700 dark:text-neutral-300 mb-1.5">Role &amp; Access</label>
             <div className="space-y-2">
               {(Object.keys(ROLE_CONFIG) as StaffRole[]).map((role) => {
                 const config = ROLE_CONFIG[role];
                 const Icon = config.icon;
+                const isSelected = form.role === role;
+
                 return (
                   <button
                     key={role}
+                    type="button"
                     onClick={() => setForm({ ...form, role })}
-                    className={`w-full flex items-start gap-3 p-3 rounded-xl border-2 text-left transition-all ${
-                      form.role === role
-                        ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/10'
-                        : 'border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700'
+                    className={`w-full flex items-start gap-3 p-3 rounded-2xl border text-left transition-all ${
+                      isSelected
+                        ? 'border-sky-500 bg-sky-50/60 dark:bg-sky-950/40 shadow-sm'
+                        : 'border-slate-200 dark:border-neutral-800 hover:bg-slate-50 dark:hover:bg-neutral-800/40'
                     }`}
                   >
-                    <span className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${config.color}`}>
+                    <span className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${config.color}`}>
                       <Icon className="w-4 h-4" />
                     </span>
                     <div>
-                      <p className="text-sm font-bold text-gray-900 dark:text-white">{config.label}</p>
-                      <p className="text-xs text-gray-500 dark:text-neutral-300 mt-0.5">{config.perms.join(' · ')}</p>
+                      <p className="font-extrabold text-xs text-slate-800 dark:text-white">{config.label}</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">{config.perms.join(' · ')}</p>
                     </div>
                   </button>
                 );
@@ -153,217 +157,306 @@ function InviteModal({
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/30 rounded-xl px-4 py-3">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" /> {error}
-            </div>
+            <p className="text-xs text-rose-500 font-bold bg-rose-50 dark:bg-rose-950/40 p-2.5 rounded-xl">
+              {error}
+            </p>
           )}
-        </div>
 
-        <div className="px-6 pb-6 flex gap-3">
-          <button onClick={onClose} className="flex-1 py-2.5 border border-gray-300 dark:border-neutral-800 rounded-xl text-sm font-semibold text-gray-700 dark:text-neutral-200">
-            Cancel
-          </button>
-          <button
-            onClick={handleInvite}
-            disabled={saving || !canInvite}
-            className="flex-1 py-2.5 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2"
-          >
-            {saving ? <Loader className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-            Send Invite
-          </button>
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-neutral-800 rounded-xl"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleInvite}
+              disabled={saving || !canInvite}
+              className="px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs shadow-md shadow-sky-500/20 active:scale-95 transition-all flex items-center gap-1.5 disabled:opacity-50"
+            >
+              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserPlus className="w-3.5 h-3.5" />}
+              <span>Send Invite</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function StaffContent({ maxStaff }: { maxStaff: number }) {
+export default function StaffPage() {
+  const { user } = useAuthStore();
   const [staff, setStaff] = useState<StaffMember[]>([]);
+  const [maxStaff, setMaxStaff] = useState(3);
+  const [planName, setPlanName] = useState('Starter');
   const [loading, setLoading] = useState(true);
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [removingId, setRemovingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [resendingId, setResendingId] = useState<number | null>(null);
 
   useEffect(() => {
     loadStaff();
   }, []);
 
   const loadStaff = async () => {
-    setLoading(true);
     try {
-      const res = await api.get('/sellers/me/staff').catch(() => null);
-      setStaff(Array.isArray(res?.data) ? res.data : []);
-    } catch {
-      setStaff([]);
+      const [staffRes, planRes] = await Promise.all([
+        api.get('/sellers/me/staff').catch(() => null),
+        api.get('/subscriptions/sellers/me/features').catch(() => null),
+      ]);
+
+      if (staffRes?.data) {
+        setStaff(Array.isArray(staffRes.data) ? staffRes.data : staffRes.data.staff || []);
+      }
+      if (planRes?.data) {
+        setMaxStaff(planRes.data.max_staff || 3);
+        setPlanName(planRes.data.plan_name || 'Starter');
+      }
+    } catch (err) {
+      console.error('Failed to load staff:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRemove = async (id: number) => {
-    setRemovingId(id);
+  const handleResend = async (id: number, email: string) => {
+    setResendingId(id);
+    try {
+      await api.post(`/sellers/me/staff/${id}/resend`);
+      alert(`Invitation email resent successfully to ${email}`);
+    } catch (err: any) {
+      alert(err?.response?.data?.detail || 'Failed to resend invitation email.');
+    } finally {
+      setResendingId(null);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to remove this staff member?')) return;
+    setDeletingId(id);
     try {
       await api.delete(`/sellers/me/staff/${id}`);
       setStaff((prev) => prev.filter((s) => s.id !== id));
     } catch (err) {
-      console.error('Remove failed:', err);
+      console.error('Failed to delete staff:', err);
+      alert('Failed to remove staff member.');
     } finally {
-      setRemovingId(null);
+      setDeletingId(null);
     }
   };
 
-  const usedSlots = staff.length;
-  const pct = Math.round((usedSlots / maxStaff) * 100);
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-sky-500" />
+        <p className="text-sm font-semibold text-slate-400">Loading staff accounts...</p>
+      </div>
+    );
+  }
+
+  const currentCount = staff.length + 1; // +1 for Owner
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5 pb-20 max-w-5xl mx-auto px-1 md:px-0">
+      
+      {/* ── Top Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 dark:text-white">Staff Accounts</h1>
-          <p className="text-gray-500 dark:text-neutral-300 text-sm mt-1">
-            Invite your team members and assign them roles
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            Staff Accounts
+          </h1>
+          <p className="text-xs text-slate-400 font-medium mt-0.5">
+            Invite team members and assign role-based permissions
           </p>
         </div>
+
         <button
           onClick={() => setShowInviteModal(true)}
-          className="bg-orange-600 hover:bg-orange-700 text-white font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm"
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white rounded-full text-xs font-extrabold shadow-md shadow-sky-500/20 active:scale-95 transition-all self-start sm:self-auto"
         >
           <UserPlus className="w-4 h-4" />
-          Invite Staff
+          <span>Invite Staff</span>
         </button>
       </div>
 
-      {/* Usage bar */}
-      <div className="bg-white dark:bg-neutral-950 rounded-xl border border-gray-200 dark:border-neutral-800 p-5">
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-sm font-semibold text-gray-700 dark:text-neutral-200">Staff Slots Used</p>
-          <p className="text-sm font-black text-gray-900 dark:text-white">{usedSlots} / {maxStaff}</p>
+      {/* ── Shop Management Sub-sections Navigation Pills ── */}
+      <div className="bg-slate-100/80 dark:bg-neutral-900/80 p-1.5 rounded-2xl flex items-center gap-1.5 overflow-x-auto no-scrollbar border border-slate-200/50 dark:border-neutral-800/60 shadow-xs">
+        <Link
+          to="/seller-dashboard/shop"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-neutral-800/50 transition-colors whitespace-nowrap"
+        >
+          <Store className="w-3.5 h-3.5" />
+          <span>Shop Profile</span>
+        </Link>
+
+        <Link
+          to="/seller-dashboard/settings/staff"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-extrabold bg-white dark:bg-neutral-800 text-sky-600 dark:text-sky-400 shadow-xs whitespace-nowrap"
+        >
+          <Users className="w-3.5 h-3.5" />
+          <span>Staff Accounts</span>
+        </Link>
+
+        <Link
+          to="/seller-dashboard/verification"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-neutral-800/50 transition-colors whitespace-nowrap"
+        >
+          <ShieldCheck className="w-3.5 h-3.5" />
+          <span>Verification</span>
+        </Link>
+
+        <Link
+          to="/seller-dashboard/products/bulk-import"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-neutral-800/50 transition-colors whitespace-nowrap"
+        >
+          <FileUp className="w-3.5 h-3.5" />
+          <span>Bulk Import</span>
+        </Link>
+      </div>
+
+      {/* ── Staff Slots Progress Card (Redesigned) ── */}
+      <div className="bg-white dark:bg-neutral-900/90 rounded-3xl p-4 md:p-5 border border-slate-100 dark:border-neutral-800 shadow-sm space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-extrabold text-slate-800 dark:text-white">
+            Staff Slots Used
+          </span>
+          <span className="font-mono font-black text-xs text-sky-600 dark:text-sky-400">
+            {currentCount} / {maxStaff === 999 ? 'Unlimited' : maxStaff}
+          </span>
         </div>
-        <div className="h-2.5 bg-gray-100 dark:bg-neutral-900 rounded-full overflow-hidden">
+
+        <div className="w-full bg-slate-100 dark:bg-neutral-800 h-2 rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all ${pct >= 90 ? 'bg-red-500' : pct >= 70 ? 'bg-amber-500' : 'bg-orange-500'}`}
-            style={{ width: `${pct}%` }}
+            className="bg-sky-500 h-full rounded-full transition-all duration-300"
+            style={{ width: `${Math.min(100, (currentCount / (maxStaff === 999 ? 10 : maxStaff)) * 100)}%` }}
           />
         </div>
-        <p className="text-xs text-gray-400 dark:text-neutral-400 mt-1.5">{maxStaff - usedSlots} slots remaining</p>
+
+        <p className="text-[11px] text-slate-400">
+          {maxStaff === 999 ? 'Unlimited team members on your plan' : `${Math.max(0, maxStaff - currentCount)} slots remaining`}
+        </p>
       </div>
 
-      {/* Staff list */}
-      <div className="bg-white dark:bg-neutral-950 rounded-xl border border-gray-200 dark:border-neutral-800">
-        <div className="p-5 border-b border-gray-200 dark:border-neutral-800 flex items-center gap-2">
-          <Users className="w-4 h-4 text-gray-400" />
-          <h2 className="font-black text-gray-900 dark:text-white">Team Members</h2>
-        </div>
+      {/* ── Team Members List ── */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-extrabold text-slate-900 dark:text-white px-1">
+          Team Members
+        </h2>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader className="w-6 h-6 animate-spin text-orange-500" />
-          </div>
-        ) : (
-          <>
-            {/* Owner row */}
-            <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-neutral-800">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
-                  <Crown className="w-5 h-5 text-orange-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-gray-900 dark:text-white">You (Owner)</p>
-                  <p className="text-xs text-gray-500 dark:text-neutral-300">Full access to all features</p>
-                </div>
+        <div className="space-y-2.5">
+          {/* Store Owner */}
+          <div className="bg-white dark:bg-neutral-900/90 rounded-2xl p-3.5 md:p-4 border border-slate-100 dark:border-neutral-800 shadow-sm flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-500 flex items-center justify-center flex-shrink-0">
+                <Crown className="w-5 h-5" />
               </div>
-              <span className="text-xs px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400 font-bold">
-                Owner
-              </span>
+              <div className="min-w-0">
+                <p className="font-extrabold text-xs md:text-sm text-slate-900 dark:text-white truncate">
+                  {user?.full_name || 'Store Owner'} <span className="text-[10px] text-slate-400 font-normal">(You)</span>
+                </p>
+                <p className="text-[11px] text-slate-400 truncate mt-0.5">{user?.email || 'Owner Account'}</p>
+              </div>
             </div>
 
-            {staff.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center px-6">
-                <div className="w-14 h-14 bg-gray-100 dark:bg-neutral-900 rounded-2xl flex items-center justify-center mb-4">
-                  <Users className="w-7 h-7 text-gray-300 dark:text-neutral-300" />
-                </div>
-                <p className="font-bold text-gray-900 dark:text-white mb-1">No staff members yet</p>
-                <p className="text-sm text-gray-500 dark:text-neutral-300 mb-5">
-                  Invite team members to help manage your shop
-                </p>
-                <button
-                  onClick={() => setShowInviteModal(true)}
-                  className="bg-orange-600 hover:bg-orange-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm flex items-center gap-2"
-                >
-                  <UserPlus className="w-4 h-4" /> Invite First Member
-                </button>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-100 dark:divide-neutral-800">
-                {staff.map((member) => {
-                  const roleConf = ROLE_CONFIG[member.role];
-                  const Icon = roleConf.icon;
-                  return (
-                    <div key={member.id} className="flex items-center justify-between p-5">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${roleConf.color}`}>
-                          <Icon className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-bold text-gray-900 dark:text-white">{member.name || member.email}</p>
-                            {member.status === 'pending' && (
-                              <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 font-semibold">
-                                Pending
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-500 dark:text-neutral-300 mt-0.5">
-                            {member.email} · {roleConf.label}
-                            {member.last_active && ` · Last active ${new Date(member.last_active).toLocaleDateString()}`}
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleRemove(member.id)}
-                        disabled={removingId === member.id}
-                        className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
-                      >
-                        {removingId === member.id ? <Loader className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                        Remove
-                      </button>
+            <span className="text-[10px] font-black uppercase text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 rounded-full">
+              Owner
+            </span>
+          </div>
+
+          {/* Invited Staff Members */}
+          {staff.map((member) => {
+            const config = ROLE_CONFIG[member.role] || ROLE_CONFIG.sales;
+            const Icon = config.icon;
+            const isPending = member.status === 'pending';
+
+            return (
+              <div
+                key={member.id}
+                className="bg-white dark:bg-neutral-900/90 rounded-2xl p-3.5 md:p-4 border border-slate-100 dark:border-neutral-800 shadow-sm flex items-center justify-between gap-3 group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${config.color}`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-extrabold text-xs md:text-sm text-slate-900 dark:text-white truncate">
+                        {member.name || member.email.split('@')[0]}
+                      </p>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold ${
+                        !isPending
+                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/70 dark:border-emerald-800/50'
+                          : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200/70 dark:border-amber-800/50'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${!isPending ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
+                        {!isPending ? 'Active' : 'Pending Acceptance'}
+                      </span>
                     </div>
-                  );
-                })}
+                    <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                      {member.email} · <span className="font-semibold">{config.label}</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {isPending && (
+                    <button
+                      type="button"
+                      onClick={() => handleResend(member.id, member.email)}
+                      disabled={resendingId === member.id}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-bold text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 border border-sky-200 dark:border-sky-800 transition-colors disabled:opacity-50"
+                      title="Resend invitation email"
+                    >
+                      {resendingId === member.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
+                      <span className="hidden sm:inline">Resend Invite</span>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDelete(member.id)}
+                    disabled={deletingId === member.id}
+                    className="p-2 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                    title="Remove Staff"
+                  >
+                    {deletingId === member.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
-            )}
-          </>
-        )}
+            );
+          })}
+        </div>
       </div>
 
-      {/* Permissions table */}
-      <div className="bg-white dark:bg-neutral-950 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden">
-        <div className="p-5 border-b border-gray-200 dark:border-neutral-800">
-          <h2 className="font-black text-gray-900 dark:text-white">Role Permissions</h2>
-        </div>
+      {/* ── Role Permissions Matrix (Redesigned) ── */}
+      <div className="bg-white dark:bg-neutral-900/90 rounded-3xl border border-slate-100 dark:border-neutral-800 p-5 md:p-6 shadow-sm space-y-4">
+        <h2 className="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">
+          Role Permissions Matrix
+        </h2>
+
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-xs">
             <thead>
-              <tr className="bg-gray-50 dark:bg-neutral-900">
-                <th className="text-left py-3 px-5 text-xs font-bold text-gray-500 dark:text-neutral-300">Permission</th>
-                <th className="text-center py-3 px-4 text-xs font-bold text-purple-600 dark:text-purple-400">Manager</th>
-                <th className="text-center py-3 px-4 text-xs font-bold text-blue-600 dark:text-blue-400">Sales</th>
-                <th className="text-center py-3 px-4 text-xs font-bold text-green-600 dark:text-green-400">Inventory</th>
+              <tr className="border-b border-slate-100 dark:border-neutral-800 text-[11px] font-extrabold text-slate-400 uppercase">
+                <th className="py-2.5 text-left">Action</th>
+                <th className="py-2.5 text-center text-purple-600 dark:text-purple-400">Manager</th>
+                <th className="py-2.5 text-center text-sky-600 dark:text-sky-400">Sales</th>
+                <th className="py-2.5 text-center text-emerald-600 dark:text-emerald-400">Inventory</th>
               </tr>
             </thead>
-            <tbody>
-              {PERMISSION_MATRIX.map((row) => (
-                <tr key={row.action} className="border-t border-gray-100 dark:border-neutral-800">
-                  <td className="py-3 px-5 text-gray-700 dark:text-neutral-200">{row.action}</td>
-                  {(['manager', 'sales', 'inventory'] as StaffRole[]).map((role) => (
-                    <td key={role} className="text-center py-3 px-4">
-                      {row[role] ? (
-                        <CheckCircle2 className="w-4 h-4 text-green-500 mx-auto" />
-                      ) : (
-                        <span className="text-gray-300 dark:text-neutral-300">—</span>
-                      )}
-                    </td>
-                  ))}
+            <tbody className="divide-y divide-slate-50 dark:divide-neutral-800/60 font-medium">
+              {PERMISSION_MATRIX.map((perm, idx) => (
+                <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-neutral-800/30">
+                  <td className="py-3 text-slate-700 dark:text-neutral-200">{perm.action}</td>
+                  <td className="py-3 text-center">
+                    {perm.manager ? <Check className="w-4 h-4 text-purple-500 mx-auto" /> : <span className="text-slate-300 dark:text-neutral-700">—</span>}
+                  </td>
+                  <td className="py-3 text-center">
+                    {perm.sales ? <Check className="w-4 h-4 text-sky-500 mx-auto" /> : <span className="text-slate-300 dark:text-neutral-700">—</span>}
+                  </td>
+                  <td className="py-3 text-center">
+                    {perm.inventory ? <Check className="w-4 h-4 text-emerald-500 mx-auto" /> : <span className="text-slate-300 dark:text-neutral-700">—</span>}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -375,40 +468,11 @@ function StaffContent({ maxStaff }: { maxStaff: number }) {
         <InviteModal
           onClose={() => setShowInviteModal(false)}
           onInvited={loadStaff}
-          currentCount={usedSlots}
+          currentCount={currentCount}
           maxStaff={maxStaff}
         />
       )}
+
     </div>
   );
 }
-
-function StaffPageWithPlanCheck() {
-  const { user } = useAuthStore();
-  const [maxStaff, setMaxStaff] = useState(3);
-  const [planChecked, setPlanChecked] = useState(false);
-  const [planName, setPlanName] = useState('');
-
-  useEffect(() => {
-    if (!user) return;
-    api.get(`/subscriptions/sellers/${user.id}/features`).then((res) => {
-      setMaxStaff(res.data?.max_staff || 3);
-      setPlanName(res.data?.plan_name || 'free');
-    }).catch(() => {}).finally(() => setPlanChecked(true));
-  }, [user]);
-
-  // For enterprise (10 staff) or business (3 staff)
-  const requiredPlan = maxStaff >= 10 ? 'enterprise' : 'business';
-
-  return (
-    <PlanGate
-      requiredPlan="business"
-      featureName="Staff Accounts"
-      featureDescription="Invite team members — managers, salespeople, and inventory staff — and control what each can access."
-    >
-      <StaffContent maxStaff={maxStaff} />
-    </PlanGate>
-  );
-}
-
-export default StaffPageWithPlanCheck;

@@ -432,6 +432,80 @@ class EmailService:
             preferred_provider="brevo"
         )
 
+    def send_staff_invitation_email(
+        self,
+        email: str,
+        shop_name: str,
+        role: str,
+        inviter_name: str,
+        accept_url: str,
+        user_id: Optional[int] = None,
+    ) -> bool:
+        role_labels = {
+            "manager": "Shop Manager",
+            "sales": "Salesperson",
+            "inventory": "Inventory Specialist",
+            "support": "Customer Support",
+        }
+        role_label = role_labels.get(role.lower(), role.title())
+
+        role_descriptions = {
+            "manager": "Manage products, process orders, update stock, and reply to customers.",
+            "sales": "Respond to buyer inquiries, negotiate deals, and manage orders.",
+            "inventory": "Update product stock levels and view inventory status.",
+            "support": "Handle customer inquiries and support tickets.",
+        }
+        role_desc = role_descriptions.get(role.lower(), "Collaborate and assist with daily shop operations.")
+
+        content = f"""
+        <div style="background: #f0f9ff; border-radius: 16px; padding: 24px; border: 1px solid #bae6fd; margin-bottom: 24px;">
+          <h3 style="margin: 0 0 8px 0; color: #0284c7; font-size: 18px; font-weight: 800;">Team Staff Invitation</h3>
+          <p style="margin: 0; font-size: 14px; color: #334155; line-height: 1.6;">
+            <strong>{inviter_name}</strong> has invited you to join <strong>{shop_name}</strong> on Suqafuran as a <strong>{role_label}</strong>.
+          </p>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 14px;">
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 10px 0; color: #64748b; font-weight: 600;">Shop:</td>
+            <td style="padding: 10px 0; color: #0f172a; font-weight: 800; text-align: right;">{shop_name}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 10px 0; color: #64748b; font-weight: 600;">Role:</td>
+            <td style="padding: 10px 0; color: #0284c7; font-weight: 800; text-align: right;">{role_label}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 10px 0; color: #64748b; font-weight: 600;">Permissions:</td>
+            <td style="padding: 10px 0; color: #334155; text-align: right; max-width: 250px;">{role_desc}</td>
+          </tr>
+        </table>
+
+        <div style="text-align: center; margin: 32px 0 24px 0;">
+          <a href="{accept_url}" style="display: inline-block; background: #0284c7; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-weight: 800; font-size: 15px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);">
+            Accept Staff Invitation &rarr;
+          </a>
+        </div>
+
+        <p style="font-size: 12px; color: #94a3b8; text-align: center; line-height: 1.6;">
+          If the button above does not work, copy and paste this link into your browser:<br>
+          <a href="{accept_url}" style="color: #0284c7; word-break: break-all;">{accept_url}</a>
+        </p>
+        """
+
+        html_body = self._get_base_template(
+            title=f"Invitation to join {shop_name} on Suqafuran",
+            subtitle=f"{inviter_name} invited you to join their seller team.",
+            content=content,
+        )
+
+        return self._send_and_log(
+            email,
+            f"You're invited to join {shop_name} on Suqafuran",
+            html_body,
+            "staff_invitation",
+            user_id,
+        )
+
     def send_subscription_ended_email(self, email: str, name: str, plan_name: str, is_trial: bool, user_id: Optional[int] = None) -> bool:
         noun = "free trial" if is_trial else "subscription"
         content = f"""

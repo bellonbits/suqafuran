@@ -1,8 +1,9 @@
 import { useEffect, useState, lazy, Suspense } from 'react'
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
+import { Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom'
 import { Onboarding, hasSeenOnboarding } from './components/Onboarding'
 import { isCapacitorApp } from './lib/capacitor-utils'
 import { configureStatusBar } from './lib/status-bar'
+import { pushNotificationsService } from './services/push-notifications'
 import { Header } from './components/shared/Header'
 import { Footer } from './components/shared/Footer'
 import { AuthModal } from './components/shared/AuthModal'
@@ -113,14 +114,9 @@ const AdminDashboardPagePlaceholder = () => (
   </div>
 )
 
-// Shown briefly while a lazy-loaded route's chunk downloads. Every page
-// import above is now code-split (was previously one ~2MB bundle covering
-// every storefront and admin page at once), so this fires on first visit
-// to each route and essentially never again once the chunk is cached.
+// Non-intrusive top indicator while a lazy chunk loads, without blocking or flashing full-page loading screens
 const RouteLoadingFallback = () => (
-  <div className="min-h-[50vh] w-full flex items-center justify-center p-8">
-    <div className="w-8 h-8 rounded-full border-3 border-sky-500 border-t-transparent animate-spin" />
-  </div>
+  <div className="fixed top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-sky-400 via-indigo-500 to-sky-400 animate-pulse z-[9999]" />
 )
 
 function AppLayout({ children }: { children: React.ReactNode }) {
@@ -159,11 +155,13 @@ function ScrollToTop() {
 }
 
 export default function App() {
+  const navigate = useNavigate()
   const [showOnboarding, setShowOnboarding] = useState(() => isCapacitorApp() && !hasSeenOnboarding())
 
   useEffect(() => {
     configureStatusBar()
-  }, [])
+    pushNotificationsService.initialize((path) => navigate(path))
+  }, [navigate])
 
   // Route-level code splitting keeps the initial bundle small, but it means
   // the very first tap on a product/shop card -- by far the most common
@@ -227,7 +225,7 @@ export default function App() {
 
       {/* User Account Pages */}
       <Route element={<AppLayout><AccountPage /></AppLayout>} path="/account" />
-      <Route element={<AppLayout><SettingsPage /></AppLayout>} path="/settings" />
+      <Route path="/settings" element={<Navigate to="/account" replace />} />
       <Route element={<AppLayout><NotificationSettingsPage /></AppLayout>} path="/settings/notifications" />
       <Route element={<AppLayout><SecurityLogsPage /></AppLayout>} path="/security-logs" />
       <Route element={<AppLayout><MessagesPage /></AppLayout>} path="/messages" />
@@ -259,6 +257,8 @@ export default function App() {
       <Route element={<SellerLayout><SellerReportsPage /></SellerLayout>} path="/seller-dashboard/reports" />
 
       {/* Admin Panel - Main Pages - Protected */}
+      <Route path="/admin" element={<Navigate to="/admin-dashboard" replace />} />
+      <Route path="/admin/" element={<Navigate to="/admin-dashboard" replace />} />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminDashboardMainPage /></ProtectedRoute>} path="/admin-dashboard" />
       <Route element={<ProtectedRoute requiredRole="admin"><AccountPage /></ProtectedRoute>} path="/admin-dashboard/settings" />
       <Route element={<ProtectedRoute requiredRole="admin"><AdminListingsPage /></ProtectedRoute>} path="/admin-listings" />

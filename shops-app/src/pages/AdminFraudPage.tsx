@@ -25,8 +25,14 @@ interface FraudAlert {
 }
 
 const FraudPage = () => {
-  const [alerts, setAlerts] = useState<FraudAlert[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [alerts, setAlerts] = useState<FraudAlert[]>(() => {
+    try {
+      const cached = localStorage.getItem('admin_fraud_cache');
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return [];
+  });
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'resolved' | 'false_alarm'>('all');
@@ -87,6 +93,7 @@ const FraudPage = () => {
       });
 
       setAlerts(formatted);
+      try { localStorage.setItem('admin_fraud_cache', JSON.stringify(formatted)); } catch {}
     } catch (error) {
       console.error('Error loading real fraud events:', error);
       setAlerts([]);
@@ -132,16 +139,6 @@ const FraudPage = () => {
     medium: alerts.filter(a => a.severity === 'medium').length,
     low: alerts.filter(a => a.severity === 'low').length,
   };
-
-  if (loading) {
-    return (
-      <DashboardLayout title="Fraud Detection" navItems={navItems} userRole="admin">
-        <div className="flex items-center justify-center h-96">
-          <Loader className="w-8 h-8 animate-spin text-[#0078E8]" />
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   return (
     <DashboardLayout title="Fraud Detection" navItems={navItems} userRole="admin">

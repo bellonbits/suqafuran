@@ -121,8 +121,14 @@ function ConversationModal({ report, onClose }: { report: ListingReport; onClose
 }
 
 const DisputesPage = () => {
-  const [reports, setReports] = useState<ListingReport[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [reports, setReports] = useState<ListingReport[]>(() => {
+    try {
+      const cached = localStorage.getItem('admin_disputes_cache');
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return [];
+  });
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeReport, setActiveReport] = useState<ListingReport | null>(null);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
@@ -137,10 +143,11 @@ const DisputesPage = () => {
   }, []);
 
   const loadReports = async () => {
-    setLoading(true);
     try {
       const response = await api.get('/admin/reports/listings', { params: { limit: 200 } });
-      setReports(response.data?.reports || []);
+      const data = response.data?.reports || [];
+      setReports(data);
+      try { localStorage.setItem('admin_disputes_cache', JSON.stringify(data)); } catch {}
     } catch (error) {
       console.error('Error loading listing reports:', error);
       setReports([]);
@@ -173,16 +180,6 @@ const DisputesPage = () => {
     resolved: reports.filter(r => r.status === 'resolved').length,
     dismissed: reports.filter(r => r.status === 'dismissed').length,
   };
-
-  if (loading) {
-    return (
-      <DashboardLayout title="Disputes & Reports" navItems={navItems} userRole="admin">
-        <div className="flex items-center justify-center h-96">
-          <Loader className="w-8 h-8 animate-spin text-[#6cd4ff]" />
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   return (
     <DashboardLayout title="Disputes & Reports" navItems={navItems} userRole="admin">

@@ -3,7 +3,7 @@ import {
   Gift, Megaphone, MessageSquare, BarChart3, FileText,
   AlertTriangle, AlertCircle, TrendingUp, Store, Grid3x3,
   DollarSign, Package, AlertOctagon, CreditCard, Star, Mail, MessageCircle,
-  Image as ImageIcon,
+  Image as ImageIcon, Bell,
 } from 'lucide-react';
 
 export const NAV_ITEMS = [
@@ -46,7 +46,7 @@ export const ADMIN_NAV_ITEMS = [
   { label: 'Email Templates', icon: Mail, href: '/admin-dashboard/email-templates' },
   { label: 'Email Analytics', icon: Mail, href: '/admin-dashboard/email-analytics' },
   { label: 'Customer Segments', icon: Users, href: '/admin-dashboard/customer-segments' },
-  { label: 'System Messages', icon: MessageCircle, href: '/admin-dashboard/system-messages' },
+  { label: 'Push & Messages', icon: Bell, href: '/admin-dashboard/system-messages' },
   { label: 'Reports', icon: FileText, href: '/admin-reports' },
   { label: 'Realtime Analytics', icon: TrendingUp, href: '/admin-dashboard/analytics' },
   { label: 'Subscriptions', icon: CreditCard, href: '/admin-dashboard/subscriptions' },

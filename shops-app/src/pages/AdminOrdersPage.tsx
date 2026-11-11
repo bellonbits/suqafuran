@@ -53,15 +53,23 @@ function ContactBadge({ receipt }: { receipt: Receipt }) {
 export default function AdminOrdersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [contactFilter, setContactFilter] = useState<'all' | 'contacted' | 'not_contacted'>('all');
-  const [receipts, setReceipts] = useState<Receipt[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [receipts, setReceipts] = useState<Receipt[]>(() => {
+    try {
+      const cached = localStorage.getItem('admin_orders_cache');
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return [];
+  });
+  const [loading, setLoading] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
   const loadReceipts = useCallback(async () => {
     try {
       const res = await api.get('/admin/orders');
-      setReceipts(Array.isArray(res.data) ? res.data : []);
+      const data = Array.isArray(res.data) ? res.data : [];
+      setReceipts(data);
+      try { localStorage.setItem('admin_orders_cache', JSON.stringify(data)); } catch {}
       setLastRefreshed(new Date());
     } catch (error) {
       console.error('Error loading checkout receipts:', error);
@@ -92,19 +100,6 @@ export default function AdminOrdersPage() {
   const totalValue = receipts.reduce((s, r) => s + (r.total_amount || 0), 0);
   const contactedCount = receipts.filter(r => r.contacted_whatsapp || r.contacted_call || r.contacted_message).length;
   const notContactedCount = receipts.length - contactedCount;
-
-  if (loading) {
-    return (
-      <DashboardLayout title="Orders Management" navItems={adminNavItems} userRole="admin">
-        <div className="flex items-center justify-center h-64">
-          <div className="flex flex-col items-center gap-3">
-            <Loader className="w-8 h-8 animate-spin text-indigo-500" />
-            <p className="text-slate-400 text-sm">Loading checkout activity…</p>
-          </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   return (
     <DashboardLayout title="Orders Management" navItems={adminNavItems} userRole="admin">

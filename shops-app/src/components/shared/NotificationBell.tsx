@@ -248,35 +248,56 @@ export function NotificationBell() {
                                         const payload = (event.payload || {}) as Record<string, any>;
                                         const rawMsg = payload.message || payload.content || payload.text || 'New update received';
                                         let displayMsg = typeof rawMsg === 'string' ? rawMsg : String(rawMsg || '');
+                                        const isMessage = (event.type || '').toLowerCase().includes('message') || Boolean(payload.sender_id);
 
                                         // Extract sender if present in payload or message prefix
                                         let senderName = payload.sender_name || payload.sender || payload.from_user_name || null;
                                         if (!senderName && typeof displayMsg === 'string') {
-                                            const match = displayMsg.match(/New message from ([^:]+):/i);
+                                            const match = displayMsg.match(/New message from ([^:\n\r"]+)/i);
                                             if (match) senderName = match[1].trim();
                                         }
 
                                         let displayTitle = payload.title || event.type.replace(/_/g, ' ');
-                                        if (displayTitle.toLowerCase() === 'message' || displayTitle.toLowerCase() === 'new message') {
+                                        if (isMessage || displayTitle.toLowerCase() === 'message' || displayTitle.toLowerCase() === 'new message') {
                                             displayTitle = senderName ? `New Message From ${senderName}` : 'New Message';
                                         }
 
-                                        if (displayMsg) {
-                                            // Check if message is a photo / cloudinary image URL
-                                            if (displayMsg.includes('[IMAGE]:') || displayMsg.includes('res.cloudinary.com') || /\[IMAGE\]/i.test(displayMsg)) {
-                                                displayMsg = senderName ? `📷 Photo from ${senderName}` : '📷 Sent a photo';
-                                            } else if (displayMsg.includes('[PRODUCT_IMAGE]:') || displayMsg.includes('🛍️ INQUIRY:')) {
-                                                displayMsg = senderName ? `🛍️ Product inquiry from ${senderName}` : '🛍️ Product inquiry';
-                                            } else {
-                                                displayMsg = displayMsg
-                                                    .replace(/\[IMAGE\]:[^\s"'\n\r]+/gi, '📷 Sent a photo')
-                                                    .replace(/\[PRODUCT_IMAGE\]:[^\s"'\n\r]+/gi, '🛍️ Product inquiry')
-                                                    .replace(/🛍️\s*INQUIRY:[^\n\r]+/gi, '🛍️ Product inquiry')
-                                                    .replace(/:\s*["'\s\r\n]*📷 Sent a photo["'\s\r\n]*/gi, ': 📷 Sent a photo')
-                                                    .replace(/:\s*["'\s\r\n]*""?/gi, '')
-                                                    .replace(/:\s*["']\s*$/, '')
-                                                    .trim();
+                                        if (isMessage) {
+                                            // Prefer clean message content directly if available
+                                            if (payload.content && typeof payload.content === 'string') {
+                                                displayMsg = payload.content;
                                             }
+
+                                            // Strip redundant "New message from <Name>:" or "New message from <Name>" prefix and quotes
+                                            if (senderName) {
+                                                const senderPattern = new RegExp(`^New message from\\s*${senderName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[:\\s"']*`, 'i');
+                                                displayMsg = displayMsg.replace(senderPattern, '');
+                                            }
+                                            displayMsg = displayMsg
+                                                .replace(/^New message from [^:\n\r"]+:\s*["']?/i, '')
+                                                .replace(/^New message from [^:\n\r"]+["']?/i, '')
+                                                .replace(/^[:\s"'\-]+/, '')
+                                                .replace(/["']\s*$/, '')
+                                                .trim();
+
+                                            // Format special message attachments
+                                            if (displayMsg.includes('[IMAGE]:') || /res\.cloudinary\.com/i.test(displayMsg)) {
+                                                displayMsg = '📷 Sent a photo';
+                                            } else if (displayMsg.includes('[PRODUCT_IMAGE]:') || displayMsg.includes('🛍️ INQUIRY:') || /#ORD-/i.test(displayMsg)) {
+                                                displayMsg = '🛍️ Sent a product inquiry';
+                                            } else if (displayMsg.includes('[VOICE')) {
+                                                displayMsg = '🎤 Sent a voice message';
+                                            }
+
+                                            if (!displayMsg) {
+                                                displayMsg = 'Sent you a message';
+                                            }
+                                        } else if (displayMsg) {
+                                            displayMsg = displayMsg
+                                                .replace(/\[IMAGE\]:[^\s"'\n\r]+/gi, '📷 Sent a photo')
+                                                .replace(/\[PRODUCT_IMAGE\]:[^\s"'\n\r]+/gi, '🛍️ Product inquiry')
+                                                .replace(/🛍️\s*INQUIRY:[^\n\r]+/gi, '🛍️ Product inquiry')
+                                                .trim();
                                         }
                                         const { icon: EventIcon, bgColor, badge, badgeColor, avatar } = getEventIconAndBadge(event);
 

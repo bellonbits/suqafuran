@@ -24,6 +24,11 @@ export const useAuthStore = create<AuthState>()(
             login: (user, token) => set({ user, token, isAuthenticated: true }),
             logout: () => {
                 resetAnalytics();
+                try {
+                    import('../services/push-notifications').then(({ pushNotificationsService }) => {
+                        pushNotificationsService.unregisterDeviceToken();
+                    }).catch(() => {});
+                } catch {}
                 set({ user: null, token: null, isAuthenticated: false });
             },
             setUser: (user) => set({ user }),

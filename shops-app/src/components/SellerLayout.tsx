@@ -95,6 +95,20 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
     setExpandedSection(prev => (prev === label ? null : label));
   };
 
+  const isMyShopActive = [
+    '/seller-dashboard/products',
+    '/seller-dashboard/orders',
+    '/seller-dashboard/customers',
+    '/seller-dashboard/inventory',
+  ].some(path => pathname === path || (pathname.startsWith(`${path}/`) && pathname !== '/seller-dashboard/products/bulk-import'));
+
+  const isShopManagementActive = [
+    '/seller-dashboard/shop',
+    '/seller-dashboard/settings/staff',
+    '/seller-dashboard/verification',
+    '/seller-dashboard/products/bulk-import',
+  ].some(path => pathname === path || pathname.startsWith(`${path}/`));
+
   const isAdmin = Boolean(user?.is_admin || user?.role === 'admin');
 
   // SadaxCart navigation structure
@@ -386,6 +400,16 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
         </div>
 
         <div className="flex items-center gap-1.5">
+          {/* Back to Homepage Button */}
+          <Link
+            to="/"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 text-xs font-bold hover:bg-sky-100 transition-colors"
+            title="Back to Homepage"
+          >
+            <Home className="w-3.5 h-3.5" />
+            <span className="text-[11px]">Home</span>
+          </Link>
+
           {pathname !== '/seller-dashboard' && (
             <button
               onClick={() => setMobileMenuOpen(true)}
@@ -404,6 +428,69 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
           </button>
         </div>
       </header>
+
+      {/* ── Mobile Sub-sections Bar (My Shop & Shop Management) ── */}
+      {isMyShopActive && (
+        <div className="md:hidden bg-slate-50/95 dark:bg-neutral-900/95 border-b border-slate-100 dark:border-neutral-800 px-3 py-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar sticky top-[49px] z-30 shadow-xs">
+          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider flex-shrink-0 mr-1">
+            My Shop:
+          </span>
+          {[
+            { label: 'Products', href: '/seller-dashboard/products', icon: Package },
+            { label: 'Orders', href: '/seller-dashboard/orders', icon: ShoppingBag },
+            { label: 'Inventory', href: '/seller-dashboard/inventory', icon: TrendingUp },
+            { label: 'Customers', href: '/seller-dashboard/customers', icon: Users },
+          ].map((sub, i) => {
+            const SubIcon = sub.icon;
+            const isCurrent = pathname === sub.href;
+            return (
+              <Link
+                key={i}
+                to={sub.href}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ${
+                  isCurrent
+                    ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/20'
+                    : 'bg-white dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 border border-slate-200/60 dark:border-neutral-700/60 hover:bg-slate-100'
+                }`}
+              >
+                <SubIcon className="w-3.5 h-3.5" />
+                <span>{sub.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
+      {isShopManagementActive && (
+        <div className="md:hidden bg-slate-50/95 dark:bg-neutral-900/95 border-b border-slate-100 dark:border-neutral-800 px-3 py-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar sticky top-[49px] z-30 shadow-xs">
+          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider flex-shrink-0 mr-1">
+            Shop Mgmt:
+          </span>
+          {[
+            { label: 'Profile', href: '/seller-dashboard/shop', icon: Store },
+            { label: 'Staff', href: '/seller-dashboard/settings/staff', icon: Users },
+            { label: 'Verification', href: '/seller-dashboard/verification', icon: ShieldCheck },
+            { label: 'Bulk Import', href: '/seller-dashboard/products/bulk-import', icon: FileUp },
+          ].map((sub, i) => {
+            const SubIcon = sub.icon;
+            const isCurrent = pathname === sub.href;
+            return (
+              <Link
+                key={i}
+                to={sub.href}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ${
+                  isCurrent
+                    ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/20'
+                    : 'bg-white dark:bg-neutral-800 text-slate-600 dark:text-neutral-300 border border-slate-200/60 dark:border-neutral-700/60 hover:bg-slate-100'
+                }`}
+              >
+                <SubIcon className="w-3.5 h-3.5" />
+                <span>{sub.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
 
       {/* ── Mobile Slide-over Drawer ── */}
       <AnimatePresence>
@@ -443,26 +530,87 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
                   </button>
                 </div>
 
+                {/* Back to Marketplace Homepage Shortcut */}
+                <Link
+                  to="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2.5 px-3.5 py-2.5 mb-4 rounded-2xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 text-xs font-extrabold hover:bg-sky-100 transition-colors shadow-sm"
+                >
+                  <Home className="w-4 h-4" />
+                  <span>← Back to Marketplace</span>
+                </Link>
+
                 {/* Mobile Navigation List */}
                 <div className="space-y-6">
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Main Menu</p>
-                    <div className="space-y-1">
-                      {mainMenu.map((item, idx) => (
-                        <Link
-                          key={idx}
-                          to={item.href}
-                          onClick={() => setMobileMenuOpen(false)}
-                          className={`flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-semibold ${
-                            pathname === item.href
-                              ? 'bg-sky-500 text-white font-bold'
-                              : 'text-slate-600 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-900'
-                          }`}
-                        >
-                          <span>{item.icon}</span>
-                          <span>{item.label}</span>
-                        </Link>
-                      ))}
+                    <div className="space-y-1.5">
+                      {mainMenu.map((item, idx) => {
+                        const hasSubItems = Boolean(item.subItems && item.subItems.length > 0);
+                        const isSectionExpanded = expandedSection === item.label ||
+                          (hasSubItems && item.subItems?.some(s => pathname === s.href));
+
+                        if (hasSubItems) {
+                          return (
+                            <div key={idx} className="space-y-1">
+                              <button
+                                type="button"
+                                onClick={() => toggleSection(item.label)}
+                                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-semibold transition-all ${
+                                  isSectionExpanded
+                                    ? 'bg-sky-50 dark:bg-sky-950/30 text-sky-600 dark:text-sky-400 font-bold'
+                                    : 'text-slate-600 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-900'
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span>{item.icon}</span>
+                                  <span>{item.label}</span>
+                                </div>
+                                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isSectionExpanded ? 'rotate-180 text-sky-500' : 'text-slate-400'}`} />
+                              </button>
+
+                              {isSectionExpanded && (
+                                <div className="pl-6 pr-2 py-1 space-y-1 border-l-2 border-sky-300 dark:border-sky-800 ml-4">
+                                  {item.subItems?.map((sub, sIdx) => {
+                                    const isCurrent = pathname === sub.href;
+                                    return (
+                                      <Link
+                                        key={sIdx}
+                                        to={sub.href}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all ${
+                                          isCurrent
+                                            ? 'bg-sky-500 text-white font-bold shadow-sm'
+                                            : 'text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800'
+                                        }`}
+                                      >
+                                        <span>{sub.label}</span>
+                                        {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                      </Link>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <Link
+                            key={idx}
+                            to={item.href}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-2xl text-xs font-semibold ${
+                              pathname === item.href
+                                ? 'bg-sky-500 text-white font-bold'
+                                : 'text-slate-600 dark:text-neutral-200 hover:bg-slate-50 dark:hover:bg-neutral-900'
+                            }`}
+                          >
+                            <span>{item.icon}</span>
+                            <span>{item.label}</span>
+                          </Link>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -568,28 +716,36 @@ export const SellerLayout: React.FC<{ children: React.ReactNode }> = ({ children
         </main>
       </div>
 
-      {/* ── Mobile Fixed Bottom Navigation Bar (Ultra Phone Responsive) ── */}
+      {/* ── Mobile Fixed Bottom Navigation Bar (With Back to Homepage) ── */}
       {pathname !== '/seller-dashboard/products/add' && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-lg border-t border-slate-200/80 dark:border-neutral-800 px-4 py-2 flex items-center justify-around shadow-[0_-4px_20px_rgba(0,0,0,0.05)] pb-safe">
+        <nav
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.35rem)' }}
+          className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-xl border-t border-slate-100 dark:border-neutral-800 px-2 py-1.5 flex items-center justify-around shadow-[0_-4px_24px_rgba(0,0,0,0.06)]"
+        >
           {[
-            { label: 'Home', icon: Home, href: '/seller-dashboard' },
+            { label: 'Home', icon: Home, href: '/' },
+            { label: 'Dashboard', icon: LayoutDashboard, href: '/seller-dashboard' },
             { label: 'Products', icon: Package, href: '/seller-dashboard/products' },
             { label: 'Orders', icon: ShoppingBag, href: '/seller-dashboard/orders' },
-            { label: 'Inbox', icon: MessageSquare, href: '/seller-dashboard/messages' },
-            { label: 'Settings', icon: Settings, href: '/seller-dashboard/settings' },
+            { label: 'More', icon: Settings, href: '/seller-dashboard/settings' },
           ].map((tab, idx) => {
             const Icon = tab.icon;
-            const isActive = pathname === tab.href;
+            const isActive = tab.href === '/' ? false : pathname === tab.href;
             return (
               <Link
                 key={idx}
                 to={tab.href}
-                className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all ${
-                  isActive ? 'text-sky-600 dark:text-teal-400 font-extrabold scale-105' : 'text-slate-400 font-medium'
+                className={`relative flex flex-col items-center justify-center py-1 px-2.5 rounded-2xl transition-all ${
+                  isActive
+                    ? 'text-sky-600 dark:text-sky-400 font-extrabold'
+                    : 'text-slate-400 dark:text-neutral-300 font-medium hover:text-slate-700 dark:hover:text-white'
                 }`}
               >
-                <Icon className={`w-5 h-5 ${isActive ? 'text-sky-500' : ''}`} />
-                <span className="text-[10px]">{tab.label}</span>
+                <Icon className={`w-5 h-5 transition-transform ${isActive ? 'scale-110 text-sky-500' : ''}`} />
+                <span className="text-[10px] mt-0.5 tracking-tight">{tab.label}</span>
+                {isActive && (
+                  <span className="w-1 h-1 rounded-full bg-sky-500 mt-0.5" />
+                )}
               </Link>
             );
           })}

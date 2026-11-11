@@ -2,11 +2,12 @@ import asyncio
 import json
 import logging
 from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status, Body
 from fastapi.responses import StreamingResponse
 from jose import jwt
 from sqlmodel import Session
 from app.api import deps
+from app.models.user import User
 from app.core import security
 from app.core.config import settings
 from app.crud.crud_notification import crud_notification
@@ -14,6 +15,59 @@ from app.services.kafka_service import ws_manager
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+@router.post("/device-token")
+@router.put("/device-token")
+def register_device_token(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+    payload: dict = Body(...),
+) -> Any:
+    """Save or update device token for push notifications."""
+    token = payload.get("device_token") or payload.get("token") or payload.get("fcm_token")
+    if not token:
+        raise HTTPException(status_code=400, detail="device_token is required")
+    current_user.fcm_token = str(token)
+    db.add(current_user)
+    db.commit()
+    logger.info(f"Updated push device token for user {current_user.id}")
+    return {"status": "ok", "message": "Device token updated"}
+
+
+@router.delete("/device-token")
+def delete_device_token(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """Remove device token on logout."""
+    current_user.fcm_token = None
+    db.add(current_user)
+    db.commit()
+    return {"status": "ok", "message": "Device token removed"}
+
+
+@router.post("/test-push")
+def send_test_push(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """Send a test push notification to current user's registered device."""
+    from app.utils.push import send_push_to_user
+    if not current_user.fcm_token:
+        return {"status": "error", "message": "No device token registered for this user. Open the mobile app to register."}
+
+    success = send_push_to_user(
+        db,
+        user_id=current_user.id,
+        title="Suqafuran Push Test",
+        body="Push notifications are active and working on your device!",
+        data={"type": "test", "path": "/"}
+    )
+    return {"status": "ok" if success else "failed", "sent": success}
+
 
 @router.get("/", response_model=List[Any])
 def get_my_notifications(

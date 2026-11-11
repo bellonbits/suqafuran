@@ -153,13 +153,15 @@ async def websocket_chat_endpoint(
                     channel = f"chat_{min(user_id, other_user_id)}_{max(user_id, other_user_id)}"
                     now_iso = datetime.utcnow().isoformat()
                     sender_name = current_user.full_name or "Someone"
-                    clean_content = content or ""
-                    if "[IMAGE]:" in clean_content:
+                    clean_content = (content or "").strip()
+                    if "[IMAGE]:" in clean_content or "res.cloudinary.com" in clean_content:
                         preview = "📷 Sent a photo"
-                    elif "[PRODUCT_IMAGE]:" in clean_content or "🛍️ INQUIRY:" in clean_content:
+                    elif "[PRODUCT_IMAGE]:" in clean_content or "🛍️ INQUIRY:" in clean_content or "#ORD-" in clean_content:
                         preview = "🛍️ Sent a product inquiry"
+                    elif "[VOICE" in clean_content:
+                        preview = "🎤 Sent a voice message"
                     else:
-                        preview = clean_content[:80]
+                        preview = clean_content.replace("[PRODUCT_IMAGE]:", "").replace("[IMAGE]:", "").strip()[:80]
 
                     # 2. Create in-app notification in DB
                     try:
@@ -174,7 +176,8 @@ async def websocket_chat_endpoint(
                                     "sender_name": sender_name,
                                     "content": content,
                                     "listing_id": listing_id,
-                                    "message": f"New message from {sender_name}: \"{preview}\"",
+                                    "title": f"New Message from {sender_name}",
+                                    "message": preview,
                                     "action_url": f"/messages?userId={user_id}",
                                 }
                             },
@@ -191,8 +194,8 @@ async def websocket_chat_endpoint(
                             "payload": {
                                 "id": f"msg_{message_id}" if message_id else f"ws_{now_iso}",
                                 "type": "message",
-                                "title": f"New message from {sender_name}",
-                                "message": f"New message from {sender_name}: \"{preview}\"",
+                                "title": f"New Message from {sender_name}",
+                                "message": preview,
                                 "sender_id": user_id,
                                 "sender_name": sender_name,
                                 "listing_id": listing_id,

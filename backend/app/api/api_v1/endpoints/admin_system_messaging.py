@@ -153,3 +153,48 @@ def send_bulk_system_message_endpoint(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to send messages"
         )
+
+
+class BroadcastNotificationRequest(BaseModel):
+    title: str
+    message: str
+    audience: str = "all"  # "all", "sellers", "buyers"
+    action_url: Optional[str] = None
+    image_url: Optional[str] = None
+
+
+@router.post("/broadcast")
+def broadcast_push_notification(
+    payload: BroadcastNotificationRequest,
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Broadcast a push notification to all users/devices with the app.
+    Supports audience targeting ('all', 'sellers', 'buyers').
+    """
+    _check_admin_permission(current_user)
+
+    if not payload.title or not payload.title.strip():
+        raise HTTPException(status_code=400, detail="Notification title is required")
+
+    if not payload.message or not payload.message.strip():
+        raise HTTPException(status_code=400, detail="Notification message cannot be empty")
+
+    from app.utils.push import broadcast_push_to_all
+    result = broadcast_push_to_all(
+        db,
+        title=payload.title.strip(),
+        body=payload.message.strip(),
+        data={"path": payload.action_url or "/"},
+        image_url=payload.image_url,
+        audience=payload.audience,
+    )
+
+    return {
+        "status": "success",
+        "message": f"Broadcast sent to {result['tokens_dispatched']} device(s)",
+        "details": result,
+    }
+

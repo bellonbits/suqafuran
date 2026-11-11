@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useRef, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import {
-  Upload, Download, AlertCircle, CheckCircle2, X, Loader,
-  FileSpreadsheet, ChevronRight, Info, AlertTriangle
+  Upload, Download, AlertCircle, CheckCircle2, X, Loader2,
+  FileSpreadsheet, ChevronRight, Info, AlertTriangle, FileText, Check,
+  Store, Users, ShieldCheck, FileUp
 } from 'lucide-react';
 import api from '@/services/api';
-import { PlanGate } from '@/components/seller/PlanGate';
 
 interface ParsedRow {
   name: string;
@@ -26,17 +27,17 @@ interface ImportResult {
 }
 
 const SAMPLE_CSV = `Name,Price,Stock,Category,Description,Images
-Wireless Earbuds Pro,2500,50,Electronics,High-quality wireless earbuds with noise cancellation,https://example.com/img1.jpg
-Leather Handbag,3800,20,Fashion,Premium genuine leather handbag in brown,https://example.com/img2.jpg
-Organic Face Cream,1200,100,Health & Beauty,Natural organic face cream suitable for all skin types,
+Wireless Earbuds Pro,2500,50,Electronics,High-quality wireless earbuds with noise cancellation,https://images.unsplash.com/photo-1505740420928-5e560c06d30e
+Leather Handbag,3800,20,Fashion,Premium genuine leather handbag in brown,https://images.unsplash.com/photo-1523275335684-37898b6baf30
+Smart Fitness Watch,2900,35,Electronics,Full touch OLED fitness smartwatch with heart rate sensor,
 `;
 
 const COLUMN_DESCRIPTIONS = [
   { col: 'Name', required: true, example: 'Wireless Earbuds Pro' },
-  { col: 'Price', required: true, example: '2500 (KSh, no commas)' },
+  { col: 'Price', required: true, example: '2500 (KSh, numbers only)' },
   { col: 'Stock', required: false, example: '50' },
   { col: 'Category', required: false, example: 'Electronics' },
-  { col: 'Description', required: false, example: 'Product description...' },
+  { col: 'Description', required: false, example: 'Product description details' },
   { col: 'Images', required: false, example: 'https://... (URL)' },
 ];
 
@@ -68,7 +69,7 @@ function parseCSV(text: string): ParsedRow[] {
   });
 }
 
-function BulkImportContent() {
+export default function BulkImportPage() {
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
@@ -121,24 +122,23 @@ function BulkImportContent() {
     let success = 0;
     const errors: { row: number; message: string }[] = [];
 
-    // Send to backend (batch)
     try {
       const formData = new FormData();
       formData.append('file', file);
       const res = await api.post('/listings/bulk-import', formData).catch(async () => {
-        // Fallback: create one-by-one if bulk endpoint not available
+        // Fallback: import row by row
         for (let i = 0; i < validRows.length; i++) {
           const row = validRows[i];
           try {
             await api.post('/listings/me', {
               title_en: row.name,
               price: Number(row.price),
-              quantity: row.stock ? Number(row.stock) : undefined,
+              quantity: row.stock ? Number(row.stock) : 1,
               description_en: row.description,
             });
             success++;
           } catch (err: any) {
-            errors.push({ row: i + 2, message: err?.response?.data?.detail || 'Failed' });
+            errors.push({ row: i + 2, message: err?.response?.data?.detail || 'Import error' });
           }
           setProgress(Math.round(((i + 1) / validRows.length) * 100));
         }
@@ -149,245 +149,212 @@ function BulkImportContent() {
         success = res.data.success || validRows.length;
         setProgress(100);
       }
-    } catch (err) {
-      console.error('Bulk import error:', err);
-    }
 
-    setResult({ success, failed: errors.length + rows.filter((r) => !r._valid).length, errors });
-    setImporting(false);
-    setProgress(100);
+      setResult({
+        success,
+        failed: errors.length + (rows.length - validRows.length),
+        errors,
+      });
+    } catch (err: any) {
+      console.error('Import failed:', err);
+    } finally {
+      setImporting(false);
+    }
   };
 
   const validCount = rows.filter((r) => r._valid).length;
-  const invalidCount = rows.filter((r) => !r._valid).length;
+  const invalidCount = rows.length - validCount;
 
   return (
-    <div className="space-y-8 w-full">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5 pb-20 max-w-5xl mx-auto px-1 md:px-0">
+      
+      {/* ── Top Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 dark:text-white">Bulk Import</h1>
-          <p className="text-gray-500 dark:text-neutral-300 text-sm mt-1">
-            Upload hundreds of products at once with a CSV file
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            Bulk Import
+          </h1>
+          <p className="text-xs text-slate-400 font-medium mt-0.5">
+            Upload hundreds of products simultaneously with a CSV or Excel file
           </p>
         </div>
+
         <button
           onClick={handleDownloadTemplate}
-          className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 dark:border-neutral-800 rounded-xl text-sm font-semibold text-gray-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-900"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 text-xs font-bold text-slate-700 dark:text-neutral-200 shadow-sm hover:bg-slate-50 transition-colors active:scale-95"
         >
-          <Download className="w-4 h-4" />
-          Download Template
+          <Download className="w-4 h-4 text-sky-500" />
+          <span>Download Template (.csv)</span>
         </button>
       </div>
 
-      {/* Column guide */}
-      <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800/30 rounded-xl p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-          <h3 className="text-sm font-bold text-blue-800 dark:text-blue-300">CSV Column Format</h3>
+      {/* ── Shop Management Sub-sections Navigation Pills ── */}
+      <div className="bg-slate-100/80 dark:bg-neutral-900/80 p-1.5 rounded-2xl flex items-center gap-1.5 overflow-x-auto no-scrollbar border border-slate-200/50 dark:border-neutral-800/60 shadow-xs">
+        <Link
+          to="/seller-dashboard/shop"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-neutral-800/50 transition-colors whitespace-nowrap"
+        >
+          <Store className="w-3.5 h-3.5" />
+          <span>Shop Profile</span>
+        </Link>
+
+        <Link
+          to="/seller-dashboard/settings/staff"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-neutral-800/50 transition-colors whitespace-nowrap"
+        >
+          <Users className="w-3.5 h-3.5" />
+          <span>Staff Accounts</span>
+        </Link>
+
+        <Link
+          to="/seller-dashboard/verification"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-neutral-800/50 transition-colors whitespace-nowrap"
+        >
+          <ShieldCheck className="w-3.5 h-3.5" />
+          <span>Verification</span>
+        </Link>
+
+        <Link
+          to="/seller-dashboard/products/bulk-import"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-extrabold bg-white dark:bg-neutral-800 text-sky-600 dark:text-sky-400 shadow-xs whitespace-nowrap"
+        >
+          <FileUp className="w-3.5 h-3.5" />
+          <span>Bulk Import</span>
+        </Link>
+      </div>
+
+      {/* ── CSV Column Format Guide (Redesigned) ── */}
+      <div className="bg-sky-50/70 dark:bg-sky-950/30 rounded-3xl p-5 border border-sky-100 dark:border-sky-900/40 space-y-3">
+        <div className="flex items-center gap-2 text-sky-900 dark:text-sky-300">
+          <Info className="w-4 h-4 text-sky-500 flex-shrink-0" />
+          <h3 className="font-extrabold text-xs uppercase tracking-wider">
+            CSV Column Header Format
+          </h3>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {COLUMN_DESCRIPTIONS.map((c) => (
-            <div key={c.col} className="text-xs">
-              <span className="font-mono font-bold text-blue-800 dark:text-blue-300">{c.col}</span>
-              {c.required && <span className="text-red-500 ml-1">*</span>}
-              <p className="text-blue-600 dark:text-blue-400 mt-0.5">{c.example}</p>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+          {COLUMN_DESCRIPTIONS.map((col) => (
+            <div
+              key={col.col}
+              className="bg-white/90 dark:bg-neutral-900/90 rounded-2xl p-3 border border-sky-100/60 dark:border-neutral-800 shadow-sm"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-extrabold text-xs text-slate-900 dark:text-white">{col.col}</span>
+                {col.required ? (
+                  <span className="text-[9px] font-black text-rose-500 uppercase bg-rose-50 dark:bg-rose-950/40 px-1 py-0.2 rounded">
+                    Req
+                  </span>
+                ) : (
+                  <span className="text-[9px] text-slate-400 uppercase">Opt</span>
+                )}
+              </div>
+              <p className="text-[10px] text-slate-400 truncate mt-1">{col.example}</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Drop zone */}
-      {!file && (
-        <div
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={onDrop}
-          onClick={() => fileInputRef.current?.click()}
-          className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all ${
-            dragOver
-              ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/10'
-              : 'border-gray-300 dark:border-neutral-800 hover:border-orange-400 dark:hover:border-orange-600'
-          }`}
-        >
-          <FileSpreadsheet className="w-12 h-12 text-gray-300 dark:text-neutral-300 mx-auto mb-4" />
-          <p className="text-base font-bold text-gray-700 dark:text-neutral-200">Drop your CSV file here</p>
-          <p className="text-sm text-gray-400 dark:text-neutral-400 mt-1">or click to browse files</p>
-          <p className="text-xs text-gray-400 dark:text-neutral-400 mt-3">.csv or .xlsx · up to 5 MB</p>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".csv,.xlsx"
-            onChange={onFileInput}
-            className="hidden"
-          />
+      {/* ── Drag & Drop Upload Zone (Modernized) ── */}
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={onDrop}
+        onClick={() => fileInputRef.current?.click()}
+        className={`rounded-3xl border-2 border-dashed p-8 md:p-12 text-center cursor-pointer transition-all ${
+          dragOver
+            ? 'border-sky-500 bg-sky-50 dark:bg-sky-950/30 scale-[1.01]'
+            : 'border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/90 hover:border-sky-400'
+        }`}
+      >
+        <div className="w-14 h-14 rounded-2xl bg-sky-50 dark:bg-sky-950/40 text-sky-500 flex items-center justify-center mx-auto mb-3 shadow-sm">
+          <FileSpreadsheet className="w-7 h-7" />
         </div>
-      )}
+        
+        <h3 className="font-extrabold text-sm md:text-base text-slate-800 dark:text-white">
+          {file ? file.name : 'Drop your CSV file here'}
+        </h3>
+        <p className="text-xs text-slate-400 mt-1">
+          {file ? `${(file.size / 1024).toFixed(1)} KB · Click to replace file` : 'or click to browse from device (.csv, .xlsx up to 5MB)'}
+        </p>
 
-      {/* File info + change */}
-      {file && (
-        <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-xl">
-          <div className="flex items-center gap-3">
-            <FileSpreadsheet className="w-8 h-8 text-green-500" />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv,.xlsx"
+          onChange={onFileInput}
+          className="hidden"
+        />
+      </div>
+
+      {/* ── Parsed Rows Preview ── */}
+      {rows.length > 0 && (
+        <div className="bg-white dark:bg-neutral-900/90 rounded-3xl border border-slate-100 dark:border-neutral-800 p-5 md:p-6 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-gray-900 dark:text-white">{file.name}</p>
-              <p className="text-xs text-gray-500 dark:text-neutral-300">
-                {rows.length} rows · {validCount} valid · {invalidCount} with errors
+              <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">
+                Preview ({rows.length} items detected)
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                <span className="text-emerald-600 font-bold">{validCount} valid</span>
+                {invalidCount > 0 && <span className="text-rose-500 font-bold ml-2">• {invalidCount} with formatting errors</span>}
               </p>
             </div>
-          </div>
-          <button
-            onClick={() => { setFile(null); setRows([]); setResult(null); setProgress(0); }}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-lg"
-          >
-            <X className="w-4 h-4 text-gray-400" />
-          </button>
-        </div>
-      )}
 
-      {/* Preview table */}
-      {rows.length > 0 && !result && (
-        <div className="bg-white dark:bg-neutral-950 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden">
-          <div className="p-5 border-b border-gray-200 dark:border-neutral-800 flex items-center justify-between">
-            <h2 className="font-black text-gray-900 dark:text-white">Preview</h2>
-            <div className="flex items-center gap-3 text-xs">
-              <span className="flex items-center gap-1 text-green-600 dark:text-green-400 font-semibold">
-                <CheckCircle2 className="w-3.5 h-3.5" /> {validCount} ready
-              </span>
-              {invalidCount > 0 && (
-                <span className="flex items-center gap-1 text-red-500 font-semibold">
-                  <AlertCircle className="w-3.5 h-3.5" /> {invalidCount} errors
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 dark:bg-neutral-900">
-                  <th className="text-left py-3 px-4 text-xs font-bold text-gray-500 dark:text-neutral-300">#</th>
-                  <th className="text-left py-3 px-4 text-xs font-bold text-gray-500 dark:text-neutral-300">Name</th>
-                  <th className="text-left py-3 px-4 text-xs font-bold text-gray-500 dark:text-neutral-300">Price</th>
-                  <th className="text-left py-3 px-4 text-xs font-bold text-gray-500 dark:text-neutral-300">Stock</th>
-                  <th className="text-left py-3 px-4 text-xs font-bold text-gray-500 dark:text-neutral-300">Category</th>
-                  <th className="text-left py-3 px-4 text-xs font-bold text-gray-500 dark:text-neutral-300">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.slice(0, 20).map((row, idx) => (
-                  <tr key={idx} className={`border-t border-gray-100 dark:border-neutral-800 ${!row._valid ? 'bg-red-50 dark:bg-red-900/5' : ''}`}>
-                    <td className="py-3 px-4 text-gray-500 dark:text-neutral-400">{idx + 2}</td>
-                    <td className="py-3 px-4 font-medium text-gray-900 dark:text-white max-w-[200px] truncate">{row.name}</td>
-                    <td className="py-3 px-4 text-gray-700 dark:text-neutral-200">
-                      {row.price ? `KSh ${Number(row.price).toLocaleString()}` : '—'}
-                    </td>
-                    <td className="py-3 px-4 text-gray-700 dark:text-neutral-200">{row.stock || '—'}</td>
-                    <td className="py-3 px-4 text-gray-700 dark:text-neutral-200 max-w-[120px] truncate">{row.category || '—'}</td>
-                    <td className="py-3 px-4">
-                      {row._valid ? (
-                        <span className="flex items-center gap-1 text-green-600 text-xs font-semibold">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Valid
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1 text-red-500 text-xs font-semibold" title={row._errors.join(', ')}>
-                          <AlertCircle className="w-3.5 h-3.5" /> {row._errors[0]}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {rows.length > 20 && (
-              <p className="text-xs text-gray-400 dark:text-neutral-400 p-4 border-t border-gray-100 dark:border-neutral-800">
-                Showing first 20 of {rows.length} rows
-              </p>
-            )}
-          </div>
-
-          {/* Import button */}
-          <div className="p-5 border-t border-gray-200 dark:border-neutral-800 flex flex-col sm:flex-row items-center gap-4">
-            {invalidCount > 0 && (
-              <div className="flex items-center gap-2 text-amber-600 text-sm flex-1">
-                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                {invalidCount} rows with errors will be skipped. {validCount} will be imported.
-              </div>
-            )}
             <button
               onClick={handleImport}
               disabled={importing || validCount === 0}
-              className="flex items-center gap-2 px-6 py-2.5 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white font-bold rounded-xl text-sm ml-auto"
+              className="px-6 py-2.5 rounded-full bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white font-extrabold text-xs shadow-md shadow-sky-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
             >
-              {importing ? <Loader className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-              Import {validCount} Products
+              {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+              <span>{importing ? `Importing (${progress}%)` : `Import ${validCount} Products`}</span>
             </button>
           </div>
-        </div>
-      )}
 
-      {/* Progress bar */}
-      {importing && (
-        <div className="bg-white dark:bg-neutral-950 rounded-xl border border-gray-200 dark:border-neutral-800 p-6">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-semibold text-gray-900 dark:text-white">Importing products...</p>
-            <p className="text-sm text-gray-500">{progress}%</p>
-          </div>
-          <div className="h-2 bg-gray-100 dark:bg-neutral-900 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Result */}
-      {result && (
-        <div className="bg-white dark:bg-neutral-950 rounded-xl border border-gray-200 dark:border-neutral-800 p-6 space-y-4">
-          <h2 className="font-black text-gray-900 dark:text-white">Import Complete</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/10 rounded-xl">
-              <CheckCircle2 className="w-6 h-6 text-green-500" />
-              <div>
-                <p className="text-2xl font-black text-green-700 dark:text-green-400">{result.success}</p>
-                <p className="text-xs text-green-600 dark:text-green-500">Successfully imported</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/10 rounded-xl">
-              <AlertCircle className="w-6 h-6 text-red-500" />
-              <div>
-                <p className="text-2xl font-black text-red-700 dark:text-red-400">{result.failed}</p>
-                <p className="text-xs text-red-600 dark:text-red-500">Failed or skipped</p>
-              </div>
-            </div>
-          </div>
-          {result.errors.length > 0 && (
-            <div className="space-y-1 max-h-40 overflow-y-auto">
-              {result.errors.map((e, i) => (
-                <p key={i} className="text-xs text-red-500">Row {e.row}: {e.message}</p>
-              ))}
+          {importing && (
+            <div className="w-full bg-slate-100 dark:bg-neutral-800 h-2 rounded-full overflow-hidden">
+              <div
+                className="bg-sky-500 h-full rounded-full transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           )}
-          <button
-            onClick={() => { setFile(null); setRows([]); setResult(null); setProgress(0); }}
-            className="flex items-center gap-2 px-5 py-2.5 border border-gray-300 dark:border-neutral-800 rounded-xl text-sm font-semibold text-gray-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-900"
-          >
-            Import Another File
-          </button>
+
+          {/* Table preview */}
+          <div className="overflow-x-auto max-h-72 divide-y divide-slate-100 dark:divide-neutral-800 text-xs">
+            {rows.slice(0, 10).map((row, idx) => (
+              <div key={idx} className="py-2.5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    row._valid ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
+                  }`}>
+                    {row._valid ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                  </div>
+                  <div className="min-w-0 flex-1 truncate">
+                    <p className="font-bold text-slate-800 dark:text-white truncate">{row.name || 'Untitled'}</p>
+                    <p className="text-[10px] text-slate-400">{row.category || 'General'} · Stock: {row.stock || '1'}</p>
+                  </div>
+                </div>
+
+                <div className="text-right flex-shrink-0">
+                  <p className="font-black text-slate-900 dark:text-white">KSh {row.price || '0'}</p>
+                  {!row._valid && (
+                    <p className="text-[10px] text-rose-500 font-bold">{row._errors.join(', ')}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {result && (
+            <div className={`p-4 rounded-2xl text-xs font-bold ${
+              result.failed === 0 ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800'
+            }`}>
+              Import complete: {result.success} products created, {result.failed} skipped.
+            </div>
+          )}
         </div>
       )}
-    </div>
-  );
-}
 
-export default function BulkImportPage() {
-  return (
-    <PlanGate
-      requiredPlan="business"
-      featureName="Bulk Import"
-      featureDescription="Upload hundreds of products at once using a CSV or Excel file. Perfect for large inventories and wholesalers."
-    >
-      <BulkImportContent />
-    </PlanGate>
+    </div>
   );
 }

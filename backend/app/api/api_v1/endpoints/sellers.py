@@ -329,9 +329,11 @@ def invite_staff(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),
 ) -> Any:
-    """Invite or add a staff member for the current seller shop."""
-    from app.models.subscription_features import StaffAccount
+    """Invite or add a staff member for the current seller shop and send an invitation email."""
+    from app.models.subscription_features import StaffAccount, ShopBranding
+    from app.models.seller_profile import SellerProfile
     from app.services.subscription_service import subscription_service
+    from app.services.email_service import email_service
     from app.core.security import get_password_hash
     import secrets
 
@@ -377,6 +379,8 @@ def invite_staff(
     if existing_staff:
         raise HTTPException(status_code=400, detail="This user is already a staff member of your shop.")
 
+    invite_token = secrets.token_urlsafe(32)
+
     new_staff = StaffAccount(
         seller_id=current_user.id,
         user_id=target_user.id,
@@ -386,12 +390,40 @@ def invite_staff(
             "manage_orders": invite_in.role == "manager",
             "reply_messages": invite_in.role in ("manager", "sales"),
             "update_inventory": invite_in.role in ("manager", "inventory"),
+            "invite_token": invite_token,
+            "invite_status": "pending",
         },
-        is_active=True,
+        is_active=False,
     )
     db.add(new_staff)
     db.commit()
     db.refresh(new_staff)
+
+    # Resolve shop name
+    shop_name = current_user.full_name or "Suqafuran Shop"
+    profile = db.exec(select(SellerProfile).where(SellerProfile.seller_id == current_user.id)).first()
+    if profile and profile.shop_name:
+        shop_name = profile.shop_name
+    else:
+        branding = db.exec(select(ShopBranding).where(ShopBranding.seller_id == current_user.id)).first()
+        if branding and branding.business_name:
+            shop_name = branding.business_name
+
+    inviter_name = current_user.full_name or current_user.email.split("@")[0]
+    accept_url = f"{settings.FRONTEND_URL}/api/v1/sellers/staff/accept?token={invite_token}"
+
+    email_sent = False
+    try:
+        email_sent = email_service.send_staff_invitation_email(
+            email=target_user.email,
+            shop_name=shop_name,
+            role=new_staff.role,
+            inviter_name=inviter_name,
+            accept_url=accept_url,
+            user_id=target_user.id,
+        )
+    except Exception as e:
+        logger.error(f"Failed to send staff invitation email to {target_user.email}: {e}")
 
     return {
         "id": new_staff.id,
@@ -400,8 +432,199 @@ def invite_staff(
         "role": new_staff.role,
         "last_active": None,
         "invited_at": new_staff.created_at.isoformat() if new_staff.created_at else None,
-        "status": "active",
+        "status": "pending",
+        "email_sent": email_sent,
     }
+
+
+@router.get("/staff/accept")
+def accept_staff_invitation(
+    token: str = Query(...),
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """Accept a staff invitation via token sent in email."""
+    from fastapi.responses import HTMLResponse
+    from app.models.subscription_features import StaffAccount, ShopBranding
+    from app.models.seller_profile import SellerProfile
+
+    if not token or not token.strip():
+        raise HTTPException(status_code=400, detail="Invalid invitation token.")
+
+    all_staff = db.exec(select(StaffAccount)).all()
+    matching_staff = [s for s in all_staff if (s.permissions or {}).get("invite_token") == token.strip()]
+
+    if not matching_staff:
+        return HTMLResponse(
+            content=f"""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>Invitation Expired - Suqafuran</title>
+              <style>
+                body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; margin: 0; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; }}
+                .card {{ background: white; border-radius: 24px; padding: 40px 32px; max-width: 480px; width: 100%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }}
+                h1 {{ color: #0f172a; font-size: 22px; margin: 0 0 10px 0; font-weight: 800; }}
+                p {{ color: #64748b; font-size: 14px; line-height: 1.6; margin: 0 0 24px 0; }}
+                .btn {{ display: inline-block; background: #0284c7; color: white; text-decoration: none; padding: 12px 28px; border-radius: 12px; font-weight: 800; font-size: 14px; }}
+              </style>
+            </head>
+            <body>
+              <div class="card">
+                <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                <h1>Invitation Expired or Already Used</h1>
+                <p>This staff invitation link is invalid or has already been accepted. Please ask your shop administrator to send a new invite if needed.</p>
+                <a href="{settings.FRONTEND_URL}/login" class="btn">Log In to Suqafuran</a>
+              </div>
+            </body>
+            </html>
+            """,
+            status_code=400,
+        )
+
+    staff = matching_staff[0]
+    staff.is_active = True
+    new_perms = dict(staff.permissions or {})
+    new_perms["invite_status"] = "accepted"
+    new_perms.pop("invite_token", None)
+    staff.permissions = new_perms
+    db.add(staff)
+    db.commit()
+    db.refresh(staff)
+
+    # Get shop name
+    seller_user = db.get(User, staff.seller_id)
+    shop_name = seller_user.full_name or "Suqafuran Shop" if seller_user else "the Shop"
+    profile = db.exec(select(SellerProfile).where(SellerProfile.seller_id == staff.seller_id)).first()
+    if profile and profile.shop_name:
+        shop_name = profile.shop_name
+
+    role_labels = {
+        "manager": "Shop Manager",
+        "sales": "Salesperson",
+        "inventory": "Inventory Specialist",
+        "support": "Customer Support",
+    }
+    role_label = role_labels.get(staff.role.lower(), staff.role.title())
+    redirect_url = f"{settings.FRONTEND_URL}/seller-dashboard?staff_accepted=1"
+
+    return HTMLResponse(
+        content=f"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <meta http-equiv="refresh" content="4;url={redirect_url}">
+          <title>Invitation Accepted - Suqafuran</title>
+          <style>
+            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; margin: 0; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; }}
+            .card {{ background: white; border-radius: 28px; padding: 48px 36px; max-width: 480px; width: 100%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }}
+            .badge {{ display: inline-block; background: #e0f2fe; color: #0284c7; font-weight: 800; font-size: 11px; padding: 6px 14px; border-radius: 100px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }}
+            h1 {{ color: #0f172a; font-size: 24px; font-weight: 800; margin: 0 0 12px 0; }}
+            p {{ color: #475569; font-size: 14px; line-height: 1.6; margin: 0 0 28px 0; }}
+            .btn {{ display: inline-block; background: #0284c7; color: white; text-decoration: none; padding: 14px 32px; border-radius: 14px; font-weight: 800; font-size: 15px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35); }}
+            .countdown {{ font-size: 12px; color: #94a3b8; margin-top: 20px; }}
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <span class="badge">Team Invitation</span>
+            <div style="font-size: 52px; margin-bottom: 12px;">🎉</div>
+            <h1>Welcome to {shop_name}!</h1>
+            <p>You have successfully accepted the invitation to join <strong>{shop_name}</strong> as a <strong>{role_label}</strong>. You now have full access to your assigned seller tools.</p>
+            <a href="{redirect_url}" class="btn">Go to Seller Dashboard &rarr;</a>
+            <div class="countdown">Redirecting you to the dashboard in 4 seconds...</div>
+          </div>
+        </body>
+        </html>
+        """,
+        status_code=200,
+    )
+
+
+@router.post("/staff/accept")
+def accept_staff_invitation_api(
+    data: dict,
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """Accept a staff invitation via JSON API."""
+    from app.models.subscription_features import StaffAccount
+
+    token = data.get("token")
+    if not token or not str(token).strip():
+        raise HTTPException(status_code=400, detail="Invitation token is required.")
+
+    all_staff = db.exec(select(StaffAccount)).all()
+    matching_staff = [s for s in all_staff if (s.permissions or {}).get("invite_token") == str(token).strip()]
+
+    if not matching_staff:
+        raise HTTPException(status_code=400, detail="Invalid or expired invitation token.")
+
+    staff = matching_staff[0]
+    staff.is_active = True
+    new_perms = dict(staff.permissions or {})
+    new_perms["invite_status"] = "accepted"
+    new_perms.pop("invite_token", None)
+    staff.permissions = new_perms
+    db.add(staff)
+    db.commit()
+
+    return {"status": "success", "message": "Invitation accepted successfully."}
+
+
+@router.post("/me/staff/{staff_id}/resend")
+def resend_staff_invitation(
+    staff_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """Resend invitation email to a pending staff member."""
+    from app.models.subscription_features import StaffAccount, ShopBranding
+    from app.models.seller_profile import SellerProfile
+    from app.services.email_service import email_service
+    import secrets
+
+    staff = db.get(StaffAccount, staff_id)
+    if not staff or staff.seller_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Staff account not found.")
+
+    target_user = db.get(User, staff.user_id)
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User account not found.")
+
+    # Generate or reuse token
+    perms = dict(staff.permissions or {})
+    invite_token = perms.get("invite_token") or secrets.token_urlsafe(32)
+    perms["invite_token"] = invite_token
+    perms["invite_status"] = "pending"
+    staff.permissions = perms
+    db.add(staff)
+    db.commit()
+
+    shop_name = current_user.full_name or "Suqafuran Shop"
+    profile = db.exec(select(SellerProfile).where(SellerProfile.seller_id == current_user.id)).first()
+    if profile and profile.shop_name:
+        shop_name = profile.shop_name
+    else:
+        branding = db.exec(select(ShopBranding).where(ShopBranding.seller_id == current_user.id)).first()
+        if branding and branding.business_name:
+            shop_name = branding.business_name
+
+    inviter_name = current_user.full_name or current_user.email.split("@")[0]
+    accept_url = f"{settings.FRONTEND_URL}/api/v1/sellers/staff/accept?token={invite_token}"
+
+    email_service.send_staff_invitation_email(
+        email=target_user.email,
+        shop_name=shop_name,
+        role=staff.role,
+        inviter_name=inviter_name,
+        accept_url=accept_url,
+        user_id=target_user.id,
+    )
+
+    return {"status": "success", "message": f"Invitation email resent to {target_user.email}."}
 
 
 @router.delete("/me/staff/{staff_id}")
