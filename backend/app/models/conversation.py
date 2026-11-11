@@ -9,7 +9,8 @@ class ConversationMessageBase(SQLModel):
     content: str
 
 
-class ConversationMessage(ConversationMessageBase, table=True, tablename="conversation_message"):
+class ConversationMessage(ConversationMessageBase, table=True):
+    __tablename__ = "conversation_message"
     id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -19,7 +20,8 @@ class ConversationBase(SQLModel):
     customer_id: int = Field(foreign_key="user.id", index=True)
 
 
-class Conversation(ConversationBase, table=True, tablename="conversation"):
+class Conversation(ConversationBase, table=True):
+    __tablename__ = "conversation"
     id: Optional[int] = Field(default=None, primary_key=True)
     last_message: Optional[str] = None
     unread_count: int = Field(default=0)
