@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import api from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
@@ -9,8 +9,20 @@ import { ADMIN_NAV_ITEMS } from '@/navigation';
 import { useAuthStore } from '@/store/useAuth';
 import {
   Send, Users, AlertCircle, CheckCircle2, MessageCircle, Bell,
-  Radio, Smartphone, Sparkles, ExternalLink, ShieldCheck, Flame
+  Radio, Smartphone, Sparkles, ExternalLink, ShieldCheck, Flame,
+  Search, UserCheck, X, Loader2, User as UserIcon
 } from 'lucide-react';
+
+interface FoundUser {
+  id: number;
+  name: string;
+  full_name?: string;
+  business_name?: string;
+  email?: string;
+  phone?: string;
+  role: 'Seller' | 'Buyer';
+  avatar?: string;
+}
 
 export default function SystemMessagesPage() {
   const { toast } = useToast();
@@ -25,19 +37,78 @@ export default function SystemMessagesPage() {
   const [broadcastImageUrl, setBroadcastImageUrl] = useState('');
   const [lastBroadcastResult, setLastBroadcastResult] = useState<any>(null);
 
-  // Single & Bulk state
+  // Single User by Name state
+  const [singleSearchQuery, setSingleSearchQuery] = useState('');
+  const [singleSearchResults, setSingleSearchResults] = useState<FoundUser[]>([]);
+  const [isSearchingSingle, setIsSearchingSingle] = useState(false);
+  const [selectedSingleUser, setSelectedSingleUser] = useState<FoundUser | null>(null);
+
+  // Multiple Users by Name state
+  const [bulkSearchQuery, setBulkSearchQuery] = useState('');
+  const [bulkSearchResults, setBulkSearchResults] = useState<FoundUser[]>([]);
+  const [isSearchingBulk, setIsSearchingBulk] = useState(false);
+  const [selectedBulkUsers, setSelectedBulkUsers] = useState<FoundUser[]>([]);
+
+  // Shared Direct Message state
   const [messageType, setMessageType] = useState('general');
-  const [singleUserId, setSingleUserId] = useState('');
-  const [userIds, setUserIds] = useState('');
   const [directMessage, setDirectMessage] = useState('');
   const [dryRun, setDryRun] = useState(false);
-
   const [sending, setSending] = useState(false);
 
   const navItems = ADMIN_NAV_ITEMS.map(({ icon: Icon, ...item }) => ({
     ...item,
     icon: <Icon className="w-5 h-5" />
   }));
+
+  // Debounced search for Single User mode
+  useEffect(() => {
+    if (!singleSearchQuery.trim() || selectedSingleUser) {
+      setSingleSearchResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearchingSingle(true);
+      try {
+        const res = await api.get('/admin/system-messages/search-users', {
+          params: { query: singleSearchQuery.trim(), limit: 10 }
+        });
+        setSingleSearchResults(res.data || []);
+      } catch (err) {
+        console.error('Failed to search users:', err);
+      } finally {
+        setIsSearchingSingle(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [singleSearchQuery, selectedSingleUser]);
+
+  // Debounced search for Bulk Users mode
+  useEffect(() => {
+    if (!bulkSearchQuery.trim()) {
+      setBulkSearchResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearchingBulk(true);
+      try {
+        const res = await api.get('/admin/system-messages/search-users', {
+          params: { query: bulkSearchQuery.trim(), limit: 10 }
+        });
+        // Filter out already selected users
+        const alreadySelected = new Set(selectedBulkUsers.map(u => u.id));
+        setBulkSearchResults((res.data || []).filter((u: FoundUser) => !alreadySelected.has(u.id)));
+      } catch (err) {
+        console.error('Failed to search users:', err);
+      } finally {
+        setIsSearchingBulk(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [bulkSearchQuery, selectedBulkUsers]);
 
   const handleSendBroadcast = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,10 +170,10 @@ export default function SystemMessagesPage() {
   const handleSendSingle = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!singleUserId.trim()) {
+    if (!selectedSingleUser && !singleSearchQuery.trim()) {
       toast({
-        title: 'Error',
-        description: 'Please enter a user ID',
+        title: 'Recipient required',
+        description: 'Please search and select a user by their name.',
         variant: 'destructive'
       });
       return;
@@ -110,8 +181,8 @@ export default function SystemMessagesPage() {
 
     if (!directMessage.trim()) {
       toast({
-        title: 'Error',
-        description: 'Message cannot be empty',
+        title: 'Message required',
+        description: 'Message cannot be empty.',
         variant: 'destructive'
       });
       return;
@@ -119,24 +190,34 @@ export default function SystemMessagesPage() {
 
     setSending(true);
     try {
-      await api.post('/admin/system-messages/send', {
-        recipient_user_id: parseInt(singleUserId),
-        message: directMessage,
+      const payload: any = {
+        message: directMessage.trim(),
         message_type: messageType
-      });
+      };
+
+      if (selectedSingleUser) {
+        payload.recipient_user_id = selectedSingleUser.id;
+        payload.recipient_name = selectedSingleUser.name;
+      } else {
+        payload.recipient = singleSearchQuery.trim();
+      }
+
+      const res = await api.post('/admin/system-messages/send', payload);
+      const recipientName = res.data?.recipient_name || selectedSingleUser?.name || 'User';
 
       toast({
-        title: 'Success',
-        description: `Message and notification sent to user #${singleUserId}`,
+        title: 'Message Delivered! ✉️',
+        description: `Successfully sent message & push notification to ${recipientName}.`,
       });
 
-      setSingleUserId('');
+      setSelectedSingleUser(null);
+      setSingleSearchQuery('');
       setDirectMessage('');
     } catch (error: any) {
       console.error('Failed to send message:', error);
       toast({
-        title: 'Error',
-        description: error.response?.data?.detail || 'Failed to send message',
+        title: 'Delivery Failed',
+        description: error.response?.data?.detail || 'Failed to send message to user.',
         variant: 'destructive'
       });
     } finally {
@@ -147,10 +228,10 @@ export default function SystemMessagesPage() {
   const handleSendBulk = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!userIds.trim()) {
+    if (selectedBulkUsers.length === 0) {
       toast({
-        title: 'Error',
-        description: 'Please enter user IDs (comma-separated)',
+        title: 'No Recipients Selected',
+        description: 'Please search and add at least one user by name.',
         variant: 'destructive'
       });
       return;
@@ -158,19 +239,8 @@ export default function SystemMessagesPage() {
 
     if (!directMessage.trim()) {
       toast({
-        title: 'Error',
-        description: 'Message cannot be empty',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    const ids = userIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
-
-    if (ids.length === 0) {
-      toast({
-        title: 'Error',
-        description: 'Please enter valid numeric user IDs',
+        title: 'Message required',
+        description: 'Message cannot be empty.',
         variant: 'destructive'
       });
       return;
@@ -178,27 +248,32 @@ export default function SystemMessagesPage() {
 
     setSending(true);
     try {
-      const response = await api.post('/admin/system-messages/send-bulk', {
-        recipient_user_ids: ids,
-        message: directMessage,
+      const res = await api.post('/admin/system-messages/send-bulk', {
+        recipient_user_ids: selectedBulkUsers.map(u => u.id),
+        message: directMessage.trim(),
         message_type: messageType,
         dry_run: dryRun
       });
 
-      toast({
-        title: 'Success',
-        description: `${response.data.success} message${response.data.success !== 1 ? 's' : ''} sent${dryRun ? ' (dry run)' : ''}`,
-      });
-
-      if (!dryRun) {
-        setUserIds('');
+      if (dryRun) {
+        toast({
+          title: 'Dry Run Complete',
+          description: `Validated ${res.data.success} user(s). No notifications were dispatched.`,
+        });
+      } else {
+        toast({
+          title: 'Bulk Messages Sent! 🚀',
+          description: `Dispatched to ${res.data.success} user(s) successfully.`,
+        });
+        setSelectedBulkUsers([]);
+        setBulkSearchQuery('');
         setDirectMessage('');
       }
     } catch (error: any) {
       console.error('Failed to send bulk messages:', error);
       toast({
         title: 'Error',
-        description: error.response?.data?.detail || 'Failed to send messages',
+        description: error.response?.data?.detail || 'Failed to send bulk messages',
         variant: 'destructive'
       });
     } finally {
@@ -206,27 +281,54 @@ export default function SystemMessagesPage() {
     }
   };
 
+  const handleAddBulkUser = (u: FoundUser) => {
+    if (!selectedBulkUsers.some(item => item.id === u.id)) {
+      setSelectedBulkUsers(prev => [...prev, u]);
+    }
+    setBulkSearchQuery('');
+    setBulkSearchResults([]);
+  };
+
+  const handleRemoveBulkUser = (id: number) => {
+    setSelectedBulkUsers(prev => prev.filter(u => u.id !== id));
+  };
+
   return (
-    <DashboardLayout title="Push & Messages" navItems={navItems} userRole="admin">
-      <div className="container mx-auto py-8 px-4 max-w-5xl space-y-8">
+    <DashboardLayout
+      navItems={navItems}
+      title="Push Notifications & Messages"
+      badge="Admin Center"
+    >
+      <div className="space-y-8 max-w-6xl mx-auto">
         
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-neutral-800 pb-6">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-2xl bg-sky-500/10 text-sky-600 flex items-center justify-center">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-sky-500/10 text-sky-500 flex items-center justify-center">
                 <Bell className="w-5 h-5" />
               </div>
-              <h1 className="text-3xl font-black text-slate-900 dark:text-white">Push Notifications & Broadcast</h1>
+              <div>
+                <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                  Push & System Messaging Center
+                </h1>
+                <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
+                  Compose broadcast notifications to all app users, or search users by name to message directly.
+                </p>
+              </div>
             </div>
-            <p className="text-slate-500 dark:text-neutral-400">
-              Broadcast push notifications directly to everyone with the Android and iOS apps, or send targeted system messages.
-            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Push Gateway Active
+            </span>
           </div>
         </div>
 
         {/* Mode Selector Tabs */}
-        <div className="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-neutral-900 rounded-2xl max-w-fit">
+        <div className="flex flex-wrap gap-2 p-1.5 rounded-2xl bg-slate-100 dark:bg-neutral-900 w-fit">
           <button
             onClick={() => setMode('broadcast')}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
@@ -236,7 +338,7 @@ export default function SystemMessagesPage() {
             }`}
           >
             <Radio className="w-4 h-4" />
-            <span>Broadcast to All App Users</span>
+            <span>Broadcast (Everyone)</span>
             <span className="px-2 py-0.5 text-[10px] font-black uppercase rounded-full bg-white/20">Live</span>
           </button>
           
@@ -249,7 +351,7 @@ export default function SystemMessagesPage() {
             }`}
           >
             <MessageCircle className="w-4 h-4" />
-            <span>Single User</span>
+            <span>Single User (By Name)</span>
           </button>
 
           <button
@@ -261,7 +363,7 @@ export default function SystemMessagesPage() {
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>User ID List</span>
+            <span>Multiple Users (By Name)</span>
           </button>
         </div>
 
@@ -311,72 +413,90 @@ export default function SystemMessagesPage() {
                       type="text"
                       value={broadcastTitle}
                       onChange={(e) => setBroadcastTitle(e.target.value)}
-                      placeholder="e.g. Flash Sale Today! 🛍️ Up to 50% Off"
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl text-slate-900 dark:text-white font-medium text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      placeholder="e.g. Flash Sale Alert! 50% Off Top Deals Today"
                       maxLength={100}
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl text-sm font-semibold focus:ring-2 focus:ring-sky-500 outline-none transition"
+                      required
                     />
-                    <div className="flex justify-between text-[11px] text-slate-400 mt-1">
-                      <span>Catchy, short headline for lockscreen banner</span>
+                    <div className="flex justify-between items-center text-[11px] text-slate-400 mt-1">
+                      <span>Keep titles punchy (under 50 chars recommended)</span>
                       <span>{broadcastTitle.length}/100</span>
                     </div>
                   </div>
 
-                  {/* Body Message */}
+                  {/* Message Body */}
                   <div>
                     <label className="block text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-                      Notification Message Body *
+                      Message Content *
                     </label>
                     <textarea
                       value={broadcastMessage}
                       onChange={(e) => setBroadcastMessage(e.target.value)}
-                      placeholder="e.g. Discover exclusive deals from verified shops in Nairobi with fast doorstep delivery. Tap to view items."
+                      placeholder="Type the message body that will appear on user lock screens..."
                       rows={4}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl text-slate-900 dark:text-white font-medium text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                       maxLength={500}
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl text-sm focus:ring-2 focus:ring-sky-500 outline-none transition leading-relaxed"
+                      required
                     />
-                    <div className="flex justify-between text-[11px] text-slate-400 mt-1">
-                      <span>Primary message previewed on device notifications</span>
+                    <div className="flex justify-between items-center text-[11px] text-slate-400 mt-1">
+                      <span>Will deliver as native push banner + in-app notification</span>
                       <span>{broadcastMessage.length}/500</span>
                     </div>
                   </div>
 
-                  {/* Action Link / Deep link */}
+                  {/* Action Link / Deep Link */}
                   <div>
                     <label className="block text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-                      Deep Link / Tap Destination (Optional)
+                      Action Deep Link (Optional)
                     </label>
                     <input
                       type="text"
                       value={broadcastActionUrl}
                       onChange={(e) => setBroadcastActionUrl(e.target.value)}
-                      placeholder="e.g. /shops, /deals, or /listing/123"
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl text-slate-900 dark:text-white font-medium text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                      placeholder="e.g. /shops, /deals, or /listing/42"
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl text-sm focus:ring-2 focus:ring-sky-500 outline-none transition"
                     />
                     <p className="text-[11px] text-slate-400 mt-1">
-                      Where the app opens when the user taps this notification (defaults to home).
+                      When the user taps the push notification on their phone, the app automatically navigates to this view.
                     </p>
                   </div>
 
-                  {/* Submit Button */}
+                  {/* Banner Image URL */}
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                      Banner Image URL (Optional)
+                    </label>
+                    <input
+                      type="url"
+                      value={broadcastImageUrl}
+                      onChange={(e) => setBroadcastImageUrl(e.target.value)}
+                      placeholder="https://.../promotional-banner.jpg"
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl text-sm focus:ring-2 focus:ring-sky-500 outline-none transition"
+                    />
+                  </div>
+
                   <button
                     type="submit"
-                    disabled={sending || !broadcastTitle.trim() || !broadcastMessage.trim()}
-                    className="w-full bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-black py-3.5 px-6 rounded-2xl hover:opacity-95 transition-all shadow-lg shadow-sky-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm tracking-wide uppercase"
+                    disabled={sending}
+                    className="w-full bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-black py-4 px-6 rounded-2xl transition-all shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2 text-sm tracking-wide uppercase active:scale-[0.99]"
                   >
                     <Send className="w-4 h-4" />
-                    {sending ? 'Broadcasting Push...' : 'Send Push Notification Now'}
+                    {sending ? 'Broadcasting to All Devices...' : 'Broadcast Push Notification Now'}
                   </button>
                 </form>
               </Card>
 
-              {/* Delivery Stats Card */}
+              {/* Delivery Stats Card if available */}
               {lastBroadcastResult && (
-                <div className="p-5 rounded-3xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="font-bold text-sm">Push Broadcast Dispatched</h4>
-                    <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-0.5">
-                      Targeted {lastBroadcastResult.users_targeted ?? 0} user accounts ({lastBroadcastResult.tokens_dispatched ?? 0} device tokens). Successfully reached {lastBroadcastResult.delivered ?? 0} devices.
+                <div className="p-5 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-950 dark:text-emerald-200 flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <div className="space-y-1 text-xs">
+                    <div className="font-bold text-sm text-emerald-700 dark:text-emerald-300">
+                      Broadcast Dispatched Successfully!
+                    </div>
+                    <p>
+                      Delivered to <strong>{lastBroadcastResult.delivered ?? 0}</strong> app devices.
+                      Logged in in-app notification center for <strong>{lastBroadcastResult.in_app_created ?? 0}</strong> users.
                     </p>
                   </div>
                 </div>
@@ -434,75 +554,265 @@ export default function SystemMessagesPage() {
           </div>
         )}
 
-        {/* ── SINGLE USER MODE ── */}
+        {/* ── SINGLE USER BY NAME MODE ── */}
         {mode === 'single' && (
-          <Card className="p-8 max-w-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-neutral-800 rounded-3xl">
+          <Card className="p-8 max-w-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-neutral-800 rounded-3xl shadow-sm">
             <form onSubmit={handleSendSingle} className="space-y-6">
+              
+              {/* User Search by Name */}
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-slate-500 mb-2">Recipient User ID *</label>
-                <input
-                  type="number"
-                  value={singleUserId}
-                  onChange={(e) => setSingleUserId(e.target.value)}
-                  placeholder="e.g. 142"
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl text-sm"
-                  required
-                />
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                  Recipient User (Search by Name) *
+                </label>
+
+                {selectedSingleUser ? (
+                  <div className="p-4 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/50 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-sky-500 text-white font-black flex items-center justify-center text-sm shadow-sm">
+                        {selectedSingleUser.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-extrabold text-sm text-slate-900 dark:text-white">
+                            {selectedSingleUser.name}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            selectedSingleUser.role === 'Seller'
+                              ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                              : 'bg-slate-200 text-slate-700 dark:bg-neutral-800 dark:text-neutral-300'
+                          }`}>
+                            {selectedSingleUser.role}
+                          </span>
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
+                          {selectedSingleUser.email || selectedSingleUser.phone || `User #${selectedSingleUser.id}`}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedSingleUser(null);
+                        setSingleSearchQuery('');
+                      }}
+                      className="px-3 py-1.5 rounded-xl border border-slate-300 dark:border-neutral-700 hover:bg-white dark:hover:bg-neutral-800 text-xs font-bold text-slate-600 dark:text-neutral-300 transition"
+                    >
+                      Change User
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <div className="relative flex items-center">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-4 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={singleSearchQuery}
+                        onChange={(e) => setSingleSearchQuery(e.target.value)}
+                        placeholder="Search by user name, shop name, phone or email..."
+                        className="w-full pl-11 pr-10 py-3 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl text-sm focus:ring-2 focus:ring-sky-500 outline-none transition"
+                        autoFocus
+                      />
+                      {isSearchingSingle && (
+                        <Loader2 className="w-4 h-4 text-sky-500 animate-spin absolute right-4" />
+                      )}
+                    </div>
+
+                    {/* Autocomplete Dropdown */}
+                    {singleSearchResults.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl shadow-xl z-20 max-h-60 overflow-y-auto divide-y divide-slate-100 dark:divide-neutral-800">
+                        {singleSearchResults.map((u) => (
+                          <button
+                            key={u.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedSingleUser(u);
+                              setSingleSearchResults([]);
+                              setSingleSearchQuery('');
+                            }}
+                            className="w-full p-3 text-left hover:bg-sky-50/60 dark:hover:bg-sky-950/30 flex items-center justify-between transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 font-bold flex items-center justify-center text-xs">
+                                {u.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                                  {u.name}
+                                  {u.business_name && (
+                                    <span className="text-[10px] text-slate-400">({u.business_name})</span>
+                                  )}
+                                </div>
+                                <div className="text-[11px] text-slate-500 dark:text-neutral-400">
+                                  {u.email || u.phone}
+                                </div>
+                              </div>
+                            </div>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              u.role === 'Seller'
+                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                                : 'bg-slate-100 text-slate-600 dark:bg-neutral-800 dark:text-neutral-400'
+                            }`}>
+                              {u.role}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
+              {/* Message Type */}
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-slate-500 mb-2">Message *</label>
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                  Category
+                </label>
+                <div className="grid grid-cols-4 gap-2">
+                  {['general', 'promotional', 'announcement', 'support'].map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setMessageType(t)}
+                      className={`p-2.5 rounded-xl border text-xs font-bold capitalize transition ${
+                        messageType === t
+                          ? 'border-sky-500 bg-sky-50 dark:bg-sky-950/30 text-sky-600'
+                          : 'border-slate-200 dark:border-neutral-800 text-slate-600'
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Message Content */}
+              <div>
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                  Message Content *
+                </label>
                 <textarea
                   value={directMessage}
                   onChange={(e) => setDirectMessage(e.target.value)}
                   placeholder="Type official system message and push notification text..."
                   rows={4}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl text-sm"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl text-sm focus:ring-2 focus:ring-sky-500 outline-none transition"
                   required
                 />
               </div>
 
               <button
                 type="submit"
-                disabled={sending}
-                className="w-full bg-sky-500 text-white font-bold py-3.5 px-6 rounded-2xl hover:bg-sky-600 transition flex items-center justify-center gap-2"
+                disabled={sending || (!selectedSingleUser && !singleSearchQuery.trim())}
+                className="w-full bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold py-3.5 px-6 rounded-2xl transition flex items-center justify-center gap-2 shadow-lg shadow-sky-500/25"
               >
                 <Send className="w-4 h-4" />
-                {sending ? 'Sending...' : 'Send Message & Push'}
+                {sending ? 'Sending...' : `Send to ${selectedSingleUser?.name || 'Selected User'}`}
               </button>
             </form>
           </Card>
         )}
 
-        {/* ── BULK LIST MODE ── */}
+        {/* ── MULTIPLE USERS BY NAME MODE ── */}
         {mode === 'bulk' && (
-          <Card className="p-8 max-w-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-neutral-800 rounded-3xl">
+          <Card className="p-8 max-w-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-neutral-800 rounded-3xl shadow-sm">
             <form onSubmit={handleSendBulk} className="space-y-6">
+              
+              {/* User Search & Chips */}
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-slate-500 mb-2">User IDs (Comma-separated) *</label>
-                <textarea
-                  value={userIds}
-                  onChange={(e) => setUserIds(e.target.value)}
-                  placeholder="12, 45, 88, 102"
-                  rows={3}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl text-sm font-mono"
-                  required
-                />
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                  Recipients (Search & Add by Name) *
+                </label>
+
+                {/* Selected Users Chips */}
+                {selectedBulkUsers.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-3 p-3 bg-slate-50 dark:bg-neutral-900/60 rounded-2xl border border-slate-200 dark:border-neutral-800">
+                    {selectedBulkUsers.map((u) => (
+                      <span
+                        key={u.id}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 shadow-xs"
+                      >
+                        <UserCheck className="w-3.5 h-3.5 text-sky-500" />
+                        <span>{u.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveBulkUser(u.id)}
+                          className="hover:text-red-500 ml-1"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                    <span className="text-xs text-slate-400 self-center ml-2">
+                      ({selectedBulkUsers.length} selected)
+                    </span>
+                  </div>
+                )}
+
+                {/* Search Input */}
+                <div className="relative">
+                  <div className="relative flex items-center">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-4 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={bulkSearchQuery}
+                      onChange={(e) => setBulkSearchQuery(e.target.value)}
+                      placeholder="Type a name to search and click to add..."
+                      className="w-full pl-11 pr-10 py-3 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl text-sm focus:ring-2 focus:ring-sky-500 outline-none transition"
+                    />
+                    {isSearchingBulk && (
+                      <Loader2 className="w-4 h-4 text-sky-500 animate-spin absolute right-4" />
+                    )}
+                  </div>
+
+                  {/* Autocomplete Dropdown */}
+                  {bulkSearchResults.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl shadow-xl z-20 max-h-60 overflow-y-auto divide-y divide-slate-100 dark:divide-neutral-800">
+                      {bulkSearchResults.map((u) => (
+                        <button
+                          key={u.id}
+                          type="button"
+                          onClick={() => handleAddBulkUser(u)}
+                          className="w-full p-3 text-left hover:bg-sky-50/60 dark:hover:bg-sky-950/30 flex items-center justify-between transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-200 font-bold flex items-center justify-center text-xs">
+                              {u.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="text-xs font-bold text-slate-900 dark:text-white">
+                                {u.name}
+                              </div>
+                              <div className="text-[11px] text-slate-500 dark:text-neutral-400">
+                                {u.email || u.phone}
+                              </div>
+                            </div>
+                          </div>
+                          <span className="text-xs font-bold text-sky-500 hover:underline">
+                            + Add
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
+              {/* Message Content */}
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-slate-500 mb-2">Message *</label>
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                  Message Content *
+                </label>
                 <textarea
                   value={directMessage}
                   onChange={(e) => setDirectMessage(e.target.value)}
                   placeholder="Type message text..."
                   rows={4}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl text-sm"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 rounded-2xl text-sm focus:ring-2 focus:ring-sky-500 outline-none transition"
                   required
                 />
               </div>
 
-              <div className="flex items-center gap-2 text-sm text-slate-600">
+              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-neutral-300">
                 <input
                   type="checkbox"
                   id="dry"
@@ -515,11 +825,11 @@ export default function SystemMessagesPage() {
 
               <button
                 type="submit"
-                disabled={sending}
-                className="w-full bg-sky-500 text-white font-bold py-3.5 px-6 rounded-2xl hover:bg-sky-600 transition flex items-center justify-center gap-2"
+                disabled={sending || selectedBulkUsers.length === 0}
+                className="w-full bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold py-3.5 px-6 rounded-2xl transition flex items-center justify-center gap-2 shadow-lg shadow-sky-500/25"
               >
                 <Send className="w-4 h-4" />
-                {sending ? 'Sending...' : 'Send Bulk Notification'}
+                {sending ? 'Sending...' : `Send Notification to ${selectedBulkUsers.length} User(s)`}
               </button>
             </form>
           </Card>
