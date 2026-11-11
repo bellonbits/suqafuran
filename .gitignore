@@ -123,6 +123,9 @@ ios/App/public/
 *.mobileprovision
 *.provisionprofile
 GoogleService-Info.plist
+*firebase-adminsdk*.json
+*serviceAccountKey*.json
+serviceAccountKey.json
 shops-app/ios/App/AppStore_com.suqafuran.app.mobileprovision
 shops-app/ios/App/P72X8KV2P9.*
 GITHUB_SECRETS.txt

@@ -37,19 +37,38 @@ def _get_app():
         elif cred_json:
             cred = credentials.Certificate(json.loads(cred_json))
         else:
+            import glob
+
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            app_dir = os.path.dirname(base_dir)
+            backend_dir = os.path.dirname(app_dir)
+
             default_paths = [
+                os.path.join(app_dir, "campusmart-a4159-firebase-adminsdk-itxz3-76cba601ae.json"),
+                "/app/campusmart-a4159-firebase-adminsdk-itxz3-76cba601ae.json",
+                "/app/app/campusmart-a4159-firebase-adminsdk-itxz3-76cba601ae.json",
+                os.path.join(backend_dir, "serviceAccountKey.json"),
+                os.path.join(app_dir, "serviceAccountKey.json"),
                 "/app/serviceAccountKey.json",
-                "/app/firebase-credentials.json",
+                "/app/app/serviceAccountKey.json",
                 "/app/backend/serviceAccountKey.json",
+                "/app/firebase-credentials.json",
                 "serviceAccountKey.json",
                 "firebase-credentials.json",
-                os.path.join(os.path.dirname(__file__), "../../serviceAccountKey.json"),
-                os.path.join(os.path.dirname(__file__), "../../../serviceAccountKey.json"),
-                "/Users/mac/suqafuran/serviceAccountKey.json",
+                "/Users/mac/suqafuran/backend/app/campusmart-a4159-firebase-adminsdk-itxz3-76cba601ae.json",
                 "/Users/mac/suqafuran/backend/serviceAccountKey.json",
+                "/Users/mac/suqafuran/serviceAccountKey.json",
             ]
-            found_path = next((p for p in default_paths if os.path.exists(p)), None)
+
+            # Also check glob matches for any *firebase-adminsdk*.json in app or backend dir
+            for candidate_dir in [app_dir, backend_dir, "/app", "/app/app", "."]:
+                if os.path.isdir(candidate_dir):
+                    matches = glob.glob(os.path.join(candidate_dir, "*firebase-adminsdk*.json"))
+                    default_paths.extend(matches)
+
+            found_path = next((p for p in default_paths if p and os.path.exists(p)), None)
             if found_path:
+                logger.info(f"Push: Loading Firebase credentials from {found_path}")
                 cred = credentials.Certificate(found_path)
             else:
                 logger.warning("Push: Firebase credentials not configured — push disabled.")
