@@ -235,12 +235,13 @@ def update_device_token(
 def remove_device_token(
     *,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user),
+    current_user: Optional[User] = Depends(deps.get_current_user_optional),
 ) -> Any:
     """Remove FCM token on logout so the user stops receiving push notifications."""
-    current_user.fcm_token = None
-    db.add(current_user)
-    db.commit()
+    if current_user:
+        current_user.fcm_token = None
+        db.add(current_user)
+        db.commit()
     return {"status": "ok"}
 
 
