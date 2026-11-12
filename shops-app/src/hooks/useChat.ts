@@ -10,6 +10,7 @@ interface ChatUser {
   avatar?: string;
   is_online: boolean;
   is_typing: boolean;
+  is_recording?: boolean;
 }
 
 interface UseChatReturn {
@@ -17,6 +18,7 @@ interface UseChatReturn {
   userStatus: ChatUser | null;
   sendMessage: (content: string, receiverId: number, listingId?: number) => void;
   setTyping: (receiverId: number, isTyping: boolean) => void;
+  setRecording: (receiverId: number, isRecording: boolean) => void;
   subscribeToUser: (userId: number) => void;
   onMessage: (callback: (message: ChatMessage) => void) => void;
 }
@@ -26,6 +28,7 @@ export function useChat(token: string): UseChatReturn {
   const [isConnected, setIsConnected] = useState(false);
   const [userStatus, setUserStatus] = useState<ChatUser | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messageCallbackRef = useRef<((message: ChatMessage) => void) | null>(null);
   const presencePollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const subscribedUserIdRef = useRef<number | null>(null);
@@ -70,6 +73,7 @@ export function useChat(token: string): UseChatReturn {
               ...prev,
               id: data.user_id,
               is_typing: true,
+              is_recording: false,
             } as ChatUser));
 
             if (typingTimeoutRef.current) {
@@ -81,12 +85,36 @@ export function useChat(token: string): UseChatReturn {
                 id: data.user_id,
                 is_typing: false,
               } as ChatUser));
-            }, 2000);
+            }, 2500);
           } else if (data.event_type === 'user_stopped_typing') {
             setUserStatus(prev => ({
               ...prev,
               id: data.user_id,
               is_typing: false,
+            } as ChatUser));
+          } else if (data.event_type === 'user_recording') {
+            setUserStatus(prev => ({
+              ...prev,
+              id: data.user_id,
+              is_recording: true,
+              is_typing: false,
+            } as ChatUser));
+
+            if (recordingTimeoutRef.current) {
+              clearTimeout(recordingTimeoutRef.current);
+            }
+            recordingTimeoutRef.current = setTimeout(() => {
+              setUserStatus(prev => ({
+                ...prev,
+                id: data.user_id,
+                is_recording: false,
+              } as ChatUser));
+            }, 8000);
+          } else if (data.event_type === 'user_stopped_recording') {
+            setUserStatus(prev => ({
+              ...prev,
+              id: data.user_id,
+              is_recording: false,
             } as ChatUser));
           } else if (data.event_type === 'presence') {
             setUserStatus(prev => ({
@@ -114,6 +142,9 @@ export function useChat(token: string): UseChatReturn {
         }
         if (typingTimeoutRef.current) {
           clearTimeout(typingTimeoutRef.current);
+        }
+        if (recordingTimeoutRef.current) {
+          clearTimeout(recordingTimeoutRef.current);
         }
         if (presencePollTimerRef.current) {
           clearInterval(presencePollTimerRef.current);
@@ -197,6 +228,19 @@ export function useChat(token: string): UseChatReturn {
     );
   }, []);
 
+  const setRecording = useCallback((receiverId: number, isRecording: boolean) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    wsRef.current.send(
+      JSON.stringify({
+        event_type: isRecording ? 'recording' : 'stop_recording',
+        other_user_id: receiverId,
+      })
+    );
+  }, []);
+
   const subscribeToUser = useCallback((userId: number) => {
     subscribedUserIdRef.current = userId;
 
@@ -233,6 +277,7 @@ export function useChat(token: string): UseChatReturn {
     userStatus,
     sendMessage,
     setTyping,
+    setRecording,
     subscribeToUser,
     onMessage,
   };

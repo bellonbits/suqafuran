@@ -161,10 +161,11 @@ function MessagesPageContent() {
     const [dealActionLoading, setDealActionLoading] = useState(false);
 
     // Initialize WebSocket connection and presence tracking
-    const { isConnected, sendMessage: wssSendMessage, setTyping, onMessage, subscribeToUser, userStatus } = useChat(token);
+    const { isConnected, sendMessage: wssSendMessage, setTyping, setRecording, onMessage, subscribeToUser, userStatus } = useChat(token);
     const activeConv = conversations.find((c) => c.other_user_id === selectedUserId);
     const isOtherUserOnline = (userStatus?.id === selectedUserId && userStatus?.is_online) || (activeConv?.is_online ?? false);
     const isOtherUserTyping = userStatus?.id === selectedUserId && !!userStatus?.is_typing;
+    const isOtherUserRecording = userStatus?.id === selectedUserId && !!userStatus?.is_recording;
 
     // Sync presence updates into conversation list
     useEffect(() => {
@@ -668,6 +669,9 @@ function MessagesPageContent() {
                 if (isCancelledVoiceRef.current || audioChunksRef.current.length === 0) {
                     setIsRecordingVoice(false);
                     setRecordingDuration(0);
+                    if (selectedUserId) {
+                        setRecording(selectedUserId, false);
+                    }
                     return;
                 }
 
@@ -683,12 +687,18 @@ function MessagesPageContent() {
                     await sendChatMessage(`[VOICE|${timeLabel}]:${base64Audio}`);
                     setIsRecordingVoice(false);
                     setRecordingDuration(0);
+                    if (selectedUserId) {
+                        setRecording(selectedUserId, false);
+                    }
                 };
             };
 
             recorder.start(100);
             setIsRecordingVoice(true);
             setRecordingDuration(0);
+            if (selectedUserId) {
+                setRecording(selectedUserId, true);
+            }
             recordingTimerRef.current = setInterval(() => {
                 setRecordingDuration((prev) => prev + 1);
             }, 1000);
@@ -712,6 +722,9 @@ function MessagesPageContent() {
         }
         setIsRecordingVoice(false);
         setRecordingDuration(0);
+        if (selectedUserId) {
+            setRecording(selectedUserId, false);
+        }
     };
 
     const selectedConversation = conversations.find(c => c.other_user_id === selectedUserId);
@@ -858,7 +871,16 @@ function MessagesPageContent() {
                                         </div>
                                         <div className="flex justify-between items-center gap-2 min-w-0 mt-1">
                                             <p className="text-[11px] text-gray-500 dark:text-neutral-400 truncate font-medium">
-                                                {conv.last_message?.includes('[PRODUCT_IMAGE]') || conv.last_message?.includes('🛍️')
+                                                {userStatus?.id === conv.other_user_id && userStatus?.is_recording ? (
+                                                    <span className="flex items-center gap-1 text-rose-600 dark:text-rose-400 font-bold">
+                                                        <Mic className="w-3 h-3 animate-pulse" />
+                                                        Recording audio...
+                                                    </span>
+                                                ) : userStatus?.id === conv.other_user_id && userStatus?.is_typing ? (
+                                                    <span className="text-sky-600 dark:text-sky-400 font-bold">
+                                                        typing...
+                                                    </span>
+                                                ) : conv.last_message?.includes('[PRODUCT_IMAGE]') || conv.last_message?.includes('🛍️')
                                                     ? '🛍️ Product Inquiry'
                                                     : conv.last_message?.startsWith('[IMAGE]')
                                                     ? '📷 Photo'
@@ -927,10 +949,23 @@ function MessagesPageContent() {
                                                 </span>
                                             </h3>
                                             <p className="text-[10px] text-gray-500 dark:text-neutral-300">
-                                                {isOtherUserTyping ? (
-                                                    <span className="flex items-center gap-1 text-orange-600 dark:text-orange-400 font-bold">
+                                                {isOtherUserRecording ? (
+                                                    <span className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 font-bold">
+                                                        <span className="relative flex h-2 w-2">
+                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
+                                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" />
+                                                        </span>
+                                                        <Mic className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
+                                                        <span>recording voice...</span>
+                                                    </span>
+                                                ) : isOtherUserTyping ? (
+                                                    <span className="flex items-center gap-1.5 text-sky-600 dark:text-sky-400 font-bold">
                                                         <span>typing</span>
-                                                        <Loader className="h-3 w-3 animate-spin" />
+                                                        <span className="flex items-center gap-0.5">
+                                                            <span className="w-1 h-1 rounded-full bg-sky-500 animate-bounce [animation-delay:-0.3s]" />
+                                                            <span className="w-1 h-1 rounded-full bg-sky-500 animate-bounce [animation-delay:-0.15s]" />
+                                                            <span className="w-1 h-1 rounded-full bg-sky-500 animate-bounce" />
+                                                        </span>
                                                     </span>
                                                 ) : (
                                                     <span className="flex items-center gap-1 font-semibold">
@@ -1239,6 +1274,60 @@ function MessagesPageContent() {
                                         );
                                     })
                                 )}
+
+                                {/* Interactive Voice Recording live indicator bubble */}
+                                {isOtherUserRecording && (
+                                    <div className="flex items-end gap-2 my-2.5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                        <div className="w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 flex items-center justify-center font-bold text-xs ring-1 ring-rose-200 dark:ring-rose-800 shrink-0">
+                                            {selectedConversation?.other_user_avatar ? (
+                                                <img src={selectedConversation.other_user_avatar} alt="" className="w-full h-full rounded-full object-cover" />
+                                            ) : (
+                                                <Mic className="w-4 h-4 animate-pulse" />
+                                            )}
+                                        </div>
+                                        <div className="bg-rose-50/95 dark:bg-rose-950/50 rounded-2xl rounded-bl-xs px-3.5 py-2.5 flex items-center gap-2.5 shadow-xs border border-rose-200/80 dark:border-rose-900/60">
+                                            <div className="relative flex items-center justify-center w-6 h-6 rounded-full bg-rose-500 text-white shadow-xs">
+                                                <Mic className="w-3.5 h-3.5 animate-pulse" />
+                                                <span className="absolute -inset-1 rounded-full border border-rose-400 animate-ping opacity-40 pointer-events-none" />
+                                            </div>
+                                            {/* Interactive animated audio frequency waves */}
+                                            <div className="flex items-center gap-0.5 h-4 px-0.5">
+                                                <span className="w-0.5 bg-rose-500 rounded-full animate-[pulse_0.8s_ease-in-out_infinite] h-2" />
+                                                <span className="w-0.5 bg-rose-500 rounded-full animate-[pulse_0.6s_ease-in-out_infinite_0.1s] h-4" />
+                                                <span className="w-0.5 bg-rose-500 rounded-full animate-[pulse_0.9s_ease-in-out_infinite_0.2s] h-3" />
+                                                <span className="w-0.5 bg-rose-500 rounded-full animate-[pulse_0.7s_ease-in-out_infinite_0.3s] h-5" />
+                                                <span className="w-0.5 bg-rose-500 rounded-full animate-[pulse_0.8s_ease-in-out_infinite_0.15s] h-2.5" />
+                                            </div>
+                                            <span className="text-xs font-semibold text-rose-700 dark:text-rose-300">
+                                                recording voice note...
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Interactive Typing live indicator bubble */}
+                                {isOtherUserTyping && !isOtherUserRecording && (
+                                    <div className="flex items-end gap-2 my-2.5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                        <div className="w-8 h-8 rounded-full bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 flex items-center justify-center font-bold text-xs ring-1 ring-sky-200 dark:ring-sky-800 shrink-0">
+                                            {selectedConversation?.other_user_avatar ? (
+                                                <img src={selectedConversation.other_user_avatar} alt="" className="w-full h-full rounded-full object-cover" />
+                                            ) : (
+                                                (selectedConversation?.other_user_name || 'U').slice(0, 1).toUpperCase()
+                                            )}
+                                        </div>
+                                        <div className="bg-white dark:bg-neutral-850 rounded-2xl rounded-bl-xs px-4 py-2.5 flex items-center gap-2 shadow-xs border border-gray-100 dark:border-neutral-800">
+                                            <span className="text-xs text-gray-500 dark:text-neutral-400 font-medium">
+                                                {selectedConversation?.other_user_name?.split(' ')[0] || 'User'} is typing
+                                            </span>
+                                            <div className="flex items-center gap-1">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-bounce [animation-delay:-0.3s]" />
+                                                <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-bounce [animation-delay:-0.15s]" />
+                                                <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-bounce" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div ref={messagesEndRef} />
                             </div>
 

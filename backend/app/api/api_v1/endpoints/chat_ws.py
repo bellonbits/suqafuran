@@ -116,7 +116,39 @@ async def websocket_chat_endpoint(
                             "event_type": "user_stopped_typing",
                             "user_id": user_id,
                             "other_user_id": other_user_id,
-                            "timestamp": datetime.utcnow().isoformat(),
+                            "timestamp": datetime.utcnow().isoformat() + "Z",
+                        },
+                        exclude_users=[str(user_id)],
+                    )
+
+            elif event_type == "recording":
+                # User is recording voice audio
+                other_user_id = data.get("other_user_id")
+                if other_user_id:
+                    channel = f"chat_{min(user_id, other_user_id)}_{max(user_id, other_user_id)}"
+                    await manager.broadcast_to_channel(
+                        channel,
+                        {
+                            "event_type": "user_recording",
+                            "user_id": user_id,
+                            "other_user_id": other_user_id,
+                            "timestamp": datetime.utcnow().isoformat() + "Z",
+                        },
+                        exclude_users=[str(user_id)],
+                    )
+
+            elif event_type == "stop_recording":
+                # User stopped recording voice audio
+                other_user_id = data.get("other_user_id")
+                if other_user_id:
+                    channel = f"chat_{min(user_id, other_user_id)}_{max(user_id, other_user_id)}"
+                    await manager.broadcast_to_channel(
+                        channel,
+                        {
+                            "event_type": "user_stopped_recording",
+                            "user_id": user_id,
+                            "other_user_id": other_user_id,
+                            "timestamp": datetime.utcnow().isoformat() + "Z",
                         },
                         exclude_users=[str(user_id)],
                     )
