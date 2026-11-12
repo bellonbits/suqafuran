@@ -2,7 +2,7 @@ import time
 import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlmodel import Session, SQLModel
 from app.api import deps
 from app.crud.crud_message import crud_message
