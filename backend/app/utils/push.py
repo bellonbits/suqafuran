@@ -17,6 +17,9 @@ from typing import Optional, List
 
 logger = logging.getLogger(__name__)
 
+# Suppress urllib3 pool size warnings during concurrent FCM HTTP v1 dispatch
+logging.getLogger("urllib3.connectionpool").setLevel(logging.ERROR)
+
 _firebase_app = None
 
 
