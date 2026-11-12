@@ -2,63 +2,126 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bell, X, CheckCheck, Settings, ShoppingBag, MessageSquare, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
-import { useRealtimeStore } from '../../store/useRealtime';
+import { Bell, X, CheckCheck, Settings, ShoppingBag, MessageSquare, ShieldCheck } from 'lucide-react';
+import { useRealtimeStore, RealtimeEvent } from '../../store/useRealtime';
 import { useAuthStore } from '../../store/useAuth';
 import { API_BASE_URL } from '../../services/api';
+import { parseServerDate } from '../../utils/date';
 
-function formatEventTime(isoString: string): string {
+function formatRelativeTime(isoString?: string | null): string {
     if (!isoString) return '';
-    const date = new Date(isoString);
-    if (isNaN(date.getTime())) return '';
+    const date = parseServerDate(isoString);
     const now = new Date();
     const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000);
-    if (diffSec < 60) return 'Now';
-    if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
-    if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+
+    if (diffSec < 60) return 'Just now';
+    if (diffSec < 3600) {
+        const mins = Math.max(1, Math.floor(diffSec / 60));
+        return `${mins} ${mins === 1 ? 'Minute' : 'Minutes'} Ago`;
+    }
+    if (diffSec < 86400) {
+        const hrs = Math.floor(diffSec / 3600);
+        return `${hrs} ${hrs === 1 ? 'Hour' : 'Hours'} Ago`;
+    }
+
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) {
+        return `Yesterday, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    }
+
+    return `${date.toLocaleDateString([], { day: 'numeric', month: 'long', year: 'numeric' })}, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 }
 
-function getEventIconAndBadge(event: any) {
-    const type = (event.type || '').toLowerCase();
+interface ProcessedNotification {
+    id: string | number;
+    senderName: string;
+    actionText: string;
+    tag?: string | null;
+    avatar?: string | null;
+    avatarBg: string;
+    avatarInitials: string;
+    time: string;
+    isUnread: boolean;
+    actionUrl?: string;
+    rawEvent: RealtimeEvent;
+}
+
+function processNotificationEvent(event: RealtimeEvent, idx: number): ProcessedNotification {
     const payload = (event.payload || {}) as Record<string, any>;
+    const eventType = (event.type || '').toLowerCase();
+    const isMessage = eventType.includes('message') || Boolean(payload.sender_id);
 
-    if (payload.avatar || payload.sender_avatar) {
-        return {
-            avatar: payload.avatar || payload.sender_avatar,
-            badge: null
-        };
+    let senderName = payload.sender_name || payload.sender || payload.from_user_name || payload.from_name || 'Suqafuran';
+    let actionText = '';
+    let tag: string | null = null;
+    let avatar = payload.avatar || payload.sender_avatar || null;
+    let avatarBg = 'bg-sky-50 text-sky-600 dark:bg-sky-950/50 dark:text-sky-300';
+    let actionUrl = payload.action_url || payload.actionUrl;
+
+    if (isMessage) {
+        let rawMsg = payload.content || payload.message || payload.text || 'sent you a message';
+        if (typeof rawMsg === 'string') {
+            if (senderName) {
+                const senderPattern = new RegExp(`^New message from\\s*${senderName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[:\\s"']*`, 'i');
+                rawMsg = rawMsg.replace(senderPattern, '');
+            }
+            rawMsg = rawMsg
+                .replace(/^New message from [^:\n\r"]+:\s*["']?/i, '')
+                .replace(/^New message from [^:\n\r"]+["']?/i, '')
+                .replace(/^[:\s"'\-]+/, '')
+                .replace(/["']\s*$/, '')
+                .trim();
+
+            if (rawMsg.includes('[IMAGE]:') || /res\.cloudinary\.com/i.test(rawMsg)) {
+                actionText = 'sent a photo';
+            } else if (rawMsg.includes('[PRODUCT_IMAGE]:') || rawMsg.includes('🛍️ INQUIRY:') || /#ORD-/i.test(rawMsg)) {
+                actionText = 'sent a product inquiry';
+                tag = '🛍️ Inquiry';
+            } else if (rawMsg.includes('[VOICE')) {
+                actionText = 'sent a voice note';
+            } else {
+                actionText = `sent a message: "${rawMsg.slice(0, 70)}${rawMsg.length > 70 ? '...' : ''}"`;
+            }
+        } else {
+            actionText = 'sent you a message';
+        }
+
+        avatarBg = 'bg-sky-100 text-sky-700 dark:bg-sky-900/60 dark:text-sky-200';
+        if (!actionUrl && payload.sender_id) {
+            actionUrl = `/messages?userId=${payload.sender_id}`;
+        }
+    } else if (eventType.includes('order') || eventType.includes('deal') || payload.order_id) {
+        senderName = payload.title || 'Order Update';
+        actionText = payload.message || 'has updated order status';
+        tag = 'Order';
+        avatarBg = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-200';
+        if (!actionUrl) actionUrl = '/orders';
+    } else if (eventType.includes('verify') || eventType.includes('security')) {
+        senderName = 'Suqafuran Security';
+        actionText = payload.message || 'has updated your account verification';
+        tag = 'Account';
+        avatarBg = 'bg-purple-100 text-purple-700 dark:bg-purple-900/60 dark:text-purple-200';
+    } else {
+        senderName = payload.title || eventType.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+        actionText = payload.message || 'has sent an update';
     }
 
-    if (type.includes('order') || type.includes('deal') || payload.order_id) {
-        return {
-            icon: ShoppingBag,
-            bgColor: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400',
-            badge: 'Completed',
-            badgeColor: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200'
-        };
-    }
-    if (type.includes('message') || payload.sender_id) {
-        return {
-            icon: MessageSquare,
-            bgColor: 'bg-sky-50 text-sky-600 dark:bg-sky-950/40 dark:text-sky-400',
-            badge: 'Message',
-            badgeColor: 'bg-sky-100 text-sky-800 dark:bg-sky-900/60 dark:text-sky-200'
-        };
-    }
-    if (type.includes('verify') || type.includes('security')) {
-        return {
-            icon: ShieldCheck,
-            bgColor: 'bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400',
-            badge: 'Account',
-            badgeColor: 'bg-purple-100 text-purple-800 dark:bg-purple-900/60 dark:text-purple-200'
-        };
-    }
+    const initials = senderName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || 'SQ';
+    const time = formatRelativeTime(event.timestamp || payload.created_at);
+
     return {
-        icon: Bell,
-        bgColor: 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400',
-        badge: 'Notice',
-        badgeColor: 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200'
+        id: payload.id || `notif-${idx}-${event.timestamp || Date.now()}`,
+        senderName,
+        actionText,
+        tag,
+        avatar,
+        avatarBg,
+        avatarInitials: initials,
+        time,
+        isUnread: payload.is_read !== true && payload.status !== 'read',
+        actionUrl,
+        rawEvent: event,
     };
 }
 
@@ -66,12 +129,6 @@ export function NotificationBell() {
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const [isClearing, setIsClearing] = useState(false);
-    const [hasPushPermission, setHasPushPermission] = useState<boolean>(() => {
-        if (typeof window !== 'undefined' && 'Notification' in window) {
-            return Notification.permission === 'granted';
-        }
-        return false;
-    });
 
     const { events } = useRealtimeStore();
     const unreadCount = events.length;
@@ -81,22 +138,23 @@ export function NotificationBell() {
         try {
             const token = useAuthStore.getState().token;
             if (token) {
-                // 1. Permanently delete from database so refresh never restores them
+                // Permanently delete from database so refresh never restores them
                 await fetch(`${API_BASE_URL}/notifications/clear-all`, {
                     method: 'POST',
                     headers: {
                         Authorization: `Bearer ${token}`,
                         'Content-Type': 'application/json',
                     },
-                });
-                // 2. Mark all as read as compatibility fallback
+                }).catch(() => null);
+
+                // Compatibility fallback
                 await fetch(`${API_BASE_URL}/notifications/read-all`, {
                     method: 'POST',
                     headers: {
                         Authorization: `Bearer ${token}`,
                         'Content-Type': 'application/json',
                     },
-                });
+                }).catch(() => null);
             }
             useRealtimeStore.getState().setEvents([]);
         } catch (error) {
@@ -106,34 +164,51 @@ export function NotificationBell() {
         }
     };
 
-    const handleEnablePush = async () => {
-        if (typeof window !== 'undefined' && 'Notification' in window) {
-            try {
-                const res = await Notification.requestPermission();
-                setHasPushPermission(res === 'granted');
-            } catch {
-                // Ignore
+    const handleNotificationClick = (item: ProcessedNotification) => {
+        setIsOpen(false);
+        if (item.actionUrl) {
+            router.push(item.actionUrl);
+        } else {
+            const payload = (item.rawEvent.payload || {}) as Record<string, any>;
+            if (payload.sender_id) {
+                router.push(`/messages?userId=${payload.sender_id}`);
+            } else if (payload.listing_id) {
+                router.push(`/listings/${payload.listing_id}`);
+            } else if (payload.order_id) {
+                router.push('/orders');
             }
         }
     };
 
-    const handleNotificationClick = (event: any) => {
-        setIsOpen(false);
-        const payload = (event.payload || {}) as Record<string, any>;
-        const actionUrl = payload.action_url || payload.actionUrl;
-        if (actionUrl) {
-            router.push(actionUrl);
-        } else if (event.type === 'message' && payload.sender_id) {
-            router.push(`/messages?userId=${payload.sender_id}`);
-        } else if (payload.listing_id) {
-            router.push(`/listings/${payload.listing_id}`);
-        } else if (payload.order_id) {
-            router.push(`/orders`);
+    // Group notifications into Today, Yesterday, and Earlier
+    const now = new Date();
+    const todayStr = now.toDateString();
+    const yest = new Date(now);
+    yest.setDate(yest.getDate() - 1);
+    const yestStr = yest.toDateString();
+
+    const todayItems: ProcessedNotification[] = [];
+    const yesterdayItems: ProcessedNotification[] = [];
+    const earlierItems: ProcessedNotification[] = [];
+
+    events.forEach((ev, idx) => {
+        const item = processNotificationEvent(ev, idx);
+        const payload = (ev.payload || {}) as Record<string, any>;
+        const d = parseServerDate(ev.timestamp || payload.created_at);
+        const dStr = d.toDateString();
+
+        if (dStr === todayStr) {
+            todayItems.push(item);
+        } else if (dStr === yestStr) {
+            yesterdayItems.push(item);
+        } else {
+            earlierItems.push(item);
         }
-    };
+    });
 
     return (
         <div className="relative">
+            {/* Bell Trigger Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="w-9 h-9 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors relative flex items-center justify-center"
@@ -148,207 +223,162 @@ export function NotificationBell() {
                 )}
             </button>
 
+            {/* Modal / Card Over Header */}
             {isOpen && (
                 <>
-                    {/* Clean backdrop conforming to Part 2 specifications: rgba(15, 23, 42, 0.35) with 8px blur */}
+                    {/* Backdrop strictly on top of header (z-[9998]) */}
                     <div
-                        className="fixed inset-0 z-40 transition-opacity"
-                        style={{
-                            backgroundColor: 'rgba(15, 23, 42, 0.35)',
-                            backdropFilter: 'blur(8px)',
-                            WebkitBackdropFilter: 'blur(8px)',
-                        }}
+                        className="fixed inset-0 z-[9998] transition-opacity bg-slate-900/35 backdrop-blur-xs"
                         onClick={() => setIsOpen(false)}
                     />
-                    {/* Clean solid modal panel without pseudo-elements or nested blurry overlays */}
-                    <div 
-                        className="fixed inset-x-3 top-14 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2.5 w-[calc(100vw-1.5rem)] sm:w-[450px] max-w-[460px] bg-white dark:bg-[#0B132B] rounded-[24px] border border-[#E5E7EB] dark:border-[#1E293B] z-50 max-h-[80vh] sm:max-h-[520px] overflow-hidden flex flex-col shadow-2xl"
-                        style={{
-                            boxShadow: '0 20px 60px rgba(15, 23, 42, 0.16)',
-                            opacity: 1,
-                        }}
+
+                    {/* Notification Card Container strictly on top (z-[9999]) */}
+                    <div
+                        className="fixed inset-x-3 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2.5 w-[calc(100vw-1.5rem)] sm:w-[450px] max-w-[460px] bg-white dark:bg-[#111827] rounded-2xl border border-gray-100 dark:border-neutral-800 z-[9999] max-h-[82vh] sm:max-h-[560px] overflow-hidden flex flex-col shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] animate-in fade-in zoom-in-95 duration-200"
                     >
-                        {/* Header */}
-                        <div className="px-5 py-3.5 border-b border-[#E5E7EB] dark:border-[#1E293B] flex justify-between items-center bg-white dark:bg-[#0B132B] shrink-0 gap-3">
-                            <div className="flex items-center gap-2 min-w-0">
-                                <h3 className="text-sm font-black text-gray-900 dark:text-white whitespace-nowrap">
-                                    Notifications
-                                </h3>
-                                {unreadCount > 0 && (
-                                    <span className="text-xs font-bold text-gray-500 dark:text-neutral-400 shrink-0">
-                                        ({unreadCount})
-                                    </span>
-                                )}
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                                {events.length > 0 && (
-                                    <button
-                                        onClick={handleClearAll}
-                                        disabled={isClearing}
-                                        className="text-xs text-orange-600 dark:text-orange-400 hover:underline font-bold flex items-center gap-1 cursor-pointer disabled:opacity-50 whitespace-nowrap px-2 py-1 rounded-md hover:bg-orange-50 dark:hover:bg-orange-950/30 shrink-0"
-                                        title="Clear all notifications"
-                                    >
-                                        <CheckCheck className="w-3.5 h-3.5 shrink-0" />
-                                        <span className="whitespace-nowrap">{isClearing ? 'Clearing...' : 'Mark all'}</span>
-                                    </button>
-                                )}
-                                <button
-                                    onClick={() => { setIsOpen(false); router.push('/settings/notifications'); }}
-                                    className="text-gray-400 hover:text-gray-700 dark:hover:text-neutral-200 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors shrink-0"
-                                    title="Notification settings"
-                                    aria-label="Settings"
-                                >
-                                    <Settings className="w-4 h-4" />
-                                </button>
-                                <button
-                                    onClick={() => setIsOpen(false)}
-                                    className="text-gray-400 hover:text-gray-700 dark:hover:text-neutral-200 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-900 transition-colors shrink-0"
-                                    aria-label="Close"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
-                            </div>
+                        {/* 1. Header (Notification title + close button) */}
+                        <div className="px-5 py-4 border-b border-gray-100 dark:border-neutral-800 flex justify-between items-center bg-white dark:bg-[#111827] shrink-0">
+                            <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                                Notification
+                            </h3>
+                            <button
+                                onClick={() => setIsOpen(false)}
+                                className="w-7 h-7 rounded-lg border border-gray-200 dark:border-neutral-700 flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+                                aria-label="Close"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
                         </div>
 
-                        {/* Push Permission Prompt if default */}
-                        {!hasPushPermission && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default' && (
-                            <div className="px-4 py-2.5 bg-orange-50/80 dark:bg-orange-950/30 border-b border-orange-100 dark:border-orange-900/50 flex items-center justify-between text-xs shrink-0">
-                                <span className="text-orange-900 dark:text-orange-200 font-semibold text-[11px]">
-                                    Enable push alerts for deals &amp; chats
-                                </span>
+                        {/* 2. Sub-header ({count} Unread + Mark as Read) */}
+                        <div className="px-5 py-3 border-b border-gray-100/80 dark:border-neutral-800 flex justify-between items-center bg-white dark:bg-[#111827] shrink-0 text-xs">
+                            <span className="text-gray-500 dark:text-neutral-400 font-medium">
+                                {unreadCount > 0 ? `${unreadCount} Unread` : 'All read'}
+                            </span>
+                            {events.length > 0 && (
                                 <button
-                                    onClick={handleEnablePush}
-                                    className="px-2.5 py-1 bg-orange-600 text-white text-[11px] font-bold rounded-full hover:bg-orange-700 transition-colors shadow-sm"
+                                    onClick={handleClearAll}
+                                    disabled={isClearing}
+                                    className="text-[#0284c7] hover:text-[#0369a1] font-semibold hover:underline cursor-pointer disabled:opacity-50 transition-colors"
                                 >
-                                    Enable
+                                    {isClearing ? 'Marking...' : 'Mark as Read'}
                                 </button>
-                            </div>
-                        )}
+                            )}
+                        </div>
 
-                        {/* Section Header */}
-                        {events.length > 0 && (
-                            <div className="px-5 py-2 bg-slate-50/70 dark:bg-neutral-900/40 border-b border-gray-100 dark:border-neutral-800 text-[11px] font-bold text-gray-500 dark:text-neutral-400 uppercase tracking-wider shrink-0">
-                                Today
-                            </div>
-                        )}
-
-                        {/* Notifications List */}
-                        <div className="flex-1 overflow-y-auto">
+                        {/* 3. Notification List grouped by date */}
+                        <div className="flex-1 overflow-y-auto px-2 py-2">
                             {events.length === 0 ? (
-                                <div className="p-10 text-center space-y-2">
-                                    <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-neutral-900 flex items-center justify-center mx-auto text-gray-400">
+                                <div className="py-14 text-center space-y-2">
+                                    <div className="w-12 h-12 rounded-full bg-gray-50 dark:bg-neutral-900 flex items-center justify-center mx-auto text-gray-400">
                                         <Bell className="w-6 h-6" />
                                     </div>
-                                    <p className="text-xs font-bold text-gray-800 dark:text-neutral-200">No notifications yet</p>
-                                    <p className="text-[11px] text-gray-400 dark:text-neutral-400">We'll alert you here when deals or messages arrive.</p>
+                                    <p className="text-sm font-semibold text-gray-800 dark:text-neutral-200">No notifications yet</p>
+                                    <p className="text-xs text-gray-400">We'll alert you here when deals, orders, or messages arrive.</p>
                                 </div>
                             ) : (
-                                <div className="divide-y divide-gray-100 dark:divide-neutral-800/60">
-                                    {events.slice(0, 15).map((event, idx) => {
-                                        const payload = (event.payload || {}) as Record<string, any>;
-                                        const rawMsg = payload.message || payload.content || payload.text || 'New update received';
-                                        let displayMsg = typeof rawMsg === 'string' ? rawMsg : String(rawMsg || '');
-                                        const isMessage = (event.type || '').toLowerCase().includes('message') || Boolean(payload.sender_id);
-
-                                        // Extract sender if present in payload or message prefix
-                                        let senderName = payload.sender_name || payload.sender || payload.from_user_name || null;
-                                        if (!senderName && typeof displayMsg === 'string') {
-                                            const match = displayMsg.match(/New message from ([^:\n\r"]+)/i);
-                                            if (match) senderName = match[1].trim();
-                                        }
-
-                                        let displayTitle = payload.title || event.type.replace(/_/g, ' ');
-                                        if (isMessage || displayTitle.toLowerCase() === 'message' || displayTitle.toLowerCase() === 'new message') {
-                                            displayTitle = senderName ? `New Message From ${senderName}` : 'New Message';
-                                        }
-
-                                        if (isMessage) {
-                                            // Prefer clean message content directly if available
-                                            if (payload.content && typeof payload.content === 'string') {
-                                                displayMsg = payload.content;
-                                            }
-
-                                            // Strip redundant "New message from <Name>:" or "New message from <Name>" prefix and quotes
-                                            if (senderName) {
-                                                const senderPattern = new RegExp(`^New message from\\s*${senderName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[:\\s"']*`, 'i');
-                                                displayMsg = displayMsg.replace(senderPattern, '');
-                                            }
-                                            displayMsg = displayMsg
-                                                .replace(/^New message from [^:\n\r"]+:\s*["']?/i, '')
-                                                .replace(/^New message from [^:\n\r"]+["']?/i, '')
-                                                .replace(/^[:\s"'\-]+/, '')
-                                                .replace(/["']\s*$/, '')
-                                                .trim();
-
-                                            // Format special message attachments
-                                            if (displayMsg.includes('[IMAGE]:') || /res\.cloudinary\.com/i.test(displayMsg)) {
-                                                displayMsg = '📷 Sent a photo';
-                                            } else if (displayMsg.includes('[PRODUCT_IMAGE]:') || displayMsg.includes('🛍️ INQUIRY:') || /#ORD-/i.test(displayMsg)) {
-                                                displayMsg = '🛍️ Sent a product inquiry';
-                                            } else if (displayMsg.includes('[VOICE')) {
-                                                displayMsg = '🎤 Sent a voice message';
-                                            }
-
-                                            if (!displayMsg) {
-                                                displayMsg = 'Sent you a message';
-                                            }
-                                        } else if (displayMsg) {
-                                            displayMsg = displayMsg
-                                                .replace(/\[IMAGE\]:[^\s"'\n\r]+/gi, '📷 Sent a photo')
-                                                .replace(/\[PRODUCT_IMAGE\]:[^\s"'\n\r]+/gi, '🛍️ Product inquiry')
-                                                .replace(/🛍️\s*INQUIRY:[^\n\r]+/gi, '🛍️ Product inquiry')
-                                                .trim();
-                                        }
-                                        const { icon: EventIcon, bgColor, badge, badgeColor, avatar } = getEventIconAndBadge(event);
-
-                                        return (
-                                            <div
-                                                key={idx}
-                                                onClick={() => handleNotificationClick(event)}
-                                                className="px-4 py-3.5 hover:bg-slate-50/80 dark:hover:bg-neutral-900/60 transition-colors cursor-pointer flex items-start gap-3"
-                                            >
-                                                {/* Left Icon / Avatar */}
-                                                <div className="shrink-0 mt-0.5">
-                                                    {avatar ? (
-                                                        <img
-                                                            src={avatar}
-                                                            alt=""
-                                                            className="w-9 h-9 rounded-full object-cover border border-gray-200 dark:border-neutral-800"
-                                                        />
-                                                    ) : (
-                                                        <div className={`w-9 h-9 rounded-full flex items-center justify-center ${bgColor}`}>
-                                                            {EventIcon && <EventIcon className="w-4 h-4" />}
-                                                        </div>
-                                                    )}
+                                <div className="space-y-1">
+                                    {/* Section: Today */}
+                                    {todayItems.length > 0 && (
+                                        <div>
+                                            <div className="relative my-2.5 flex items-center justify-center">
+                                                <div className="absolute inset-0 flex items-center">
+                                                    <div className="w-full border-t border-gray-100 dark:border-neutral-800" />
                                                 </div>
-
-                                                {/* Main Content */}
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-start justify-between gap-2">
-                                                        <p className="text-xs font-bold text-gray-900 dark:text-white capitalize leading-snug">
-                                                            {displayTitle}
-                                                        </p>
-                                                        <span className="text-[10px] text-gray-400 dark:text-neutral-400 font-semibold whitespace-nowrap shrink-0">
-                                                            {formatEventTime(event.timestamp)}
-                                                        </span>
-                                                    </div>
-                                                    <p className="text-[11px] text-gray-600 dark:text-neutral-300 mt-0.5 line-clamp-2 leading-relaxed">
-                                                        {displayMsg}
-                                                    </p>
-                                                    {badge && (
-                                                        <span className={`inline-block mt-1.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${badgeColor}`}>
-                                                            {badge}
-                                                        </span>
-                                                    )}
-                                                </div>
+                                                <span className="relative bg-white dark:bg-[#111827] px-3 text-[11px] font-medium text-gray-400">
+                                                    Today
+                                                </span>
                                             </div>
-                                        );
-                                    })}
+                                            <div className="space-y-0.5">
+                                                {todayItems.map((item) => renderNotificationRow(item, handleNotificationClick))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Section: Yesterday */}
+                                    {yesterdayItems.length > 0 && (
+                                        <div>
+                                            <div className="relative my-2.5 flex items-center justify-center">
+                                                <div className="absolute inset-0 flex items-center">
+                                                    <div className="w-full border-t border-gray-100 dark:border-neutral-800" />
+                                                </div>
+                                                <span className="relative bg-white dark:bg-[#111827] px-3 text-[11px] font-medium text-gray-400">
+                                                    Yesterday
+                                                </span>
+                                            </div>
+                                            <div className="space-y-0.5">
+                                                {yesterdayItems.map((item) => renderNotificationRow(item, handleNotificationClick))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Section: Earlier */}
+                                    {earlierItems.length > 0 && (
+                                        <div>
+                                            <div className="relative my-2.5 flex items-center justify-center">
+                                                <div className="absolute inset-0 flex items-center">
+                                                    <div className="w-full border-t border-gray-100 dark:border-neutral-800" />
+                                                </div>
+                                                <span className="relative bg-white dark:bg-[#111827] px-3 text-[11px] font-medium text-gray-400">
+                                                    Earlier
+                                                </span>
+                                            </div>
+                                            <div className="space-y-0.5">
+                                                {earlierItems.map((item) => renderNotificationRow(item, handleNotificationClick))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
                     </div>
                 </>
+            )}
+        </div>
+    );
+}
+
+function renderNotificationRow(item: ProcessedNotification, onClick: (item: ProcessedNotification) => void) {
+    return (
+        <div
+            key={item.id}
+            onClick={() => onClick(item)}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50/80 dark:hover:bg-neutral-800/50 transition-colors cursor-pointer group"
+        >
+            {/* Left: Avatar */}
+            {item.avatar ? (
+                <img
+                    src={item.avatar}
+                    alt={item.senderName}
+                    className="w-9 h-9 rounded-full object-cover shrink-0 ring-1 ring-gray-100 dark:ring-neutral-800"
+                />
+            ) : (
+                <div className={`w-9 h-9 rounded-full shrink-0 flex items-center justify-center font-bold text-xs ring-1 ring-black/5 dark:ring-white/10 ${item.avatarBg}`}>
+                    {item.avatarInitials}
+                </div>
+            )}
+
+            {/* Middle: Content */}
+            <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-700 dark:text-neutral-300 leading-snug">
+                    <span className="font-bold text-gray-900 dark:text-white mr-1">
+                        {item.senderName}
+                    </span>
+                    {item.actionText}
+                    {item.tag && (
+                        <span className="inline-flex items-center px-1.5 py-0.2 rounded bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-neutral-300 text-[10px] font-medium ml-1.5 align-middle">
+                            {item.tag}
+                        </span>
+                    )}
+                </p>
+                <p className="text-[11px] text-gray-400 dark:text-neutral-400 mt-0.5">
+                    {item.time}
+                </p>
+            </div>
+
+            {/* Right: Unread Cyan Dot indicator */}
+            {item.isUnread && (
+                <span className="w-2 h-2 rounded-full bg-sky-400 shrink-0" title="Unread" />
             )}
         </div>
     );
