@@ -376,7 +376,7 @@ export const SellPoster: React.FC<{ title: string; subtitle: string; cta: string
     title={title}
     subtitle={subtitle}
     cta={cta}
-    ctaClass="bg-[#FF9600] group-hover:bg-[#F08800] text-white shadow-[0_6px_16px_-6px_rgba(255,150,0,0.8)]"
+    ctaClass="bg-[#FF9600] group-hover:bg-[#F08800] text-slate-950 font-black shadow-[0_6px_16px_-6px_rgba(255,150,0,0.8)]"
   />
 );
 
@@ -391,6 +391,6 @@ export const ShopsPoster: React.FC<{ title: string; subtitle: string; cta: strin
     title={title}
     subtitle={subtitle}
     cta={cta}
-    ctaClass="bg-white group-hover:bg-white/90 text-[#F06A00] shadow-[0_6px_16px_-6px_rgba(0,0,0,0.3)]"
+    ctaClass="bg-white group-hover:bg-white/90 text-[#b34700] font-black shadow-[0_6px_16px_-6px_rgba(0,0,0,0.3)]"
   />
 );

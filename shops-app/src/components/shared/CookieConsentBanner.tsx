@@ -135,7 +135,7 @@ export const CookieConsentBanner: React.FC = () => {
               <button
                 type="button"
                 onClick={handleAcceptAll}
-                className="px-5 py-2 rounded-xl text-xs font-black bg-[#0078E8] hover:bg-[#0066c7] text-white transition-all shadow-xs hover:shadow-md cursor-pointer"
+                className="px-5 py-2 rounded-xl text-xs font-black bg-[#0062cc] hover:bg-[#0052ad] text-white transition-all shadow-xs hover:shadow-md cursor-pointer"
               >
                 Accept All
               </button>
@@ -300,7 +300,7 @@ export const CookieConsentBanner: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleAcceptAll}
-                    className="px-3 py-1.5 rounded-xl text-xs font-bold text-[#0078E8] hover:bg-[#0078E8]/10 transition-colors cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl text-xs font-bold text-[#005fb8] hover:bg-sky-50 dark:text-sky-300 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
                   >
                     Accept All
                   </button>
@@ -317,7 +317,7 @@ export const CookieConsentBanner: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleSavePreferences}
-                    className="px-4 py-2 rounded-xl text-xs font-black bg-[#0078E8] hover:bg-[#0066c7] text-white transition-all shadow-xs hover:shadow-md cursor-pointer"
+                    className="px-4 py-2 rounded-xl text-xs font-black bg-[#0062cc] hover:bg-[#0052ad] text-white transition-all shadow-xs hover:shadow-md cursor-pointer"
                   >
                     Save Preferences
                   </button>

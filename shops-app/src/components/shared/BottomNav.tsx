@@ -75,18 +75,18 @@ export const BottomNav: React.FC = () => {
                 >
                     <Home className={`w-5 h-5 transition-colors duration-200 ${
                         isActive('/')
-                            ? 'text-orange-600 dark:text-orange-400'
-                            : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-gray-400'
+                            ? 'text-orange-700 dark:text-orange-400'
+                            : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
                     }`} />
                     <span className={`max-w-full truncate whitespace-nowrap leading-none tracking-tight text-[10px] transition-colors duration-200 ${
                         isActive('/')
-                            ? 'text-orange-600 dark:text-orange-400 font-bold'
-                            : 'text-gray-400 dark:text-zinc-500 font-semibold'
+                            ? 'text-orange-700 dark:text-orange-400 font-extrabold'
+                            : 'text-slate-600 dark:text-neutral-400 font-bold'
                     }`}>
                         {t('Home')}
                     </span>
                     {isActive('/') && (
-                        <div className="absolute bottom-0 w-8 h-[2.5px] bg-orange-600 dark:bg-orange-400 rounded-t-full" />
+                        <div className="absolute bottom-0 w-8 h-[2.5px] bg-orange-700 dark:bg-orange-400 rounded-t-full" />
                     )}
                 </Link>
 
@@ -98,24 +98,24 @@ export const BottomNav: React.FC = () => {
                     <div className="relative">
                         <Heart className={`w-5 h-5 transition-colors duration-200 ${
                             isActive('/favorites')
-                                ? 'text-orange-600 dark:text-orange-400'
-                                : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-gray-400'
+                                ? 'text-orange-700 dark:text-orange-400'
+                                : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
                         }`} />
                         {favoritesCount > 0 && (
-                            <span className="absolute -top-1.5 -right-2 min-w-4 h-4 px-1 rounded-full bg-orange-600 text-white text-[9px] font-black flex items-center justify-center">
+                            <span className="absolute -top-1.5 -right-2 min-w-4 h-4 px-1 rounded-full bg-orange-700 text-white text-[9px] font-black flex items-center justify-center">
                                 {favoritesCount > 99 ? '99+' : favoritesCount}
                             </span>
                         )}
                     </div>
                     <span className={`max-w-full truncate whitespace-nowrap leading-none tracking-tight text-[10px] transition-colors duration-200 ${
                         isActive('/favorites')
-                            ? 'text-orange-600 dark:text-orange-400 font-bold'
-                            : 'text-gray-400 dark:text-zinc-500 font-semibold'
+                            ? 'text-orange-700 dark:text-orange-400 font-extrabold'
+                            : 'text-slate-600 dark:text-neutral-400 font-bold'
                     }`}>
                         {t('Favorites')}
                     </span>
                     {isActive('/favorites') && (
-                        <div className="absolute bottom-0 w-8 h-[2.5px] bg-orange-600 dark:bg-orange-400 rounded-t-full" />
+                        <div className="absolute bottom-0 w-8 h-[2.5px] bg-orange-700 dark:bg-orange-400 rounded-t-full" />
                     )}
                 </Link>
 
@@ -127,7 +127,7 @@ export const BottomNav: React.FC = () => {
                     <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-orange-600 to-amber-500 text-white flex items-center justify-center shadow-md shadow-orange-500/25 -mt-2">
                         <Plus className="w-5 h-5 stroke-[2.5]" />
                     </div>
-                    <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 leading-none">
+                    <span className="text-[10px] font-extrabold text-orange-700 dark:text-orange-400 leading-none">
                         {t('Sell')}
                     </span>
                 </Link>
@@ -140,24 +140,24 @@ export const BottomNav: React.FC = () => {
                     <div className="relative">
                         <MessageCircleMore className={`w-5 h-5 transition-colors duration-200 ${
                             isActive('/messages')
-                                ? 'text-orange-600 dark:text-orange-400'
-                                : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-gray-400'
+                                ? 'text-orange-700 dark:text-orange-400'
+                                : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
                         }`} />
                         {unreadMessages > 0 && (
-                            <span className="absolute -top-1.5 -right-2 min-w-4 h-4 px-1 rounded-full bg-orange-600 text-white text-[9px] font-black flex items-center justify-center">
+                            <span className="absolute -top-1.5 -right-2 min-w-4 h-4 px-1 rounded-full bg-orange-700 text-white text-[9px] font-black flex items-center justify-center">
                                 {unreadMessages > 99 ? '99+' : unreadMessages}
                             </span>
                         )}
                     </div>
                     <span className={`max-w-full truncate whitespace-nowrap leading-none tracking-tight text-[10px] transition-colors duration-200 ${
                         isActive('/messages')
-                            ? 'text-orange-600 dark:text-orange-400 font-bold'
-                            : 'text-gray-400 dark:text-zinc-500 font-semibold'
+                            ? 'text-orange-700 dark:text-orange-400 font-extrabold'
+                            : 'text-slate-600 dark:text-neutral-400 font-bold'
                     }`}>
                         {t('Chat')}
                     </span>
                     {isActive('/messages') && (
-                        <div className="absolute bottom-0 w-8 h-[2.5px] bg-orange-600 dark:bg-orange-400 rounded-t-full" />
+                        <div className="absolute bottom-0 w-8 h-[2.5px] bg-orange-700 dark:bg-orange-400 rounded-t-full" />
                     )}
                 </Link>
 
@@ -170,18 +170,18 @@ export const BottomNav: React.FC = () => {
                 >
                     <Menu className={`w-5 h-5 transition-colors duration-200 ${
                         isMobileMenuOpen
-                            ? 'text-orange-600 dark:text-orange-400'
-                            : 'text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-gray-400'
+                            ? 'text-orange-700 dark:text-orange-400'
+                            : 'text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white'
                     }`} />
                     <span className={`max-w-full truncate whitespace-nowrap leading-none tracking-tight text-[10px] transition-colors duration-200 ${
                         isMobileMenuOpen
-                            ? 'text-orange-600 dark:text-orange-400 font-bold'
-                            : 'text-gray-400 dark:text-zinc-500 font-semibold'
+                            ? 'text-orange-700 dark:text-orange-400 font-extrabold'
+                            : 'text-slate-600 dark:text-neutral-400 font-bold'
                     }`}>
                         {t('Menu')}
                     </span>
                     {isMobileMenuOpen && (
-                        <div className="absolute bottom-0 w-8 h-[2.5px] bg-orange-600 dark:bg-orange-400 rounded-t-full" />
+                        <div className="absolute bottom-0 w-8 h-[2.5px] bg-orange-700 dark:bg-orange-400 rounded-t-full" />
                     )}
                 </button>
             </div>

@@ -551,7 +551,11 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
 
           {/* Pagination Indicators Pill */}
           <div className="absolute inset-x-0 bottom-2.5 sm:bottom-4 z-20 flex items-center justify-center pointer-events-none">
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white/85 dark:bg-neutral-900/85 backdrop-blur-md border border-gray-200/70 dark:border-neutral-700 pointer-events-auto shadow-sm">
+            <div 
+              role="tablist" 
+              aria-label="Slides" 
+              className="flex items-center gap-0.5 px-2 py-1 rounded-full bg-white/85 dark:bg-neutral-900/85 backdrop-blur-md border border-gray-200/70 dark:border-neutral-700 pointer-events-auto shadow-sm"
+            >
               {slides.map((s, i) => {
                 const active = i === safeIndex;
                 return (
@@ -566,12 +570,12 @@ export const CampaignCarousel: React.FC<{ categories: CampaignCategory[] }> = ({
                       e.stopPropagation();
                       go(i, i > safeIndex ? 1 : -1);
                     }}
-                    className="p-0.5 group cursor-pointer"
+                    className="min-w-[28px] min-h-[28px] sm:min-w-[32px] sm:min-h-[32px] p-1 flex items-center justify-center group cursor-pointer"
                   >
                     <span
                       className={clsx(
                         'block h-1.5 sm:h-2 rounded-full transition-all duration-300',
-                        active ? 'w-6 sm:w-7 bg-[#0078E8] shadow-xs' : 'w-1.5 sm:w-2 bg-gray-300 dark:bg-neutral-600 group-hover:bg-gray-400'
+                        active ? 'w-6 sm:w-7 bg-[#0062cc] shadow-xs' : 'w-1.5 sm:w-2 bg-gray-300 dark:bg-neutral-600 group-hover:bg-gray-400'
                       )}
                     />
                   </button>

@@ -362,7 +362,7 @@ export default function HomePage() {
                 <div className="flex justify-center mt-10">
                     <Link
                         to="/shops"
-                        className="px-6 py-3 rounded-full border-2 border-orange-500 text-orange-500 font-bold text-sm hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors"
+                        className="px-6 py-3 rounded-full border-2 border-orange-600 dark:border-orange-500 text-orange-700 dark:text-orange-400 font-bold text-sm hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors"
                     >
                         {t('View All Shops')} →
                     </Link>

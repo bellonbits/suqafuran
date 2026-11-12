@@ -416,18 +416,22 @@ export function HomepageBannerRotation({
 
           {/* Mobile/Tablet dot indicators */}
           {totalCount > 1 && (
-            <div className="flex justify-center items-center gap-1.5 mt-2.5 md:hidden">
+            <div className="flex justify-center items-center gap-0.5 mt-2 md:hidden">
               {Array.from({ length: totalCount }).map((_, i) => (
                 <button
                   key={i}
                   onClick={() => scrollToCard(i)}
-                  className={`h-1.5 rounded-full transition-all ${
-                    i === activeCardIndex
-                      ? 'w-6 bg-[#0078E8]'
-                      : 'w-1.5 bg-gray-300 dark:bg-neutral-700 hover:bg-gray-400'
-                  }`}
+                  className="min-w-[28px] min-h-[28px] p-1 flex items-center justify-center cursor-pointer"
                   aria-label={`Go to banner ${i + 1}`}
-                />
+                >
+                  <span
+                    className={`h-1.5 rounded-full transition-all block ${
+                      i === activeCardIndex
+                        ? 'w-6 bg-[#0062cc]'
+                        : 'w-1.5 bg-gray-300 dark:bg-neutral-700 hover:bg-gray-400'
+                    }`}
+                  />
+                </button>
               ))}
             </div>
           )}
@@ -469,16 +473,20 @@ export function HomepageBannerRotation({
 
       {/* Dot indicators */}
       {rotates && (
-        <div className={`absolute left-1/2 -translate-x-1/2 flex gap-2 z-10 bottom-4`}>
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 z-10 bottom-3">
           {banners.map((_, index) => (
             <button
               key={index}
               onClick={() => goTo(index, index > currentIndex ? 'next' : 'prev')}
-              className={`h-2 rounded-full transition-all ${
-                index === currentIndex ? 'bg-white w-8' : 'bg-white/50 w-2'
-              }`}
+              className="min-w-[28px] min-h-[28px] p-1 flex items-center justify-center cursor-pointer"
               aria-label={`Go to banner ${index + 1}`}
-            />
+            >
+              <span
+                className={`h-2 rounded-full transition-all block ${
+                  index === currentIndex ? 'bg-white w-8' : 'bg-white/50 w-2'
+                }`}
+              />
+            </button>
           ))}
         </div>
       )}

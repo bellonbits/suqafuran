@@ -26,22 +26,22 @@ export const Footer: React.FC = () => {
 
                     {/* Quick links */}
                     <div>
-                        <h3 className="text-xs font-bold text-gray-400 dark:text-neutral-400 uppercase tracking-wider">
+                        <h3 className="text-xs font-extrabold text-slate-700 dark:text-neutral-200 uppercase tracking-wider">
                             Resources
                         </h3>
                         <ul className="mt-3 space-y-2">
                             <li>
-                                <Link href="/search" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-neutral-200 dark:hover:text-sky-400">
+                                <Link href="/search" className="text-xs font-medium text-slate-700 hover:text-sky-700 dark:text-neutral-300 dark:hover:text-sky-300">
                                     Browse Ads
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/seller-dashboard/products/add" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-neutral-200 dark:hover:text-sky-400">
+                                <Link href="/seller-dashboard/products/add" className="text-xs font-medium text-slate-700 hover:text-sky-700 dark:text-neutral-300 dark:hover:text-sky-300">
                                     Post a Listing
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/seller-dashboard" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-neutral-200 dark:hover:text-sky-400">
+                                <Link href="/seller-dashboard" className="text-xs font-medium text-slate-700 hover:text-sky-700 dark:text-neutral-300 dark:hover:text-sky-300">
                                     Seller Dashboard
                                 </Link>
                             </li>
@@ -50,27 +50,27 @@ export const Footer: React.FC = () => {
 
                     {/* Support & Legal */}
                     <div>
-                        <h3 className="text-xs font-bold text-gray-400 dark:text-neutral-400 uppercase tracking-wider">
+                        <h3 className="text-xs font-extrabold text-slate-700 dark:text-neutral-200 uppercase tracking-wider">
                             Support &amp; Legal
                         </h3>
                         <ul className="mt-3 space-y-2">
                             <li>
-                                <Link href="/help-center" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-neutral-200 dark:hover:text-sky-400">
+                                <Link href="/help-center" className="text-xs font-medium text-slate-700 hover:text-sky-700 dark:text-neutral-300 dark:hover:text-sky-300">
                                     Help Center
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/safe-trading-tips" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-neutral-200 dark:hover:text-sky-400">
+                                <Link href="/safe-trading-tips" className="text-xs font-medium text-slate-700 hover:text-sky-700 dark:text-neutral-300 dark:hover:text-sky-300">
                                     Safe Trading Tips
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/terms-of-use" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-neutral-200 dark:hover:text-sky-400">
+                                <Link href="/terms-of-use" className="text-xs font-medium text-slate-700 hover:text-sky-700 dark:text-neutral-300 dark:hover:text-sky-300">
                                     Terms of Use
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/return-policy" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-neutral-200 dark:hover:text-sky-400">
+                                <Link href="/return-policy" className="text-xs font-medium text-slate-700 hover:text-sky-700 dark:text-neutral-300 dark:hover:text-sky-300">
                                     Return &amp; Refund Policy
                                 </Link>
                             </li>
@@ -78,9 +78,9 @@ export const Footer: React.FC = () => {
                                 <button
                                     type="button"
                                     onClick={openCookieSettings}
-                                    className="text-xs font-medium text-gray-600 hover:text-primary dark:text-neutral-200 dark:hover:text-sky-400 flex items-center gap-1.5 cursor-pointer text-left"
+                                    className="text-xs font-medium text-slate-700 hover:text-sky-700 dark:text-neutral-300 dark:hover:text-sky-300 flex items-center gap-1.5 cursor-pointer text-left"
                                 >
-                                    <Cookie className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                                    <Cookie className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400 shrink-0" />
                                     <span>Cookie Settings</span>
                                 </button>
                             </li>
@@ -89,27 +89,27 @@ export const Footer: React.FC = () => {
 
                     {/* Marketplace */}
                     <div>
-                        <h3 className="text-xs font-bold text-gray-400 dark:text-neutral-400 uppercase tracking-wider">
+                        <h3 className="text-xs font-extrabold text-slate-700 dark:text-neutral-200 uppercase tracking-wider">
                             Marketplace
                         </h3>
                         <ul className="mt-3 space-y-2">
                             <li>
-                                <Link href="/orders" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-neutral-200 dark:hover:text-sky-400">
+                                <Link href="/orders" className="text-xs font-medium text-slate-700 hover:text-sky-700 dark:text-neutral-300 dark:hover:text-sky-300">
                                     My Orders
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/price-alerts" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-neutral-200 dark:hover:text-sky-400">
+                                <Link href="/price-alerts" className="text-xs font-medium text-slate-700 hover:text-sky-700 dark:text-neutral-300 dark:hover:text-sky-300">
                                     Price Alerts
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/saved-searches" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-neutral-200 dark:hover:text-sky-400">
+                                <Link href="/saved-searches" className="text-xs font-medium text-slate-700 hover:text-sky-700 dark:text-neutral-300 dark:hover:text-sky-300">
                                     Saved Searches
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/settings/notifications" className="text-xs font-medium text-gray-600 hover:text-primary dark:text-neutral-200 dark:hover:text-sky-400">
+                                <Link href="/settings/notifications" className="text-xs font-medium text-slate-700 hover:text-sky-700 dark:text-neutral-300 dark:hover:text-sky-300">
                                     Notifications
                                 </Link>
                             </li>
@@ -118,14 +118,14 @@ export const Footer: React.FC = () => {
 
                     {/* Regions */}
                     <div>
-                        <h3 className="text-xs font-bold text-gray-400 dark:text-neutral-400 uppercase tracking-wider">
+                        <h3 className="text-xs font-extrabold text-slate-700 dark:text-neutral-200 uppercase tracking-wider">
                             Regions
                         </h3>
                         <ul className="mt-3 space-y-2">
-                            <li className="text-xs text-gray-500 dark:text-neutral-300 font-medium">Somalia</li>
-                            <li className="text-xs text-gray-500 dark:text-neutral-300 font-medium">Kenya</li>
-                            <li className="text-xs text-gray-500 dark:text-neutral-300 font-medium">Ethiopia</li>
-                            <li className="text-xs text-gray-500 dark:text-neutral-300 font-medium">Djibouti</li>
+                            <li className="text-xs text-slate-700 dark:text-neutral-300 font-medium">Somalia</li>
+                            <li className="text-xs text-slate-700 dark:text-neutral-300 font-medium">Kenya</li>
+                            <li className="text-xs text-slate-700 dark:text-neutral-300 font-medium">Ethiopia</li>
+                            <li className="text-xs text-slate-700 dark:text-neutral-300 font-medium">Djibouti</li>
                         </ul>
                     </div>
                 </div>
@@ -135,10 +135,10 @@ export const Footer: React.FC = () => {
                     <div className="flex flex-col md:flex-row items-center justify-between gap-5 bg-slate-50/80 dark:bg-neutral-900/60 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-neutral-800">
                         <div className="space-y-1 text-center md:text-left">
                             <div className="flex items-center justify-center md:justify-start gap-2">
-                                <span className="text-[11px] font-black uppercase tracking-wider text-[#0078E8] bg-[#0078E8]/10 dark:bg-[#0078E8]/20 px-2.5 py-0.5 rounded-full">
+                                <span className="text-[11px] font-black uppercase tracking-wider text-[#005fb8] bg-sky-100 dark:text-sky-300 dark:bg-sky-950/60 px-2.5 py-0.5 rounded-full">
                                     Official Apps
                                 </span>
-                                <span className="text-xs font-bold text-gray-600 dark:text-neutral-300">
+                                <span className="text-xs font-bold text-slate-700 dark:text-neutral-200">
                                     Free on iOS &amp; Android
                                 </span>
                             </div>
@@ -202,23 +202,23 @@ export const Footer: React.FC = () => {
 
                 {/* ─── Bottom Copyright & Controls ───────────────────────────── */}
                 <div className="mt-8 border-t border-gray-100 dark:border-neutral-800 pt-5 flex flex-col sm:flex-row justify-between items-center gap-3">
-                    <p className="text-xs text-gray-400 dark:text-neutral-400 font-medium">
+                    <p className="text-xs text-slate-700 dark:text-neutral-300 font-medium">
                         &copy; {new Date().getFullYear()} Suqafuran Ltd. All rights reserved.
                     </p>
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 dark:text-neutral-400">
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-slate-700 dark:text-neutral-300">
                         <button
                             type="button"
                             onClick={openCookieSettings}
-                            className="hover:text-primary dark:hover:text-sky-400 cursor-pointer font-semibold transition-colors"
+                            className="hover:text-sky-700 dark:hover:text-sky-300 cursor-pointer font-semibold transition-colors"
                         >
                             Cookie Preferences
                         </button>
                         <span>•</span>
-                        <Link href="/terms-of-use" className="hover:text-primary dark:hover:text-sky-400 font-medium transition-colors">
+                        <Link href="/terms-of-use" className="hover:text-sky-700 dark:hover:text-sky-300 font-semibold transition-colors">
                             Privacy &amp; Terms
                         </Link>
                         <span>•</span>
-                        <span className="font-bold text-gray-500 dark:text-neutral-400">Premium African Tech Design</span>
+                        <span className="font-bold text-slate-700 dark:text-neutral-300">Premium African Tech Design</span>
                     </div>
                 </div>
             </div>

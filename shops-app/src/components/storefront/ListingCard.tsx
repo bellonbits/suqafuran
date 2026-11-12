@@ -401,7 +401,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
           </h3>
 
           {categoryName && (
-            <p className="text-[11px] font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wide">
+            <p className="text-[11px] font-semibold text-slate-600 dark:text-neutral-300 uppercase tracking-wide">
               {categoryName}
             </p>
           )}

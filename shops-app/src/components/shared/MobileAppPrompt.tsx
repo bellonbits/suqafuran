@@ -111,7 +111,7 @@ export const MobileAppPrompt: React.FC = () => {
               }}
             />
           </div>
-          <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-full bg-emerald-500 text-[9px] font-black uppercase text-white shadow-xs">
+          <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-full bg-emerald-700 text-[9px] font-black uppercase text-white shadow-xs">
             Free
           </span>
         </div>
@@ -156,13 +156,13 @@ export const MobileAppPrompt: React.FC = () => {
         </a>
 
         {/* Secondary Store Link (If user is on Android show iOS or vice-versa) */}
-        <div className="mt-3 flex items-center justify-center gap-2 text-[11px] text-slate-500 dark:text-neutral-400">
+        <div className="mt-3 flex items-center justify-center gap-2 text-[11px] text-slate-600 dark:text-neutral-300">
           <span>Available on:</span>
           <a
             href={GOOGLE_PLAY_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:underline font-bold text-[#0078E8] dark:text-sky-400"
+            className="hover:underline font-bold text-[#005fb8] dark:text-sky-300"
           >
             Google Play
           </a>
@@ -171,7 +171,7 @@ export const MobileAppPrompt: React.FC = () => {
             href={APP_STORE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:underline font-bold text-[#0078E8] dark:text-sky-400"
+            className="hover:underline font-bold text-[#005fb8] dark:text-sky-300"
           >
             App Store
           </a>

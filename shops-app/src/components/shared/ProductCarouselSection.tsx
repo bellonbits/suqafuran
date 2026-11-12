@@ -36,7 +36,8 @@ export function ProductCarouselSection({ title, subtitle, icon, viewAllHref, chi
                 {viewAllHref && (
                     <Link
                         href={viewAllHref}
-                        className="text-sm font-bold text-orange-500 hover:text-orange-600 flex items-center gap-0.5 shrink-0"
+                        aria-label={`View all ${title}`}
+                        className="text-sm font-bold text-orange-700 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 flex items-center gap-0.5 shrink-0"
                     >
                         View All <ChevronRight className="w-4 h-4" />
                     </Link>

@@ -146,7 +146,7 @@ export const ShopCard: React.FC<ShopCardProps> = ({ shop, index = 0, hideRating 
               {displayName}
             </h3>
             {shop.is_verified && (
-              <span className="shrink-0 inline-flex items-center gap-0.5 text-[10px] font-bold text-sky-600 dark:text-sky-400">
+              <span className="shrink-0 inline-flex items-center gap-0.5 text-[10px] font-bold text-sky-700 dark:text-sky-300">
                 <SfIconCheck size="xs" />
                 Verified
               </span>
@@ -155,7 +155,7 @@ export const ShopCard: React.FC<ShopCardProps> = ({ shop, index = 0, hideRating 
 
           {/* Location */}
           {location && (
-            <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-neutral-400">
+            <div className="flex items-center gap-1 text-xs text-slate-600 dark:text-neutral-300">
               <MapPin className="h-3 w-3 shrink-0" />
               <span className="line-clamp-1">{location}</span>
             </div>
@@ -169,7 +169,7 @@ export const ShopCard: React.FC<ShopCardProps> = ({ shop, index = 0, hideRating 
                 <span className="text-gray-800 dark:text-neutral-100">{rating.toFixed(1)}</span>
               </div>
             )}
-            <div className="flex items-center gap-1 text-gray-600 dark:text-neutral-400">
+            <div className="flex items-center gap-1 text-slate-600 dark:text-neutral-300">
               <Package className="h-3 w-3" />
               <span>{listingCount} listings</span>
             </div>
@@ -177,14 +177,10 @@ export const ShopCard: React.FC<ShopCardProps> = ({ shop, index = 0, hideRating 
 
           {/* CTA */}
           <div className="pt-1">
-            <SfButton
-              size="sm"
-              variant="tertiary"
-              slotSuffix={<SfIconArrowForward size="xs" />}
-              className="!p-0 !text-sky-500 hover:!text-sky-600 !font-bold !text-xs !bg-transparent !border-none !h-auto"
-            >
+            <span className="inline-flex items-center gap-1 text-sky-700 dark:text-sky-300 group-hover:text-sky-800 dark:group-hover:text-sky-200 font-bold text-xs transition-colors">
               Visit Shop
-            </SfButton>
+              <SfIconArrowForward size="xs" />
+            </span>
           </div>
         </div>
       </Link>
